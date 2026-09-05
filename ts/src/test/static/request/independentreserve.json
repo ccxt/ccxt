@@ -18,7 +18,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "{\"apiKey\":\"key\",\"nonce\":1704966791,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\",\"secondaryCurrencyCode\":\"Usd\",\"orderType\":\"MarketBid\",\"volume\":0.1}"
+                "output": { "apiKey": "key", "nonce": 1704966791, "signature": "4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61", "primaryCurrencyCode": "Xbt", "secondaryCurrencyCode": "Usd", "orderType": "MarketBid", "volume": 0.1 }
             },
             {
                 "description": "limit buy",
@@ -31,7 +31,7 @@
                     0.1,
                     44000
                 ],
-                "output": "{\"apiKey\":\"key\",\"nonce\":1704966791,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\",\"secondaryCurrencyCode\":\"Usd\",\"orderType\":\"LimitBid\",\"volume\":0.1,\"price\":44000}"
+                "output": { "apiKey": "key", "nonce": 1704966791, "signature": "4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61", "primaryCurrencyCode": "Xbt", "secondaryCurrencyCode": "Usd", "orderType": "LimitBid", "volume": 0.1, "price": 44000 }
             }
         ],
         "fetchDepositAddress": [
@@ -42,7 +42,7 @@
                 "input": [
                   "BTC"
                 ],
-                "output": "{\"apiKey\":\"key\",\"nonce\":1708428106,\"signature\":\"4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61\",\"primaryCurrencyCode\":\"Xbt\"}"
+                "output": { "apiKey": "key", "nonce": 1708428106, "signature": "4125F18EEBC077BDB02DA1FB95D3499842183986F9A20927F3125F611A1ACA61", "primaryCurrencyCode": "Xbt" }
             }
         ],
         "withdraw": [
@@ -56,7 +56,7 @@
                   "rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2",
                   "376382"
                 ],
-                "output": "{\"apiKey\":\"23974850e-39kd-393d-393d-12038540\",\"nonce\":1721298323,\"signature\":\"AALSDKJFLKJEKLJLKJLKAWJLKJJLKASJLDKGJALSKDJ\",\"primaryCurrencyCode\":\"Xrp\",\"withdrawalAddress\":\"rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2\",\"amount\":\"35.03221\",\"destinationTag\":\"376382\"}"
+                "output": { "apiKey": "23974850e-39kd-393d-393d-12038540", "nonce": 1721298323, "signature": "AALSDKJFLKJEKLJLKJLKAWJLKJJLKASJLDKGJALSKDJ", "primaryCurrencyCode": "Xrp", "withdrawalAddress": "rs2dgzYeqYqsk8bvkQR5YPyqsXYcA24MP2", "amount": "35.03221", "destinationTag": "376382" }
             }
         ]
     }

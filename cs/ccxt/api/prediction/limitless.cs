@@ -12,409 +12,409 @@ public partial class limitless : PredictionExchange
     public limitless (object args = null): base(args) {}
 
     /// <summary>Calls the limitlessPublicGetMarketsActive endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsActive (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsActive (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsActive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsActive",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsActiveCategoryId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsActiveCategoryId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsActiveCategoryId (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsActiveCategoryId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsActiveCategoryId",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetCategories endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPublicGetCategories (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPublicGetCategories (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetCategories",parameters);
+        return await this.callAsync<List<object>> ("limitlessPublicGetCategories",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsAddressOrSlug endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsAddressOrSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsAddressOrSlug (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsAddressOrSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsAddressOrSlug",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsCategoriesCount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsCategoriesCount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsCategoriesCount (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsCategoriesCount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsCategoriesCount",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsActiveSlugs endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsActiveSlugs (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPublicGetMarketsActiveSlugs (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsActiveSlugs",parameters);
+        return await this.callAsync<List<object>> ("limitlessPublicGetMarketsActiveSlugs",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsSearch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsSearch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsSearch (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsSearch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsSearch",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsSlugOrderbook endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsSlugOrderbook (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsSlugOrderbook (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsSlugOrderbook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsSlugOrderbook",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsSlugHistoricalPrice endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsSlugHistoricalPrice (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsSlugHistoricalPrice (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsSlugHistoricalPrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsSlugHistoricalPrice",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetAuthSigningMessage endpoint.</summary>
-    /// <returns>a JSON scalar (runtime type: string)</returns>
-    public async Task<object> limitlessPublicGetAuthSigningMessage (object parameters = null)
+    /// <returns>a JSON scalar</returns>
+    public async Task<string> limitlessPublicGetAuthSigningMessage (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetAuthSigningMessage",parameters);
+        return await this.callAsync<string> ("limitlessPublicGetAuthSigningMessage",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsAddressOrSlugOracleCandles endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsAddressOrSlugOracleCandles (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsAddressOrSlugOracleCandles (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsAddressOrSlugOracleCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsAddressOrSlugOracleCandles",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsSlugGetFeedEvents endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsSlugGetFeedEvents (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsSlugGetFeedEvents (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsSlugGetFeedEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsSlugGetFeedEvents",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsSlugEvents endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsSlugEvents (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsSlugEvents (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsSlugEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsSlugEvents",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsTimeline endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsTimeline (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsTimeline (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsTimeline",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsTimeline",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketsSlugTimeline endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketsSlugTimeline (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketsSlugTimeline (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketsSlugTimeline",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketsSlugTimeline",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetNavigation endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPublicGetNavigation (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPublicGetNavigation (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetNavigation",parameters);
+        return await this.callAsync<List<object>> ("limitlessPublicGetNavigation",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketPagesByPath endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketPagesByPath (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketPagesByPath (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketPagesByPath",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketPagesByPath",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetMarketPagesIdMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetMarketPagesIdMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetMarketPagesIdMarkets (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetMarketPagesIdMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetMarketPagesIdMarkets",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetPropertyKeys endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPublicGetPropertyKeys (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPublicGetPropertyKeys (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetPropertyKeys",parameters);
+        return await this.callAsync<List<object>> ("limitlessPublicGetPropertyKeys",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetPropertyKeysId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetPropertyKeysId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetPropertyKeysId (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetPropertyKeysId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetPropertyKeysId",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetPropertyKeysIdOptions endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPublicGetPropertyKeysIdOptions (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPublicGetPropertyKeysIdOptions (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetPropertyKeysIdOptions",parameters);
+        return await this.callAsync<List<object>> ("limitlessPublicGetPropertyKeysIdOptions",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetPortfolioAccountTradedVolume endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetPortfolioAccountTradedVolume (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetPortfolioAccountTradedVolume (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetPortfolioAccountTradedVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetPortfolioAccountTradedVolume",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetPortfolioAccountPositions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetPortfolioAccountPositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetPortfolioAccountPositions (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetPortfolioAccountPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetPortfolioAccountPositions",parameters);
     }
 
     /// <summary>Calls the limitlessPublicGetPortfolioAccountPnlChart endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPublicGetPortfolioAccountPnlChart (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPublicGetPortfolioAccountPnlChart (object parameters = null)
     {
-        return await this.callAsync ("limitlessPublicGetPortfolioAccountPnlChart",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPublicGetPortfolioAccountPnlChart",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetAuthApiKeys endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetAuthApiKeys (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetAuthApiKeys (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetAuthApiKeys",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetAuthApiKeys",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetProfilesPartnerAccounts endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetProfilesPartnerAccounts (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetProfilesPartnerAccounts (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetProfilesPartnerAccounts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetProfilesPartnerAccounts",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetMarketsSlugUserOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPrivateGetMarketsSlugUserOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPrivateGetMarketsSlugUserOrders (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetMarketsSlugUserOrders",parameters);
+        return await this.callAsync<List<object>> ("limitlessPrivateGetMarketsSlugUserOrders",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetPortfolioPositions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetPortfolioPositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetPortfolioPositions (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetPortfolioPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetPortfolioPositions",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetPortfolioTrades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetPortfolioTrades (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetPortfolioTrades (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetPortfolioTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetPortfolioTrades",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetMarketsSlugLockedBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetMarketsSlugLockedBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetMarketsSlugLockedBalance (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetMarketsSlugLockedBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetMarketsSlugLockedBalance",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetProfilesMe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetProfilesMe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetProfilesMe (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetProfilesMe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetProfilesMe",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetProfilesAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetProfilesAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetProfilesAccount (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetProfilesAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetProfilesAccount",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetPortfolioPnlChart endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetPortfolioPnlChart (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetPortfolioPnlChart (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetPortfolioPnlChart",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetPortfolioPnlChart",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetPortfolioHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetPortfolioHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetPortfolioHistory (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetPortfolioHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetPortfolioHistory",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetPortfolioPoints endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetPortfolioPoints (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetPortfolioPoints (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetPortfolioPoints",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetPortfolioPoints",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetPortfolioTradingAllowance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetPortfolioTradingAllowance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetPortfolioTradingAllowance (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetPortfolioTradingAllowance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetPortfolioTradingAllowance",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetAuthApiTokensCapabilities endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetAuthApiTokensCapabilities (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetAuthApiTokensCapabilities (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetAuthApiTokensCapabilities",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetAuthApiTokensCapabilities",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetAuthApiTokens endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> limitlessPrivateGetAuthApiTokens (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> limitlessPrivateGetAuthApiTokens (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetAuthApiTokens",parameters);
+        return await this.callAsync<List<object>> ("limitlessPrivateGetAuthApiTokens",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostAuthLogout endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostAuthLogout (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostAuthLogout (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostAuthLogout",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostAuthLogout",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostAuthApiKeys endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostAuthApiKeys (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostAuthApiKeys (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostAuthApiKeys",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostAuthApiKeys",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostAuthLogin endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostAuthLogin (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostAuthLogin (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostAuthLogin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostAuthLogin",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostOrders (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostOrders",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostOrdersCancel endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostOrdersCancel (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostOrdersCancel (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostOrdersCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostOrdersCancel",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostOrdersCancelBatch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostOrdersCancelBatch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostOrdersCancelBatch (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostOrdersCancelBatch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostOrdersCancelBatch",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostOrdersBatchCancel endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostOrdersBatchCancel (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostOrdersBatchCancel (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostOrdersBatchCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostOrdersBatchCancel",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostOrdersStatusBatch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostOrdersStatusBatch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostOrdersStatusBatch (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostOrdersStatusBatch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostOrdersStatusBatch",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostPortfolioRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostPortfolioRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostPortfolioRedeem (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostPortfolioRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostPortfolioRedeem",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostPortfolioWithdraw endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostPortfolioWithdraw (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostPortfolioWithdraw (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostPortfolioWithdraw",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostPortfolioWithdraw",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostPortfolioWithdrawalAddresses endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostPortfolioWithdrawalAddresses (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostPortfolioWithdrawalAddresses (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostPortfolioWithdrawalAddresses",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostPortfolioWithdrawalAddresses",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostAuthApiTokensDerive endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostAuthApiTokensDerive (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostAuthApiTokensDerive (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostAuthApiTokensDerive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostAuthApiTokensDerive",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostProfilesPartnerAccounts endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostProfilesPartnerAccounts (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostProfilesPartnerAccounts (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostProfilesPartnerAccounts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostProfilesPartnerAccounts",parameters);
     }
 
     /// <summary>Calls the limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateDeleteAuthApiKeys endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateDeleteAuthApiKeys (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateDeleteAuthApiKeys (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateDeleteAuthApiKeys",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateDeleteAuthApiKeys",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateDeleteOrdersOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateDeleteOrdersOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateDeleteOrdersOrderId (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateDeleteOrdersOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateDeleteOrdersOrderId",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateDeleteOrdersAllSlug endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateDeleteOrdersAllSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateDeleteOrdersAllSlug (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateDeleteOrdersAllSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateDeleteOrdersAllSlug",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateDeleteAuthApiTokensTokenId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateDeleteAuthApiTokensTokenId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateDeleteAuthApiTokensTokenId (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateDeleteAuthApiTokensTokenId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateDeleteAuthApiTokensTokenId",parameters);
     }
 
     /// <summary>Calls the limitlessPrivateDeletePortfolioWithdrawalAddressesAddress endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> limitlessPrivateDeletePortfolioWithdrawalAddressesAddress (object parameters = null)
     {
-        return await this.callAsync ("limitlessPrivateDeletePortfolioWithdrawalAddressesAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("limitlessPrivateDeletePortfolioWithdrawalAddressesAddress",parameters);
     }
 
 }

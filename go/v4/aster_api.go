@@ -112,7 +112,7 @@ func (this *AsterCore) FapiPublicGetV1PremiumIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1PremiumIndex", args...)
 }
 
-// FapiPublicGetV3PremiumIndex returns a channel that yields a JSON object.
+// FapiPublicGetV3PremiumIndex returns a channel that yields a JSON object or a JSON array.
 func (this *AsterCore) FapiPublicGetV3PremiumIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV3PremiumIndex", args...)
 }
@@ -142,7 +142,7 @@ func (this *AsterCore) FapiPublicGetV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV1Ticker24hr", args...)
 }
 
-// FapiPublicGetV3Ticker24hr returns a channel that yields a JSON array.
+// FapiPublicGetV3Ticker24hr returns a channel that yields a JSON object or a JSON array.
 func (this *AsterCore) FapiPublicGetV3Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPublicGetV3Ticker24hr", args...)
 }
@@ -247,7 +247,7 @@ func (this *AsterCore) FapiPrivateGetV2Balance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV2Balance", args...)
 }
 
-// FapiPrivateGetV3Balance returns a channel that yields a JSON object.
+// FapiPrivateGetV3Balance returns a channel that yields a JSON array.
 func (this *AsterCore) FapiPrivateGetV3Balance(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV3Balance", args...)
 }
@@ -662,7 +662,7 @@ func (this *AsterCore) SapiPublicGetV3Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV3Klines", args...)
 }
 
-// SapiPublicGetV3Ticker24hr returns a channel that yields a JSON array.
+// SapiPublicGetV3Ticker24hr returns a channel that yields a JSON object or a JSON array.
 func (this *AsterCore) SapiPublicGetV3Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPublicGetV3Ticker24hr", args...)
 }

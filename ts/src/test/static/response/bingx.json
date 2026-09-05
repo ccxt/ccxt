@@ -825,6 +825,118 @@
                     "previousFundingDatetime": null,
                     "interval": null
                 }
+            },
+            {
+                "description": "fetch funding rate inverse",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456049,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastFundingRate": "0.0001",
+                            "markPrice": "76881.8",
+                            "indexPrice": "76922.2",
+                            "nextFundingTime": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastFundingRate": "0.0001",
+                        "markPrice": "76881.8",
+                        "indexPrice": "76922.2",
+                        "nextFundingTime": 1787356800000
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": 76881.8,
+                    "indexPrice": 76922.2,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1787356800000,
+                    "nextFundingDatetime": "2026-08-22T00:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest linear",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "openInterest": "3289641547.10",
+                        "symbol": "BTC-USDT",
+                        "time": 1672026617364
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterestAmount": null,
+                    "openInterestValue": 3289641547.1,
+                    "timestamp": 1672026617364,
+                    "datetime": "2022-12-26T03:50:17.364Z",
+                    "info": {
+                        "openInterest": "3289641547.10",
+                        "symbol": "BTC-USDT",
+                        "time": 1672026617364
+                    }
+                }
+            },
+            {
+                "description": "fetch open interest inverse",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456489,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "openInterest": "1152.6776",
+                            "timestamp": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterestAmount": 1152.6776,
+                    "openInterestValue": null,
+                    "timestamp": 1787356800000,
+                    "datetime": "2026-08-22T00:00:00.000Z",
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "openInterest": "1152.6776",
+                        "timestamp": 1787356800000
+                    }
+                }
             }
         ],
         "fetchTransfers": [
@@ -916,9 +1028,9 @@
                             "transferId": "1051461075875997081703"
                         }
                     },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "id": "1051461075875997081703",
+                    "timestamp": 1752202170686,
+                    "datetime": "2025-07-11T02:49:30.686Z",
                     "currency": "LTC",
                     "amount": 0.05,
                     "fromAccount": "swap",
@@ -952,9 +1064,9 @@
                             "transferId": "1051461077440303243364"
                         }
                     },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "id": "1051461077440303243364",
+                    "timestamp": 1752202545982,
+                    "datetime": "2025-07-11T02:55:45.982Z",
                     "currency": "USDT",
                     "amount": 10,
                     "fromAccount": "spot",
@@ -3619,6 +3731,42 @@
         ],
         "fetchDepositAddressesByNetwork": [
             {
+                "description": "usdt address without addressWithPrefix",
+                "method": "fetchDepositAddressesByNetwork",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "timestamp": "1730886872514",
+                  "data": {
+                    "data": [
+                      {
+                        "coinId": "780",
+                        "coin": "USDT",
+                        "network": "TRC20",
+                        "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                      }
+                    ],
+                    "total": "1"
+                  }
+                },
+                "parsedResponse": {
+                  "TRC20": {
+                    "info": {
+                      "coinId": "780",
+                      "coin": "USDT",
+                      "network": "TRC20",
+                      "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TabPi4x2hCN6DBKqAL86vdMRD7HxzcBnRf",
+                    "tag": null
+                  }
+                }
+            },
+            {
                 "description": "usdt addresses with prefix",
                 "method": "fetchDepositAddressesByNetwork",
                 "input": [
@@ -4087,6 +4235,142 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetch inverse swap order fee currency",
+                "method": "fetchOrder",
+                "input": [
+                  "1816342420721254400",
+                  "SOL/USD:SOL"
+                ],
+                "httpResponse": {
+                  "code": 0,
+                  "msg": "",
+                  "data": {
+                    "order": {
+                      "symbol": "SOL-USD",
+                      "orderId": "1816342420721254400",
+                      "side": "BUY",
+                      "positionSide": "Long",
+                      "type": "LIMIT",
+                      "quantity": 1,
+                      "origQty": "",
+                      "price": "150",
+                      "executedQty": "1",
+                      "avgPrice": "150.000",
+                      "cumQuote": "",
+                      "stopPrice": "",
+                      "profit": "0.0000",
+                      "commission": "-0.00005475",
+                      "status": "FILLED",
+                      "time": 1721884753767,
+                      "updateTime": 1721884753786,
+                      "clientOrderId": "",
+                      "leverage": "",
+                      "takeProfit": {
+                        "type": "",
+                        "quantity": 0,
+                        "stopPrice": 0,
+                        "price": 0,
+                        "workingType": "MARK_PRICE",
+                        "stopGuaranteed": ""
+                      },
+                      "stopLoss": {
+                        "type": "",
+                        "quantity": 0,
+                        "stopPrice": 0,
+                        "price": 0,
+                        "workingType": "MARK_PRICE",
+                        "stopGuaranteed": ""
+                      },
+                      "advanceAttr": 0,
+                      "positionID": 0,
+                      "takeProfitEntrustPrice": 0,
+                      "stopLossEntrustPrice": 0,
+                      "orderType": "",
+                      "workingType": "MARK_PRICE"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "SOL-USD",
+                    "orderId": "1816342420721254400",
+                    "side": "BUY",
+                    "positionSide": "Long",
+                    "type": "LIMIT",
+                    "quantity": 1,
+                    "origQty": "",
+                    "price": "150",
+                    "executedQty": "1",
+                    "avgPrice": "150.000",
+                    "cumQuote": "",
+                    "stopPrice": "",
+                    "profit": "0.0000",
+                    "commission": "-0.00005475",
+                    "status": "FILLED",
+                    "time": 1721884753767,
+                    "updateTime": 1721884753786,
+                    "clientOrderId": "",
+                    "leverage": "",
+                    "takeProfit": {
+                      "type": "",
+                      "quantity": 0,
+                      "stopPrice": 0,
+                      "price": 0,
+                      "workingType": "MARK_PRICE",
+                      "stopGuaranteed": ""
+                    },
+                    "stopLoss": {
+                      "type": "",
+                      "quantity": 0,
+                      "stopPrice": 0,
+                      "price": 0,
+                      "workingType": "MARK_PRICE",
+                      "stopGuaranteed": ""
+                    },
+                    "advanceAttr": 0,
+                    "positionID": 0,
+                    "takeProfitEntrustPrice": 0,
+                    "stopLossEntrustPrice": 0,
+                    "orderType": "",
+                    "workingType": "MARK_PRICE"
+                  },
+                  "id": "1816342420721254400",
+                  "clientOrderId": null,
+                  "symbol": "SOL/USD:SOL",
+                  "timestamp": 1721884753767,
+                  "datetime": "2024-07-25T05:19:13.767Z",
+                  "lastTradeTimestamp": 1721884753786,
+                  "lastUpdateTimestamp": 1721884753786,
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 150,
+                  "triggerPrice": null,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null,
+                  "average": 150,
+                  "cost": 0.006666666666666666,
+                  "amount": 1,
+                  "filled": 1,
+                  "remaining": 0,
+                  "status": "closed",
+                  "fee": {
+                    "currency": "SOL",
+                    "cost": "0.00005475"
+                  },
+                  "trades": [],
+                  "reduceOnly": null,
+                  "fees": [
+                    {
+                      "currency": "SOL",
+                      "cost": 0.00005475
+                    }
+                  ],
+                  "stopPrice": null
+                }
+            },
+            {
                 "description": "fetch swap order",
                 "method": "fetchOrder",
                 "input": [
@@ -4544,6 +4828,86 @@
                     "initialMargin": 1.9128,
                     "initialMarginPercentage": null,
                     "leverage": 5,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            },
+            {
+                "description": "fetch inverse position",
+                "method": "fetchPositions",
+                "input": [
+                  [
+                    "SOL/USD:SOL"
+                  ]
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": [
+                    {
+                      "symbol": "SOL-USD",
+                      "positionId": "1813080351385337856",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "positionAmt": "1",
+                      "availableAmt": "1",
+                      "unrealizedProfit": "-0.00009074",
+                      "initialMargin": "0.00630398",
+                      "liquidationPrice": 23.968303426677032,
+                      "avgPrice": "158.63",
+                      "leverage": 10,
+                      "markPrice": "158.402",
+                      "riskRate": "0.00123783",
+                      "maxMarginReduction": "0",
+                      "updateTime": 1721107015848
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "SOL-USD",
+                      "positionId": "1813080351385337856",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "positionAmt": "1",
+                      "availableAmt": "1",
+                      "unrealizedProfit": "-0.00009074",
+                      "initialMargin": "0.00630398",
+                      "liquidationPrice": 23.968303426677032,
+                      "avgPrice": "158.63",
+                      "leverage": 10,
+                      "markPrice": "158.402",
+                      "riskRate": "0.00123783",
+                      "maxMarginReduction": "0",
+                      "updateTime": 1721107015848
+                    },
+                    "id": "1813080351385337856",
+                    "symbol": "SOL/USD:SOL",
+                    "notional": null,
+                    "marginMode": "cross",
+                    "liquidationPrice": 23.968303426677032,
+                    "entryPrice": 158.63,
+                    "unrealizedPnl": -0.00009074,
+                    "realizedPnl": null,
+                    "percentage": -1.43,
+                    "contracts": 1,
+                    "contractSize": 1,
+                    "markPrice": 158.402,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": 1721107015848,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 0.00630398,
+                    "initialMarginPercentage": null,
+                    "leverage": 10,
                     "marginRatio": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null

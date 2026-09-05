@@ -86,6 +86,7 @@ class indodax extends Exchange {
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenInterests' => false,
@@ -107,6 +108,7 @@ class indodax extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -371,6 +373,7 @@ class indodax extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $isMaintenance = $this->safe_integer($market, 'is_maintenance');
+            $inMaintenance = ($isMaintenance !== null) && ($isMaintenance !== 0);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -386,7 +389,7 @@ class indodax extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $isMaintenance ? false : true,
+                'active' => $inMaintenance ? false : true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -916,7 +919,7 @@ class indodax extends Exchange {
         $openOrdersResult = $this->safe_dict($response, 'return', array());
         $rawOrders = $openOrdersResult['orders'];
         // array( success => 1, return => array( orders => null )) if no orders
-        if (!$rawOrders) {
+        if (($rawOrders === null) || ($rawOrders === null)) {
             return array();
         }
         // array( success => 1, return => array( orders => array( ... objects ) )) for orders fetched by $symbol
@@ -1294,7 +1297,7 @@ class indodax extends Exchange {
             'withdraw_address' => $address,
             'request_id' => (string) $requestId,
         );
-        if ($tag) {
+        if (($tag !== null) && ($tag !== '')) {
             $request['withdraw_memo'] = $tag;
         }
         $response = $this->privatePostWithdrawCoin($this->extend($request, $params));
@@ -1509,7 +1512,7 @@ class indodax extends Exchange {
             $query = $this->omit($params, $this->extract_params($path));
             $requestPath = '/' . $this->implode_params($path, $params);
             $url = $url . $requestPath;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode_with_array_repeat($query);
             }
         } else {

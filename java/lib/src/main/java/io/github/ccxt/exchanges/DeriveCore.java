@@ -1520,7 +1520,7 @@ public class DeriveCore extends DeriveApi
     {
         Object accountHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
         Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        Object DOMAIN_SEPARATOR = ((Helpers.isTrue((sandboxMode)))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        Object DOMAIN_SEPARATOR = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         Object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         Object prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
@@ -1609,12 +1609,13 @@ public class DeriveCore extends DeriveApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
+            Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
             Object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((sandboxMode)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = this.numberToString(price);
             Object maxFee = null;
             var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
@@ -1626,7 +1627,7 @@ public class DeriveCore extends DeriveApi
             }
             Object maxFeeString = this.numberToString(maxFee);
             Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1650,7 +1651,7 @@ public class DeriveCore extends DeriveApi
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
             {
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
-                if (Helpers.isTrue(Helpers.isTrue(reduceOnly) && Helpers.isTrue(postOnly)))
+                if (Helpers.isTrue(Helpers.isTrue(reduceOnly) && Helpers.isTrue((Helpers.isEqual(postOnly, true)))))
                 {
                     throw new InvalidOrder((String)Helpers.add(this.id, " cannot use reduce only with post only time in force")) ;
                 }
@@ -1686,7 +1687,7 @@ public class DeriveCore extends DeriveApi
             Helpers.addElementToObject(request, "signature", signature);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type")));
             Object response = null;
-            if (Helpers.isTrue(test))
+            if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
                 response = (this.privatePostOrderDebug(this.extend(request, parameters))).join();
             } else
@@ -1810,16 +1811,17 @@ public class DeriveCore extends DeriveApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
+            Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.milliseconds();
             Object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((sandboxMode)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = ((String)this.numberToString(price));
             Object maxFeeString = this.safeString(parameters, "max_fee", "0");
             Object amountString = this.numberToString(amount);
-            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
+            Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
@@ -1843,7 +1845,7 @@ public class DeriveCore extends DeriveApi
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
             {
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
-                if (Helpers.isTrue(Helpers.isTrue(reduceOnly) && Helpers.isTrue(postOnly)))
+                if (Helpers.isTrue(Helpers.isTrue(reduceOnly) && Helpers.isTrue((Helpers.isEqual(postOnly, true)))))
                 {
                     throw new InvalidOrder((String)Helpers.add(this.id, " cannot use reduce only with post only time in force")) ;
                 }
@@ -1996,7 +1998,7 @@ public class DeriveCore extends DeriveApi
             } else
             {
                 Helpers.addElementToObject(request, "order_id", id);
-                if (Helpers.isTrue(isTrigger))
+                if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
                 {
                     response = (this.privatePostCancelTriggerOrder(this.extend(request, parameters))).join();
                 } else
@@ -2184,7 +2186,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "page_size", 500);
             }
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 Helpers.addElementToObject(request, "status", "untriggered");
             }
@@ -2454,7 +2456,7 @@ public class DeriveCore extends DeriveApi
         Object side = this.safeString(order, "direction");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            if (Helpers.isTrue(isBid))
+            if (Helpers.isTrue(Helpers.isEqual(isBid, true)))
             {
                 side = "buy";
             } else
@@ -2856,9 +2858,9 @@ public class DeriveCore extends DeriveApi
             put( "timestamp", timestamp );
             put( "datetime", DeriveCore.this.iso8601(timestamp) );
             put( "lastUpdateTimestamp", null );
-            put( "initialMargin", DeriveCore.this.safeString(position, "initial_margin") );
+            put( "initialMargin", DeriveCore.this.safeNumber(position, "initial_margin") );
             put( "initialMarginPercentage", null );
-            put( "maintenanceMargin", DeriveCore.this.safeString(position, "maintenance_margin") );
+            put( "maintenanceMargin", DeriveCore.this.safeNumber(position, "maintenance_margin") );
             put( "maintenanceMarginPercentage", null );
             put( "entryPrice", null );
             put( "notional", DeriveCore.this.parseNumber(notional) );
@@ -3348,7 +3350,7 @@ public class DeriveCore extends DeriveApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }

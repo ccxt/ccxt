@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
-import { SurveyPopup } from '@/components/survey-popup';
 import { SiDiscord, SiGithub, SiTelegram } from 'react-icons/si';
 import { appName, basePath, gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
@@ -12,12 +11,12 @@ import homeStrings from '@/lib/i18n-home.json';
 export const metadata: Metadata = {
   title: 'CCXT — API For Crypto Exchanges And Prediction Markets',
   description:
-    'A unified trading library for 100+ crypto exchanges and prediction markets — one API in JavaScript, Python, PHP, C#, Go and Java. Made for developers and AI agents.',
+    'A unified trading library for 100+ crypto exchanges and prediction markets — one API in JavaScript, Python, PHP, C#, Go, Java and Rust. Made for developers and AI agents.',
   openGraph: {
     type: 'website',
     siteName: appName,
     title: 'CCXT — Connect to any exchange',
-    description: 'One unified trading API across 100+ crypto exchanges and prediction markets — JS, Python, PHP, C#, Go and Java.',
+    description: 'One unified trading API across 100+ crypto exchanges and prediction markets — JS, Python, PHP, C#, Go, Java and Rust.',
     // basePath-prefixed so the social-card URL resolves under /v2 (Next doesn't add it).
     // explicit width/height so Telegram/WhatsApp render the large card (they don't fetch
     // dimensions reliably; without these the preview falls back to a tiny thumbnail or none).
@@ -43,7 +42,6 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
   const prefix = lang === i18n.defaultLanguage ? '' : `/${lang}`;
   return (
     <main className="flex flex-1 flex-col items-center px-4 pt-8 pb-16 sm:pt-10 sm:pb-20">
-      <SurveyPopup />
       {/* hero heading */}
       <div className="mb-10 flex max-w-3xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1.5 text-xs font-medium text-fd-muted-foreground">

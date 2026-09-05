@@ -32,7 +32,7 @@ func (this *HollaexCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-// PublicGetTickers returns a channel that yields a JSON array.
+// PublicGetTickers returns a channel that yields a JSON object.
 func (this *HollaexCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }

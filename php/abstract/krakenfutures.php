@@ -34,6 +34,12 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_tickers_symbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_history($params = array()) {
         return $this->request('history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -50,7 +56,7 @@ abstract class krakenfutures extends \ccxt\Exchange {
         return $this->request('feeschedules/volumes', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function private_get_openpositions($params = array()) {
         return $this->request('openpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -268,6 +274,12 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetTickersSymbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetHistory($params = array()) {
         return $this->request('history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -284,7 +296,7 @@ abstract class krakenfutures extends \ccxt\Exchange {
         return $this->request('feeschedules/volumes', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function privateGetOpenpositions($params = array()) {
         return $this->request('openpositions', 'private', 'GET', $params, null, null, array("cost" => 1));

@@ -95,6 +95,7 @@ export default class cex extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -367,7 +368,8 @@ export default class cex extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
-        const type = this.safeBool (rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        const isFiat = (this.safeBool (rawCurrency, 'fiat') === true);
+        const type = isFiat ? 'fiat' : 'crypto';
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
@@ -1651,7 +1653,7 @@ export default class cex extends Exchange {
             transfer = await this.transferBetweenMainAndSubAccount (code, amount, fromAccount, toAccount, params);
         }
         const fillResponseFromRequest = this.handleOption ('transfer', 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
         }
@@ -1819,7 +1821,7 @@ export default class cex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             } else {

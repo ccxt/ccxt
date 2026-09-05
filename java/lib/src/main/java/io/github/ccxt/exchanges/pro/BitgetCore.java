@@ -116,7 +116,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             var instTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) instTypeparametersVariable).get(1);
-        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.GetValue(market, "swap"))) || Helpers.isTrue((Helpers.GetValue(market, "future")))))
+        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
         {
             var instTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
@@ -503,7 +503,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object market = this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
@@ -843,7 +843,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object volumeIndex = 5;
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
         {
             volumeIndex = 6;
         }
@@ -1108,7 +1108,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             Object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isSnapshot) && Helpers.isTrue(checksum)) && Helpers.isTrue((!Helpers.isEqual(responseChecksum, null)))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isSnapshot) && Helpers.isTrue((Helpers.isEqual(checksum, true)))) && Helpers.isTrue((!Helpers.isEqual(responseChecksum, null)))))
             {
                 Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
                 Object storedBids = Helpers.GetValue(storedOrderBook, "bids");
@@ -1291,7 +1291,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-            if (Helpers.isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+            if (Helpers.isTrue(Helpers.isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true)))
             {
                 Object filtered = this.removeRepeatedTradesFromArray(result);
                 filtered = this.sortBy(filtered, "timestamp");
@@ -1870,7 +1870,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             var isTriggerparametersVariable = this.isTriggerOrder(parameters);
             isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isTriggerparametersVariable).get(1);
-            Object messageHash = ((Helpers.isTrue((isTrigger)))) ? "triggerOrder" : "order";
+            Object messageHash = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "triggerOrder" : "order";
             Object subscriptionHash = "order:trades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1923,12 +1923,12 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 subscriptionHash = Helpers.add(Helpers.add(subscriptionHash, ":"), symbol);
             }
-            if (Helpers.isTrue(isTrigger))
+            if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 subscriptionHash = Helpers.add(subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
             }
             Object instId = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin")))))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-            Object channel = ((Helpers.isTrue(isTrigger))) ? "orders-algo" : "orders";
+            Object channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -2915,20 +2915,20 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         client.resolve(this.balance, messageHash);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPublic(Object uta, Object messageHash, Object args, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchPublic(Object uta2, Object messageHash, Object args, Object... optionalArgs)
     {
-
+        final Object uta3 = uta2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object url = ((Helpers.isTrue(uta))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
+            Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-            if (Helpers.isTrue(sandboxMode))
+            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object instType = this.safeString(args, "instType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(instType, "SCOIN-FUTURES"))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDT-FUTURES")))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDC-FUTURES")))))
                 {
-                    if (Helpers.isTrue(uta))
+                    if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                     {
                         url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "utaPublic");
                     } else
@@ -2947,20 +2947,20 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> unWatchPublic(Object uta, Object messageHash, Object args, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchPublic(Object uta2, Object messageHash, Object args, Object... optionalArgs)
     {
-
+        final Object uta3 = uta2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object url = ((Helpers.isTrue(uta))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
+            Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-            if (Helpers.isTrue(sandboxMode))
+            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object instType = this.safeString(args, "instType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(instType, "SCOIN-FUTURES"))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDT-FUTURES")))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDC-FUTURES")))))
                 {
-                    if (Helpers.isTrue(uta))
+                    if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                     {
                         url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "utaPublic");
                     } else
@@ -2979,21 +2979,21 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPublicMultiple(Object uta, Object messageHashes, Object argsArray, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchPublicMultiple(Object uta2, Object messageHashes, Object argsArray, Object... optionalArgs)
     {
-
+        final Object uta3 = uta2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object url = ((Helpers.isTrue(uta))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
+            Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-            if (Helpers.isTrue(sandboxMode))
+            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object argsArrayFirst = this.safeDict(argsArray, 0, new java.util.HashMap<String, Object>() {{}});
                 Object instType = this.safeString(argsArrayFirst, "instType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(instType, "SCOIN-FUTURES"))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDT-FUTURES")))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDC-FUTURES")))))
                 {
-                    url = ((Helpers.isTrue(uta))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "public");
+                    url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "public");
                 }
             }
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3042,20 +3042,20 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchPrivate(Object uta, Object messageHash, Object subscriptionHash, Object args, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchPrivate(Object uta2, Object messageHash, Object subscriptionHash, Object args, Object... optionalArgs)
     {
-
+        final Object uta3 = uta2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object url = ((Helpers.isTrue(uta))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPrivate") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
+            Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPrivate") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-            if (Helpers.isTrue(sandboxMode))
+            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object instType = this.safeString(args, "instType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(instType, "SCOIN-FUTURES"))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDT-FUTURES")))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDC-FUTURES")))))
                 {
-                    if (Helpers.isTrue(uta))
+                    if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                     {
                         url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "demo"), "utaPrivate");
                     } else
@@ -3207,7 +3207,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //         }
         //     }
         //
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

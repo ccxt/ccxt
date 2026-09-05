@@ -226,6 +226,8 @@ const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
 const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
+const RUST_PATH = './rust/ccxt-base/src/exchanges/'
+const RUST_PREDICTION_PATH = './rust/ccxt-base/src/prediction/'
 const IDEN = '    ';
 
 // -------------------------------------------------------------------------
@@ -378,7 +380,7 @@ function pythonReturnType (exchange: string, method: string): string {
     if (mapped.length === 1) {
         return mapped[0];
     }
-    return 'Union[' + mapped.join (', ') + ']';
+    return mapped.join (' | ');
 }
 
 // the Python aliases one generated module actually uses, so a module that only
@@ -397,51 +399,27 @@ function pythonUsedAliases (exchange: string): string[] {
     return used;
 }
 
-// whether any endpoint on this exchange needs a multi-member return (Union[...])
-function pythonNeedsUnion (exchange: string): boolean {
-    const methods = storedCamelCaseMethods[exchange] || [];
-    for (const method of methods) {
-        if (returnTypeMembers (exchange, method).length > 1) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // storedPyMethods[exchange][1] is the alias block, left empty by createPyHeader
 // for the same reason the TypeScript import line is: the set of shapes an
 // exchange answers with is only known after generateImplicitMethodNames ran.
-// Import only the typing names the aliases/unions actually reference — ruff F401
-// fails the Python qa gate on unused List/Union when a module is Dict-only.
+// Aliases are builtins (list/dict/object) — no typing import.
 function finalizePythonAliases (exchange: string) {
     const aliases = pythonUsedAliases (exchange);
-    const needsUnion = pythonNeedsUnion (exchange);
-    if (!aliases.length && !needsUnion) {
+    if (!aliases.length) {
         storedPyMethods[exchange][1] = '';
         return;
     }
     const spelled: Dict = {
-        '_Dict': 'Dict[str, PythonAny]',
-        '_List': 'List[PythonAny]',
-        '_Any': 'PythonAny',
+        '_Dict': 'dict[str, object]',
+        '_List': 'list[object]',
+        '_Any': 'object',
     };
-    // build the import from the names that appear in the alias RHS or in
-    // Entry[Union[...]] constructions; never import a name that is not used
-    const typingNames: string[] = [ 'Any as PythonAny' ];
-    if (aliases.includes ('_Dict')) {
-        typingNames.push ('Dict');
-    }
-    if (aliases.includes ('_List')) {
-        typingNames.push ('List');
-    }
-    if (needsUnion) {
-        typingNames.push ('Union');
-    }
-    const lines = [ 'from typing import ' + typingNames.join (', '), '' ];
+    // builtins on the Python 3.10 floor — no typing import
+    const lines: string[] = [];
     for (const alias of aliases) {
         lines.push (alias + ' = ' + spelled[alias]);
     }
-    storedPyMethods[exchange][1] = lines.join ('\n');
+    storedPyMethods[exchange][1] = lines.join ('\n') + '\n';
 }
 
 // a one-line prose description of the decoded body, for the languages whose
@@ -511,6 +489,7 @@ let storedPhpMethods: Dict = {};
 let storedPyMethods: Dict = {};
 let storedGoMethods: Dict = {};
 let storedJavaMethods: Dict = {};
+let storedRustMethods: Dict = {};
 // exchange id -> name of the class it derives from ('Exchange' when it derives
 // straight from the base). Used by the Go emitter to skip endpoints the parent
 // core already declares (see createImplicitMethodsGo).
@@ -545,6 +524,7 @@ const langKeys = {
     '--csharp': false,
     '--go': false,
     '--java': false,
+    '--rust': false,
 }
 
 function isHttpMethod(method: string): boolean {
@@ -792,21 +772,35 @@ function createImplicitMethodsCSharp(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
-            // Signature stays Task<object>: Task<T> is reified/invariant, and a
-            // hard is-T filter in callAsync silently dropped real JSON bodies
-            // whenever the declared leaf shape disagreed with the fixture
-            // (STATIC_RESPONSE emptied balances/tickers). Shape is documented
-            // on <returns>; callers that want Task<T> can call callAsync<T>
-            // directly. (Java keeps a typed Future via erasure — different.)
+            // The declared shape lands on the signature, because callAsync is
+            // generic and JsonHelper.Deserialize builds exactly the runtime
+            // types spelled in CSHARP_RETURN_TYPES (Dictionary<string, object>
+            // for a JSON object, List<object> for a JSON array) — the narrowing
+            // is a fact about the decoded body, not a hint.
+            //
+            // Task<T> is invariant, so `Task<Dictionary<string, object>> is
+            // Task<object>` is false: every reflective/dynamic await site has
+            // to normalize through Exchange.AsTaskOfObject (callDynamically,
+            // callDynamicallyAsync, PromiseAll, spawn, and the test harness's
+            // callExchangeMethodDynamically all do). And callAsync<T> never
+            // answers default(T) for a non-null body it could not narrow — a
+            // silent null there is what emptied parseBalance/parseTicker
+            // results under STATIC_RESPONSE; it raises instead, naming the
+            // endpoint and both shapes.
+            //
+            // A union shape has no honest narrowing (the least upper bound of
+            // Dict/List/string is object itself), so those endpoints keep
+            // object and say so in the doc comment.
+            const returns = csharpReturnType (exchange, method);
             const shape = isUnionShape (exchange, method)
                 ? `${proseReturnShape (exchange, method)}, so this endpoint keeps object`
                 : proseReturnShape (exchange, method);
             return [
                 `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
-                `${IDEN}/// <returns>${shape} (runtime type: ${csharpReturnType (exchange, method)})</returns>`,
-                `${IDEN}public async Task<object> ${method} (object parameters = null)`,
+                `${IDEN}/// <returns>${shape}</returns>`,
+                `${IDEN}public async Task<${returns}> ${method} (object parameters = null)`,
                 `${IDEN}{`,
-                `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
+                `${IDEN}${IDEN}return await this.callAsync<${returns}> ("${method}",parameters);`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')
@@ -852,6 +846,47 @@ function createImplicitMethodsJava(){
 }
 
 //-------------------------------------------------------------------------
+
+// Mirror of `build/rustTranspiler.ts::toSnakeCase` so the names we emit
+// match the keys the rust transpiler registers in the implicit-api
+// dispatch table (e.g. `sapiGetCopyTradingFuturesUserStatus` →
+// `sapi_get_copy_trading_futures_user_status`, NOT the dumber
+// `sapi_get_copytrading_futures_userstatus` we'd get from
+// `storedUnderscoreMethods` which lowercases segments without
+// preserving camel boundaries).
+function toRustSnakeCase (s: string): string {
+    return s
+        .replace (/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+        .replace (/([a-z\d])([A-Z])/g, '$1_$2')
+        .toLowerCase ();
+}
+
+function createImplicitMethodsRust(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const camelNames = storedCamelCaseMethods[exchange];
+        const seen = new Set<string>();
+        const methods = camelNames.flatMap((camel: string) => {
+            const snake = toRustSnakeCase(camel);
+            // Two endpoints can collide on snake (e.g. `apiGetX` vs
+            // `apigetX`). Keep the first; downstream calls still resolve
+            // either way via the dispatch table.
+            if (seen.has(snake)) return [];
+            seen.add(snake);
+            return [[
+                `${IDEN}/// Auto-generated wrapper for the \`${camel}\` implicit endpoint.`,
+                `${IDEN}pub async fn ${snake}(&mut self, optional_args: &[Value]) -> Value {`,
+                `${IDEN}${IDEN}self.call_method(Value::Str("${snake}".to_string()), optional_args).await`,
+                `${IDEN}}`,
+                ``,
+            ].join('\n')];
+        });
+        storedRustMethods[exchange] = storedRustMethods[exchange].concat(methods);
+        // Close the `impl <Core>` block opened in createRustHeader.
+        storedRustMethods[exchange].push('}');
+    }
+}
 
 function createImplicitMethodsGo(){
     const exchanges = Object.keys(storedCamelCaseMethods);
@@ -953,6 +988,12 @@ async function editAPIFilesGo(subdir = ''){
     await Promise.all(files.map((path, idx) => writeFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
+async function editAPIFilesRust(basePath = RUST_PATH){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    const files = exchanges.map(ex => basePath + ex + '_api.rs');
+    await Promise.all(files.map((path, idx) => writeFile(path, storedRustMethods[exchanges[idx]].join ('\n') + '\n')))
+}
+
 async function editAPIFilesJava(subdir = ''){
     const exchanges = Object.keys(storedCamelCaseMethods);
     // The api/ dir is auto-generated and not committed (see java/.gitignore),
@@ -1035,6 +1076,28 @@ function createGoHeader(exchange: Exchange, parent: string){
 
 // -------------------------------------------------------------------------
 
+function createRustHeader(exchange: Exchange, parent: string){
+    // Two-line preamble + import block. Each Rust api file lives next to
+    // its `<id>.rs` sibling and adds `impl <CapitalizedId>Core` methods.
+    const id = exchange.id;
+    const coreName = capitalize(id) + 'Core';
+    const header = [
+        getPreamble(),
+        '#![allow(non_snake_case, unused, dead_code, clippy::all)]',
+        '',
+        'use crate::Value;',
+        `use super::${id}::${coreName};`,
+        // call_method (the implicit-API dispatcher) is an ExchangeRuntime trait
+        // method now (review #1: static dispatch); bring the trait into scope.
+        'use crate::exchange::ExchangeRuntime;',
+        '',
+        `impl ${coreName} {`,
+    ].join('\n');
+    storedRustMethods[id] = [ header ];
+}
+
+// -------------------------------------------------------------------------
+
 function createJavaHeader(exchange: Exchange, parent: string){
     // When the parent is another exchange, extend its untyped Core class
     // (CompletableFuture<Object> methods) — extending the typed wrapper would
@@ -1068,6 +1131,13 @@ function populateImplicitMethods(exchanges: string[]) {
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = container[exchange]
+        // Skip ids listed in exchanges.json that the ccxt module no longer
+        // exports (delisted/renamed upstream, e.g. ascendex/coinmetro/oxfun).
+        // Their existing generated api files are left untouched rather than
+        // crashing the whole run on `new undefined()`.
+        if (typeof exchangeClass !== 'function') {
+            continue;
+        }
         const instance = new exchangeClass();
         let api = instance.api
         let describing: any = instance;
@@ -1083,6 +1153,7 @@ function populateImplicitMethods(exchanges: string[]) {
         createPyHeader(instance, parent);
         createGoHeader(instance, parent);
         createJavaHeader(instance, parent);
+        createRustHeader(instance, parent);
 
         storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
@@ -1189,13 +1260,30 @@ async function main() {
 
     await generateImplicitAPIs (allExchanges.ids, shouldGenerateAll);
 
+    const wantRust = shouldGenerateAll || langKeys['--rust'];
+    // Rust `_api.rs` files are emitted per-pass (before the prediction pass
+    // resets storedCamelCaseMethods), so the main exchanges write to
+    // exchanges/ and prediction venues to prediction/.
+    if (wantRust) {
+        createImplicitMethodsRust()
+        await editAPIFilesRust(RUST_PATH)
+    }
+
     // second pass: prediction-market exchanges → abstract/prediction/ subfolders
     const predictionIds = allExchanges.prediction || [];
     if (predictionIds.length) {
         resetStoredMethods ();
         isPrediction = true;
         await generateImplicitAPIs (predictionIds, shouldGenerateAll, 'prediction/');
+        if (wantRust) {
+            createImplicitMethodsRust()
+            await editAPIFilesRust(RUST_PREDICTION_PATH)
+        }
         isPrediction = false;
+    }
+
+    if (wantRust) {
+        log.bright.cyan ('Rust implicit api methods completed!')
     }
 
     // await unlinkFiles (JS_PATH, '.js')

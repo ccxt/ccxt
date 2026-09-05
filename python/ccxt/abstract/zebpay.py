@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_spot_get_v2_system_time = publicSpotGetV2SystemTime = Entry[_Dict]('v2/system/time', ['public', 'spot'], 'GET', {'cost': 10})

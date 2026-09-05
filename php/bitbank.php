@@ -69,6 +69,7 @@ class bitbank extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
+                'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
@@ -1085,7 +1086,7 @@ class bitbank extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1111,7 +1112,7 @@ class bitbank extends Exchange {
                 $auth .= $body;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
-                if ($query) {
+                if (count($query) > 0) {
                     $query = $this->urlencode($query);
                     $url .= '?' . $query;
                     $auth .= '?' . $query;
@@ -1138,7 +1139,7 @@ class bitbank extends Exchange {
         }
         $success = $this->safe_integer($response, 'success');
         $data = $this->safe_value($response, 'data');
-        if (!$success || !$data) {
+        if (($success === null || $success === null || $success === 0) || ($data === null)) {
             $errorMessages = array(
                 '10000' => 'URL does not exist',
                 '10001' => 'A system error occurred. Please contact support',

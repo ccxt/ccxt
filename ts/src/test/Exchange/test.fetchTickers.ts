@@ -23,7 +23,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
 async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
-    assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));
+    testSharedMethods.assertDictionaryResponse (exchange, method, response, exchange.json (argSymbols));
     const values = Object.values (response);
     let checkedSymbol: Str = undefined;
     if (argSymbols !== undefined && argSymbols.length === 1) {

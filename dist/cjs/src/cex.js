@@ -95,6 +95,7 @@ class cex extends cex$1["default"] {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -365,7 +366,8 @@ class cex extends cex$1["default"] {
     parseCurrency(rawCurrency) {
         const id = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(id);
-        const type = this.safeBool(rawCurrency, 'fiat') ? 'fiat' : 'crypto';
+        const isFiat = (this.safeBool(rawCurrency, 'fiat') === true);
+        const type = isFiat ? 'fiat' : 'crypto';
         const currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
         const networks = {};
         const rawNetworks = this.safeDict(rawCurrency, 'blockchains', {});
@@ -1620,7 +1622,7 @@ class cex extends cex$1["default"] {
             transfer = await this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params);
         }
         const fillResponseFromRequest = this.handleOption('transfer', 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
         }
@@ -1783,7 +1785,7 @@ class cex extends cex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

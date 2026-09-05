@@ -411,114 +411,114 @@ func (this *BitteamCore) Describe() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BitteamCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetTradeApiCcxtPairs(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "count": 28,
-		//             "pairs": [
-		//                 {
-		//                     "id": 2,
-		//                     "name": "eth_usdt",
-		//                     "baseAssetId": 2,
-		//                     "quoteAssetId": 3,
-		//                     "fullName": "ETH USDT",
-		//                     "description": "ETH   USDT",
-		//                     "lastBuy": 1964.665001,
-		//                     "lastSell": 1959.835005,
-		//                     "lastPrice": 1964.665001,
-		//                     "change24": 1.41,
-		//                     "volume24": 28.22627543,
-		//                     "volume24USD": 55662.35636401598,
-		//                     "active": true,
-		//                     "baseStep": 8,
-		//                     "quoteStep": 6,
-		//                     "status": 1,
-		//                     "settings": {
-		//                         "limit_usd": "0.1",
-		//                         "price_max": "10000000000000",
-		//                         "price_min": "1",
-		//                         "price_tick": "1",
-		//                         "pricescale": 10000,
-		//                         "lot_size_max": "1000000000000000",
-		//                         "lot_size_min": "1",
-		//                         "lot_size_tick": "1",
-		//                         "price_view_min": 6,
-		//                         "default_slippage": 10,
-		//                         "lot_size_view_min": 6
-		//                     },
-		//                     "updateId": "50620",
-		//                     "timeStart": "2021-01-28T09:19:30.706Z",
-		//                     "makerFee": 200,
-		//                     "takerFee": 200,
-		//                     "quoteVolume24": 54921.93404134529,
-		//                     "lowPrice24": 1919.355,
-		//                     "highPrice24": 1971.204995
-		//                 },
-		//                 {
-		//                     "id": 27,
-		//                     "name": "ltc_usdt",
-		//                     "baseAssetId": 13,
-		//                     "quoteAssetId": 3,
-		//                     "fullName": "LTC USDT",
-		//                     "description": "This is LTC USDT",
-		//                     "lastBuy": 53.14,
-		//                     "lastSell": 53.58,
-		//                     "lastPrice": 53.58,
-		//                     "change24": -6.72,
-		//                     "volume24": 0,
-		//                     "volume24USD": null,
-		//                     "active": true,
-		//                     "baseStep": 8,
-		//                     "quoteStep": 6,
-		//                     "status": 0,
-		//                     "settings": {
-		//                         "limit_usd": "0.1",
-		//                         "price_max": "1000000000000",
-		//                         "price_min": "1",
-		//                         "price_tick": "1",
-		//                         "pricescale": 10000,
-		//                         "lot_size_max": "1000000000000",
-		//                         "lot_size_min": "1",
-		//                         "lot_size_tick": "1",
-		//                         "price_view_min": 6,
-		//                         "default_slippage": 10,
-		//                         "lot_size_view_min": 6
-		//                     },
-		//                     "updateId": "30",
-		//                     "timeStart": "2021-10-13T12:11:05.359Z",
-		//                     "makerFee": 200,
-		//                     "takerFee": 200,
-		//                     "quoteVolume24": 0,
-		//                     "lowPrice24": null,
-		//                     "highPrice24": null
-		//                 }
-		//             ]
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var markets any = this.SafeValue(result, "pairs", []any{})
-
-		ch <- this.ParseMarkets(markets)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetTradeApiCcxtPairs(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "count": 28,
+	//             "pairs": [
+	//                 {
+	//                     "id": 2,
+	//                     "name": "eth_usdt",
+	//                     "baseAssetId": 2,
+	//                     "quoteAssetId": 3,
+	//                     "fullName": "ETH USDT",
+	//                     "description": "ETH   USDT",
+	//                     "lastBuy": 1964.665001,
+	//                     "lastSell": 1959.835005,
+	//                     "lastPrice": 1964.665001,
+	//                     "change24": 1.41,
+	//                     "volume24": 28.22627543,
+	//                     "volume24USD": 55662.35636401598,
+	//                     "active": true,
+	//                     "baseStep": 8,
+	//                     "quoteStep": 6,
+	//                     "status": 1,
+	//                     "settings": {
+	//                         "limit_usd": "0.1",
+	//                         "price_max": "10000000000000",
+	//                         "price_min": "1",
+	//                         "price_tick": "1",
+	//                         "pricescale": 10000,
+	//                         "lot_size_max": "1000000000000000",
+	//                         "lot_size_min": "1",
+	//                         "lot_size_tick": "1",
+	//                         "price_view_min": 6,
+	//                         "default_slippage": 10,
+	//                         "lot_size_view_min": 6
+	//                     },
+	//                     "updateId": "50620",
+	//                     "timeStart": "2021-01-28T09:19:30.706Z",
+	//                     "makerFee": 200,
+	//                     "takerFee": 200,
+	//                     "quoteVolume24": 54921.93404134529,
+	//                     "lowPrice24": 1919.355,
+	//                     "highPrice24": 1971.204995
+	//                 },
+	//                 {
+	//                     "id": 27,
+	//                     "name": "ltc_usdt",
+	//                     "baseAssetId": 13,
+	//                     "quoteAssetId": 3,
+	//                     "fullName": "LTC USDT",
+	//                     "description": "This is LTC USDT",
+	//                     "lastBuy": 53.14,
+	//                     "lastSell": 53.58,
+	//                     "lastPrice": 53.58,
+	//                     "change24": -6.72,
+	//                     "volume24": 0,
+	//                     "volume24USD": null,
+	//                     "active": true,
+	//                     "baseStep": 8,
+	//                     "quoteStep": 6,
+	//                     "status": 0,
+	//                     "settings": {
+	//                         "limit_usd": "0.1",
+	//                         "price_max": "1000000000000",
+	//                         "price_min": "1",
+	//                         "price_tick": "1",
+	//                         "pricescale": 10000,
+	//                         "lot_size_max": "1000000000000",
+	//                         "lot_size_min": "1",
+	//                         "lot_size_tick": "1",
+	//                         "price_view_min": 6,
+	//                         "default_slippage": 10,
+	//                         "lot_size_view_min": 6
+	//                     },
+	//                     "updateId": "30",
+	//                     "timeStart": "2021-10-13T12:11:05.359Z",
+	//                     "makerFee": 200,
+	//                     "takerFee": 200,
+	//                     "quoteVolume24": 0,
+	//                     "lowPrice24": null,
+	//                     "highPrice24": null
+	//                 }
+	//             ]
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var markets any = this.SafeValue(result, "pairs", []any{})
+
+	ch <- this.ParseMarkets(markets)
+	return nil
 }
 func (this *BitteamCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "name")
 	var numericId any = this.SafeInteger(market, "id")
-	var parts any = Split(id, "_")
+	var parts []string = Split(id, "_")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -529,7 +529,7 @@ func (this *BitteamCore) ParseMarket(market any) any {
 	var minCost any = nil
 	var currenciesValuedInUsd any = this.HandleOption("fetchMarkets", "currenciesValuedInUsd", map[string]any{})
 	var quoteInUsd any = this.SafeBool(currenciesValuedInUsd, quote, false)
-	if IsTrue(quoteInUsd) {
+	if IsTrue(IsEqual(quoteInUsd, true)) {
 		var settings any = this.SafeValue(market, "settings", map[string]any{})
 		minCost = this.SafeNumber(settings, "limit_usd")
 	}
@@ -594,141 +594,141 @@ func (this *BitteamCore) ParseMarket(market any) any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *BitteamCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetTradeApiCurrencies(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "count": 24,
-		//             "currencies": [
-		//                 {
-		//                     "txLimits": {
-		//                         "minDeposit": "0.0001",
-		//                         "minWithdraw": "0.02",
-		//                         "maxWithdraw": "10000",
-		//                         "withdrawCommissionPercentage": "NaN",
-		//                         "withdrawCommissionFixed": "0.005"
-		//                     },
-		//                     "id": 2,
-		//                     "status": 1,
-		//                     "symbol": "eth",
-		//                     "title": "Ethereum",
-		//                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-		//                     "isDiscount": false,
-		//                     "address": "https://ethereum.org/",
-		//                     "description": "Ethereum ETH",
-		//                     "decimals": 18,
-		//                     "blockChain": "Ethereum",
-		//                     "precision": 8,
-		//                     "currentRate": null,
-		//                     "active": true,
-		//                     "timeStart": "2021-01-28T08:57:41.719Z",
-		//                     "type": "crypto",
-		//                     "typeNetwork": "internalGW",
-		//                     "idSorting": 2,
-		//                     "links": [
-		//                         {
-		//                             "tx": "https://etherscan.io/tx/",
-		//                             "address": "https://etherscan.io/address/",
-		//                             "blockChain": "Ethereum"
-		//                         }
-		//                     ]
-		//                 },
-		//                 {
-		//                     "txLimits": {
-		//                         "minDeposit": "0.001",
-		//                         "minWithdraw": "1",
-		//                         "maxWithdraw": "100000",
-		//                         "withdrawCommissionPercentage": "NaN",
-		//                         "withdrawCommissionFixed": {
-		//                             "Tron": "2",
-		//                             "Binance": "2",
-		//                             "Ethereum": "20"
-		//                         }
-		//                     },
-		//                     "id": 3,
-		//                     "status": 1,
-		//                     "symbol": "usdt",
-		//                     "title": "Tether USD",
-		//                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-		//                     "isDiscount": false,
-		//                     "address": "https://tether.to/",
-		//                     "description": "Tether USD",
-		//                     "decimals": 6,
-		//                     "blockChain": "",
-		//                     "precision": 6,
-		//                     "currentRate": null,
-		//                     "active": true,
-		//                     "timeStart": "2021-01-28T09:04:17.170Z",
-		//                     "type": "crypto",
-		//                     "typeNetwork": "internalGW",
-		//                     "idSorting": 0,
-		//                     "links": [
-		//                         {
-		//                             "tx": "https://etherscan.io/tx/",
-		//                             "address": "https://etherscan.io/address/",
-		//                             "blockChain": "Ethereum"
-		//                         },
-		//                         {
-		//                             "tx": "https://tronscan.org/#/transaction/",
-		//                             "address": "https://tronscan.org/#/address/",
-		//                             "blockChain": "Tron"
-		//                         },
-		//                         {
-		//                             "tx": "https://bscscan.com/tx/",
-		//                             "address": "https://bscscan.com/address/",
-		//                             "blockChain": "Binance"
-		//                         }
-		//                     ]
-		//                 }
-		//             ]
-		//         }
-		//     }
-		//
-		var responseResult any = this.SafeValue(response, "result", map[string]any{})
-		var currencies any = this.SafeValue(responseResult, "currencies", []any{})
-		// using another endpoint to fetch statuses of deposits and withdrawals
-
-		statusesResponse := (<-this.PublicGetTradeApiCmcAssets())
-		PanicOnError(statusesResponse)
-		//
-		//     {
-		//         "ZNX": {
-		//             "name": "ZeNeX Coin",
-		//             "unified_cryptoasset_id": 30,
-		//             "withdrawStatus": true,
-		//             "depositStatus": true,
-		//             "min_withdraw": 0.00001,
-		//             "max_withdraw": 10000
-		//         },
-		//         "USDT": {
-		//             "name": "Tether USD",
-		//             "unified_cryptoasset_id": 3,
-		//             "withdrawStatus": true,
-		//             "depositStatus": true,
-		//             "min_withdraw": 1,
-		//             "max_withdraw": 100000
-		//         },
-		//     }
-		//
-		statusesResponse = this.IndexBy(statusesResponse, "unified_cryptoasset_id")
-		AddElementToObject(this.Options, "_temp_currencies_statuses", statusesResponse)
-		var result any = this.ParseCurrencies(currencies)
-		Remove(this.Options, "_temp_currencies_statuses")
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetTradeApiCurrencies(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "count": 24,
+	//             "currencies": [
+	//                 {
+	//                     "txLimits": {
+	//                         "minDeposit": "0.0001",
+	//                         "minWithdraw": "0.02",
+	//                         "maxWithdraw": "10000",
+	//                         "withdrawCommissionPercentage": "NaN",
+	//                         "withdrawCommissionFixed": "0.005"
+	//                     },
+	//                     "id": 2,
+	//                     "status": 1,
+	//                     "symbol": "eth",
+	//                     "title": "Ethereum",
+	//                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+	//                     "isDiscount": false,
+	//                     "address": "https://ethereum.org/",
+	//                     "description": "Ethereum ETH",
+	//                     "decimals": 18,
+	//                     "blockChain": "Ethereum",
+	//                     "precision": 8,
+	//                     "currentRate": null,
+	//                     "active": true,
+	//                     "timeStart": "2021-01-28T08:57:41.719Z",
+	//                     "type": "crypto",
+	//                     "typeNetwork": "internalGW",
+	//                     "idSorting": 2,
+	//                     "links": [
+	//                         {
+	//                             "tx": "https://etherscan.io/tx/",
+	//                             "address": "https://etherscan.io/address/",
+	//                             "blockChain": "Ethereum"
+	//                         }
+	//                     ]
+	//                 },
+	//                 {
+	//                     "txLimits": {
+	//                         "minDeposit": "0.001",
+	//                         "minWithdraw": "1",
+	//                         "maxWithdraw": "100000",
+	//                         "withdrawCommissionPercentage": "NaN",
+	//                         "withdrawCommissionFixed": {
+	//                             "Tron": "2",
+	//                             "Binance": "2",
+	//                             "Ethereum": "20"
+	//                         }
+	//                     },
+	//                     "id": 3,
+	//                     "status": 1,
+	//                     "symbol": "usdt",
+	//                     "title": "Tether USD",
+	//                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+	//                     "isDiscount": false,
+	//                     "address": "https://tether.to/",
+	//                     "description": "Tether USD",
+	//                     "decimals": 6,
+	//                     "blockChain": "",
+	//                     "precision": 6,
+	//                     "currentRate": null,
+	//                     "active": true,
+	//                     "timeStart": "2021-01-28T09:04:17.170Z",
+	//                     "type": "crypto",
+	//                     "typeNetwork": "internalGW",
+	//                     "idSorting": 0,
+	//                     "links": [
+	//                         {
+	//                             "tx": "https://etherscan.io/tx/",
+	//                             "address": "https://etherscan.io/address/",
+	//                             "blockChain": "Ethereum"
+	//                         },
+	//                         {
+	//                             "tx": "https://tronscan.org/#/transaction/",
+	//                             "address": "https://tronscan.org/#/address/",
+	//                             "blockChain": "Tron"
+	//                         },
+	//                         {
+	//                             "tx": "https://bscscan.com/tx/",
+	//                             "address": "https://bscscan.com/address/",
+	//                             "blockChain": "Binance"
+	//                         }
+	//                     ]
+	//                 }
+	//             ]
+	//         }
+	//     }
+	//
+	var responseResult any = this.SafeValue(response, "result", map[string]any{})
+	var currencies any = this.SafeValue(responseResult, "currencies", []any{})
+	// using another endpoint to fetch statuses of deposits and withdrawals
+
+	statusesResponse := (<-this.PublicGetTradeApiCmcAssets())
+	PanicOnError(statusesResponse)
+	//
+	//     {
+	//         "ZNX": {
+	//             "name": "ZeNeX Coin",
+	//             "unified_cryptoasset_id": 30,
+	//             "withdrawStatus": true,
+	//             "depositStatus": true,
+	//             "min_withdraw": 0.00001,
+	//             "max_withdraw": 10000
+	//         },
+	//         "USDT": {
+	//             "name": "Tether USD",
+	//             "unified_cryptoasset_id": 3,
+	//             "withdrawStatus": true,
+	//             "depositStatus": true,
+	//             "min_withdraw": 1,
+	//             "max_withdraw": 100000
+	//         },
+	//     }
+	//
+	statusesResponse = this.IndexBy(statusesResponse, "unified_cryptoasset_id")
+	AddElementToObject(this.Options, "_temp_currencies_statuses", statusesResponse)
+	var result any = this.ParseCurrencies(currencies)
+	Remove(this.Options, "_temp_currencies_statuses")
+
+	ch <- result
+	return nil
 }
 func (this *BitteamCore) ParseCurrency(currency any) any {
 	var statusesResponse any = this.SafeValue(this.Options, "_temp_currencies_statuses", map[string]any{})
@@ -755,8 +755,8 @@ func (this *BitteamCore) ParseCurrency(currency any) any {
 	var statuses any = this.SafeValue(statusesResponse, numericId, map[string]any{})
 	var deposit any = this.SafeValue(statuses, "depositStatus")
 	var withdraw any = this.SafeValue(statuses, "withdrawStatus")
-	var networkIds any = ObjectKeys(feesByNetworkId)
-	var networks any = map[string]any{}
+	var networkIds []string = ObjectKeys(feesByNetworkId)
+	var networks map[string]any = map[string]any{}
 	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
 	var typeRaw any = this.SafeString(currency, "type")
 	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
@@ -832,67 +832,67 @@ func (this *BitteamCore) ParseCurrency(currency any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BitteamCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes76312 := (<-this.LoadMarkets())
-			PanicOnError(retRes76312)
-		}
-		var market any = this.Market(symbol)
-		var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var request any = map[string]any{
-			"pairName":   GetValue(market, "id"),
-			"resolution": resolution,
-		}
-
-		response := (<-this.HistoryGetApiTwHistoryPairNameResolution(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "count": 364,
-		//             "data": [
-		//                 {
-		//                     "t": 1669593600,
-		//                     "o": 16211.259266,
-		//                     "h": 16476.985001,
-		//                     "l": 16023.714999,
-		//                     "c": 16430.636894,
-		//                     "v": 2.60150368999999
-		//                 },
-		//                 {
-		//                     "t": 1669680000,
-		//                     "o": 16430.636894,
-		//                     "h": 17065.229582,
-		//                     "l": 16346.114155,
-		//                     "c": 16882.297736,
-		//                     "v": 3.0872548400000115
-		//                 },
-		//                 ...
-		//             ]
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var data any = this.SafeList(result, "data", []any{})
-
-		ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes76312 := (<-this.LoadMarkets())
+		PanicOnError(retRes76312)
+	}
+	var market any = this.Market(symbol)
+	var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var request map[string]any = map[string]any{
+		"pairName":   GetValue(market, "id"),
+		"resolution": resolution,
+	}
+
+	response := (<-this.HistoryGetApiTwHistoryPairNameResolution(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "count": 364,
+	//             "data": [
+	//                 {
+	//                     "t": 1669593600,
+	//                     "o": 16211.259266,
+	//                     "h": 16476.985001,
+	//                     "l": 16023.714999,
+	//                     "c": 16430.636894,
+	//                     "v": 2.60150368999999
+	//                 },
+	//                 {
+	//                     "t": 1669680000,
+	//                     "o": 16430.636894,
+	//                     "h": 17065.229582,
+	//                     "l": 16346.114155,
+	//                     "c": 16882.297736,
+	//                     "v": 3.0872548400000115
+	//                 },
+	//                 ...
+	//             ]
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var data any = this.SafeList(result, "data", []any{})
+
+	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
+	return nil
 }
 func (this *BitteamCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -921,61 +921,61 @@ func (this *BitteamCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitteamCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes83712 := (<-this.LoadMarkets())
-			PanicOnError(retRes83712)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "timestamp": 1701166703284,
-		//         "bids": [
-		//             [
-		//                 2019.334988,
-		//                 0.09048525
-		//             ],
-		//             [
-		//                 1999.860002,
-		//                 0.0225
-		//             ],
-		//             ...
-		//         ],
-		//         "asks": [
-		//             [
-		//                 2019.334995,
-		//                 0.00899078
-		//             ],
-		//             [
-		//                 2019.335013,
-		//                 0.09833052
-		//             ],
-		//             ...
-		//         ]
-		//     }
-		//
-		var timestamp any = this.SafeInteger(response, "timestamp")
-		var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
-
-		ch <- orderbook
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes83712 := (<-this.LoadMarkets())
+		PanicOnError(retRes83712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "timestamp": 1701166703284,
+	//         "bids": [
+	//             [
+	//                 2019.334988,
+	//                 0.09048525
+	//             ],
+	//             [
+	//                 1999.860002,
+	//                 0.0225
+	//             ],
+	//             ...
+	//         ],
+	//         "asks": [
+	//             [
+	//                 2019.334995,
+	//                 0.00899078
+	//             ],
+	//             [
+	//                 2019.335013,
+	//                 0.09833052
+	//             ],
+	//             ...
+	//         ]
+	//     }
+	//
+	var timestamp any = this.SafeInteger(response, "timestamp")
+	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
+
+	ch <- orderbook
+	return nil
 }
 
 /**
@@ -991,128 +991,128 @@ func (this *BitteamCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes89012 := (<-this.LoadMarkets())
-			PanicOnError(retRes89012)
-		}
-		var typeVar any = this.SafeString(params, "type", "all")
-		var request any = map[string]any{
-			"type": typeVar,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pair", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "count": 3,
-		//             "orders": [
-		//                 {
-		//                     "id": 106733026,
-		//                     "orderId": null,
-		//                     "userId": 21639,
-		//                     "pair": "btc_usdt",
-		//                     "pairId": 22,
-		//                     "quantity": "0.00001",
-		//                     "price": "40",
-		//                     "executedPrice": "0",
-		//                     "fee": null,
-		//                     "orderCid": null,
-		//                     "executed": "0",
-		//                     "expires": null,
-		//                     "baseDecimals": 8,
-		//                     "quoteDecimals": 6,
-		//                     "timestamp": 1700594804,
-		//                     "status": "inactive",
-		//                     "side": "buy",
-		//                     "type": "limit",
-		//                     "createdAt": "2023-11-21T19:26:43.868Z",
-		//                     "updatedAt": "2023-11-21T19:26:43.868Z"
-		//                 },
-		//                 {
-		//                     "id": 106733308,
-		//                     "orderId": "13074362",
-		//                     "userId": 21639,
-		//                     "pair": "btc_usdt",
-		//                     "pairId": 22,
-		//                     "quantity": "0.00001",
-		//                     "price": "50000",
-		//                     "executedPrice": "37017.495008",
-		//                     "fee": {
-		//                         "amount": "0.00000002",
-		//                         "symbol": "btc",
-		//                         "userId": 21639,
-		//                         "decimals": 8,
-		//                         "symbolId": 11
-		//                     },
-		//                     "orderCid": null,
-		//                     "executed": "0.00001",
-		//                     "expires": null,
-		//                     "baseDecimals": 8,
-		//                     "quoteDecimals": 6,
-		//                     "timestamp": 1700594959,
-		//                     "status": "executed",
-		//                     "side": "buy",
-		//                     "type": "limit",
-		//                     "createdAt": "2023-11-21T19:29:19.946Z",
-		//                     "updatedAt": "2023-11-21T19:29:19.946Z"
-		//                 },
-		//                 {
-		//                     "id": 106734455,
-		//                     "orderId": "13248984",
-		//                     "userId": 21639,
-		//                     "pair": "eth_usdt",
-		//                     "pairId": 2,
-		//                     "quantity": "0.001",
-		//                     "price": "1750",
-		//                     "executedPrice": "0",
-		//                     "fee": null,
-		//                     "orderCid": null,
-		//                     "executed": "0",
-		//                     "expires": null,
-		//                     "baseDecimals": 18,
-		//                     "quoteDecimals": 6,
-		//                     "timestamp": 1700595523,
-		//                     "status": "accepted",
-		//                     "side": "buy",
-		//                     "type": "limit",
-		//                     "createdAt": "2023-11-21T19:38:43.530Z",
-		//                     "updatedAt": "2023-11-21T19:38:43.530Z"
-		//                 }
-		//             ]
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var orders any = this.SafeList(result, "orders", []any{})
-
-		ch <- this.ParseOrders(orders, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes89012 := (<-this.LoadMarkets())
+		PanicOnError(retRes89012)
+	}
+	var typeVar any = this.SafeString(params, "type", "all")
+	var request map[string]any = map[string]any{
+		"type": typeVar,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pair", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "count": 3,
+	//             "orders": [
+	//                 {
+	//                     "id": 106733026,
+	//                     "orderId": null,
+	//                     "userId": 21639,
+	//                     "pair": "btc_usdt",
+	//                     "pairId": 22,
+	//                     "quantity": "0.00001",
+	//                     "price": "40",
+	//                     "executedPrice": "0",
+	//                     "fee": null,
+	//                     "orderCid": null,
+	//                     "executed": "0",
+	//                     "expires": null,
+	//                     "baseDecimals": 8,
+	//                     "quoteDecimals": 6,
+	//                     "timestamp": 1700594804,
+	//                     "status": "inactive",
+	//                     "side": "buy",
+	//                     "type": "limit",
+	//                     "createdAt": "2023-11-21T19:26:43.868Z",
+	//                     "updatedAt": "2023-11-21T19:26:43.868Z"
+	//                 },
+	//                 {
+	//                     "id": 106733308,
+	//                     "orderId": "13074362",
+	//                     "userId": 21639,
+	//                     "pair": "btc_usdt",
+	//                     "pairId": 22,
+	//                     "quantity": "0.00001",
+	//                     "price": "50000",
+	//                     "executedPrice": "37017.495008",
+	//                     "fee": {
+	//                         "amount": "0.00000002",
+	//                         "symbol": "btc",
+	//                         "userId": 21639,
+	//                         "decimals": 8,
+	//                         "symbolId": 11
+	//                     },
+	//                     "orderCid": null,
+	//                     "executed": "0.00001",
+	//                     "expires": null,
+	//                     "baseDecimals": 8,
+	//                     "quoteDecimals": 6,
+	//                     "timestamp": 1700594959,
+	//                     "status": "executed",
+	//                     "side": "buy",
+	//                     "type": "limit",
+	//                     "createdAt": "2023-11-21T19:29:19.946Z",
+	//                     "updatedAt": "2023-11-21T19:29:19.946Z"
+	//                 },
+	//                 {
+	//                     "id": 106734455,
+	//                     "orderId": "13248984",
+	//                     "userId": 21639,
+	//                     "pair": "eth_usdt",
+	//                     "pairId": 2,
+	//                     "quantity": "0.001",
+	//                     "price": "1750",
+	//                     "executedPrice": "0",
+	//                     "fee": null,
+	//                     "orderCid": null,
+	//                     "executed": "0",
+	//                     "expires": null,
+	//                     "baseDecimals": 18,
+	//                     "quoteDecimals": 6,
+	//                     "timestamp": 1700595523,
+	//                     "status": "accepted",
+	//                     "side": "buy",
+	//                     "type": "limit",
+	//                     "createdAt": "2023-11-21T19:38:43.530Z",
+	//                     "updatedAt": "2023-11-21T19:38:43.530Z"
+	//                 }
+	//             ]
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var orders any = this.SafeList(result, "orders", []any{})
+
+	ch <- this.ParseOrders(orders, market, since, limit)
+	return nil
 }
 
 /**
@@ -1126,73 +1126,73 @@ func (this *BitteamCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes100412 := (<-this.LoadMarkets())
-			PanicOnError(retRes100412)
-		}
-		var request any = map[string]any{
-			"id": id,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-
-		response := (<-this.PrivateGetTradeApiCcxtOrderId(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "id": 106494347,
-		//             "orderId": "13214332",
-		//             "userId": 15912,
-		//             "pair": "eth_usdt",
-		//             "pairId": 2,
-		//             "quantity": "0.00448598",
-		//             "price": "2015.644995",
-		//             "executedPrice": "2015.644995",
-		//             "fee": {
-		//                 "amount": "0",
-		//                 "symbol": "eth",
-		//                 "userId": 15912,
-		//                 "decimals": 18,
-		//                 "symbolId": 2,
-		//                 "discountAmount": "0",
-		//                 "discountSymbol": "btt",
-		//                 "discountDecimals": 18,
-		//                 "discountSymbolId": 5
-		//             },
-		//             "orderCid": null,
-		//             "executed": "0.00448598",
-		//             "expires": null,
-		//             "baseDecimals": 18,
-		//             "quoteDecimals": 6,
-		//             "timestamp": 1700470476,
-		//             "status": "executed",
-		//             "side": "buy",
-		//             "type": "limit",
-		//             "stopPrice": null,
-		//             "slippage": null
-		//         }
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes100412 := (<-this.LoadMarkets())
+		PanicOnError(retRes100412)
+	}
+	var request map[string]any = map[string]any{
+		"id": id,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+
+	response := (<-this.PrivateGetTradeApiCcxtOrderId(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "id": 106494347,
+	//             "orderId": "13214332",
+	//             "userId": 15912,
+	//             "pair": "eth_usdt",
+	//             "pairId": 2,
+	//             "quantity": "0.00448598",
+	//             "price": "2015.644995",
+	//             "executedPrice": "2015.644995",
+	//             "fee": {
+	//                 "amount": "0",
+	//                 "symbol": "eth",
+	//                 "userId": 15912,
+	//                 "decimals": 18,
+	//                 "symbolId": 2,
+	//                 "discountAmount": "0",
+	//                 "discountSymbol": "btt",
+	//                 "discountDecimals": 18,
+	//                 "discountSymbolId": 5
+	//             },
+	//             "orderCid": null,
+	//             "executed": "0.00448598",
+	//             "expires": null,
+	//             "baseDecimals": 18,
+	//             "quoteDecimals": 6,
+	//             "timestamp": 1700470476,
+	//             "status": "executed",
+	//             "side": "buy",
+	//             "type": "limit",
+	//             "stopPrice": null,
+	//             "slippage": null
+	//         }
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result, market)
+	return nil
 }
 
 /**
@@ -1207,34 +1207,34 @@ func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes106812 := (<-this.LoadMarkets())
-			PanicOnError(retRes106812)
-		}
-		var request any = map[string]any{
-			"type": "active",
-		}
-
-		retRes107315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes107315)
-		ch <- retRes107315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes106812 := (<-this.LoadMarkets())
+		PanicOnError(retRes106812)
+	}
+	var request map[string]any = map[string]any{
+		"type": "active",
+	}
+
+	retRes107315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes107315)
+	ch <- retRes107315
+	return nil
 }
 
 /**
@@ -1249,34 +1249,34 @@ func (this *BitteamCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes108912 := (<-this.LoadMarkets())
-			PanicOnError(retRes108912)
-		}
-		var request any = map[string]any{
-			"type": "closed",
-		}
-
-		retRes109415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes109415)
-		ch <- retRes109415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes108912 := (<-this.LoadMarkets())
+		PanicOnError(retRes108912)
+	}
+	var request map[string]any = map[string]any{
+		"type": "closed",
+	}
+
+	retRes109415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes109415)
+	ch <- retRes109415
+	return nil
 }
 
 /**
@@ -1291,34 +1291,34 @@ func (this *BitteamCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes111012 := (<-this.LoadMarkets())
-			PanicOnError(retRes111012)
-		}
-		var request any = map[string]any{
-			"type": "cancelled",
-		}
-
-		retRes111515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes111515)
-		ch <- retRes111515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes111012 := (<-this.LoadMarkets())
+		PanicOnError(retRes111012)
+	}
+	var request map[string]any = map[string]any{
+		"type": "cancelled",
+	}
+
+	retRes111515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes111515)
+	ch <- retRes111515
+	return nil
 }
 
 /**
@@ -1335,66 +1335,66 @@ func (this *BitteamCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes113312 := (<-this.LoadMarkets())
-			PanicOnError(retRes113312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pairId": this.SafeString(market, "numericId"),
-			"type":   typeVar,
-			"side":   side,
-			"amount": this.AmountToPrecision(symbol, amount),
-		}
-		if IsTrue(IsEqual(typeVar, "limit")) {
-			if IsTrue(IsEqual(price, nil)) {
-				panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a price argument for a "), typeVar), " order")))
-			} else {
-				AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-			}
-		}
-
-		response := (<-this.PrivatePostTradeApiCcxtOrdercreate(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "id": 106733308,
-		//             "userId": 21639,
-		//             "quantity": "0.00001",
-		//             "pair": "btc_usdt",
-		//             "side": "buy",
-		//             "price": "50000",
-		//             "executed": "0",
-		//             "executedPrice": "0",
-		//             "status": "created",
-		//             "baseDecimals": 8,
-		//             "quoteDecimals": 6,
-		//             "pairId": 22,
-		//             "type": "limit",
-		//             "stopPrice": null,
-		//             "slippage": null,
-		//             "timestamp": "1700594959"
-		//         }
-		//     }
-		//
-		var order any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(order, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes113312 := (<-this.LoadMarkets())
+		PanicOnError(retRes113312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pairId": this.SafeString(market, "numericId"),
+		"type":   typeVar,
+		"side":   side,
+		"amount": this.AmountToPrecision(symbol, amount),
+	}
+	if IsTrue(IsEqual(typeVar, "limit")) {
+		if IsTrue(IsEqual(price, nil)) {
+			panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a price argument for a "), typeVar), " order")))
+		} else {
+			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+		}
+	}
+
+	response := (<-this.PrivatePostTradeApiCcxtOrdercreate(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "id": 106733308,
+	//             "userId": 21639,
+	//             "quantity": "0.00001",
+	//             "pair": "btc_usdt",
+	//             "side": "buy",
+	//             "price": "50000",
+	//             "executed": "0",
+	//             "executedPrice": "0",
+	//             "status": "created",
+	//             "baseDecimals": 8,
+	//             "quoteDecimals": 6,
+	//             "pairId": 22,
+	//             "type": "limit",
+	//             "stopPrice": null,
+	//             "slippage": null,
+	//             "timestamp": "1700594959"
+	//         }
+	//     }
+	//
+	var order any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(order, market)
+	return nil
 }
 
 /**
@@ -1408,40 +1408,40 @@ func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes118912 := (<-this.LoadMarkets())
-			PanicOnError(retRes118912)
-		}
-		var request any = map[string]any{
-			"id": id,
-		}
-
-		response := (<-this.PrivatePostTradeApiCcxtCancelorder(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "message": "The request to cancel your order was received"
-		//         }
-		//     }
-		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-
-		ch <- this.ParseOrder(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes118912 := (<-this.LoadMarkets())
+		PanicOnError(retRes118912)
+	}
+	var request map[string]any = map[string]any{
+		"id": id,
+	}
+
+	response := (<-this.PrivatePostTradeApiCcxtCancelorder(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "message": "The request to cancel your order was received"
+	//         }
+	//     }
+	//
+	var result any = this.SafeDict(response, "result", map[string]any{})
+
+	ch <- this.ParseOrder(result)
+	return nil
 }
 
 /**
@@ -1454,46 +1454,46 @@ func (this *BitteamCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *BitteamCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes121812 := (<-this.LoadMarkets())
-			PanicOnError(retRes121812)
-		}
-		var market any = nil
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pairId", this.SafeString(market, "numericId"))
-		} else {
-			AddElementToObject(request, "pairId", "0") // '0' for all markets
-		}
-
-		response := (<-this.PrivatePostTradeApiCcxtCancelAllOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "message":"The request to cancel all your orders was received"
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var orders any = []any{result}
-
-		ch <- this.ParseOrders(orders, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes121812 := (<-this.LoadMarkets())
+		PanicOnError(retRes121812)
+	}
+	var market any = nil
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pairId", this.SafeString(market, "numericId"))
+	} else {
+		AddElementToObject(request, "pairId", "0") // '0' for all markets
+	}
+
+	response := (<-this.PrivatePostTradeApiCcxtCancelAllOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "message":"The request to cancel all your orders was received"
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var orders []any = []any{result}
+
+	ch <- this.ParseOrders(orders, market)
+	return nil
 }
 func (this *BitteamCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1639,7 +1639,7 @@ func (this *BitteamCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *BitteamCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"accepted":           "open",
 		"executed":           "closed",
 		"cancelled":          "canceled",
@@ -1652,7 +1652,7 @@ func (this *BitteamCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *BitteamCore) ParseOrderType(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"market": "market",
 		"limit":  "limit",
 	}
@@ -1678,69 +1678,69 @@ func (this *BitteamCore) ParseValueToPricision(valueObject any, valueKey any, pr
  * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
 func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes142712 := (<-this.LoadMarkets())
-			PanicOnError(retRes142712)
-		}
-
-		response := (<-this.PublicGetTradeApiCmcSummary())
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "trading_pairs": "BTC_USDT",
-		//             "base_currency": "BTC",
-		//             "quote_currency": "USDT",
-		//             "last_price": 37669.955001,
-		//             "lowest_ask": 37670.055,
-		//             "highest_bid": 37669.955,
-		//             "base_volume": 6.81156888,
-		//             "quote_volume": 257400.516878529,
-		//             "price_change_percent_24h": -0.29,
-		//             "highest_price_24h": 38389.994463,
-		//             "lowest_price_24h": 37574.894999
-		//         },
-		//         {
-		//             "trading_pairs": "BNB_USDT",
-		//             "base_currency": "BNB",
-		//             "quote_currency": "USDT",
-		//             "last_price": 233.525142,
-		//             "lowest_ask": 233.675,
-		//             "highest_bid": 233.425,
-		//             "base_volume": 245.0199339,
-		//             "quote_volume": 57356.91823827642,
-		//             "price_change_percent_24h": -0.32,
-		//             "highest_price_24h": 236.171123,
-		//             "lowest_price_24h": 231.634637
-		//         },
-		//         ...
-		//     ]
-		//
-		var tickers any = []any{}
-		var rawTickers any = []any{}
-		if IsTrue(IsArray(response)) {
-			rawTickers = response
-		}
-		for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
-			var rawTicker any = GetValue(rawTickers, i)
-			var ticker any = this.ParseTicker(rawTicker)
-			AppendToArray(&tickers, ticker)
-		}
-
-		ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes142712 := (<-this.LoadMarkets())
+		PanicOnError(retRes142712)
+	}
+
+	response := (<-this.PublicGetTradeApiCmcSummary())
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "trading_pairs": "BTC_USDT",
+	//             "base_currency": "BTC",
+	//             "quote_currency": "USDT",
+	//             "last_price": 37669.955001,
+	//             "lowest_ask": 37670.055,
+	//             "highest_bid": 37669.955,
+	//             "base_volume": 6.81156888,
+	//             "quote_volume": 257400.516878529,
+	//             "price_change_percent_24h": -0.29,
+	//             "highest_price_24h": 38389.994463,
+	//             "lowest_price_24h": 37574.894999
+	//         },
+	//         {
+	//             "trading_pairs": "BNB_USDT",
+	//             "base_currency": "BNB",
+	//             "quote_currency": "USDT",
+	//             "last_price": 233.525142,
+	//             "lowest_ask": 233.675,
+	//             "highest_bid": 233.425,
+	//             "base_volume": 245.0199339,
+	//             "quote_volume": 57356.91823827642,
+	//             "price_change_percent_24h": -0.32,
+	//             "highest_price_24h": 236.171123,
+	//             "lowest_price_24h": 231.634637
+	//         },
+	//         ...
+	//     ]
+	//
+	var tickers any = []any{}
+	var rawTickers any = []any{}
+	if IsTrue(IsArray(response)) {
+		rawTickers = response
+	}
+	for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
+		var rawTicker any = GetValue(rawTickers, i)
+		var ticker any = this.ParseTicker(rawTicker)
+		AppendToArray(&tickers, ticker)
+	}
+
+	ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -1753,215 +1753,215 @@ func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
  */
 func (this *BitteamCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes148512 := (<-this.LoadMarkets())
-			PanicOnError(retRes148512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"name": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTradeApiPairName(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "pair": {
-		//                 "id": 2,
-		//                 "name": "eth_usdt",
-		//                 "baseAssetId": 2,
-		//                 "quoteAssetId": 3,
-		//                 "fullName": "ETH USDT",
-		//                 "description": "ETH   USDT",
-		//                 "lastBuy": "1976.715012",
-		//                 "lastSell": "1971.995006",
-		//                 "lastPrice": "1976.715012",
-		//                 "change24": "1.02",
-		//                 "volume24": 24.0796457,
-		//                 "volume24USD": 44282.347995912205,
-		//                 "active": true,
-		//                 "baseStep": 8,
-		//                 "quoteStep": 6,
-		//                 "status": 1,
-		//                 "settings": {
-		//                     "limit_usd": "0.1",
-		//                     "price_max": "10000000000000",
-		//                     "price_min": "1",
-		//                     "price_tick": "1",
-		//                     "pricescale": 10000,
-		//                     "lot_size_max": "1000000000000000",
-		//                     "lot_size_min": "1",
-		//                     "lot_size_tick": "1",
-		//                     "price_view_min": 6,
-		//                     "default_slippage": 10,
-		//                     "lot_size_view_min": 6
-		//                 },
-		//                 "asks": [
-		//                     {
-		//                     "price": "1976.405003",
-		//                     "quantity": "0.0051171",
-		//                     "amount": "10.1134620408513"
-		//                     },
-		//                     {
-		//                     "price": "1976.405013",
-		//                     "quantity": "0.09001559",
-		//                     "amount": "177.90726332415267"
-		//                     },
-		//                     {
-		//                     "price": "2010.704988",
-		//                     "quantity": "0.00127892",
-		//                     "amount": "2.57153082325296"
-		//                     }
-		//                 ],
-		//                 "bids": [
-		//                     {
-		//                     "price": "1976.404988",
-		//                     "quantity": "0.09875861",
-		//                     "amount": "195.18700941194668"
-		//                     },
-		//                     {
-		//                     "price": "1905.472973",
-		//                     "quantity": "0.00263591",
-		//                     "amount": "5.02265526426043"
-		//                     },
-		//                     {
-		//                     "price": "1904.274973",
-		//                     "quantity": "0.09425304",
-		//                     "amount": "179.48370520116792"
-		//                     }
-		//                 ],
-		//                 "updateId": "78",
-		//                 "timeStart": "2021-01-28T09:19:30.706Z",
-		//                 "makerFee": 200,
-		//                 "takerFee": 200,
-		//                 "quoteVolume24": 49125.1374009045,
-		//                 "lowPrice24": 1966.704999,
-		//                 "highPrice24": 2080.354997,
-		//                 "baseCurrency": {
-		//                     "id": 2,
-		//                     "status": 1,
-		//                     "symbol": "eth",
-		//                     "title": "Ethereum",
-		//                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
-		//                     "isDiscount": false,
-		//                     "address": "https://ethereum.org/",
-		//                     "description": "Ethereum ETH",
-		//                     "decimals": 18,
-		//                     "blockChain": "Ethereum",
-		//                     "precision": 8,
-		//                     "currentRate": null,
-		//                     "active": true,
-		//                     "timeStart": "2021-01-28T08:57:41.719Z",
-		//                     "txLimits": {
-		//                         "minDeposit": "100000000000000",
-		//                         "maxWithdraw": "10000000000000000000000",
-		//                         "minWithdraw": "20000000000000000",
-		//                         "withdrawCommissionFixed": "5000000000000000",
-		//                         "withdrawCommissionPercentage": "NaN"
-		//                     },
-		//                     "type": "crypto",
-		//                     "typeNetwork": "internalGW",
-		//                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-		//                     "idSorting": 2,
-		//                     "links": [
-		//                         {
-		//                             "tx": "https://etherscan.io/tx/",
-		//                             "address": "https://etherscan.io/address/",
-		//                             "blockChain": "Ethereum"
-		//                         }
-		//                     ],
-		//                     "clientTxLimits": {
-		//                         "minDeposit": "0.0001",
-		//                         "minWithdraw": "0.02",
-		//                         "maxWithdraw": "10000",
-		//                         "withdrawCommissionPercentage": "NaN",
-		//                         "withdrawCommissionFixed": "0.005"
-		//                     }
-		//                 },
-		//                 "quoteCurrency": {
-		//                     "id": 3,
-		//                     "status": 1,
-		//                     "symbol": "usdt",
-		//                     "title": "Tether USD",
-		//                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
-		//                     "isDiscount": false,
-		//                     "address": "https://tether.to/",
-		//                     "description": "Tether USD",
-		//                     "decimals": 6,
-		//                     "blockChain": "",
-		//                     "precision": 6,
-		//                     "currentRate": null,
-		//                     "active": true,
-		//                     "timeStart": "2021-01-28T09:04:17.170Z",
-		//                     "txLimits": {
-		//                         "minDeposit": "1000",
-		//                         "maxWithdraw": "100000000000",
-		//                         "minWithdraw": "1000000",
-		//                         "withdrawCommissionFixed": {
-		//                             "Tron": "2000000",
-		//                             "Binance": "2000000000000000000",
-		//                             "Ethereum": "20000000"
-		//                         },
-		//                         "withdrawCommissionPercentage": "NaN"
-		//                     },
-		//                     "type": "crypto",
-		//                     "typeNetwork": "internalGW",
-		//                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
-		//                     "idSorting": 0,
-		//                     "links": [
-		//                         {
-		//                             "tx": "https://etherscan.io/tx/",
-		//                             "address": "https://etherscan.io/address/",
-		//                             "blockChain": "Ethereum"
-		//                         },
-		//                         {
-		//                             "tx": "https://tronscan.org/#/transaction/",
-		//                             "address": "https://tronscan.org/#/address/",
-		//                             "blockChain": "Tron"
-		//                         },
-		//                         {
-		//                             "tx": "https://bscscan.com/tx/",
-		//                             "address": "https://bscscan.com/address/",
-		//                             "blockChain": "Binance"
-		//                         }
-		//                     ],
-		//                     "clientTxLimits": {
-		//                         "minDeposit": "0.001",
-		//                         "minWithdraw": "1",
-		//                         "maxWithdraw": "100000",
-		//                         "withdrawCommissionPercentage": "NaN",
-		//                         "withdrawCommissionFixed": {
-		//                             "Tron": "2",
-		//                             "Binance": "2",
-		//                             "Ethereum": "20"
-		//                         }
-		//                     }
-		//                 },
-		//                 "quantities": {
-		//                     "asks": "5.58760757",
-		//                     "bids": "2226.98663823032198"
-		//                 }
-		//             }
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var pair any = this.SafeDict(result, "pair", map[string]any{})
-
-		ch <- this.ParseTicker(pair, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes148512 := (<-this.LoadMarkets())
+		PanicOnError(retRes148512)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"name": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTradeApiPairName(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "pair": {
+	//                 "id": 2,
+	//                 "name": "eth_usdt",
+	//                 "baseAssetId": 2,
+	//                 "quoteAssetId": 3,
+	//                 "fullName": "ETH USDT",
+	//                 "description": "ETH   USDT",
+	//                 "lastBuy": "1976.715012",
+	//                 "lastSell": "1971.995006",
+	//                 "lastPrice": "1976.715012",
+	//                 "change24": "1.02",
+	//                 "volume24": 24.0796457,
+	//                 "volume24USD": 44282.347995912205,
+	//                 "active": true,
+	//                 "baseStep": 8,
+	//                 "quoteStep": 6,
+	//                 "status": 1,
+	//                 "settings": {
+	//                     "limit_usd": "0.1",
+	//                     "price_max": "10000000000000",
+	//                     "price_min": "1",
+	//                     "price_tick": "1",
+	//                     "pricescale": 10000,
+	//                     "lot_size_max": "1000000000000000",
+	//                     "lot_size_min": "1",
+	//                     "lot_size_tick": "1",
+	//                     "price_view_min": 6,
+	//                     "default_slippage": 10,
+	//                     "lot_size_view_min": 6
+	//                 },
+	//                 "asks": [
+	//                     {
+	//                     "price": "1976.405003",
+	//                     "quantity": "0.0051171",
+	//                     "amount": "10.1134620408513"
+	//                     },
+	//                     {
+	//                     "price": "1976.405013",
+	//                     "quantity": "0.09001559",
+	//                     "amount": "177.90726332415267"
+	//                     },
+	//                     {
+	//                     "price": "2010.704988",
+	//                     "quantity": "0.00127892",
+	//                     "amount": "2.57153082325296"
+	//                     }
+	//                 ],
+	//                 "bids": [
+	//                     {
+	//                     "price": "1976.404988",
+	//                     "quantity": "0.09875861",
+	//                     "amount": "195.18700941194668"
+	//                     },
+	//                     {
+	//                     "price": "1905.472973",
+	//                     "quantity": "0.00263591",
+	//                     "amount": "5.02265526426043"
+	//                     },
+	//                     {
+	//                     "price": "1904.274973",
+	//                     "quantity": "0.09425304",
+	//                     "amount": "179.48370520116792"
+	//                     }
+	//                 ],
+	//                 "updateId": "78",
+	//                 "timeStart": "2021-01-28T09:19:30.706Z",
+	//                 "makerFee": 200,
+	//                 "takerFee": 200,
+	//                 "quoteVolume24": 49125.1374009045,
+	//                 "lowPrice24": 1966.704999,
+	//                 "highPrice24": 2080.354997,
+	//                 "baseCurrency": {
+	//                     "id": 2,
+	//                     "status": 1,
+	//                     "symbol": "eth",
+	//                     "title": "Ethereum",
+	//                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+	//                     "isDiscount": false,
+	//                     "address": "https://ethereum.org/",
+	//                     "description": "Ethereum ETH",
+	//                     "decimals": 18,
+	//                     "blockChain": "Ethereum",
+	//                     "precision": 8,
+	//                     "currentRate": null,
+	//                     "active": true,
+	//                     "timeStart": "2021-01-28T08:57:41.719Z",
+	//                     "txLimits": {
+	//                         "minDeposit": "100000000000000",
+	//                         "maxWithdraw": "10000000000000000000000",
+	//                         "minWithdraw": "20000000000000000",
+	//                         "withdrawCommissionFixed": "5000000000000000",
+	//                         "withdrawCommissionPercentage": "NaN"
+	//                     },
+	//                     "type": "crypto",
+	//                     "typeNetwork": "internalGW",
+	//                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+	//                     "idSorting": 2,
+	//                     "links": [
+	//                         {
+	//                             "tx": "https://etherscan.io/tx/",
+	//                             "address": "https://etherscan.io/address/",
+	//                             "blockChain": "Ethereum"
+	//                         }
+	//                     ],
+	//                     "clientTxLimits": {
+	//                         "minDeposit": "0.0001",
+	//                         "minWithdraw": "0.02",
+	//                         "maxWithdraw": "10000",
+	//                         "withdrawCommissionPercentage": "NaN",
+	//                         "withdrawCommissionFixed": "0.005"
+	//                     }
+	//                 },
+	//                 "quoteCurrency": {
+	//                     "id": 3,
+	//                     "status": 1,
+	//                     "symbol": "usdt",
+	//                     "title": "Tether USD",
+	//                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+	//                     "isDiscount": false,
+	//                     "address": "https://tether.to/",
+	//                     "description": "Tether USD",
+	//                     "decimals": 6,
+	//                     "blockChain": "",
+	//                     "precision": 6,
+	//                     "currentRate": null,
+	//                     "active": true,
+	//                     "timeStart": "2021-01-28T09:04:17.170Z",
+	//                     "txLimits": {
+	//                         "minDeposit": "1000",
+	//                         "maxWithdraw": "100000000000",
+	//                         "minWithdraw": "1000000",
+	//                         "withdrawCommissionFixed": {
+	//                             "Tron": "2000000",
+	//                             "Binance": "2000000000000000000",
+	//                             "Ethereum": "20000000"
+	//                         },
+	//                         "withdrawCommissionPercentage": "NaN"
+	//                     },
+	//                     "type": "crypto",
+	//                     "typeNetwork": "internalGW",
+	//                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+	//                     "idSorting": 0,
+	//                     "links": [
+	//                         {
+	//                             "tx": "https://etherscan.io/tx/",
+	//                             "address": "https://etherscan.io/address/",
+	//                             "blockChain": "Ethereum"
+	//                         },
+	//                         {
+	//                             "tx": "https://tronscan.org/#/transaction/",
+	//                             "address": "https://tronscan.org/#/address/",
+	//                             "blockChain": "Tron"
+	//                         },
+	//                         {
+	//                             "tx": "https://bscscan.com/tx/",
+	//                             "address": "https://bscscan.com/address/",
+	//                             "blockChain": "Binance"
+	//                         }
+	//                     ],
+	//                     "clientTxLimits": {
+	//                         "minDeposit": "0.001",
+	//                         "minWithdraw": "1",
+	//                         "maxWithdraw": "100000",
+	//                         "withdrawCommissionPercentage": "NaN",
+	//                         "withdrawCommissionFixed": {
+	//                             "Tron": "2",
+	//                             "Binance": "2",
+	//                             "Ethereum": "20"
+	//                         }
+	//                     }
+	//                 },
+	//                 "quantities": {
+	//                     "asks": "5.58760757",
+	//                     "bids": "2226.98663823032198"
+	//                 }
+	//             }
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var pair any = this.SafeDict(result, "pair", map[string]any{})
+
+	ch <- this.ParseTicker(pair, market)
+	return nil
 }
 func (this *BitteamCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -2105,55 +2105,55 @@ func (this *BitteamCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
  */
 func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes182112 := (<-this.LoadMarkets())
-			PanicOnError(retRes182112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "trade_id": 34970337,
-		//             "price": 37769.994793,
-		//             "base_volume": 0.00119062,
-		//             "quote_volume": 44.96971120044166,
-		//             "timestamp": 1700827234000,
-		//             "type": "buy"
-		//         },
-		//         {
-		//             "trade_id": 34970347,
-		//             "price": 37769.634497,
-		//             "base_volume": 0.00104009,
-		//             "quote_volume": 39.28381914398473,
-		//             "timestamp": 1700827248000,
-		//             "type": "buy"
-		//         },
-		//         ...
-		//     ]
-		//
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes182112 := (<-this.LoadMarkets())
+		PanicOnError(retRes182112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "trade_id": 34970337,
+	//             "price": 37769.994793,
+	//             "base_volume": 0.00119062,
+	//             "quote_volume": 44.96971120044166,
+	//             "timestamp": 1700827234000,
+	//             "type": "buy"
+	//         },
+	//         {
+	//             "trade_id": 34970347,
+	//             "price": 37769.634497,
+	//             "base_volume": 0.00104009,
+	//             "quote_volume": 39.28381914398473,
+	//             "timestamp": 1700827248000,
+	//             "type": "buy"
+	//         },
+	//         ...
+	//     ]
+	//
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -2168,176 +2168,176 @@ func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
  * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
  */
 func (this *BitteamCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes186512 := (<-this.LoadMarkets())
-			PanicOnError(retRes186512)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pairId", GetValue(market, "numericId"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "count": 3,
-		//             "trades": [
-		//                 {
-		//                     "id": 34880724,
-		//                     "tradeId": "4368041",
-		//                     "makerOrderId": 106742914,
-		//                     "takerOrderId": 106761614,
-		//                     "pairId": 2,
-		//                     "quantity": "0.00955449",
-		//                     "price": "1993.674994",
-		//                     "isBuyerMaker": true,
-		//                     "baseDecimals": 18,
-		//                     "quoteDecimals": 6,
-		//                     "side": "sell",
-		//                     "timestamp": 1700615250,
-		//                     "rewarded": true,
-		//                     "makerUserId": 21639,
-		//                     "takerUserId": 15913,
-		//                     "baseCurrencyId": 2,
-		//                     "quoteCurrencyId": 3,
-		//                     "feeMaker": {
-		//                         "amount": "0.0000191",
-		//                         "symbol": "eth",
-		//                         "userId": 21639,
-		//                         "decimals": 18,
-		//                         "symbolId": 2
-		//                     },
-		//                     "feeTaker": {
-		//                         "amount": "0",
-		//                         "symbol": "usdt",
-		//                         "userId": 15913,
-		//                         "decimals": 6,
-		//                         "symbolId": 3,
-		//                         "discountAmount": "0",
-		//                         "discountSymbol": "btt",
-		//                         "discountDecimals": 18,
-		//                         "discountSymbolId": 5
-		//                     },
-		//                     "pair": "eth_usdt",
-		//                     "createdAt": "2023-11-22T01:07:30.593Z",
-		//                     "updatedAt": "2023-11-22T01:10:00.117Z",
-		//                     "isCurrentSide": "maker"
-		//                 },
-		//                 {
-		//                     "id": 34875793,
-		//                     "tradeId": "4368010",
-		//                     "makerOrderId": 106742914,
-		//                     "takerOrderId": 106745926,
-		//                     "pairId": 2,
-		//                     "quantity": "0.0027193",
-		//                     "price": "1993.674994",
-		//                     "isBuyerMaker": true,
-		//                     "baseDecimals": 18,
-		//                     "quoteDecimals": 6,
-		//                     "side": "sell",
-		//                     "timestamp": 1700602983,
-		//                     "rewarded": true,
-		//                     "makerUserId": 21639,
-		//                     "takerUserId": 15912,
-		//                     "baseCurrencyId": 2,
-		//                     "quoteCurrencyId": 3,
-		//                     "feeMaker": {
-		//                         "amount": "0.00000543",
-		//                         "symbol": "eth",
-		//                         "userId": 21639,
-		//                         "decimals": 18,
-		//                         "symbolId": 2
-		//                     },
-		//                     "feeTaker": {
-		//                         "amount": "0",
-		//                         "symbol": "usdt",
-		//                         "userId": 15912,
-		//                         "decimals": 6,
-		//                         "symbolId": 3,
-		//                         "discountAmount": "0",
-		//                         "discountSymbol": "btt",
-		//                         "discountDecimals": 18,
-		//                         "discountSymbolId": 5
-		//                     },
-		//                     "pair": "eth_usdt",
-		//                     "createdAt": "2023-11-21T21:43:02.758Z",
-		//                     "updatedAt": "2023-11-21T21:45:00.147Z",
-		//                     "isCurrentSide": "maker"
-		//                 },
-		//                 {
-		//                     "id": 34871727,
-		//                     "tradeId": "3441840",
-		//                     "makerOrderId": 106733299,
-		//                     "takerOrderId": 106733308,
-		//                     "pairId": 22,
-		//                     "quantity": "0.00001",
-		//                     "price": "37017.495008",
-		//                     "isBuyerMaker": false,
-		//                     "baseDecimals": 8,
-		//                     "quoteDecimals": 6,
-		//                     "side": "buy",
-		//                     "timestamp": 1700594960,
-		//                     "rewarded": true,
-		//                     "makerUserId": 15909,
-		//                     "takerUserId": 21639,
-		//                     "baseCurrencyId": 11,
-		//                     "quoteCurrencyId": 3,
-		//                     "feeMaker": {
-		//                         "amount": "0",
-		//                         "symbol": "usdt",
-		//                         "userId": 15909,
-		//                         "decimals": 6,
-		//                         "symbolId": 3,
-		//                         "discountAmount": "0",
-		//                         "discountSymbol": "btt",
-		//                         "discountDecimals": 18,
-		//                         "discountSymbolId": 5
-		//                     },
-		//                     "feeTaker": {
-		//                         "amount": "0.00000002",
-		//                         "symbol": "btc",
-		//                         "userId": 21639,
-		//                         "decimals": 8,
-		//                         "symbolId": 11
-		//                     },
-		//                     "pair": "btc_usdt",
-		//                     "createdAt": "2023-11-21T19:29:20.092Z",
-		//                     "updatedAt": "2023-11-21T19:30:00.159Z"
-		//                     "isCurrentSide": "taker"
-		//                 }
-		//             ]
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var trades any = this.SafeList(result, "trades", []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes186512 := (<-this.LoadMarkets())
+		PanicOnError(retRes186512)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pairId", GetValue(market, "numericId"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "count": 3,
+	//             "trades": [
+	//                 {
+	//                     "id": 34880724,
+	//                     "tradeId": "4368041",
+	//                     "makerOrderId": 106742914,
+	//                     "takerOrderId": 106761614,
+	//                     "pairId": 2,
+	//                     "quantity": "0.00955449",
+	//                     "price": "1993.674994",
+	//                     "isBuyerMaker": true,
+	//                     "baseDecimals": 18,
+	//                     "quoteDecimals": 6,
+	//                     "side": "sell",
+	//                     "timestamp": 1700615250,
+	//                     "rewarded": true,
+	//                     "makerUserId": 21639,
+	//                     "takerUserId": 15913,
+	//                     "baseCurrencyId": 2,
+	//                     "quoteCurrencyId": 3,
+	//                     "feeMaker": {
+	//                         "amount": "0.0000191",
+	//                         "symbol": "eth",
+	//                         "userId": 21639,
+	//                         "decimals": 18,
+	//                         "symbolId": 2
+	//                     },
+	//                     "feeTaker": {
+	//                         "amount": "0",
+	//                         "symbol": "usdt",
+	//                         "userId": 15913,
+	//                         "decimals": 6,
+	//                         "symbolId": 3,
+	//                         "discountAmount": "0",
+	//                         "discountSymbol": "btt",
+	//                         "discountDecimals": 18,
+	//                         "discountSymbolId": 5
+	//                     },
+	//                     "pair": "eth_usdt",
+	//                     "createdAt": "2023-11-22T01:07:30.593Z",
+	//                     "updatedAt": "2023-11-22T01:10:00.117Z",
+	//                     "isCurrentSide": "maker"
+	//                 },
+	//                 {
+	//                     "id": 34875793,
+	//                     "tradeId": "4368010",
+	//                     "makerOrderId": 106742914,
+	//                     "takerOrderId": 106745926,
+	//                     "pairId": 2,
+	//                     "quantity": "0.0027193",
+	//                     "price": "1993.674994",
+	//                     "isBuyerMaker": true,
+	//                     "baseDecimals": 18,
+	//                     "quoteDecimals": 6,
+	//                     "side": "sell",
+	//                     "timestamp": 1700602983,
+	//                     "rewarded": true,
+	//                     "makerUserId": 21639,
+	//                     "takerUserId": 15912,
+	//                     "baseCurrencyId": 2,
+	//                     "quoteCurrencyId": 3,
+	//                     "feeMaker": {
+	//                         "amount": "0.00000543",
+	//                         "symbol": "eth",
+	//                         "userId": 21639,
+	//                         "decimals": 18,
+	//                         "symbolId": 2
+	//                     },
+	//                     "feeTaker": {
+	//                         "amount": "0",
+	//                         "symbol": "usdt",
+	//                         "userId": 15912,
+	//                         "decimals": 6,
+	//                         "symbolId": 3,
+	//                         "discountAmount": "0",
+	//                         "discountSymbol": "btt",
+	//                         "discountDecimals": 18,
+	//                         "discountSymbolId": 5
+	//                     },
+	//                     "pair": "eth_usdt",
+	//                     "createdAt": "2023-11-21T21:43:02.758Z",
+	//                     "updatedAt": "2023-11-21T21:45:00.147Z",
+	//                     "isCurrentSide": "maker"
+	//                 },
+	//                 {
+	//                     "id": 34871727,
+	//                     "tradeId": "3441840",
+	//                     "makerOrderId": 106733299,
+	//                     "takerOrderId": 106733308,
+	//                     "pairId": 22,
+	//                     "quantity": "0.00001",
+	//                     "price": "37017.495008",
+	//                     "isBuyerMaker": false,
+	//                     "baseDecimals": 8,
+	//                     "quoteDecimals": 6,
+	//                     "side": "buy",
+	//                     "timestamp": 1700594960,
+	//                     "rewarded": true,
+	//                     "makerUserId": 15909,
+	//                     "takerUserId": 21639,
+	//                     "baseCurrencyId": 11,
+	//                     "quoteCurrencyId": 3,
+	//                     "feeMaker": {
+	//                         "amount": "0",
+	//                         "symbol": "usdt",
+	//                         "userId": 15909,
+	//                         "decimals": 6,
+	//                         "symbolId": 3,
+	//                         "discountAmount": "0",
+	//                         "discountSymbol": "btt",
+	//                         "discountDecimals": 18,
+	//                         "discountSymbolId": 5
+	//                     },
+	//                     "feeTaker": {
+	//                         "amount": "0.00000002",
+	//                         "symbol": "btc",
+	//                         "userId": 21639,
+	//                         "decimals": 8,
+	//                         "symbolId": 11
+	//                     },
+	//                     "pair": "btc_usdt",
+	//                     "createdAt": "2023-11-21T19:29:20.092Z",
+	//                     "updatedAt": "2023-11-21T19:30:00.159Z"
+	//                     "isCurrentSide": "taker"
+	//                 }
+	//             ]
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var trades any = this.SafeList(result, "trades", []any{})
+
+	ch <- this.ParseTrades(trades, market, since, limit)
+	return nil
 }
 func (this *BitteamCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -2426,7 +2426,7 @@ func (this *BitteamCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCurrencyId any = this.SafeString(feeInfo, "symbol")
 	var feeCost any = this.SafeString(feeInfo, "amount")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": this.SafeCurrencyCode(feeCurrencyId),
 		"cost":     feeCost,
 	}
@@ -2457,26 +2457,26 @@ func (this *BitteamCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
  */
 func (this *BitteamCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes213212 := (<-this.LoadMarkets())
-			PanicOnError(retRes213212)
-		}
-
-		response := (<-this.PrivateGetTradeApiCcxtBalance(params))
-		PanicOnError(response)
-
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes213212 := (<-this.LoadMarkets())
+		PanicOnError(retRes213212)
+	}
+
+	response := (<-this.PrivateGetTradeApiCcxtBalance(params))
+	PanicOnError(response)
+
+	ch <- this.ParseBalance(response)
+	return nil
 }
 func (this *BitteamCore) ParseBalance(response any) any {
 	//
@@ -2520,15 +2520,15 @@ func (this *BitteamCore) ParseBalance(response any) any {
 	//         }
 	//     }
 	//
-	var timestamp any = this.Milliseconds()
-	var balance any = map[string]any{
+	var timestamp int64 = this.Milliseconds()
+	var balance map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
 	var result any = this.SafeValue(response, "result", map[string]any{})
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
-	var rawCurrencyIds any = ObjectKeys(balanceByCurrencies)
+	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrencyIds)); i++ {
 		var rawCurrencyId any = GetValue(rawCurrencyIds, i)
 		var currencyBalance any = this.SafeValue(result, rawCurrencyId)
@@ -2559,131 +2559,131 @@ func (this *BitteamCore) ParseBalance(response any) any {
  * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
 func (this *BitteamCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes222012 := (<-this.LoadMarkets())
-			PanicOnError(retRes222012)
-		}
-		var currency any = nil
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "currency", GetValue(currency, "numericId"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "ok": true,
-		//         "result": {
-		//             "count": 2,
-		//             "transactions": [
-		//                 {
-		//                     "id": 1329686,
-		//                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
-		//                     "transactionCoreId": "561863",
-		//                     "userId": 21639,
-		//                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
-		//                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
-		//                     "symbolId": 2,
-		//                     "CommissionId": 17571,
-		//                     "amount": "44000000000000000",
-		//                     "params": {},
-		//                     "reason": null,
-		//                     "timestamp": 1700715341743,
-		//                     "status": "approving",
-		//                     "statusDescription": null,
-		//                     "type": "withdraw",
-		//                     "message": null,
-		//                     "blockChain": "",
-		//                     "before": null,
-		//                     "after": null,
-		//                     "currency": {
-		//                         "symbol": "eth",
-		//                         "decimals": 18,
-		//                         "blockChain": "Ethereum",
-		//                         "links": [
-		//                             {
-		//                                 "tx": "https://etherscan.io/tx/",
-		//                                 "address": "https://etherscan.io/address/",
-		//                                 "blockChain": "Ethereum"
-		//                             }
-		//                         ]
-		//                     }
-		//                 },
-		//                 {
-		//                     "id": 1329229,
-		//                     "orderId": null,
-		//                     "transactionCoreId": "561418",
-		//                     "userId": 21639,
-		//                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
-		//                     "sender": null,
-		//                     "symbolId": 3,
-		//                     "CommissionId": null,
-		//                     "amount": "100000000",
-		//                     "params": {
-		//                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
-		//                     },
-		//                     "reason": null,
-		//                     "timestamp": 1700594180417,
-		//                     "status": "success",
-		//                     "statusDescription": null,
-		//                     "type": "deposit",
-		//                     "message": null,
-		//                     "blockChain": "Ethereum",
-		//                     "before": 0,
-		//                     "after": 100000000,
-		//                     "currency": {
-		//                         "symbol": "usdt",
-		//                         "decimals": 6,
-		//                         "blockChain": "",
-		//                         "links": [
-		//                             {
-		//                                 "tx": "https://etherscan.io/tx/",
-		//                                 "address": "https://etherscan.io/address/",
-		//                                 "blockChain": "Ethereum"
-		//                             },
-		//                             {
-		//                                 "tx": "https://tronscan.org/#/transaction/",
-		//                                 "address": "https://tronscan.org/#/address/",
-		//                                 "blockChain": "Tron"
-		//                             },
-		//                             {
-		//                                 "tx": "https://bscscan.com/tx/",
-		//                                 "address": "https://bscscan.com/address/",
-		//                                 "blockChain": "Binance"
-		//                             }
-		//                         ]
-		//                     }
-		//                 }
-		//             ]
-		//         }
-		//     }
-		//
-		var result any = this.SafeValue(response, "result", map[string]any{})
-		var transactions any = this.SafeList(result, "transactions", []any{})
-
-		ch <- this.ParseTransactions(transactions, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitteamCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes222012 := (<-this.LoadMarkets())
+		PanicOnError(retRes222012)
+	}
+	var currency any = nil
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "currency", GetValue(currency, "numericId"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "ok": true,
+	//         "result": {
+	//             "count": 2,
+	//             "transactions": [
+	//                 {
+	//                     "id": 1329686,
+	//                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
+	//                     "transactionCoreId": "561863",
+	//                     "userId": 21639,
+	//                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+	//                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
+	//                     "symbolId": 2,
+	//                     "CommissionId": 17571,
+	//                     "amount": "44000000000000000",
+	//                     "params": {},
+	//                     "reason": null,
+	//                     "timestamp": 1700715341743,
+	//                     "status": "approving",
+	//                     "statusDescription": null,
+	//                     "type": "withdraw",
+	//                     "message": null,
+	//                     "blockChain": "",
+	//                     "before": null,
+	//                     "after": null,
+	//                     "currency": {
+	//                         "symbol": "eth",
+	//                         "decimals": 18,
+	//                         "blockChain": "Ethereum",
+	//                         "links": [
+	//                             {
+	//                                 "tx": "https://etherscan.io/tx/",
+	//                                 "address": "https://etherscan.io/address/",
+	//                                 "blockChain": "Ethereum"
+	//                             }
+	//                         ]
+	//                     }
+	//                 },
+	//                 {
+	//                     "id": 1329229,
+	//                     "orderId": null,
+	//                     "transactionCoreId": "561418",
+	//                     "userId": 21639,
+	//                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+	//                     "sender": null,
+	//                     "symbolId": 3,
+	//                     "CommissionId": null,
+	//                     "amount": "100000000",
+	//                     "params": {
+	//                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+	//                     },
+	//                     "reason": null,
+	//                     "timestamp": 1700594180417,
+	//                     "status": "success",
+	//                     "statusDescription": null,
+	//                     "type": "deposit",
+	//                     "message": null,
+	//                     "blockChain": "Ethereum",
+	//                     "before": 0,
+	//                     "after": 100000000,
+	//                     "currency": {
+	//                         "symbol": "usdt",
+	//                         "decimals": 6,
+	//                         "blockChain": "",
+	//                         "links": [
+	//                             {
+	//                                 "tx": "https://etherscan.io/tx/",
+	//                                 "address": "https://etherscan.io/address/",
+	//                                 "blockChain": "Ethereum"
+	//                             },
+	//                             {
+	//                                 "tx": "https://tronscan.org/#/transaction/",
+	//                                 "address": "https://tronscan.org/#/address/",
+	//                                 "blockChain": "Tron"
+	//                             },
+	//                             {
+	//                                 "tx": "https://bscscan.com/tx/",
+	//                                 "address": "https://bscscan.com/address/",
+	//                                 "blockChain": "Binance"
+	//                             }
+	//                         ]
+	//                     }
+	//                 }
+	//             ]
+	//         }
+	//     }
+	//
+	var result any = this.SafeValue(response, "result", map[string]any{})
+	var transactions any = this.SafeList(result, "transactions", []any{})
+
+	ch <- this.ParseTransactions(transactions, currency, since, limit)
+	return nil
 }
 func (this *BitteamCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -2778,14 +2778,14 @@ func (this *BitteamCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 }
 func (this *BitteamCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"deposit":  "deposit",
 		"withdraw": "withdrawal",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *BitteamCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"approving": "pending",
 		"success":   "ok",
 	}
@@ -2805,7 +2805,7 @@ func (this *BitteamCore) Sign(path any, optionalArgs ...any) any {
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
-	var query any = this.Urlencode(request)
+	var query string = this.Urlencode(request)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsEqual(method, "POST")) {
@@ -2814,7 +2814,7 @@ func (this *BitteamCore) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, Add("?", query))
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
-		var auth64 any = this.StringToBase64(auth)
+		var auth64 string = this.StringToBase64(auth)
 		var signature any = Add("Basic ", auth64)
 		headers = map[string]any{
 			"Authorization": signature,
@@ -2837,12 +2837,12 @@ func (this *BitteamCore) HandleErrors(code any, reason any, url any, method any,
 	if IsTrue(!IsEqual(code, 200)) {
 		if IsTrue(IsEqual(code, 404)) {
 			if IsTrue(IsTrue((IsGreaterThanOrEqual(GetIndexOf(url, "/ccxt/order/"), 0))) && IsTrue((IsEqual(method, "GET")))) {
-				var parts any = Split(url, "/order/")
+				var parts []string = Split(url, "/order/")
 				var orderId any = this.SafeString(parts, 1)
 				panic(OrderNotFound(Add(Add(Add(this.Id, " order "), orderId), " not found")))
 			}
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(url, "/cmc/orderbook/"), 0)) {
-				var parts any = Split(url, "/cmc/orderbook/")
+				var parts []string = Split(url, "/cmc/orderbook/")
 				var symbolId any = this.SafeString(parts, 1)
 				panic(BadSymbol(Add(Add(Add(this.Id, " symbolId "), symbolId), " not found")))
 			}

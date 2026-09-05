@@ -538,7 +538,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         Object response = this.safeValue(message, "response");
-        Object ohlcv = this.parseOHLCVs(response, null, null, null);
+        Object ohlcv = this.parseOHLCVs(response, null, null);
         Object messageHash = this.safeString(message, "requestId");
         client.resolve(ohlcv, messageHash);
     }
@@ -1656,7 +1656,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // const action = this.safeString (message, 'action');
         Object response = this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        Object trades = this.parseTrades((java.util.List<Object>)(response), null, null, null);
+        Object trades = this.parseTrades((java.util.List<Object>)(response), null, null);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         Object messageHash = this.safeString(message, "requestId");
         client.resolve(trades, messageHash);
@@ -2262,7 +2262,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object messageHash = "authenticated";
         Object authenticated = this.safeBool(message, "authenticated", false);
-        if (Helpers.isTrue(authenticated))
+        if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message, messageHash);

@@ -176,7 +176,8 @@
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
-                "currencyIdAndCode": "i.e. binance does not have currency code BCC"
+                "currencyIdAndCode": "i.e. binance does not have currency code BCC",
+                "optionsNotLoadedByDefault": "avoids test warning"
             },
             "fetchCurrencies": {
                 "precision": "temp issues fro fiat"
@@ -433,6 +434,9 @@
     },
     "bitmex": {
         "skipMethods": {
+            "fetchTicker": {
+                "lastBetweenBidAsk": "bitmex shuts down 2026-09-23 (announced 2026-07-23): liquidity is evaporating through the wind-down - wide stale spreads fail the last-vs-median check chronically. REMOVE THE EXCHANGE after the closure date"
+            },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
             },
@@ -1345,6 +1349,7 @@
                 "maker": "undef",
                 "active": "undef",
                 "contractSize": "undef",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated",
                 "precisionAmountAbnormal": "abnormal precision"
             },
             "fetchCurrencies": {
@@ -1743,6 +1748,9 @@
     },
     "latoken": {
         "skipMethods": {
+            "fetchTicker": {
+                "lastBetweenBidAsk": "the venue serves stale wide bestBid/bestAsk snapshots during incidents - 2026-08-17: 30+ minutes of a dust bid and a ghost negative-quantity ask from the ticker endpoint itself while trades printed 1.15% above the stale median"
+            },
             "loadMarkets": {
                 "precision": "messed just for one pair https://app.travis-ci.com/github/ccxt/ccxt/builds/269924468#L4006",
                 "currency": "messed",
@@ -1963,6 +1971,10 @@
             }
         }
     },
+    "opinion": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911"
+    },
     "onetrading": {
         "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
         "skipWs": "same",
@@ -2009,6 +2021,9 @@
     },
     "okxus": {
         "skipCSharp": true,
+        "loadMarkets": {
+
+        },
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2154,6 +2169,21 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            }
+        }
+    },
+    "revolutx": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "withdraw": "RevX API does not support withdrawals",
+                "deposit": "RevX API does not support deposits",
+                "activeMajorCurrencies": "RevX API does not provide deposit/withdrawal flags"
+            },
+            "ticker": {
+                "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
+            },
+            "fetchTickers": {
+                "compareOHLC": "open is derived from last - priceChange, can fall outside 24h low/high range"
             }
         }
     },
@@ -2350,8 +2380,6 @@
     "xt": {
         "skipMethods": {
             "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined",
                 "currencyIdAndCode": "different",
                 "limits": "incorrect for some currencies"
             },
@@ -2494,7 +2522,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "contractSize": "not provided"
+                "contractSize": "not provided",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",
@@ -2517,6 +2546,8 @@
         }
     },
     "weex": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. weex does not have currency code AXL"
@@ -2544,6 +2575,13 @@
             },
             "watchTradesForSymbols": {
                 "side": "not provided"
+            }
+        }
+    },
+    "btse": {
+        "skipMethods": {
+            "ticker": {
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/31550755306/job/93972856257?pr=27862"
             }
         }
     }

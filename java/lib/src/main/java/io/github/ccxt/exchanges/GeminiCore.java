@@ -67,6 +67,7 @@ public class GeminiCore extends GeminiApi
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
+                put( "fetchOpenInterest", true );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
@@ -619,7 +620,9 @@ public class GeminiCore extends GeminiApi
     {
         Object id = this.safeString(rawCurrency, 0);
         Object code = this.safeCurrencyCode(id);
-        Object type = ((Helpers.isTrue(this.safeString(rawCurrency, 7)))) ? "fiat" : "crypto";
+        Object fiatFlag = this.safeString(rawCurrency, 7);
+        Object isFiat = Helpers.isTrue((!Helpers.isEqual(fiatFlag, null))) && Helpers.isTrue((!Helpers.isEqual(fiatFlag, "")));
+        Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object networkId = this.safeString(rawCurrency, 9);
@@ -1766,11 +1769,11 @@ public class GeminiCore extends GeminiApi
         Object remaining = this.safeString(order, "remaining_amount");
         Object filled = this.safeString(order, "executed_amount");
         Object status = "closed";
-        if (Helpers.isTrue(Helpers.GetValue(order, "is_live")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "is_live"), true)))
         {
             status = "open";
         }
-        if (Helpers.isTrue(Helpers.GetValue(order, "is_cancelled")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "is_cancelled"), true)))
         {
             status = "canceled";
         }
@@ -2031,7 +2034,7 @@ public class GeminiCore extends GeminiApi
                 }
                 Object postOnly = this.safeBool(parameters, "postOnly", false);
                 parameters = this.omit(parameters, "postOnly");
-                if (Helpers.isTrue(postOnly))
+                if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
                     Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList("maker-or-cancel")));
                 }
@@ -2400,13 +2403,12 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object groupedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
-            return this.safeValue(networkGroup, code);
+            return this.safeValue(indexedByNetwork, networkCode);
         });
 
     }
@@ -2452,7 +2454,9 @@ public class GeminiCore extends GeminiApi
                 put( "network", finalNetworkCode );
                 put( "currency", finalCode );
             }});
-            return this.groupBy(results, "network");
+            // one address structure per network, like every other venue (the endpoint is scoped to a
+            // single network, so the last address the venue lists for it wins — same as before)
+            return this.indexBy(results, "network");
         });
 
     }
@@ -2492,7 +2496,7 @@ public class GeminiCore extends GeminiApi
             }};
         } else
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

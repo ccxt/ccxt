@@ -806,8 +806,8 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
                 $contract = true;
             }
-            $isLinear = ($contract) ? true : null;
-            $isInverse = ($contract) ? false : null;
+            $isLinear = ($contract === true) ? true : null;
+            $isInverse = ($contract === true) ? false : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
@@ -819,7 +819,7 @@ class cryptocom extends Exchange {
                 'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'margin' => (($marginBuyEnabled) || ($marginSellEnabled)),
+                'margin' => (($marginBuyEnabled === true) || ($marginSellEnabled === true)),
                 'swap' => $swap,
                 'future' => $future,
                 'option' => $option,
@@ -1179,7 +1179,7 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
-        if ($limit) {
+        if (($limit !== null) && ($limit !== 0)) {
             $request['depth'] = min($limit, 50); // max 50
         }
         $response = $this->v1PublicGetPublicGetBook($this->extend($request, $params));
@@ -1386,7 +1386,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly) || ($timeInForce === 'PO')) {
+        if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1606,7 +1606,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly) || ($timeInForce === 'PO')) {
+        if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -3093,7 +3093,7 @@ class cryptocom extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3184,7 +3184,7 @@ class cryptocom extends Exchange {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3374,8 +3374,8 @@ class cryptocom extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
-            'side' => Precise::string_gt($amount, '0') ? 'buy' : 'sell',
-            'contracts' => Precise::string_abs($amount),
+            'side' => Precise::string_gt($amount, '0') ? 'long' : 'short',
+            'contracts' => $this->parse_number(Precise::string_abs($amount)),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,
@@ -3566,8 +3566,8 @@ class cryptocom extends Exchange {
             $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
-            $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            $makerFeeKey = $isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            $takerFeeKey = ($isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            $makerFeeKey = ($isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
             $tradingFee = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -3607,7 +3607,7 @@ class cryptocom extends Exchange {
         $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

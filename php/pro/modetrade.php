@@ -84,48 +84,52 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_public(mixed $messageHash, mixed $message) {
-        return Async\async(function () use ($messageHash, $message) {
-            // the default $id
-            $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-            if ($this->accountId !== null && $this->accountId !== '') {
-                $id = $this->accountId;
-            }
-            $url = $this->urls['api']['ws']['public'] . '/' . $id;
-            $requestId = $this->request_id($url);
-            $subscribe = array(
-                'id' => $requestId,
-            );
-            $request = $this->extend($subscribe, $message);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
-        })();
+        return Async\async(self::do_watch_public(...))($messageHash, $message);
+    }
+
+    private function do_watch_public(mixed $messageHash, mixed $message) {
+        // the default $id
+        $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
+        if ($this->accountId !== null && $this->accountId !== '') {
+            $id = $this->accountId;
+        }
+        $url = $this->urls['api']['ws']['public'] . '/' . $id;
+        $requestId = $this->request_id($url);
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $request = $this->extend($subscribe, $message);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $name = 'orderbook';
-            $market = $this->market($symbol);
-            $topic = $market['id'] . '@' . $name;
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $orderbook = Async\await($this->watch_public($topic, $message));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $name = 'orderbook';
+        $market = $this->market($symbol);
+        $topic = $market['id'] . '@' . $name;
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $orderbook = Async\await($this->watch_public($topic, $message));
+        return $orderbook->limit();
     }
 
     public function handle_order_book(Client $client, mixed $message) {
@@ -166,30 +170,32 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
-             *
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $name = 'ticker';
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $topic = $market['id'] . '@' . $name;
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch_public($topic, $message));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+         *
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $name = 'ticker';
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $topic = $market['id'] . '@' . $name;
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch_public($topic, $message));
     }
 
     public function parse_ws_ticker(array $ticker, ?array $market = null) {
@@ -260,30 +266,32 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-$tickers
-             *
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $name = 'tickers';
-            $topic = $name;
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $tickers = Async\await($this->watch_public($topic, $message));
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-$tickers
+         *
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $name = 'tickers';
+        $topic = $name;
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $tickers = Async\await($this->watch_public($topic, $message));
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
     public function handle_tickers(Client $client, mixed $message) {
@@ -321,30 +329,32 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
-             *
-             * watches best bid & ask for $symbols
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $name = 'bbos';
-            $topic = $name;
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $tickers = Async\await($this->watch_public($topic, $message));
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+         *
+         * watches best bid & ask for $symbols
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $name = 'bbos';
+        $topic = $name;
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $tickers = Async\await($this->watch_public($topic, $message));
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
     public function handle_bid_ask(Client $client, mixed $message) {
@@ -396,40 +406,42 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
-                throw new NotSupported($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
-            }
-            $market = $this->market($symbol);
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $name = 'kline';
-            $topic = $market['id'] . '@' . $name . '_' . $interval;
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $ohlcv = Async\await($this->watch_public($topic, $message));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($market['symbol'], $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
+            throw new NotSupported($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+        }
+        $market = $this->market($symbol);
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $name = 'kline';
+        $topic = $market['id'] . '@' . $name . '_' . $interval;
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $ohlcv = Async\await($this->watch_public($topic, $message));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv(Client $client, mixed $message) {
@@ -482,35 +494,37 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a $market
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $topic = $market['id'] . '@trade';
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $trades = Async\await($this->watch_public($topic, $message));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($market['symbol'], $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made in a $market
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $topic = $market['id'] . '@trade';
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $trades = Async\await($this->watch_public($topic, $message));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_trade(Client $client, mixed $message) {
@@ -629,7 +643,7 @@ class modetrade extends \ccxt\async\modetrade {
         //
         $messageHash = 'authenticated';
         $success = $this->safe_value($message, 'success');
-        if ($success) {
+        if ($success === true) {
             // $client->resolve($message, $messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
             $future->resolve(true);
@@ -644,142 +658,152 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function authenticate($params = array()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
-            $client = $this->client($url);
-            $messageHash = 'authenticated';
-            $event = 'auth';
-            $future = $client->reusableFuture($messageHash);
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $ts = (string) $this->nonce();
-                $auth = $ts;
-                $secret = $this->secret;
-                if (mb_strpos($secret, 'ed25519:') !== false) {
-                    $parts = explode('ed25519:', $secret);
-                    $secret = $parts[1];
-                }
-                $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
-                $request = array(
-                    'event' => $event,
-                    'params' => array(
-                        'orderly_key' => $this->apiKey,
-                        'sign' => $signature,
-                        'timestamp' => $ts,
-                    ),
-                );
-                $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $event = 'auth';
+        $future = $client->reusableFuture($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $ts = (string) $this->nonce();
+            $auth = $ts;
+            $secret = $this->secret;
+            if (mb_strpos($secret, 'ed25519:') !== false) {
+                $parts = explode('ed25519:', $secret);
+                $secret = $parts[1];
             }
-            return Async\await($future);
-        })();
+            $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
+            $request = array(
+                'event' => $event,
+                'params' => array(
+                    'orderly_key' => $this->apiKey,
+                    'sign' => $signature,
+                    'timestamp' => $ts,
+                ),
+            );
+            $message = $this->extend($request, $params);
+            $this->watch($url, $messageHash, $message, $messageHash);
+        }
+        return Async\await($future);
     }
 
     public function watch_private(mixed $messageHash, mixed $message, $params = array()) {
-        return Async\async(function () use ($messageHash, $message, $params) {
-            Async\await($this->authenticate($params));
-            $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
-            $requestId = $this->request_id($url);
-            $subscribe = array(
-                'id' => $requestId,
-            );
-            $request = $this->extend($subscribe, $message);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
-        })();
+        return Async\async(self::do_watch_private(...))($messageHash, $message, $params);
+    }
+
+    private function do_watch_private(mixed $messageHash, mixed $message, $params = array()) {
+        Async\await($this->authenticate($params));
+        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $requestId = $this->request_id($url);
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $request = $this->extend($subscribe, $message);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
     }
 
     public function watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
-        return Async\async(function () use ($messageHashes, $message, $params) {
-            Async\await($this->authenticate($params));
-            $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
-            $requestId = $this->request_id($url);
-            $subscribe = array(
-                'id' => $requestId,
-            );
-            $request = $this->extend($subscribe, $message);
-            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscribe));
-        })();
+        return Async\async(self::do_watch_private_multiple(...))($messageHashes, $message, $params);
+    }
+
+    private function do_watch_private_multiple(mixed $messageHashes, mixed $message, $params = array()) {
+        Async\await($this->authenticate($params));
+        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $requestId = $this->request_id($url);
+        $subscribe = array(
+            'id' => $requestId,
+        );
+        $request = $this->extend($subscribe, $message);
+        return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes, $subscribe));
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->trigger] true if $trigger order
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-            $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
-            $params = $this->omit($params, array( 'stop', 'trigger' ));
-            $messageHash = $topic;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-            }
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $orders = Async\await($this->watch_private($messageHash, $message));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->trigger] true if $trigger order
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
+        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $messageHash = $topic;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+        }
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $orders = Async\await($this->watch_private($messageHash, $message));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made by the user
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->trigger] true if $trigger order
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
-            $topic = ($trigger) ? 'algoexecutionreport' : 'executionreport';
-            $params = $this->omit($params, 'stop');
-            $messageHash = 'myTrades';
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
-            }
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            $orders = Async\await($this->watch_private($messageHash, $message));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple trades made by the user
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->trigger] true if $trigger order
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
+        $topic = ($trigger === true) ? 'algoexecutionreport' : 'executionreport';
+        $params = $this->omit($params, 'stop');
+        $messageHash = 'myTrades';
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $symbol;
+        }
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        $orders = Async\await($this->watch_private($messageHash, $message));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function parse_ws_order(mixed $order, ?array $market = null) {
@@ -1035,55 +1059,57 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
-             *
-             * watch all open positions
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {int} [$since] timestamp in ms of the earliest position to fetch
-             * @param {int} [$limit] the maximum number of positions to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+         *
+         * watch all open positions
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch
+         * @param {int} [$limit] the maximum number of positions to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHashes = array();
+        $symbols = $this->market_symbols($symbols);
+        if (($symbols !== null) && !$this->is_empty($symbols)) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = 'positions::' . $symbol;
             }
-            $messageHashes = array();
-            $symbols = $this->market_symbols($symbols);
-            if (($symbols !== null) && !$this->is_empty($symbols)) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = 'positions::' . $symbol;
-                }
-            } else {
-                $messageHashes[] = 'positions';
-            }
-            $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
-            $client = $this->client($url);
-            $this->set_positions_cache($client, $symbols);
-            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
-            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
-                $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
-            }
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => 'position',
-            );
-            $newPositions = Async\await($this->watch_private_multiple($messageHashes, $request, $params));
-            if ($this->newUpdates) {
-                return $newPositions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        } else {
+            $messageHashes[] = 'positions';
+        }
+        $url = $this->urls['api']['ws']['private'] . '/' . $this->accountId;
+        $client = $this->client($url);
+        $this->set_positions_cache($client, $symbols);
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+        $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
+        if (($fetchPositionsSnapshot === true) && ($awaitPositionsSnapshot === true) && ($this->positions === null)) {
+            $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
+            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+        }
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => 'position',
+        );
+        $newPositions = Async\await($this->watch_private_multiple($messageHashes, $request, $params));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
     public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
-        if ($fetchPositionsSnapshot) {
+        if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -1095,24 +1121,26 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function load_positions_snapshot(Client $client, mixed $messageHash) {
-        return Async\async(function () use ($client, $messageHash) {
-            $positions = Async\await($this->fetch_positions());
-            $this->positions = new ArrayCacheBySymbolBySide();
-            $cache = $this->positions;
-            for ($i = 0; $i < count($positions); $i++) {
-                $position = $positions[$i];
-                $contracts = $this->safe_string($position, 'contracts', '0');
-                if (Precise::string_gt($contracts, '0')) {
-                    $cache->append($position);
-                }
+        return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
+    }
+
+    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+        $positions = Async\await($this->fetch_positions());
+        $this->positions = new ArrayCacheBySymbolBySide();
+        $cache = $this->positions;
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $contracts = $this->safe_string($position, 'contracts', '0');
+            if (Precise::string_gt($contracts, '0')) {
+                $cache->append($position);
             }
-            // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
-                $future = $client->futures[$messageHash];
-                $future->resolve($cache);
-                $client->resolve($cache, 'positions');
-            }
-        })();
+        }
+        // don't remove the $future from the .futures $cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve($cache);
+            $client->resolve($cache, 'positions');
+        }
     }
 
     public function handle_positions(mixed $client, mixed $message) {
@@ -1242,27 +1270,29 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $topic = 'balance';
-            $messageHash = $topic;
-            $request = array(
-                'event' => 'subscribe',
-                'topic' => $topic,
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch_private($messageHash, $message));
-        })();
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $topic = 'balance';
+        $messageHash = $topic;
+        $request = array(
+            'event' => 'subscribe',
+            'topic' => $topic,
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch_private($messageHash, $message));
     }
 
     public function handle_balance(mixed $client, mixed $message) {
@@ -1329,7 +1359,7 @@ class modetrade extends \ccxt\async\modetrade {
             return false;
         }
         $success = $this->safe_bool($message, 'success');
-        if ($success) {
+        if ($success === true) {
             return false;
         }
         $errorMessage = $this->safe_string($message, 'errorMsg');
@@ -1354,7 +1384,7 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $methods = array(
@@ -1416,9 +1446,11 @@ class modetrade extends \ccxt\async\modetrade {
     }
 
     public function pong(Client $client, mixed $message) {
-        return Async\async(function () use ($client, $message) {
-            Async\await($client->send(array( 'event' => 'pong' )));
-        })();
+        return Async\async(self::do_pong(...))($client, $message);
+    }
+
+    private function do_pong(Client $client, mixed $message) {
+        Async\await($client->send(array( 'event' => 'pong' )));
     }
 
     public function handle_ping(Client $client, mixed $message) {

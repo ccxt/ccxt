@@ -133,7 +133,7 @@ export default class bydfi extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -521,7 +521,7 @@ export default class bydfi extends Exchange {
             'option': false,
             'active': status === 'NORMAL',
             'contract': true,
-            'linear': !inverse,
+            'linear': inverse !== true,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -694,7 +694,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
@@ -851,7 +851,7 @@ export default class bydfi extends Exchange {
             'interval': interval,
         };
         let startTime = since;
-        const numberOfCandles = limit ? limit : maxLimit;
+        const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
@@ -1315,13 +1315,13 @@ export default class bydfi extends Exchange {
         if (hedged) {
             params = this.omit (params, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = reduceOnly ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
             } else if (side === 'sell') {
-                request['positionSide'] = reduceOnly ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
         const closePosition = this.safeBool (params, 'closePosition', false);
-        if (!closePosition) {
+        if (closePosition !== true) {
             params = this.omit (params, 'closePosition');
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
@@ -1689,7 +1689,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
@@ -2233,7 +2233,7 @@ export default class bydfi extends Exchange {
         }
         const market = this.market (symbol);
         let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
+        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'contractType', contractType);
         const request: Dict = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2401,9 +2401,9 @@ export default class bydfi extends Exchange {
         }
         const market = this.market (symbol);
         let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'contractType', contractType);
+        [ contractType, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'contractType', contractType);
         let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'wallet', wallet);
+        [ wallet, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'wallet', wallet);
         const request: Dict = {
             'contractType': contractType,
             'symbol': market['id'],
@@ -2651,7 +2651,7 @@ export default class bydfi extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             const timestamp = this.milliseconds ();
             transfer['timestamp'] = timestamp;
             transfer['datetime'] = this.iso8601 (timestamp);
@@ -2684,7 +2684,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency (code);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });
@@ -2822,7 +2822,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency (code);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
             params = this.omit (params, 'paginate');
             params = this.extend (params, { 'paginationDirection': 'backward' });

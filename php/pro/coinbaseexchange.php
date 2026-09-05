@@ -67,355 +67,379 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     }
 
     public function subscribe(string $name, ?string $symbol = null, ?string $messageHashStart = null, $params = array()) {
-        return Async\async(function () use ($name, $symbol, $messageHashStart, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            $messageHash = $messageHashStart;
-            $productIds = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $messageHash .= ':' . $market['id'];
-                $productIds[] = $market['id'];
-            }
-            $url = $this->urls['api']['ws'];
-            if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
-                // need to distinguish between public trades and user trades
-                $url = $url . '?';
-            }
-            $subscribe = array(
-                'type' => 'subscribe',
-                'product_ids' => $productIds,
-                'channels' => array(
-                    $name,
-                ),
-            );
-            $request = $this->extend($subscribe, $params);
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        })();
+        return Async\async(self::do_subscribe(...))($name, $symbol, $messageHashStart, $params);
+    }
+
+    private function do_subscribe(string $name, ?string $symbol = null, ?string $messageHashStart = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        $messageHash = $messageHashStart;
+        $productIds = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $messageHash .= ':' . $market['id'];
+            $productIds[] = $market['id'];
+        }
+        $url = $this->urls['api']['ws'];
+        if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
+            // need to distinguish between public trades and user trades
+            $url = $url . '?';
+        }
+        $subscribe = array(
+            'type' => 'subscribe',
+            'product_ids' => $productIds,
+            'channels' => array(
+                $name,
+            ),
+        );
+        $request = $this->extend($subscribe, $params);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
     public function subscribe_multiple(mixed $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
-        return Async\async(function () use ($name, $symbols, $messageHashStart, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            $symbols = $this->market_symbols($symbols);
-            $messageHashes = array();
-            $productIds = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $productIds[] = $market['id'];
-                $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
-            }
-            $url = $this->urls['api']['ws'];
-            if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
-                // need to distinguish between public trades and user trades
-                $url = $url . '?';
-            }
-            $subscribe = array(
-                'type' => 'subscribe',
-                'product_ids' => $productIds,
-                'channels' => array(
-                    $name,
-                ),
-            );
-            $request = $this->extend($subscribe, $params);
-            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        })();
+        return Async\async(self::do_subscribe_multiple(...))($name, $symbols, $messageHashStart, $params);
+    }
+
+    private function do_subscribe_multiple(mixed $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        $symbols = $this->market_symbols($symbols);
+        $messageHashes = array();
+        $productIds = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $productIds[] = $market['id'];
+            $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
+        }
+        $url = $this->urls['api']['ws'];
+        if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
+            // need to distinguish between public trades and user trades
+            $url = $url . '?';
+        }
+        $subscribe = array(
+            'type' => 'subscribe',
+            'product_ids' => $productIds,
+            'channels' => array(
+                $name,
+            ),
+        );
+        $request = $this->extend($subscribe, $params);
+        return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            $name = 'ticker';
-            return Async\await($this->subscribe($name, $symbol, $name, $params));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $name = 'ticker';
+        return Async\await($this->subscribe($name, $symbol, $name, $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers() $symbols is required');
-            }
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
-            }
-            $channel = 'ticker';
-            $messageHash = 'ticker';
-            $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' watchTickers() $symbols is required');
+        }
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
+        }
+        $channel = 'ticker';
+        $messageHash = 'ticker';
+        $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbol = $this->symbol($symbol);
-            $name = 'matches';
-            $trades = Async\await($this->subscribe($name, $symbol, $name, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $name = 'matches';
+        $trades = Async\await($this->subscribe($name, $symbol, $name, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular symbol
-             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new BadRequest($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $name = 'matches';
-            $trades = Async\await($this->subscribe_multiple($name, $symbols, $name, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular symbol
+         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new BadRequest($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $name = 'matches';
+        $trades = Async\await($this->subscribe_multiple($name, $symbols, $name, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified market $symbol of the market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbol = $this->symbol($symbol);
-            $name = 'user';
-            $messageHash = 'myTrades';
-            $authentication = $this->authenticate();
-            $trades = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         * @param {string} $symbol unified market $symbol of the market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $name = 'user';
+        $messageHash = 'myTrades';
+        $authentication = $this->authenticate();
+        $trades = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            $symbols = $this->market_symbols($symbols, null, false);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $name = 'user';
-            $messageHash = 'myTrades';
-            $authentication = $this->authenticate();
-            $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_my_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        $symbols = $this->market_symbols($symbols, null, false);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $name = 'user';
+        $messageHash = 'myTrades';
+        $authentication = $this->authenticate();
+        $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             * @param {string[]} $symbols unified symbol of the market to fetch $orders for
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $name = 'user';
-            $messageHash = 'orders';
-            $authentication = $this->authenticate();
-            $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($orders, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $orders->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_orders_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         * @param {string[]} $symbols unified symbol of the market to fetch $orders for
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $name = 'user';
+        $messageHash = 'orders';
+        $authentication = $this->authenticate();
+        $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($orders, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $orders->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol === null) {
-                throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbol = $this->symbol($symbol);
-            $name = 'user';
-            $messageHash = 'orders';
-            $authentication = $this->authenticate();
-            $orders = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $name = 'user';
+        $messageHash = 'orders';
+        $authentication = $this->authenticate();
+        $orders = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new BadRequest($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-            }
-            $name = 'level2';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $marketIds = $this->market_ids($symbols);
-            $messageHashes = array();
-            for ($i = 0; $i < $symbolsLength; $i++) {
-                $marketId = $marketIds[$i];
-                $messageHashes[] = $name . ':' . $marketId;
-            }
-            $url = $this->urls['api']['ws'];
-            $subscribe = array(
-                'type' => 'subscribe',
-                'product_ids' => $marketIds,
-                'channels' => array(
-                    $name,
-                ),
-            );
-            $request = $this->extend($subscribe, $params);
-            $subscription = array(
-                'messageHash' => $name,
-                'symbols' => $symbols,
-                'marketIds' => $marketIds,
-                'limit' => $limit,
-            );
-            $authentication = $this->authenticate();
-            $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $authentication), $messageHashes, $subscription));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new BadRequest($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        $name = 'level2';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $marketIds = $this->market_ids($symbols);
+        $messageHashes = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $marketId = $marketIds[$i];
+            $messageHashes[] = $name . ':' . $marketId;
+        }
+        $url = $this->urls['api']['ws'];
+        $subscribe = array(
+            'type' => 'subscribe',
+            'product_ids' => $marketIds,
+            'channels' => array(
+                $name,
+            ),
+        );
+        $request = $this->extend($subscribe, $params);
+        $subscription = array(
+            'messageHash' => $name,
+            'symbols' => $symbols,
+            'marketIds' => $marketIds,
+            'limit' => $limit,
+        );
+        $authentication = $this->authenticate();
+        $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $authentication), $messageHashes, $subscription));
+        return $orderbook->limit();
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            $name = 'level2';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = $name . ':' . $market['id'];
-            $url = $this->urls['api']['ws'];
-            $subscribe = array(
-                'type' => 'subscribe',
-                'product_ids' => array(
-                    $market['id'],
-                ),
-                'channels' => array(
-                    $name,
-                ),
-            );
-            $request = $this->extend($subscribe, $params);
-            $subscription = array(
-                'messageHash' => $messageHash,
-                'symbol' => $symbol,
-                'marketId' => $market['id'],
-                'limit' => $limit,
-            );
-            $authentication = $this->authenticate();
-            $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $authentication), $messageHash, $subscription));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $name = 'level2';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = $name . ':' . $market['id'];
+        $url = $this->urls['api']['ws'];
+        $subscribe = array(
+            'type' => 'subscribe',
+            'product_ids' => array(
+                $market['id'],
+            ),
+            'channels' => array(
+                $name,
+            ),
+        );
+        $request = $this->extend($subscribe, $params);
+        $subscription = array(
+            'messageHash' => $messageHash,
+            'symbol' => $symbol,
+            'marketId' => $market['id'],
+            'limit' => $limit,
+        );
+        $authentication = $this->authenticate();
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->extend($request, $authentication), $messageHash, $subscription));
+        return $orderbook->limit();
     }
 
     public function handle_trade(Client $client, mixed $message) {

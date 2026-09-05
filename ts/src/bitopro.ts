@@ -100,7 +100,7 @@ export default class bitopro extends Exchange {
                 'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
@@ -388,7 +388,7 @@ export default class bitopro extends Exchange {
             'info': rawCurrency,
             'type': isFiat ? 'fiat' : 'crypto',
             'name': undefined,
-            'active': deposit && withdraw,
+            'active': ((deposit === true) && (withdraw === true)),
             'deposit': deposit,
             'withdraw': withdraw,
             'fee': this.safeNumber (rawCurrency, 'withdrawFee'),
@@ -442,7 +442,7 @@ export default class bitopro extends Exchange {
     }
 
     override parseMarket (market: Dict): Market {
-        const active = !this.safeBool (market, 'maintain');
+        const active = (this.safeBool (market, 'maintain') !== true);
         const id = this.safeString (market, 'pair');
         if (id === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing id');
@@ -699,7 +699,7 @@ export default class bitopro extends Exchange {
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeBool (trade, 'isBuyer');
-            if (isBuyer) {
+            if (isBuyer === true) {
                 side = 'buy';
             } else {
                 side = 'sell';
@@ -1764,7 +1764,7 @@ export default class bitopro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
@@ -1928,7 +1928,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             } else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
                 const nonce = this.milliseconds ();
@@ -1943,7 +1943,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             }
         } else if (api === 'public' && method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }

@@ -254,7 +254,7 @@ abstract class extended extends \ccxt\async\Exchange {
         return $this->request('user/order/massCancel', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<string>
      */
     public function v1_private_post_user_deadmanswitch($params = array()) {
         return $this->request('user/deadmanswitch', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -560,7 +560,7 @@ abstract class extended extends \ccxt\async\Exchange {
         return $this->request('user/order/massCancel', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<string>
      */
     public function v1PrivatePostUserDeadmanswitch($params = array()) {
         return $this->request('user/deadmanswitch', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));

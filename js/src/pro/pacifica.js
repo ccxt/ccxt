@@ -293,7 +293,7 @@ export default class pacifica extends pacificaRest {
             const orderId = this.safeString(order, 'i');
             const clientOrderId = this.safeString(order, 'I');
             let status = undefined;
-            if ((error !== undefined) || (!success)) {
+            if ((error !== undefined) || (success !== true)) {
                 status = 'closed';
             }
             else {
@@ -424,7 +424,7 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market(symbol);
         let aggLevel = undefined;
-        [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
+        [aggLevel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
@@ -457,7 +457,7 @@ export default class pacifica extends pacificaRest {
         }
         const market = this.market(symbol);
         let aggLevel = undefined;
-        [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
+        [aggLevel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
@@ -520,7 +520,7 @@ export default class pacifica extends pacificaRest {
         const timestamp = this.safeInteger(entry, 't');
         const snapshot = this.parseOrderBook(result, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeInteger(entry, 'li');
-        if (nonce) {
+        if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
         if (!(symbol in this.orderbooks)) {
@@ -1343,7 +1343,7 @@ export default class pacifica extends pacificaRest {
         //     }
         // }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const postType = this.safeString(message, 'type');

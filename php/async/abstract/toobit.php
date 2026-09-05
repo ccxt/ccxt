@@ -224,7 +224,7 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/subAccount/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_api_v1_futures_accountleverage($params = array()) {
         return $this->request('api/v1/futures/accountLeverage', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -248,7 +248,7 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_api_v1_futures_balance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -746,7 +746,7 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/subAccount/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetApiV1FuturesAccountLeverage($params = array()) {
         return $this->request('api/v1/futures/accountLeverage', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -770,7 +770,7 @@ abstract class toobit extends \ccxt\async\Exchange {
         return $this->request('api/v1/futures/historyPositions', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetApiV1FuturesBalance($params = array()) {
         return $this->request('api/v1/futures/balance', 'private', 'GET', $params, null, null, array("cost" => 5));

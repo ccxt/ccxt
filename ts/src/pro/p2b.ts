@@ -64,7 +64,7 @@ export default class p2b extends p2bRest {
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
@@ -133,7 +133,7 @@ export default class p2b extends p2bRest {
         }
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
+        [ name, params ] = this.handleOptionAndParams (params, 'watchTicker', 'name', name);
         const market = this.market (symbol);
         symbol = market['symbol'];
         this.options['tickerSubs'][market['id'] as string] = true; // we need to re-subscribe to all tickers upon watching a new ticker
@@ -161,7 +161,7 @@ export default class p2b extends p2bRest {
         symbols = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
+        [ name, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
         for (let i = 0; i < (symbols as string[]).length; i++) {
@@ -443,7 +443,7 @@ export default class p2b extends p2bRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
             orderbook = this.orderbooks[symbol];
         }
-        if (isFullUpdate) {
+        if (isFullUpdate === true) {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
             // otherwise stale levels that left the depth window would linger
@@ -473,7 +473,7 @@ export default class p2b extends p2bRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const result = this.safeString (message, 'result');

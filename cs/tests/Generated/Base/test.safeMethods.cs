@@ -329,6 +329,28 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), parseFloat(3)));
             // @ts-expect-error
             Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), parseFloat(2)));
+            // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+            Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent"), null), "safeFloat failed for missing key");
+            Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default");
+            Assert(isEqual(exchange.safeFloat(inputDict, "emptyString"), null), "safeFloat failed for empty string");
+            Assert(isEqual(exchange.safeFloat(inputDict, "str"), null), "safeFloat failed for non-numeric string");
+            Assert(isEqual(exchange.safeFloat(inputDict, "undefined"), null), "safeFloat failed for None value");
+            Assert(isEqual(exchange.safeFloat(null, "i"), null), "safeFloat failed for undefined container");
+            Assert(isEqual(exchange.safeFloat(null, "i", 7), 7), "safeFloat failed for undefined container with default");
+            Assert(isEqual(exchange.safeFloat(inputList, 5), null), "safeFloat failed for out-of-range list index");
+            // safeFloat2 - negative paths
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "nonexistent2"), null), "safeFloat2 failed for missing keys");
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "str"), null), "safeFloat2 failed for missing then non-numeric");
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "emptyString"), null), "safeFloat2 failed for missing then empty string");
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "nonexistent2", 9), 9), "safeFloat2 failed for missing keys with default");
+            Assert(isEqual(exchange.safeFloat2(null, "i", "f"), null), "safeFloat2 failed for undefined container");
+            // safeFloatN - negative paths
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "nonexistent"}), null), "safeFloatN failed for missing keys");
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "emptyString"}), null), "safeFloatN failed for empty string");
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "str"}), null), "safeFloatN failed for non-numeric string");
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "nonexistent"}, 11), 11), "safeFloatN failed for missing keys with default");
+            Assert(isEqual(exchange.safeFloatN(null, new List<object>() {"a", "b", "i"}), null), "safeFloatN failed for undefined container");
+            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {5, 6}), null), "safeFloatN failed for out-of-range list indices");
         }
         public void testSafeNumber()
         {

@@ -35,7 +35,8 @@ class foxbit extends Exchange {
                 'createMarketBuyOrder' => true,
                 'createMarketSellOrder' => true,
                 'createOrder' => true,
-                'fecthOrderBook' => true,
+                'createOrders' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -49,7 +50,10 @@ class foxbit extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrdersByStatus' => true,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -967,7 +971,7 @@ class foxbit extends Exchange {
                 $request['time_in_force'] = $timeInForce;
             }
         }
-        if ($postOnly) {
+        if ($postOnly === true) {
             $request['post_only'] = true;
         }
         if ($triggerPrice !== null) {
@@ -1039,7 +1043,7 @@ class foxbit extends Exchange {
                 }
                 unset($orderParams['timeInForce']);
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $request['post_only'] = true;
                 unset($orderParams['postOnly']);
             }
@@ -1831,7 +1835,7 @@ class foxbit extends Exchange {
             $amount = Precise::string_add($remaining, $filled);
         }
         $cost = $this->safe_string($order, 'funds_received');
-        if (!$cost) {
+        if (($cost === null) || ($cost === '')) {
             $priceAverage = $this->safe_string($order, 'price_avg');
             $priceToCalculate = $this->safe_string($order, 'price', $priceAverage);
             $cost = Precise::string_mul($priceToCalculate, $amount);
@@ -2071,6 +2075,8 @@ class foxbit extends Exchange {
         }
         $headers = array(
             'Content-Type' => 'application/json',
+            'X-FB-CLIENT' => 'ccxt',
+            'X-FB-CLIENT-VERSION' => $this->get_ccxt_version(),
         );
         if ($urlPath === 'private') {
             $this->check_required_credentials();
@@ -2092,7 +2098,7 @@ class foxbit extends Exchange {
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message');
         $detailsString = '';
-        if ($details) {
+        if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
                 $detailsString = $detailsString . $details[$i] . ' ';
             }

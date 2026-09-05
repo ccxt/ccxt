@@ -228,7 +228,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object unified = (this.isUnifiedEnabled()).join();
                 Object isUnifiedMargin = this.safeBool(unified, 0, false);
                 Object isUnifiedAccount = this.safeBool(unified, 1, false);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isUsdcSettled) && !Helpers.isTrue(isUnifiedMargin)) && !Helpers.isTrue(isUnifiedAccount)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isUsdcSettled) && Helpers.isTrue((!Helpers.isEqual(isUnifiedMargin, true)))) && Helpers.isTrue((!Helpers.isEqual(isUnifiedAccount, true)))))
                 {
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "usdc");
                 } else
@@ -457,7 +457,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             parameters = this.cleanParams(parameters);
             Object options = this.safeValue(this.options, "watchTicker", new java.util.HashMap<String, Object>() {{}});
             Object topic = this.safeString(options, "name", "tickers");
-            if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue(!Helpers.isEqual(topic, "tickers"))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(topic, "tickers"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchTicker() only supports name tickers for contract markets")) ;
             }
@@ -1024,7 +1024,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volumeIndex = ((Helpers.isTrue(this.safeBool(market, "inverse")))) ? "turnover" : "volume";
+        Object isInverse = (Helpers.isEqual(this.safeBool(market, "inverse"), true));
+        Object volumeIndex = ((Helpers.isTrue(isInverse))) ? "turnover" : "volume";
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)));
     }
 
@@ -1083,7 +1084,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 50;
-                if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
                 {
                     limit = 100;
                 }
@@ -1146,7 +1147,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             } else
             {
                 Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
-                limit = ((Helpers.isTrue(Helpers.GetValue(firstMarket, "spot")))) ? 50 : 500;
+                limit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true))))) ? 50 : 500;
             }
             channel = Helpers.add(channel, String.valueOf(limit));
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1514,7 +1515,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object m = this.safeValue(trade, "m");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            side = ((Helpers.isTrue(m))) ? "buy" : "sell";
+            side = ((Helpers.isTrue((Helpers.isEqual(m, true))))) ? "buy" : "sell";
         } else
         {
             // spot private
@@ -1867,7 +1868,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object cache = this.positions;
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(cache, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(cache, null)))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -1891,7 +1892,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             return;
         }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -2208,7 +2209,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             put( "contracts", BybitCore.this.safeNumber2(liquidation, "size", "v") );
             put( "contractSize", BybitCore.this.safeNumber(finalMarket, "contractSize") );
             put( "price", BybitCore.this.safeNumber2(liquidation, "price", "p") );
-            put( "side", BybitCore.this.safeStringLower(liquidation, "side", "S") );
+            put( "side", BybitCore.this.safeStringLower2(liquidation, "side", "S") );
             put( "baseValue", null );
             put( "quoteValue", null );
             put( "timestamp", timestamp );
@@ -2497,7 +2498,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 put( "spot", "outboundAccountInfo" );
                 put( "unified", "wallet" );
             }};
-            if (Helpers.isTrue(isUnifiedAccount))
+            if (Helpers.isTrue(Helpers.isEqual(isUnifiedAccount, true)))
             {
                 // unified account
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -2508,7 +2509,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     messageHash = Helpers.add(messageHash, ":unified");
                 }
             }
-            if (Helpers.isTrue(!Helpers.isTrue(isUnifiedMargin) && !Helpers.isTrue(isUnifiedAccount)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isUnifiedMargin, true))) && Helpers.isTrue((!Helpers.isEqual(isUnifiedAccount, true)))))
             {
                 // normal account using v5
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -2519,7 +2520,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     messageHash = Helpers.add(messageHash, ":contract");
                 }
             }
-            if (Helpers.isTrue(isUnifiedMargin))
+            if (Helpers.isTrue(Helpers.isEqual(isUnifiedMargin, true)))
             {
                 // unified margin account using v5
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -2944,7 +2945,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 throw new ExchangeError((String)feedback) ;
             }
             Object success = this.safeValue(message, "success");
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(success, null)) && !Helpers.isTrue(success)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(success, null))) && Helpers.isTrue((!Helpers.isEqual(success, true)))))
             {
                 Object ret_msg = this.safeString(message, "ret_msg");
                 Object request = this.safeValue(message, "request", new java.util.HashMap<String, Object>() {{}});
@@ -2995,7 +2996,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
     public void handleMessage(Client client, Object message)
     {
         Object topic = this.safeString2(message, "topic", "op", "");
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }
@@ -3138,7 +3139,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object success = this.safeValue(message, "success");
         Object code = this.safeInteger(message, "retCode");
         Object messageHash = "authenticated";
-        if (Helpers.isTrue(Helpers.isTrue(success) || Helpers.isTrue(Helpers.isEqual(code, 0))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) || Helpers.isTrue((Helpers.isEqual(code, 0)))))
         {
             Object future = this.safeValue(client.futures, messageHash);
             ((io.github.ccxt.ws.Future)future).resolve(true);

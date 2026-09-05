@@ -122,7 +122,7 @@ abstract class upbit extends \ccxt\Exchange {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function public_get_ticker_all($params = array()) {
         return $this->request('ticker/all', 'public', 'GET', $params, null, null, array("cost" => 2));
@@ -440,7 +440,7 @@ abstract class upbit extends \ccxt\Exchange {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function publicGetTickerAll($params = array()) {
         return $this->request('ticker/all', 'public', 'GET', $params, null, null, array("cost" => 2));

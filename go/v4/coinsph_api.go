@@ -22,7 +22,7 @@ func (this *CoinsphCore) PublicGetOpenapiV1UserIp(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiV1UserIp", args...)
 }
 
-// PublicGetOpenapiQuoteV1Ticker24hr returns a channel that yields a JSON array.
+// PublicGetOpenapiQuoteV1Ticker24hr returns a channel that yields a JSON object or a JSON array.
 func (this *CoinsphCore) PublicGetOpenapiQuoteV1Ticker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOpenapiQuoteV1Ticker24hr", args...)
 }

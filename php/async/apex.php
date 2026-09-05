@@ -127,7 +127,7 @@ class apex extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
@@ -309,25 +309,27 @@ class apex extends Exchange {
     }
 
     public function fetch_time($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->publicGetV3Time($params));
-            $data = $this->safe_dict($response, 'data', array());
-            //
-            // {
-            //    "data" => {
-            //    "time" => 1738837534454
-            //     }
-            // }
-            return $this->safe_integer($data, 'time');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-system-time-v3
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->publicGetV3Time($params));
+        $data = $this->safe_dict($response, 'data', array());
+        //
+        // {
+        //    "data" => {
+        //    "time" => 1738837534454
+        //     }
+        // }
+        return $this->safe_integer($data, 'time');
     }
 
     public function parse_balance(mixed $response): array {
@@ -360,22 +362,24 @@ class apex extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for account info
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetV3AccountBalance($params));
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_balance($data);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for account info
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetV3AccountBalance($params));
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_balance($data);
     }
 
     public function parse_account(array $account): array {
@@ -389,134 +393,138 @@ class apex extends Exchange {
     }
 
     public function fetch_account($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetV3Account($params));
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_account($data);
-        })();
+        return Async\async(self::do_fetch_account(...))($params);
+    }
+
+    private function do_fetch_account($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetV3Account($params));
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_account($data);
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetV3Symbols($params));
-            $data = $this->safe_dict($response, 'data', array());
-            $spotConfig = $this->safe_dict($data, 'spotConfig', array());
-            $multiChain = $this->safe_dict($spotConfig, 'multiChain', array());
-            // "spotConfig" => {
-            //     "assets" => array(
-            //         {
-            //             "tokenId" => "141",
-            //             "token" => "USDT",
-            //             "displayName" => "Tether USD Coin",
-            //             "decimals" => 18,
-            //             "showStep" => "0.01",
-            //             "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
-            //             "l2WithdrawFee" => "0",
-            //             "enableCollateral" => true,
-            //             "enableCrossCollateral" => false,
-            //             "crossCollateralDiscountRate" => null,
-            //             "isGray" => false
-            //         }
-            //     ),
-            // "multiChain" => {
-            //  "chains" => array(
-            //      {
-            //          "chain" => "Arbitrum One",
-            //          "chainId" => "9",
-            //          "chainType" => "0",
-            //          "l1ChainId" => "42161",
-            //          "chainIconUrl" => "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
-            //          "contractAddress" => "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
-            //          "swapContractAddress" => "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
-            //          "stopDeposit" => false,
-            //          "feeLess" => false,
-            //          "gasLess" => false,
-            //          "gasToken" => "ETH",
-            //          "dynamicFee" => true,
-            //          "gasTokenDecimals" => 18,
-            //          "feeGasLimit" => 300000,
-            //          "blockTimeSeconds" => 2,
-            //          "rpcUrl" => "https://arb.omni.apex.exchange",
-            //          "minSwapUsdtAmount" => "",
-            //          "maxSwapUsdtAmount" => "",
-            //          "webRpcUrl" => "https://arb.omni.apex.exchange",
-            //          "webTxUrl" => "https://arbiscan.io/tx/",
-            //          "backupRpcUrl" => "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
-            //          "txConfirm" => 20,
-            //          "withdrawGasFeeLess" => false,
-            //          "tokens" => array(
-            //              array(
-            //                  "decimals" => 6,
-            //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
-            //                  "token" => "USDT",
-            //                  "tokenAddress" => "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-            //                  "pullOff" => false,
-            //                  "withdrawEnable" => true,
-            //                  "slippage" => "",
-            //                  "isDefaultToken" => false,
-            //                  "displayToken" => "USDT",
-            //                  "needResetApproval" => true,
-            //                  "minFee" => "2",
-            //                  "maxFee" => "40",
-            //                  "feeRate" => "0.0001",
-            //                  "maxWithdraw" => "",
-            //                  "minDeposit" => "",
-            //                  "minWithdraw" => "",
-            //                  "maxFastWithdrawAmount" => "40000",
-            //                  "minFastWithdrawAmount" => "1",
-            //                  "isGray" => false
-            //              ),
-            //              {
-            //                  "decimals" => 6,
-            //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
-            //                  "token" => "USDC",
-            //                  "tokenAddress" => "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
-            //                  "pullOff" => false,
-            //                  "withdrawEnable" => true,
-            //                  "slippage" => "",
-            //                  "isDefaultToken" => false,
-            //                  "displayToken" => "USDC",
-            //                  "needResetApproval" => true,
-            //                  "minFee" => "2",
-            //                  "maxFee" => "20",
-            //                  "feeRate" => "0.0001",
-            //                  "maxWithdraw" => "",
-            //                  "minDeposit" => "",
-            //                  "minWithdraw" => "",
-            //                  "maxFastWithdrawAmount" => "1",
-            //                  "minFastWithdrawAmount" => "1",
-            //                  "isGray" => false
-            //              }
-            //          )
-            //        }
-            //     )
-            // }
-            $rows = $this->safe_list($spotConfig, 'assets', array());
-            $chains = $this->safe_list($multiChain, 'chains', array());
-            $this->options['_temp_currencies_chains'] = $chains;
-            $result = $this->parse_currencies($rows);
-            unset($this->options['_temp_currencies_chains']);
-            return $result;
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetV3Symbols($params));
+        $data = $this->safe_dict($response, 'data', array());
+        $spotConfig = $this->safe_dict($data, 'spotConfig', array());
+        $multiChain = $this->safe_dict($spotConfig, 'multiChain', array());
+        // "spotConfig" => {
+        //     "assets" => array(
+        //         {
+        //             "tokenId" => "141",
+        //             "token" => "USDT",
+        //             "displayName" => "Tether USD Coin",
+        //             "decimals" => 18,
+        //             "showStep" => "0.01",
+        //             "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Ethereum/Ethereum_USDT.svg",
+        //             "l2WithdrawFee" => "0",
+        //             "enableCollateral" => true,
+        //             "enableCrossCollateral" => false,
+        //             "crossCollateralDiscountRate" => null,
+        //             "isGray" => false
+        //         }
+        //     ),
+        // "multiChain" => {
+        //  "chains" => array(
+        //      {
+        //          "chain" => "Arbitrum One",
+        //          "chainId" => "9",
+        //          "chainType" => "0",
+        //          "l1ChainId" => "42161",
+        //          "chainIconUrl" => "https://static-omni.apex.exchange/chains/chain_logos/Arbitrum.svg",
+        //          "contractAddress" => "0x3169844a120c0f517b4eb4a750c08d8518c8466a",
+        //          "swapContractAddress" => "0x9e07b6Aef1bbD9E513fc2Eb8873e311E80B4f855",
+        //          "stopDeposit" => false,
+        //          "feeLess" => false,
+        //          "gasLess" => false,
+        //          "gasToken" => "ETH",
+        //          "dynamicFee" => true,
+        //          "gasTokenDecimals" => 18,
+        //          "feeGasLimit" => 300000,
+        //          "blockTimeSeconds" => 2,
+        //          "rpcUrl" => "https://arb.omni.apex.exchange",
+        //          "minSwapUsdtAmount" => "",
+        //          "maxSwapUsdtAmount" => "",
+        //          "webRpcUrl" => "https://arb.omni.apex.exchange",
+        //          "webTxUrl" => "https://arbiscan.io/tx/",
+        //          "backupRpcUrl" => "https://arb-mainnet.g.alchemy.com/v2/rGlYUbRHtUav5mfeThCPtsV9GLPt2Xq5",
+        //          "txConfirm" => 20,
+        //          "withdrawGasFeeLess" => false,
+        //          "tokens" => array(
+        //              array(
+        //                  "decimals" => 6,
+        //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDT.svg",
+        //                  "token" => "USDT",
+        //                  "tokenAddress" => "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        //                  "pullOff" => false,
+        //                  "withdrawEnable" => true,
+        //                  "slippage" => "",
+        //                  "isDefaultToken" => false,
+        //                  "displayToken" => "USDT",
+        //                  "needResetApproval" => true,
+        //                  "minFee" => "2",
+        //                  "maxFee" => "40",
+        //                  "feeRate" => "0.0001",
+        //                  "maxWithdraw" => "",
+        //                  "minDeposit" => "",
+        //                  "minWithdraw" => "",
+        //                  "maxFastWithdrawAmount" => "40000",
+        //                  "minFastWithdrawAmount" => "1",
+        //                  "isGray" => false
+        //              ),
+        //              {
+        //                  "decimals" => 6,
+        //                  "iconUrl" => "https://static-omni.apex.exchange/chains/chain_tokens/Arbitrum/Arbitrum_USDC.svg",
+        //                  "token" => "USDC",
+        //                  "tokenAddress" => "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+        //                  "pullOff" => false,
+        //                  "withdrawEnable" => true,
+        //                  "slippage" => "",
+        //                  "isDefaultToken" => false,
+        //                  "displayToken" => "USDC",
+        //                  "needResetApproval" => true,
+        //                  "minFee" => "2",
+        //                  "maxFee" => "20",
+        //                  "feeRate" => "0.0001",
+        //                  "maxWithdraw" => "",
+        //                  "minDeposit" => "",
+        //                  "minWithdraw" => "",
+        //                  "maxFastWithdrawAmount" => "1",
+        //                  "minFastWithdrawAmount" => "1",
+        //                  "isGray" => false
+        //              }
+        //          )
+        //        }
+        //     )
+        // }
+        $rows = $this->safe_list($spotConfig, 'assets', array());
+        $chains = $this->safe_list($multiChain, 'chains', array());
+        $this->options['_temp_currencies_chains'] = $chains;
+        $result = $this->parse_currencies($rows);
+        unset($this->options['_temp_currencies_chains']);
+        return $result;
     }
 
     public function parse_currency(array $currency): array {
@@ -540,7 +548,7 @@ class apex extends Exchange {
                             'id' => $networkId,
                             'network' => $networkCode,
                             'active' => null,
-                            'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                            'deposit' => ($this->safe_bool($chain, 'depositDisable') !== true),
                             'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
                             'fee' => $this->safe_number($token, 'minFee'),
                             'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
@@ -593,75 +601,77 @@ class apex extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves $data on all markets for apex
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market $data
-             */
-            $response = Async\await($this->publicGetV3Symbols($params));
-            $data = $this->safe_dict($response, 'data', array());
-            $contractConfig = $this->safe_dict($data, 'contractConfig', array());
-            $perpetualContract = $this->safe_list($contractConfig, 'perpetualContract', array());
-            // {
-            //     "perpetualContract":array(
-            //         {
-            //             "baselinePositionValue" => "50000.0000",
-            //             "crossId" => 30002,
-            //             "crossSymbolId" => 10,
-            //             "crossSymbolName" => "BTCUSDT",
-            //             "digitMerge" => "0.1,0.2,0.4,1,2",
-            //             "displayMaxLeverage" => "100",
-            //             "displayMinLeverage" => "1",
-            //             "enableDisplay" => true,
-            //             "enableOpenPosition" => true,
-            //             "enableTrade" => true,
-            //             "fundingImpactMarginNotional" => "6",
-            //             "fundingInterestRate" => "0.0003",
-            //             "incrementalInitialMarginRate" => "0.00250",
-            //             "incrementalMaintenanceMarginRate" => "0.00100",
-            //             "incrementalPositionValue" => "50000.0000",
-            //             "initialMarginRate" => "0.01",
-            //             "maintenanceMarginRate" => "0.005",
-            //             "maxOrderSize" => "50",
-            //             "maxPositionSize" => "100",
-            //             "minOrderSize" => "0.0010",
-            //             "maxMarketPriceRange" => "0.025",
-            //             "settleAssetId" => "USDT",
-            //             "baseTokenId" => "BTC",
-            //             "stepSize" => "0.001",
-            //             "symbol" => "BTC-USDT",
-            //             "symbolDisplayName" => "BTCUSDT",
-            //             "tickSize" => "0.1",
-            //             "maxMaintenanceMarginRate" => "0.5000",
-            //             "maxPositionValue" => "5000000.0000",
-            //             "tagIconUrl" => "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
-            //             "tag" => "HOT",
-            //             "riskTip" => false,
-            //             "defaultInitialMarginRate" => "0.05",
-            //             "klineStartTime" => 0,
-            //             "maxMarketSizeBuffer" => "0.98",
-            //             "enableFundingSettlement" => true,
-            //             "indexPriceDecimals" => 2,
-            //             "indexPriceVarRate" => "0.001",
-            //             "openPositionOiLimitRate" => "0.05",
-            //             "fundingMaxRate" => "0.000234",
-            //             "fundingMinRate" => "-0.000234",
-            //             "fundingMaxValue" => "",
-            //             "enableFundingMxValue" => true,
-            //             "l2PairId" => "50001",
-            //             "settleTimeStamp" => 0,
-            //             "isPrelaunch" => false,
-            //             "riskLimitConfig" => array(),
-            //             "category" => "L1"
-            //         }
-            //     )
-            // }
-            return $this->parse_markets($perpetualContract);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves $data on all markets for apex
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-all-config-$data-v3
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market $data
+         */
+        $response = Async\await($this->publicGetV3Symbols($params));
+        $data = $this->safe_dict($response, 'data', array());
+        $contractConfig = $this->safe_dict($data, 'contractConfig', array());
+        $perpetualContract = $this->safe_list($contractConfig, 'perpetualContract', array());
+        // {
+        //     "perpetualContract":array(
+        //         {
+        //             "baselinePositionValue" => "50000.0000",
+        //             "crossId" => 30002,
+        //             "crossSymbolId" => 10,
+        //             "crossSymbolName" => "BTCUSDT",
+        //             "digitMerge" => "0.1,0.2,0.4,1,2",
+        //             "displayMaxLeverage" => "100",
+        //             "displayMinLeverage" => "1",
+        //             "enableDisplay" => true,
+        //             "enableOpenPosition" => true,
+        //             "enableTrade" => true,
+        //             "fundingImpactMarginNotional" => "6",
+        //             "fundingInterestRate" => "0.0003",
+        //             "incrementalInitialMarginRate" => "0.00250",
+        //             "incrementalMaintenanceMarginRate" => "0.00100",
+        //             "incrementalPositionValue" => "50000.0000",
+        //             "initialMarginRate" => "0.01",
+        //             "maintenanceMarginRate" => "0.005",
+        //             "maxOrderSize" => "50",
+        //             "maxPositionSize" => "100",
+        //             "minOrderSize" => "0.0010",
+        //             "maxMarketPriceRange" => "0.025",
+        //             "settleAssetId" => "USDT",
+        //             "baseTokenId" => "BTC",
+        //             "stepSize" => "0.001",
+        //             "symbol" => "BTC-USDT",
+        //             "symbolDisplayName" => "BTCUSDT",
+        //             "tickSize" => "0.1",
+        //             "maxMaintenanceMarginRate" => "0.5000",
+        //             "maxPositionValue" => "5000000.0000",
+        //             "tagIconUrl" => "https://static-omni.apex.exchange/icon/LABLE_HOT.svg",
+        //             "tag" => "HOT",
+        //             "riskTip" => false,
+        //             "defaultInitialMarginRate" => "0.05",
+        //             "klineStartTime" => 0,
+        //             "maxMarketSizeBuffer" => "0.98",
+        //             "enableFundingSettlement" => true,
+        //             "indexPriceDecimals" => 2,
+        //             "indexPriceVarRate" => "0.001",
+        //             "openPositionOiLimitRate" => "0.05",
+        //             "fundingMaxRate" => "0.000234",
+        //             "fundingMinRate" => "-0.000234",
+        //             "fundingMaxValue" => "",
+        //             "enableFundingMxValue" => true,
+        //             "l2PairId" => "50001",
+        //             "settleTimeStamp" => 0,
+        //             "isPrelaunch" => false,
+        //             "riskLimitConfig" => array(),
+        //             "category" => "L1"
+        //         }
+        //     )
+        // }
+        return $this->parse_markets($perpetualContract);
     }
 
     public function parse_market(array $market): array {
@@ -787,86 +797,92 @@ class apex extends Exchange {
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $this->safe_string($market, 'id2'),
-            );
-            $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
-            $tickers = $this->safe_list($response, 'data', array());
-            $rawTicker = $this->safe_dict($tickers, 0, array());
-            return $this->parse_ticker($rawTicker, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $this->safe_string($market, 'id2'),
+        );
+        $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
+        $tickers = $this->safe_list($response, 'data', array());
+        $rawTicker = $this->safe_dict($tickers, 0, array());
+        return $this->parse_ticker($rawTicker, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
-             *
-             * @param {string} $symbols unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->publicGetV3DataAllTickerInfo($params));
-            $tickers = $this->safe_list($response, 'data', array());
-            return $this->parse_tickers($tickers, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         *
+         * @param {string} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->publicGetV3DataAllTickerInfo($params));
+        $tickers = $this->safe_list($response, 'data', array());
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-$data-v3
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                'symbol' => $this->safe_string($market, 'id2'),
-            );
-            if ($limit === null) {
-                $limit = 200; // default is 200 when requested with `$since`
-            }
-            $request['limit'] = $limit; // max 200, default 200
-            list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
-            if ($since !== null) {
-                $request['start'] = (int) floor($since / 1000);
-            }
-            $response = Async\await($this->publicGetV3Klines($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $OHLCVs = $this->safe_list($data, $this->safe_string($market, 'id2'), array());
-            return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-candlestick-chart-$data-v3
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            'symbol' => $this->safe_string($market, 'id2'),
+        );
+        if ($limit === null) {
+            $limit = 200; // default is 200 when requested with `$since`
+        }
+        $request['limit'] = $limit; // max 200, default 200
+        list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
+        if ($since !== null) {
+            $request['start'] = (int) floor($since / 1000);
+        }
+        $response = Async\await($this->publicGetV3Klines($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $OHLCVs = $this->safe_list($data, $this->safe_string($market, 'id2'), array());
+        return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -894,113 +910,117 @@ class apex extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-$market-depth-v3
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $this->safe_string($market, 'id2'),
-            );
-            if ($limit === null) {
-                $limit = 100; // default is 200 when requested with `since`
-            }
-            $request['limit'] = $limit; // max 100, default 100
-            $response = Async\await($this->publicGetV3Depth($this->extend($request, $params)));
-            //
-            // {
-            //     "a" => array(
-            //     array(
-            //         "96576.3",
-            //         "0.399"
-            //     ),
-            //     array(
-            //         "96577.6",
-            //         "0.106"
-            //     )
-            // ),
-            //     "b" => array(
-            //     array(
-            //         "96565.2",
-            //         "0.131"
-            //     ),
-            //     array(
-            //         "96565.1",
-            //         "0.038"
-            //     )
-            // ),
-            //     "s" => "BTCUSDT",
-            //     "u" => 18665465
-            // }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $timestamp = $this->milliseconds();
-            $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'b', 'a');
-            $orderbook['nonce'] = $this->safe_integer($data, 'u');
-            return $orderbook;
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-$market-depth-v3
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $this->safe_string($market, 'id2'),
+        );
+        if ($limit === null) {
+            $limit = 100; // default is 200 when requested with `since`
+        }
+        $request['limit'] = $limit; // max 100, default 100
+        $response = Async\await($this->publicGetV3Depth($this->extend($request, $params)));
+        //
+        // {
+        //     "a" => array(
+        //     array(
+        //         "96576.3",
+        //         "0.399"
+        //     ),
+        //     array(
+        //         "96577.6",
+        //         "0.106"
+        //     )
+        // ),
+        //     "b" => array(
+        //     array(
+        //         "96565.2",
+        //         "0.131"
+        //     ),
+        //     array(
+        //         "96565.1",
+        //         "0.038"
+        //     )
+        // ),
+        //     "s" => "BTCUSDT",
+        //     "u" => 18665465
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->milliseconds();
+        $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'b', 'a');
+        $orderbook['nonce'] = $this->safe_integer($data, 'u');
+        return $orderbook;
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch $trades for
-             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $this->safe_string($market, 'id2'),
-            );
-            if ($limit === null) {
-                $limit = 500; // default is 50
-            }
-            $request['limit'] = $limit;
-            $response = Async\await($this->publicGetV3Trades($this->extend($request, $params)));
-            //
-            // array(
-            //  array(
-            //      "i" => "993f7f85-9215-5723-9078-2186ae140847",
-            //      "p" => "96534.3",
-            //      "S" => "Sell",
-            //      "v" => "0.261",
-            //      "s" => "BTCUSDT",
-            //      "T" => 1739118072710
-            //  ),
-            //  {
-            //      "i" => "c947c9cf-8c18-5784-89c3-91bdf86ddde8",
-            //      "p" => "96513.5",
-            //      "S" => "Sell",
-            //      "v" => "0.042",
-            //      "s" => "BTCUSDT",
-            //      "T" => 1739118075944
-            //  }
-            //  )
-            //
-            $trades = $this->safe_list($response, 'data', array());
-            return $this->parse_trades($trades, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $trades for
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $this->safe_string($market, 'id2'),
+        );
+        if ($limit === null) {
+            $limit = 500; // default is 50
+        }
+        $request['limit'] = $limit;
+        $response = Async\await($this->publicGetV3Trades($this->extend($request, $params)));
+        //
+        // array(
+        //  array(
+        //      "i" => "993f7f85-9215-5723-9078-2186ae140847",
+        //      "p" => "96534.3",
+        //      "S" => "Sell",
+        //      "v" => "0.261",
+        //      "s" => "BTCUSDT",
+        //      "T" => 1739118072710
+        //  ),
+        //  {
+        //      "i" => "c947c9cf-8c18-5784-89c3-91bdf86ddde8",
+        //      "p" => "96513.5",
+        //      "S" => "Sell",
+        //      "v" => "0.042",
+        //      "s" => "BTCUSDT",
+        //      "T" => 1739118075944
+        //  }
+        //  )
+        //
+        $trades = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1043,28 +1063,30 @@ class apex extends Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * retrieves the open interest of a contract trading pair
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
-             *
-             * @param {string} $symbol unified CCXT $market $symbol
-             * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $this->safe_string($market, 'id2'),
-            );
-            $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
-            $tickers = $this->safe_list($response, 'data', array());
-            $rawTicker = $this->safe_dict($tickers, 0, array());
-            return $this->parse_open_interest($rawTicker, $market);
-        })();
+        return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
+    }
+
+    private function do_fetch_open_interest(string $symbol, $params = array()) {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $this->safe_string($market, 'id2'),
+        );
+        $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
+        $tickers = $this->safe_list($response, 'data', array());
+        $rawTicker = $this->safe_dict($tickers, 0, array());
+        return $this->parse_open_interest($rawTicker, $market);
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {
@@ -1101,76 +1123,78 @@ class apex extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-            if ($since !== null) {
-                $request['beginTimeInclusive'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $page = $this->safe_integer($params, 'page');
-            if ($page !== null) {
-                $request['page'] = $page;
-            }
-            $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-            if ($endTimeExclusive !== null) {
-                $request['endTimeExclusive'] = $endTimeExclusive;
-            }
-            $response = Async\await($this->publicGetV3HistoryFunding($this->extend($request, $params)));
-            //
-            // {
-            //     "historyFunds" => array(
-            //     {
-            //         "symbol" => "BTC-USD",
-            //         "rate" => "0.0000125000",
-            //         "price" => "31297.5000008009374142",
-            //         "fundingTime" => 12315555,
-            //         "fundingTimestamp" => 12315555
-            //     }
-            // ),
-            //     "totalSize" => 11
-            // }
-            //
-            $rates = array();
-            $data = $this->safe_dict($response, 'data', array());
-            $resultList = $this->safe_list($data, 'historyFunds', array());
-            for ($i = 0; $i < count($resultList); $i++) {
-                $entry = $resultList[$i];
-                $timestamp = $this->safe_integer($entry, 'fundingTimestamp');
-                $marketId = $this->safe_string($entry, 'symbol');
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $this->safe_symbol($marketId, $market),
-                    'fundingRate' => $this->safe_number($entry, 'rate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+         * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = $this->market($symbol);
+        $request['symbol'] = $market['id'];
+        if ($since !== null) {
+            $request['beginTimeInclusive'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $page = $this->safe_integer($params, 'page');
+        if ($page !== null) {
+            $request['page'] = $page;
+        }
+        $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        if ($endTimeExclusive !== null) {
+            $request['endTimeExclusive'] = $endTimeExclusive;
+        }
+        $response = Async\await($this->publicGetV3HistoryFunding($this->extend($request, $params)));
+        //
+        // {
+        //     "historyFunds" => array(
+        //     {
+        //         "symbol" => "BTC-USD",
+        //         "rate" => "0.0000125000",
+        //         "price" => "31297.5000008009374142",
+        //         "fundingTime" => 12315555,
+        //         "fundingTimestamp" => 12315555
+        //     }
+        // ),
+        //     "totalSize" => 11
+        // }
+        //
+        $rates = array();
+        $data = $this->safe_dict($response, 'data', array());
+        $resultList = $this->safe_list($data, 'historyFunds', array());
+        for ($i = 0; $i < count($resultList); $i++) {
+            $entry = $resultList[$i];
+            $timestamp = $this->safe_integer($entry, 'fundingTimestamp');
+            $marketId = $this->safe_string($entry, 'symbol');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'fundingRate' => $this->safe_number($entry, 'rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1336,7 +1360,8 @@ class apex extends Exchange {
     }
 
     public function generate_random_client_id_omni(?string $_accountId) {
-        $accountId = $_accountId || (string) $this->rand_number(12);
+        $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
+        $accountId = $hasAccountId ? $_accountId : (string) $this->rand_number(12);
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 
@@ -1359,272 +1384,278 @@ class apex extends Exchange {
     }
 
     public function get_account_id() {
-        return Async\async(function () {
-            $accountId = $this->safe_string($this->options, 'accountId', '0');
-            if ($accountId === '0') {
-                $accountData = Async\await($this->fetch_account());
-                $this->options['accountId'] = $this->safe_string($accountData, 'id', '0');
-            }
-            return $this->options['accountId'];
-        })();
+        return Async\async(self::do_get_account_id(...))();
+    }
+
+    private function do_get_account_id() {
+        $accountId = $this->safe_string($this->options, 'accountId', '0');
+        if ($accountId === '0') {
+            $accountData = Async\await($this->fetch_account());
+            $this->options['accountId'] = $this->safe_string($accountData, 'id', '0');
+        }
+        return $this->options['accountId'];
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
-             * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
-             * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
-             * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
-             * @param {bool} [$params->postOnly] true or false
-             * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
-             * @param {string} [$params->clientOrderId] a unique id for the order
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-creating-orders
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] The $price a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] The $price a take profit order is triggered at
+         * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
+         * @param {bool} [$params->postOnly] true or false
+         * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->clientOrderId] a unique id for the order
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $orderType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
+        $orderSide = strtoupper($side);
+        $orderSize = $this->amount_to_precision($symbol, $amount);
+        $orderPrice = '0';
+        if ($price !== null) {
+            $orderPrice = $this->price_to_precision($symbol, $price);
+        }
+        $fees = $this->safe_dict($this->fees, 'swap', array());
+        $taker = $this->safe_string($fees, 'taker', '0.0005');
+        $maker = $this->safe_string($fees, 'maker', '0.0002');
+        $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($market['precision']['price'])), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $timeNow = $this->milliseconds();
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        if ($stopLossPrice !== null) {
+            $orderType = ($orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            $triggerPrice = $stopLossPrice;
+        } elseif ($takeProfitPrice !== null) {
+            $orderType = ($orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            $triggerPrice = $takeProfitPrice;
+        }
+        $isMarket = $orderType === 'MARKET';
+        if ($isMarket && ($price === null)) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
+        }
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->is_post_only($isMarket, null, $params);
+        if ($timeInForce === null) {
+            $timeInForce = 'GOOD_TIL_CANCEL';
+        }
+        if (!$isMarket) {
+            if ($postOnly) {
+                $timeInForce = 'POST_ONLY';
+            } elseif ($timeInForce === 'ioc') {
+                $timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
-            $market = $this->market($symbol);
-            $orderType = strtoupper($type);
-            if ($side === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-            }
-            $orderSide = strtoupper($side);
-            $orderSize = $this->amount_to_precision($symbol, $amount);
-            $orderPrice = '0';
-            if ($price !== null) {
-                $orderPrice = $this->price_to_precision($symbol, $price);
-            }
-            $fees = $this->safe_dict($this->fees, 'swap', array());
-            $taker = $this->safe_string($fees, 'taker', '0.0005');
-            $maker = $this->safe_string($fees, 'maker', '0.0002');
-            $limitFee = $this->decimal_to_precision(Precise::string_add(Precise::string_mul(Precise::string_mul($orderPrice, $orderSize), $taker), $this->number_to_string($market['precision']['price'])), TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
-            $timeNow = $this->milliseconds();
-            $triggerPrice = $this->safe_string($params, 'triggerPrice');
-            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
-            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-            if ($stopLossPrice !== null) {
-                $orderType = ($orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
-                $triggerPrice = $stopLossPrice;
-            } elseif ($takeProfitPrice !== null) {
-                $orderType = ($orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
-                $triggerPrice = $takeProfitPrice;
-            }
-            $isMarket = $orderType === 'MARKET';
-            if ($isMarket && ($price === null)) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for $market orders');
-            }
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, null, $params);
-            if ($timeInForce === null) {
-                $timeInForce = 'GOOD_TIL_CANCEL';
-            }
-            if (!$isMarket) {
-                if ($postOnly) {
-                    $timeInForce = 'POST_ONLY';
-                } elseif ($timeInForce === 'ioc') {
-                    $timeInForce = 'IMMEDIATE_OR_CANCEL';
-                }
-            }
-            $params = $this->omit($params, 'timeInForce');
-            $params = $this->omit($params, 'postOnly');
-            $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $accountId = Async\await($this->get_account_id());
-            if ($clientOrderId === null) {
-                $clientOrderId = $this->generate_random_client_id_omni($accountId);
-            }
-            $finalClientOrderId = $clientOrderId; // java req
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
-            $finalOrderPrice = $orderPrice; // java req
-            $orderToSign = array(
-                'accountId' => $accountId,
-                'slotId' => $finalClientOrderId,
-                'nonce' => $finalClientOrderId,
-                'pairId' => $market['quoteId'],
-                'size' => $orderSize,
-                'price' => $finalOrderPrice,
-                'direction' => $orderSide,
-                'makerFeeRate' => $maker,
-                'takerFeeRate' => $taker,
-            );
-            if ($triggerPrice !== null) {
-                $orderToSign['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            }
-            $signature = Async\await($this->get_zk_contract_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $orderSide,
-                'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-                'size' => $orderSize,
-                'price' => $finalOrderPrice,
-                'limitFee' => $limitFee,
-                'expiration' => (int) floor($timeNow / 1000 + 30 * 24 * 60 * 60),
-                'timeInForce' => $timeInForce,
-                'clientId' => $finalClientOrderId,
-                'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
-            );
-            if ($triggerPrice !== null) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            }
-            $request['signature'] = $signature;
-            $response = Async\await($this->privatePostV3Order($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data, $market);
-        })();
+        }
+        $params = $this->omit($params, 'timeInForce');
+        $params = $this->omit($params, 'postOnly');
+        $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $accountId = Async\await($this->get_account_id());
+        if ($clientOrderId === null) {
+            $clientOrderId = $this->generate_random_client_id_omni($accountId);
+        }
+        $finalClientOrderId = $clientOrderId; // java req
+        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+        $finalOrderPrice = $orderPrice; // java req
+        $orderToSign = array(
+            'accountId' => $accountId,
+            'slotId' => $finalClientOrderId,
+            'nonce' => $finalClientOrderId,
+            'pairId' => $market['quoteId'],
+            'size' => $orderSize,
+            'price' => $finalOrderPrice,
+            'direction' => $orderSide,
+            'makerFeeRate' => $maker,
+            'takerFeeRate' => $taker,
+        );
+        if ($triggerPrice !== null) {
+            $orderToSign['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
+        $signature = Async\await($this->get_zk_contract_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $orderSide,
+            'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
+            'size' => $orderSize,
+            'price' => $finalOrderPrice,
+            'limitFee' => $limitFee,
+            'expiration' => (int) floor($timeNow / 1000 + 30 * 24 * 60 * 60),
+            'timeInForce' => $timeInForce,
+            'clientId' => $finalClientOrderId,
+            'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
+        );
+        if ($triggerPrice !== null) {
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        }
+        $request['signature'] = $signature;
+        $response = Async\await($this->privatePostV3Order($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer $currency internally between wallets on the same account
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount account to transfer from
-             * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->transferId] UUID, which is unique across the platform
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->transferId] UUID, which is unique across the platform
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $configResponse = Async\await($this->publicGetV3Symbols($params));
+        $configData = $this->safe_dict($configResponse, 'data', array());
+        $contractConfig = $this->safe_dict($configData, 'contractConfig', array());
+        $contractAssets = $this->safe_list($contractConfig, 'assets', array());
+        $spotConfig = $this->safe_dict($configData, 'spotConfig', array());
+        $spotAssets = $this->safe_list($spotConfig, 'assets', array());
+        $globalConfig = $this->safe_dict($spotConfig, 'global', array());
+        $receiverAddress = $this->safe_string($globalConfig, 'contractAssetPoolEthAddress', '');
+        $receiverZkAccountId = $this->safe_string($globalConfig, 'contractAssetPoolZkAccountId', '');
+        $receiverSubAccountId = $this->safe_string($globalConfig, 'contractAssetPoolSubAccount', '');
+        $receiverAccountId = $this->safe_string($globalConfig, 'contractAssetPoolAccountId', '');
+        $accountResponse = Async\await($this->privateGetV3Account($params));
+        $accountData = $this->safe_dict($accountResponse, 'data', array());
+        $spotAccount = $this->safe_dict($accountData, 'spotAccount', array());
+        $zkAccountId = $this->safe_string($spotAccount, 'zkAccountId', '');
+        $subAccountId = $this->safe_string($spotAccount, 'defaultSubAccountId', '0');
+        $subAccounts = $this->safe_list($spotAccount, 'subAccounts', array());
+        $nonce = '0';
+        if (strlen($subAccounts) > 0) {
+            $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
+        }
+        $finalNonce = $nonce; // java req
+        $ethAddress = $this->safe_string($accountData, 'ethereumAddress', '');
+        $accountId = $this->safe_string($accountData, 'id', '');
+        $currency = array();
+        $assets = array();
+        if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
+            $assets = $contractAssets;
+        } else {
+            $assets = $spotAssets;
+        }
+        for ($i = 0; $i < count($assets); $i++) {
+            if ($this->safe_string($assets[$i], 'token', '') === $code) {
+                $currency = $assets[$i];
             }
-            $configResponse = Async\await($this->publicGetV3Symbols($params));
-            $configData = $this->safe_dict($configResponse, 'data', array());
-            $contractConfig = $this->safe_dict($configData, 'contractConfig', array());
-            $contractAssets = $this->safe_list($contractConfig, 'assets', array());
-            $spotConfig = $this->safe_dict($configData, 'spotConfig', array());
-            $spotAssets = $this->safe_list($spotConfig, 'assets', array());
-            $globalConfig = $this->safe_dict($spotConfig, 'global', array());
-            $receiverAddress = $this->safe_string($globalConfig, 'contractAssetPoolEthAddress', '');
-            $receiverZkAccountId = $this->safe_string($globalConfig, 'contractAssetPoolZkAccountId', '');
-            $receiverSubAccountId = $this->safe_string($globalConfig, 'contractAssetPoolSubAccount', '');
-            $receiverAccountId = $this->safe_string($globalConfig, 'contractAssetPoolAccountId', '');
-            $accountResponse = Async\await($this->privateGetV3Account($params));
-            $accountData = $this->safe_dict($accountResponse, 'data', array());
-            $spotAccount = $this->safe_dict($accountData, 'spotAccount', array());
-            $zkAccountId = $this->safe_string($spotAccount, 'zkAccountId', '');
-            $subAccountId = $this->safe_string($spotAccount, 'defaultSubAccountId', '0');
-            $subAccounts = $this->safe_list($spotAccount, 'subAccounts', array());
-            $nonce = '0';
-            if (strlen($subAccounts) > 0) {
-                $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
-            }
-            $finalNonce = $nonce; // java req
-            $ethAddress = $this->safe_string($accountData, 'ethereumAddress', '');
-            $accountId = $this->safe_string($accountData, 'id', '');
-            $currency = array();
-            $assets = array();
-            if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
-                $assets = $contractAssets;
-            } else {
-                $assets = $spotAssets;
-            }
-            for ($i = 0; $i < count($assets); $i++) {
-                if ($this->safe_string($assets[$i], 'token', '') === $code) {
-                    $currency = $assets[$i];
-                }
-            }
-            $tokenId = $this->safe_string($currency, 'tokenId', '');
-            $decimalsNum = $this->safe_number($currency, 'decimals', 0);
-            $decimalsNumber = ($decimalsNum === null) ? 0 : $decimalsNum;
-            $mathPowResult = (pow(10, $decimalsNumber));
-            $amountNumber = $this->parse_to_int($amount * $mathPowResult);
-            $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
-            $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            if ($clientOrderId === null) {
-                $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
-            }
-            $finalClientOrderId = $clientOrderId; // java req
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
-                $formattedUint32 = '4294967295';
-                $zkSignAccountId = Precise::string_mod($accountId, $formattedUint32);
-                $expireTime = $timestampSeconds + 3600 * 24 * 28;
-                $orderToSign = array(
-                    'zkAccountId' => $zkSignAccountId,
-                    'receiverAddress' => $ethAddress,
-                    'subAccountId' => $subAccountId,
-                    'receiverSubAccountId' => $subAccountId,
-                    'tokenId' => $tokenId,
-                    'amount' => (string) $amountNumber,
-                    'fee' => '0',
-                    'nonce' => $finalClientOrderId,
-                    'timestampSeconds' => $expireTime,
-                    'isContract' => true,
-                );
-                $signature = Async\await($this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
-                $request = array(
-                    'amount' => $amount,
-                    'expireTime' => $expireTime,
-                    'clientWithdrawId' => $finalClientOrderId,
-                    'signature' => $signature,
-                    'token' => $code,
-                    'ethAddress' => $ethAddress,
-                );
-                $response = Async\await($this->privatePostV3ContractTransferOut($this->extend($request, $params)));
-                $data = $this->safe_dict($response, 'data', array());
-                $currentTime = $this->milliseconds();
-                $parsedAmount = $this->parse_number($amount);
-                return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
-                    'timestamp' => $currentTime,
-                    'datetime' => $this->iso8601($currentTime),
-                    'amount' => $parsedAmount,
-                    'fromAccount' => 'contract',
-                    'toAccount' => 'spot',
-                ));
-            } else {
-                $orderToSign = array(
-                    'zkAccountId' => $zkAccountId,
-                    'receiverAddress' => $receiverAddress,
-                    'subAccountId' => $subAccountId,
-                    'receiverSubAccountId' => $receiverSubAccountId,
-                    'tokenId' => $tokenId,
-                    'amount' => (string) $amountNumber,
-                    'fee' => '0',
-                    'nonce' => $finalNonce,
-                    'timestampSeconds' => $timestampSeconds,
-                );
-                $signature = Async\await($this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
-                $amountStr = (string) $amount;
-                $ts = $timestampSeconds; // java req
-                $request = array(
-                    'amount' => $amountStr,
-                    'timestamp' => $ts,
-                    'clientTransferId' => $finalClientOrderId,
-                    'signature' => $signature,
-                    'zkAccountId' => $zkAccountId,
-                    'subAccountId' => $subAccountId,
-                    'fee' => '0',
-                    'token' => $code,
-                    'tokenId' => $tokenId,
-                    'receiverAccountId' => $receiverAccountId,
-                    'receiverZkAccountId' => $receiverZkAccountId,
-                    'receiverSubAccountId' => $receiverSubAccountId,
-                    'receiverAddress' => $receiverAddress,
-                    'nonce' => $finalNonce,
-                );
-                $response = Async\await($this->privatePostV3TransferOut($this->extend($request, $params)));
-                $data = $this->safe_dict($response, 'data', array());
-                $currentTime = $this->milliseconds();
-                return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
-                    'timestamp' => $currentTime,
-                    'datetime' => $this->iso8601($currentTime),
-                    'amount' => $this->parse_number($amount),
-                    'fromAccount' => 'spot',
-                    'toAccount' => 'contract',
-                ));
-            }
-        })();
+        }
+        $tokenId = $this->safe_string($currency, 'tokenId', '');
+        $decimalsNum = $this->safe_number($currency, 'decimals', 0);
+        $decimalsNumber = ($decimalsNum === null) ? 0 : $decimalsNum;
+        $mathPowResult = (pow(10, $decimalsNumber));
+        $amountNumber = $this->parse_to_int($amount * $mathPowResult);
+        $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
+        $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        if ($clientOrderId === null) {
+            $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
+        }
+        $finalClientOrderId = $clientOrderId; // java req
+        $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
+            $formattedUint32 = '4294967295';
+            $zkSignAccountId = Precise::string_mod($accountId, $formattedUint32);
+            $expireTime = $timestampSeconds + 3600 * 24 * 28;
+            $orderToSign = array(
+                'zkAccountId' => $zkSignAccountId,
+                'receiverAddress' => $ethAddress,
+                'subAccountId' => $subAccountId,
+                'receiverSubAccountId' => $subAccountId,
+                'tokenId' => $tokenId,
+                'amount' => (string) $amountNumber,
+                'fee' => '0',
+                'nonce' => $finalClientOrderId,
+                'timestampSeconds' => $expireTime,
+                'isContract' => true,
+            );
+            $signature = Async\await($this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
+            $request = array(
+                'amount' => $amount,
+                'expireTime' => $expireTime,
+                'clientWithdrawId' => $finalClientOrderId,
+                'signature' => $signature,
+                'token' => $code,
+                'ethAddress' => $ethAddress,
+            );
+            $response = Async\await($this->privatePostV3ContractTransferOut($this->extend($request, $params)));
+            $data = $this->safe_dict($response, 'data', array());
+            $currentTime = $this->milliseconds();
+            $parsedAmount = $this->parse_number($amount);
+            return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
+                'timestamp' => $currentTime,
+                'datetime' => $this->iso8601($currentTime),
+                'amount' => $parsedAmount,
+                'fromAccount' => 'contract',
+                'toAccount' => 'spot',
+            ));
+        } else {
+            $orderToSign = array(
+                'zkAccountId' => $zkAccountId,
+                'receiverAddress' => $receiverAddress,
+                'subAccountId' => $subAccountId,
+                'receiverSubAccountId' => $receiverSubAccountId,
+                'tokenId' => $tokenId,
+                'amount' => (string) $amountNumber,
+                'fee' => '0',
+                'nonce' => $finalNonce,
+                'timestampSeconds' => $timestampSeconds,
+            );
+            $signature = Async\await($this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign));
+            $amountStr = (string) $amount;
+            $ts = $timestampSeconds; // java req
+            $request = array(
+                'amount' => $amountStr,
+                'timestamp' => $ts,
+                'clientTransferId' => $finalClientOrderId,
+                'signature' => $signature,
+                'zkAccountId' => $zkAccountId,
+                'subAccountId' => $subAccountId,
+                'fee' => '0',
+                'token' => $code,
+                'tokenId' => $tokenId,
+                'receiverAccountId' => $receiverAccountId,
+                'receiverZkAccountId' => $receiverZkAccountId,
+                'receiverSubAccountId' => $receiverSubAccountId,
+                'receiverAddress' => $receiverAddress,
+                'nonce' => $finalNonce,
+            );
+            $response = Async\await($this->privatePostV3TransferOut($this->extend($request, $params)));
+            $data = $this->safe_dict($response, 'data', array());
+            $currentTime = $this->milliseconds();
+            return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
+                'timestamp' => $currentTime,
+                'datetime' => $this->iso8601($currentTime),
+                'amount' => $this->parse_number($amount),
+                'fromAccount' => 'spot',
+                'toAccount' => 'contract',
+            ));
+        }
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -1646,277 +1677,293 @@ class apex extends Exchange {
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders in a $market
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            $request = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $response = Async\await($this->privatePostV3DeleteOpenOrders($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            return array( $this->parse_order($data, $market) );
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders in a $market
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = Async\await($this->privatePostV3DeleteOpenOrders($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        return array( $this->parse_order($data, $market) );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
-             *
-             * @param {string} $id order $id
-             * @param {string} [$symbol] unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            $request = array();
-            $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $response = null;
-            if ($clientOrderId !== null) {
-                $request['id'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-                $response = Async\await($this->privatePostV3DeleteClientOrderId($this->extend($request, $params)));
-            } else {
-                $request['id'] = $id;
-                $response = Async\await($this->privatePostV3DeleteOrder($this->extend($request, $params)));
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->safe_order($data);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $request = array();
+        $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $response = null;
+        if ($clientOrderId !== null) {
+            $request['id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+            $response = Async\await($this->privatePostV3DeleteClientOrderId($this->extend($request, $params)));
+        } else {
+            $request['id'] = $id;
+            $response = Async\await($this->privatePostV3DeleteOrder($this->extend($request, $params)));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->safe_order($data);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-$id
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
-             *
-             * @param {string} $id the order $id
-             * @param {string} $symbol unified $symbol of the market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] a unique $id for the order
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-            $response = null;
-            if ($clientOrderId !== null) {
-                $request['id'] = $clientOrderId;
-                $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
-                $response = Async\await($this->privateGetV3OrderByClientOrderId($this->extend($request, $params)));
-            } else {
-                $request['id'] = $id;
-                $response = Async\await($this->privateGetV3Order($this->extend($request, $params)));
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($data);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-$id
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-order-by-clientorderid
+         *
+         * @param {string} $id the order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a unique $id for the order
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+        $response = null;
+        if ($clientOrderId !== null) {
+            $request['id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
+            $response = Async\await($this->privateGetV3OrderByClientOrderId($this->extend($request, $params)));
+        } else {
+            $request['id'] = $id;
+            $response = Async\await($this->privateGetV3Order($this->extend($request, $params)));
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple $orders made by the user
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-$orders
-             *
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetV3OpenOrders($params));
-            $orders = $this->safe_list($response, 'data', array());
-            return $this->parse_orders($orders, null, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-open-$orders
+         *
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetV3OpenOrders($params));
+        $orders = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($orders, null, $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple $orders made by the user *classic accounts only*
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve, default 100
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->until] end time, ms
-             * @param {boolean} [$params->status] "PENDING", "OPEN", "FILLED", "CANCELED", "EXPIRED", "UNTRIGGERED"
-             * @param {boolean} [$params->side] BUY or SELL
-             * @param {string} [$params->type] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
-             * @param {string} [$params->orderType] "ACTIVE","CONDITION","HISTORY"
-             * @param {boolean} [$params->page] Page numbers start from 0
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['beginTimeInclusive'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-            if ($endTimeExclusive !== null) {
-                $request['endTimeExclusive'] = $endTimeExclusive;
-                $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-            }
-            $response = Async\await($this->privateGetV3HistoryOrders($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $orders = $this->safe_list($data, 'orders', array());
-            return $this->parse_orders($orders, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple $orders made by the user *classic accounts only*
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-all-order-history
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve, default 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->until] end time, ms
+         * @param {boolean} [$params->status] "PENDING", "OPEN", "FILLED", "CANCELED", "EXPIRED", "UNTRIGGERED"
+         * @param {boolean} [$params->side] BUY or SELL
+         * @param {string} [$params->type] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
+         * @param {string} [$params->orderType] "ACTIVE","CONDITION","HISTORY"
+         * @param {boolean} [$params->page] Page numbers start from 0
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['beginTimeInclusive'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        if ($endTimeExclusive !== null) {
+            $request['endTimeExclusive'] = $endTimeExclusive;
+            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
+        $response = Async\await($this->privateGetV3HistoryOrders($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $orders = $this->safe_list($data, 'orders', array());
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the trades made from a single order
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
-            if ($clientOrderId !== null) {
-                $request['clientOrderId'] = $clientOrderId;
-            } else {
-                $request['orderId'] = $id;
-            }
-            $params = $this->omit($params, array( 'clientOrderId', 'clientId' ));
-            $response = Async\await($this->privateGetV3OrderFills($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $orders = $this->safe_list($data, 'orders', array());
-            return $this->parse_trades($orders, null, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the trades made from a single order
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'clientId' ));
+        $response = Async\await($this->privateGetV3OrderFills($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $orders = $this->safe_list($data, 'orders', array());
+        return $this->parse_trades($orders, null, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple $orders made by the user *classic accounts only*
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve, default 100
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->until] end time
-             * @param {boolean} [$params->side] BUY or SELL
-             * @param {string} [$params->orderType] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
-             * @param {boolean} [$params->page] Page numbers start from 0
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['beginTimeInclusive'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-            if ($endTimeExclusive !== null) {
-                $request['endTimeExclusive'] = $endTimeExclusive;
-                $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-            }
-            $response = Async\await($this->privateGetV3Fills($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $orders = $this->safe_list($data, 'orders', array());
-            return $this->parse_trades($orders, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple $orders made by the user *classic accounts only*
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-trade-history
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve, default 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->until] end time
+         * @param {boolean} [$params->side] BUY or SELL
+         * @param {string} [$params->orderType] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
+         * @param {boolean} [$params->page] Page numbers start from 0
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['beginTimeInclusive'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        if ($endTimeExclusive !== null) {
+            $request['endTimeExclusive'] = $endTimeExclusive;
+            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
+        $response = Async\await($this->privateGetV3Fills($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $orders = $this->safe_list($data, 'orders', array());
+        return $this->parse_trades($orders, $market, $since, $limit);
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user *classic accounts only*
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve, default 100
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->until] end time, ms
-             * @param {boolean} [$params->side] BUY or SELL
-             * @param {boolean} [$params->page] Page numbers start from 0
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['beginTimeInclusive'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-            if ($endTimeExclusive !== null) {
-                $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
-                $request['endTimeExclusive'] = $endTimeExclusive;
-            }
-            $response = Async\await($this->privateGetV3Funding($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            $fundingValues = $this->safe_list($data, 'fundingValues', array());
-            return $this->parse_incomes($fundingValues, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user *classic accounts only*
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-funding-rate
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve, default 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->until] end time, ms
+         * @param {boolean} [$params->side] BUY or SELL
+         * @param {boolean} [$params->page] Page numbers start from 0
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['beginTimeInclusive'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $endTimeExclusive = $this->safe_integer_n($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        if ($endTimeExclusive !== null) {
+            $params = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+            $request['endTimeExclusive'] = $endTimeExclusive;
+        }
+        $response = Async\await($this->privateGetV3Funding($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        $fundingValues = $this->safe_list($data, 'fundingValues', array());
+        return $this->parse_incomes($fundingValues, $market, $since, $limit);
     }
 
     public function parse_income(mixed $income, ?array $market = null) {
@@ -1951,55 +1998,59 @@ class apex extends Exchange {
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a $market
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
-             *
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} $response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $leverageString = $this->number_to_string($leverage);
-            $initialMarginRate = Precise::string_div('1', $leverageString, 4);
-            $request = array(
-                'symbol' => $market['id'],
-                'initialMarginRate' => $initialMarginRate,
-            );
-            $response = Async\await($this->privatePostV3SetInitialMarginRate($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 'data', array());
-            return $data;
-        })();
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
+    }
+
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-sets-the-initial-margin-rate-of-a-contract
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $leverageString = $this->number_to_string($leverage);
+        $initialMarginRate = Precise::string_div('1', $leverageString, 4);
+        $request = array(
+            'symbol' => $market['id'],
+            'initialMarginRate' => $initialMarginRate,
+        );
+        $response = Async\await($this->privatePostV3SetInitialMarginRate($this->extend($request, $params)));
+        $data = $this->safe_dict($response, 'data', array());
+        return $data;
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open $positions
-             *
-             * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privateGetV3Account($params));
-            $data = $this->safe_dict($response, 'data', array());
-            $positions = $this->safe_list($data, 'positions', array());
-            return $this->parse_positions($positions, $symbols);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open $positions
+         *
+         * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-$data
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privateGetV3Account($params));
+        $data = $this->safe_dict($response, 'data', array());
+        $positions = $this->safe_list($data, 'positions', array());
+        return $this->parse_positions($positions, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2033,7 +2084,7 @@ class apex extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'entryPrice'),
+            'entryPrice' => $this->safe_number($position, 'entryPrice'),
             'markPrice' => null,
             'notional' => null,
             'collateral' => null,
@@ -2066,7 +2117,7 @@ class apex extends Exchange {
         $signPath = '/api/' . $path;
         $signBody = $body;
         if (strtoupper($method) !== 'POST') {
-            if ($params) {
+            if (count($params) > 0) {
                 $signPath .= '?' . $this->rawencode($params);
                 $url .= '?' . $this->rawencode($params);
             }

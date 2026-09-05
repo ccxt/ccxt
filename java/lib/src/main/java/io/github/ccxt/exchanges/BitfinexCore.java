@@ -43,6 +43,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "createLimitOrder", true );
                 put( "createMarketOrder", true );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createPostOnlyOrder", true );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", true );
@@ -83,6 +84,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "fetchLiquidations", true );
                 put( "fetchMarginMode", false );
                 put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
@@ -102,8 +104,10 @@ public class BitfinexCore extends BitfinexApi
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", true );
+                put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", false );
+                put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
                 put( "fetchTradingFees", true );
                 put( "fetchTransactionFees", null );
@@ -2043,7 +2047,7 @@ public class BitfinexCore extends BitfinexApi
             put( "4096", new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly")) );
             put( "5120", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")) );
         }};
-        return this.safeValue(flagValues, flags, null);
+        return this.safeValue(flagValues, flags);
     }
 
     public Object parseTimeInForce(Object orderType)
@@ -2204,7 +2208,7 @@ public class BitfinexCore extends BitfinexApi
         }
         Object ioc = (Helpers.isEqual(timeInForce, "IOC"));
         Object fok = (Helpers.isEqual(timeInForce, "FOK"));
-        Object postOnly = (Helpers.isTrue(postOnlyParam) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
+        Object postOnly = (Helpers.isTrue((Helpers.isEqual(postOnlyParam, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(ioc) || Helpers.isTrue(fok))) && Helpers.isTrue((Helpers.isEqual(price, null)))))
         {
             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument with IOC and FOK orders")) ;
@@ -2228,7 +2232,7 @@ public class BitfinexCore extends BitfinexApi
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue((Helpers.isEqual(marginMode, null)))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(marginMode, null)))))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = Helpers.add("EXCHANGE ", orderType);
@@ -2240,7 +2244,7 @@ public class BitfinexCore extends BitfinexApi
         {
             flags = this.sum(flags, 4096);
         }
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             flags = this.sum(flags, 1024);
         }
@@ -3398,7 +3402,7 @@ public class BitfinexCore extends BitfinexApi
                 {
                     Helpers.addElementToObject(fee, "maker", makerFeeFiat);
                     Helpers.addElementToObject(fee, "taker", takerFeeFiat);
-                } else if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+                } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     Helpers.addElementToObject(fee, "maker", makerFeeDeriv);
                     Helpers.addElementToObject(fee, "taker", takerFeeDeriv);
@@ -3544,7 +3548,7 @@ public class BitfinexCore extends BitfinexApi
             }
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             Object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
-            if (Helpers.isTrue(includeFee))
+            if (Helpers.isTrue(Helpers.isEqual(includeFee, true)))
             {
                 Helpers.addElementToObject(request, "fee_deduct", 1);
             }
@@ -3766,7 +3770,7 @@ public class BitfinexCore extends BitfinexApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), request);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -4697,7 +4701,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " setMargin() only support swap markets")) ;
             }
@@ -4893,7 +4897,7 @@ public class BitfinexCore extends BitfinexApi
                     Helpers.addElementToObject(request, "price_aux_limit", this.priceToPrecision(symbol, price));
                 }
             }
-            Object postOnly = (Helpers.isTrue(postOnlyParam) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
+            Object postOnly = (Helpers.isTrue((Helpers.isEqual(postOnlyParam, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO"))));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(triggerPrice, null)))))
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -4904,7 +4908,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 flags = this.sum(flags, 4096);
             }
-            if (Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 flags = this.sum(flags, 1024);
             }

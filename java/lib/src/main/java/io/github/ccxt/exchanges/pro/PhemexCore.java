@@ -600,7 +600,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Object name = "spot_market24h";
-            if (Helpers.isTrue(isSwap))
+            if (Helpers.isTrue(Helpers.isEqual(isSwap, true)))
             {
                 name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
@@ -648,7 +648,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Object name = "spot_market24h";
-            if (Helpers.isTrue(isSwap))
+            if (Helpers.isTrue(Helpers.isEqual(isSwap, true)))
             {
                 name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
@@ -709,7 +709,8 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.requestId();
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
-            Object name = ((Helpers.isTrue((Helpers.isTrue(isSwap) && Helpers.isTrue(settleIsUSDT))))) ? "trade_p" : "trade";
+            Object isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
+            Object name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
             Object messageHash = Helpers.add("trade:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -758,7 +759,8 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.requestId();
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
-            Object name = ((Helpers.isTrue((Helpers.isTrue(isSwap) && Helpers.isTrue(settleIsUSDT))))) ? "orderbook_p" : "orderbook";
+            Object isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
+            Object name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -806,7 +808,8 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.requestId();
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
-            Object name = ((Helpers.isTrue((Helpers.isTrue(isSwap) && Helpers.isTrue(settleIsUSDT))))) ? "kline_p" : "kline";
+            Object isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
+            Object name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             Object method = Helpers.add(name, ".subscribe");
             Object subscribe = new java.util.HashMap<String, Object>() {{

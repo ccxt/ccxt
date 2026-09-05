@@ -14,37 +14,44 @@ const isInteger = Number.isInteger;
 const isArray = Array.isArray;
 const hasProps = (o) => ((o !== undefined) && (o !== null));
 const isString = (s) => (typeof s === 'string');
-const isObject = (o) => ((o !== null) && (typeof o === 'object'));
+const isObject = (o) => ((o !== undefined) && (o !== null) && (typeof o === 'object'));
 const isRegExp = (o) => (o instanceof RegExp);
 const isDictionary = (o) => (isObject(o) && (Object.getPrototypeOf(o) === Object.prototype) && !isArray(o) && !isRegExp(o));
 const isStringCoercible = (x) => ((hasProps(x) && x.toString) || isNumber(x));
 /*  .............................................   */
 const prop = (o, k) => {
-    if (k === undefined || k === null) {
-        return undefined;
+    if (k !== undefined && k !== null && isObject(o) && o[k] !== null && o[k] !== '') {
+        return o[k];
     }
-    return (isObject(o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
+    return undefined;
 };
 const prop2 = (o, k1, k2) => {
     if (!isObject(o)) {
         return undefined;
     }
-    if (k1 !== undefined && k1 !== null) {
-        if (o[k1] !== undefined && o[k1] !== '' && o[k1] !== null) {
-            return o[k1];
-        }
+    if (k1 !== undefined && k1 !== null && o[k1] !== undefined && o[k1] !== null && o[k1] !== '') {
+        return o[k1];
     }
-    if (k2 !== undefined && k2 !== null) {
-        if (o[k2] !== '' && o[k2] !== null) {
-            return o[k2];
-        }
+    if (k2 !== undefined && k2 !== null && o[k2] !== undefined && o[k2] !== null && o[k2] !== '') {
+        return o[k2];
     }
     return undefined;
 };
-const getValueFromKeysInArray = (object, array) => isObject(object) ? object[array.find((k) => prop(object, k) !== undefined)] : undefined;
+const getValueFromKeysInArray = (object, keys) => {
+    if (!isObject(object))
+        return undefined;
+    for (const k of keys) {
+        if (k === undefined || k === null)
+            continue;
+        const v = object[k];
+        if (v !== undefined && v !== null && v !== '')
+            return v;
+    }
+    return undefined;
+};
 /*  .............................................   */
-const asFloat = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? parseFloat(x) : NaN);
-const asInteger = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? Math.trunc(Number(x)) : NaN);
+const asFloat = (x) => (((isString(x) && x.length !== 0) || isNumber(x)) ? parseFloat(x) : NaN);
+const asInteger = (x) => (((isString(x) && x.length !== 0) || isNumber(x)) ? Math.trunc(Number(x)) : NaN);
 /*  .............................................   */
 function safeFloat(o, k, $default) {
     const n = asFloat(prop(o, k));
@@ -136,22 +143,38 @@ function safeStringUpper2(o, k1, k2, $default) {
     return $default;
 }
 function safeFloatN(o, k, $default) {
-    const n = asFloat(getValueFromKeysInArray(o, k));
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat(found);
     return isNumber(n) ? n : $default;
 }
 function safeIntegerN(o, k, $default) {
     if (o === undefined) {
         return $default;
     }
-    const n = asInteger(getValueFromKeysInArray(o, k));
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asInteger(found);
     return isNumber(n) ? n : $default;
 }
 function safeIntegerProductN(o, k, $factor, $default) {
-    const n = asFloat(getValueFromKeysInArray(o, k));
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat(found);
     return isNumber(n) ? parseInt(n * $factor) : $default;
 }
 function safeTimestampN(o, k, $default) {
-    const n = asFloat(getValueFromKeysInArray(o, k));
+    const found = getValueFromKeysInArray(o, k);
+    if (found === undefined) {
+        return $default;
+    }
+    const n = asFloat(found);
     return isNumber(n) ? parseInt(n * 1000) : $default;
 }
 function safeValueN(o, k, $default) {
@@ -165,6 +188,8 @@ function safeStringN(o, k, $default) {
     if (o === undefined)
         return $default;
     const x = getValueFromKeysInArray(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x;
     if (Number.isFinite(x))
@@ -175,6 +200,8 @@ function safeStringLowerN(o, k, $default) {
     if (o === undefined)
         return $default;
     const x = getValueFromKeysInArray(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toLowerCase();
     if (Number.isFinite(x))
@@ -185,6 +212,8 @@ function safeStringUpperN(o, k, $default) {
     if (o === undefined)
         return $default;
     const x = getValueFromKeysInArray(o, k);
+    if (x === undefined)
+        return $default;
     if (typeof x === 'string')
         return x.toUpperCase();
     if (Number.isFinite(x))

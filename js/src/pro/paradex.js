@@ -604,7 +604,7 @@ export default class paradex extends paradexRest {
         }
     }
     handleMessage(client, message) {
-        if (!this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
         //

@@ -145,7 +145,7 @@ func (this *Fmfwio) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Fmfwio) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Fmfwio) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Fmfwio) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Fmfwio) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Fmfwio) FetchDepositAddress(code string, options ...FetchDepositAddr
 func (this *Fmfwio) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Fmfwio) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Fmfwio) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Fmfwio) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

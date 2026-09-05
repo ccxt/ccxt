@@ -50,7 +50,7 @@ type ClientInterface interface {
 // Each Subscribe call returns a receive-only channel that the caller reads updates from.
 type Client struct {
 	Futures   map[string]any
-	FuturesMu sync.RWMutex // protects Futures map
+	FuturesMu sync.RWMutex // protects Futures map and Rejections
 	Url       string
 
 	Connection   *websocket.Conn
@@ -71,6 +71,8 @@ type Client struct {
 	ConnectionTimeout     any            // e.g. *time.Timer or context.CancelFunc
 	Verbose               bool           // default false
 	DecompressBinary      bool
+	IsMock                bool                          // static ws tests: transport is stubbed, sends are recorded
+	MockSentMessages      []any                         // frames recorded in mock mode
 	ConnectionTimer       any                           // e.g. *time.Timer or custom timer
 	LastPong              any                           // time or timestamp type recommended
 	MaxPingPongMisses     any                           // int or counter type
@@ -119,15 +121,22 @@ func (this *Client) ReusableFuture(messageHash any) *Future {
 func (this *Client) NewFuture(messageHash any) *Future {
 	hash, _ := messageHash.(string)
 	this.FuturesMu.Lock()
+	// a retained rejection fails this consumer fast. the spent future stays
+	// out of the map so the next consumer is not poisoned by the old error.
+	// Rejections shares FuturesMu (the unlocked read and delete here was a
+	// concurrent map access race with Reject)
+	if err, ok := this.Rejections[hash]; ok {
+		delete(this.Rejections, hash)
+		this.FuturesMu.Unlock()
+		future := NewFuture()
+		future.Reject(err.(error))
+		return future
+	}
 	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
 	this.FuturesMu.Unlock()
-	if err, ok := this.Rejections[hash]; ok {
-		future.(*Future).Reject(err.(error))
-		delete(this.Rejections, hash)
-	}
 	return future.(*Future)
 }
 
@@ -146,6 +155,14 @@ func (this *Client) Reject(err any, messageHash ...any) {
 	if fut, ok := this.Futures[hash.(string)]; ok {
 		fut.(*Future).Reject(err.(error))
 		delete(this.Futures, hash.(string))
+	} else {
+		// ts parity: an error arriving while no consumer future exists is
+		// retained so the next NewFuture fails fast instead of the error
+		// being dropped
+		if this.Rejections == nil {
+			this.Rejections = map[string]any{}
+		}
+		this.Rejections[hash.(string)] = err
 	}
 	this.FuturesMu.Unlock()
 }
@@ -438,7 +455,15 @@ func (this *Client) Send(message any) <-chan any {
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
-		if this.Connection == nil {
+		if this.IsMock {
+			// static ws tests: record the outgoing frame so the test can assert it
+			var parsed any
+			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
+				this.MockSentMessages = append(this.MockSentMessages, parsed)
+			}
+			future.Resolve(true)
+			ch <- true
+		} else if this.Connection == nil {
 			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
 			// the caller receives on ch (see Exchange.watch); without sending here

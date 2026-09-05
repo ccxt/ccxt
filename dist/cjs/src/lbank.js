@@ -55,10 +55,11 @@ class lbank extends lbank$1["default"] {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -85,8 +86,10 @@ class lbank extends lbank$1["default"] {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -695,8 +698,12 @@ class lbank extends lbank$1["default"] {
                         'max': this.safeNumber(market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': this.safeNumber(market, 'priceLimitLowerValue'),
-                        'max': this.safeNumber(market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minOrderCost'),
@@ -749,7 +756,7 @@ class lbank extends lbank$1["default"] {
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeValue(ticker, 'ticker', {});
         market = this.safeMarket(marketId, market);
-        const data = (market['contract']) ? ticker : tickerData;
+        const data = (market['contract'] === true) ? ticker : tickerData;
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -787,7 +794,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap']) {
+        if (market['swap'] === true) {
             const responseForSwap = await this.fetchTickers([market['symbol']], params);
             return this.safeValue(responseForSwap, market['symbol']);
         }
@@ -985,7 +992,7 @@ class lbank extends lbank$1["default"] {
         //
         const orderbook = this.safeValue(response, 'data', {});
         const timestamp = this.milliseconds();
-        if (market['swap']) {
+        if (market['swap'] === true) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
@@ -1615,7 +1622,7 @@ class lbank extends lbank$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1649,7 +1656,7 @@ class lbank extends lbank$1["default"] {
         };
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const maker = (postOnly || (timeInForce === 'PO'));
+        const maker = ((postOnly === true) || (timeInForce === 'PO'));
         if ((type === 'market') && (ioc || fok || maker)) {
             throw new errors.InvalidOrder(this.id + ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -3021,7 +3028,7 @@ class lbank extends lbank$1["default"] {
             const withdrawFee = this.safeNumber(networkEntry, 'withdrawFee');
             const isDefault = this.safeValue(networkEntry, 'isDefault');
             if (withdrawFee !== undefined) {
-                if (isDefault) {
+                if (isDefault === true) {
                     result['withdraw'] = {
                         'fee': withdrawFee,
                         'percentage': undefined,
@@ -3054,7 +3061,7 @@ class lbank extends lbank$1["default"] {
             url = this.urls['api']['contract'] + '/' + this.implodeParams(path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(this.keysort(query));
             }
         }
@@ -3085,7 +3092,7 @@ class lbank extends lbank$1["default"] {
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
                 let pem = undefined;
-                if (cacheSecretAsPem) {
+                if (cacheSecretAsPem === true) {
                     pem = this.safeValue(this.options, 'pem');
                     if (pem === undefined) {
                         pem = this.convertSecretToPem(this.encode(this.secret));
@@ -3129,7 +3136,7 @@ class lbank extends lbank$1["default"] {
             throw new errors.NullResponse(this.id + ' parseBalance() returned empty response');
         }
         const success = this.safeValue(response, 'result');
-        if (success === 'false' || !success) {
+        if ((success === 'false') || (success === undefined) || (success === null) || (success === false)) {
             const errorCode = this.safeString(response, 'error_code');
             const message = this.safeString({
                 '10000': 'Internal error',

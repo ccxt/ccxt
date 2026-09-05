@@ -638,7 +638,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
-            if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(firstMarket, "spot")) && !Helpers.isTrue(Helpers.GetValue(firstMarket, "linear"))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true)))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
             }

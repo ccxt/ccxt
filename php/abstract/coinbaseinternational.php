@@ -92,7 +92,7 @@ abstract class coinbaseinternational extends \ccxt\Exchange {
         return $this->request('portfolios/{portfolio}/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function v1_private_get_portfolios_portfolio_balances($params = array()) {
         return $this->request('portfolios/{portfolio}/balances', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -302,7 +302,7 @@ abstract class coinbaseinternational extends \ccxt\Exchange {
         return $this->request('portfolios/{portfolio}/summary', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function v1PrivateGetPortfoliosPortfolioBalances($params = array()) {
         return $this->request('portfolios/{portfolio}/balances', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));

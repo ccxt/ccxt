@@ -10877,7 +10877,7 @@
                 "parsedResponse": {
                     "currency": "USDC",
                     "rate": 0.00004453,
-                    "period": 86400000,
+                    "period": 3600000,
                     "timestamp": null,
                     "datetime": null,
                     "info": {
@@ -10966,9 +10966,7 @@
                             "tag": ""
                         },
                         "id": "2903938004064555008",
-                        "clientOrderId": [
-                            "1234abcd"
-                        ],
+                        "clientOrderId": null,
                         "timestamp": null,
                         "datetime": null,
                         "lastTradeTimestamp": null,
@@ -10992,8 +10990,7 @@
                         "trades": [],
                         "reduceOnly": false,
                         "fees": [],
-                        "stopPrice": null,
-                        "trigger": true
+                        "stopPrice": null
                     }
                 ]
             }

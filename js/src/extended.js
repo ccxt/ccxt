@@ -2565,7 +2565,7 @@ export default class extended extends Exchange {
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if (market['spot'] && uppercaseType !== 'LIMIT') {
+        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
             throw new BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL'])) {
@@ -3025,7 +3025,11 @@ export default class extended extends Exchange {
         const request = {
             'countdownTime': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        const response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return { 'info': response };
     }
     /**
      * @method
@@ -3462,7 +3466,7 @@ export default class extended extends Exchange {
         ]);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3500,7 +3504,7 @@ export default class extended extends Exchange {
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys(query).length) {
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys(query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat(query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

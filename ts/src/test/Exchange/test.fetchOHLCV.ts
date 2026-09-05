@@ -8,8 +8,7 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     const method = 'fetchOHLCV';
     const timeframeKeys = Object.keys (exchange.timeframes);
     const logText = testSharedMethods.logTemplate (exchange, method, {});
-    assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found' + logText);
-    // prefer 1m timeframe if available, otherwise return the first one
+    assert (timeframeKeys.length > 0, exchange.id + ' ' + method + ' - no timeframes found' + logText);    // prefer 1m timeframe if available, otherwise return the first one
     let chosenTimeframeKey = '1m';
     if (!exchange.inArray (chosenTimeframeKey, timeframeKeys)) {
         chosenTimeframeKey = timeframeKeys[0];

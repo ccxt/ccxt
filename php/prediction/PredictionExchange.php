@@ -87,7 +87,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function is_prediction(): bool {
-        return $this->safe_bool($this->has, 'prediction', false) === true;
+        return $this->safe_bool($this->has, 'prediction', false);
     }
 
     public function parse_search_queries($params = array()) {
@@ -383,25 +383,29 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function load_events_helper($reload = false, $params = array()) {
-        return Async\async(function () use ($reload, $params) {
-            // note => the cache-hit shortcut ignores $params, so $events fetched under one scope are
-            // returned for a later differently-scoped call. $events are scoped (unlike global
-            // markets), so prefer fetchEvents ($params) directly when you need a specific scope
-            if (!$reload && $this->events) {
-                return $this->events;
-            }
-            $events = Async\await($this->fetch_events($params));
-            return $this->set_events($events);
-        })();
+        return Async\async(self::do_load_events_helper(...))($reload, $params);
+    }
+
+    private function do_load_events_helper($reload = false, $params = array()) {
+        // note => the cache-hit shortcut ignores $params, so $events fetched under one scope are
+        // returned for a later differently-scoped call. $events are scoped (unlike global
+        // markets), so prefer fetchEvents ($params) directly when you need a specific scope
+        if (!$reload && ($this->events !== null && $this->events !== null)) {
+            return $this->events;
+        }
+        $events = Async\await($this->fetch_events($params));
+        return $this->set_events($events);
     }
 
     public function load_events($reload = false, $params = array()) {
-        return Async\async(function () use ($reload, $params) {
-            // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
-            // promise coalescing => the promise-sharing idiom is not expressible in the transpiled
-            // base, so two truly concurrent first calls may fetch twice (both land in the cache)
-            return Async\await($this->load_events_helper($reload, $params));
-        })();
+        return Async\async(self::do_load_events(...))($reload, $params);
+    }
+
+    private function do_load_events($reload = false, $params = array()) {
+        // cached entry point mirroring loadMarkets. unlike loadMarkets there is no cross-call
+        // promise coalescing => the promise-sharing idiom is not expressible in the transpiled
+        // base, so two truly concurrent first calls may fetch twice (both land in the cache)
+        return Async\await($this->load_events_helper($reload, $params));
     }
 
     public function get_event(string $eventIdOrSlug) {
@@ -702,108 +706,114 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function load_outcomes(?array $outcomes = null, $reload = false, $params = array()) {
-        return Async\async(function () use ($outcomes, $reload, $params) {
-            // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
-            // - an `$outcomes` list (scoped) => sync-filter the cache and resolve ONLY the misses through
-            //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
-            //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
-            // - no `$outcomes` (bulk) => load the capped markets listing once and index every outcome —
-            //   idempotent unless $reload; only worth paying on venues whose whole universe is one
-            //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
-            // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
-            // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
-            if ($outcomes !== null) {
-                $missing = array();
-                for ($i = 0; $i < count($outcomes); $i++) {
-                    if ($reload || !$this->has_outcome($outcomes[$i])) {
-                        $missing[] = $outcomes[$i];
+        return Async\async(self::do_load_outcomes(...))($outcomes, $reload, $params);
+    }
+
+    private function do_load_outcomes(?array $outcomes = null, $reload = false, $params = array()) {
+        // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
+        // - an `$outcomes` list (scoped) => sync-filter the cache and resolve ONLY the misses through
+        //   fetchOutcomes — venues with a batch by-id endpoint (kalshi, polymarket) override it to
+        //   collapse all misses into one request; a warm cache returns with zero per-outcome awaits
+        // - no `$outcomes` (bulk) => load the capped markets listing once and index every outcome —
+        //   idempotent unless $reload; only worth paying on venues whose whole universe is one
+        //   cheap request (hyperliquid), or when the user explicitly wants the top-N set
+        // loadMarkets()/populateOutcomes() rebuild the lookup caches explicitly (the setMarkets
+        // override is not dispatched by the base loadMarkets under the Go/C#/Java transpilers)
+        if ($outcomes !== null) {
+            $missing = array();
+            for ($i = 0; $i < count($outcomes); $i++) {
+                if ($reload || !$this->has_outcome($outcomes[$i])) {
+                    $missing[] = $outcomes[$i];
+                }
+            }
+            $missingLength = count($missing);
+            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
+            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
+            if (($missingLength > 0) && ($loadAll === true) && !$wasWarm && !$reload) {
+                // same trade-off => on venues where the whole universe is one cheap
+                // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
+                Async\await($this->load_outcomes());
+                $stillMissing = array();
+                for ($i = 0; $i < $missingLength; $i++) {
+                    if (!$this->has_outcome($missing[$i])) {
+                        $stillMissing[] = $missing[$i];
                     }
                 }
+                $missing = $stillMissing;
                 $missingLength = count($missing);
-                $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
-                $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-                if (($missingLength > 0) && $loadAll && !$wasWarm && !$reload) {
-                    // same trade-off => on venues where the whole universe is one cheap
-                    // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                    Async\await($this->load_outcomes());
-                    $stillMissing = array();
-                    for ($i = 0; $i < $missingLength; $i++) {
-                        if (!$this->has_outcome($missing[$i])) {
-                            $stillMissing[] = $missing[$i];
-                        }
-                    }
-                    $missing = $stillMissing;
-                    $missingLength = count($missing);
-                }
-                if ($missingLength > 0) {
-                    Async\await($this->fetch_outcomes($missing));
-                }
-                return $this->outcomes;
             }
-            if (!$reload && ($this->outcomes !== null) && !$this->is_empty($this->outcomes)) {
-                return $this->outcomes;
+            if ($missingLength > 0) {
+                Async\await($this->fetch_outcomes($missing));
             }
-            Async\await($this->load_markets($reload, $params));
-            $this->populate_outcomes();
             return $this->outcomes;
-        })();
+        }
+        if (!$reload && ($this->outcomes !== null) && !$this->is_empty($this->outcomes)) {
+            return $this->outcomes;
+        }
+        Async\await($this->load_markets($reload, $params));
+        $this->populate_outcomes();
+        return $this->outcomes;
     }
 
     public function fetch_outcomes(array $outcomeSymbols) {
-        return Async\async(function () use ($outcomeSymbols) {
-            /**
-             * @ignore
-             * resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
-             * @param {string[]} $outcomeSymbols the uncached outcome handles or ids to resolve
-             * @return {array} the outcome cache
-             */
-            for ($i = 0; $i < count($outcomeSymbols); $i++) {
-                Async\await($this->fetch_outcome($outcomeSymbols[$i]));
-            }
-            return $this->outcomes;
-        })();
+        return Async\async(self::do_fetch_outcomes(...))($outcomeSymbols);
+    }
+
+    private function do_fetch_outcomes(array $outcomeSymbols) {
+        /**
+         * @ignore
+         * resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
+         * @param {string[]} $outcomeSymbols the uncached outcome handles or ids to resolve
+         * @return {array} the outcome cache
+         */
+        for ($i = 0; $i < count($outcomeSymbols); $i++) {
+            Async\await($this->fetch_outcome($outcomeSymbols[$i]));
+        }
+        return $this->outcomes;
     }
 
     public function load_outcome(?string $outcomeSymbol, $reload = false) {
-        return Async\async(function () use ($outcomeSymbol, $reload) {
-            // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
-            // returns at once (pass $reload=true to skip the cache and refetch the outcome's metadata).
-            // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
-            // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
-            // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up => the first
-            // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
-            // sane on venues whose full universe is one cheap request (hyperliquid)
-            if ($outcomeSymbol === null) {
-                throw new ArgumentsRequired($this->id . ' loadOutcome() requires an $outcomeSymbol argument');
+        return Async\async(self::do_load_outcome(...))($outcomeSymbol, $reload);
+    }
+
+    private function do_load_outcome(?string $outcomeSymbol, $reload = false) {
+        // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
+        // returns at once (pass $reload=true to skip the cache and refetch the outcome's metadata).
+        // on a miss, fetchOutcome resolves just the requested outcome on demand — a by-id fetch on
+        // venues with such an endpoint (kalshi, polymarket) or the venue's scoped search otherwise.
+        // options.loadAllOutcomes (default false) opts back into the legacy bulk warm-up => the first
+        // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
+        // sane on venues whose full universe is one cheap request (hyperliquid)
+        if ($outcomeSymbol === null) {
+            throw new ArgumentsRequired($this->id . ' loadOutcome() requires an $outcomeSymbol argument');
+        }
+        if (!$reload) {
+            if ($this->has_outcome($outcomeSymbol)) {
+                return $this->safe_outcome($outcomeSymbol);
             }
-            if (!$reload) {
+            $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
+            // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
+            // but the outcome cache is cold, index them for free before hitting the network — this
+            // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
+            if (!$wasWarm && ($this->markets !== null) && !$this->is_empty($this->markets)) {
+                $this->populate_outcomes();
                 if ($this->has_outcome($outcomeSymbol)) {
                     return $this->safe_outcome($outcomeSymbol);
                 }
-                $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
-                // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
-                // but the outcome cache is cold, index them for free before hitting the network — this
-                // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-                if (!$wasWarm && ($this->markets !== null) && !$this->is_empty($this->markets)) {
-                    $this->populate_outcomes();
-                    if ($this->has_outcome($outcomeSymbol)) {
-                        return $this->safe_outcome($outcomeSymbol);
-                    }
-                }
-                $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-                if ($loadAll && !$wasWarm) {
-                    // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
-                    // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
-                    // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
-                    // the whole listing (which would mask typos and clobber offline-injected markets)
-                    Async\await($this->load_outcomes());
-                    if ($this->has_outcome($outcomeSymbol)) {
-                        return $this->safe_outcome($outcomeSymbol);
-                    }
+            }
+            $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
+            if (($loadAll === true) && !$wasWarm) {
+                // a miss on a cold cache => bulk-load once so later lookups are 0-network hits.
+                // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
+                // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
+                // the whole listing (which would mask typos and clobber offline-injected markets)
+                Async\await($this->load_outcomes());
+                if ($this->has_outcome($outcomeSymbol)) {
+                    return $this->safe_outcome($outcomeSymbol);
                 }
             }
-            return Async\await($this->fetch_outcome($outcomeSymbol));
-        })();
+        }
+        return Async\await($this->fetch_outcome($outcomeSymbol));
     }
 
     public function outcome_search_query(string $outcomeSymbol) {
@@ -859,30 +869,32 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function fetch_outcome(string $outcomeSymbol) {
-        return Async\async(function () use ($outcomeSymbol) {
-            // fetch just one outcome on demand — never through a bulk listing download. the base has
-            // no generic by-id endpoint, so it derives a search query from the handle and resolves it
-            // through the venue's own scoped fetchEvents (which caches everything it finds), then
-            // re-checks the cache. venues with a $real by-id fetch (kalshi by ticker, polymarket by
-            // token id) override this with a cheaper single fetch and fall back to super on a miss.
-            $searchQuery = $this->outcome_search_query($outcomeSymbol);
-            if (($searchQuery !== null) && $this->safe_bool($this->has, 'fetchEvents', false)) {
-                $searchLimit = $this->safe_integer($this->options, 'fetchOutcomeSearchLimit', 10);
-                try {
-                    Async\await($this->fetch_events(array( 'query' => $searchQuery, 'limit' => $searchLimit )));
-                } catch (Exception $e) {
-                    // a query with zero matches surfaces on some venues — treat it
-                    // plain miss (the guidance-rich throw $below); $real transport errors propagate
-                    if (!($e instanceof BadSymbol)) {
-                        throw $e;
-                    }
-                }
-                if ($this->has_outcome($outcomeSymbol)) {
-                    return $this->safe_outcome($outcomeSymbol);
+        return Async\async(self::do_fetch_outcome(...))($outcomeSymbol);
+    }
+
+    private function do_fetch_outcome(string $outcomeSymbol) {
+        // fetch just one outcome on demand — never through a bulk listing download. the base has
+        // no generic by-id endpoint, so it derives a search query from the handle and resolves it
+        // through the venue's own scoped fetchEvents (which caches everything it finds), then
+        // re-checks the cache. venues with a $real by-id fetch (kalshi by ticker, polymarket by
+        // token id) override this with a cheaper single fetch and fall back to super on a miss.
+        $searchQuery = $this->outcome_search_query($outcomeSymbol);
+        if (($searchQuery !== null) && $this->safe_bool($this->has, 'fetchEvents', false)) {
+            $searchLimit = $this->safe_integer($this->options, 'fetchOutcomeSearchLimit', 10);
+            try {
+                Async\await($this->fetch_events(array( 'query' => $searchQuery, 'limit' => $searchLimit )));
+            } catch (Exception $e) {
+                // a query with zero matches surfaces on some venues — treat it
+                // plain miss (the guidance-rich throw $below); $real transport errors propagate
+                if (!($e instanceof BadSymbol)) {
+                    throw $e;
                 }
             }
-            throw new BadSymbol($this->id . ' could not resolve outcome ' . $outcomeSymbol . " — call fetchEvents (array( 'query' => ... )) first, or pass a known outcomeId");
-        })();
+            if ($this->has_outcome($outcomeSymbol)) {
+                return $this->safe_outcome($outcomeSymbol);
+            }
+        }
+        throw new BadSymbol($this->id . ' could not resolve outcome ' . $outcomeSymbol . " — call fetchEvents (array( 'query' => ... )) first, or pass a known outcomeId");
     }
 
     public function fetch_ticker(string $outcome, $params = array()) {
@@ -917,18 +929,20 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($outcome, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data for a prediction $outcome
-             * @param {string} $outcome unified $outcome handle
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum number of candles to fetch
-             * @param {array} [$params] extra exchange-specific parameters
-             * @return {int[][]} a list of candles ordered, open, high, low, close, volume
-             */
-            return Async\await(parent::fetch_ohlcv($outcome, $timeframe, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data for a prediction $outcome
+         * @param {string} $outcome unified $outcome handle
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum number of candles to fetch
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {int[][]} a list of candles ordered, open, high, low, close, volume
+         */
+        return Async\await(parent::fetch_ohlcv($outcome, $timeframe, $since, $limit, $params));
     }
 
     public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -1124,37 +1138,41 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function create_market_buy_order_with_cost(string $outcome, float $cost, $params = array()) {
-        return Async\async(function () use ($outcome, $cost, $params) {
-            /**
-             * create a market buy order on a prediction $outcome by providing the $cost
-             * @param {string} $outcome unified $outcome handle
-             * @param {float} $cost how much you want to spend, in $cost terms
-             * @param {array} [$params] extra exchange-specific parameters
-             * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
-             */
-            // safeBool, not $this->options['...'] — a raw missing-key access throws KeyError in Python/PHP
-            // when the option is undeclared (it is for every prediction exchange)
-            if ($this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', false) || $this->safe_bool($this->has, 'createMarketBuyOrderWithCost', false)) {
-                return Async\await($this->create_order($outcome, 'market', 'buy', $cost, 1, $params));
-            }
-            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
-        })();
+        return Async\async(self::do_create_market_buy_order_with_cost(...))($outcome, $cost, $params);
+    }
+
+    private function do_create_market_buy_order_with_cost(string $outcome, float $cost, $params = array()) {
+        /**
+         * create a market buy order on a prediction $outcome by providing the $cost
+         * @param {string} $outcome unified $outcome handle
+         * @param {float} $cost how much you want to spend, in $cost terms
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        // safeBool, not $this->options['...'] — a raw missing-key access throws KeyError in Python/PHP
+        // when the option is undeclared (it is for every prediction exchange)
+        if ($this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', false) || $this->safe_bool($this->has, 'createMarketBuyOrderWithCost', false)) {
+            return Async\await($this->create_order($outcome, 'market', 'buy', $cost, 1, $params));
+        }
+        throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
     }
 
     public function create_market_sell_order_with_cost(string $outcome, float $cost, $params = array()) {
-        return Async\async(function () use ($outcome, $cost, $params) {
-            /**
-             * create a market sell order on a prediction $outcome by providing the $cost
-             * @param {string} $outcome unified $outcome handle
-             * @param {float} $cost how much you want to receive, in $cost terms
-             * @param {array} [$params] extra exchange-specific parameters
-             * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
-             */
-            if ($this->safe_bool($this->options, 'createMarketSellOrderRequiresPrice', false) || $this->safe_bool($this->has, 'createMarketSellOrderWithCost', false)) {
-                return Async\await($this->create_order($outcome, 'market', 'sell', $cost, 1, $params));
-            }
-            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
-        })();
+        return Async\async(self::do_create_market_sell_order_with_cost(...))($outcome, $cost, $params);
+    }
+
+    private function do_create_market_sell_order_with_cost(string $outcome, float $cost, $params = array()) {
+        /**
+         * create a market sell order on a prediction $outcome by providing the $cost
+         * @param {string} $outcome unified $outcome handle
+         * @param {float} $cost how much you want to receive, in $cost terms
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
+         */
+        if ($this->safe_bool($this->options, 'createMarketSellOrderRequiresPrice', false) || $this->safe_bool($this->has, 'createMarketSellOrderWithCost', false)) {
+            return Async\await($this->create_order($outcome, 'market', 'sell', $cost, 1, $params));
+        }
+        throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
     }
 
     public function watch_tickers(?array $outcomes = null, $params = array()) {
@@ -1307,7 +1325,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             if ($orderType === 'market') {
                 $timeInForce = 'IOC';
             }
-            if ($postOnly) {
+            if ($postOnly === true) {
                 $timeInForce = 'PO';
             }
         } elseif ($postOnly === null) {
@@ -1702,50 +1720,56 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     }
 
     public function eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
-        return Async\async(function () use ($rpcUrl, $method, $rpcParams) {
-            $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
-            $headers = array( 'Content-Type' => 'application/json' );
-            $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
-            $rpcError = $this->safe_value($response, 'error');
-            if ($rpcError !== null) {
-                throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
-            }
-            // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
-            // safeString would coerce a receipt object to "[object Object]"
-            return $this->safe_value($response, 'result');
-        })();
+        return Async\async(self::do_eth_rpc(...))($rpcUrl, $method, $rpcParams);
+    }
+
+    private function do_eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
+        $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
+        $headers = array( 'Content-Type' => 'application/json' );
+        $response = $this->do_fetch($rpcUrl, 'POST', $headers, $this->json($payload));
+        $rpcError = $this->safe_value($response, 'error');
+        if ($rpcError !== null) {
+            throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
+        }
+        // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
+        // safeString would coerce a receipt object to "[object Object]"
+        return $this->safe_value($response, 'result');
     }
 
     public function send_evm_transaction(?string $rpcUrl, float $chainId, ?string $fromAddress, ?string $to, ?string $value, ?string $data, ?string $gasLimit) {
-        return Async\async(function () use ($rpcUrl, $chainId, $fromAddress, $to, $value, $data, $gasLimit) {
-            $nonce = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionCount', array( $fromAddress, 'pending' )));
-            $gasPrice = Async\await($this->eth_rpc($rpcUrl, 'eth_gasPrice', array()));
-            $tx = array(
-                'chainId' => $chainId,
-                'nonce' => $nonce,
-                'maxPriorityFeePerGas' => $gasPrice,
-                'maxFeePerGas' => $gasPrice,
-                'gasLimit' => $gasLimit,
-                'to' => $to,
-                'value' => $value,
-                'data' => $data,
-            );
-            $signed = $this->sign_evm_transaction($tx, $this->privateKey);
-            return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
-        })();
+        return Async\async(self::do_send_evm_transaction(...))($rpcUrl, $chainId, $fromAddress, $to, $value, $data, $gasLimit);
+    }
+
+    private function do_send_evm_transaction(?string $rpcUrl, float $chainId, ?string $fromAddress, ?string $to, ?string $value, ?string $data, ?string $gasLimit) {
+        $nonce = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionCount', array( $fromAddress, 'pending' )));
+        $gasPrice = Async\await($this->eth_rpc($rpcUrl, 'eth_gasPrice', array()));
+        $tx = array(
+            'chainId' => $chainId,
+            'nonce' => $nonce,
+            'maxPriorityFeePerGas' => $gasPrice,
+            'maxFeePerGas' => $gasPrice,
+            'gasLimit' => $gasLimit,
+            'to' => $to,
+            'value' => $value,
+            'data' => $data,
+        );
+        $signed = $this->sign_evm_transaction($tx, $this->privateKey);
+        return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
     }
 
     public function wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
-        return Async\async(function () use ($rpcUrl, $txHash, $timeout) {
-            $start = $this->milliseconds();
-            while (($this->milliseconds() - $start) < $timeout) {
-                $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
-                if ($receipt) {
-                    return $receipt;
-                }
-                Async\await($this->sleep(2000));
+        return Async\async(self::do_wait_for_transaction_receipt(...))($rpcUrl, $txHash, $timeout);
+    }
+
+    private function do_wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
+        $start = $this->milliseconds();
+        while (($this->milliseconds() - $start) < $timeout) {
+            $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));
+            if (($receipt !== null) && ($receipt !== null)) {
+                return $receipt;
             }
-            throw new ExchangeError($this->id . ' transaction ' . $txHash . ' not mined within timeout');
-        })();
+            Async\await($this->sleep(2000));
+        }
+        throw new ExchangeError($this->id . ' transaction ' . $txHash . ' not mined within timeout');
     }
 }

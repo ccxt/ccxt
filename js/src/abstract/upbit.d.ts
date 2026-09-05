@@ -20,7 +20,7 @@ interface Exchange {
     publicGetCandlesYears(params?: {}): Promise<List>;
     publicGetTradesTicks(params?: {}): Promise<List>;
     publicGetTicker(params?: {}): Promise<List>;
-    publicGetTickerAll(params?: {}): Promise<Dict>;
+    publicGetTickerAll(params?: {}): Promise<List>;
     publicGetOrderbook(params?: {}): Promise<List>;
     publicGetOrderbookInstruments(params?: {}): Promise<List>;
     privateGetAccounts(params?: {}): Promise<Dict>;

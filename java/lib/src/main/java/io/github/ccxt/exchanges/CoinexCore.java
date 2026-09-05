@@ -90,6 +90,7 @@ public class CoinexCore extends CoinexApi
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
                 put( "fetchOrderBook", true );
+                put( "fetchOrdersByStatus", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", true );
                 put( "fetchPositions", true );
@@ -1127,6 +1128,7 @@ public class CoinexCore extends CoinexApi
                     put( "3008", RequestTimeout.class );
                     put( "3109", InsufficientFunds.class );
                     put( "3127", InvalidOrder.class );
+                    put( "3157", BadSymbol.class );
                     put( "3600", OrderNotFound.class );
                     put( "3606", InvalidOrder.class );
                     put( "3610", ExchangeError.class );
@@ -1581,7 +1583,7 @@ public class CoinexCore extends CoinexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        Object quoteVolume = ((Helpers.isTrue(Helpers.GetValue(market, "inverse")))) ? null : this.safeString(ticker, "value");
+        Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1633,7 +1635,7 @@ public class CoinexCore extends CoinexApi
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.v2PublicGetFuturesTicker(this.extend(request, parameters))).join();
             } else
@@ -1850,7 +1852,7 @@ public class CoinexCore extends CoinexApi
                 put( "interval", "0" );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.v2PublicGetFuturesDepth(this.extend(request, parameters))).join();
             } else
@@ -1979,7 +1981,7 @@ public class CoinexCore extends CoinexApi
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.v2PublicGetFuturesDeals(this.extend(request, parameters))).join();
             } else
@@ -2033,7 +2035,7 @@ public class CoinexCore extends CoinexApi
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.v2PublicGetSpotMarket(this.extend(request, parameters))).join();
             } else
@@ -2162,7 +2164,7 @@ public class CoinexCore extends CoinexApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.v2PublicGetFuturesKline(this.extend(request, parameters))).join();
             } else
@@ -2767,7 +2769,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2800,9 +2802,9 @@ public class CoinexCore extends CoinexApi
         Object postOnly = this.isPostOnly(isMarketOrder, Helpers.isEqual(option, "maker_only"), parameters);
         Object timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
         Object reduceOnly = this.safeBool(parameters, "reduceOnly");
-        if (Helpers.isTrue(reduceOnly))
+        if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")) ;
             }
@@ -2821,7 +2823,7 @@ public class CoinexCore extends CoinexApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(stopLossPrice, null))) && Helpers.isTrue((Helpers.isEqual(takeProfitPrice, null)))))
         {
-            if (!Helpers.isTrue(reduceOnly))
+            if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, true)))
             {
                 Helpers.addElementToObject(request, "side", side);
             }
@@ -2845,16 +2847,16 @@ public class CoinexCore extends CoinexApi
             }
             Helpers.addElementToObject(request, "type", requestType);
         }
-        if (Helpers.isTrue(swap))
+        if (Helpers.isTrue(Helpers.isEqual(swap, true)))
         {
             Helpers.addElementToObject(request, "market_type", "FUTURES");
-            if (Helpers.isTrue(Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) && Helpers.isTrue(!Helpers.isEqual(stopLossPrice, "")))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)) && Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, ""))))))
             {
-                if (Helpers.isTrue(stopLossPrice))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) && Helpers.isTrue(!Helpers.isEqual(stopLossPrice, ""))))
                 {
                     Helpers.addElementToObject(request, "stop_loss_price", this.priceToPrecision(symbol, stopLossPrice));
                     Helpers.addElementToObject(request, "stop_loss_type", this.safeString(parameters, "stop_type", "latest_price"));
-                } else if (Helpers.isTrue(takeProfitPrice))
+                } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)) && Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, ""))))
                 {
                     Helpers.addElementToObject(request, "take_profit_price", this.priceToPrecision(symbol, takeProfitPrice));
                     Helpers.addElementToObject(request, "take_profit_type", this.safeString(parameters, "stop_type", "latest_price"));
@@ -2966,7 +2968,7 @@ public class CoinexCore extends CoinexApi
             Object isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(isTriggerOrder))
                 {
@@ -2991,7 +2993,7 @@ public class CoinexCore extends CoinexApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(reduceOnly))
+                    if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                     {
                         response = (this.v2PrivatePostFuturesClosePosition(request)).join();
                     } else
@@ -3073,7 +3075,7 @@ public class CoinexCore extends CoinexApi
                 put( "orders", ordersRequests );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(isTriggerOrder))
                 {
@@ -3120,7 +3122,7 @@ public class CoinexCore extends CoinexApi
                 }
                 Object innerData = this.safeDict(entry, "data", new java.util.HashMap<String, Object>() {{}});
                 Object order = null;
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && !Helpers.isTrue(isTriggerOrder)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && !Helpers.isTrue(isTriggerOrder)))
                 {
                     Helpers.addElementToObject(entry, "status", status);
                     order = this.parseOrder(entry, market);
@@ -3177,16 +3179,16 @@ public class CoinexCore extends CoinexApi
             {
                 ((java.util.List<Object>)requestIds).add(Helpers.parseInt(Helpers.GetValue(ids, i)));
             }
-            if (Helpers.isTrue(trigger))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 Helpers.addElementToObject(request, "stop_ids", requestIds);
             } else
             {
                 Helpers.addElementToObject(request, "order_ids", requestIds);
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.v2PrivatePostSpotCancelBatchStopOrder(this.extend(request, parameters))).join();
                 } else
@@ -3196,7 +3198,7 @@ public class CoinexCore extends CoinexApi
             } else
             {
                 Helpers.addElementToObject(request, "market_type", "FUTURES");
-                if (Helpers.isTrue(trigger))
+                if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                 {
                     response = (this.v2PrivatePostFuturesCancelBatchStopOrder(this.extend(request, parameters))).join();
                 } else
@@ -3280,7 +3282,7 @@ public class CoinexCore extends CoinexApi
             var marginModeparametersVariable = this.handleMarginModeAndParams("editOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
                 {
@@ -3353,7 +3355,7 @@ public class CoinexCore extends CoinexApi
                 marginMode = ((java.util.List<Object>) marginModeorderParamsVariable).get(0);
                 orderParams = ((java.util.List<Object>) marginModeorderParamsVariable).get(1);
                 Object market_type = "SPOT";
-                if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     market_type = "FUTURES";
                 } else if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -3383,7 +3385,7 @@ public class CoinexCore extends CoinexApi
                 put( "orders", ordersRequests );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true)))
             {
                 response = (this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters))).join();
             } else
@@ -3397,7 +3399,7 @@ public class CoinexCore extends CoinexApi
                 Object entry = Helpers.GetValue(data, i);
                 Object code = this.safeString(entry, "code");
                 Object message = this.safeString(entry, "message", "");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
                 {
                     Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
                     this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
@@ -3457,7 +3459,7 @@ public class CoinexCore extends CoinexApi
             var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-            if (Helpers.isTrue(swap))
+            if (Helpers.isTrue(Helpers.isEqual(swap, true)))
             {
                 Helpers.addElementToObject(request, "market_type", "FUTURES");
             } else
@@ -3476,9 +3478,9 @@ public class CoinexCore extends CoinexApi
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_id", clientOrderId);
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Helpers.isTrue(Helpers.isEqual(isTriggerOrder, true)))
                 {
-                    if (Helpers.isTrue(swap))
+                    if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                     {
                         response = (this.v2PrivatePostFuturesCancelStopOrderByClientId(this.extend(request, parameters))).join();
                     } else
@@ -3487,7 +3489,7 @@ public class CoinexCore extends CoinexApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(swap))
+                    if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                     {
                         response = (this.v2PrivatePostFuturesCancelOrderByClientId(this.extend(request, parameters))).join();
                     } else
@@ -3497,10 +3499,10 @@ public class CoinexCore extends CoinexApi
                 }
             } else
             {
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Helpers.isTrue(Helpers.isEqual(isTriggerOrder, true)))
                 {
                     Helpers.addElementToObject(request, "stop_id", this.parseToNumeric(id));
-                    if (Helpers.isTrue(swap))
+                    if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                     {
                         response = (this.v2PrivatePostFuturesCancelStopOrder(this.extend(request, parameters))).join();
                     } else
@@ -3510,7 +3512,7 @@ public class CoinexCore extends CoinexApi
                 } else
                 {
                     Helpers.addElementToObject(request, "order_id", this.parseToNumeric(id));
-                    if (Helpers.isTrue(swap))
+                    if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                     {
                         response = (this.v2PrivatePostFuturesCancelOrder(this.extend(request, parameters))).join();
                     } else
@@ -3564,7 +3566,7 @@ public class CoinexCore extends CoinexApi
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "market_type", "FUTURES");
                 response = (this.v2PrivatePostFuturesCancelAllOrder(this.extend(request, parameters))).join();
@@ -3623,7 +3625,7 @@ public class CoinexCore extends CoinexApi
                 put( "order_id", CoinexCore.this.parseToNumeric(id) );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.v2PrivateGetFuturesOrderStatus(this.extend(request, parameters))).join();
             } else
@@ -3691,7 +3693,7 @@ public class CoinexCore extends CoinexApi
                 Helpers.addElementToObject(request, "market_type", "FUTURES");
                 if (Helpers.isTrue(isClosed))
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.v2PrivateGetFuturesFinishedStopOrder(this.extend(request, parameters))).join();
                     } else
@@ -3700,7 +3702,7 @@ public class CoinexCore extends CoinexApi
                     }
                 } else if (Helpers.isTrue(isOpen))
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.v2PrivateGetFuturesPendingStopOrder(this.extend(request, parameters))).join();
                     } else
@@ -3723,7 +3725,7 @@ public class CoinexCore extends CoinexApi
                 }
                 if (Helpers.isTrue(isClosed))
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.v2PrivateGetSpotFinishedStopOrder(this.extend(request, parameters))).join();
                     } else
@@ -3732,7 +3734,7 @@ public class CoinexCore extends CoinexApi
                     }
                 } else if (Helpers.isTrue(Helpers.isEqual(status, "pending")))
                 {
-                    if (Helpers.isTrue(trigger))
+                    if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
                     {
                         response = (this.v2PrivateGetSpotPendingStopOrder(this.extend(request, parameters))).join();
                     } else
@@ -3991,7 +3993,7 @@ public class CoinexCore extends CoinexApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "market_type", "FUTURES");
                 response = (this.v2PrivateGetFuturesUserDeals(this.extend(request, parameters))).join();
@@ -4360,7 +4362,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
             }
@@ -4457,7 +4459,7 @@ public class CoinexCore extends CoinexApi
             Object marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             Object maxNotional = this.safeNumber(tier, "amount");
-            Object curr = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? Helpers.GetValue(market, "base") : Helpers.GetValue(market, "quote");
+            Object curr = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.GetValue(market, "base") : Helpers.GetValue(market, "quote");
             Object notional = minNotional;
 final Object finalI = i;
             final Object finalMarket = market;
@@ -4775,7 +4777,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
@@ -4912,7 +4914,7 @@ final Object finalI = i;
             {
                 Object symbol = this.safeValue(symbols, 0);
                 market = this.market(symbol);
-                if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRates() supports swap contracts only")) ;
                 }
@@ -6112,12 +6114,12 @@ final Object finalI = i;
         {
             Object entry = Helpers.GetValue(chains, i);
             Object isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
-            if (Helpers.isTrue(isWithdrawEnabled))
+            if (Helpers.isTrue(Helpers.isEqual(isWithdrawEnabled, true)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(entry, "withdrawal_fee"));
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
                 Object networkId = this.safeString(entry, "chain");
-                if (Helpers.isTrue(networkId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkId, null))) && Helpers.isTrue((!Helpers.isEqual(networkId, "")))))
                 {
                     Object currencyId = this.safeString(asset, "ccy");
                     Object feeCode = this.safeCurrencyCode(currencyId, currency);
@@ -6481,7 +6483,7 @@ final Object finalI = i;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(requestUrl, "public")) || Helpers.isTrue(Helpers.isEqual(requestUrl, "perpetualPublic"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -6519,7 +6521,7 @@ final Object finalI = i;
                 {
                     body = this.json(query);
                     preparedString = Helpers.add(preparedString, body);
-                } else if (Helpers.isTrue(urlencoded))
+                } else if (Helpers.isTrue(!Helpers.isEqual(urlencoded, "")))
                 {
                     preparedString = Helpers.add(preparedString, Helpers.add("?", urlencoded));
                 }
@@ -6535,7 +6537,7 @@ final Object finalI = i;
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
                 {
-                    if (Helpers.isTrue(urlencoded))
+                    if (Helpers.isTrue(!Helpers.isEqual(urlencoded, "")))
                     {
                         url = Helpers.add(url, Helpers.add("?", urlencoded));
                     }
@@ -6563,7 +6565,7 @@ final Object finalI = i;
         Object code = this.safeString(response, "code");
         Object data = this.safeValue(response, "data");
         Object message = this.safeString(response, "message", "");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && !Helpers.isTrue(data)))))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, "Success"))) && Helpers.isTrue((!Helpers.isEqual(message, "Succeeded")))) && Helpers.isTrue((!Helpers.isEqual(((String)message).toLowerCase(), "ok")))) && Helpers.isTrue((Helpers.isEqual(data, null)))))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);

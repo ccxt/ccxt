@@ -552,7 +552,7 @@ public class PaymiumCore extends PaymiumApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes);
+            return this.parseDepositAddresses(response, codes, false);
         });
 
     }
@@ -800,7 +800,7 @@ public class PaymiumCore extends PaymiumApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -816,7 +816,7 @@ public class PaymiumCore extends PaymiumApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     auth = Helpers.add(auth, body);
@@ -824,7 +824,7 @@ public class PaymiumCore extends PaymiumApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     Object queryString = this.urlencode(query);
                     auth = Helpers.add(auth, queryString);

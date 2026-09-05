@@ -18,7 +18,7 @@ public class TestFetchTradingFee extends BaseTest {
 
         Object method = "fetchTradingFee";
         Object fee = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFee", new Object[]{symbol})).join();
-        Assert(exchange.isDictionary(fee), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(fee)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, fee, symbol);
         TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
         });

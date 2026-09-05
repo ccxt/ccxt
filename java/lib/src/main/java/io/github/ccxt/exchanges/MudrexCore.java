@@ -300,7 +300,7 @@ public class MudrexCore extends MudrexApi
                 }};
             }
         }
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
         {
             url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
         }
@@ -322,7 +322,7 @@ public class MudrexCore extends MudrexApi
             return null;
         }
         Object success = this.safeBool(response, "success", true);
-        if (!Helpers.isTrue(success))
+        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             Object errors = this.safeList(response, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(errors, 0, new java.util.HashMap<String, Object>() {{}});
@@ -626,11 +626,14 @@ public class MudrexCore extends MudrexApi
                 if (Helpers.isTrue(Helpers.isTrue((data instanceof java.util.Map)) && !Helpers.isTrue(Helpers.isArray(data))))
                 {
                     items = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    if (!Helpers.isTrue(Helpers.getArrayLength(items)))
+                    // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                    Object itemsLength = Helpers.getArrayLength(items);
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(itemsLength, null))) || Helpers.isTrue((Helpers.isEqual(itemsLength, 0)))))
                     {
                         items = this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        itemsLength = Helpers.getArrayLength(items);
                     }
-                    if (Helpers.isTrue(!Helpers.isTrue(Helpers.getArrayLength(items)) && Helpers.isTrue((Helpers.inOp(data, "symbol")))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(itemsLength, 0))) && Helpers.isTrue((Helpers.inOp(data, "symbol")))))
                     {
                         items = new java.util.ArrayList<Object>(java.util.Arrays.asList(data));
                     }
@@ -638,21 +641,23 @@ public class MudrexCore extends MudrexApi
                 {
                     items = this.toArray(data);
                 }
-                if (!Helpers.isTrue(Helpers.getArrayLength(items)))
+                Object numItems = Helpers.getArrayLength(items);
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(numItems, null))) || Helpers.isTrue((Helpers.isEqual(numItems, 0)))))
                 {
                     paging = false;
                     break;
                 }
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
+                for (var i = 0; Helpers.isLessThan(i, numItems); i++)
                 {
                     ((java.util.List<Object>)aggregated).add(Helpers.GetValue(items, i));
                 }
-                if (Helpers.isTrue(Helpers.isLessThan(Helpers.getArrayLength(items), pageLimit)))
+                if (Helpers.isTrue(Helpers.isLessThan(numItems, pageLimit)))
                 {
                     paging = false;
                 } else
                 {
-                    offset = Helpers.add(offset, pageLimit);
+                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = this.sum(offset, pageLimit);
                 }
             }
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());

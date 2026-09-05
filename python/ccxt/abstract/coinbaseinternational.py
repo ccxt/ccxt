@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     v1_public_get_assets = v1PublicGetAssets = Entry[_List]('assets', ['v1', 'public'], 'GET', {'cost': 1})
@@ -19,7 +18,7 @@ class ImplicitAPI:
     v1_private_get_portfolios_portfolio = v1PrivateGetPortfoliosPortfolio = Entry[_Dict]('portfolios/{portfolio}', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_portfolios_portfolio_detail = v1PrivateGetPortfoliosPortfolioDetail = Entry[_Dict]('portfolios/{portfolio}/detail', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_portfolios_portfolio_summary = v1PrivateGetPortfoliosPortfolioSummary = Entry[_Dict]('portfolios/{portfolio}/summary', ['v1', 'private'], 'GET', {'cost': 1})
-    v1_private_get_portfolios_portfolio_balances = v1PrivateGetPortfoliosPortfolioBalances = Entry[_Dict]('portfolios/{portfolio}/balances', ['v1', 'private'], 'GET', {'cost': 1})
+    v1_private_get_portfolios_portfolio_balances = v1PrivateGetPortfoliosPortfolioBalances = Entry[_List]('portfolios/{portfolio}/balances', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_portfolios_portfolio_balances_asset = v1PrivateGetPortfoliosPortfolioBalancesAsset = Entry[_Dict]('portfolios/{portfolio}/balances/{asset}', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_portfolios_portfolio_positions = v1PrivateGetPortfoliosPortfolioPositions = Entry[_List]('portfolios/{portfolio}/positions', ['v1', 'private'], 'GET', {'cost': 1})
     v1_private_get_portfolios_portfolio_positions_instrument = v1PrivateGetPortfoliosPortfolioPositionsInstrument = Entry[_Dict]('portfolios/{portfolio}/positions/{instrument}', ['v1', 'private'], 'GET', {'cost': 1})

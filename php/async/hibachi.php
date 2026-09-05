@@ -94,6 +94,7 @@ class hibachi extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
+                'fetchOrdersByStatus' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
@@ -348,44 +349,46 @@ class hibachi extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for hibachi
-             *
-             * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $response = Async\await($this->publicGetMarketExchangeInfo($params));
-            // array(
-            //     "displayName" => "ETH/USDT Perps",
-            //     "id" => 1,
-            //     "maintenanceFactorForPositions" => "0.030000",
-            //     "marketCloseTimestamp" => null,
-            //     "marketOpenTimestamp" => null,
-            //     "minNotional" => "1",
-            //     "minOrderSize" => "0.000000001",
-            //     "orderbookGranularities" => array(
-            //         "0.01",
-            //         "0.1",
-            //         "1",
-            //         "10"
-            //     ),
-            //     "riskFactorForOrders" => "0.066667",
-            //     "riskFactorForPositions" => "0.030000",
-            //     "settlementDecimals" => 6,
-            //     "settlementSymbol" => "USDT",
-            //     "status" => "LIVE",
-            //     "stepSize" => "0.000000001",
-            //     "symbol" => "ETH/USDT-P",
-            //     "tickSize" => "0.000001",
-            //     "underlyingDecimals" => 9,
-            //     "underlyingSymbol" => "ETH"
-            // ),
-            $rows = $this->safe_list($response, 'futureContracts');
-            return $this->parse_markets($rows);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for hibachi
+         *
+         * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $response = Async\await($this->publicGetMarketExchangeInfo($params));
+        // array(
+        //     "displayName" => "ETH/USDT Perps",
+        //     "id" => 1,
+        //     "maintenanceFactorForPositions" => "0.030000",
+        //     "marketCloseTimestamp" => null,
+        //     "marketOpenTimestamp" => null,
+        //     "minNotional" => "1",
+        //     "minOrderSize" => "0.000000001",
+        //     "orderbookGranularities" => array(
+        //         "0.01",
+        //         "0.1",
+        //         "1",
+        //         "10"
+        //     ),
+        //     "riskFactorForOrders" => "0.066667",
+        //     "riskFactorForPositions" => "0.030000",
+        //     "settlementDecimals" => 6,
+        //     "settlementSymbol" => "USDT",
+        //     "status" => "LIVE",
+        //     "stepSize" => "0.000000001",
+        //     "symbol" => "ETH/USDT-P",
+        //     "tickSize" => "0.000001",
+        //     "underlyingDecimals" => 9,
+        //     "underlyingSymbol" => "ETH"
+        // ),
+        $rows = $this->safe_list($response, 'futureContracts');
+        return $this->parse_markets($rows);
     }
 
     public function hardcoded_currencies(): array {
@@ -457,37 +460,39 @@ class hibachi extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            $request = array(
-                'accountId' => $this->get_account_id(),
-            );
-            $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
-            //
-            // {
-            //     assets => array( array( quantity => '3.000000', symbol => 'USDT' ) ),
-            //     balance => '3.000000',
-            //     maximalWithdraw => '3.000000',
-            //     numFreeTransfersRemaining => '100',
-            //     positions => array(),
-            //     totalOrderNotional => '0.000000',
-            //     totalPositionNotional => '0.000000',
-            //     totalUnrealizedFundingPnl => '0.000000',
-            //     totalUnrealizedPnl => '0.000000',
-            //     totalUnrealizedTradingPnl => '0.000000',
-            //     tradeMakerFeeRate => '0.00000000',
-            //     tradeTakerFeeRate => '0.00020000'
-            // }
-            //
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
+        //
+        // {
+        //     assets => array( array( quantity => '3.000000', symbol => 'USDT' ) ),
+        //     balance => '3.000000',
+        //     maximalWithdraw => '3.000000',
+        //     numFreeTransfersRemaining => '100',
+        //     positions => array(),
+        //     totalOrderNotional => '0.000000',
+        //     totalPositionNotional => '0.000000',
+        //     totalUnrealizedFundingPnl => '0.000000',
+        //     totalUnrealizedPnl => '0.000000',
+        //     totalUnrealizedTradingPnl => '0.000000',
+        //     tradeMakerFeeRate => '0.00000000',
+        //     tradeTakerFeeRate => '0.00020000'
+        // }
+        //
+        return $this->parse_balance($response);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -594,97 +599,101 @@ class hibachi extends Exchange {
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://api-doc.hibachi.xyz/#86a53bc1-d3bb-4b93-8a11-7034d4698caa
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch (maximum value is 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of recent [trade structures]
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetMarketDataTrades($this->extend($request, $params)));
-            //
-            // {
-            //     "trades" => array(
-            //         array(
-            //             "price" => "111091.38352",
-            //             "quantity" => "0.0090090093",
-            //             "takerSide" => "Buy",
-            //             "timestamp" => 1752095479
-            //         ),
-            //     )
-            // }
-            //
-            $trades = $this->safe_list($response, 'trades', array());
-            $tradesList = array();
-            if ($trades !== null) {
-                $tradesList = $trades;
-            }
-            return $this->parse_trades($tradesList, $market);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://api-doc.hibachi.xyz/#86a53bc1-d3bb-4b93-8a11-7034d4698caa
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch (maximum value is 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of recent [trade structures]
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetMarketDataTrades($this->extend($request, $params)));
+        //
+        // {
+        //     "trades" => array(
+        //         array(
+        //             "price" => "111091.38352",
+        //             "quantity" => "0.0090090093",
+        //             "takerSide" => "Buy",
+        //             "timestamp" => 1752095479
+        //         ),
+        //     )
+        // }
+        //
+        $trades = $this->safe_list($response, 'trades', array());
+        $tradesList = array();
+        if ($trades !== null) {
+            $tradesList = $trades;
+        }
+        return $this->parse_trades($tradesList, $market);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
-             * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
-             *
-             * fetches a price $ticker and the related information for the past 24h
-             * @param {string} $symbol unified $symbol of the $market
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $rawPromises = array(
-                $this->publicGetMarketDataPrices($this->extend($request, $params)),
-                $this->publicGetMarketDataStats($this->extend($request, $params)),
-            );
-            $promises = Async\await(Promise\all($rawPromises));
-            $pricesResponse = $promises[0];
-            // {
-            //     "askPrice" => "3514.650296",
-            //     "bidPrice" => "3513.596112",
-            //     "fundingRateEstimation" => array(
-            //         "estimatedFundingRate" => "0.000001",
-            //         "nextFundingTimestamp" => 1712707200
-            //     ),
-            //     "markPrice" => "3514.288858",
-            //     "spotPrice" => "3514.715000",
-            //     "symbol" => "ETH/USDT-P",
-            //     "tradePrice" => "2372.746570"
-            // }
-            $statsResponse = $promises[1];
-            // {
-            //     "high24h" => "3819.507827",
-            //     "low24h" => "3754.474162",
-            //     "symbol" => "ETH/USDT-P",
-            //     "volume24h" => "23554.858590416"
-            // }
-            $ticker = array(
-                'prices' => $pricesResponse,
-                'stats' => $statsResponse,
-            );
-            return $this->parse_ticker($ticker, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         *
+         * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+         * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
+         *
+         * fetches a price $ticker and the related information for the past 24h
+         * @param {string} $symbol unified $symbol of the $market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $rawPromises = array(
+            $this->publicGetMarketDataPrices($this->extend($request, $params)),
+            $this->publicGetMarketDataStats($this->extend($request, $params)),
+        );
+        $promises = Async\await(Promise\all($rawPromises));
+        $pricesResponse = $promises[0];
+        // {
+        //     "askPrice" => "3514.650296",
+        //     "bidPrice" => "3513.596112",
+        //     "fundingRateEstimation" => array(
+        //         "estimatedFundingRate" => "0.000001",
+        //         "nextFundingTimestamp" => 1712707200
+        //     ),
+        //     "markPrice" => "3514.288858",
+        //     "spotPrice" => "3514.715000",
+        //     "symbol" => "ETH/USDT-P",
+        //     "tradePrice" => "2372.746570"
+        // }
+        $statsResponse = $promises[1];
+        // {
+        //     "high24h" => "3819.507827",
+        //     "low24h" => "3754.474162",
+        //     "symbol" => "ETH/USDT-P",
+        //     "volume24h" => "23554.858590416"
+        // }
+        $ticker = array(
+            'prices' => $pricesResponse,
+            'stats' => $statsResponse,
+        );
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -773,70 +782,74 @@ class hibachi extends Exchange {
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://api-doc.hibachi.xyz/#096a8854-b918-4de8-8731-b2a28d26b96d
-             *
-             * @param {string} $id the order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'orderId' => $id,
-                'accountId' => $this->get_account_id(),
-            );
-            $response = Async\await($this->privateGetTradeOrder($this->extend($request, $params)));
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://api-doc.hibachi.xyz/#096a8854-b918-4de8-8731-b2a28d26b96d
+         *
+         * @param {string} $id the order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'orderId' => $id,
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetTradeOrder($this->extend($request, $params)));
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the trading fee
-             *
-             * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a map of market $symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'accountId' => $this->get_account_id(),
+        return Async\async(self::do_fetch_trading_fees(...))($params);
+    }
+
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading fee
+         *
+         * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a map of market $symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
+        //    array(
+        //        "tradeMakerFeeRate" => "0.00000000",
+        //        "tradeTakerFeeRate" => "0.00020000"
+        //    ),
+        $makerFeeRate = $this->safe_number($response, 'tradeMakerFeeRate');
+        $takerFeeRate = $this->safe_number($response, 'tradeTakerFeeRate');
+        $result = array();
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $makerFeeRate,
+                'taker' => $takerFeeRate,
+                'percentage' => true,
             );
-            $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
-            //    array(
-            //        "tradeMakerFeeRate" => "0.00000000",
-            //        "tradeTakerFeeRate" => "0.00020000"
-            //    ),
-            $makerFeeRate = $this->safe_number($response, 'tradeMakerFeeRate');
-            $takerFeeRate = $this->safe_number($response, 'tradeTakerFeeRate');
-            $result = array();
-            $symbols = $this->symbols;
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $result[$symbol] = array(
-                    'info' => $response,
-                    'symbol' => $symbol,
-                    'maker' => $makerFeeRate,
-                    'taker' => $takerFeeRate,
-                    'percentage' => true,
-                );
-            }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function order_message(mixed $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
@@ -915,7 +928,7 @@ class hibachi extends Exchange {
             $sideInternal = 'BID';
         }
         $priceInternal = '';
-        if ($price) {
+        if (($price !== null) && ($price !== 0)) {
             $priceInternal = $this->price_to_precision($symbol, $price);
         }
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);
@@ -938,7 +951,7 @@ class hibachi extends Exchange {
             $request['orderFlags'] = 'POST_ONLY';
         } elseif ($timeInForce === 'ioc') {
             $request['orderFlags'] = 'IOC';
-        } elseif ($reduceOnly) {
+        } elseif ($reduceOnly === true) {
             $request['orderFlags'] = 'REDUCE_ONLY';
         }
         if ($triggerPrice !== null) {
@@ -949,87 +962,91 @@ class hibachi extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
-             *
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $nonce = $this->nonce();
-            $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
-            $request['accountId'] = $this->get_account_id();
-            $response = Async\await($this->privatePostTradeOrder($request));
-            //
-            // {
-            //     "orderId" => "578721673790138368"
-            // }
-            //
-            return $this->safe_order(array(
-                'id' => $this->safe_string($response, 'orderId'),
-                'status' => 'pending',
-            ));
-        })();
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://api-doc.hibachi.xyz/#00f6d5ad-5275-41cb-a1a8-19ed5d142124
+         *
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $nonce = $this->nonce();
+        $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
+        $request['accountId'] = $this->get_account_id();
+        $response = Async\await($this->privatePostTradeOrder($request));
+        //
+        // {
+        //     "orderId" => "578721673790138368"
+        // }
+        //
+        return $this->safe_order(array(
+            'id' => $this->safe_string($response, 'orderId'),
+            'status' => 'pending',
+        ));
     }
 
     public function create_orders(array $orders, $params = array()): PromiseInterface {
-        return Async\async(function () use ($orders, $params) {
-            /**
-             * *contract only* create a list of trade $orders
-             *
-             * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
-             *
-             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $nonce = $this->nonce();
-            $requestOrders = array();
-            for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
-                $symbol = $this->safe_string($rawOrder, 'symbol');
-                $type = $this->safe_string($rawOrder, 'type');
-                $side = $this->safe_string($rawOrder, 'side');
-                $amount = $this->safe_value($rawOrder, 'amount');
-                $price = $this->safe_value($rawOrder, 'price');
-                $orderParams = $this->safe_dict($rawOrder, 'params', array());
-                $orderRequest = $this->create_order_request($nonce . $i, $symbol, $type, $side, $amount, $price, $orderParams);
-                $orderRequest['action'] = 'place';
-                $requestOrders[] = $orderRequest;
-            }
-            $request = array(
-                'accountId' => $this->get_account_id(),
-                'orders' => $requestOrders,
-            );
-            $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
-            //
-            // array( "orders" => array( array( $nonce => '1754349993908', orderId => '589642085255349248' ) ) )
-            //
-            $ret = array();
-            $responseOrders = $this->safe_list($response, 'orders', array());
-            for ($i = 0; $i < count($responseOrders); $i++) {
-                $responseOrder = $responseOrders[$i];
-                $ret[] = $this->safe_order(array(
-                    'info' => $responseOrder,
-                    'id' => $this->safe_string($responseOrder, 'orderId'),
-                    'status' => 'pending',
-                ));
-            }
-            return $ret;
-        })();
+        return Async\async(self::do_create_orders(...))($orders, $params);
+    }
+
+    private function do_create_orders(array $orders, $params = array()) {
+        /**
+         * *contract only* create a list of trade $orders
+         *
+         * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+         *
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $nonce = $this->nonce();
+        $requestOrders = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $symbol = $this->safe_string($rawOrder, 'symbol');
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderRequest = $this->create_order_request($nonce . $i, $symbol, $type, $side, $amount, $price, $orderParams);
+            $orderRequest['action'] = 'place';
+            $requestOrders[] = $orderRequest;
+        }
+        $request = array(
+            'accountId' => $this->get_account_id(),
+            'orders' => $requestOrders,
+        );
+        $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
+        //
+        // array( "orders" => array( array( $nonce => '1754349993908', orderId => '589642085255349248' ) ) )
+        //
+        $ret = array();
+        $responseOrders = $this->safe_list($response, 'orders', array());
+        for ($i = 0; $i < count($responseOrders); $i++) {
+            $responseOrder = $responseOrders[$i];
+            $ret[] = $this->safe_order(array(
+                'info' => $responseOrder,
+                'id' => $this->safe_string($responseOrder, 'orderId'),
+                'status' => 'pending',
+            ));
+        }
+        return $ret;
     }
 
     public function edit_order_request(float $nonce, ?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
@@ -1059,88 +1076,92 @@ class hibachi extends Exchange {
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * edit a limit order that is not matched
-             *
-             * @see https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type must be 'limit'
-             * @param {string} $side 'buy' or 'sell', should stay the same with original $side
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $nonce = $this->nonce();
-            $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
-            $request['accountId'] = $this->get_account_id();
-            Async\await($this->privatePutTradeOrder($request));
-            // At this time the response body is empty. A 200 response means the update $request is accepted and sent to process
-            //
-            // array()
-            //
-            return $this->safe_order(array(
-                'id' => $id,
-                'status' => 'pending',
-            ));
-        })();
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a limit order that is not matched
+         *
+         * @see https://api-doc.hibachi.xyz/#94d2cdaf-1c71-440f-a981-da1112824810
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell', should stay the same with original $side
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $nonce = $this->nonce();
+        $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
+        $request['accountId'] = $this->get_account_id();
+        Async\await($this->privatePutTradeOrder($request));
+        // At this time the response body is empty. A 200 response means the update $request is accepted and sent to process
+        //
+        // array()
+        //
+        return $this->safe_order(array(
+            'id' => $id,
+            'status' => 'pending',
+        ));
     }
 
     public function edit_orders(array $orders, $params = array()): PromiseInterface {
-        return Async\async(function () use ($orders, $params) {
-            /**
-             * edit a list of trade $orders
-             *
-             * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
-             *
-             * @param {Array} $orders list of $orders to edit, each object should contain the parameters required by editOrder, namely $id, $symbol, $type, $side, $amount, $price and $params
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $nonce = $this->nonce();
-            $requestOrders = array();
-            for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
-                $id = $this->safe_string($rawOrder, 'id');
-                $symbol = $this->safe_string($rawOrder, 'symbol');
-                $type = $this->safe_string($rawOrder, 'type');
-                $side = $this->safe_string($rawOrder, 'side');
-                $amount = $this->safe_value($rawOrder, 'amount');
-                $price = $this->safe_value($rawOrder, 'price');
-                $orderParams = $this->safe_dict($rawOrder, 'params', array());
-                $orderRequest = $this->edit_order_request($nonce . $i, $id, $symbol, $type, $side, $amount, $price, $orderParams);
-                $orderRequest['action'] = 'modify';
-                $requestOrders[] = $orderRequest;
-            }
-            $request = array(
-                'accountId' => $this->get_account_id(),
-                'orders' => $requestOrders,
-            );
-            $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
-            //
-            // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
-            //
-            $ret = array();
-            $responseOrders = $this->safe_list($response, 'orders', array());
-            for ($i = 0; $i < count($responseOrders); $i++) {
-                $responseOrder = $responseOrders[$i];
-                $ret[] = $this->safe_order(array(
-                    'info' => $responseOrder,
-                    'id' => $this->safe_string($responseOrder, 'orderId'),
-                    'status' => 'pending',
-                ));
-            }
-            return $ret;
-        })();
+        return Async\async(self::do_edit_orders(...))($orders, $params);
+    }
+
+    private function do_edit_orders(array $orders, $params = array()) {
+        /**
+         * edit a list of trade $orders
+         *
+         * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+         *
+         * @param {Array} $orders list of $orders to edit, each object should contain the parameters required by editOrder, namely $id, $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $nonce = $this->nonce();
+        $requestOrders = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $id = $this->safe_string($rawOrder, 'id');
+            $symbol = $this->safe_string($rawOrder, 'symbol');
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderRequest = $this->edit_order_request($nonce . $i, $id, $symbol, $type, $side, $amount, $price, $orderParams);
+            $orderRequest['action'] = 'modify';
+            $requestOrders[] = $orderRequest;
+        }
+        $request = array(
+            'accountId' => $this->get_account_id(),
+            'orders' => $requestOrders,
+        );
+        $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
+        //
+        // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
+        //
+        $ret = array();
+        $responseOrders = $this->safe_list($response, 'orders', array());
+        for ($i = 0; $i < count($responseOrders); $i++) {
+            $responseOrder = $responseOrders[$i];
+            $ret[] = $this->safe_order(array(
+                'info' => $responseOrder,
+                'id' => $this->safe_string($responseOrder, 'orderId'),
+                'status' => 'pending',
+            ));
+        }
+        return $ret;
     }
 
     public function cancel_order_request(string $id) {
@@ -1156,111 +1177,117 @@ class hibachi extends Exchange {
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             *
-             * @see https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271
-             *
-             * cancels an open order
-             * @param {string} $id order $id
-             * @param {string} $symbol is unused
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            $request = $this->cancel_order_request($id);
-            $request['accountId'] = $this->get_account_id();
-            $response = Async\await($this->privateDeleteTradeOrder($this->extend($request, $params)));
-            // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to cancel
-            //
-            // array()
-            //
-            return $this->safe_order(array(
-                'info' => $response,
-                'id' => $id,
-                'status' => 'canceled',
-            ));
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://api-doc.hibachi.xyz/#e99c4f48-e610-4b7c-b7f6-1b4bb7af0271
+         *
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol is unused
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $request = $this->cancel_order_request($id);
+        $request['accountId'] = $this->get_account_id();
+        $response = Async\await($this->privateDeleteTradeOrder($this->extend($request, $params)));
+        // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to cancel
+        //
+        // array()
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+            'id' => $id,
+            'status' => 'canceled',
+        ));
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple $orders
-             *
-             * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
-             *
-             * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified market $symbol, unused
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $orders = array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $orderRequest = $this->cancel_order_request($ids[$i]);
-                $orderRequest['action'] = 'cancel';
-                $orders[] = $orderRequest;
-            }
-            $request = array(
-                'accountId' => $this->get_account_id(),
-                'orders' => $orders,
-            );
-            $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
-            //
-            // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
-            //
-            $ret = array();
-            $responseOrders = $this->safe_list($response, 'orders', array());
-            for ($i = 0; $i < count($responseOrders); $i++) {
-                $responseOrder = $responseOrders[$i];
-                $ret[] = $this->safe_order(array(
-                    'info' => $responseOrder,
-                    'id' => $this->safe_string($responseOrder, 'orderId'),
-                    'status' => 'canceled',
-                ));
-            }
-            return $ret;
-        })();
+        return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple $orders
+         *
+         * @see https://api-doc.hibachi.xyz/#c2840b9b-f02c-44ed-937d-dc2819f135b4
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified market $symbol, unused
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $orders = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $orderRequest = $this->cancel_order_request($ids[$i]);
+            $orderRequest['action'] = 'cancel';
+            $orders[] = $orderRequest;
+        }
+        $request = array(
+            'accountId' => $this->get_account_id(),
+            'orders' => $orders,
+        );
+        $response = Async\await($this->privatePostTradeOrders($this->extend($request, $params)));
+        //
+        // array( "orders" => array( array( "orderId" => "589636801329628160" ) ) )
+        //
+        $ret = array();
+        $responseOrders = $this->safe_list($response, 'orders', array());
+        for ($i = 0; $i < count($responseOrders); $i++) {
+            $responseOrder = $responseOrders[$i];
+            $ret[] = $this->safe_order(array(
+                'info' => $responseOrder,
+                'id' => $this->safe_string($responseOrder, 'orderId'),
+                'status' => 'canceled',
+            ));
+        }
+        return $ret;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
-             *
-             * cancel all open orders in a $market
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $nonce = $this->nonce();
-            $nonce16 = $this->int_to_base16($nonce);
-            $noncePadded = str_pad($nonce16, 16, '0', STR_PAD_LEFT);
-            $message = $this->base16_to_binary($noncePadded);
-            $signature = $this->sign_message($message, $this->privateKey);
-            $request = array(
-                'accountId' => $this->get_account_id(),
-                'nonce' => $nonce,
-                'signature' => $signature,
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['contractId'] = $this->safe_integer($market, 'numericId');
-            }
-            $response = Async\await($this->privateDeleteTradeOrders($this->extend($request, $params)));
-            // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to process
-            //
-            // array()
-            //
-            return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
-            );
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         *
+         * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
+         *
+         * cancel all open orders in a $market
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $nonce = $this->nonce();
+        $nonce16 = $this->int_to_base16($nonce);
+        $noncePadded = str_pad($nonce16, 16, '0', STR_PAD_LEFT);
+        $message = $this->base16_to_binary($noncePadded);
+        $signature = $this->sign_message($message, $this->privateKey);
+        $request = array(
+            'accountId' => $this->get_account_id(),
+            'nonce' => $nonce,
+            'signature' => $signature,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['contractId'] = $this->safe_integer($market, 'numericId');
+        }
+        $response = Async\await($this->privateDeleteTradeOrders($this->extend($request, $params)));
+        // At this time the $response body is empty. A 200 $response means the cancel $request is accepted and sent to process
+        //
+        // array()
+        //
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function encode_withdraw_message(?float $amount, ?float $maxFees, string $address) {
@@ -1291,74 +1318,76 @@ class hibachi extends Exchange {
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             *
-             * @see https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090
-             *
-             * @param {string} $code unified currency $code, only support USDT
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            $withdrawAddress = mb_substr($address, -40);
-            // Get the withdraw fees
-            $exchangeInfo = Async\await($this->publicGetMarketExchangeInfo($params));
-            // {
-            //      "feeConfig" => array(
-            //          "depositFees" => "0.004518",
-            //          "tradeMakerFeeRate" => "0.00000000",
-            //          "tradeTakerFeeRate" => "0.00020000",
-            //          "transferFeeRate" => "0.00010000",
-            //          "withdrawalFees" => "0.012050"
-            //    ),
-            // }
-            $feeConfig = $this->safe_dict($exchangeInfo, 'feeConfig');
-            $maxFees = $this->safe_number($feeConfig, 'withdrawalFees');
-            // Generate the $signature
-            $message = $this->encode_withdraw_message($amount, $maxFees, $withdrawAddress);
-            $signature = $this->sign_message($message, $this->privateKey);
-            $request = array(
-                'accountId' => $this->get_account_id(),
-                'coin' => 'USDT',
-                'network' => 'ARBITRUM',
-                'withdrawAddress' => $withdrawAddress,
-                'selfWithdrawal' => false,
-                'quantity' => $this->number_to_string($amount),
-                'maxFees' => $this->number_to_string($maxFees),
-                'signature' => $signature,
-            );
-            Async\await($this->privatePostCapitalWithdraw($this->extend($request, $params)));
-            // At this time the response body is empty. A 200 response means the withdraw $request is accepted and sent to process
-            //
-            // array()
-            //
-            return array(
-                'info' => null,
-                'id' => null,
-                'txid' => null,
-                'timestamp' => $this->milliseconds(),
-                'datetime' => null,
-                'address' => null,
-                'addressFrom' => null,
-                'addressTo' => $withdrawAddress,
-                'tag' => null,
-                'tagFrom' => null,
-                'tagTo' => null,
-                'type' => 'withdrawal',
-                'amount' => $amount,
-                'currency' => $code,
-                'status' => 'pending',
-                'fee' => array( 'currency' => 'USDT', 'cost' => $maxFees ),
-                'network' => 'ARBITRUM',
-                'updated' => null,
-                'comment' => null,
-                'internal' => null,
-            );
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://api-doc.hibachi.xyz/#6421625d-3e45-45fa-be9b-d2a0e780c090
+         *
+         * @param {string} $code unified currency $code, only support USDT
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        $withdrawAddress = mb_substr($address, -40);
+        // Get the withdraw fees
+        $exchangeInfo = Async\await($this->publicGetMarketExchangeInfo($params));
+        // {
+        //      "feeConfig" => array(
+        //          "depositFees" => "0.004518",
+        //          "tradeMakerFeeRate" => "0.00000000",
+        //          "tradeTakerFeeRate" => "0.00020000",
+        //          "transferFeeRate" => "0.00010000",
+        //          "withdrawalFees" => "0.012050"
+        //    ),
+        // }
+        $feeConfig = $this->safe_dict($exchangeInfo, 'feeConfig');
+        $maxFees = $this->safe_number($feeConfig, 'withdrawalFees');
+        // Generate the $signature
+        $message = $this->encode_withdraw_message($amount, $maxFees, $withdrawAddress);
+        $signature = $this->sign_message($message, $this->privateKey);
+        $request = array(
+            'accountId' => $this->get_account_id(),
+            'coin' => 'USDT',
+            'network' => 'ARBITRUM',
+            'withdrawAddress' => $withdrawAddress,
+            'selfWithdrawal' => false,
+            'quantity' => $this->number_to_string($amount),
+            'maxFees' => $this->number_to_string($maxFees),
+            'signature' => $signature,
+        );
+        Async\await($this->privatePostCapitalWithdraw($this->extend($request, $params)));
+        // At this time the response body is empty. A 200 response means the withdraw $request is accepted and sent to process
+        //
+        // array()
+        //
+        return array(
+            'info' => null,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => $this->milliseconds(),
+            'datetime' => null,
+            'address' => null,
+            'addressFrom' => null,
+            'addressTo' => $withdrawAddress,
+            'tag' => null,
+            'tagFrom' => null,
+            'tagTo' => null,
+            'type' => 'withdrawal',
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => 'pending',
+            'fee' => array( 'currency' => 'USDT', 'cost' => $maxFees ),
+            'network' => 'ARBITRUM',
+            'updated' => null,
+            'comment' => null,
+            'internal' => null,
+        );
     }
 
     public function nonce() {
@@ -1381,120 +1410,124 @@ class hibachi extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches the state of the open orders on the orderbook
-             *
-             * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
-             *
-             * @param {string} $symbol unified $symbol of the $market
-             * @param {int} [$limit] currently unused
-             * @param {array} [$params] extra parameters to be passed -- see documentation link above
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetMarketDataOrderbook($this->extend($request, $params)));
-            $formattedResponse = array();
-            $formattedResponse['ask'] = $this->safe_list($this->safe_dict($response, 'ask'), 'levels');
-            $formattedResponse['bid'] = $this->safe_list($this->safe_dict($response, 'bid'), 'levels');
-            // {
-            //     "ask" => {
-            //         "endPrice" => "3512.63",
-            //         "levels" => array(
-            //             array(
-            //                 "price" => "3511.93",
-            //                 "quantity" => "0.284772482"
-            //             ),
-            //             array(
-            //                 "price" => "3512.28",
-            //                 "quantity" => "0.569544964"
-            //             ),
-            //             array(
-            //                 "price" => "3512.63",
-            //                 "quantity" => "0.854317446"
-            //             }
-            //         ),
-            //         "startPrice" => "3511.93"
-            //     ),
-            //     "bid" => {
-            //         "endPrice" => "3510.87",
-            //         "levels" => array(
-            //             array(
-            //                 "price" => "3515.39",
-            //                 "quantity" => "2.345153070"
-            //             ),
-            //             array(
-            //                 "price" => "3511.22",
-            //                 "quantity" => "0.284772482"
-            //             ),
-            //             {
-            //                 "price" => "3510.87",
-            //                 "quantity" => "0.569544964"
-            //             }
-            //         ),
-            //         "startPrice" => "3515.39"
-            //     }
-            // }
-            return $this->parse_order_book($formattedResponse, $symbol, $this->milliseconds(), 'bid', 'ask', 'price', 'quantity');
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches the state of the open orders on the orderbook
+         *
+         * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
+         *
+         * @param {string} $symbol unified $symbol of the $market
+         * @param {int} [$limit] currently unused
+         * @param {array} [$params] extra parameters to be passed -- see documentation link above
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetMarketDataOrderbook($this->extend($request, $params)));
+        $formattedResponse = array();
+        $formattedResponse['ask'] = $this->safe_list($this->safe_dict($response, 'ask'), 'levels');
+        $formattedResponse['bid'] = $this->safe_list($this->safe_dict($response, 'bid'), 'levels');
+        // {
+        //     "ask" => {
+        //         "endPrice" => "3512.63",
+        //         "levels" => array(
+        //             array(
+        //                 "price" => "3511.93",
+        //                 "quantity" => "0.284772482"
+        //             ),
+        //             array(
+        //                 "price" => "3512.28",
+        //                 "quantity" => "0.569544964"
+        //             ),
+        //             array(
+        //                 "price" => "3512.63",
+        //                 "quantity" => "0.854317446"
+        //             }
+        //         ),
+        //         "startPrice" => "3511.93"
+        //     ),
+        //     "bid" => {
+        //         "endPrice" => "3510.87",
+        //         "levels" => array(
+        //             array(
+        //                 "price" => "3515.39",
+        //                 "quantity" => "2.345153070"
+        //             ),
+        //             array(
+        //                 "price" => "3511.22",
+        //                 "quantity" => "0.284772482"
+        //             ),
+        //             {
+        //                 "price" => "3510.87",
+        //                 "quantity" => "0.569544964"
+        //             }
+        //         ),
+        //         "startPrice" => "3515.39"
+        //     }
+        // }
+        return $this->parse_order_book($formattedResponse, $symbol, $this->milliseconds(), 'bid', 'ask', 'price', 'quantity');
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
-             *
-             * fetch all $trades made by the user
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of $trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array( 'accountId' => $this->get_account_id() );
-            $response = Async\await($this->privateGetTradeAccountTrades($this->extend($request, $params)));
-            //
-            // {
-            //     "trades" => array(
-            //         {
-            //             "askAccountId" => 221,
-            //             "askOrderId" => 589168494921909200,
-            //             "bidAccountId" => 132,
-            //             "bidOrderId" => 589168494829895700,
-            //             "fee" => "0.000477",
-            //             "id" => 199511136,
-            //             "orderType" => "MARKET",
-            //             "price" => "119257.90000",
-            //             "quantity" => "0.0000200000",
-            //             "realizedPnl" => "-0.000352",
-            //             "side" => "Sell",
-            //             "symbol" => "BTC/USDT-P",
-            //             "timestamp" => 1752543391
-            //         }
-            //     )
-            // }
-            //
-            $trades = $this->safe_list($response, 'trades');
-            $tradesList = array();
-            if ($trades !== null) {
-                $tradesList = $trades;
-            }
-            return $this->parse_trades($tradesList, $market, $since, $limit, $params);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://api-doc.hibachi.xyz/#0adbf143-189f-40e0-afdc-88af4cba3c79
+         *
+         * fetch all $trades made by the user
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array( 'accountId' => $this->get_account_id() );
+        $response = Async\await($this->privateGetTradeAccountTrades($this->extend($request, $params)));
+        //
+        // {
+        //     "trades" => array(
+        //         {
+        //             "askAccountId" => 221,
+        //             "askOrderId" => 589168494921909200,
+        //             "bidAccountId" => 132,
+        //             "bidOrderId" => 589168494829895700,
+        //             "fee" => "0.000477",
+        //             "id" => 199511136,
+        //             "orderType" => "MARKET",
+        //             "price" => "119257.90000",
+        //             "quantity" => "0.0000200000",
+        //             "realizedPnl" => "-0.000352",
+        //             "side" => "Sell",
+        //             "symbol" => "BTC/USDT-P",
+        //             "timestamp" => 1752543391
+        //         }
+        //     )
+        // }
+        //
+        $trades = $this->safe_list($response, 'trades');
+        $tradesList = array();
+        if ($trades !== null) {
+            $tradesList = $trades;
+        }
+        return $this->parse_trades($tradesList, $market, $since, $limit, $params);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1522,289 +1555,301 @@ class hibachi extends Exchange {
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches all current open orders
-             *
-             * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
-             *
-             * @param {string} [$symbol] unified $market $symbol to filter by
-             * @param {int} [$since] milisecond timestamp of the earliest order
-             * @param {int} [$limit] the maximum number of open orders to return
-             * @param {array} [$params] extra parameters
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'accountId' => $this->get_account_id(),
-            );
-            $response = Async\await($this->privateGetTradeOrders($this->extend($request, $params)));
-            // array(
-            //     array(
-            //         "accountId" => 12452,
-            //         "availableQuantity" => "0.0000230769",
-            //         "contractId" => 2,
-            //         "creationTime" => 1752684501,
-            //         "orderId" => "589205486123876352",
-            //         "orderType" => "LIMIT",
-            //         "price" => "130000.00000",
-            //         "side" => "ASK",
-            //         "status" => "PLACED",
-            //         "symbol" => "BTC/USDT-P",
-            //         "totalQuantity" => "0.0000230769"
-            //     ),
-            //     {
-            //         "accountId" => 12452,
-            //         "availableQuantity" => "1.234000000",
-            //         "contractId" => 1,
-            //         "creationTime" => 1752240682,
-            //         "orderId" => "589089141754429441",
-            //         "orderType" => "LIMIT",
-            //         "price" => "1.234000",
-            //         "side" => "BID",
-            //         "status" => "PLACED",
-            //         "symbol" => "ETH/USDT-P",
-            //         "totalQuantity" => "1.234000000"
-            //     }
-            // )
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches all current open orders
+         *
+         * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
+         *
+         * @param {string} [$symbol] unified $market $symbol to filter by
+         * @param {int} [$since] milisecond timestamp of the earliest order
+         * @param {int} [$limit] the maximum number of open orders to return
+         * @param {array} [$params] extra parameters
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetTradeOrders($this->extend($request, $params)));
+        // array(
+        //     array(
+        //         "accountId" => 12452,
+        //         "availableQuantity" => "0.0000230769",
+        //         "contractId" => 2,
+        //         "creationTime" => 1752684501,
+        //         "orderId" => "589205486123876352",
+        //         "orderType" => "LIMIT",
+        //         "price" => "130000.00000",
+        //         "side" => "ASK",
+        //         "status" => "PLACED",
+        //         "symbol" => "BTC/USDT-P",
+        //         "totalQuantity" => "0.0000230769"
+        //     ),
+        //     {
+        //         "accountId" => 12452,
+        //         "availableQuantity" => "1.234000000",
+        //         "contractId" => 1,
+        //         "creationTime" => 1752240682,
+        //         "orderId" => "589089141754429441",
+        //         "orderType" => "LIMIT",
+        //         "price" => "1.234000",
+        //         "side" => "BID",
+        //         "status" => "PLACED",
+        //         "symbol" => "ETH/USDT-P",
+        //         "totalQuantity" => "1.234000000"
+        //     }
+        // )
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
-            /**
-             * @ignore
-             * fetch $orders filtered by terminal $status
-             *
-             * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
-             *
-             * @param {string} $status exchange specific terminal $status
-             * @param {string} [$symbol] unified $market $symbol to filter by
-             * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the maximum number of $orders to return
-             * @param {array} [$params] extra parameters
-             * @param {int} [$params->until] timestamp in ms of the latest order
-             * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = null;
-            $request = array(
-                'accountId' => $this->get_account_id(),
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            if ($status !== null) {
-                $request['status'] = $status;
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'until');
-            if ($until !== null) {
-                $request['endTime'] = $until;
-            }
-            $response = Async\await($this->privateGetTradeOrdersHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "hasMore" => false,
-            //         "orders" => array(
-            //             {
-            //                 "accountId" => 128,
-            //                 "avgFillPrice" => "2900.000000",
-            //                 "closedAt" => 1777811627000,
-            //                 "createdAt" => 1777811620000,
-            //                 "filledQuantity" => "1.200000000",
-            //                 "orderFlags" => null,
-            //                 "orderId" => "596002791293190100",
-            //                 "orderType" => "MARKET",
-            //                 "parentOrderId" => null,
-            //                 "price" => null,
-            //                 "side" => "BID",
-            //                 "sourceType" => "regular",
-            //                 "status" => "Filled",
-            //                 "symbol" => "ETH/USDT-P",
-            //                 "totalQuantity" => "1.200000000",
-            //                 "triggerDirection" => null,
-            //                 "triggerPrice" => null
-            //             }
-            //         )
-            //     }
-            //
-            $orders = $this->safe_list($response, 'orders', array());
-            $parsedOrders = $this->parse_orders($orders, $market);
-            return $this->filter_by_symbol_since_limit($parsedOrders, $symbol, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * @ignore
+         * fetch $orders filtered by terminal $status
+         *
+         * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+         *
+         * @param {string} $status exchange specific terminal $status
+         * @param {string} [$symbol] unified $market $symbol to filter by
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of $orders to return
+         * @param {array} [$params] extra parameters
+         * @param {int} [$params->until] timestamp in ms of the latest order
+         * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($status !== null) {
+            $request['status'] = $status;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = Async\await($this->privateGetTradeOrdersHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "hasMore" => false,
+        //         "orders" => array(
+        //             {
+        //                 "accountId" => 128,
+        //                 "avgFillPrice" => "2900.000000",
+        //                 "closedAt" => 1777811627000,
+        //                 "createdAt" => 1777811620000,
+        //                 "filledQuantity" => "1.200000000",
+        //                 "orderFlags" => null,
+        //                 "orderId" => "596002791293190100",
+        //                 "orderType" => "MARKET",
+        //                 "parentOrderId" => null,
+        //                 "price" => null,
+        //                 "side" => "BID",
+        //                 "sourceType" => "regular",
+        //                 "status" => "Filled",
+        //                 "symbol" => "ETH/USDT-P",
+        //                 "totalQuantity" => "1.200000000",
+        //                 "triggerDirection" => null,
+        //                 "triggerPrice" => null
+        //             }
+        //         )
+        //     }
+        //
+        $orders = $this->safe_list($response, 'orders', array());
+        $parsedOrders = $this->parse_orders($orders, $market);
+        return $this->filter_by_symbol_since_limit($parsedOrders, $symbol, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed $orders made by the user
-             *
-             * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
-             *
-             * @param {string} [$symbol] unified market $symbol of the $orders
-             * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the maximum number of closed order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest order
-             * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $orders = Async\await($this->fetch_orders_by_status('filled', $symbol, $since, $limit, $params));
-            $filtered = $this->filter_by($orders, 'status', 'closed');
-            return $this->filter_by_since_limit($filtered, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         *
+         * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+         *
+         * @param {string} [$symbol] unified market $symbol of the $orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of closed order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest order
+         * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $orders = Async\await($this->fetch_orders_by_status('filled', $symbol, $since, $limit, $params));
+        $filtered = $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_since_limit($filtered, $since, $limit);
     }
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple canceled $orders made by the user
-             *
-             * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
-             *
-             * @param {string} [$symbol] unified market $symbol of the $orders
-             * @param {int} [$since] timestamp in ms of the earliest order
-             * @param {int} [$limit] the maximum number of canceled order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest order
-             * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $orders = Async\await($this->fetch_orders_by_status(null, $symbol, $since, $limit, $params));
-            $filtered = $this->filter_by($orders, 'status', 'canceled');
-            return $this->filter_by_since_limit($filtered, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple canceled $orders made by the user
+         *
+         * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+         *
+         * @param {string} [$symbol] unified market $symbol of the $orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of canceled order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest order
+         * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $orders = Async\await($this->fetch_orders_by_status(null, $symbol, $since, $limit, $params));
+        $filtered = $this->filter_by($orders, 'status', 'canceled');
+        return $this->filter_by_since_limit($filtered, $since, $limit);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             *
-             * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
-             *
-             * fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $timeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'symbol' => $market['id'],
-                'interval' => $timeframe,
-            );
-            if ($since !== null) {
-                $request['fromMs'] = $since;
-            }
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
-            if ($until !== null) {
-                $request['toMs'] = $until;
-            }
-            $response = Async\await($this->publicGetMarketDataKlines($this->extend($request, $params)));
-            //
-            // array(
-            //     {
-            //       "close" => "3704.751036",
-            //       "high" => "3716.530378",
-            //       "interval" => "1h",
-            //       "low" => "3699.627883",
-            //       "open" => "3716.406894",
-            //       "timestamp" => 1712628000,
-            //       "volumeNotional" => "1637355.846362"
-            //     }
-            //   )
-            //
-            $klines = $this->safe_list($response, 'klines', array());
-            return $this->parse_ohlcvs($klines, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+         *
+         * fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $timeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $timeframe,
+        );
+        if ($since !== null) {
+            $request['fromMs'] = $since;
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        if ($until !== null) {
+            $request['toMs'] = $until;
+        }
+        $response = Async\await($this->publicGetMarketDataKlines($this->extend($request, $params)));
+        //
+        // array(
+        //     {
+        //       "close" => "3704.751036",
+        //       "high" => "3716.530378",
+        //       "interval" => "1h",
+        //       "low" => "3699.627883",
+        //       "open" => "3716.406894",
+        //       "timestamp" => 1712628000,
+        //       "volumeNotional" => "1637355.846362"
+        //     }
+        //   )
+        //
+        $klines = $this->safe_list($response, 'klines', array());
+        return $this->parse_ohlcvs($klines, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $request = array(
-                'accountId' => $this->get_account_id(),
-            );
-            $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
-            //
-            // {
-            //     "assets" => array(
-            //       {
-            //         "quantity" => "14.130626",
-            //         "symbol" => "USDT"
-            //       }
-            //     ),
-            //     "balance" => "14.186087",
-            //     "maximalWithdraw" => "4.152340",
-            //     "numFreeTransfersRemaining" => 96,
-            //     "positions" => array(
-            //       array(
-            //         "direction" => "Short",
-            //         "entryNotional" => "10.302213",
-            //         "notionalValue" => "10.225008",
-            //         "quantity" => "0.004310550",
-            //         "symbol" => "ETH/USDT-P",
-            //         "unrealizedFundingPnl" => "0.000000",
-            //         "unrealizedTradingPnl" => "0.077204"
-            //       ),
-            //       array(
-            //         "direction" => "Short",
-            //         "entryNotional" => "2.000016",
-            //         "notionalValue" => "1.999390",
-            //         "quantity" => "0.0000328410",
-            //         "symbol" => "BTC/USDT-P",
-            //         "unrealizedFundingPnl" => "0.000000",
-            //         "unrealizedTradingPnl" => "0.000625"
-            //       ),
-            //       {
-            //         "direction" => "Short",
-            //         "entryNotional" => "2.000015",
-            //         "notionalValue" => "2.022384",
-            //         "quantity" => "0.01470600",
-            //         "symbol" => "SOL/USDT-P",
-            //         "unrealizedFundingPnl" => "0.000000",
-            //         "unrealizedTradingPnl" => "-0.022369"
-            //       }
-            //     ),
-            //   }
-            //
-            $data = $this->safe_list($response, 'positions', array());
-            return $this->parse_positions($data, $symbols);
-        })();
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetTradeAccountInfo($this->extend($request, $params)));
+        //
+        // {
+        //     "assets" => array(
+        //       {
+        //         "quantity" => "14.130626",
+        //         "symbol" => "USDT"
+        //       }
+        //     ),
+        //     "balance" => "14.186087",
+        //     "maximalWithdraw" => "4.152340",
+        //     "numFreeTransfersRemaining" => 96,
+        //     "positions" => array(
+        //       array(
+        //         "direction" => "Short",
+        //         "entryNotional" => "10.302213",
+        //         "notionalValue" => "10.225008",
+        //         "quantity" => "0.004310550",
+        //         "symbol" => "ETH/USDT-P",
+        //         "unrealizedFundingPnl" => "0.000000",
+        //         "unrealizedTradingPnl" => "0.077204"
+        //       ),
+        //       array(
+        //         "direction" => "Short",
+        //         "entryNotional" => "2.000016",
+        //         "notionalValue" => "1.999390",
+        //         "quantity" => "0.0000328410",
+        //         "symbol" => "BTC/USDT-P",
+        //         "unrealizedFundingPnl" => "0.000000",
+        //         "unrealizedTradingPnl" => "0.000625"
+        //       ),
+        //       {
+        //         "direction" => "Short",
+        //         "entryNotional" => "2.000015",
+        //         "notionalValue" => "2.022384",
+        //         "quantity" => "0.01470600",
+        //         "symbol" => "SOL/USDT-P",
+        //         "unrealizedFundingPnl" => "0.000000",
+        //         "unrealizedTradingPnl" => "-0.022369"
+        //       }
+        //     ),
+        //   }
+        //
+        $data = $this->safe_list($response, 'positions', array());
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -1976,144 +2021,148 @@ class hibachi extends Exchange {
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             *
-             * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
-             *
-             * @param {string} [$code] unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entries to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency('USDT');
-            $request = array( 'accountId' => $this->get_account_id() );
-            $rawPromises = array(
-                $this->privateGetCapitalHistory($this->extend($request, $params)),
-                $this->privateGetTradeAccountTradingHistory($this->extend($request, $params)),
-            );
-            $promises = Async\await(Promise\all($rawPromises));
-            $responseCapitalHistory = $promises[0];
-            //
-            // {
-            //     "transactions" => array(
-            //         array(
-            //             "assetId" => 1,
-            //             "blockNumber" => 358396669,
-            //             "chain" => "Arbitrum",
-            //             "etaTsSec" => null,
-            //             "id" => 358396669,
-            //             "quantity" => "0.999500",
-            //             "status" => "pending",
-            //             "timestampSec" => 1752692872,
-            //             "token" => "USDT",
-            //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
-            //             "transactionType" => "deposit"
-            //         ),
-            //         array(
-            //             "assetId" => 1,
-            //             "etaTsSec" => null,
-            //             "id" => 13116,
-            //             "instantWithdrawalChain" => null,
-            //             "instantWithdrawalToken" => null,
-            //             "isInstantWithdrawal" => false,
-            //             "quantity" => "0.040000",
-            //             "status" => "completed",
-            //             "timestampSec" => 1752542708,
-            //             "transactionHash" => "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
-            //             "transactionType" => "withdrawal",
-            //             "withdrawalAddress" => "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
-            //         ),
-            //         array(
-            //             "assetId" => 1,
-            //             "id" => 167,
-            //             "quantity" => "10.000000",
-            //             "srcAccountId" => 175,
-            //             "srcAddress" => "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-            //             "status" => "completed",
-            //             "timestampSec" => 1732224729,
-            //             "transactionType" => "transfer-in"
-            //         ),
-            //         array(
-            //             "assetId" => 1,
-            //             "id" => 170,
-            //             "quantity" => "10.000000",
-            //             "receivingAccountId" => 175,
-            //             "receivingAddress" => "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-            //             "status" => "completed",
-            //             "timestampSec" => 1732225631,
-            //             "transactionType" => "transfer-out"
-            //         ),
-            //     )
-            // }
-            //
-            $rowsCapitalHistory = $this->safe_list($responseCapitalHistory, 'transactions', array());
-            $responseTradingHistory = $promises[1];
-            //
-            // {
-            //     "tradingHistory" => array(
-            //         array(
-            //             "eventType" => "MARKET",
-            //             "fee" => "0.000008",
-            //             "priceOrFundingRate" => "119687.82481",
-            //             "quantity" => "0.0000003727",
-            //             "realizedPnl" => "0.004634",
-            //             "side" => "Sell",
-            //             "symbol" => "BTC/USDT-P",
-            //             "timestamp" => 1752522571
-            //         ),
-            //         array(
-            //             "eventType" => "FundingEvent",
-            //             "fee" => "0",
-            //             "priceOrFundingRate" => "0.000203",
-            //             "quantity" => "0.0000003727",
-            //             "realizedPnl" => "-0.000009067899008751979",
-            //             "side" => "Long",
-            //             "symbol" => "BTC/USDT-P",
-            //             "timestamp" => 1752508800
-            //         ),
-            //     )
-            // }
-            //
-            $rowsTradingHistory = $this->safe_list($responseTradingHistory, 'tradingHistory', array());
-            $rows = $this->array_concat($rowsCapitalHistory, $rowsTradingHistory);
-            return $this->parse_ledger($rows, $currency, $since, $limit, $params);
-        })();
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+         *
+         * @param {string} [$code] unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency('USDT');
+        $request = array( 'accountId' => $this->get_account_id() );
+        $rawPromises = array(
+            $this->privateGetCapitalHistory($this->extend($request, $params)),
+            $this->privateGetTradeAccountTradingHistory($this->extend($request, $params)),
+        );
+        $promises = Async\await(Promise\all($rawPromises));
+        $responseCapitalHistory = $promises[0];
+        //
+        // {
+        //     "transactions" => array(
+        //         array(
+        //             "assetId" => 1,
+        //             "blockNumber" => 358396669,
+        //             "chain" => "Arbitrum",
+        //             "etaTsSec" => null,
+        //             "id" => 358396669,
+        //             "quantity" => "0.999500",
+        //             "status" => "pending",
+        //             "timestampSec" => 1752692872,
+        //             "token" => "USDT",
+        //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
+        //             "transactionType" => "deposit"
+        //         ),
+        //         array(
+        //             "assetId" => 1,
+        //             "etaTsSec" => null,
+        //             "id" => 13116,
+        //             "instantWithdrawalChain" => null,
+        //             "instantWithdrawalToken" => null,
+        //             "isInstantWithdrawal" => false,
+        //             "quantity" => "0.040000",
+        //             "status" => "completed",
+        //             "timestampSec" => 1752542708,
+        //             "transactionHash" => "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
+        //             "transactionType" => "withdrawal",
+        //             "withdrawalAddress" => "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
+        //         ),
+        //         array(
+        //             "assetId" => 1,
+        //             "id" => 167,
+        //             "quantity" => "10.000000",
+        //             "srcAccountId" => 175,
+        //             "srcAddress" => "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status" => "completed",
+        //             "timestampSec" => 1732224729,
+        //             "transactionType" => "transfer-in"
+        //         ),
+        //         array(
+        //             "assetId" => 1,
+        //             "id" => 170,
+        //             "quantity" => "10.000000",
+        //             "receivingAccountId" => 175,
+        //             "receivingAddress" => "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+        //             "status" => "completed",
+        //             "timestampSec" => 1732225631,
+        //             "transactionType" => "transfer-out"
+        //         ),
+        //     )
+        // }
+        //
+        $rowsCapitalHistory = $this->safe_list($responseCapitalHistory, 'transactions', array());
+        $responseTradingHistory = $promises[1];
+        //
+        // {
+        //     "tradingHistory" => array(
+        //         array(
+        //             "eventType" => "MARKET",
+        //             "fee" => "0.000008",
+        //             "priceOrFundingRate" => "119687.82481",
+        //             "quantity" => "0.0000003727",
+        //             "realizedPnl" => "0.004634",
+        //             "side" => "Sell",
+        //             "symbol" => "BTC/USDT-P",
+        //             "timestamp" => 1752522571
+        //         ),
+        //         array(
+        //             "eventType" => "FundingEvent",
+        //             "fee" => "0",
+        //             "priceOrFundingRate" => "0.000203",
+        //             "quantity" => "0.0000003727",
+        //             "realizedPnl" => "-0.000009067899008751979",
+        //             "side" => "Long",
+        //             "symbol" => "BTC/USDT-P",
+        //             "timestamp" => 1752508800
+        //         ),
+        //     )
+        // }
+        //
+        $rowsTradingHistory = $this->safe_list($responseTradingHistory, 'tradingHistory', array());
+        $rows = $this->array_concat($rowsCapitalHistory, $rowsTradingHistory);
+        return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note => This method is currently only supported for trustless accounts
-             *
-             * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
-             *
-             * @param {string} $code unified currency $code
-             * @param {array} [$params] extra parameters for API
-             * @param {string} [$params->publicKey] your public key, you can get it from UI after creating API key
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            $request = array(
-                'publicKey' => $this->safe_string($params, 'publicKey'),
-                'accountId' => $this->get_account_id(),
-            );
-            $response = Async\await($this->privateGetCapitalDepositInfo($this->extend($request, $params)));
-            // {
-            //     "depositAddressEvm" => "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
-            // }
-            return array(
-                'info' => $response,
-                'currency' => 'USDT',
-                'network' => 'ARBITRUM',
-                'address' => $this->safe_string($response, 'depositAddressEvm'),
-                'tag' => null,
-            );
-        })();
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
+    }
+
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note => This method is currently only supported for trustless accounts
+         *
+         * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+         *
+         * @param {string} $code unified currency $code
+         * @param {array} [$params] extra parameters for API
+         * @param {string} [$params->publicKey] your public key, you can get it from UI after creating API key
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        $request = array(
+            'publicKey' => $this->safe_string($params, 'publicKey'),
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetCapitalDepositInfo($this->extend($request, $params)));
+        // {
+        //     "depositAddressEvm" => "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
+        // }
+        return array(
+            'info' => $response,
+            'currency' => 'USDT',
+            'network' => 'ARBITRUM',
+            'address' => $this->safe_string($response, 'depositAddressEvm'),
+            'tag' => null,
+        );
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2148,95 +2197,101 @@ class hibachi extends Exchange {
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch deposit and withdrawal history for the account
-             *
-             * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] timestamp in ms of the earliest transaction
-             * @param {int} [$limit] the maximum number of $transactions to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $currency = $this->safe_currency($code);
-            $request = array(
-                'accountId' => $this->get_account_id(),
-            );
-            $response = Async\await($this->privateGetCapitalHistory($this->extend($request, $params)));
-            // {
-            //     "transactions" => array(
-            //         array(
-            //             "assetId" => 1,
-            //             "blockNumber" => 0,
-            //             "chain" => null,
-            //             "etaTsSec" => 1752758789,
-            //             "id" => 42688,
-            //             "quantity" => "6.130000",
-            //             "status" => "completed",
-            //             "timestampSec" => 1752758788,
-            //             "token" => null,
-            //             "transactionHash" => "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-            //             "transactionType" => "deposit"
-            //         ),
-            //         array(
-            //             "assetId" => 1,
-            //             "etaTsSec" => null,
-            //             "id" => 12993,
-            //             "instantWithdrawalChain" => null,
-            //             "instantWithdrawalToken" => null,
-            //             "isInstantWithdrawal" => false,
-            //             "quantity" => "0.111930",
-            //             "status" => "completed",
-            //             "timestampSec" => 1752387891,
-            //             "transactionHash" => "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-            //             "transactionType" => "withdrawal",
-            //             "withdrawalAddress" => "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-            //         ),
-            //     )
-            // }
-            $transactions = $this->safe_list($response, 'transactions', array());
-            return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
-        })();
+        return Async\async(self::do_fetch_deposits_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch deposit and withdrawal history for the account
+         *
+         * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] timestamp in ms of the earliest transaction
+         * @param {int} [$limit] the maximum number of $transactions to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $currency = $this->safe_currency($code);
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        $response = Async\await($this->privateGetCapitalHistory($this->extend($request, $params)));
+        // {
+        //     "transactions" => array(
+        //         array(
+        //             "assetId" => 1,
+        //             "blockNumber" => 0,
+        //             "chain" => null,
+        //             "etaTsSec" => 1752758789,
+        //             "id" => 42688,
+        //             "quantity" => "6.130000",
+        //             "status" => "completed",
+        //             "timestampSec" => 1752758788,
+        //             "token" => null,
+        //             "transactionHash" => "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+        //             "transactionType" => "deposit"
+        //         ),
+        //         array(
+        //             "assetId" => 1,
+        //             "etaTsSec" => null,
+        //             "id" => 12993,
+        //             "instantWithdrawalChain" => null,
+        //             "instantWithdrawalToken" => null,
+        //             "isInstantWithdrawal" => false,
+        //             "quantity" => "0.111930",
+        //             "status" => "completed",
+        //             "timestampSec" => 1752387891,
+        //             "transactionHash" => "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+        //             "transactionType" => "withdrawal",
+        //             "withdrawalAddress" => "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+        //         ),
+        //     )
+        // }
+        $transactions = $this->safe_list($response, 'transactions', array());
+        return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch $deposits made to account
-             *
-             * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
-             *
-             * @param {string} [$code] unified currency $code
-             * @param {int} [$since] filter by earliest timestamp (ms)
-             * @param {int} [$limit] maximum number of $deposits to be returned
-             * @param {array} [$params] extra parameters to be passed to API
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $transactions = Async\await($this->fetch_deposits_withdrawals($code, $since, null, $params));
-            $deposits = $this->filter_by($transactions, 'type', 'deposit');
-            return $this->filter_by_since_limit($deposits, $since, $limit, 'timestamp');
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch $deposits made to account
+         *
+         * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] filter by earliest timestamp (ms)
+         * @param {int} [$limit] maximum number of $deposits to be returned
+         * @param {array} [$params] extra parameters to be passed to API
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $transactions = Async\await($this->fetch_deposits_withdrawals($code, $since, null, $params));
+        $deposits = $this->filter_by($transactions, 'type', 'deposit');
+        return $this->filter_by_since_limit($deposits, $since, $limit, 'timestamp');
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch $withdrawals made from account
-             *
-             * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
-             *
-             * @param {string} [$code] unified currency $code
-             * @param {int} [$since] filter by earliest timestamp (ms)
-             * @param {int} [$limit] maximum number of deposits to be returned
-             * @param {array} [$params] extra parameters to be passed to API
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $transactions = Async\await($this->fetch_deposits_withdrawals($code, $since, null, $params));
-            $withdrawals = $this->filter_by($transactions, 'type', 'withdrawal');
-            return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch $withdrawals made from account
+         *
+         * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] filter by earliest timestamp (ms)
+         * @param {int} [$limit] maximum number of deposits to be returned
+         * @param {array} [$params] extra parameters to be passed to API
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $transactions = Async\await($this->fetch_deposits_withdrawals($code, $since, null, $params));
+        $withdrawals = $this->filter_by($transactions, 'type', 'withdrawal');
+        return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
     }
 
     public function parse_settlement(mixed $settlement, ?array $market = null) {
@@ -2270,223 +2325,233 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical settlement records of the user
-             *
-             * @see https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
-             *
-             * @param {string} [$symbol] unified $market $symbol of the settlement history
-             * @param {int} [$since] timestamp in ms of the earliest settlement
-             * @param {int} [$limit] the maximum number of $settlements to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest settlement
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
-             */
-            Async\await($this->load_markets());
-            $market = null;
-            $request = array(
-                'accountId' => $this->get_account_id(),
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['contractId'] = $market['numericId'];
-                $symbol = $market['symbol'];
-            }
-            if ($since !== null) {
-                $request['startTime'] = $this->parse_to_int($since / 1000);
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'until');
-            if ($until !== null) {
-                $request['endTime'] = $this->parse_to_int($until / 1000);
-            }
-            $response = Async\await($this->privateGetTradeAccountSettlementsHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "settlements" => array(
-            //             {
-            //                 "direction" => "Long",
-            //                 "indexPrice" => "81.8781761",
-            //                 "quantity" => "0.10000000",
-            //                 "settledAmount" => "0.00005994405060281047",
-            //                 "symbol" => "SOL/USDT-P",
-            //                 "timestamp" => 1783389600,
-            //                 "timestampNsPartial" => 0
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'settlements', array());
-            $settlements = $this->parse_settlements($data, $market);
-            $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        })();
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical settlement records of the user
+         *
+         * @see https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+         *
+         * @param {string} [$symbol] unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms of the earliest settlement
+         * @param {int} [$limit] the maximum number of $settlements to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest settlement
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
+         */
+        Async\await($this->load_markets());
+        $market = null;
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['contractId'] = $market['numericId'];
+            $symbol = $market['symbol'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'until');
+        if ($until !== null) {
+            $request['endTime'] = $this->parse_to_int($until / 1000);
+        }
+        $response = Async\await($this->privateGetTradeAccountSettlementsHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "settlements" => array(
+        //             {
+        //                 "direction" => "Long",
+        //                 "indexPrice" => "81.8781761",
+        //                 "quantity" => "0.10000000",
+        //                 "settledAmount" => "0.00005994405060281047",
+        //                 "symbol" => "SOL/USDT-P",
+        //                 "timestamp" => 1783389600,
+        //                 "timestampNsPartial" => 0
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'settlements', array());
+        $settlements = $this->parse_settlements($data, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->publicGetExchangeUtcTimestamp($params));
-            //
-            //     array( "timestampMs":1754077574040 )
-            //
-            return $this->safe_integer($response, 'timestampMs');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->publicGetExchangeUtcTimestamp($params));
+        //
+        //     array( "timestampMs":1754077574040 )
+        //
+        return $this->safe_integer($response, 'timestampMs');
     }
 
     public function fetch_open_interest(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * retrieves the open interest of a contract trading pair
-             *
-             * @see https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49
-             *
-             * @param {string} $symbol unified CCXT $market $symbol
-             * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetMarketDataOpenInterest($this->extend($request, $params)));
-            //
-            //   array( "totalQuantity" : "2.3299770166" )
-            //
-            $timestamp = $this->milliseconds();
-            return $this->safe_open_interest(array(
-                'symbol' => $symbol,
-                'openInterestAmount' => $this->safe_string($response, 'totalQuantity'),
-                'openInterestValue' => null,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $response,
-            ), $market);
-        })();
+        return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
+    }
+
+    private function do_fetch_open_interest(string $symbol, $params = array()) {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://api-doc.hibachi.xyz/#bc34e8ae-e094-4802-8d56-3efe3a7bad49
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetMarketDataOpenInterest($this->extend($request, $params)));
+        //
+        //   array( "totalQuantity" : "2.3299770166" )
+        //
+        $timestamp = $this->milliseconds();
+        return $this->safe_open_interest(array(
+            'symbol' => $symbol,
+            'openInterestAmount' => $this->safe_string($response, 'totalQuantity'),
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $response,
+        ), $market);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the current $funding rate
-             *
-             * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$funding-rate-structure $funding rate structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicGetMarketDataPrices($this->extend($request, $params)));
-            //
-            // {
-            //     "askPrice" => "3514.650296",
-            //     "bidPrice" => "3513.596112",
-            //     "fundingRateEstimation" => array(
-            //         "estimatedFundingRate" => "0.000001",
-            //         "nextFundingTimestamp" => 1712707200
-            //     ),
-            //     "markPrice" => "3514.288858",
-            //     "spotPrice" => "3514.715000",
-            //     "symbol" => "ETH/USDT-P",
-            //     "tradePrice" => "2372.746570"
-            // }
-            //
-            $funding = $this->safe_dict($response, 'fundingRateEstimation', array());
-            $timestamp = $this->milliseconds();
-            $nextFundingTimestamp = $this->safe_integer_product($funding, 'nextFundingTimestamp', 1000);
-            return array(
-                'info' => $funding,
-                'symbol' => $market['symbol'],
-                'markPrice' => null,
-                'indexPrice' => null,
-                'interestRate' => $this->parse_number('0'),
-                'estimatedSettlePrice' => null,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'fundingRate' => $this->safe_number($funding, 'estimatedFundingRate'),
-                'fundingTimestamp' => $nextFundingTimestamp,
-                'fundingDatetime' => $this->iso8601($nextFundingTimestamp),
-                'nextFundingRate' => null,
-                'nextFundingTimestamp' => null,
-                'nextFundingDatetime' => null,
-                'previousFundingRate' => null,
-                'previousFundingTimestamp' => null,
-                'previousFundingDatetime' => null,
-                'interval' => '8h',
-            );
-        })();
+        return Async\async(self::do_fetch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_fetch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * fetch the current $funding rate
+         *
+         * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$funding-rate-structure $funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetMarketDataPrices($this->extend($request, $params)));
+        //
+        // {
+        //     "askPrice" => "3514.650296",
+        //     "bidPrice" => "3513.596112",
+        //     "fundingRateEstimation" => array(
+        //         "estimatedFundingRate" => "0.000001",
+        //         "nextFundingTimestamp" => 1712707200
+        //     ),
+        //     "markPrice" => "3514.288858",
+        //     "spotPrice" => "3514.715000",
+        //     "symbol" => "ETH/USDT-P",
+        //     "tradePrice" => "2372.746570"
+        // }
+        //
+        $funding = $this->safe_dict($response, 'fundingRateEstimation', array());
+        $timestamp = $this->milliseconds();
+        $nextFundingTimestamp = $this->safe_integer_product($funding, 'nextFundingTimestamp', 1000);
+        return array(
+            'info' => $funding,
+            'symbol' => $market['symbol'],
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($funding, 'estimatedFundingRate'),
+            'fundingTimestamp' => $nextFundingTimestamp,
+            'fundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => '8h',
+        );
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetMarketDataFundingRates($this->extend($request, $params)));
+        //
+        // {
+        //     "data" => array(
+        //         {
+        //             "contractId" => 2,
+        //             "fundingTimestamp" => 1753488000,
+        //             "fundingRate" => "0.000137",
+        //             "indexPrice" => "117623.65010"
+        //         }
+        //     )
+        // }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $timestamp = $this->safe_integer_product($entry, 'fundingTimestamp', 1000);
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
             );
-            $response = Async\await($this->publicGetMarketDataFundingRates($this->extend($request, $params)));
-            //
-            // {
-            //     "data" => array(
-            //         {
-            //             "contractId" => 2,
-            //             "fundingTimestamp" => 1753488000,
-            //             "fundingRate" => "0.000137",
-            //             "indexPrice" => "117623.65010"
-            //         }
-            //     )
-            // }
-            //
-            $data = $this->safe_list($response, 'data', array());
-            $rates = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
-                $timestamp = $this->safe_integer_product($entry, 'fundingTimestamp', 1000);
-                $rates[] = array(
-                    'info' => $entry,
-                    'symbol' => $symbol,
-                    'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                    'timestamp' => $timestamp,
-                    'datetime' => $this->iso8601($timestamp),
-                );
-            }
-            $sorted = $this->sort_by($rates, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-        })();
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 }

@@ -3,17 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var address = require('../address/address.js');
-require('../utils/base58.js');
-require('../utils/errors.js');
-require('../utils/fixednumber.js');
 var maths = require('../utils/maths.js');
-require('../utils/utf8.js');
-require('../../../base/functions/platform.js');
-require('../../../base/functions/encode.js');
-require('../../../base/functions/crypto.js');
-require('../../../base/functions/io.js');
-require('@noble/hashes/sha3.js');
-require('@noble/hashes/sha2.js');
 var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 

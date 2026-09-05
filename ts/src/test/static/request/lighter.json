@@ -4,6 +4,7 @@
     "outputType": "json",
     "disabledGO": true,
     "disabledCS": true,
+    "disabledRS": true,
     "disabledJava": true,
     "privateKey": "e6b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
     "options": {
@@ -106,6 +107,25 @@
                 "output": {
                     "tx_type": 14,
                     "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":911280573,\"BaseAmount\":100,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1772175612201,\"Nonce\":6,\"Sig\":\"6cnea3og5elG3CMCxRpldy7yHQI3ettJVkYKl2VcvF4yIT1/RREaD/m8D+KTbCTGAftezZjNtw8KEo9YoAO68WTdDU8d6bq69BcKlQm1kAk=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
+                }
+            },
+            {
+                "description": "create limit postOnly buy order",
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    40,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": {
+                    "tx_type": 14,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":489057754,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":2,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":-1,\"ExpiredAt\":1772175725602,\"Nonce\":7,\"Sig\":\"gl3Tm3SFdCvd5lJw9uByG8sUAThDZ8NpP5SJ8DUKwRwv2DoYAfZoIcjUZCiZjllNS2d/Z6XDlERYaKb4JrfniOXIVZHmfo5ie5I1lKR4UCk=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
                 }
             }
         ],

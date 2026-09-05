@@ -27,6 +27,11 @@ public partial class BaseExchange
     public static int NO_PADDING = 5;             // zero-padding mode
     public static int PAD_WITH_ZERO = 6;
 
+    // Cached on first use: `Regex.Replace (input, pattern, ...)` goes through the static
+    // Regex cache (bounded, guarded lookup) on every call. A `static readonly Regex` runs
+    // the exact same pattern with the exact same options and skips that lookup entirely.
+    private static readonly Regex exponentPrefixRegex = new Regex(@"\d\.?\d*[eE]", RegexOptions.None);
+
     public object precisionConstants = new
     {
         ROUND,
@@ -64,9 +69,20 @@ public partial class BaseExchange
         }
 
 
-        var parsedX = Convert.ToDouble(x, CultureInfo.InvariantCulture);
+        // The original implementation always evaluated Convert.ToDouble (x) up-front, which
+        // also validated the input before NumberToString ran. NumberToString (unlike
+        // Convert.ToDouble) accepts BigInteger and throws a different message for char and
+        // DateTime, so reproduce the original validation for exactly those types — common
+        // string/double inputs are validated by NumberToString with identical results and
+        // skip the expensive double parse entirely.
+        if (x is System.Numerics.BigInteger || x is char || x is DateTime)
+        {
+            Convert.ToDouble(x, CultureInfo.InvariantCulture);
+        }
+
         if (numPrecisionDigits < 0)
         {
+            var parsedX = Convert.ToDouble(x, CultureInfo.InvariantCulture);
             var toNearest = Math.Pow(10, Math.Abs(-(float)numPrecisionDigits));
             if (roundingMode == ROUND)
             {
@@ -81,6 +97,7 @@ public partial class BaseExchange
         /*handle tick size */
         if (countMode == TICK_SIZE)
         {
+            var parsedX = Convert.ToDouble(x, CultureInfo.InvariantCulture);
             var precisionDigitsString = DecimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
             var newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
             if (roundingMode == TRUNCATE)
@@ -151,23 +168,15 @@ public partial class BaseExchange
         var strEnd = str.Length;
 
         /*  Find the dot position in the source buffer   */
-        var strDot = 0;
-        for (strDot = 0; strDot < strEnd; strDot++)
-        {
-            if (str[strDot] == '.')
-            {
-                break;
-            }
-        }
-        var hasDot = strDot < strEnd;
+        var hasDot = str.IndexOf('.') >= 0;
 
         /*  Char code constants         */
-        var MINUS = 45;
-        var DOT = 46;
-        var ZERO = 48;
-        var ONE = (ZERO + 1);
-        var FIVE = (ZERO + 5);
-        var NINE = (ZERO + 9);
+        const int MINUS = 45;
+        const int DOT = 46;
+        const int ZERO = 48;
+        const int ONE = (ZERO + 1);
+        const int FIVE = (ZERO + 5);
+        const int NINE = (ZERO + 9);
 
         /*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
         var arraySize = (strEnd - strStart) + (hasDot ? 0 : 1);
@@ -180,8 +189,7 @@ public partial class BaseExchange
         var digitsEnd = -1;
         for (int i = 1, j = strStart; j < strEnd; i++, j++)
         {
-            var value = str[j];
-            var c = (int)Convert.ToChar(value);
+            var c = (int)str[j];
             if (c == DOT)
             {
                 afterDot = i--;
@@ -222,17 +230,23 @@ public partial class BaseExchange
         //      memo  =         ---0     --1-     -1--     0---
         var allZeros = true;
         var signNeeded = isNegative;
+        // Loop invariants hoisted out: `ROUND` is a mutable static field (not a const), so the
+        // JIT reloads it on every digit, and `precisionStart + numPrecisionDigits` is a fixed
+        // double. `isTrue (memo)` boxed an int on every single digit — `memo != 0` is what
+        // isTrue() computes for an integer, without the two allocations.
+        var isRoundMode = (roundingMode == ROUND);
+        var roundLimit = precisionStart + numPrecisionDigits;
         for (int i = chars.Length - 1, memo = 0; i >= 0; i--)
         {
             var c = chars[i];
             if (i != 0)
             {
                 c += memo;
-                if (i >= (precisionStart + numPrecisionDigits))
+                if (i >= roundLimit)
                 {
-                    var ceil = (roundingMode == ROUND)
+                    var ceil = isRoundMode
                                  && (c >= FIVE)
-                                && !((c == FIVE) && isTrue(memo)); // prevents rounding of 1.45 to 2
+                                && !((c == FIVE) && (memo != 0)); // prevents rounding of 1.45 to 2
                     c = ceil ? (NINE + 1) : ZERO;
                 }
                 if (c > NINE)
@@ -241,7 +255,7 @@ public partial class BaseExchange
                 }
                 else memo = 0;
             }
-            else if (isTrue(memo)) c = ONE; // leading extra digit (0900 → 1000)
+            else if (memo != 0) c = ONE; // leading extra digit (0900 → 1000)
             chars[i] = c;
             if (c != ZERO)
             {
@@ -257,7 +271,7 @@ public partial class BaseExchange
             precisionStart = digitsStart;
             precisionEnd = precisionStart + (int)numPrecisionDigits;
         }
-        if (isTrue(allZeros))
+        if (allZeros)
         {
             signNeeded = false;
         }
@@ -283,18 +297,20 @@ public partial class BaseExchange
 
         /*  Fill the output buffer with characters    */
 
-        var outArray = new int[(nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)];
+        // Build straight into a char[]: the previous int[] was converted with a LINQ
+        // Select(...).ToArray() (iterator + delegate + growable buffer + a second array)
+        // before the string copy. Same characters, one allocation instead of three.
+        var outArray = new char[(nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)];
 
         // ------------------------------------------------------------------------------------------ // ---------------------
-        if (signNeeded) outArray[0] = MINUS;     // -     minus sign
-        for (int i = nSign, j = readStart; i < nBeforeDot; i++, j++) outArray[i] = chars[j];  // 123   before dot
-        if (!isInteger) outArray[nBeforeDot] = DOT;       // .     dot
-        for (int i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) outArray[i] = chars[j];  // 456   after dot
-        for (int i = padStart; i < padEnd; i++) outArray[i] = ZERO;      // 000   padding
+        if (signNeeded) outArray[0] = (char)MINUS;     // -     minus sign
+        for (int i = nSign, j = readStart; i < nBeforeDot; i++, j++) outArray[i] = (char)chars[j];  // 123   before dot
+        if (!isInteger) outArray[nBeforeDot] = (char)DOT;       // .     dot
+        for (int i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) outArray[i] = (char)chars[j];  // 456   after dot
+        for (int i = padStart; i < padEnd; i++) outArray[i] = (char)ZERO;      // 000   padding
 
         /*  Build a string from the output buffer     */
-        var charArray = outArray.Select(c => (char)c).ToArray();
-        return new string(charArray);
+        return new string(outArray);
     }
 
     public virtual int precisionFromString(object value2) => PrecisionFromString(value2);
@@ -306,12 +322,22 @@ public partial class BaseExchange
         var value = (string)value2;
         if (value.IndexOf('e') > -1 || value.IndexOf('E') > -1)
         {
-            var numStr = Regex.Replace(value, @"\d\.?\d*[eE]", "");
+            var numStr = exponentPrefixRegex.Replace(value, "");
             return (Int32.Parse(numStr) * -1);
         }
         value = value.TrimEnd('0');
-        var split = Regex.Replace(value, @"/0+$/g", "").Split('.');
-        return split.Length > 1 ? split[1].Length : 0;
+        // The former `Regex.Replace (value, "/0+$/g", "")` here was a JS regex literal pasted
+        // as a .NET pattern: it asks for "/0...0" followed by end-of-input followed by "/g",
+        // which no input can satisfy, so it always returned `value` unchanged. The trailing
+        // zeros it was meant to strip are already removed by the TrimEnd('0') above.
+        var dotIndex = value.IndexOf('.');
+        if (dotIndex < 0)
+        {
+            return 0;
+        }
+        // equivalent to Split('.')[1].Length: measure up to the next dot, if any
+        var nextDotIndex = value.IndexOf('.', dotIndex + 1);
+        return ((nextDotIndex < 0) ? value.Length : nextDotIndex) - dotIndex - 1;
     }
 
     public static string TruncateToString(object num, int precision = 0)
@@ -321,6 +347,18 @@ public partial class BaseExchange
 
         if (precision > 0)
         {
+            // Fast path for canonical decimal strings ("-?<digits>[.<digits>]"), which is all
+            // NumberToString ever produces. It reproduces the regex below exactly: cut after
+            // `precision` fractional digits, but only when a further digit exists.
+            var cut = canonicalTruncateCut(numStr, precision);
+            if (cut > 0)
+            {
+                return numStr.Substring(0, cut);
+            }
+            if (cut == 0)
+            {
+                return numStr; // canonical, but the regex could not have matched
+            }
             // Regex pattern: ([-]*\d+\.\d{precision})(\d)
             // Captures: minus sign (optional) + digits + dot + exactly 'precision' digits after dot
             var pattern = @"([-]*\d+\.\d{" + precision + @"})(\d)";
@@ -342,6 +380,48 @@ public partial class BaseExchange
         }
 
         return numStr; // Already an integer
+    }
+
+    // Returns the cut index for TruncateToString's fast path, 0 when a canonical string needs
+    // no truncation, or -1 when the input is not canonical and the regex must be used.
+    private static int canonicalTruncateCut(string s, int precision)
+    {
+        var n = s.Length;
+        var i = 0;
+        if (i < n && s[i] == '-')
+        {
+            i++;
+        }
+        var intStart = i;
+        while (i < n && s[i] >= '0' && s[i] <= '9')
+        {
+            i++;
+        }
+        if (i == intStart)
+        {
+            return -1; // no integer digits: the regex's `\d+` could still match further right
+        }
+        if (i == n)
+        {
+            return 0; // integer with no dot: the regex requires a '.', so it cannot match
+        }
+        if (s[i] != '.')
+        {
+            return -1;
+        }
+        var dot = i;
+        i++;
+        var fracStart = i;
+        while (i < n && s[i] >= '0' && s[i] <= '9')
+        {
+            i++;
+        }
+        if (i != n)
+        {
+            return -1; // trailing junk
+        }
+        var fracLength = i - fracStart;
+        return (fracLength > precision) ? (dot + 1 + precision) : 0;
     }
 
     public virtual string numberToString(object number) => NumberToString(number);

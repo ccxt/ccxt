@@ -1542,7 +1542,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object value = Helpers.GetValue(walletAddress, key);
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(value))) || Helpers.isTrue((Helpers.isEqual(value, "-1")))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(value, null))) || Helpers.isTrue((Helpers.isEqual(value, null)))) || Helpers.isTrue((Helpers.isEqual(value, "")))) || Helpers.isTrue((Helpers.isEqual(value, "-1")))))
                 {
                     continue;
                 }
@@ -1606,7 +1606,7 @@ public class CoinoneCore extends CoinoneApi
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
             url = Helpers.add(url, request);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

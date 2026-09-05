@@ -49,6 +49,7 @@ class hollaex extends Exchange {
                 'fetchDepositAddresses' => true,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -1613,7 +1614,7 @@ class hollaex extends Exchange {
         //
         $wallet = $this->safe_value($response, 'wallet', array());
         $addresses = ($network === null) ? $wallet : $this->filter_by($wallet, 'network', $network);
-        return $this->parse_deposit_addresses($addresses, $codes);
+        return $this->parse_deposit_addresses($addresses, $codes, false);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1679,7 +1680,7 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *
@@ -1849,11 +1850,11 @@ class hollaex extends Exchange {
         $status = $this->safe_value($transaction, 'status');
         $dismissed = $this->safe_value($transaction, 'dismissed');
         $rejected = $this->safe_value($transaction, 'rejected');
-        if ($status) {
+        if ($status === true) {
             $status = 'ok';
-        } elseif ($dismissed) {
+        } elseif ($dismissed === true) {
             $status = 'canceled';
-        } elseif ($rejected) {
+        } elseif ($rejected === true) {
             $status = 'failed';
         } else {
             $status = 'pending';
@@ -1983,7 +1984,7 @@ class hollaex extends Exchange {
             'networks' => array(),
         );
         $allowWithdrawal = $this->safe_value($fee, 'allow_withdrawal');
-        if ($allowWithdrawal) {
+        if ($allowWithdrawal === true) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
         }
         $withdrawalFees = $this->safe_value($fee, 'withdrawal_fees');
@@ -2064,7 +2065,7 @@ class hollaex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {
-            if ($query) {
+            if (count($query) > 0) {
                 $path .= '?' . $this->urlencode($query);
             }
         }
@@ -2081,7 +2082,7 @@ class hollaex extends Exchange {
             );
             if ($method === 'POST') {
                 $headers['Content-type'] = 'application/json';
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= $body;
                 }

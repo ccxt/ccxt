@@ -482,7 +482,7 @@ export default class nado extends Exchange {
     signCancellationProducts(cancellation: any, chainId: any, endpointAddress: string): string;
     signFetchTriggerOrders(tx: any, chainId: any, endpointAddress: any): string;
     signHash(hash: string, privateKey: Str): string;
-    removeMarketSuffix(marketId: any): any;
+    removeMarketSuffix(marketId: Str): string | undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

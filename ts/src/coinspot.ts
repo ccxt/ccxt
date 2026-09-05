@@ -333,7 +333,12 @@ export default class coinspot extends Exchange {
             await this.loadMarkets ();
         }
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
+        let response = undefined;
+        if ((method === 'private_post_ro_my_balances') || (method === 'privatePostRoMyBalances')) {
+            response = await this.privatePostRoMyBalances (params);
+        } else {
+            response = await this.privatePostMyBalances (params);
+        }
         //
         // read-write api keys
         //
@@ -482,7 +487,7 @@ export default class coinspot extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
-            if (market['spot']) {
+            if (market['spot'] === true) {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker (ticker, market);
@@ -736,7 +741,7 @@ export default class coinspot extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         const status = this.safeString (response, 'status');

@@ -57,7 +57,7 @@ func (this *MexcCore) SpotPublicGetAggTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetAggTrades", args...)
 }
 
-// SpotPublicGetKlines returns a channel that yields a JSON object.
+// SpotPublicGetKlines returns a channel that yields a JSON array.
 func (this *MexcCore) SpotPublicGetKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetKlines", args...)
 }
@@ -67,7 +67,7 @@ func (this *MexcCore) SpotPublicGetAvgPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetAvgPrice", args...)
 }
 
-// SpotPublicGetTicker24hr returns a channel that yields a JSON array.
+// SpotPublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
 func (this *MexcCore) SpotPublicGetTicker24hr(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetTicker24hr", args...)
 }
@@ -107,7 +107,7 @@ func (this *MexcCore) SpotPrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetOpenOrders", args...)
 }
 
-// SpotPrivateGetAllOrders returns a channel that yields a JSON object.
+// SpotPrivateGetAllOrders returns a channel that yields a JSON array.
 func (this *MexcCore) SpotPrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetAllOrders", args...)
 }

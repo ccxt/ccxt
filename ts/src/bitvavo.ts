@@ -173,7 +173,7 @@ export default class bitvavo extends Exchange {
                         'ticker/price': { 'cost': 1 } as Endpoint<List>,
                         'ticker/book': { 'cost': 1 } as Endpoint<List>,
                         '{market}/candles': { 'cost': 1 } as Endpoint<List>,
-                        'ticker/24h': { 'cost': 1, 'noMarket': 25 } as Endpoint<List>,
+                        'ticker/24h': { 'cost': 1, 'noMarket': 25 } as Endpoint<Dict | List>,
                         'time': { 'cost': 1 } as Endpoint<Dict>,
                         'markets': { 'cost': 1 } as Endpoint<List>,
                         'assets': { 'cost': 1 } as Endpoint<List>,
@@ -189,7 +189,7 @@ export default class bitvavo extends Exchange {
                         'depositHistory': { 'cost': 5 } as Endpoint<List>,
                         'withdrawalHistory': { 'cost': 5 } as Endpoint<List>,
                         'account': { 'cost': 1 } as Endpoint<List>,
-                        'balance': { 'cost': 5 } as Endpoint<Dict>,
+                        'balance': { 'cost': 5 } as Endpoint<List>,
                         'stakingBalance': { 'cost': 1 } as Endpoint<List>,
                         'account/fees': { 'cost': 1 } as Endpoint<Dict>,
                         'account/history': { 'cost': 1 } as Endpoint<Dict>,
@@ -925,7 +925,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
+            takerOrMaker = (taker === true) ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString (trade, 'fee');
         let fee: FeeString = undefined;
@@ -2695,7 +2695,7 @@ export default class bitvavo extends Exchange {
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2703,7 +2703,7 @@ export default class bitvavo extends Exchange {
             this.checkRequiredCredentials ();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }

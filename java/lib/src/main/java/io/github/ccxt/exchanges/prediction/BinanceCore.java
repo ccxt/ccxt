@@ -326,7 +326,7 @@ public class BinanceCore extends BinanceApi
                     ((java.util.List<Object>)collected).add(Helpers.GetValue(pageTopics, i));
                 }
                 Object hasMore = this.safeBool(response, "hasMore", false);
-                if (Helpers.isTrue(!Helpers.isTrue(hasMore) || Helpers.isTrue((Helpers.isLessThan(pageTopicsLength, reqLimit)))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hasMore, true))) || Helpers.isTrue((Helpers.isLessThan(pageTopicsLength, reqLimit)))))
                 {
                     break;
                 }
@@ -432,7 +432,7 @@ public class BinanceCore extends BinanceApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-            if (!Helpers.isTrue(allowUnscopedFetchEvents))
+            if (Helpers.isTrue(!Helpers.isEqual(allowUnscopedFetchEvents, true)))
             {
                 this.requireEventQuery(parameters);
             }
@@ -461,7 +461,7 @@ public class BinanceCore extends BinanceApi
             Object eventId = this.safeString(parameters, "eventId");
             Object l1Category = this.safeString(parameters, "l1Category");
             Object l2Category = this.safeString(parameters, "l2Category");
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
@@ -1606,7 +1606,7 @@ final Object finalMarketSymbol = marketSymbol;
             //
             Object positions = this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object parsedPositions = this.parsePredictionPositions(positions);
-            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null, null);
+            Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null);
             return this.safeDict(filteredPositions, 0);
         });
 
@@ -2254,11 +2254,21 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
             Object failedOrders = this.safeList(response, "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object failedOrdersLength = Helpers.getArrayLength(failedOrders);
-            for (var i = 0; Helpers.isLessThan(i, failedOrdersLength); i++)
+            if (Helpers.isTrue(Helpers.isGreaterThan(failedOrdersLength, 0)))
             {
-                Object failedOrder = Helpers.GetValue(failedOrders, i);
-                Object error = this.safeString(failedOrder, "reason");
-                throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), this.safeString(failedOrder, "orderId")), ": "), error)) ;
+                Object failedDetails = "";
+                for (var i = 0; Helpers.isLessThan(i, failedOrdersLength); i++)
+                {
+                    Object failedOrder = Helpers.GetValue(failedOrders, i);
+                    Object failedOrderId = this.safeString(failedOrder, "orderId");
+                    Object failedReason = this.safeString(failedOrder, "reason");
+                    if (Helpers.isTrue(Helpers.isGreaterThan(i, 0)))
+                    {
+                        failedDetails = Helpers.add(failedDetails, ", ");
+                    }
+                    failedDetails = Helpers.add(Helpers.add(Helpers.add(failedDetails, failedOrderId), ": "), failedReason);
+                }
+                throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), failedDetails)) ;
             }
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object canceledOrdersLength = Helpers.getArrayLength(canceledOrders);

@@ -188,7 +188,7 @@ abstract class hashkey extends \ccxt\Exchange {
         return $this->request('api/v1/account/vipInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function private_get_api_v1_account($params = array()) {
         return $this->request('api/v1/account', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -590,7 +590,7 @@ abstract class hashkey extends \ccxt\Exchange {
         return $this->request('api/v1/account/vipInfo', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function privateGetApiV1Account($params = array()) {
         return $this->request('api/v1/account', 'private', 'GET', $params, null, null, array("cost" => 1));

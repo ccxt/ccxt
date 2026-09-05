@@ -449,61 +449,61 @@ func (this *LighterCore) Describe() any {
 	})
 }
 func (this *LighterCore) LoadAccount(chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.InitAuthObject(accountIndex, apiKeyIndex)
-		var cachedAuths any = this.SafeDict(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex)
-		var signer any = this.SafeValue(cachedAuths, "signer")
-		if IsTrue(!IsEqual(signer, nil)) {
-
-			ch <- signer
-			return nil
-		}
-		var libraryPath any = nil
-		libraryPathparamsVariable := this.HandleOptionAndParams(params, "loadAccount", "libraryPath")
-		libraryPath = GetValue(libraryPathparamsVariable, 0)
-		params = GetValue(libraryPathparamsVariable, 1)
-		var lighterPrivateKeyIsSet any = IsTrue((!IsEqual(privateKey, nil))) && IsTrue((!IsEqual(privateKey, "")))
-		if IsTrue(IsTrue(IsTrue(IsTrue(lighterPrivateKeyIsSet) && IsTrue((!IsEqual(libraryPath, nil)))) && IsTrue((!IsEqual(apiKeyIndex, nil)))) && IsTrue((!IsEqual(accountIndex, nil)))) {
-			// load lighter library, and create lighter client
-
-			signer = (<-this.LoadLighterLibrary(libraryPath, chainId, privateKey, this.ParseToInt(apiKeyIndex), this.ParseToInt(accountIndex), true))
-			PanicOnError(signer)
-			AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer", signer)
-
-			ch <- signer
-			return nil
-		}
-		var privateKeyIsSet any = IsTrue((!IsEqual(this.PrivateKey, nil))) && IsTrue((!IsEqual(this.PrivateKey, "")))
-		if IsTrue(IsTrue(IsTrue(privateKeyIsSet) && IsTrue((!IsEqual(apiKeyIndex, nil)))) && IsTrue((!IsEqual(accountIndex, nil)))) {
-			if IsTrue(IsGreaterThan(GetLength(this.PrivateKey), 66)) {
-				panic(NotSupported(Add(this.Id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")))
-			}
-			// load lighter library without creating lighter client
-
-			signer = (<-this.LoadLighterLibrary(libraryPath, chainId, "", this.ParseToInt(apiKeyIndex), this.ParseToInt(accountIndex), false))
-			PanicOnError(signer)
-			AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer", signer)
-
-			res := (<-this.ChangeApiKey())
-			PanicOnError(res)
-
-			retRes40612 := (<-this.HandleBuilderFeeApproval(this.ParseToInt(accountIndex), this.ParseToInt(apiKeyIndex)))
-			PanicOnError(retRes40612)
-
-			ch <- res
-			return nil
-		}
+	ch := make(chan any, 1)
+	go this.loadAccountBody(ch, chainId, privateKey, apiKeyIndex, accountIndex, optionalArgs...)
+	return ch
+}
+func (this *LighterCore) loadAccountBody(ch chan any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.InitAuthObject(accountIndex, apiKeyIndex)
+	var cachedAuths any = this.SafeDict(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex)
+	var signer any = this.SafeValue(cachedAuths, "signer")
+	if IsTrue(!IsEqual(signer, nil)) {
 
 		ch <- signer
 		return nil
+	}
+	var libraryPath any = nil
+	libraryPathparamsVariable := this.HandleOptionAndParams(params, "loadAccount", "libraryPath")
+	libraryPath = GetValue(libraryPathparamsVariable, 0)
+	params = GetValue(libraryPathparamsVariable, 1)
+	var lighterPrivateKeyIsSet bool = IsTrue((!IsEqual(privateKey, nil))) && IsTrue((!IsEqual(privateKey, "")))
+	if IsTrue(IsTrue(IsTrue(IsTrue(lighterPrivateKeyIsSet) && IsTrue((!IsEqual(libraryPath, nil)))) && IsTrue((!IsEqual(apiKeyIndex, nil)))) && IsTrue((!IsEqual(accountIndex, nil)))) {
+		// load lighter library, and create lighter client
 
-	}()
-	return ch
+		signer = (<-this.LoadLighterLibrary(libraryPath, chainId, privateKey, this.ParseToInt(apiKeyIndex), this.ParseToInt(accountIndex), true))
+		PanicOnError(signer)
+		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer", signer)
+
+		ch <- signer
+		return nil
+	}
+	var privateKeyIsSet bool = IsTrue((!IsEqual(this.PrivateKey, nil))) && IsTrue((!IsEqual(this.PrivateKey, "")))
+	if IsTrue(IsTrue(IsTrue(privateKeyIsSet) && IsTrue((!IsEqual(apiKeyIndex, nil)))) && IsTrue((!IsEqual(accountIndex, nil)))) {
+		if IsTrue(IsGreaterThan(GetLength(this.PrivateKey), 66)) {
+			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")))
+		}
+		// load lighter library without creating lighter client
+
+		signer = (<-this.LoadLighterLibrary(libraryPath, chainId, "", this.ParseToInt(apiKeyIndex), this.ParseToInt(accountIndex), false))
+		PanicOnError(signer)
+		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex), "signer", signer)
+
+		res := (<-this.ChangeApiKey())
+		PanicOnError(res)
+
+		retRes40612 := (<-this.HandleBuilderFeeApproval(this.ParseToInt(accountIndex), this.ParseToInt(apiKeyIndex)))
+		PanicOnError(retRes40612)
+
+		ch <- res
+		return nil
+	}
+
+	ch <- signer
+	return nil
 }
 func (this *LighterCore) InitAuthObject(strAccountIndex any, strApiKeyIndex any) {
 	if !IsTrue((InOp(this.Options, "auths"))) {
@@ -545,44 +545,44 @@ func (this *LighterCore) GetLighterPrivateKey(strAccountIndex any, strApiKeyInde
  * @returns {boolean} true if the signer was loaded, false otherwise
  */
 func (this *LighterCore) PreLoadLighterLibrary(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "loadAccount", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "loadAccount", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		if IsTrue(IsEqual(accountIndex, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " requires accountIndex or account_index")))
-		}
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-		this.InitAuthObject(strAccountIndex, strApiKeyIndex)
-		var signer any = this.SafeDict(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer")
-		if IsTrue(!IsEqual(signer, nil)) {
-
-			ch <- true
-			return nil
-		}
-
-		signer = (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex))
-		PanicOnError(signer)
-
-		retRes4688 := (<-this.HandleBuilderFeeApproval(accountIndex, apiKeyIndex))
-		PanicOnError(retRes4688)
-
-		ch <- (!IsEqual(signer, nil))
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.preLoadLighterLibraryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) preLoadLighterLibraryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "loadAccount", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "loadAccount", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	if IsTrue(IsEqual(accountIndex, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires accountIndex or account_index")))
+	}
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+	this.InitAuthObject(strAccountIndex, strApiKeyIndex)
+	var signer any = this.SafeDict(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer")
+	if IsTrue(!IsEqual(signer, nil)) {
+
+		ch <- true
+		return nil
+	}
+
+	signer = (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex))
+	PanicOnError(signer)
+
+	retRes4688 := (<-this.HandleBuilderFeeApproval(accountIndex, apiKeyIndex))
+	PanicOnError(retRes4688)
+
+	ch <- (!IsEqual(signer, nil))
+	return nil
 }
 func (this *LighterCore) HandleApiKeyIndex(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
@@ -599,115 +599,115 @@ func (this *LighterCore) HandleApiKeyIndex(params any, methodName1 any, optionNa
 	return []any{this.ParseToInt(apiKeyIndex), params}
 }
 func (this *LighterCore) HandleAccountIndex(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		defaultValue := GetArg(optionalArgs, 0, nil)
-		_ = defaultValue
-		var accountIndex any = nil
-		accountIndexparamsVariable := this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		if IsTrue(IsEqual(accountIndex, nil)) {
-			var walletAddress any = this.WalletAddress
-			if IsTrue(!IsEqual(this.PrivateKey, nil)) {
-				if IsTrue(IsGreaterThan(GetLength(this.PrivateKey), 66)) {
-					panic(NotSupported(Add(this.Id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")))
-				}
-				walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-			}
-			if IsTrue(IsTrue(IsEqual(walletAddress, nil)) || IsTrue(IsEqual(walletAddress, ""))) {
-				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(Add(this.Id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")))
-			}
-
-			res := (<-this.PublicGetAccountsByL1Address(map[string]any{
-				"l1_address": walletAddress,
-			}))
-			PanicOnError(res)
-			//
-			// {
-			//     "code": 200,
-			//     "l1_address": "0xaaaabbbb....ccccdddd",
-			//     "sub_accounts": [
-			//         {
-			//             "code": 0,
-			//             "account_type": 0,
-			//             "index": 666666,
-			//             "l1_address": "0xaaaabbbb....ccccdddd",
-			//             "cancel_all_time": 0,
-			//             "total_order_count": 0,
-			//             "total_isolated_order_count": 0,
-			//             "pending_order_count": 0,
-			//             "available_balance": "",
-			//             "status": 0,
-			//             "collateral": "40",
-			//             "transaction_time": 0,
-			//             "account_trading_mode": 0
-			//         }
-			//     ]
-			// }
-			//
-			var subAccounts any = this.SafeList(res, "sub_accounts")
-			if IsTrue(IsArray(subAccounts)) {
-				var account any = this.SafeDict(subAccounts, 0)
-				if IsTrue(IsEqual(account, nil)) {
-					panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(Add(this.Id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
-				}
-				accountIndex = GetValue(account, "index")
-				AddElementToObject(this.Options, "accountIndex", accountIndex)
-			}
-		}
-
-		ch <- []any{this.ParseToInt(accountIndex), params}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.handleAccountIndexBody(ch, params, methodName1, optionName1, optionName2, optionalArgs...)
 	return ch
 }
+func (this *LighterCore) handleAccountIndexBody(ch chan any, params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	_ = defaultValue
+	var accountIndex any = nil
+	accountIndexparamsVariable := this.HandleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue)
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	if IsTrue(IsEqual(accountIndex, nil)) {
+		var walletAddress any = this.WalletAddress
+		if IsTrue(!IsEqual(this.PrivateKey, nil)) {
+			if IsTrue(IsGreaterThan(GetLength(this.PrivateKey), 66)) {
+				panic(NotSupported(Add(this.Id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")))
+			}
+			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		}
+		if IsTrue(IsTrue(IsEqual(walletAddress, nil)) || IsTrue(IsEqual(walletAddress, ""))) {
+			panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(Add(this.Id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")))
+		}
+
+		res := (<-this.PublicGetAccountsByL1Address(map[string]any{
+			"l1_address": walletAddress,
+		}))
+		PanicOnError(res)
+		//
+		// {
+		//     "code": 200,
+		//     "l1_address": "0xaaaabbbb....ccccdddd",
+		//     "sub_accounts": [
+		//         {
+		//             "code": 0,
+		//             "account_type": 0,
+		//             "index": 666666,
+		//             "l1_address": "0xaaaabbbb....ccccdddd",
+		//             "cancel_all_time": 0,
+		//             "total_order_count": 0,
+		//             "total_isolated_order_count": 0,
+		//             "pending_order_count": 0,
+		//             "available_balance": "",
+		//             "status": 0,
+		//             "collateral": "40",
+		//             "transaction_time": 0,
+		//             "account_trading_mode": 0
+		//         }
+		//     ]
+		// }
+		//
+		var subAccounts any = this.SafeList(res, "sub_accounts")
+		if IsTrue(IsArray(subAccounts)) {
+			var account any = this.SafeDict(subAccounts, 0)
+			if IsTrue(IsEqual(account, nil)) {
+				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(Add(this.Id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
+			}
+			accountIndex = GetValue(account, "index")
+			AddElementToObject(this.Options, "accountIndex", accountIndex)
+		}
+	}
+
+	ch <- []any{this.ParseToInt(accountIndex), params}
+	return nil
+}
 func (this *LighterCore) CreateSubAccount(name any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "createSubAccount", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "createSubAccount", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		txTypetxInfoVariable := this.LighterSignCreateSubAccount(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		retRes55315 := (<-this.PublicPostSendTx(request))
-		PanicOnError(retRes55315)
-		ch <- retRes55315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createSubAccountBody(ch, name, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) createSubAccountBody(ch chan any, name any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "createSubAccount", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "createSubAccount", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	txTypetxInfoVariable := this.LighterSignCreateSubAccount(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	retRes55315 := (<-this.PublicPostSendTx(request))
+	PanicOnError(retRes55315)
+	ch <- retRes55315
+	return nil
 }
 func (this *LighterCore) CreateAuth(optionalArgs ...any) any {
 	// don't omit [accountIndex, apiKeyIndex], request may need them
@@ -734,7 +734,7 @@ func (this *LighterCore) CreateAuth(optionalArgs ...any) any {
 		}
 	}
 	var deadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineExpiry", 28800))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"deadline":      deadline,
 		"api_key_index": this.ParseToInt(apiKeyIndex),
 		"account_index": this.ParseToInt(accountIndex),
@@ -762,19 +762,19 @@ func (this *LighterCore) Pow(n any, m any) any {
 	return r
 }
 func (this *LighterCore) HashMessage(message any) any {
-	var binaryMessage any = this.Encode(message)
-	var binaryMessageLength any = this.BinaryLength(binaryMessage)
-	var x19 any = this.Base16ToBinary("19")
-	var newline any = this.Base16ToBinary("0a")
-	var prefix any = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
+	var binaryMessage string = this.Encode(message)
+	var binaryMessageLength int = this.BinaryLength(binaryMessage)
+	var x19 []byte = this.Base16ToBinary("19")
+	var newline []byte = this.Base16ToBinary("0a")
+	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func (this *LighterCore) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *LighterCore) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) any {
@@ -785,159 +785,159 @@ func (this *LighterCore) SignL1AndPrepareTxInfo(txInfo any, message any, private
 	return this.Json(decTxInfo)
 }
 func (this *LighterCore) HandleBuilderFeeApproval(accountIndex any, apiKeyIndex any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var buildFee any = this.SafeBool(this.Options, "builderFee", true)
-		if !IsTrue(buildFee) {
+	ch := make(chan any, 1)
+	go this.handleBuilderFeeApprovalBody(ch, accountIndex, apiKeyIndex)
+	return ch
+}
+func (this *LighterCore) handleBuilderFeeApprovalBody(ch chan any, accountIndex any, apiKeyIndex any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var buildFee any = this.SafeBool(this.Options, "builderFee", true)
+	if IsTrue(!IsEqual(buildFee, true)) {
 
-			ch <- false
-			return nil
-		}
-		var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
-		if IsTrue(approvedBuilderFee) {
-
-			ch <- true
-			return nil
-		}
-
-		{
-			func(this *LighterCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *LighterCore) any {
-							// catch block:
-							AddElementToObject(this.Options, "builderFee", false)
-							return nil
-						}(this)
-					}
-				}()
-				// try block:
-				var builder any = this.SafeInteger(this.Options, "integratorAccountIndex", 718718)
-				var takerFeeRate any = this.SafeInteger(this.Options, "integratorTakerFee", 1000)
-				var makerFeeRate any = this.SafeInteger(this.Options, "integratorMakerFee", 1000)
-
-				retRes64712 := (<-this.ApproveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex))
-				PanicOnError(retRes64712)
-				AddElementToObject(this.Options, "approvedBuilderFee", true)
-				return nil
-			}(this)
-
-		}
+		ch <- false
+		return nil
+	}
+	var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
+	if IsTrue(IsEqual(approvedBuilderFee, true)) {
 
 		ch <- true
 		return nil
+	}
 
-	}()
-	return ch
+	{
+		func(this *LighterCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *LighterCore) any {
+						// catch block:
+						AddElementToObject(this.Options, "builderFee", false)
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			var builder any = this.SafeInteger(this.Options, "integratorAccountIndex", 718718)
+			var takerFeeRate any = this.SafeInteger(this.Options, "integratorTakerFee", 1000)
+			var makerFeeRate any = this.SafeInteger(this.Options, "integratorMakerFee", 1000)
+
+			retRes64712 := (<-this.ApproveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex))
+			PanicOnError(retRes64712)
+			AddElementToObject(this.Options, "approvedBuilderFee", true)
+			return nil
+		}(this)
+
+	}
+
+	ch <- true
+	return nil
 }
 func (this *LighterCore) ApproveBuilderFee(builder any, takerFeeRate any, makerFeeRate any, accountIndex any, apiKeyIndex any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
-			"skipNonce": false,
-		})))
-		PanicOnError(nonce)
-		var expiry any = Add(this.Milliseconds(), Multiply(365, 864000))
-		var signRaw any = map[string]any{
-			"integrator_account_index": builder,
-			"integrator_taker_fee":     takerFeeRate,
-			"integrator_maker_fee":     makerFeeRate,
-			"approval_expiry":          expiry,
-			"nonce":                    nonce,
-			"api_key_index":            apiKeyIndex,
-			"account_index":            accountIndex,
-		}
-		txTypetxInfomessageToSignVariable := this.LighterSignApproveIntegrator(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfomessageToSignVariable, 0)
-		txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
-		messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
-		var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": newTxInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.approveBuilderFeeBody(ch, builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex, optionalArgs...)
 	return ch
 }
+func (this *LighterCore) approveBuilderFeeBody(ch chan any, builder any, takerFeeRate any, makerFeeRate any, accountIndex any, apiKeyIndex any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
+		"skipNonce": false,
+	})))
+	PanicOnError(nonce)
+	var expiry any = Add(this.Milliseconds(), Multiply(365, 864000))
+	var signRaw map[string]any = map[string]any{
+		"integrator_account_index": builder,
+		"integrator_taker_fee":     takerFeeRate,
+		"integrator_maker_fee":     makerFeeRate,
+		"approval_expiry":          expiry,
+		"nonce":                    nonce,
+		"api_key_index":            apiKeyIndex,
+		"account_index":            accountIndex,
+	}
+	txTypetxInfomessageToSignVariable := this.LighterSignApproveIntegrator(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
+	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
+	messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
+	var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": newTxInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- response
+	return nil
+}
 func (this *LighterCore) ChangeApiKey(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "changeApiKey", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "changeApiKey", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-		var signerNotLoad any = GetValue(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer")
-		privateKeypublicKeyVariable := this.LighterGenerateApiKey(signerNotLoad)
-		privateKey := GetValue(privateKeypublicKeyVariable, 0)
-		publicKey := GetValue(privateKeypublicKeyVariable, 1)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
-			"skipNonce": false,
-		})))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"pubkey":        this.Encode(publicKey),
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		// create lighter client
-		var signer any = this.LighterCreateClient(signerNotLoad, GetValue(this.Options, "chainId"), privateKey, apiKeyIndex, accountIndex)
-		txTypetxInfomessageToSignVariable := this.LighterSignChangePubkey(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfomessageToSignVariable, 0)
-		txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
-		messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
-		var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": newTxInfo,
-		}
-
-		retRes7048 := (<-this.PublicPostSendTx(request))
-		PanicOnError(retRes7048)
-		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey)
-		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer", signer) // reassign signer in go
-
-		retRes7078 := (<-this.HandleBuilderFeeApproval(accountIndex, apiKeyIndex))
-		PanicOnError(retRes7078)
-
-		ch <- signer
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.changeApiKeyBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "changeApiKey", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "changeApiKey", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+	var signerNotLoad any = GetValue(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer")
+	privateKeypublicKeyVariable := this.LighterGenerateApiKey(signerNotLoad)
+	privateKey := GetValue(privateKeypublicKeyVariable, 0)
+	publicKey := GetValue(privateKeypublicKeyVariable, 1)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, this.Extend(params, map[string]any{
+		"skipNonce": false,
+	})))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"pubkey":        this.Encode(publicKey),
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	// create lighter client
+	var signer any = this.LighterCreateClient(signerNotLoad, GetValue(this.Options, "chainId"), privateKey, apiKeyIndex, accountIndex)
+	txTypetxInfomessageToSignVariable := this.LighterSignChangePubkey(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
+	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
+	messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
+	var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": newTxInfo,
+	}
+
+	retRes7048 := (<-this.PublicPostSendTx(request))
+	PanicOnError(retRes7048)
+	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "lighterPrivateKey", privateKey)
+	AddElementToObject(GetValue(GetValue(GetValue(this.Options, "auths"), strAccountIndex), strApiKeyIndex), "signer", signer) // reassign signer in go
+
+	retRes7078 := (<-this.HandleBuilderFeeApproval(accountIndex, apiKeyIndex))
+	PanicOnError(retRes7078)
+
+	ch <- signer
+	return nil
 }
 func (this *LighterCore) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
@@ -976,10 +976,10 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
 	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false) // default false
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	var market any = this.Market(symbol)
-	var orderSide any = ToUpper(side)
-	var request any = map[string]any{
+	var orderSide string = ToUpper(side)
+	var request map[string]any = map[string]any{
 		"market_index": this.ParseToInt(GetValue(market, "id")),
 	}
 	var nonce any = nil
@@ -1010,8 +1010,8 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var takeProfit any = this.SafeValue(params, "takeProfit")
 	var hasStopLoss any = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
-	var isConditional any = (IsTrue(stopLossPrice) || IsTrue(takeProfitPrice))
-	var isMarketOrder any = (IsEqual(orderType, "MARKET"))
+	var isConditional bool = (IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil))))
+	var isMarketOrder bool = (IsEqual(orderType, "MARKET"))
 	var timeInForce any = this.SafeStringLower(params, "timeInForce", "gtt")
 	var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
 	params = this.Omit(params, []any{"stopLoss", "takeProfit", "timeInForce"})
@@ -1030,6 +1030,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	}
 	if IsTrue(postOnly) {
 		timeInForceNum = 2
+		orderExpiry = OpNeg(1)
 	} else {
 		if !IsTrue(isMarketOrder) {
 			if IsTrue(IsEqual(timeInForce, "ioc")) {
@@ -1046,8 +1047,8 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var priceStr any = this.PriceToPrecision(symbol, price)
 	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
 	var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
-	var triggerPriceStr any = "0"                     // default is 0
-	var defaultClientOrderId any = this.RandNumber(9) // c# only support int32 2147483647.
+	var triggerPriceStr any = "0"                       // default is 0
+	var defaultClientOrderId int64 = this.RandNumber(9) // c# only support int32 2147483647.
 	var clientOrderId any = this.SafeInteger2(params, "client_order_index", "clientOrderId", defaultClientOrderId)
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
 	if IsTrue(isConditional) {
@@ -1073,7 +1074,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	AddElementToObject(request, "order_expiry", orderExpiry)
 	AddElementToObject(request, "order_type", orderTypeNum)
 	AddElementToObject(request, "time_in_force", timeInForceNum)
-	AddElementToObject(request, "reduce_only", Ternary(IsTrue((reduceOnly)), 1, 0))
+	AddElementToObject(request, "reduce_only", Ternary(IsTrue((IsEqual(reduceOnly, true))), 1, 0))
 	AddElementToObject(request, "client_order_index", clientOrderId)
 	AddElementToObject(request, "base_amount", this.ParseToInt(Precise.StringMul(amountStr, amountScale)))
 	AddElementToObject(request, "avg_execution_price", this.ParseToInt(Precise.StringMul(priceStr, priceScale)))
@@ -1088,7 +1089,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		// group order
 		AddElementToObject(GetValue(orders, 0), "client_order_index", 0) // client order index should be 0
-		var triggerOrderSide any = ""
+		var triggerOrderSide string = ""
 		if IsTrue(IsEqual(side, "BUY")) {
 			triggerOrderSide = "sell"
 		} else {
@@ -1121,48 +1122,119 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	return orders
 }
 func (this *LighterCore) FetchNonce(accountIndex any, apiKeyIndex any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsTrue((IsEqual(accountIndex, nil))) || IsTrue((IsEqual(apiKeyIndex, nil)))) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchNonce() requires accountIndex and apiKeyIndex.")))
-		}
-		if IsTrue(InOp(params, "nonce")) {
-
-			ch <- this.SafeInteger(params, "nonce")
-			return nil
-		}
-		var nonceInOptions any = this.SafeInteger(this.Options, "nonce")
-		if IsTrue(!IsEqual(nonceInOptions, nil)) {
-
-			ch <- nonceInOptions
-			return nil
-		}
-		// avoid skipNonce for l1 operations
-		var skipNonce any = true
-		skipNonceparamsVariable := this.HandleOptionAndParams(params, "fetchNonce", "skipNonce", true)
-		skipNonce = GetValue(skipNonceparamsVariable, 0)
-		params = GetValue(skipNonceparamsVariable, 1)
-		if IsTrue(skipNonce) {
-
-			ch <- this.Milliseconds()
-			return nil
-		}
-
-		response := (<-this.PublicGetNextNonce(map[string]any{
-			"account_index": accountIndex,
-			"api_key_index": apiKeyIndex,
-		}))
-		PanicOnError(response)
-
-		ch <- this.SafeInteger(response, "nonce")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchNonceBody(ch, accountIndex, apiKeyIndex, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsTrue((IsEqual(accountIndex, nil))) || IsTrue((IsEqual(apiKeyIndex, nil)))) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchNonce() requires accountIndex and apiKeyIndex.")))
+	}
+	if IsTrue(InOp(params, "nonce")) {
+
+		ch <- this.SafeInteger(params, "nonce")
+		return nil
+	}
+	var nonceInOptions any = this.SafeInteger(this.Options, "nonce")
+	if IsTrue(!IsEqual(nonceInOptions, nil)) {
+
+		ch <- nonceInOptions
+		return nil
+	}
+	// avoid skipNonce for l1 operations
+	var skipNonce any = true
+	skipNonceparamsVariable := this.HandleOptionAndParams(params, "fetchNonce", "skipNonce", true)
+	skipNonce = GetValue(skipNonceparamsVariable, 0)
+	params = GetValue(skipNonceparamsVariable, 1)
+	if IsTrue(skipNonce) {
+
+		ch <- this.Milliseconds()
+		return nil
+	}
+
+	response := (<-this.PublicGetNextNonce(map[string]any{
+		"account_index": accountIndex,
+		"api_key_index": apiKeyIndex,
+	}))
+	PanicOnError(response)
+
+	ch <- this.SafeInteger(response, "nonce")
+	return nil
+}
+func (this *LighterCore) SignAndCreateOrder(method any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.signAndCreateOrderBody(ch, method, symbol, typeVar, side, amount, optionalArgs...)
+	return ch
+}
+func (this *LighterCore) signAndCreateOrderBody(ch chan any, method any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes90612 := (<-this.LoadMarkets())
+		PanicOnError(retRes90612)
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, method, "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	AddElementToObject(params, "accountIndex", accountIndex)
+	var market any = this.Market(symbol)
+	var groupingType any = nil
+	groupingTypeparamsVariable := this.HandleOptionAndParams(params, method, "groupingType", 3)
+	groupingType = GetValue(groupingTypeparamsVariable, 0)
+	params = GetValue(groupingTypeparamsVariable, 1) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+	var orderRequests any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var totalOrderRequests int = GetArrayLength(orderRequests)
+	var apiKeyIndex any = nil
+	var order any = nil
+	if IsTrue(IsGreaterThan(totalOrderRequests, 0)) {
+		order = GetValue(orderRequests, 0)
+		apiKeyIndex = GetValue(order, "api_key_index")
+	}
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	// the nonce could be updated
+	if IsTrue(IsEqual(this.SafeInteger(order, "nonce"), nil)) {
+		AddElementToObject(order, "nonce", (<-this.FetchNonce(accountIndex, apiKeyIndex)))
+	}
+	var txType any = nil
+	var txInfo any = nil
+	if IsTrue(IsLessThan(totalOrderRequests, 2)) {
+		txTypetxInfoVariable := this.LighterSignCreateOrder(signer, order)
+		txType = GetValue(txTypetxInfoVariable, 0)
+		txInfo = GetValue(txTypetxInfoVariable, 1)
+	} else {
+		var signingPayload map[string]any = map[string]any{
+			"grouping_type": groupingType,
+			"orders":        orderRequests,
+			"nonce":         GetValue(order, "nonce"),
+			"api_key_index": apiKeyIndex,
+			"account_index": accountIndex,
+		}
+		if IsTrue(this.SafeBool(this.Options, "builderFee", true)) {
+			AddElementToObject(signingPayload, "integrator_account_index", GetValue(order, "integrator_account_index"))
+			AddElementToObject(signingPayload, "integrator_taker_fee", GetValue(order, "integrator_taker_fee"))
+			AddElementToObject(signingPayload, "integrator_maker_fee", GetValue(order, "integrator_maker_fee"))
+		}
+		txTypetxInfoVariable := this.LighterSignCreateGroupedOrders(signer, signingPayload)
+		txType = GetValue(txTypetxInfoVariable, 0)
+		txInfo = GetValue(txTypetxInfoVariable, 1)
+	}
+
+	ch <- []any{txType, txInfo, order, market}
+	return nil
 }
 
 /**
@@ -1186,91 +1258,40 @@ func (this *LighterCore) FetchNonce(accountIndex any, apiKeyIndex any, optionalA
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *LighterCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes92512 := (<-this.LoadMarkets())
-			PanicOnError(retRes92512)
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "createOrder", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		AddElementToObject(params, "accountIndex", accountIndex)
-		var market any = this.Market(symbol)
-		var groupingType any = nil
-		groupingTypeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "groupingType", 3)
-		groupingType = GetValue(groupingTypeparamsVariable, 0)
-		params = GetValue(groupingTypeparamsVariable, 1) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-		var orderRequests any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		// for php
-		var totalOrderRequests any = GetArrayLength(orderRequests)
-		var apiKeyIndex any = nil
-		var order any = nil
-		if IsTrue(IsGreaterThan(totalOrderRequests, 0)) {
-			order = GetValue(orderRequests, 0)
-			apiKeyIndex = GetValue(order, "api_key_index")
-		}
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		// the nonce could be updated
-		if IsTrue(IsEqual(this.SafeInteger(order, "nonce"), nil)) {
-			AddElementToObject(order, "nonce", (<-this.FetchNonce(accountIndex, apiKeyIndex)))
-		}
-		var txType any = nil
-		var txInfo any = nil
-		if IsTrue(IsLessThan(totalOrderRequests, 2)) {
-			txTypetxInfoVariable := this.LighterSignCreateOrder(signer, order)
-			txType = GetValue(txTypetxInfoVariable, 0)
-			txInfo = GetValue(txTypetxInfoVariable, 1)
-		} else {
-			var signingPayload any = map[string]any{
-				"grouping_type": groupingType,
-				"orders":        orderRequests,
-				"nonce":         GetValue(order, "nonce"),
-				"api_key_index": apiKeyIndex,
-				"account_index": accountIndex,
-			}
-			if IsTrue(this.SafeBool(this.Options, "builderFee", true)) {
-				AddElementToObject(signingPayload, "integrator_account_index", GetValue(order, "integrator_account_index"))
-				AddElementToObject(signingPayload, "integrator_taker_fee", GetValue(order, "integrator_taker_fee"))
-				AddElementToObject(signingPayload, "integrator_maker_fee", GetValue(order, "integrator_maker_fee"))
-			}
-			txTypetxInfoVariable := this.LighterSignCreateGroupedOrders(signer, signingPayload)
-			txType = GetValue(txTypetxInfoVariable, 0)
-			txInfo = GetValue(txTypetxInfoVariable, 1)
-		}
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		//
-		// {
-		//     "code": 200,
-		//     "message": "{\"ratelimit\": \"didn't use volume quota\"}",
-		//     "tx_hash": "txhash",
-		//     "predicted_execution_time_ms": 1766088500120
-		// }
-		//
-		ch <- this.ParseOrder(this.DeepExtend(response, order), market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	txTypetxInfoordermarketVariable := (<-this.SignAndCreateOrder("createOrder", symbol, typeVar, side, amount, price, params))
+	txType := GetValue(txTypetxInfoordermarketVariable, 0)
+	txInfo := GetValue(txTypetxInfoordermarketVariable, 1)
+	order := GetValue(txTypetxInfoordermarketVariable, 2)
+	market := GetValue(txTypetxInfoordermarketVariable, 3)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	//
+	// {
+	//     "code": 200,
+	//     "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+	//     "tx_hash": "txhash",
+	//     "predicted_execution_time_ms": 1766088500120
+	// }
+	//
+	ch <- this.ParseOrder(this.DeepExtend(response, order), market)
+	return nil
 }
 
 /**
@@ -1289,83 +1310,83 @@ func (this *LighterCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *LighterCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes100112 := (<-this.LoadMarkets())
-			PanicOnError(retRes100112)
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "editOrder", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "editOrder", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		var market any = this.Market(symbol)
-		var marketInfo any = this.SafeDict(market, "info", map[string]any{})
-		var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
-		var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
-		var triggerPrice any = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
-		params = this.Omit(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
-		var amountStr any = nil
-		var priceStr any = this.PriceToPrecision(symbol, price)
-		var triggerPriceStr any = "0" // default is 0
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			amountStr = this.NumberToString(amount)
-			triggerPriceStr = this.PriceToPrecision(symbol, triggerPrice)
-		} else {
-			amountStr = this.AmountToPrecision(symbol, amount)
-		}
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"market_index":  this.ParseToInt(GetValue(market, "id")),
-			"index":         this.ParseToInt(id),
-			"base_amount":   this.ParseToInt(Precise.StringMul(amountStr, amountScale)),
-			"price":         this.ParseToInt(Precise.StringMul(priceStr, priceScale)),
-			"trigger_price": this.ParseToInt(Precise.StringMul(triggerPriceStr, priceScale)),
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		if IsTrue(this.SafeBool(this.Options, "builderFee", true)) {
-			AddElementToObject(signRaw, "integrator_account_index", GetValue(this.Options, "integratorAccountIndex"))
-			AddElementToObject(signRaw, "integrator_taker_fee", GetValue(this.Options, "integratorTakerFee"))
-			AddElementToObject(signRaw, "integrator_maker_fee", GetValue(this.Options, "integratorMakerFee"))
-		}
-		txTypetxInfoVariable := this.LighterSignModifyOrder(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes100612 := (<-this.LoadMarkets())
+		PanicOnError(retRes100612)
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "editOrder", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "editOrder", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	var market any = this.Market(symbol)
+	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
+	var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
+	var triggerPrice any = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	var amountStr any = nil
+	var priceStr any = this.PriceToPrecision(symbol, price)
+	var triggerPriceStr any = "0" // default is 0
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		amountStr = this.NumberToString(amount)
+		triggerPriceStr = this.PriceToPrecision(symbol, triggerPrice)
+	} else {
+		amountStr = this.AmountToPrecision(symbol, amount)
+	}
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"market_index":  this.ParseToInt(GetValue(market, "id")),
+		"index":         this.ParseToInt(id),
+		"base_amount":   this.ParseToInt(Precise.StringMul(amountStr, amountScale)),
+		"price":         this.ParseToInt(Precise.StringMul(priceStr, priceScale)),
+		"trigger_price": this.ParseToInt(Precise.StringMul(triggerPriceStr, priceScale)),
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	if IsTrue(this.SafeBool(this.Options, "builderFee", true)) {
+		AddElementToObject(signRaw, "integrator_account_index", GetValue(this.Options, "integratorAccountIndex"))
+		AddElementToObject(signRaw, "integrator_taker_fee", GetValue(this.Options, "integratorTakerFee"))
+		AddElementToObject(signRaw, "integrator_maker_fee", GetValue(this.Options, "integratorMakerFee"))
+	}
+	txTypetxInfoVariable := this.LighterSignModifyOrder(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -1377,35 +1398,35 @@ func (this *LighterCore) EditOrder(id any, symbol any, typeVar any, side any, op
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *LighterCore) FetchStatus(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.RootGet(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "status": "1",
-		//         "network_id": "1",
-		//         "timestamp": "1717777777"
-		//     }
-		//
-		var status any = this.SafeString(response, "status")
-
-		ch <- map[string]any{
-			"status":  Ternary(IsTrue((IsEqual(status, "200"))), "ok", "error"),
-			"updated": nil,
-			"eta":     nil,
-			"url":     nil,
-			"info":    response,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.RootGet(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "status": "1",
+	//         "network_id": "1",
+	//         "timestamp": "1717777777"
+	//     }
+	//
+	var status any = this.SafeString(response, "status")
+
+	ch <- map[string]any{
+		"status":  Ternary(IsTrue((IsEqual(status, "200"))), "ok", "error"),
+		"updated": nil,
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
+	}
+	return nil
 }
 
 /**
@@ -1417,28 +1438,28 @@ func (this *LighterCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *LighterCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.RootGet(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "status": "1",
-		//         "network_id": "1",
-		//         "timestamp": "1717777777"
-		//     }
-		//
-		ch <- this.SafeTimestamp(response, "timestamp")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.RootGet(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "status": "1",
+	//         "network_id": "1",
+	//         "timestamp": "1717777777"
+	//     }
+	//
+	ch <- this.SafeTimestamp(response, "timestamp")
+	return nil
 }
 
 /**
@@ -1450,180 +1471,180 @@ func (this *LighterCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *LighterCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetOrderBookDetails(params))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "200",
-		//        "message": "string",
-		//        "order_book_details": [
-		//            {
-		//                "symbol": "ETH",
-		//                "market_id": 0,
-		//                "market_type": "perp",
-		//                "base_asset_id": 0,
-		//                "quote_asset_id": 0,
-		//                "status": "active",
-		//                "taker_fee": "0.0001",
-		//                "maker_fee": "0.0000",
-		//                "liquidation_fee": "0.01",
-		//                "min_base_amount": "0.01",
-		//                "min_quote_amount": "0.1",
-		//                "supported_size_decimals": "4",
-		//                "supported_price_decimals": "4",
-		//                "supported_quote_decimals": "4",
-		//                "order_quote_limit": "281474976.710655",
-		//                "size_decimals": "4",
-		//                "price_decimals": "4",
-		//                "quote_multiplier": "10000",
-		//                "default_initial_margin_fraction": "100",
-		//                "min_initial_margin_fraction": "100",
-		//                "maintenance_margin_fraction": "50",
-		//                "closeout_margin_fraction": "100",
-		//                "last_trade_price": "3024.66",
-		//                "daily_trades_count": "68",
-		//                "daily_base_token_volume": "235.25",
-		//                "daily_quote_token_volume": "93566.25",
-		//                "daily_price_low": "3014.66",
-		//                "daily_price_high": "3024.66",
-		//                "daily_price_change": "3.66",
-		//                "open_interest": "93.0",
-		//                "daily_chart": "{1640995200:3024.66}",
-		//                "market_config": {
-		//                    "market_margin_mode": 0,
-		//                    "insurance_fund_account_index": 281474976710655,
-		//                    "liquidation_mode": 0,
-		//                    "force_reduce_only": false,
-		//                    "funding_fee_discounts_enabled": true,
-		//                    "trading_hours": "",
-		//                    "hidden": true
-		//                },
-		//                "strategy_index": 0
-		//            }
-		//        ],
-		//        "spot_order_book_details": [
-		//            {
-		//                "symbol": "ETH/USDC",
-		//                "market_id": 2048,
-		//                "market_type": "spot",
-		//                "base_asset_id": 1,
-		//                "quote_asset_id": 3,
-		//                "status": "active",
-		//                "taker_fee": "0.0000",
-		//                "maker_fee": "0.0000",
-		//                "liquidation_fee": "0.0000",
-		//                "min_base_amount": "0.0001",
-		//                "min_quote_amount": "0.000001",
-		//                "order_quote_limit": "2500000.000000",
-		//                "supported_size_decimals": 4,
-		//                "supported_price_decimals": 2,
-		//                "supported_quote_decimals": 6,
-		//                "size_decimals": 4,
-		//                "price_decimals": 2,
-		//                "last_trade_price": 2731.79,
-		//                "daily_trades_count": 126993,
-		//                "daily_base_token_volume": 1203.0962,
-		//                "daily_quote_token_volume": 3516374.947553,
-		//                "daily_price_low": 2717.47,
-		//                "daily_price_high": 3044.21,
-		//                "daily_price_change": -10.2389493724579,
-		//                "daily_chart": "{1640995200:3024.66}"
-		//            }
-		//        ]
-		//    }
-		//
-		var spotMarkets any = this.SafeList(response, "spot_order_book_details", []any{})
-		var swapMarkets any = this.SafeList(response, "order_book_details", []any{})
-		var markets any = this.ArrayConcat(spotMarkets, swapMarkets)
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-			var market any = GetValue(markets, i)
-			var id any = this.SafeString(market, "market_id")
-			var typeVar any = this.SafeString(market, "market_type")
-			typeVar = Ternary(IsTrue((IsEqual(typeVar, "perp"))), "swap", typeVar)
-			var baseId any = this.SafeString(market, "symbol")
-			if IsTrue(IsTrue(!IsEqual(baseId, nil)) && IsTrue(!IsEqual(GetIndexOf(baseId, "/"), OpNeg(1)))) {
-				baseId = GetValue(Split(baseId, "/"), 0)
-			}
-			var quoteId any = "USDC"
-			var settleId any = Ternary(IsTrue((IsEqual(typeVar, "swap"))), "USDC", nil)
-			var base any = this.SafeCurrencyCode(baseId)
-			var quote any = this.SafeCurrencyCode(quoteId)
-			var settle any = this.SafeCurrencyCode(settleId)
-			var symbol any = Add(Add(base, "/"), quote)
-			if IsTrue(!IsEqual(settle, nil)) {
-				symbol = Add(Add(symbol, ":"), settle)
-			}
-			var amountDecimals any = this.SafeString2(market, "size_decimals", "supported_size_decimals")
-			var priceDecimals any = this.SafeString2(market, "price_decimals", "supported_price_decimals")
-			var amountPrecision any = Ternary(IsTrue((IsEqual(amountDecimals, nil))), nil, this.ParseNumber(this.ParsePrecision(amountDecimals)))
-			var pricePrecision any = Ternary(IsTrue((IsEqual(priceDecimals, nil))), nil, this.ParseNumber(this.ParsePrecision(priceDecimals)))
-			var quoteMultiplier any = this.SafeNumber(market, "quote_multiplier")
-			AppendToArray(&result, map[string]any{
-				"id":             id,
-				"symbol":         symbol,
-				"base":           base,
-				"quote":          quote,
-				"settle":         settle,
-				"baseId":         baseId,
-				"quoteId":        quoteId,
-				"settleId":       settleId,
-				"type":           typeVar,
-				"spot":           IsEqual(typeVar, "spot"),
-				"margin":         false,
-				"swap":           IsEqual(typeVar, "swap"),
-				"future":         false,
-				"option":         false,
-				"active":         IsEqual(this.SafeString(market, "status"), "active"),
-				"contract":       IsEqual(typeVar, "swap"),
-				"linear":         Ternary(IsTrue((IsEqual(typeVar, "swap"))), true, nil),
-				"inverse":        Ternary(IsTrue((IsEqual(typeVar, "swap"))), false, nil),
-				"taker":          this.SafeNumber(market, "taker_fee"),
-				"maker":          this.SafeNumber(market, "maker_fee"),
-				"contractSize":   quoteMultiplier,
-				"expiry":         nil,
-				"expiryDatetime": nil,
-				"strike":         nil,
-				"optionType":     nil,
-				"precision": map[string]any{
-					"amount": amountPrecision,
-					"price":  pricePrecision,
-				},
-				"limits": map[string]any{
-					"leverage": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"amount": map[string]any{
-						"min": this.SafeNumber(market, "min_base_amount"),
-						"max": nil,
-					},
-					"price": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"cost": map[string]any{
-						"min": this.SafeNumber(market, "min_quote_amount"),
-						"max": this.SafeNumber(market, "order_quote_limit"),
-					},
-				},
-				"created": nil,
-				"info":    market,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetOrderBookDetails(params))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "200",
+	//        "message": "string",
+	//        "order_book_details": [
+	//            {
+	//                "symbol": "ETH",
+	//                "market_id": 0,
+	//                "market_type": "perp",
+	//                "base_asset_id": 0,
+	//                "quote_asset_id": 0,
+	//                "status": "active",
+	//                "taker_fee": "0.0001",
+	//                "maker_fee": "0.0000",
+	//                "liquidation_fee": "0.01",
+	//                "min_base_amount": "0.01",
+	//                "min_quote_amount": "0.1",
+	//                "supported_size_decimals": "4",
+	//                "supported_price_decimals": "4",
+	//                "supported_quote_decimals": "4",
+	//                "order_quote_limit": "281474976.710655",
+	//                "size_decimals": "4",
+	//                "price_decimals": "4",
+	//                "quote_multiplier": "10000",
+	//                "default_initial_margin_fraction": "100",
+	//                "min_initial_margin_fraction": "100",
+	//                "maintenance_margin_fraction": "50",
+	//                "closeout_margin_fraction": "100",
+	//                "last_trade_price": "3024.66",
+	//                "daily_trades_count": "68",
+	//                "daily_base_token_volume": "235.25",
+	//                "daily_quote_token_volume": "93566.25",
+	//                "daily_price_low": "3014.66",
+	//                "daily_price_high": "3024.66",
+	//                "daily_price_change": "3.66",
+	//                "open_interest": "93.0",
+	//                "daily_chart": "{1640995200:3024.66}",
+	//                "market_config": {
+	//                    "market_margin_mode": 0,
+	//                    "insurance_fund_account_index": 281474976710655,
+	//                    "liquidation_mode": 0,
+	//                    "force_reduce_only": false,
+	//                    "funding_fee_discounts_enabled": true,
+	//                    "trading_hours": "",
+	//                    "hidden": true
+	//                },
+	//                "strategy_index": 0
+	//            }
+	//        ],
+	//        "spot_order_book_details": [
+	//            {
+	//                "symbol": "ETH/USDC",
+	//                "market_id": 2048,
+	//                "market_type": "spot",
+	//                "base_asset_id": 1,
+	//                "quote_asset_id": 3,
+	//                "status": "active",
+	//                "taker_fee": "0.0000",
+	//                "maker_fee": "0.0000",
+	//                "liquidation_fee": "0.0000",
+	//                "min_base_amount": "0.0001",
+	//                "min_quote_amount": "0.000001",
+	//                "order_quote_limit": "2500000.000000",
+	//                "supported_size_decimals": 4,
+	//                "supported_price_decimals": 2,
+	//                "supported_quote_decimals": 6,
+	//                "size_decimals": 4,
+	//                "price_decimals": 2,
+	//                "last_trade_price": 2731.79,
+	//                "daily_trades_count": 126993,
+	//                "daily_base_token_volume": 1203.0962,
+	//                "daily_quote_token_volume": 3516374.947553,
+	//                "daily_price_low": 2717.47,
+	//                "daily_price_high": 3044.21,
+	//                "daily_price_change": -10.2389493724579,
+	//                "daily_chart": "{1640995200:3024.66}"
+	//            }
+	//        ]
+	//    }
+	//
+	var spotMarkets any = this.SafeList(response, "spot_order_book_details", []any{})
+	var swapMarkets any = this.SafeList(response, "order_book_details", []any{})
+	var markets any = this.ArrayConcat(spotMarkets, swapMarkets)
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
+		var market any = GetValue(markets, i)
+		var id any = this.SafeString(market, "market_id")
+		var typeVar any = this.SafeString(market, "market_type")
+		typeVar = Ternary(IsTrue((IsEqual(typeVar, "perp"))), "swap", typeVar)
+		var baseId any = this.SafeString(market, "symbol")
+		if IsTrue(IsTrue(!IsEqual(baseId, nil)) && IsTrue(!IsEqual(GetIndexOf(baseId, "/"), OpNeg(1)))) {
+			baseId = GetValue(Split(baseId, "/"), 0)
+		}
+		var quoteId string = "USDC"
+		var settleId any = Ternary(IsTrue((IsEqual(typeVar, "swap"))), "USDC", nil)
+		var base any = this.SafeCurrencyCode(baseId)
+		var quote any = this.SafeCurrencyCode(quoteId)
+		var settle any = this.SafeCurrencyCode(settleId)
+		var symbol any = Add(Add(base, "/"), quote)
+		if IsTrue(!IsEqual(settle, nil)) {
+			symbol = Add(Add(symbol, ":"), settle)
+		}
+		var amountDecimals any = this.SafeString2(market, "size_decimals", "supported_size_decimals")
+		var priceDecimals any = this.SafeString2(market, "price_decimals", "supported_price_decimals")
+		var amountPrecision any = Ternary(IsTrue((IsEqual(amountDecimals, nil))), nil, this.ParseNumber(this.ParsePrecision(amountDecimals)))
+		var pricePrecision any = Ternary(IsTrue((IsEqual(priceDecimals, nil))), nil, this.ParseNumber(this.ParsePrecision(priceDecimals)))
+		var quoteMultiplier any = this.SafeNumber(market, "quote_multiplier")
+		AppendToArray(&result, map[string]any{
+			"id":             id,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           IsEqual(typeVar, "spot"),
+			"margin":         false,
+			"swap":           IsEqual(typeVar, "swap"),
+			"future":         false,
+			"option":         false,
+			"active":         IsEqual(this.SafeString(market, "status"), "active"),
+			"contract":       IsEqual(typeVar, "swap"),
+			"linear":         Ternary(IsTrue((IsEqual(typeVar, "swap"))), true, nil),
+			"inverse":        Ternary(IsTrue((IsEqual(typeVar, "swap"))), false, nil),
+			"taker":          this.SafeNumber(market, "taker_fee"),
+			"maker":          this.SafeNumber(market, "maker_fee"),
+			"contractSize":   quoteMultiplier,
+			"expiry":         nil,
+			"expiryDatetime": nil,
+			"strike":         nil,
+			"optionType":     nil,
+			"precision": map[string]any{
+				"amount": amountPrecision,
+				"price":  pricePrecision,
+			},
+			"limits": map[string]any{
+				"leverage": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"amount": map[string]any{
+					"min": this.SafeNumber(market, "min_base_amount"),
+					"max": nil,
+				},
+				"price": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"cost": map[string]any{
+					"min": this.SafeNumber(market, "min_quote_amount"),
+					"max": this.SafeNumber(market, "order_quote_limit"),
+				},
+			},
+			"created": nil,
+			"info":    market,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 
 /**
@@ -1635,51 +1656,51 @@ func (this *LighterCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *LighterCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetAssetDetails(params))
-		PanicOnError(response)
-		if IsTrue(this.CheckRequiredCredentials(false)) {
-
-			retRes128012 := (<-this.PreLoadLighterLibrary())
-			PanicOnError(retRes128012)
-		}
-		//
-		//     {
-		//         "code": 200,
-		//         "asset_details": [
-		//             {
-		//                 "asset_id": 3,
-		//                 "symbol": "USDC",
-		//                 "l1_decimals": 6,
-		//                 "decimals": 6,
-		//                 "min_transfer_amount": "1.000000",
-		//                 "min_withdrawal_amount": "1.000000",
-		//                 "margin_mode": "enabled",
-		//                 "index_price": "1.000000",
-		//                 "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "asset_details", []any{})
-
-		ch <- this.ParseCurrencies(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetAssetDetails(params))
+	PanicOnError(response)
+	if IsTrue(this.CheckRequiredCredentials(false)) {
+
+		retRes128512 := (<-this.PreLoadLighterLibrary())
+		PanicOnError(retRes128512)
+	}
+	//
+	//     {
+	//         "code": 200,
+	//         "asset_details": [
+	//             {
+	//                 "asset_id": 3,
+	//                 "symbol": "USDC",
+	//                 "l1_decimals": 6,
+	//                 "decimals": 6,
+	//                 "min_transfer_amount": "1.000000",
+	//                 "min_withdrawal_amount": "1.000000",
+	//                 "margin_mode": "enabled",
+	//                 "index_price": "1.000000",
+	//                 "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "asset_details", []any{})
+
+	ch <- this.ParseCurrencies(data)
+	return nil
 }
 func (this *LighterCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "asset_id")
 	var code any = this.SafeCurrencyCode(this.SafeString(rawCurrency, "symbol"))
 	var decimals any = this.SafeString(rawCurrency, "decimals")
-	var isUSDC any = (IsEqual(code, "USDC"))
+	var isUSDC bool = (IsEqual(code, "USDC"))
 	var depositMin any = nil
 	var withdrawMin any = nil
 	if IsTrue(isUSDC) {
@@ -1722,69 +1743,69 @@ func (this *LighterCore) ParseCurrency(rawCurrency any) any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *LighterCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOrderBook() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes135512 := (<-this.LoadMarkets())
-			PanicOnError(retRes135512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"market_id": GetValue(market, "id"),
-			"limit":     100,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 100))
-		}
-
-		response := (<-this.PublicGetOrderBookOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "total_asks": 1,
-		//         "asks": [
-		//             {
-		//                 "order_index": 281475565888172,
-		//                 "order_id": "281475565888172",
-		//                 "owner_account_index": 134436,
-		//                 "initial_base_amount": "0.2000",
-		//                 "remaining_base_amount": "0.2000",
-		//                 "price": "3430.00",
-		//                 "order_expiry": 1765419046808
-		//             }
-		//         ],
-		//         "total_bids": 1,
-		//         "bids": [
-		//             {
-		//                 "order_index": 562949401225099,
-		//                 "order_id": "562949401225099",
-		//                 "owner_account_index": 314236,
-		//                 "initial_base_amount": "1.7361",
-		//                 "remaining_base_amount": "1.3237",
-		//                 "price": "3429.80",
-		//                 "order_expiry": 1765419047587
-		//             }
-		//         ]
-		//     }
-		//
-		var result any = this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "remaining_base_amount")
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOrderBook() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes136012 := (<-this.LoadMarkets())
+		PanicOnError(retRes136012)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"market_id": GetValue(market, "id"),
+		"limit":     100,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 100))
+	}
+
+	response := (<-this.PublicGetOrderBookOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "total_asks": 1,
+	//         "asks": [
+	//             {
+	//                 "order_index": 281475565888172,
+	//                 "order_id": "281475565888172",
+	//                 "owner_account_index": 134436,
+	//                 "initial_base_amount": "0.2000",
+	//                 "remaining_base_amount": "0.2000",
+	//                 "price": "3430.00",
+	//                 "order_expiry": 1765419046808
+	//             }
+	//         ],
+	//         "total_bids": 1,
+	//         "bids": [
+	//             {
+	//                 "order_index": 562949401225099,
+	//                 "order_id": "562949401225099",
+	//                 "owner_account_index": 314236,
+	//                 "initial_base_amount": "1.7361",
+	//                 "remaining_base_amount": "1.3237",
+	//                 "price": "3429.80",
+	//                 "order_expiry": 1765419047587
+	//             }
+	//         ]
+	//     }
+	//
+	var result any = this.ParseOrderBook(response, GetValue(market, "symbol"), nil, "bids", "asks", "price", "remaining_base_amount")
+
+	ch <- result
+	return nil
 }
 func (this *LighterCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -1896,81 +1917,81 @@ func (this *LighterCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LighterCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchTicker() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes151112 := (<-this.LoadMarkets())
-			PanicOnError(retRes151112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"market_id": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetOrderBookDetails(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "order_book_details": [
-		//             {
-		//                 "symbol": "ETH",
-		//                 "market_id": 0,
-		//                 "status": "active",
-		//                 "taker_fee": "0.0000",
-		//                 "maker_fee": "0.0000",
-		//                 "liquidation_fee": "1.0000",
-		//                 "min_base_amount": "0.0050",
-		//                 "min_quote_amount": "10.000000",
-		//                 "order_quote_limit": "",
-		//                 "supported_size_decimals": 4,
-		//                 "supported_price_decimals": 2,
-		//                 "supported_quote_decimals": 6,
-		//                 "size_decimals": 4,
-		//                 "price_decimals": 2,
-		//                 "quote_multiplier": 1,
-		//                 "default_initial_margin_fraction": 500,
-		//                 "min_initial_margin_fraction": 200,
-		//                 "maintenance_margin_fraction": 120,
-		//                 "closeout_margin_fraction": 80,
-		//                 "last_trade_price": 3550.69,
-		//                 "daily_trades_count": 1197349,
-		//                 "daily_base_token_volume": 481297.3509,
-		//                 "daily_quote_token_volume": 1671431095.263844,
-		//                 "daily_price_low": 3402.41,
-		//                 "daily_price_high": 3571.45,
-		//                 "daily_price_change": 0.5294300840859545,
-		//                 "open_interest": 39559.3278,
-		//                 "daily_chart": {},
-		//                 "market_config": {
-		//                     "market_margin_mode": 0,
-		//                     "insurance_fund_account_index": 281474976710655,
-		//                     "liquidation_mode": 0,
-		//                     "force_reduce_only": false,
-		//                     "trading_hours": ""
-		//                 }
-		//             }
-		//         ]
-		//     }
-		//
-		var spotTickers any = this.SafeList(response, "spot_order_book_details", []any{})
-		var swapTickers any = this.SafeList(response, "order_book_details", []any{})
-		var tickers any = this.ArrayConcat(spotTickers, swapTickers)
-		var first any = this.SafeDict(tickers, 0, map[string]any{})
-
-		ch <- this.ParseTicker(first, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchTicker() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes151612 := (<-this.LoadMarkets())
+		PanicOnError(retRes151612)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"market_id": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetOrderBookDetails(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "order_book_details": [
+	//             {
+	//                 "symbol": "ETH",
+	//                 "market_id": 0,
+	//                 "status": "active",
+	//                 "taker_fee": "0.0000",
+	//                 "maker_fee": "0.0000",
+	//                 "liquidation_fee": "1.0000",
+	//                 "min_base_amount": "0.0050",
+	//                 "min_quote_amount": "10.000000",
+	//                 "order_quote_limit": "",
+	//                 "supported_size_decimals": 4,
+	//                 "supported_price_decimals": 2,
+	//                 "supported_quote_decimals": 6,
+	//                 "size_decimals": 4,
+	//                 "price_decimals": 2,
+	//                 "quote_multiplier": 1,
+	//                 "default_initial_margin_fraction": 500,
+	//                 "min_initial_margin_fraction": 200,
+	//                 "maintenance_margin_fraction": 120,
+	//                 "closeout_margin_fraction": 80,
+	//                 "last_trade_price": 3550.69,
+	//                 "daily_trades_count": 1197349,
+	//                 "daily_base_token_volume": 481297.3509,
+	//                 "daily_quote_token_volume": 1671431095.263844,
+	//                 "daily_price_low": 3402.41,
+	//                 "daily_price_high": 3571.45,
+	//                 "daily_price_change": 0.5294300840859545,
+	//                 "open_interest": 39559.3278,
+	//                 "daily_chart": {},
+	//                 "market_config": {
+	//                     "market_margin_mode": 0,
+	//                     "insurance_fund_account_index": 281474976710655,
+	//                     "liquidation_mode": 0,
+	//                     "force_reduce_only": false,
+	//                     "trading_hours": ""
+	//                 }
+	//             }
+	//         ]
+	//     }
+	//
+	var spotTickers any = this.SafeList(response, "spot_order_book_details", []any{})
+	var swapTickers any = this.SafeList(response, "order_book_details", []any{})
+	var tickers any = this.ArrayConcat(spotTickers, swapTickers)
+	var first any = this.SafeDict(tickers, 0, map[string]any{})
+
+	ch <- this.ParseTicker(first, market)
+	return nil
 }
 
 /**
@@ -1983,32 +2004,32 @@ func (this *LighterCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LighterCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes158012 := (<-this.LoadMarkets())
-			PanicOnError(retRes158012)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.PublicGetOrderBookDetails(params))
-		PanicOnError(response)
-		var spotTickers any = this.SafeList(response, "spot_order_book_details", []any{})
-		var swapTickers any = this.SafeList(response, "order_book_details", []any{})
-		var tickers any = this.ArrayConcat(spotTickers, swapTickers)
-
-		ch <- this.ParseTickers(tickers, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes158512 := (<-this.LoadMarkets())
+		PanicOnError(retRes158512)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.PublicGetOrderBookDetails(params))
+	PanicOnError(response)
+	var spotTickers any = this.SafeList(response, "spot_order_book_details", []any{})
+	var swapTickers any = this.SafeList(response, "order_book_details", []any{})
+	var tickers any = this.ArrayConcat(spotTickers, swapTickers)
+
+	ch <- this.ParseTickers(tickers, symbols)
+	return nil
 }
 func (this *LighterCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -2046,90 +2067,90 @@ func (this *LighterCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *LighterCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1h")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes163512 := (<-this.LoadMarkets())
-			PanicOnError(retRes163512)
-		}
-		var market any = this.Market(symbol)
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, []any{"until"})
-		var now any = this.Milliseconds()
-		var startTs any = nil
-		var endTs any = nil
-		if IsTrue(!IsEqual(since, nil)) {
-			startTs = since
-			if IsTrue(!IsEqual(until, nil)) {
-				endTs = until
-			} else if IsTrue(!IsEqual(limit, nil)) {
-				var duration any = this.ParseTimeframe(timeframe)
-				endTs = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
-			} else {
-				endTs = now
-			}
-		} else {
-			endTs = Ternary(IsTrue((!IsEqual(until, nil))), until, now)
-			var defaultLimit any = 100
-			if IsTrue(!IsEqual(limit, nil)) {
-				startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
-			} else {
-				startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), defaultLimit))
-			}
-		}
-		var request any = map[string]any{
-			"market_id":       GetValue(market, "id"),
-			"count_back":      0,
-			"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
-			"start_timestamp": startTs,
-			"end_timestamp":   endTs,
-		}
-
-		response := (<-this.PublicGetCandles(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "code": 200,
-		//     "r": "1m",
-		//     "c": [
-		//         {
-		//             "t": 1767700500000,
-		//             "o": 3236.86,
-		//             "h": 3237.78,
-		//             "l": 3235.36,
-		//             "c": 3235.39,
-		//             "v": 55.1632,
-		//             "V": 178530.793575,
-		//             "i": 779870452,
-		//             "C": "string",
-		//             "H": "string",
-		//             "L": "string",
-		//             "O": "string"
-		//         }
-		//     ]
-		// }
-		//
-		var ohlcvs any = this.SafeList(response, "c", []any{})
-
-		ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1h")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes164012 := (<-this.LoadMarkets())
+		PanicOnError(retRes164012)
+	}
+	var market any = this.Market(symbol)
+	var until any = this.SafeInteger(params, "until")
+	params = this.Omit(params, []any{"until"})
+	var now int64 = this.Milliseconds()
+	var startTs any = nil
+	var endTs any = nil
+	if IsTrue(!IsEqual(since, nil)) {
+		startTs = since
+		if IsTrue(!IsEqual(until, nil)) {
+			endTs = until
+		} else if IsTrue(!IsEqual(limit, nil)) {
+			var duration any = this.ParseTimeframe(timeframe)
+			endTs = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
+		} else {
+			endTs = now
+		}
+	} else {
+		endTs = Ternary(IsTrue((!IsEqual(until, nil))), until, now)
+		var defaultLimit int = 100
+		if IsTrue(!IsEqual(limit, nil)) {
+			startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
+		} else {
+			startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), defaultLimit))
+		}
+	}
+	var request map[string]any = map[string]any{
+		"market_id":       GetValue(market, "id"),
+		"count_back":      0,
+		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
+		"start_timestamp": startTs,
+		"end_timestamp":   endTs,
+	}
+
+	response := (<-this.PublicGetCandles(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "code": 200,
+	//     "r": "1m",
+	//     "c": [
+	//         {
+	//             "t": 1767700500000,
+	//             "o": 3236.86,
+	//             "h": 3237.78,
+	//             "l": 3235.36,
+	//             "c": 3235.39,
+	//             "v": 55.1632,
+	//             "V": 178530.793575,
+	//             "i": 779870452,
+	//             "C": "string",
+	//             "H": "string",
+	//             "L": "string",
+	//             "O": "string"
+	//         }
+	//     ]
+	// }
+	//
+	var ohlcvs any = this.SafeList(response, "c", []any{})
+
+	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
+	return nil
 }
 func (this *LighterCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
@@ -2175,49 +2196,49 @@ func (this *LighterCore) ParseFundingRate(contract any, optionalArgs ...any) any
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *LighterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes173912 := (<-this.LoadMarkets())
-			PanicOnError(retRes173912)
-		}
-
-		response := (<-this.PublicGetFundingRates(this.Extend(params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "funding_rates": [
-		//             {
-		//                 "market_id": 0,
-		//                 "exchange": "lighter",
-		//                 "symbol": "ETH",
-		//                 "rate": 0.00009599999999999999
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "funding_rates", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var exchange any = this.SafeString(GetValue(data, i), "exchange")
-			if IsTrue(IsEqual(exchange, "lighter")) {
-				AppendToArray(&result, GetValue(data, i))
-			}
-		}
-
-		ch <- this.ParseFundingRates(result, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes174412 := (<-this.LoadMarkets())
+		PanicOnError(retRes174412)
+	}
+
+	response := (<-this.PublicGetFundingRates(this.Extend(params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "funding_rates": [
+	//             {
+	//                 "market_id": 0,
+	//                 "exchange": "lighter",
+	//                 "symbol": "ETH",
+	//                 "rate": 0.00009599999999999999
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "funding_rates", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var exchange any = this.SafeString(GetValue(data, i), "exchange")
+		if IsTrue(IsEqual(exchange, "lighter")) {
+			AppendToArray(&result, GetValue(data, i))
+		}
+	}
+
+	ch <- this.ParseFundingRates(result, symbols)
+	return nil
 }
 
 /**
@@ -2232,110 +2253,110 @@ func (this *LighterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *LighterCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes177912 := (<-this.LoadMarkets())
-			PanicOnError(retRes177912)
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchBalance", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var defaultType any = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
-		var typeVar any = this.SafeString(params, "type", defaultType)
-		var request any = map[string]any{
-			"by":    this.SafeString(params, "by", "index"),
-			"value": accountIndex,
-		}
-
-		response := (<-this.PublicGetAccount(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "200",
-		//         "total": "1",
-		//         "accounts": [
-		//             {
-		//                 "code": "0",
-		//                 "account_type": "0",
-		//                 "index": "1077",
-		//                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-		//                 "cancel_all_time": "0",
-		//                 "total_order_count": "1",
-		//                 "total_isolated_order_count": "0",
-		//                 "pending_order_count": "0",
-		//                 "available_balance": "7996.489834",
-		//                 "status": "1",
-		//                 "collateral": "9000.000000",
-		//                 "account_index": "1077",
-		//                 "name": "",
-		//                 "description": "",
-		//                 "can_invite": true,
-		//                 "referral_points_percentage": "",
-		//                 "positions": [],
-		//                 "assets": [
-		//                     {
-		//                         "symbol": "ETH",
-		//                         "asset_id": "1",
-		//                         "balance": "3.00000000",
-		//                         "locked_balance": "0.00000000"
-		//                     },
-		//                     {
-		//                         "symbol": "USDC",
-		//                         "asset_id": "3",
-		//                         "balance": "1000.000000",
-		//                         "locked_balance": "0.000000"
-		//                     }
-		//                 ],
-		//                 "total_asset_value": "9536.789088",
-		//                 "cross_asset_value": "9536.789088",
-		//                 "shares": []
-		//             }
-		//         ]
-		//     }
-		//
-		var result any = map[string]any{
-			"info": response,
-		}
-		var accounts any = this.SafeList(response, "accounts", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
-			var account any = GetValue(accounts, i)
-			if IsTrue(IsEqual(typeVar, "spot")) {
-				var assets any = this.SafeList(account, "assets", []any{})
-				for j := 0; IsLessThan(j, GetArrayLength(assets)); j++ {
-					var asset any = GetValue(assets, j)
-					var codeId any = this.SafeString(asset, "symbol")
-					var code any = this.SafeCurrencyCode(codeId)
-					var balance any = this.SafeDict(result, code, this.Account())
-					AddElementToObject(balance, "total", Precise.StringAdd(GetValue(balance, "total"), this.SafeString(asset, "balance")))
-					AddElementToObject(balance, "used", Precise.StringAdd(GetValue(balance, "used"), this.SafeString(asset, "locked_balance")))
-					if IsTrue(!IsEqual(code, nil)) {
-						AddElementToObject(result, code, balance)
-					}
-				}
-			} else {
-				var perpBalance any = this.SafeDict(result, "USDC", this.Account())
-				var perpTotal any = this.SafeString(perpBalance, "total", "0")
-				var perpFree any = this.SafeString(perpBalance, "free", "0")
-				var perpUSDCTotal any = this.SafeString(account, "collateral", "0")
-				var perpUSDCFree any = this.SafeString(account, "available_balance", "0")
-				AddElementToObject(perpBalance, "total", Precise.StringAdd(perpTotal, perpUSDCTotal))
-				AddElementToObject(perpBalance, "free", Precise.StringAdd(perpFree, perpUSDCFree))
-				AddElementToObject(result, "USDC", perpBalance)
-			}
-		}
-
-		ch <- this.SafeBalance(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes178412 := (<-this.LoadMarkets())
+		PanicOnError(retRes178412)
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchBalance", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var defaultType any = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
+	var typeVar any = this.SafeString(params, "type", defaultType)
+	var request map[string]any = map[string]any{
+		"by":    this.SafeString(params, "by", "index"),
+		"value": accountIndex,
+	}
+
+	response := (<-this.PublicGetAccount(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "200",
+	//         "total": "1",
+	//         "accounts": [
+	//             {
+	//                 "code": "0",
+	//                 "account_type": "0",
+	//                 "index": "1077",
+	//                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+	//                 "cancel_all_time": "0",
+	//                 "total_order_count": "1",
+	//                 "total_isolated_order_count": "0",
+	//                 "pending_order_count": "0",
+	//                 "available_balance": "7996.489834",
+	//                 "status": "1",
+	//                 "collateral": "9000.000000",
+	//                 "account_index": "1077",
+	//                 "name": "",
+	//                 "description": "",
+	//                 "can_invite": true,
+	//                 "referral_points_percentage": "",
+	//                 "positions": [],
+	//                 "assets": [
+	//                     {
+	//                         "symbol": "ETH",
+	//                         "asset_id": "1",
+	//                         "balance": "3.00000000",
+	//                         "locked_balance": "0.00000000"
+	//                     },
+	//                     {
+	//                         "symbol": "USDC",
+	//                         "asset_id": "3",
+	//                         "balance": "1000.000000",
+	//                         "locked_balance": "0.000000"
+	//                     }
+	//                 ],
+	//                 "total_asset_value": "9536.789088",
+	//                 "cross_asset_value": "9536.789088",
+	//                 "shares": []
+	//             }
+	//         ]
+	//     }
+	//
+	var result map[string]any = map[string]any{
+		"info": response,
+	}
+	var accounts any = this.SafeList(response, "accounts", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
+		var account any = GetValue(accounts, i)
+		if IsTrue(IsEqual(typeVar, "spot")) {
+			var assets any = this.SafeList(account, "assets", []any{})
+			for j := 0; IsLessThan(j, GetArrayLength(assets)); j++ {
+				var asset any = GetValue(assets, j)
+				var codeId any = this.SafeString(asset, "symbol")
+				var code any = this.SafeCurrencyCode(codeId)
+				var balance any = this.SafeDict(result, code, this.Account())
+				AddElementToObject(balance, "total", Precise.StringAdd(GetValue(balance, "total"), this.SafeString(asset, "balance")))
+				AddElementToObject(balance, "used", Precise.StringAdd(GetValue(balance, "used"), this.SafeString(asset, "locked_balance")))
+				if IsTrue(!IsEqual(code, nil)) {
+					AddElementToObject(result, code, balance)
+				}
+			}
+		} else {
+			var perpBalance any = this.SafeDict(result, "USDC", this.Account())
+			var perpTotal any = this.SafeString(perpBalance, "total", "0")
+			var perpFree any = this.SafeString(perpBalance, "free", "0")
+			var perpUSDCTotal any = this.SafeString(account, "collateral", "0")
+			var perpUSDCFree any = this.SafeString(account, "available_balance", "0")
+			AddElementToObject(perpBalance, "total", Precise.StringAdd(perpTotal, perpUSDCTotal))
+			AddElementToObject(perpBalance, "free", Precise.StringAdd(perpFree, perpUSDCFree))
+			AddElementToObject(result, "USDC", perpBalance)
+		}
+	}
+
+	ch <- this.SafeBalance(result)
+	return nil
 }
 
 /**
@@ -2350,21 +2371,21 @@ func (this *LighterCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *LighterCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		positions := (<-this.FetchPositions([]any{symbol}, params))
-		PanicOnError(positions)
-
-		ch <- this.SafeDict(positions, 0, map[string]any{})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	positions := (<-this.FetchPositions([]any{symbol}, params))
+	PanicOnError(positions)
+
+	ch <- this.SafeDict(positions, 0, map[string]any{})
+	return nil
 }
 
 /**
@@ -2379,94 +2400,94 @@ func (this *LighterCore) FetchPosition(symbol any, optionalArgs ...any) <-chan a
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *LighterCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes189412 := (<-this.LoadMarkets())
-			PanicOnError(retRes189412)
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchPositions", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var request any = map[string]any{
-			"by":    this.SafeString(params, "by", "index"),
-			"value": accountIndex,
-		}
-
-		response := (<-this.PublicGetAccount(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "total": 2,
-		//         "accounts": [
-		//             {
-		//                 "code": 0,
-		//                 "account_type": 0,
-		//                 "index": 1077,
-		//                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-		//                 "cancel_all_time": 0,
-		//                 "total_order_count": 0,
-		//                 "total_isolated_order_count": 0,
-		//                 "pending_order_count": 0,
-		//                 "available_balance": "12582.743947",
-		//                 "status": 1,
-		//                 "collateral": "9100.242706",
-		//                 "account_index": 1077,
-		//                 "name": "",
-		//                 "description": "",
-		//                 "can_invite": true,
-		//                 "referral_points_percentage": "",
-		//                 "positions": [
-		//                     {
-		//                         "market_id": 0,
-		//                         "symbol": "ETH",
-		//                         "initial_margin_fraction": "5.00",
-		//                         "open_order_count": 0,
-		//                         "pending_order_count": 0,
-		//                         "position_tied_order_count": 0,
-		//                         "sign": 1,
-		//                         "position": "18.0193",
-		//                         "avg_entry_price": "2669.84",
-		//                         "position_value": "54306.566340",
-		//                         "unrealized_pnl": "6197.829558",
-		//                         "realized_pnl": "0.000000",
-		//                         "liquidation_price": "2191.1107231380406",
-		//                         "margin_mode": 0,
-		//                         "allocated_margin": "0.000000"
-		//                     }
-		//                 ],
-		//                 "assets": [],
-		//                 "total_asset_value": "15298.072264000002",
-		//                 "cross_asset_value": "15298.072264000002",
-		//                 "shares": []
-		//             }
-		//         ]
-		//     }
-		//
-		var allPositions any = []any{}
-		var accounts any = this.SafeList(response, "accounts", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
-			var account any = GetValue(accounts, i)
-			var positions any = this.SafeList(account, "positions", []any{})
-			for j := 0; IsLessThan(j, GetArrayLength(positions)); j++ {
-				AppendToArray(&allPositions, GetValue(positions, j))
-			}
-		}
-
-		ch <- this.ParsePositions(allPositions, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes189912 := (<-this.LoadMarkets())
+		PanicOnError(retRes189912)
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchPositions", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"by":    this.SafeString(params, "by", "index"),
+		"value": accountIndex,
+	}
+
+	response := (<-this.PublicGetAccount(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "total": 2,
+	//         "accounts": [
+	//             {
+	//                 "code": 0,
+	//                 "account_type": 0,
+	//                 "index": 1077,
+	//                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+	//                 "cancel_all_time": 0,
+	//                 "total_order_count": 0,
+	//                 "total_isolated_order_count": 0,
+	//                 "pending_order_count": 0,
+	//                 "available_balance": "12582.743947",
+	//                 "status": 1,
+	//                 "collateral": "9100.242706",
+	//                 "account_index": 1077,
+	//                 "name": "",
+	//                 "description": "",
+	//                 "can_invite": true,
+	//                 "referral_points_percentage": "",
+	//                 "positions": [
+	//                     {
+	//                         "market_id": 0,
+	//                         "symbol": "ETH",
+	//                         "initial_margin_fraction": "5.00",
+	//                         "open_order_count": 0,
+	//                         "pending_order_count": 0,
+	//                         "position_tied_order_count": 0,
+	//                         "sign": 1,
+	//                         "position": "18.0193",
+	//                         "avg_entry_price": "2669.84",
+	//                         "position_value": "54306.566340",
+	//                         "unrealized_pnl": "6197.829558",
+	//                         "realized_pnl": "0.000000",
+	//                         "liquidation_price": "2191.1107231380406",
+	//                         "margin_mode": 0,
+	//                         "allocated_margin": "0.000000"
+	//                     }
+	//                 ],
+	//                 "assets": [],
+	//                 "total_asset_value": "15298.072264000002",
+	//                 "cross_asset_value": "15298.072264000002",
+	//                 "shares": []
+	//             }
+	//         ]
+	//     }
+	//
+	var allPositions any = []any{}
+	var accounts any = this.SafeList(response, "accounts", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
+		var account any = GetValue(accounts, i)
+		var positions any = this.SafeList(account, "positions", []any{})
+		for j := 0; IsLessThan(j, GetArrayLength(positions)); j++ {
+			AppendToArray(&allPositions, GetValue(positions, j))
+		}
+	}
+
+	ch <- this.ParsePositions(allPositions, symbols)
+	return nil
 }
 func (this *LighterCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -2548,66 +2569,66 @@ func (this *LighterCore) ParsePosition(position any, optionalArgs ...any) any {
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
  */
 func (this *LighterCore) FetchAccounts(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes204312 := (<-this.LoadMarkets())
-			PanicOnError(retRes204312)
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchAccounts", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var request any = map[string]any{
-			"by":    this.SafeString(params, "by", "index"),
-			"value": accountIndex,
-		}
-
-		response := (<-this.PublicGetAccount(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "200",
-		//         "total": "1",
-		//         "accounts": [
-		//             {
-		//                 "code": "0",
-		//                 "account_type": "0",
-		//                 "index": "1077",
-		//                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-		//                 "cancel_all_time": "0",
-		//                 "total_order_count": "1",
-		//                 "total_isolated_order_count": "0",
-		//                 "pending_order_count": "0",
-		//                 "available_balance": "7996.489834",
-		//                 "status": "1",
-		//                 "collateral": "9000.000000",
-		//                 "account_index": "1077",
-		//                 "name": "",
-		//                 "description": "",
-		//                 "can_invite": true,
-		//                 "referral_points_percentage": "",
-		//                 "positions": [],
-		//                 "assets": [],
-		//                 "total_asset_value": "9536.789088",
-		//                 "cross_asset_value": "9536.789088",
-		//                 "shares": []
-		//             }
-		//         ]
-		//     }
-		//
-		var accounts any = this.SafeList(response, "accounts", []any{})
-
-		ch <- this.ParseAccounts(accounts, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchAccountsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes204812 := (<-this.LoadMarkets())
+		PanicOnError(retRes204812)
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchAccounts", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"by":    this.SafeString(params, "by", "index"),
+		"value": accountIndex,
+	}
+
+	response := (<-this.PublicGetAccount(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "200",
+	//         "total": "1",
+	//         "accounts": [
+	//             {
+	//                 "code": "0",
+	//                 "account_type": "0",
+	//                 "index": "1077",
+	//                 "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+	//                 "cancel_all_time": "0",
+	//                 "total_order_count": "1",
+	//                 "total_isolated_order_count": "0",
+	//                 "pending_order_count": "0",
+	//                 "available_balance": "7996.489834",
+	//                 "status": "1",
+	//                 "collateral": "9000.000000",
+	//                 "account_index": "1077",
+	//                 "name": "",
+	//                 "description": "",
+	//                 "can_invite": true,
+	//                 "referral_points_percentage": "",
+	//                 "positions": [],
+	//                 "assets": [],
+	//                 "total_asset_value": "9536.789088",
+	//                 "cross_asset_value": "9536.789088",
+	//                 "shares": []
+	//             }
+	//         ]
+	//     }
+	//
+	var accounts any = this.SafeList(response, "accounts", []any{})
+
+	ch <- this.ParseAccounts(accounts, params)
+	return nil
 }
 func (this *LighterCore) ParseAccount(account any) any {
 	//
@@ -2657,96 +2678,96 @@ func (this *LighterCore) ParseAccount(account any) any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *LighterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes213912 := (<-this.LoadMarkets())
-			PanicOnError(retRes213912)
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchOpenOrders", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchOpenOrders", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		retRes21478 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes21478)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"market_id":     GetValue(market, "id"),
-			"account_index": accountIndex,
-		}
-
-		response := (<-this.PrivateGetAccountActiveOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "orders": [
-		//             {
-		//                 "order_index": 281474977354074,
-		//                 "client_order_index": 0,
-		//                 "order_id": "281474977354074",
-		//                 "client_order_id": "0",
-		//                 "market_index": 0,
-		//                 "owner_account_index": 1077,
-		//                 "initial_base_amount": "36.0386",
-		//                 "price": "2221.60",
-		//                 "nonce": 643418,
-		//                 "remaining_base_amount": "0.0000",
-		//                 "is_ask": true,
-		//                 "base_size": 0,
-		//                 "base_price": 222160,
-		//                 "filled_base_amount": "0.0000",
-		//                 "filled_quote_amount": "0.000000",
-		//                 "side": "",
-		//                 "type": "market",
-		//                 "time_in_force": "immediate-or-cancel",
-		//                 "reduce_only": false,
-		//                 "trigger_price": "0.00",
-		//                 "order_expiry": 0,
-		//                 "status": "canceled-margin-not-allowed",
-		//                 "trigger_status": "na",
-		//                 "trigger_time": 0,
-		//                 "parent_order_index": 0,
-		//                 "parent_order_id": "0",
-		//                 "to_trigger_order_id_0": "0",
-		//                 "to_trigger_order_id_1": "0",
-		//                 "to_cancel_order_id_0": "0",
-		//                 "block_height": 102202,
-		//                 "timestamp": 1766387932,
-		//                 "created_at": 1766387932,
-		//                 "updated_at": 1766387932
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "orders", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes214412 := (<-this.LoadMarkets())
+		PanicOnError(retRes214412)
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchOpenOrders", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchOpenOrders", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	retRes21528 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(retRes21528)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"market_id":     GetValue(market, "id"),
+		"account_index": accountIndex,
+	}
+
+	response := (<-this.PrivateGetAccountActiveOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "orders": [
+	//             {
+	//                 "order_index": 281474977354074,
+	//                 "client_order_index": 0,
+	//                 "order_id": "281474977354074",
+	//                 "client_order_id": "0",
+	//                 "market_index": 0,
+	//                 "owner_account_index": 1077,
+	//                 "initial_base_amount": "36.0386",
+	//                 "price": "2221.60",
+	//                 "nonce": 643418,
+	//                 "remaining_base_amount": "0.0000",
+	//                 "is_ask": true,
+	//                 "base_size": 0,
+	//                 "base_price": 222160,
+	//                 "filled_base_amount": "0.0000",
+	//                 "filled_quote_amount": "0.000000",
+	//                 "side": "",
+	//                 "type": "market",
+	//                 "time_in_force": "immediate-or-cancel",
+	//                 "reduce_only": false,
+	//                 "trigger_price": "0.00",
+	//                 "order_expiry": 0,
+	//                 "status": "canceled-margin-not-allowed",
+	//                 "trigger_status": "na",
+	//                 "trigger_time": 0,
+	//                 "parent_order_index": 0,
+	//                 "parent_order_id": "0",
+	//                 "to_trigger_order_id_0": "0",
+	//                 "to_trigger_order_id_1": "0",
+	//                 "to_cancel_order_id_0": "0",
+	//                 "block_height": 102202,
+	//                 "timestamp": 1766387932,
+	//                 "created_at": 1766387932,
+	//                 "updated_at": 1766387932
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "orders", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -2762,100 +2783,100 @@ func (this *LighterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *LighterCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes221712 := (<-this.LoadMarkets())
-			PanicOnError(retRes221712)
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchClosedOrders", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchClosedOrders", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		retRes22258 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes22258)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"market_id":     GetValue(market, "id"),
-			"account_index": accountIndex,
-			"limit":         100,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 100))
-		}
-
-		response := (<-this.PrivateGetAccountInactiveOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "orders": [
-		//             {
-		//                 "order_index": 281474977354074,
-		//                 "client_order_index": 0,
-		//                 "order_id": "281474977354074",
-		//                 "client_order_id": "0",
-		//                 "market_index": 0,
-		//                 "owner_account_index": 1077,
-		//                 "initial_base_amount": "36.0386",
-		//                 "price": "2221.60",
-		//                 "nonce": 643418,
-		//                 "remaining_base_amount": "0.0000",
-		//                 "is_ask": true,
-		//                 "base_size": 0,
-		//                 "base_price": 222160,
-		//                 "filled_base_amount": "0.0000",
-		//                 "filled_quote_amount": "0.000000",
-		//                 "side": "",
-		//                 "type": "market",
-		//                 "time_in_force": "immediate-or-cancel",
-		//                 "reduce_only": false,
-		//                 "trigger_price": "0.00",
-		//                 "order_expiry": 0,
-		//                 "status": "canceled-margin-not-allowed",
-		//                 "trigger_status": "na",
-		//                 "trigger_time": 0,
-		//                 "parent_order_index": 0,
-		//                 "parent_order_id": "0",
-		//                 "to_trigger_order_id_0": "0",
-		//                 "to_trigger_order_id_1": "0",
-		//                 "to_cancel_order_id_0": "0",
-		//                 "block_height": 102202,
-		//                 "timestamp": 1766387932,
-		//                 "created_at": 1766387932,
-		//                 "updated_at": 1766387932
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "orders", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes222212 := (<-this.LoadMarkets())
+		PanicOnError(retRes222212)
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchClosedOrders", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchClosedOrders", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	retRes22308 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(retRes22308)
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"market_id":     GetValue(market, "id"),
+		"account_index": accountIndex,
+		"limit":         100,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 100))
+	}
+
+	response := (<-this.PrivateGetAccountInactiveOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "orders": [
+	//             {
+	//                 "order_index": 281474977354074,
+	//                 "client_order_index": 0,
+	//                 "order_id": "281474977354074",
+	//                 "client_order_id": "0",
+	//                 "market_index": 0,
+	//                 "owner_account_index": 1077,
+	//                 "initial_base_amount": "36.0386",
+	//                 "price": "2221.60",
+	//                 "nonce": 643418,
+	//                 "remaining_base_amount": "0.0000",
+	//                 "is_ask": true,
+	//                 "base_size": 0,
+	//                 "base_price": 222160,
+	//                 "filled_base_amount": "0.0000",
+	//                 "filled_quote_amount": "0.000000",
+	//                 "side": "",
+	//                 "type": "market",
+	//                 "time_in_force": "immediate-or-cancel",
+	//                 "reduce_only": false,
+	//                 "trigger_price": "0.00",
+	//                 "order_expiry": 0,
+	//                 "status": "canceled-margin-not-allowed",
+	//                 "trigger_status": "na",
+	//                 "trigger_time": 0,
+	//                 "parent_order_index": 0,
+	//                 "parent_order_id": "0",
+	//                 "to_trigger_order_id_0": "0",
+	//                 "to_trigger_order_id_1": "0",
+	//                 "to_cancel_order_id_0": "0",
+	//                 "block_height": 102202,
+	//                 "timestamp": 1766387932,
+	//                 "created_at": 1766387932,
+	//                 "updated_at": 1766387932
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "orders", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 func (this *LighterCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -2972,7 +2993,7 @@ func (this *LighterCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *LighterCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"in-progress":                   "open",
 		"pending":                       "open",
 		"open":                          "open",
@@ -2993,7 +3014,7 @@ func (this *LighterCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *LighterCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"limit":             "limit",
 		"market":            "market",
 		"stop-loss":         "market",
@@ -3010,7 +3031,7 @@ func (this *LighterCore) ParseOrderTypeInteger(typeInteger any) any {
 	if IsTrue(IsEqual(typeInteger, nil)) {
 		return nil
 	}
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"0": "limit",
 		"1": "market",
 		"2": "stop-loss",
@@ -3024,7 +3045,7 @@ func (this *LighterCore) ParseOrderTypeInteger(typeInteger any) any {
 	return this.SafeString(types, ToString(typeInteger))
 }
 func (this *LighterCore) ParseOrderTimeInForce(tif any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"immediate-or-cancel": "IOC",
 		"good-till-time":      "GTC",
 		"post-only":           "PO",
@@ -3033,7 +3054,7 @@ func (this *LighterCore) ParseOrderTimeInForce(tif any) any {
 	return this.SafeString(timeInForces, tif, tif)
 }
 func (this *LighterCore) ParseOrderTimeInForceInteger(tifInteger any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"0": "immediate-or-cancel",
 		"1": "good-till-time",
 		"2": "post-only",
@@ -3057,77 +3078,77 @@ func (this *LighterCore) ParseOrderTimeInForceInteger(tifInteger any) any {
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *LighterCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes248612 := (<-this.LoadMarkets())
-			PanicOnError(retRes248612)
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "transfer", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "transfer", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var toAccountIndex any = nil
-		toAccountIndexparamsVariable := this.HandleOptionAndParams2(params, "transfer", "toAccountIndex", "to_account_index", accountIndex)
-		toAccountIndex = GetValue(toAccountIndexparamsVariable, 0)
-		params = GetValue(toAccountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		var currency any = this.Currency(code)
-		if IsTrue(IsEqual(GetValue(currency, "code"), "USDC")) {
-			amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
-		} else if IsTrue(IsEqual(GetValue(currency, "code"), "ETH")) {
-			amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "8"), this.CurrencyToPrecision(code, amount)))
-		} else {
-			panic(ExchangeError(Add(this.Id, " transfer() only supports USDC and ETH transfers")))
-		}
-		var fromRouteType any = Ternary(IsTrue((IsEqual(fromAccount, "perp"))), 0, 1) // 0: perp, 1: spot
-		var toRouteType any = Ternary(IsTrue((IsEqual(toAccount, "perp"))), 0, 1)
-		var memo any = this.SafeString(params, "memo", "0x000000000000000000000000000000")
-		params = this.Omit(params, []any{"memo"})
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"to_account_index": toAccountIndex,
-			"asset_index":      this.ParseToInt(GetValue(currency, "id")),
-			"from_route_type":  fromRouteType,
-			"to_route_type":    toRouteType,
-			"amount":           amount,
-			"usdc_fee":         0,
-			"memo":             memo,
-			"nonce":            nonce,
-			"api_key_index":    apiKeyIndex,
-			"account_index":    accountIndex,
-		}
-		txTypetxInfoVariable := this.LighterSignTransfer(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- this.ParseTransfer(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes249112 := (<-this.LoadMarkets())
+		PanicOnError(retRes249112)
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "transfer", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "transfer", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var toAccountIndex any = nil
+	toAccountIndexparamsVariable := this.HandleOptionAndParams2(params, "transfer", "toAccountIndex", "to_account_index", accountIndex)
+	toAccountIndex = GetValue(toAccountIndexparamsVariable, 0)
+	params = GetValue(toAccountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	var currency any = this.Currency(code)
+	if IsTrue(IsEqual(GetValue(currency, "code"), "USDC")) {
+		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
+	} else if IsTrue(IsEqual(GetValue(currency, "code"), "ETH")) {
+		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "8"), this.CurrencyToPrecision(code, amount)))
+	} else {
+		panic(ExchangeError(Add(this.Id, " transfer() only supports USDC and ETH transfers")))
+	}
+	var fromRouteType any = Ternary(IsTrue((IsEqual(fromAccount, "perp"))), 0, 1) // 0: perp, 1: spot
+	var toRouteType any = Ternary(IsTrue((IsEqual(toAccount, "perp"))), 0, 1)
+	var memo any = this.SafeString(params, "memo", "0x000000000000000000000000000000")
+	params = this.Omit(params, []any{"memo"})
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"to_account_index": toAccountIndex,
+		"asset_index":      this.ParseToInt(GetValue(currency, "id")),
+		"from_route_type":  fromRouteType,
+		"to_route_type":    toRouteType,
+		"amount":           amount,
+		"usdc_fee":         0,
+		"memo":             memo,
+		"nonce":            nonce,
+		"api_key_index":    apiKeyIndex,
+		"account_index":    accountIndex,
+	}
+	txTypetxInfoVariable := this.LighterSignTransfer(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- this.ParseTransfer(response)
+	return nil
 }
 
 /**
@@ -3144,92 +3165,92 @@ func (this *LighterCore) Transfer(code any, amount any, fromAccount any, toAccou
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *LighterCore) FetchTransfers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes254612 := (<-this.LoadMarkets())
-			PanicOnError(retRes254612)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes255119 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes255119)
-			ch <- retRes255119
-			return nil
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchTransfers", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var request any = map[string]any{
-			"account_index": accountIndex,
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchTransfers", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		retRes25628 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes25628)
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-
-		response := (<-this.PrivateGetTransferHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "transfers": [
-		//             {
-		//                 "id": "3085014",
-		//                 "asset_id": 3,
-		//                 "amount": "11.000000",
-		//                 "fee": "0.000000",
-		//                 "timestamp": 1766387292752,
-		//                 "type": "L2TransferOutflow",
-		//                 "from_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-		//                 "to_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-		//                 "from_account_index": 1077,
-		//                 "to_account_index": 281474976710608,
-		//                 "from_route": "spot",
-		//                 "to_route": "spot",
-		//                 "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
-		//             }
-		//         ],
-		//         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
-		//     }
-		//
-		var rows any = this.SafeList(response, "transfers", []any{})
-		var cursor any = this.SafeString(response, "cursor")
-		var first any = this.SafeDict(rows, 0)
-		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
-			AddElementToObject(GetValue(rows, 0), "cursor", cursor)
-		}
-
-		ch <- this.ParseTransfers(rows, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes255112 := (<-this.LoadMarkets())
+		PanicOnError(retRes255112)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes255619 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
+		PanicOnError(retRes255619)
+		ch <- retRes255619
+		return nil
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchTransfers", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"account_index": accountIndex,
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchTransfers", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	retRes25678 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(retRes25678)
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+
+	response := (<-this.PrivateGetTransferHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "transfers": [
+	//             {
+	//                 "id": "3085014",
+	//                 "asset_id": 3,
+	//                 "amount": "11.000000",
+	//                 "fee": "0.000000",
+	//                 "timestamp": 1766387292752,
+	//                 "type": "L2TransferOutflow",
+	//                 "from_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+	//                 "to_l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+	//                 "from_account_index": 1077,
+	//                 "to_account_index": 281474976710608,
+	//                 "from_route": "spot",
+	//                 "to_route": "spot",
+	//                 "tx_hash": "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
+	//             }
+	//         ],
+	//         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
+	//     }
+	//
+	var rows any = this.SafeList(response, "transfers", []any{})
+	var cursor any = this.SafeString(response, "cursor")
+	var first any = this.SafeDict(rows, 0)
+	if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
+		AddElementToObject(GetValue(rows, 0), "cursor", cursor)
+	}
+
+	ch <- this.ParseTransfers(rows, currency, since, limit, params)
+	return nil
 }
 func (this *LighterCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
@@ -3284,94 +3305,94 @@ func (this *LighterCore) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *LighterCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes265212 := (<-this.LoadMarkets())
-			PanicOnError(retRes265212)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes265719 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes265719)
-			ch <- retRes265719
-			return nil
-		}
-		var address any = nil
-		addressparamsVariable := this.HandleOptionAndParams2(params, "fetchDeposits", "address", "l1_address")
-		address = GetValue(addressparamsVariable, 0)
-		params = GetValue(addressparamsVariable, 1)
-		if IsTrue(IsEqual(address, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires an address parameter")))
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchDeposits", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var request any = map[string]any{
-			"account_index": accountIndex,
-			"l1_address":    address,
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchDeposits", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		retRes26748 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes26748)
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "coin", GetValue(currency, "id"))
-		}
-
-		response := (<-this.PrivateGetDepositHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "deposits": [
-		//             {
-		//                 "id": "2901843",
-		//                 "asset_id": 5,
-		//                 "amount": "100000.0",
-		//                 "timestamp": 1766112729741,
-		//                 "status": "completed",
-		//                 "l1_tx_hash": "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
-		//             }
-		//         ],
-		//         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
-		//     }
-		//
-		var data any = this.SafeList(response, "deposits", []any{})
-		var cursor any = this.SafeString(response, "cursor")
-		var first any = this.SafeDict(data, 0)
-		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
-			AddElementToObject(GetValue(data, 0), "cursor", cursor)
-		}
-
-		ch <- this.ParseTransactions(data, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes265712 := (<-this.LoadMarkets())
+		PanicOnError(retRes265712)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes266219 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))
+		PanicOnError(retRes266219)
+		ch <- retRes266219
+		return nil
+	}
+	var address any = nil
+	addressparamsVariable := this.HandleOptionAndParams2(params, "fetchDeposits", "address", "l1_address")
+	address = GetValue(addressparamsVariable, 0)
+	params = GetValue(addressparamsVariable, 1)
+	if IsTrue(IsEqual(address, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires an address parameter")))
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchDeposits", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"account_index": accountIndex,
+		"l1_address":    address,
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchDeposits", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	retRes26798 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(retRes26798)
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "coin", GetValue(currency, "id"))
+	}
+
+	response := (<-this.PrivateGetDepositHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "deposits": [
+	//             {
+	//                 "id": "2901843",
+	//                 "asset_id": 5,
+	//                 "amount": "100000.0",
+	//                 "timestamp": 1766112729741,
+	//                 "status": "completed",
+	//                 "l1_tx_hash": "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
+	//             }
+	//         ],
+	//         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
+	//     }
+	//
+	var data any = this.SafeList(response, "deposits", []any{})
+	var cursor any = this.SafeString(response, "cursor")
+	var first any = this.SafeDict(data, 0)
+	if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
+		AddElementToObject(GetValue(data, 0), "cursor", cursor)
+	}
+
+	ch <- this.ParseTransactions(data, currency, since, limit)
+	return nil
 }
 
 /**
@@ -3388,87 +3409,87 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *LighterCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes272319 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))
-			PanicOnError(retRes272319)
-			ch <- retRes272319
-			return nil
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchWithdrawals", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes272812 := (<-this.LoadMarkets())
-			PanicOnError(retRes272812)
-		}
-		var request any = map[string]any{
-			"account_index": accountIndex,
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchWithdrawals", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		retRes27378 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes27378)
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "coin", GetValue(currency, "id"))
-		}
-
-		response := (<-this.PrivateGetWithdrawHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "200",
-		//         "message": "string",
-		//         "withdraws": [
-		//             {
-		//                 "id": "string",
-		//                 "amount": "0.1",
-		//                 "timestamp": "1640995200",
-		//                 "status": "failed",
-		//                 "type": "secure",
-		//                 "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-		//             }
-		//         ],
-		//         "cursor": "string"
-		//     }
-		//
-		var data any = this.SafeList(response, "withdraws", []any{})
-		var cursor any = this.SafeString(response, "cursor")
-		var first any = this.SafeDict(data, 0)
-		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
-			AddElementToObject(GetValue(data, 0), "cursor", cursor)
-		}
-
-		ch <- this.ParseTransactions(data, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes272819 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))
+		PanicOnError(retRes272819)
+		ch <- retRes272819
+		return nil
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchWithdrawals", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes273312 := (<-this.LoadMarkets())
+		PanicOnError(retRes273312)
+	}
+	var request map[string]any = map[string]any{
+		"account_index": accountIndex,
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchWithdrawals", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	retRes27428 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(retRes27428)
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "coin", GetValue(currency, "id"))
+	}
+
+	response := (<-this.PrivateGetWithdrawHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "200",
+	//         "message": "string",
+	//         "withdraws": [
+	//             {
+	//                 "id": "string",
+	//                 "amount": "0.1",
+	//                 "timestamp": "1640995200",
+	//                 "status": "failed",
+	//                 "type": "secure",
+	//                 "l1_tx_hash": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+	//             }
+	//         ],
+	//         "cursor": "string"
+	//     }
+	//
+	var data any = this.SafeList(response, "withdraws", []any{})
+	var cursor any = this.SafeString(response, "cursor")
+	var first any = this.SafeDict(data, 0)
+	if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
+		AddElementToObject(GetValue(data, 0), "cursor", cursor)
+	}
+
+	ch <- this.ParseTransactions(data, currency, since, limit)
+	return nil
 }
 func (this *LighterCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -3526,7 +3547,7 @@ func (this *LighterCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 }
 func (this *LighterCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"failed":    "failed",
 		"pending":   "pending",
 		"completed": "ok",
@@ -3550,69 +3571,69 @@ func (this *LighterCore) ParseTransactionStatus(status any) any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *LighterCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes285012 := (<-this.LoadMarkets())
-			PanicOnError(retRes285012)
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "withdraw", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "withdraw", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		var currency any = this.Currency(code)
-		if IsTrue(IsEqual(GetValue(currency, "code"), "USDC")) {
-			amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
-		} else if IsTrue(IsEqual(GetValue(currency, "code"), "ETH")) {
-			amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "8"), this.CurrencyToPrecision(code, amount)))
-		} else {
-			panic(ExchangeError(Add(this.Id, " withdraw() only supports USDC and ETH transfers")))
-		}
-		var routeType any = this.SafeInteger(params, "routeType", 0) // 0: perp, 1: spot
-		params = this.Omit(params, "routeType")
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"asset_index":   this.ParseToInt(GetValue(currency, "id")),
-			"route_type":    routeType,
-			"amount":        amount,
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		txTypetxInfoVariable := this.LighterSignWithdraw(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- this.ParseTransaction(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes285512 := (<-this.LoadMarkets())
+		PanicOnError(retRes285512)
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "withdraw", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "withdraw", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	var currency any = this.Currency(code)
+	if IsTrue(IsEqual(GetValue(currency, "code"), "USDC")) {
+		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision(code, amount)))
+	} else if IsTrue(IsEqual(GetValue(currency, "code"), "ETH")) {
+		amount = this.ParseToInt(Precise.StringMul(this.Pow("10", "8"), this.CurrencyToPrecision(code, amount)))
+	} else {
+		panic(ExchangeError(Add(this.Id, " withdraw() only supports USDC and ETH transfers")))
+	}
+	var routeType any = this.SafeInteger(params, "routeType", 0) // 0: perp, 1: spot
+	params = this.Omit(params, "routeType")
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"asset_index":   this.ParseToInt(GetValue(currency, "id")),
+		"route_type":    routeType,
+		"amount":        amount,
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	txTypetxInfoVariable := this.LighterSignWithdraw(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- this.ParseTransaction(response)
+	return nil
 }
 
 /**
@@ -3630,116 +3651,116 @@ func (this *LighterCore) Withdraw(code any, amount any, address any, optionalArg
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *LighterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes290312 := (<-this.LoadMarkets())
-			PanicOnError(retRes290312)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes290819 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))
-			PanicOnError(retRes290819)
-			ch <- retRes290819
-			return nil
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchMyTrades", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchMyTrades", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		retRes29168 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(retRes29168)
-		var request any = map[string]any{
-			"sort_by":       "timestamp",
-			"limit":         100,
-			"account_index": accountIndex,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 100))
-		}
-		var until any = nil
-		untilparamsVariable := this.HandleOptionAndParams2(params, "fetchMyTrades", "until", "from")
-		until = GetValue(untilparamsVariable, 0)
-		params = GetValue(untilparamsVariable, 1)
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "from", until)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "market_id", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivateGetTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": 200,
-		//         "trades": [
-		//             {
-		//                 "trade_id": 17609,
-		//                 "tx_hash": "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
-		//                 "type": "trade",
-		//                 "market_id": 0,
-		//                 "size": "10.2304",
-		//                 "price": "2958.75",
-		//                 "usd_amount": "30269.196000",
-		//                 "ask_id": 281474977339869,
-		//                 "bid_id": 562949952870533,
-		//                 "ask_client_id": 0,
-		//                 "bid_client_id": 0,
-		//                 "ask_account_id": 20,
-		//                 "bid_account_id": 1077,
-		//                 "is_maker_ask": true,
-		//                 "block_height": 102070,
-		//                 "timestamp": 1766386112741,
-		//                 "taker_position_size_before": "0.0000",
-		//                 "taker_entry_quote_before": "0.000000",
-		//                 "taker_position_sign_changed": true,
-		//                 "maker_position_size_before": "-1856.8547",
-		//                 "maker_entry_quote_before": "5491685.069325",
-		//                 "maker_initial_margin_fraction_before": 500
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "trades", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			AddElementToObject(GetValue(data, i), "account_index", accountIndex)
-		}
-		var nextCursor any = this.SafeString(response, "next_cursor")
-		var first any = this.SafeDict(data, 0)
-		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(nextCursor, nil)))) {
-			AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
-		}
-
-		ch <- this.ParseTrades(data, market, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes290812 := (<-this.LoadMarkets())
+		PanicOnError(retRes290812)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes291319 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))
+		PanicOnError(retRes291319)
+		ch <- retRes291319
+		return nil
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchMyTrades", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "fetchMyTrades", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	retRes29218 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(retRes29218)
+	var request map[string]any = map[string]any{
+		"sort_by":       "timestamp",
+		"limit":         100,
+		"account_index": accountIndex,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 100))
+	}
+	var until any = nil
+	untilparamsVariable := this.HandleOptionAndParams2(params, "fetchMyTrades", "until", "from")
+	until = GetValue(untilparamsVariable, 0)
+	params = GetValue(untilparamsVariable, 1)
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "from", until)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "market_id", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivateGetTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": 200,
+	//         "trades": [
+	//             {
+	//                 "trade_id": 17609,
+	//                 "tx_hash": "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
+	//                 "type": "trade",
+	//                 "market_id": 0,
+	//                 "size": "10.2304",
+	//                 "price": "2958.75",
+	//                 "usd_amount": "30269.196000",
+	//                 "ask_id": 281474977339869,
+	//                 "bid_id": 562949952870533,
+	//                 "ask_client_id": 0,
+	//                 "bid_client_id": 0,
+	//                 "ask_account_id": 20,
+	//                 "bid_account_id": 1077,
+	//                 "is_maker_ask": true,
+	//                 "block_height": 102070,
+	//                 "timestamp": 1766386112741,
+	//                 "taker_position_size_before": "0.0000",
+	//                 "taker_entry_quote_before": "0.000000",
+	//                 "taker_position_sign_changed": true,
+	//                 "maker_position_size_before": "-1856.8547",
+	//                 "maker_entry_quote_before": "5491685.069325",
+	//                 "maker_initial_margin_fraction_before": 500
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "trades", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		AddElementToObject(GetValue(data, i), "account_index", accountIndex)
+	}
+	var nextCursor any = this.SafeString(response, "next_cursor")
+	var first any = this.SafeDict(data, 0)
+	if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(nextCursor, nil)))) {
+		AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
+	}
+
+	ch <- this.ParseTrades(data, market, since, limit, params)
+	return nil
 }
 func (this *LighterCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -3823,32 +3844,32 @@ func (this *LighterCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object} response from the exchange
  */
 func (this *LighterCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
-		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleOptionAndParams2(params, "setLeverage", "marginMode", "margin_mode")
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		if IsTrue(IsEqual(marginMode, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires an marginMode parameter")))
-		}
-
-		retRes306715 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
-		PanicOnError(retRes306715)
-		ch <- retRes306715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
+	}
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleOptionAndParams2(params, "setLeverage", "marginMode", "margin_mode")
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	if IsTrue(IsEqual(marginMode, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires an marginMode parameter")))
+	}
+
+	retRes307215 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+	PanicOnError(retRes307215)
+	ch <- retRes307215
+	return nil
 }
 
 /**
@@ -3864,93 +3885,152 @@ func (this *LighterCore) SetLeverage(leverage any, optionalArgs ...any) <-chan a
  * @returns {object} response from the exchange
  */
 func (this *LighterCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(marginMode, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an marginMode parameter")))
-		}
-		var leverage any = nil
-		leverageparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "leverage")
-		leverage = GetValue(leverageparamsVariable, 0)
-		params = GetValue(leverageparamsVariable, 1)
-		if IsTrue(IsEqual(leverage, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an leverage parameter")))
-		}
-
-		retRes309115 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
-		PanicOnError(retRes309115)
-		ch <- retRes309115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
+func (this *LighterCore) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(marginMode, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an marginMode parameter")))
+	}
+	var leverage any = nil
+	leverageparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "leverage")
+	leverage = GetValue(leverageparamsVariable, 0)
+	params = GetValue(leverageparamsVariable, 1)
+	if IsTrue(IsEqual(leverage, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an leverage parameter")))
+	}
+
+	retRes309615 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+	PanicOnError(retRes309615)
+	ch <- retRes309615
+	return nil
+}
 func (this *LighterCore) ModifyLeverageAndMarginMode(leverage any, marginMode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes309612 := (<-this.LoadMarkets())
-			PanicOnError(retRes309612)
-		}
-		if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
-			panic(BadRequest(Add(this.Id, " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")))
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " modifyLeverageAndMarginMode() requires a symbol argument")))
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "modifyLeverageAndMarginMode", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		var market any = this.Market(symbol)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"market_index":            this.ParseToInt(GetValue(market, "id")),
-			"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
-			"margin_mode":             Ternary(IsTrue((IsEqual(marginMode, "cross"))), 0, 1),
-			"nonce":                   nonce,
-			"api_key_index":           apiKeyIndex,
-			"account_index":           accountIndex,
-		}
-		txTypetxInfoVariable := this.LighterSignUpdateLeverage(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		retRes312615 := (<-this.PublicPostSendTx(request))
-		PanicOnError(retRes312615)
-		ch <- retRes312615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.modifyLeverageAndMarginModeBody(ch, leverage, marginMode, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) modifyLeverageAndMarginModeBody(ch chan any, leverage any, marginMode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes310112 := (<-this.LoadMarkets())
+		PanicOnError(retRes310112)
+	}
+	if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
+		panic(BadRequest(Add(this.Id, " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")))
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " modifyLeverageAndMarginMode() requires a symbol argument")))
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "modifyLeverageAndMarginMode", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	var market any = this.Market(symbol)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"market_index":            this.ParseToInt(GetValue(market, "id")),
+		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
+		"margin_mode":             Ternary(IsTrue((IsEqual(marginMode, "cross"))), 0, 1),
+		"nonce":                   nonce,
+		"api_key_index":           apiKeyIndex,
+		"account_index":           accountIndex,
+	}
+	txTypetxInfoVariable := this.LighterSignUpdateLeverage(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	retRes313115 := (<-this.PublicPostSendTx(request))
+	PanicOnError(retRes313115)
+	ch <- retRes313115
+	return nil
+}
+func (this *LighterCore) SignAndCancelOrder(method any, id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.signAndCancelOrderBody(ch, method, id, optionalArgs...)
+	return ch
+}
+func (this *LighterCore) signAndCancelOrderBody(ch chan any, method any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes313612 := (<-this.LoadMarkets())
+		PanicOnError(retRes313612)
+	}
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), method), " requires a symbol argument")))
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, method, "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var market any = this.Market(symbol)
+	var clientOrderId any = this.SafeString2(params, "client_order_index", "clientOrderId")
+	params = this.Omit(params, []any{"client_order_index", "clientOrderId"})
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"market_index":  this.ParseToInt(GetValue(market, "id")),
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(signRaw, "order_index", this.ParseToInt(clientOrderId))
+	} else if IsTrue(!IsEqual(id, nil)) {
+		AddElementToObject(signRaw, "order_index", this.ParseToInt(id))
+	} else {
+		panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), method), " requires order id or client order id")))
+	}
+	txTypetxInfoVariable := this.LighterSignCancelOrder(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+
+	ch <- []any{txType, txInfo, market}
+	return nil
 }
 
 /**
@@ -3965,70 +4045,78 @@ func (this *LighterCore) ModifyLeverageAndMarginMode(leverage any, marginMode an
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *LighterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes314212 := (<-this.LoadMarkets())
-			PanicOnError(retRes314212)
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
-		}
-		var market any = this.Market(symbol)
-		var clientOrderId any = this.SafeString2(params, "client_order_index", "clientOrderId")
-		params = this.Omit(params, []any{"client_order_index", "clientOrderId"})
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "cancelOrder", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"market_index":  this.ParseToInt(GetValue(market, "id")),
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(signRaw, "order_index", this.ParseToInt(clientOrderId))
-		} else if IsTrue(!IsEqual(id, nil)) {
-			AddElementToObject(signRaw, "order_index", this.ParseToInt(id))
-		} else {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder requires order id or client order id")))
-		}
-		txTypetxInfoVariable := this.LighterSignCancelOrder(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	txTypetxInfomarketVariable := (<-this.SignAndCancelOrder("cancelOrder", id, symbol, params))
+	txType := GetValue(txTypetxInfomarketVariable, 0)
+	txInfo := GetValue(txTypetxInfomarketVariable, 1)
+	market := GetValue(txTypetxInfomarketVariable, 2)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- this.ParseOrder(response, market)
+	return nil
+}
+func (this *LighterCore) SignAndCancelAllOrders(method any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.signAndCancelAllOrdersBody(ch, method, optionalArgs...)
+	return ch
+}
+func (this *LighterCore) signAndCancelAllOrdersBody(ch chan any, method any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes319212 := (<-this.LoadMarkets())
+		PanicOnError(retRes319212)
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, method, "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"time_in_force": 0,
+		"time":          0,
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	txTypetxInfoVariable := this.LighterSignCancelAllOrders(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+
+	ch <- []any{txType, txInfo}
+	return nil
 }
 
 /**
@@ -4042,58 +4130,30 @@ func (this *LighterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *LighterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes319212 := (<-this.LoadMarkets())
-			PanicOnError(retRes319212)
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "cancelAllOrders", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "cancelAllOrders", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"time_in_force": 0,
-			"time":          0,
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		txTypetxInfoVariable := this.LighterSignCancelAllOrders(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- this.ParseOrders([]any{response})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	txTypetxInfoVariable := (<-this.SignAndCancelAllOrders("cancelAllOrdersWs", symbol, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- this.ParseOrders([]any{response})
+	return nil
 }
 
 /**
@@ -4105,59 +4165,59 @@ func (this *LighterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} the api result
  */
 func (this *LighterCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes322812 := (<-this.LoadMarkets())
-			PanicOnError(retRes322812)
-		}
-		if IsTrue(IsTrue((IsLessThan(timeout, 300000))) || IsTrue((IsGreaterThan(timeout, 1296000000)))) {
-			panic(BadRequest(Add(this.Id, " timeout should be between 5 minutes and 15 days.")))
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "cancelAllOrdersAfter", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"time_in_force": 1,
-			"time":          Add(this.Milliseconds(), timeout),
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		txTypetxInfoVariable := this.LighterSignCancelAllOrders(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes324312 := (<-this.LoadMarkets())
+		PanicOnError(retRes324312)
+	}
+	if IsTrue(IsTrue((IsLessThan(timeout, 300000))) || IsTrue((IsGreaterThan(timeout, 1296000000)))) {
+		panic(BadRequest(Add(this.Id, " timeout should be between 5 minutes and 15 days.")))
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "cancelAllOrdersAfter", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"time_in_force": 1,
+		"time":          Add(this.Milliseconds(), timeout),
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	txTypetxInfoVariable := this.LighterSignCancelAllOrders(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- response
+	return nil
 }
 
 /**
@@ -4170,23 +4230,23 @@ func (this *LighterCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) 
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *LighterCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"direction": 1,
-		}
-
-		retRes327015 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes327015)
-		ch <- retRes327015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"direction": 1,
+	}
+
+	retRes328515 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+	PanicOnError(retRes328515)
+	ch <- retRes328515
+	return nil
 }
 
 /**
@@ -4199,23 +4259,23 @@ func (this *LighterCore) AddMargin(symbol any, amount any, optionalArgs ...any) 
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
 func (this *LighterCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"direction": 0,
-		}
-
-		retRes328615 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes328615)
-		ch <- retRes328615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"direction": 0,
+	}
+
+	retRes330115 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+	PanicOnError(retRes330115)
+	ch <- retRes330115
+	return nil
 }
 
 /**
@@ -4230,68 +4290,68 @@ func (this *LighterCore) ReduceMargin(symbol any, amount any, optionalArgs ...an
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *LighterCore) SetMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes330212 := (<-this.LoadMarkets())
-			PanicOnError(retRes330212)
-		}
-		var apiKeyIndex any = nil
-		apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "setMargin", "apiKeyIndex", "api_key_index")
-		apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
-		params = GetValue(apiKeyIndexparamsVariable, 1)
-		var direction any = this.SafeInteger(params, "direction") // 1 increase margin 0 decrease margin
-		if IsTrue(IsEqual(direction, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")))
-		}
-		if !IsTrue(this.InArray(direction, []any{0, 1})) {
-			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")))
-		}
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a symbol argument")))
-		}
-		var accountIndex any = nil
-		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "setMargin", "accountIndex", "account_index"))
-		accountIndex = GetValue(accountIndexparamsVariable, 0)
-		params = GetValue(accountIndexparamsVariable, 1)
-		var strAccountIndex any = this.NumberToString(accountIndex)
-		var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
-
-		signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
-		PanicOnError(signer)
-		var market any = this.Market(symbol)
-
-		nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
-		PanicOnError(nonce)
-		var signRaw any = map[string]any{
-			"market_index":  this.ParseToInt(GetValue(market, "id")),
-			"usdc_amount":   this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision("USDC", amount))),
-			"direction":     direction,
-			"nonce":         nonce,
-			"api_key_index": apiKeyIndex,
-			"account_index": accountIndex,
-		}
-		txTypetxInfoVariable := this.LighterSignUpdateMargin(signer, this.Extend(signRaw, params))
-		txType := GetValue(txTypetxInfoVariable, 0)
-		txInfo := GetValue(txTypetxInfoVariable, 1)
-		var request any = map[string]any{
-			"tx_type": txType,
-			"tx_info": txInfo,
-		}
-
-		response := (<-this.PublicPostSendTx(request))
-		PanicOnError(response)
-
-		ch <- this.ParseMarginModification(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
+}
+func (this *LighterCore) setMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes331712 := (<-this.LoadMarkets())
+		PanicOnError(retRes331712)
+	}
+	var apiKeyIndex any = nil
+	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, "setMargin", "apiKeyIndex", "api_key_index")
+	apiKeyIndex = GetValue(apiKeyIndexparamsVariable, 0)
+	params = GetValue(apiKeyIndexparamsVariable, 1)
+	var direction any = this.SafeInteger(params, "direction") // 1 increase margin 0 decrease margin
+	if IsTrue(IsEqual(direction, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")))
+	}
+	if !IsTrue(this.InArray(direction, []any{0, 1})) {
+		panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")))
+	}
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a symbol argument")))
+	}
+	var accountIndex any = nil
+	accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "setMargin", "accountIndex", "account_index"))
+	accountIndex = GetValue(accountIndexparamsVariable, 0)
+	params = GetValue(accountIndexparamsVariable, 1)
+	var strAccountIndex any = this.NumberToString(accountIndex)
+	var strApiKeyIndex any = this.NumberToString(apiKeyIndex)
+
+	signer := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
+	PanicOnError(signer)
+	var market any = this.Market(symbol)
+
+	nonce := (<-this.FetchNonce(accountIndex, apiKeyIndex, params))
+	PanicOnError(nonce)
+	var signRaw map[string]any = map[string]any{
+		"market_index":  this.ParseToInt(GetValue(market, "id")),
+		"usdc_amount":   this.ParseToInt(Precise.StringMul(this.Pow("10", "6"), this.CurrencyToPrecision("USDC", amount))),
+		"direction":     direction,
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
+	}
+	txTypetxInfoVariable := this.LighterSignUpdateMargin(signer, this.Extend(signRaw, params))
+	txType := GetValue(txTypetxInfoVariable, 0)
+	txInfo := GetValue(txTypetxInfoVariable, 1)
+	var request map[string]any = map[string]any{
+		"tx_type": txType,
+		"tx_info": txInfo,
+	}
+
+	response := (<-this.PublicPostSendTx(request))
+	PanicOnError(response)
+
+	ch <- this.ParseMarginModification(response, market)
+	return nil
 }
 func (this *LighterCore) ParseMarginModification(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -4332,7 +4392,7 @@ func (this *LighterCore) Sign(path any, optionalArgs ...any) any {
 			"Authorization": this.CreateAuth(params),
 		}
 	}
-	if IsTrue(GetArrayLength(ObjectKeys(params))) {
+	if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 		if IsTrue(IsEqual(method, "POST")) {
 			headers = map[string]any{
 				"Content-Type": "multipart/form-data",
@@ -4350,7 +4410,7 @@ func (this *LighterCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *LighterCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !IsTrue(response) {
+	if IsTrue(IsTrue((IsEqual(response, nil))) || IsTrue((IsEqual(response, nil)))) {
 		return nil // fallback to default error handler
 	}
 	//

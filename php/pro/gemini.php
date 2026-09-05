@@ -45,69 +45,73 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watch the list of most recent $trades for a particular $symbol
-             *
-             * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'trades:' . $market['symbol'];
-            $marketId = $market['id'];
-            if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' watchTrades() $marketId is required');
-            }
-            $request = array(
-                'type' => 'subscribe',
-                'subscriptions' => array(
-                    array(
-                        'name' => 'l2',
-                        'symbols' => array(
-                            strtoupper($marketId),
-                        ),
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch the list of most recent $trades for a particular $symbol
+         *
+         * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'trades:' . $market['symbol'];
+        $marketId = $market['id'];
+        if ($marketId === null) {
+            throw new ArgumentsRequired($this->id . ' watchTrades() $marketId is required');
+        }
+        $request = array(
+            'type' => 'subscribe',
+            'subscriptions' => array(
+                array(
+                    'name' => 'l2',
+                    'symbols' => array(
+                        strtoupper($marketId),
                     ),
                 ),
-            );
-            $subscribeHash = 'l2:' . $market['symbol'];
-            $url = $this->urls['api']['ws'] . '/v2/marketdata';
-            $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($market['symbol'], $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+            ),
+        );
+        $subscribeHash = 'l2:' . $market['symbol'];
+        $url = $this->urls['api']['ws'] . '/v2/marketdata';
+        $trades = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://docs.gemini.com/websocket-api/#multi-market-data
-             *
-             * get the list of most recent $trades for a list of $symbols
-             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_list($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         *
+         * get the list of most recent $trades for a list of $symbols
+         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_list($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function parse_ws_trade(mixed $trade, ?array $market = null): array {
@@ -282,43 +286,45 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://docs.gemini.com/websocket-api/#candles-data-feed
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $request = array(
-                'type' => 'subscribe',
-                'subscriptions' => array(
-                    array(
-                        'name' => 'candles_' . $timeframeId,
-                        'symbols' => array(
-                            $this->safe_string_upper($market, 'id'),
-                        ),
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.gemini.com/websocket-api/#candles-data-feed
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $request = array(
+            'type' => 'subscribe',
+            'subscriptions' => array(
+                array(
+                    'name' => 'candles_' . $timeframeId,
+                    'symbols' => array(
+                        $this->safe_string_upper($market, 'id'),
                     ),
                 ),
-            );
-            $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
-            $url = $this->urls['api']['ws'] . '/v2/marketdata';
-            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+            ),
+        );
+        $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
+        $url = $this->urls['api']['ws'] . '/v2/marketdata';
+        $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
     public function handle_ohlcv(Client $client, mixed $message) {
@@ -381,42 +387,44 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook:' . $market['symbol'];
-            $marketId = $market['id'];
-            if ($marketId === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBook() $marketId is required');
-            }
-            $request = array(
-                'type' => 'subscribe',
-                'subscriptions' => array(
-                    array(
-                        'name' => 'l2',
-                        'symbols' => array(
-                            strtoupper($marketId),
-                        ),
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook:' . $market['symbol'];
+        $marketId = $market['id'];
+        if ($marketId === null) {
+            throw new ArgumentsRequired($this->id . ' watchOrderBook() $marketId is required');
+        }
+        $request = array(
+            'type' => 'subscribe',
+            'subscriptions' => array(
+                array(
+                    'name' => 'l2',
+                    'symbols' => array(
+                        strtoupper($marketId),
                     ),
                 ),
-            );
-            $subscribeHash = 'l2:' . $market['symbol'];
-            $url = $this->urls['api']['ws'] . '/v2/marketdata';
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
-            return $orderbook->limit();
-        })();
+            ),
+        );
+        $subscribeHash = 'l2:' . $market['symbol'];
+        $url = $this->urls['api']['ws'] . '/v2/marketdata';
+        $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscribeHash));
+        return $orderbook->limit();
     }
 
     public function handle_order_book(Client $client, mixed $message) {
@@ -452,20 +460,22 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.gemini.com/websocket-api/#multi-market-data
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            $orderbook = Async\await($this->helper_for_watch_multiple_construct('orderbook', $symbols, $params));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.gemini.com/websocket-api/#multi-market-data
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $orderbook = Async\await($this->helper_for_watch_multiple_construct('orderbook', $symbols, $params));
+        return $orderbook->limit();
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -546,38 +556,40 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function helper_for_watch_multiple_construct(string $itemHashName, ?array $symbols = null, $params = array()) {
-        return Async\async(function () use ($itemHashName, $symbols, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbols === null) {
-                throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
-            }
-            $symbols = $this->market_symbols($symbols, null, false, true, true);
-            $firstMarket = $this->market($symbols[0]);
-            if (!$firstMarket['spot'] && !$firstMarket['linear']) {
-                throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
-            }
-            $messageHashes = array();
-            $marketIds = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $messageHash = $itemHashName . ':' . $symbol;
-                $messageHashes[] = $messageHash;
-                $market = $this->market($symbol);
-                $marketIds[] = $market['id'];
-            }
-            $queryStr = implode(',', $marketIds);
-            $url = $this->urls['api']['ws'] . '/v1/multimarketdata?$symbols=' . $queryStr . '&heartbeat=true&';
-            if ($itemHashName === 'orderbook') {
-                $url .= 'trades=false&bids=true&offers=true';
-            } elseif ($itemHashName === 'bidsasks') {
-                $url .= 'trades=false&bids=true&offers=true&top_of_book=true';
-            } elseif ($itemHashName === 'trades') {
-                $url .= 'trades=true&bids=false&offers=false';
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, null));
-        })();
+        return Async\async(self::do_helper_for_watch_multiple_construct(...))($itemHashName, $symbols, $params);
+    }
+
+    private function do_helper_for_watch_multiple_construct(string $itemHashName, ?array $symbols = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbols === null) {
+            throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
+        }
+        $symbols = $this->market_symbols($symbols, null, false, true, true);
+        $firstMarket = $this->market($symbols[0]);
+        if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
+            throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
+        }
+        $messageHashes = array();
+        $marketIds = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $messageHash = $itemHashName . ':' . $symbol;
+            $messageHashes[] = $messageHash;
+            $market = $this->market($symbol);
+            $marketIds[] = $market['id'];
+        }
+        $queryStr = implode(',', $marketIds);
+        $url = $this->urls['api']['ws'] . '/v1/multimarketdata?$symbols=' . $queryStr . '&heartbeat=true&';
+        if ($itemHashName === 'orderbook') {
+            $url .= 'trades=false&bids=true&offers=true';
+        } elseif ($itemHashName === 'bidsasks') {
+            $url .= 'trades=false&bids=true&offers=true&top_of_book=true';
+        } elseif ($itemHashName === 'trades') {
+            $url .= 'trades=true&bids=false&offers=false';
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, null));
     }
 
     public function handle_order_book_for_multidata(Client $client, mixed $rawOrderBookChanges, ?int $timestamp, ?int $nonce) {
@@ -671,37 +683,39 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://docs.gemini.com/websocket-api/#order-events
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $authParams = array(
-                'url' => $url,
-            );
-            Async\await($this->authenticate($authParams));
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-            }
-            $messageHash = 'orders';
-            $orders = Async\await($this->watch($url, $messageHash, null, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://docs.gemini.com/websocket-api/#order-events
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $authParams = array(
+            'url' => $url,
+        );
+        Async\await($this->authenticate($authParams));
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $messageHash = 'orders';
+        $orders = Async\await($this->watch($url, $messageHash, null, $messageHash));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_heartbeat(Client $client, mixed $message) {

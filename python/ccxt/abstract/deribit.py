@@ -1,8 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_auth = publicGetAuth = Entry[_Dict]('auth', 'public', 'GET', {'cost': 1})
@@ -31,7 +29,7 @@ class ImplicitAPI:
     public_get_get_index_price = publicGetGetIndexPrice = Entry[_Dict]('get_index_price', 'public', 'GET', {'cost': 1})
     public_get_get_index_price_names = publicGetGetIndexPriceNames = Entry[_Dict]('get_index_price_names', 'public', 'GET', {'cost': 1})
     public_get_get_instrument = publicGetGetInstrument = Entry[_Dict]('get_instrument', 'public', 'GET', {'cost': 1})
-    public_get_get_instruments = publicGetGetInstruments = Entry[_List]('get_instruments', 'public', 'GET', {'cost': 1})
+    public_get_get_instruments = publicGetGetInstruments = Entry[_Dict]('get_instruments', 'public', 'GET', {'cost': 1})
     public_get_get_last_settlements_by_currency = publicGetGetLastSettlementsByCurrency = Entry[_Dict]('get_last_settlements_by_currency', 'public', 'GET', {'cost': 1})
     public_get_get_last_settlements_by_instrument = publicGetGetLastSettlementsByInstrument = Entry[_Dict]('get_last_settlements_by_instrument', 'public', 'GET', {'cost': 1})
     public_get_get_last_trades_by_currency = publicGetGetLastTradesByCurrency = Entry[_Dict]('get_last_trades_by_currency', 'public', 'GET', {'cost': 1})

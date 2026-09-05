@@ -1626,6 +1626,105 @@ public class OkxApi extends Exchange
     }
 
     /**
+     * Calls the privateGetFiatDepositPaymentMethods endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatDepositPaymentMethods (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatDepositPaymentMethods", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatWithdrawalPaymentMethods endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatWithdrawalPaymentMethods (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatWithdrawalPaymentMethods", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatDepositOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatDepositOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatDepositOrderHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatDeposit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatDeposit (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatDeposit", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatWithdrawalOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatWithdrawalOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatWithdrawalOrderHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatBuySellCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatBuySellCurrencies (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatBuySellCurrencies", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatBuySellCurrencyPair endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatBuySellCurrencyPair (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatBuySellCurrencyPair", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetFiatBuySellHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFiatBuySellHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetFiatBuySellHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetAccountInstruments endpoint.
      *
      * @param optionalArgs the request parameters
@@ -3460,6 +3559,50 @@ public class OkxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAssetConvertTrade (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetConvertTrade", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFiatCreateWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFiatCreateWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFiatCreateWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFiatCancelWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFiatCancelWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFiatCancelWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFiatBuySellQuote endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFiatBuySellQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFiatBuySellQuote", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostFiatBuySellTrade endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostFiatBuySellTrade (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostFiatBuySellTrade", optionalArgs);
     }
 
     /**

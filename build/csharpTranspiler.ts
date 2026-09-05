@@ -24,6 +24,7 @@ type dict = { [key: string]: string }
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
+const wsIds: string[] = exchanges.ws || []
 const predictionIds: string[] = exchanges.prediction || []
 const predictionWsIds: string[] = exchanges.predictionWs || []
 
@@ -53,13 +54,932 @@ if (platform === 'win32') {
     }
 }
 
+// watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
+// types.ts struct, so it has no generated To*/From* pair — the hand-written
+// ToOHLCVDict / FromOHLCVDict in Exchange.TranspileHelpers.cs (built on ToOHLCVList /
+// FromOHLCVList) carry it, keyed on this exact type string.
+const OHLCV_DICT_TYPE = 'Dictionary<string, Dictionary<string, List<OHLCV>>>';
+
+// core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>`,
+// moving the `new T(item)` conversion out of the PascalCase wrapper and onto the core return path.
+// only methods whose every intra-core call site is a plain `return await this.X(...);` from a core
+// of the same typed shape are listed — anything feeding an untyped helper or reflective pagination
+// (fetchPaginatedCall*, callDynamically) stays object, since there is no reverse From helper.
+const TYPED_CORES: Record<string, string> = {
+    'cancelAllContractOrders': 'List<Order>',
+    'cancelAllOrders': 'List<Order>',
+    'cancelAllOrdersAfter': 'Dictionary<string, object>',
+    'cancelAllOrdersWs': 'List<Order>',
+    'cancelAllSpotOrders': 'List<Order>',
+    'cancelAllUtaOrders': 'List<Order>',
+    'cancelContractOrder': 'Order',
+    'cancelOrder': 'Order',
+    'cancelOrderWithClientOrderId': 'Order',
+    'cancelOrderWs': 'Order',
+    // okx#cancelOrders omits request-only keys (clientOrderId[], trigger, …) before parseOrders
+    'cancelOrders': 'List<Order>',
+    'cancelOrdersForSymbols': 'List<Order>',
+    'cancelOrdersWithClientOrderIds': 'List<Order>',
+    'cancelOrdersWs': 'List<Order>',
+    'cancelSpotOrder': 'Order',
+    'cancelTwapOrder': 'Order',
+    'cancelUnifiedOrder': 'Order',
+    'cancelUtaOrder': 'Order',
+    'cancelUtaOrders': 'List<Order>',
+    'createAmmOrder': 'PredictionOrder',
+    'createApiKey': 'Dictionary<string, object>',
+    'createContractOrder': 'Order',
+    'createContractOrders': 'List<Order>',
+    'createConvertTrade': 'Conversion',
+    'createDepositAddress': 'DepositAddress',
+    'createExtendedOrderRequest': 'Dictionary<string, object>',
+    'createGiftCode': 'Dictionary<string, object>',
+    'createLimitBuyOrder': 'Order',
+    'createLimitBuyOrderWs': 'Order',
+    'createLimitOrder': 'Order',
+    'createLimitOrderWs': 'Order',
+    'createLimitSellOrder': 'Order',
+    'createLimitSellOrderWs': 'Order',
+    'createMarketBuyOrder': 'Order',
+    'createMarketBuyOrderWithCost': 'Order',
+    'createMarketBuyOrderWs': 'Order',
+    'createMarketOrder': 'Order',
+    'createMarketOrderWithCost': 'Order',
+    'createMarketOrderWithCostWs': 'Order',
+    'createMarketOrderWs': 'Order',
+    'createMarketSellOrder': 'Order',
+    'createMarketSellOrderWithCost': 'Order',
+    'createMarketSellOrderWs': 'Order',
+    'createOrder': 'Order',
+    'createOrderWithTakeProfitAndStopLoss': 'Order',
+    'createOrderWithTakeProfitAndStopLossWs': 'Order',
+    'createOrderWs': 'Order',
+    'createOrderbookOrder': 'PredictionOrder',
+    'createOrDeriveApiKey': 'Dictionary<string, object>',
+    'createOrders': 'List<Order>',
+    'createOrdersWs': 'List<Order>',
+    'createPostOnlyOrder': 'Order',
+    'createPostOnlyOrderWs': 'Order',
+    'createReduceOnlyOrder': 'Order',
+    'createReduceOnlyOrderWs': 'Order',
+    'createSubAccount': 'Dictionary<string, object>',
+    'createSpotOrder': 'Order',
+    'createSpotOrders': 'List<Order>',
+    'createStopLimitOrder': 'Order',
+    'createStopLimitOrderWs': 'Order',
+    'createStopLossOrder': 'Order',
+    'createStopLossOrderWs': 'Order',
+    'createStopMarketOrder': 'Order',
+    'createStopMarketOrderWs': 'Order',
+    'createStopOrder': 'Order',
+    'createStopOrderWs': 'Order',
+    'createSwapOrder': 'Order',
+    'createTakeProfitOrder': 'Order',
+    'createTakeProfitOrderWs': 'Order',
+    'createTrailingAmountOrder': 'Order',
+    'createTrailingAmountOrderWs': 'Order',
+    'createTrailingPercentOrder': 'Order',
+    'createTrailingPercentOrderWs': 'Order',
+    'createTriggerOrder': 'Order',
+    'createTriggerOrderWs': 'Order',
+    'createTwapOrder': 'Order',
+    'createUtaOrder': 'Order',
+    'createUtaOrders': 'List<Order>',
+    'createVault': 'Dictionary<string, object>',
+    'editContractOrder': 'Order',
+    'editLimitBuyOrder': 'Order',
+    'editLimitOrder': 'Order',
+    'editLimitSellOrder': 'Order',
+    'editOrder': 'Order',
+    'editOrderWithClientOrderId': 'Order',
+    'editOrderWs': 'Order',
+    'editOrders': 'List<Order>',
+    'editSpotOrder': 'Order',
+    'fetchADLRank': 'ADL',
+    'fetchAccount': 'Account',
+    // htx: every path is safeString(...) — the params override is stringified in TS too
+    'fetchAccountIdByType': 'string',
+    'fetchAccountPositions': 'List<Position>',
+    'fetchAccounts': 'List<Account>',
+    'fetchAccountSettings': 'Dictionary<string, object>',
+    'fetchAccountsV2': 'List<Account>',
+    'fetchAccountsV3': 'List<Account>',
+    // parseAllGreeks() ends in filterByArray(results, 'symbol', symbols), whose `indexed`
+    // parameter defaults to TRUE, so the runtime value is a symbol-keyed dict, not the
+    // Greeks[] the TS annotation used to claim. AllGreeks is that dict.
+    'fetchAllGreeks': 'AllGreeks',
+    'fetchAmmOrders': 'List<PredictionOrder>',
+    'fetchApiKey': 'Dictionary<string, object>',
+    'fetchApiKeys': 'Dictionary<string, object>',
+    // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
+    // payload into a Dictionary<string, T>; their From* helpers write every entry back under
+    // its own key, so a consuming site (`object x = await this.fetchTickers(...)` then
+    // indexed / safeDict()ed) is funnelled through the reverse helper by typeCores. Every
+    // consumer must sit inside a method body typeCores visits: Task<object> AND void Task
+    // (loadBalanceSnapshot / loadPositionsSnapshot are void).
+    // setLeverage is NOT typed: on master its wrapper is cast-only
+    // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
+    // every venue-specific key from the public C# return - an API regression, not a win.
+    'fetchBalance': 'Balances',
+    'fetchBalanceWs': 'Balances',
+    'fetchBidsAsks': 'Tickers',
+    'fetchBorrowRate': 'Dictionary<string, object>',
+    'fetchBorrowRateHistories': 'Dictionary<string, object>',
+    'fetchBorrowRateHistory': 'List<Dictionary<string, object>>',
+    'fetchBuilderApprovals': 'List<Dictionary<string, object>>',
+    'fetchContractBalance': 'Balances',
+    'fetchContractTickers': 'Tickers',
+    'fetchCrossBorrowRates': 'CrossBorrowRates',
+    'fetchCurrenciesFromCache': 'Dictionary<string, object>',
+    // gemini: parseCurrencies dict, or `{}` when the web scrape is empty. Currencies
+    // is reversible and Currency already has the extra bag, so the struct is lossless.
+    'fetchCurrenciesFromWeb': 'Currencies',
+    'fetchCurrency': 'Dictionary<string, object>',
+    'fetchCurrencyById': 'Dictionary<string, object>',
+    'fetchDepositMethodId': 'Dictionary<string, object>',
+    'fetchDepositMethodIds': 'List<Dictionary<string, object>>',
+    'fetchDepositWithdrawFees': 'DepositWithdrawFees',
+    'fetchDydxAccount': 'Dictionary<string, object>',
+    'fetchFundingIntervals': 'FundingRates',
+    'fetchFundingLimits': 'Dictionary<string, object>',
+    'fetchFundingRates': 'FundingRates',
+    'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
+    'fetchLatestBlockHeight': 'Int64',
+    'fetchLeverages': 'Leverages',
+    'fetchMarginModes': 'MarginModes',
+    'fetchMarkPrices': 'Tickers',
+    'fetchMarketsByTypeAndSubType': 'List<MarketInterface>',
+    'fetchMarketsFromAPI': 'List<MarketInterface>',
+    'fetchMarketsFromWeb': 'List<MarketInterface>',
+    // bitstamp: publicGetMarkets returns a list of market dicts (cached). The
+    // previous Dictionary wrapper was a runtime InvalidCastException.
+    'fetchMarketsFromCache': 'List<Dictionary<string, object>>',
+    // kraken: privatePostDepositMethods['result'] is a list of method dicts.
+    'fetchDepositMethods': 'List<Dictionary<string, object>>',
+    // mexc: both spot and (after wrapping the swap asset list) swap return an
+    // account dict with a `balances` array.
+    'fetchAccountHelper': 'Dictionary<string, object>',
+    'fetchMarketsV1': 'List<MarketInterface>',
+    'fetchMyDustTrades': 'List<Trade>',
+    'fetchNetworkDepositAddress': 'Dictionary<string, object>',
+    'fetchOpenInterests': 'OpenInterests',
+    'fetchOrderBooks': 'OrderBooks',
+    'fetchOutcome': 'Dictionary<string, object>',
+    'fetchPaymentMethods': 'List<Dictionary<string, object>>',
+    'fetchPortfolioDetails': 'List<Dictionary<string, object>>',
+    'fetchPrivateDepositWithdrawFees': 'Dictionary<string, object>',
+    'fetchPrivateTradingFee': 'Dictionary<string, object>',
+    'fetchPrivateTransactionFees': 'Dictionary<string, object>',
+    'fetchPublicDepositWithdrawFees': 'Dictionary<string, object>',
+    'fetchPublicTradingFee': 'Dictionary<string, object>',
+    'fetchPublicTransactionFees': 'Dictionary<string, object>',
+    'fetchSpotTickers': 'Tickers',
+    'fetchSwapAndFutureMarkets': 'List<MarketInterface>',
+    'fetchTickers': 'Tickers',
+    'fetchTickersV2': 'Tickers',
+    'fetchTickersV3': 'Tickers',
+    'fetchTickersWs': 'Tickers',
+    'fetchBorrowInterest': 'List<BorrowInterest>',
+    'fetchCanceledAndClosedOrders': 'List<Order>',
+    'fetchCanceledOrders': 'List<Order>',
+    'fetchClosedContractOrders': 'List<Order>',
+    'fetchClosedOrder': 'Order',
+    'fetchClosedOrders': 'List<Order>',
+    'fetchClosedOrdersWs': 'List<Order>',
+    'fetchClosedSpotOrders': 'List<Order>',
+    'fetchContractDepositAddress': 'DepositAddress',
+    'fetchContractDeposits': 'List<Transaction>',
+    'fetchContractMarkets': 'List<MarketInterface>',
+    'fetchContractOHLCV': 'List<OHLCV>',
+    'fetchContractOrder': 'Order',
+    'fetchContractOrders': 'List<Order>',
+    'fetchContractOrdersByStatus': 'List<Order>',
+    'fetchContractWithdrawals': 'List<Transaction>',
+    'fetchConvertCurrencies': 'Currencies',
+    'fetchConvertQuote': 'Conversion',
+    'fetchConvertTrade': 'Conversion',
+    'fetchConvertTradeHistory': 'List<Conversion>',
+    'fetchCrossBorrowRate': 'CrossBorrowRate',
+    'fetchDefaultMarkets': 'List<MarketInterface>',
+    'fetchDeposit': 'Transaction',
+    'fetchDepositAddress': 'DepositAddress',
+    // parseDepositAddresses(indexed=true) returns a network-keyed dict on every venue;
+    // the old List<DepositAddress> wrapper was a shape lie that threw at runtime
+    'fetchDepositAddressesByNetwork': 'DepositAddresses',
+    'fetchDepositAddressDefault': 'DepositAddress',
+    'fetchDepositAddressSupplement': 'DepositAddress',
+    'fetchDepositAddresses': 'List<DepositAddress>',
+    // fetchDepositAddressesByNetwork is deliberately NOT typed: parseDepositAddresses()
+    // is called with indexed=true by every venue that has this method, and then returns
+    // a dict keyed by currency - not the DepositAddress[] the TS return annotation
+    // claims. ToDepositAddressList then throws on a Dictionary.
+    'fetchDepositWithdrawFee': 'DepositWithdrawFee',
+    'fetchDeposits': 'List<Transaction>',
+    'fetchDepositsOrWithdrawalsHelper': 'List<Transaction>',
+    'fetchDepositsWithdrawals': 'List<Transaction>',
+    'fetchDepositsWs': 'List<Transaction>',
+    'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
+    'fetchExtendedAccount': 'Dictionary<string, object>',
+    'fetchFinancialBalance': 'Balances',
+    'fetchFreeBalance': 'Balance',
+    'fetchFundingHistory': 'List<FundingHistory>',
+    'fetchFundingInterval': 'FundingRate',
+    'fetchFundingRate': 'FundingRate',
+    'fetchFundingRateHistory': 'List<FundingRateHistory>',
+    'fetchFutureMarkets': 'List<MarketInterface>',
+    'fetchGreeks': 'Greeks',
+    'fetchHip3Markets': 'List<MarketInterface>',
+    'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchInverseSwapMarkets': 'List<MarketInterface>',
+    'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
+    'fetchLastPrices': 'LastPrices',
+    'fetchLedger': 'List<LedgerEntry>',
+    'fetchLedgerByEntries': 'List<LedgerEntry>',
+    'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
+    'fetchLedgerEntry': 'LedgerEntry',
+    'fetchLeverage': 'Leverage',
+    // parseLeverageTiers returns a symbol-keyed dict with NO top-level `info`; the struct ctor
+    // splats it (Helper.GetInfo yields null), so FromLeverageTiers inverts it exactly — the
+    // consuming base site (fetchMarketLeverageTiers reads tiers[symbol]) is routed through it
+    'fetchLeverageTiers': 'LeverageTiers',
+    'fetchLiquidations': 'List<Liquidation>',
+    'fetchLongShortRatio': 'LongShortRatio',
+    'fetchLongShortRatioHistory': 'List<LongShortRatio>',
+    'fetchMarginBalance': 'Balances',
+    'fetchMarginAdjustmentHistory': 'List<MarginModification>',
+    'fetchMarginMode': 'MarginMode',
+    'fetchMarket': 'MarketInterface',
+    'fetchMarketById': 'MarketInterface',
+    'fetchMarkOHLCV': 'List<OHLCV>',
+    'fetchMarkPrice': 'Ticker',
+    'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMarkets': 'List<MarketInterface>',
+    'fetchMarketsByType': 'List<MarketInterface>',
+    'fetchMarketsV2': 'List<MarketInterface>',
+    'fetchMarketsV3': 'List<MarketInterface>',
+    'fetchMarketsWs': 'List<MarketInterface>',
+    'fetchMyBuys': 'List<Trade>',
+    'fetchMyContractTrades': 'List<Trade>',
+    'fetchMyLiquidations': 'List<Liquidation>',
+    'fetchMySells': 'List<Trade>',
+    'fetchMySpotTrades': 'List<Trade>',
+    'fetchMyTrades': 'List<Trade>',
+    'fetchMyTradesWs': 'List<Trade>',
+    'fetchMyUtaTrades': 'List<Trade>',
+    'fetchMySettlementHistory': 'List<Dictionary<string, object>>',
+    'fetchOHLCV': 'List<OHLCV>',
+    'fetchOHLCVWs': 'List<OHLCV>',
+    'fetchL2OrderBook': 'OrderBook',
+    'fetchL3OrderBook': 'OrderBook',
+    'fetchNonce': 'Int64',
+    'fetchOpenInterest': 'OpenInterest',
+    'fetchOpenInterestHistory': 'List<OpenInterest>',
+    'fetchOpenOrder': 'Order',
+    'fetchOpenOrders': 'List<Order>',
+    'fetchOpenOrdersV1': 'List<Order>',
+    'fetchOpenOrdersV2': 'List<Order>',
+    'fetchOpenOrdersWs': 'List<Order>',
+    'fetchOpenSpotOrders': 'List<Order>',
+    'fetchOpenSwapOrders': 'List<Order>',
+    'fetchOption': 'Option',
+    'fetchOptionChain': 'OptionChain',
+    'fetchOptionMarkets': 'List<MarketInterface>',
+    'fetchOptionUnderlyings': 'List<string>',
+    'fetchOptionOHLCV': 'List<OHLCV>',
+    'fetchOptionPositions': 'List<Position>',
+    'fetchOrder': 'Order',
+    'fetchOrderBook': 'OrderBook',
+    'fetchOrderBookWs': 'OrderBook',
+    'fetchOrderStatus': 'string',
+    'fetchOrderClassic': 'Order',
+    'fetchOrderDefault': 'Order',
+    'fetchOrderSupplement': 'Order',
+    'fetchOrderTrades': 'List<Trade>',
+    'fetchOrderWithClientOrderId': 'Order',
+    'fetchOrderWs': 'Order',
+    'fetchOrders': 'List<Order>',
+    'fetchOrdersByIds': 'List<Order>',
+    'fetchOrdersByState': 'List<Order>',
+    'fetchOrdersByStates': 'List<Order>',
+    'fetchOrdersByStatus': 'List<Order>',
+    'fetchOrdersByStatusWs': 'List<Order>',
+    'fetchOrdersByType': 'List<Order>',
+    'fetchOrdersClassic': 'List<Order>',
+    'fetchOrdersWithMethod': 'List<Order>',
+    'fetchOrdersWs': 'List<Order>',
+    'fetchOutcomes': 'Dictionary<string, object>',
+    'fetchPartialBalance': 'Balance',
+    'fetchPortfolios': 'List<Account>',
+    'fetchPosition': 'Position',
+    'fetchPositionADLRank': 'ADL',
+    'fetchPositionHistory': 'List<Position>',
+    'fetchPositionMode': 'PositionModeInfo',
+    'fetchPositionWs': 'List<Position>',
+    'fetchPositions': 'List<Position>',
+    'fetchPositionsADLRank': 'List<ADL>',
+    'fetchPositionsForSymbol': 'List<Position>',
+    'fetchPositionsForSymbolWs': 'List<Position>',
+    'fetchPositionsHistory': 'List<Position>',
+    'fetchPositionsRisk': 'List<Position>',
+    'fetchPositionsWs': 'List<Position>',
+    'fetchPremiumIndexOHLCV': 'List<OHLCV>',
+    'fetchRestOrderBookSafe': 'OrderBook',
+    'fetchSettlementHistory': 'List<Dictionary<string, object>>',
+    'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotBalance': 'Balances',
+    'fetchSpotMarkets': 'List<MarketInterface>',
+    'fetchSpotOHLCV': 'List<OHLCV>',
+    'fetchSpotOrder': 'Order',
+    'fetchSpotOrderTrades': 'List<Trade>',
+    'fetchSpotOrders': 'List<Order>',
+    'fetchSpotOrdersByStates': 'List<Order>',
+    'fetchSpotOrdersByStatus': 'List<Order>',
+    'fetchStatus': 'Status',
+    'fetchSwapBalance': 'Balances',
+    'fetchSwapMarkets': 'List<MarketInterface>',
+    'fetchTicker': 'Ticker',
+    'fetchTicker2': 'Ticker',
+    'fetchTickerV1': 'Ticker',
+    'fetchTickerV1AndV2': 'Ticker',
+    'fetchTickerV2': 'Ticker',
+    'fetchTickerV3': 'Ticker',
+    'fetchTickerWs': 'Ticker',
+    'fetchTime': 'Int64',
+    'fetchTotalBalance': 'Balance',
+    'fetchTrades': 'List<Trade>',
+    'fetchTradesWs': 'List<Trade>',
+    'fetchTradingFee': 'TradingFeeInterface',
+    // TradingFeeInterface.tiers (ts/src/base/types.ts) carries the cryptomus/onetrading
+    // volume-tier schedule, so the TradingFees struct is now lossless for every venue.
+    'fetchTradingFees': 'TradingFees',
+    'fetchPrivateTradingFees': 'TradingFees',
+    'fetchPublicTradingFees': 'TradingFees',
+    'fetchQuote': 'Dictionary<string, object>',
+    'fetchRawEventByTicker': 'Dictionary<string, object>',
+    'fetchRawMarketById': 'Dictionary<string, object>',
+    'fetchRawQuestionById': 'Dictionary<string, object>',
+    'fetchRawTopicDetail': 'Dictionary<string, object>',
+    'fetchTradeQuote': 'Dictionary<string, object>',
+    'fetchTradingFeesWs': 'TradingFees',
+    'fetchTradingLimits': 'Dictionary<string, object>',
+    'fetchTradingLimitsById': 'Dictionary<string, object>',
+    'fetchTransactionFee': 'Dictionary<string, object>',
+    'fetchTransactionFees': 'Dictionary<string, object>',
+    'fetchTransactions': 'List<Transaction>',
+    'fetchTransactionsByType': 'List<Transaction>',
+    // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
+    // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
+    // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
+    // and filterBy throws InvalidCastException on List<Transaction>.
+    'fetchTransactionsWithMethod': 'List<Transaction>',
+    'fetchTransfer': 'TransferEntry',
+    'fetchTransfers': 'List<TransferEntry>',
+    'fetchUSDTMarkets': 'List<MarketInterface>',
+    'fetchUnderlyingAssets': 'List<string>',
+    'fetchUTAMarkets': 'List<MarketInterface>',
+    'fetchUtaMarkets': 'List<MarketInterface>',
+    'fetchUTAOHLCV': 'List<OHLCV>',
+    'fetchUnifiedOrder': 'Order',
+    'fetchUsedBalance': 'Balance',
+    'fetchUtaBalance': 'Balances',
+    'fetchUtaCanceledAndClosedOrders': 'List<Order>',
+    'fetchUtaOrder': 'Order',
+    'fetchUtaOrdersByStatus': 'List<Order>',
+    'fetchVolatilityHistory': 'List<Dictionary<string, object>>',
+    'fetchWallet': 'Dictionary<string, object>',
+    'fetchWithdrawAddresses': 'List<Dictionary<string, object>>',
+    'fetchWithdrawal': 'Transaction',
+    'fetchWithdrawals': 'List<Transaction>',
+    'fetchWithdrawalsWs': 'List<Transaction>',
+    'fetchWithdrawalWhitelist': 'List<Dictionary<string, object>>',
+    'setLeverage': 'Dictionary<string, object>',
+    'setMargin': 'MarginModification',
+    'setMarginMode': 'Dictionary<string, object>',
+    'setPositionMode': 'Dictionary<string, object>',
+    'transfer': 'TransferEntry',
+    'transferBetweenMainAndSubAccount': 'TransferEntry',
+    'transferBetweenSubAccounts': 'TransferEntry',
+    'transferClassic': 'TransferEntry',
+    'transferIn': 'TransferEntry',
+    'transferOut': 'TransferEntry',
+    'transferUta': 'TransferEntry',
+    // --- watch* -------------------------------------------------------------------
+    // A watch core hands back the LIVE ws structure (ArrayCache*, the shared balance /
+    // ticker dictionaries). Every To* helper materialises a NEW List/struct from the rows,
+    // which is exactly the snapshot the deleted PascalCase wrapper produced with
+    // `.Select(item => new T(item))` / `new T(res)`. Typing the core therefore keeps the
+    // public C# semantics byte for byte while removing the second declaration.
+    // The names below have zero consuming call sites outside the wrapper layer
+    // (build/tmp_watch_analysis.py in the PR description); the ones that do have them
+    // stay untyped and keep their wrapper:
+    //   watchTickers        16 sites (binance, okx, kraken, gate, ... ) + Tickers is not invertible
+    //   watchOHLCVForSymbols 11 sites; its wrapper conversion is Helper.ConvertToDictionaryOHLCVList
+    //   watchMarkPrices      3 sites (okx, binance, aster) + Tickers is not invertible
+    //   watchFundingRates    1 site  (okx) + FundingRates is not invertible
+    // and the venue-internal plumbing (watchPublic/watchPrivate/watchTopics/...) whose
+    // wrapper is cast-only, so typing it would drop venue keys.
+    'watchBalance': 'Balances',
+    'watchBidsAsks': 'Tickers',
+    'watchFundingRate': 'FundingRate',
+    'watchFundingRatesForSymbols': 'FundingRates',
+    'watchLiquidations': 'List<Liquidation>',
+    'watchLiquidationsForSymbols': 'List<Liquidation>',
+    'watchMarkPrice': 'Ticker',
+    'watchMyLiquidations': 'List<Liquidation>',
+    'watchMyLiquidationsForSymbols': 'List<Liquidation>',
+    'watchMyTrades': 'List<Trade>',
+    'watchMyTradesForSymbols': 'List<Trade>',
+    'watchOHLCV': 'List<OHLCV>',
+    'watchOHLCVForSymbols': OHLCV_DICT_TYPE,
+    'watchOrders': 'List<Order>',
+    'watchOrdersForSymbols': 'List<Order>',
+    'watchPosition': 'Position',
+    'watchPositionForSymbols': 'List<Position>',
+    'watchPositions': 'List<Position>',
+    'watchTicker': 'Ticker',
+    'watchTrades': 'List<Trade>',
+    'watchTradesForSymbols': 'List<Trade>',
+    'watchUtaTickers': 'Tickers',
+    'withdraw': 'Transaction',
+    'withdrawWs': 'Transaction',
+    // the ws container families below snapshot the live cache exactly as the wrapper's
+    // `new Tickers(res)` / `new FundingRates(res)` did: the ctor re-materialises every row
+    // into a fresh struct, so the caller never holds the live dictionary
+    'watchTickers': 'Tickers',
+    'watchMarkPrices': 'Tickers',
+    'watchFundingRates': 'FundingRates',
+};
+
+// watch* cores whose public shape is a SNAPSHOT of a live ws structure rather than a
+// re-materialised unified struct. `.Copy()` is load-bearing: without it the caller holds
+// the live book and sees updates it must not see, so the copy moves onto the core return.
+const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionType?: string; predictionHelper?: string }> = {
+    'watchOrderBook': {
+        'type': 'ccxt.pro.IOrderBook',
+        'helper': 'ccxt.BaseExchange.ToOrderBookSnapshot',
+        'predictionType': 'ccxt.PredictionOrderBook',
+        'predictionHelper': 'ccxt.BaseExchange.ToPredictionOrderBookSnapshot',
+    },
+    'watchOrderBookForSymbols': {
+        'type': 'ccxt.pro.IOrderBook',
+        'helper': 'ccxt.BaseExchange.ToOrderBookSnapshot',
+    },
+};
+
+
+
+
+
+
+
+
+
+
+
+
+// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
+// structures, so the same method name is typed differently there — no invariance conflict
+// struct families that have a reverse `FromX` / `FromXList` helper in
+// cs/ccxt/base/Exchange.TypedCores.cs, i.e. that can be handed back to the untyped
+// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`.
+// The dictionary-like containers (Tickers, Balances, OrderBook, ...) are included since the
+// generator learned to invert their splat constructors: the loop copies every non-"info"
+// key verbatim, so writing each entry back under its own key restores the source dict.
+// OHLCV's ctor is positional so the generator cannot invert it; FromOHLCVList is hand-written
+// in Exchange.TranspileHelpers.cs, which is why the family is still listed here.
+const REVERSIBLE_FAMILIES: string[] = [
+    'ADL', 'Account', 'Balance', 'BalanceAccount', 'Balances', 'BorrowInterest',
+    'CancellationRequest', 'Conversion', 'CrossBorrowRate', 'CrossBorrowRates', 'Currencies',
+    'Currency', 'CurrencyLimits', 'DepositAddress', 'DepositAddresses', 'DepositWithdrawFee',
+    'DepositWithdrawFeeNetwork', 'DepositWithdrawFees', 'Fee', 'FundingHistory', 'FundingRate',
+    'FundingRateHistory', 'FundingRates', 'Greeks', 'IsolatedBorrowRate', 'IsolatedBorrowRates',
+    'LastPrice', 'LastPrices', 'LedgerEntry', 'Leverage', 'LeverageTier', 'LeverageTiers',
+    'Leverages', 'Limits', 'Liquidation', 'LongShortRatio', 'MarginLoan', 'MarginMode',
+    'MarginModes', 'MarginModification', 'Market', 'MarketInterface', 'MarketMarginModes',
+    'MinMax', 'Network', 'NetworkLimits', 'OHLCV', 'OpenInterest', 'OpenInterests', 'Option',
+    'OptionChain', 'Order', 'OrderBook', 'OrderBooks', 'OrderRequest', 'Position',
+    'PositionModeInfo', 'Precision', 'PredictionEvent', 'PredictionFees', 'PredictionMarket',
+    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderBook',
+    'PredictionOrderRequest', 'PredictionOutcome', 'PredictionPosition', 'PredictionSettlement',
+    'PredictionTicker', 'PredictionTickers', 'PredictionTrade', 'PredictionTradingFee',
+    'AllGreeks',
+    'Status', 'Ticker', 'Tickers', 'Trade', 'TradingFeeInterface', 'TradingFees', 'Transaction',
+    'TransferEntry', 'WithdrawalResponse',
+];
+
+// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
+// structures, so the same method name is typed differently there — no invariance conflict
+const PREDICTION_TYPED_CORES: Record<string, string> = {
+    'cancelAllOrders': 'List<PredictionOrder>',
+    'cancelOrder': 'PredictionOrder',
+    'cancelOrders': 'List<PredictionOrder>',
+    'createMarketBuyOrderWithCost': 'PredictionOrder',
+    'createMarketOrderWithCost': 'PredictionOrder',
+    'createMarketSellOrderWithCost': 'PredictionOrder',
+    'createOrder': 'PredictionOrder',
+    'createOrders': 'List<PredictionOrder>',
+    'editOrder': 'PredictionOrder',
+    'fetchAccounts': 'List<Account>',
+    'fetchCanceledOrders': 'List<PredictionOrder>',
+    'fetchClosedOrders': 'List<PredictionOrder>',
+    // fetchEvent/fetchEvents/fetchEventsByQuery: the nested PredictionMarket carries the
+    // unified market-interface keys (base/quote/precision/limits/...) in its `extra` bag,
+    // which FromPredictionMarket writes back, so the round trip is lossless.
+    'fetchEvent': 'PredictionEvent',
+    'fetchEvents': 'List<PredictionEvent>',
+    'fetchEventsByQuery': 'List<Dictionary<string, object>>',
+    // venue-internal raw-page helpers: each returns one locally-built list of API rows and
+    // every consumer reads it through getArrayLength/getValue/safeList/promiseAll
+    'fetchRawActiveMarkets': 'List<Dictionary<string, object>>',
+    'fetchRawEventsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawEventsList': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsByTags': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsList': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsList': 'List<Dictionary<string, object>>',
+    'fetchRawTopics': 'List<Dictionary<string, object>>',
+    'fetchSeriesEvents': 'List<Dictionary<string, object>>',
+    // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
+    // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
+    // invariant, so the prediction tier cannot diverge (CS0508).
+    'fetchMyTrades': 'List<PredictionTrade>',
+    'fetchOpenInterest': 'PredictionOpenInterest',
+    'fetchOpenOrders': 'List<PredictionOrder>',
+    'fetchOrder': 'PredictionOrder',
+    'fetchOrderTrades': 'List<PredictionTrade>',
+    'fetchOrders': 'List<PredictionOrder>',
+    'fetchOrdersByIds': 'List<PredictionOrder>',
+    'fetchOrderBook': 'PredictionOrderBook',
+    'fetchPosition': 'PredictionPosition',
+    'fetchPositions': 'List<PredictionPosition>',
+    'fetchTicker': 'PredictionTicker',
+    'fetchTickers': 'PredictionTickers',
+    // the prediction tier caches PredictionTicker rows, so its watchTickers snapshot is a
+    // PredictionTickers — it is a sibling hierarchy declaration, no invariance conflict
+    'watchTickers': 'PredictionTickers',
+    'fetchTrades': 'List<PredictionTrade>',
+    'fetchTradingFee': 'PredictionTradingFee',
+};
+
+// Per-venue typed cores: one method name can legitimately carry different shapes on
+// different classes (dydx fetchTransactionsHelper is a raw row list feeding filterBy, alpaca's
+// is a parsed Transaction[]). The table is consulted BEFORE the name-keyed tables, keyed by
+// the ts/src file id the core is declared in; derived venues (bequant : hitbtc) resolve
+// through their parent. An empty string opts a venue out of a name-keyed entry.
+const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
+    'alpaca': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'bydfi': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'hitbtc': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'dydx': { 'fetchTransactionsHelper': 'List<Dictionary<string, object>>' },
+    'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+    // sync homonyms: hashkey/kucoin/mexc/weex declare a SYNC createSpotOrderRequest and
+    // 29 venues a sync createOrderRequest — only these async declarations are typed
+    'htx': { 'createSpotOrderRequest': 'Dictionary<string, object>' },
+    'nado': {
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+    },
+};
+
+// Generated C# core parameters that can be narrowed from `object` to `string`.
+// Keyed by POSITION, never by name: the prediction tier renames `symbol` to
+// `outcome`, and C# overrides are invariant on parameter types, not names.
+// Produced by build/analyzeCoreArgs.py, which admits a position only when every
+// declaration of that method agrees on arity + defaults and no body assigns to it.
+// Generated C# core parameters that can be narrowed from `object` to a numeric type.
+// Same positional keying and same all-declarations-must-agree gate as CORE_STRING_ARGS,
+// plus the narrowed type must equal what the hand-written PascalCase wrapper already
+// declares for that position (the wrapper is derived from the TS signature).
+// Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
+// BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
+const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
+    'createAmmOrder': { 3: 'double', 4: 'double?' },
+    'createContractOrder': { 4: 'double?' },
+    'createConvertTrade': { 3: 'double?' },
+    'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
+    'createMarketBuyOrderWithCost': { 1: 'double' },
+    'createMarketOrderWithCost': { 2: 'double' },
+    'createMarketSellOrderWithCost': { 1: 'double' },
+    'createOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTwapOrder': { 2: 'double' },
+    'createUtaOrder': { 3: 'double', 4: 'double?' },
+    'editContractOrder': { 4: 'double', 5: 'double?' },
+    'editOrder': { 4: 'double?', 5: 'double?' },
+    'editSpotOrder': { 4: 'double', 5: 'double?' },
+    'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchBorrowRateHistories': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchConvertQuote': { 2: 'double?' },
+    'fetchConvertTradeHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchL2OrderBook': { 1: 'Int64?' },
+    'fetchL3OrderBook': { 1: 'Int64?' },
+    'fetchLedger': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLedgerByEntries': { 2: 'Int64?' },
+    'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySells': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV2': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSwapOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOptionOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrderBook': { 1: 'Int64?' },
+    'fetchOrderBooks': { 1: 'Int64?' },
+    'fetchOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersByState': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersClassic': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPositionHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchPositionsHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSeriesEvents': { 2: 'Int64' },
+    'fetchSettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSettlements': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTradeQuote': { 2: 'double' },
+    'fetchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactions': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactionsByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransactionsWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransfers': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUTAOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'transfer': { 1: 'double' },
+    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
+    'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOrderBookForSymbols': { 1: 'Int64?' },
+    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'watchOrderBook': { 1: 'Int64?' },
+    'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositions': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'withdraw': { 1: 'double' },
+};
+
+const CORE_STRING_ARGS: Record<string, number[]> = {
+    'addMargin': [ 0 ],
+    'cancelAllOrders': [ 0 ],
+    'cancelAllOrdersWs': [ 0 ],
+    'cancelContractOrder': [ 0, 1 ],
+    'cancelOrder': [ 0, 1 ],
+    'cancelOrderWithClientOrderId': [ 0, 1 ],
+    'cancelOrderWs': [ 0, 1 ],
+    'cancelOrders': [ 1 ],
+    'cancelOrdersWithClientOrderIds': [ 1 ],
+    'cancelOrdersWs': [ 1 ],
+    'cancelSpotOrder': [ 0, 1 ],
+    'cancelTwapOrder': [ 0, 1 ],
+    'cancelUtaOrder': [ 0, 1 ],
+    'cancelUtaOrders': [ 1 ],
+    'closePosition': [ 0, 1 ],
+    'createAmmOrder': [ 0, 1, 2 ],
+    'createConvertTrade': [ 0 ],
+    'createDepositAddress': [ 0 ],
+    'createLimitBuyOrder': [ 0 ],
+    'createLimitBuyOrderWs': [ 0 ],
+    'createLimitOrder': [ 0, 1 ],
+    'createLimitOrderWs': [ 0, 1 ],
+    'createLimitSellOrder': [ 0 ],
+    'createLimitSellOrderWs': [ 0 ],
+    'createMarketBuyOrder': [ 0 ],
+    'createMarketBuyOrderWithCost': [ 0 ],
+    'createMarketBuyOrderWs': [ 0 ],
+    'createMarketOrder': [ 0, 1 ],
+    'createMarketOrderWithCost': [ 0, 1 ],
+    'createMarketOrderWithCostWs': [ 0, 1 ],
+    'createMarketOrderWs': [ 0, 1 ],
+    'createMarketSellOrder': [ 0 ],
+    'createMarketSellOrderWithCost': [ 0 ],
+    'createMarketSellOrderWs': [ 0 ],
+    'createOrder': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
+    'createOrderWs': [ 0, 1, 2 ],
+    'createOrderbookOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrderWs': [ 0, 1, 2 ],
+    'createReduceOnlyOrder': [ 0, 1, 2 ],
+    'createReduceOnlyOrderWs': [ 0, 1, 2 ],
+    'createStopLimitOrder': [ 0, 1 ],
+    'createStopLimitOrderWs': [ 0, 1 ],
+    'createStopLossOrder': [ 0, 1, 2 ],
+    'createStopLossOrderWs': [ 0, 1, 2 ],
+    'createStopMarketOrder': [ 0, 1 ],
+    'createStopMarketOrderWs': [ 0, 1 ],
+    'createStopOrder': [ 0, 1, 2 ],
+    'createStopOrderWs': [ 0, 1, 2 ],
+    'createTakeProfitOrder': [ 0, 1, 2 ],
+    'createTakeProfitOrderWs': [ 0, 1, 2 ],
+    'createTrailingAmountOrder': [ 0, 1, 2 ],
+    'createTrailingAmountOrderWs': [ 0, 1, 2 ],
+    'createTrailingPercentOrder': [ 0, 1, 2 ],
+    'createTrailingPercentOrderWs': [ 0, 1, 2 ],
+    'createTriggerOrder': [ 0, 1, 2 ],
+    'createTriggerOrderWs': [ 0, 1, 2 ],
+    'createTwapOrder': [ 0, 1 ],
+    'editContractOrder': [ 0, 1, 2, 3 ],
+    'editLimitBuyOrder': [ 0, 1 ],
+    'editLimitOrder': [ 0, 1, 2 ],
+    'editLimitSellOrder': [ 0, 1 ],
+    'editOrder': [ 0, 1, 2, 3 ],
+    'editOrderWithClientOrderId': [ 0, 1, 2, 3 ],
+    'editOrderWs': [ 0, 1, 2, 3 ],
+    'editSpotOrder': [ 0, 1, 2, 3 ],
+    'fetchADLRank': [ 0 ],
+    'fetchAmmOrders': [ 0 ],
+    'fetchCanceledOrders': [ 0 ],
+    'fetchClosedOrder': [ 0, 1 ],
+    'fetchClosedOrders': [ 0 ],
+    'fetchClosedOrdersWs': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ],
+    'fetchContractOHLCV': [ 0, 1 ],
+    'fetchConvertTrade': [ 0, 1 ],
+    'fetchConvertTradeHistory': [ 0 ],
+    'fetchCrossBorrowRate': [ 0 ],
+    'fetchDeposit': [ 0, 1 ],
+    'fetchDepositAddress': [ 0 ],
+    'fetchDepositAddressDefault': [ 0 ],
+    'fetchDepositAddressSupplement': [ 0 ],
+    'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchDepositWithdrawFee': [ 0 ],
+    'fetchDeposits': [ 0 ],
+    'fetchDepositsWs': [ 0 ],
+    'fetchDerivativesMarketLeverageTiers': [ 0 ],
+    'fetchEvent': [ 0 ],
+    'fetchFundingInterval': [ 0 ],
+    'fetchFundingRate': [ 0 ],
+    'fetchFundingRateHistory': [ 0 ],
+    'fetchGreeks': [ 0 ],
+    'fetchIndexOHLCV': [ 0, 1 ],
+    'fetchIsolatedBorrowRate': [ 0 ],
+    'fetchLedger': [ 0 ],
+    'fetchLedgerByEntries': [ 0 ],
+    'fetchLedgerEntriesByIds': [ 1 ],
+    'fetchLedgerEntry': [ 0, 1 ],
+    'fetchLeverage': [ 0 ],
+    'fetchLiquidations': [ 0 ],
+    'fetchLongShortRatio': [ 0, 1 ],
+    'fetchLongShortRatioHistory': [ 0, 1 ],
+    'fetchMarginAdjustmentHistory': [ 0, 1 ],
+    'fetchMarginMode': [ 0 ],
+    'fetchMarkOHLCV': [ 0, 1 ],
+    'fetchMarkPrice': [ 0 ],
+    'fetchMarket': [ 0 ],
+    'fetchMarketById': [ 0 ],
+    'fetchMarketLeverageTiers': [ 0 ],
+    'fetchMyBuys': [ 0 ],
+    'fetchMySells': [ 0 ],
+    'fetchMyTrades': [ 0 ],
+    'fetchMyTradesWs': [ 0 ],
+    'fetchOHLCV': [ 0, 1 ],
+    'fetchOHLCVWs': [ 0, 1 ],
+    'fetchOpenInterest': [ 0 ],
+    'fetchOpenOrder': [ 0, 1 ],
+    'fetchOpenOrders': [ 0 ],
+    'fetchOpenOrdersWs': [ 0 ],
+    'fetchOption': [ 0 ],
+    'fetchOptionChain': [ 0 ],
+    'fetchOptionOHLCV': [ 0, 1 ],
+    'fetchOrder': [ 0, 1 ],
+    'fetchOrderBook': [ 0 ],
+    'fetchOrderBookWs': [ 0 ],
+    'fetchOrderTrades': [ 0, 1 ],
+    'fetchOrderWithClientOrderId': [ 0, 1 ],
+    'fetchOrderWs': [ 0, 1 ],
+    'fetchOrders': [ 0 ],
+    'fetchOrdersByIds': [ 1 ],
+    'fetchOrdersByStatusWs': [ 0, 1 ],
+    'fetchOrdersWs': [ 0 ],
+    'fetchPosition': [ 0 ],
+    'fetchPositionADLRank': [ 0 ],
+    'fetchPositionHistory': [ 0 ],
+    'fetchPositionMode': [ 0 ],
+    'fetchPositionWs': [ 0 ],
+    'fetchPositionsForSymbolWs': [ 0 ],
+    'fetchPremiumIndexOHLCV': [ 0, 1 ],
+    'fetchSettlements': [ 0 ],
+    'fetchSpotOHLCV': [ 0, 1 ],
+    'fetchSpotOrderTrades': [ 0, 1 ],
+    'fetchTicker': [ 0 ],
+    'fetchTicker2': [ 0 ],
+    'fetchTickerV1': [ 0 ],
+    'fetchTickerV1AndV2': [ 0 ],
+    'fetchTickerV2': [ 0 ],
+    'fetchTickerV3': [ 0 ],
+    'fetchTickerWs': [ 0 ],
+    'fetchTrades': [ 0 ],
+    'fetchTradesWs': [ 0 ],
+    'fetchTradingFee': [ 0 ],
+    'fetchTransfer': [ 0, 1 ],
+    'fetchTransfers': [ 0 ],
+    'fetchUTAOHLCV': [ 0, 1 ],
+    'fetchWithdrawal': [ 0, 1 ],
+    'fetchWithdrawals': [ 0 ],
+    'fetchWithdrawalsWs': [ 0 ],
+    'reduceMargin': [ 0 ],
+    'setLeverage': [ 1 ],
+    'setMarginMode': [ 0, 1 ],
+    'setPositionMode': [ 1 ],
+    'transfer': [ 0, 2, 3 ],
+    'transferBetweenMainAndSubAccount': [ 0, 2, 3 ],
+    'transferBetweenSubAccounts': [ 0, 2, 3 ],
+    'transferClassic': [ 0, 2, 3 ],
+    'transferIn': [ 0 ],
+    'transferOut': [ 0 ],
+    'transferUta': [ 0, 2, 3 ],
+    // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
+    // generated wrapper declaration agrees on `string` at that position and every core
+    // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
+    // watchMultiHelper, ...) disagree across venues and are absent.
+    'watchFundingRate': [ 0 ],
+    'watchLiquidations': [ 0 ],
+    'watchMarkPrice': [ 0 ],
+    'watchMyLiquidations': [ 0 ],
+    'watchMyTrades': [ 0 ],
+    'watchOHLCV': [ 0, 1 ],
+    'watchOrderBook': [ 0 ],
+    'watchOrders': [ 0 ],
+    'watchPosition': [ 0 ],
+    'watchTicker': [ 0 ],
+    'watchTrades': [ 0 ],
+    'withdraw': [ 0, 2, 3 ],
+    'withdrawWs': [ 0, 2, 3 ],
+    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
+    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
+};
+
+
+
+
+
+
+
+
+
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 // the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
 // (not BaseExchange), so the sibling PredictionExchange tier does not inherit them
 const GLOBAL_TRADING_WRAPPER_FILE = './cs/ccxt/base/Exchange.TradingWrappers.cs';
 const BASE_TRADING_METHODS_FILE = './cs/ccxt/base/Exchange.TradingMethods.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
+// ws + prediction class aliases are consolidated into one file each, mirroring the REST
+// Exchange.Wrappers.cs, so no per-exchange wrapper directory survives
+const WS_CLASS_ALIAS_FILE = './cs/ccxt/ws/Exchange.WsAliases.cs'
+const PREDICTION_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionAliases.cs'
+const PREDICTION_WS_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionWsAliases.cs'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
@@ -67,7 +987,6 @@ const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
 const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/';
 const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
-const EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/prediction/pro/wrappers/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
@@ -96,6 +1015,11 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
     isPrediction = false;
+    // the ts/src id of the class currently being emitted ('' for the base tiers and the
+    // tests), so VENUE_TYPED_CORES can type one method name per class
+    currentVenue = '';
+    // derived venue -> parent venue (bequant -> hitbtc), read off the `class X : Y` line
+    venueParents: Record<string, string> = {};
     // set once PredictionExchange.cs has been emitted in this process. A full run reaches
     // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
     // with identical inputs, so the second call would only rewrite the same bytes.
@@ -527,6 +1451,26 @@ class NewTranspiler {
         return addTaskIfNeeded(wrappedType);
     }
 
+    /**
+     * @description Single source of truth for the C# type of an optional scalar parameter.
+     * The wrapper signature declares it as `<type>? name = null` and passes it straight into
+     * the core call, so the nullable scalar type is computed here and nowhere else.
+     * Returns undefined for parameters that are not optional numeric scalars.
+     */
+    optionalScalarCsharpType(param: any): string | undefined {
+        const isOptional = param.optional || param.initializer === 'undefined';
+        if (!isOptional) {
+            return undefined;
+        }
+        if (this.isIntegerType(param.type)) {
+            return 'Int64';
+        }
+        if (this.isNumberType(param.type)) {
+            return 'double';
+        }
+        return undefined;
+    }
+
     safeCsharpName(name: string): string {
         const csharpReservedWordsReplacement: dict = {
             'params': 'parameters',
@@ -559,11 +1503,9 @@ class NewTranspiler {
                     if (paramType  === 'bool') {
                         return `${paramType}? ${safeName} = false`
                     }
-                    if (paramType === 'double' || paramType  === 'float') {
-                        return `${paramType}? ${safeName}2 = 0`
-                    }
-                    if (paramType  === 'Int64') {
-                        return `${paramType}? ${safeName}2 = 0`
+                    const scalarType = this.optionalScalarCsharpType(param);
+                    if (scalarType !== undefined) {
+                        return `${scalarType}? ${safeName} = null`
                     }
                     return `${paramType}? ${safeName}`
                 }
@@ -610,6 +1552,13 @@ class NewTranspiler {
             'setSandBoxMode',
             'loadOrderBook',
             'fetchCurrencies',
+            // same as fetchCurrencies: a hand-written PascalCase public method already
+            // lives on Exchange.cs (new Currencies(await fetchCurrenciesWs())). Emitting
+            // a generated wrapper is a second overload (object vs Dictionary params) and
+            // bitvavo's ws override stays on the camelCase core that the hand-written
+            // method already calls. Blacklist, don't type — the BaseExchange decl is
+            // never rewritten, so a typed override would be CS0508.
+            'fetchCurrenciesWs',
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
@@ -622,8 +1571,43 @@ class NewTranspiler {
             'watchMultiple',
             'watchPrivate',
             'watchPublic',
+            // venue-internal ws transport plumbing: each of these resolves 2+ runtime
+            // shapes across its call sites (ticker dict / live orderbook / ArrayCache /
+            // [symbol, timeframe, stored] tuple / raw message), so no closed C# type
+            // fits and a cast-only `Dictionary<string, object>` wrapper is a lie
+            'watchExecuteRequest',
+            'watchHeartbeat',
+            'watchMany',
+            'watchMultiHelper',
+            'watchMultiTickerHelper',
+            'watchMultipleWrapper',
+            'watchPrivateMultiple',
+            'watchPrivateRequest',
+            'watchPrivateSubscribe',
+            'watchPublicMultiple',
+            'watchRequest',
+            'watchSpotPrivate',
+            'watchSpotPublic',
+            'watchStockMarketStream',
+            'watchSwapPrivate',
+            'watchSwapPublic',
+            'watchTopics',
             'setPositionsCache',
-            'setPositionCache'
+            'setPositionCache',
+            // internal HTTP / pagination transport: not public API (users never call
+            // fetch2 / fetchPaginatedCallCursor). fetch2 and fetchWebEndpoint return
+            // polymorphic JSON (dict | list | string). fetchPaginatedCall* return a
+            // concatenated List<object> of whatever the inner method produced, and
+            // ~80 consumers immediately wrap that in ToTradeList / ToOrderList / …
+            // which still hard-cast `(IList<object>)` — List<T> is invariant, so
+            // typing them as List<Dictionary<string, object>> would throw at those
+            // sites even after the toArray re-box. Blacklist, don't force a type.
+            'fetch2',
+            'fetchWebEndpoint',
+            'fetchPaginatedCallDynamic',
+            'fetchPaginatedCallDeterministic',
+            'fetchPaginatedCallCursor',
+            'fetchPaginatedCallIncremental',
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -633,6 +1617,697 @@ class NewTranspiler {
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
         return !isBlackListed && startsWithAllowedPrefix;
+    }
+
+    // the typed C# return of a core method, or '' when the method keeps `Task<object>`
+    typedCoreType (methodName: string, isPredictionTier = false, venue: string = this.currentVenue): string {
+        // the per-venue axis wins: walk the venue and its parents (bequant -> hitbtc)
+        let v: string | undefined = venue;
+        while (v !== undefined && v !== '') {
+            const perVenue = VENUE_TYPED_CORES[v];
+            if (perVenue !== undefined && (methodName in perVenue)) {
+                return perVenue[methodName];
+            }
+            v = this.venueParents[v];
+        }
+        const snapshot = SNAPSHOT_CORES[methodName];
+        if (snapshot !== undefined) {
+            return (isPredictionTier && snapshot.predictionType !== undefined) ? snapshot.predictionType : snapshot.type;
+        }
+        if (isPredictionTier && (methodName in PREDICTION_TYPED_CORES)) {
+            return PREDICTION_TYPED_CORES[methodName];
+        }
+        return TYPED_CORES[methodName] ?? '';
+    }
+
+    // the To* helper that materialises a typed core's return, or the snapshot helper for
+    // the live ws structures whose public shape is a `.Copy()` rather than a `new T(...)`
+    typedCoreToHelper (methodName: string, isPredictionTier: boolean, csharpType: string): string {
+        const snapshot = SNAPSHOT_CORES[methodName];
+        if (snapshot !== undefined) {
+            return (isPredictionTier && snapshot.predictionHelper !== undefined) ? snapshot.predictionHelper : snapshot.helper;
+        }
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.ToDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.ToDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.ToOHLCVDict';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.ToInt64Value';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.ToStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.ToStringList';
+        }
+        return 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (csharpType);
+    }
+
+    // the prediction tier is detected from the emitted content, not from `this.isPrediction`:
+    // the recursive prediction pass and the main pass both reach these files, and only the text
+    // reliably says which class hierarchy the method is being emitted into
+
+
+    // `List<OrderBook>` -> `List<ccxt.OrderBook>`. Required because ccxt.pro declares its own
+    // OrderBook / Trade classes, which would otherwise win name resolution inside pro files
+    qualifyTypedCoreType (csharpType: string): string {
+        if (csharpType.startsWith ('ccxt.')) {
+            return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
+        }
+        // raw / primitive core types are not ccxt. structs
+        if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'List<string>' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
+            return csharpType;
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>';
+        }
+        if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
+            return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
+        }
+        return 'ccxt.' + csharpType;
+    }
+
+    // helper suffix used by ToXxx: `List<Order>` -> `OrderList`, `Ticker` -> `Ticker`
+    typedCoreHelperSuffix (csharpType: string): string {
+        if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
+            return csharpType.substring (5, csharpType.length - 1) + 'List';
+        }
+        return csharpType;
+    }
+
+    // locates the terminating `;` of a `return <expr>;` statement starting at line `start`,
+    // tolerating multi-line expressions by only stopping on a `;` outside brackets/strings
+    collectReturnStatement (lines: string[], start: number): number[] {
+        let depth = 0;
+        let inString = false;
+        for (let i = start; i < lines.length; i++) {
+            const line = lines[i];
+            for (let j = 0; j < line.length; j++) {
+                const ch = line[j];
+                if (inString) {
+                    if (ch === '\\') { j++; continue; }
+                    if (ch === '"') { inString = false; }
+                    continue;
+                }
+                if (ch === '"') { inString = true; continue; }
+                if (ch === '/' && line[j + 1] === '/') { break; }
+                if (ch === '(' || ch === '[' || ch === '{') { depth++; continue; }
+                if (ch === ')' || ch === ']' || ch === '}') { depth--; continue; }
+                if (ch === ';' && depth <= 0) { return [ i, j ]; }
+            }
+        }
+        return [ start, lines[start].length ];
+    }
+
+    // the reverse helper for a typed core's shape: `List<Order>` -> `FromOrderList`, or ''
+    // when the family is not invertible. Reflective pagination and any
+    // `object x = await this.fetchOrders(...)` consumer reads dictionary keys off the
+    // result, so a boxed struct has to be de-typed first.
+    typedCoreFromHelper (csharpType: string): string {
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.FromDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.FromDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.FromOHLCVDict';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.FromInt64';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.FromStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.FromStringList';
+        }
+        const family = csharpType.startsWith ('List<') ? csharpType.slice (5, -1) : csharpType;
+        if (!REVERSIBLE_FAMILIES.includes (family)) {
+            return '';
+        }
+        return 'ccxt.BaseExchange.From' + this.typedCoreHelperSuffix (csharpType);
+    }
+
+    // finds the `)` closing the call that starts at `open` (the `(` index), skipping
+    // string literals — generated argument lists carry `(`/`)` inside url templates
+    matchingParen (line: string, open: number): number {
+        let depth = 0;
+        let inString = false;
+        for (let i = open; i < line.length; i++) {
+            const ch = line[i];
+            if (inString) {
+                if (ch === '\\') { i++; continue; }
+                if (ch === '"') { inString = false; }
+                continue;
+            }
+            if (ch === '"') { inString = true; continue; }
+            if (ch === '(') { depth++; continue; }
+            if (ch === ')') { depth--; if (depth === 0) { return i; } }
+        }
+        return -1;
+    }
+
+    // wraps every `await this.<typedCore>(...)` on one line in its From* helper, so a typed
+    // struct never lands in an `object` local. Occurrences already funnelled through a
+    // To*/From* helper, and the tail-call returns typeCores deliberately left bare, are skipped.
+    wrapTypedCoreConsumers (line: string, names: string[], predictionTier: boolean, skipReturn: boolean): string {
+        let out = line;
+        for (const name of names) {
+            const typedType = this.typedCoreType (name, predictionTier);
+            if (typedType === '') {
+                continue;
+            }
+            const needle = 'await this.' + name + '(';
+            let from = 0;
+            while (true) {
+                const at = out.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = out.substring (0, at);
+                const close = this.matchingParen (out, at + needle.length - 1);
+                if (close === -1) {
+                    // a call spanning several lines is left alone rather than mangled;
+                    // the runtime FromTyped dispatcher still de-types it if it is awaited reflectively
+                    break;
+                }
+                if (/ccxt\.BaseExchange\.(To|From)\w+\($/.test (before) || (skipReturn && /^\s*return $/.test (before))) {
+                    from = close;
+                    continue;
+                }
+                const helper = this.typedCoreFromHelper (typedType);
+                if (helper === '') {
+                    // a non-invertible family (Tickers / Balances / OrderBook): leave the call
+                    // exactly as it was before this pass. Those names are typed only where the
+                    // wrapper conversion was the sole consumer, so nothing regresses; the
+                    // analyzer refuses to ADD any such name that has consuming call sites.
+                    from = close;
+                    continue;
+                }
+                out = before + helper + '(' + out.substring (at, close + 1) + ')' + out.substring (close + 1);
+                from = close + helper.length + 2;
+            }
+        }
+        return out;
+    }
+
+    // rewrites every typed core so the generated core returns its typed shape:
+    //   - the signature `Task<object> fetchOrder(` becomes `Task<Order>`
+    //   - every return site inside it is funnelled through `BaseExchange.ToOrder(...)`,
+    //     except a tail call to another already-typed core of the same shape
+    //   - an untyped core returning a typed core needs the reverse conversion; only OHLCV has a
+    //     lossless one, so any other family reaching that branch is a table bug and throws
+    // every method name that may carry a typed return: the two TYPED_CORES tables plus the
+    // ws snapshot cores, whose type differs per tier but is never ''
+    typedCoreNames (): string[] {
+        const names = Object.keys (TYPED_CORES)
+            .concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)))
+            .concat (Object.keys (SNAPSHOT_CORES).filter ((n) => !(n in TYPED_CORES)));
+        for (const venue of Object.keys (VENUE_TYPED_CORES)) {
+            for (const name of Object.keys (VENUE_TYPED_CORES[venue])) {
+                if (!names.includes (name)) {
+                    names.push (name);
+                }
+            }
+        }
+        return names;
+    }
+
+    typeCores (content: string, predictionTier = this.isPrediction): string {
+        const names = this.typedCoreNames ();
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
+        // consume typed cores into `object` locals and need the From* funnel like anyone else
+        // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
+        // another typed core into an `object` local (okx FetchDepositAddress reads
+        // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
+        const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ]+>)? (\w+)\(/;
+        const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, modifier, methodName ] = sig;
+            const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
+            const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
+            const isTyped = typedType !== '';
+            // the method body ends at its closing brace, which is the first line indented exactly
+            // like the signature — brace counting is unusable here because generated bodies carry
+            // `{`/`}` inside string literals (url templates, json payloads)
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            if (isTyped) {
+                lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
+            }
+            const tailOk: Record<number, boolean> = {};
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (!lines[j].trim ().startsWith ('return ')) {
+                    continue;
+                }
+                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
+                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
+                const middle = lines.slice (j + 1, lastLine);
+                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
+                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                const calledCore = typedCallRe.exec (expr);
+                const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
+                let wrapper = '';
+                if (isTyped && calledType !== typedType) {
+                    wrapper = this.typedCoreToHelper (methodName, predictionTier, typedType);
+                } else if (!isTyped && calledType !== '') {
+                    // an untyped core forwarding a typed one has to hand back the untyped shape
+                    wrapper = this.typedCoreFromHelper (calledType);
+                    if (wrapper === '') {
+                        throw new Error (`typeCores: untyped ${methodName} returns typed core ${calledCore[1]} (${calledType}) — drop it from TYPED_CORES or add a From helper`);
+                    }
+                }
+                if (wrapper === '') {
+                    tailOk[j] = true;
+                    j = lastLine;
+                    continue;
+                }
+                const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                const trailing = lines[lastLine].substring (semi + 1);
+                lines[j] = `${pad}return ${wrapper}(${expr});${trailing}`;
+                for (let k = j + 1; k <= lastLine; k++) {
+                    lines[k] = null as any;
+                }
+                tailOk[j] = true;
+                j = lastLine;
+            }
+            // every remaining `await this.<typedCore>(...)` in the body is a consuming site —
+            // its result lands in an `object` local or a bigger expression, where a boxed
+            // struct would read as null. Funnel those through the reverse From* helper.
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (lines[j] === null || lines[j].indexOf ('await this.') === -1) {
+                    continue;
+                }
+                // a consuming call whose argument list spans several lines has to be joined
+                // first, or matchingParen gives up and the boxed struct escapes untouched
+                // (binance watchTicker -> `object tickers = await this.WatchTickers(` + 3 lines)
+                let end = j;
+                if (this.matchingParen (lines[j], lines[j].indexOf ('await this.')) === -1) {
+                    const [ last ] = this.collectReturnStatement (lines, j);
+                    if (last > j && last < bodyEnd) {
+                        end = last;
+                    }
+                }
+                if (end > j) {
+                    const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                    const joined = lines.slice (j, end + 1).map ((l, k) => (k === 0 ? l : l.trim ())).join (' ');
+                    const wrapped = this.wrapTypedCoreConsumers (joined, names, predictionTier, tailOk[j] === true);
+                    if (wrapped !== joined) {
+                        lines[j] = pad + wrapped.trim ();
+                        for (let k = j + 1; k <= end; k++) {
+                            lines[k] = null as any;
+                        }
+                        j = end;
+                        continue;
+                    }
+                }
+                lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
+            }
+            i = bodyEnd;
+        }
+        return lines.filter (line => line !== null).join ('\n');
+    }
+
+    // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
+    // name. The key set matches typedCoreType(), which falls back to TYPED_CORES on the
+    // prediction tier, so a single union map covers both hierarchies.
+    pascalTypedCoreNames (predictionTier: boolean): Record<string, string> {
+        const names = this.typedCoreNames ();
+        const map: Record<string, string> = {};
+        for (const name of names) {
+            if (this.typedCoreType (name, predictionTier) !== '') {
+                map[name] = name.charAt (0).toUpperCase () + name.slice (1);
+            }
+        }
+        return map;
+    }
+
+    // renames every typed core (declaration + call site) to PascalCase, so the generated core
+    // *is* the public API and createWrapper stops emitting a thin duplicate. Method-name string
+    // literals are deliberately NOT touched: they double as `has`/`describe()` capability keys
+    // (`"createOrder": true`) — reflective lookup resolves the case instead (ResolveMethod).
+    pascalizeTypedCores (content: string, predictionTier = this.isPrediction, receivers = [ 'this.', 'base.' ], declarations = true): string {
+        const map = this.pascalTypedCoreNames (predictionTier);
+        if (declarations) {
+            const declRe = /(public\s+(?:async\s+)?(?:virtual\s+|override\s+)?Task<[^\n]*?>\s+)(\w+)\(/g;
+            content = content.replace (declRe, (whole, head, name) => (map[name] !== undefined ? head + map[name] + '(' : whole));
+        }
+        const escaped = receivers.map ((r) => r.replace (/[.*+?^${}()|[\]\\]/g, '\\$&')).join ('|');
+        const callRe = new RegExp ('(' + escaped + ')(\\w+)\\(', 'g');
+        content = content.replace (callRe, (whole, receiver, name) => (map[name] !== undefined ? receiver + map[name] + '(' : whole));
+        return content;
+    }
+
+    // WS tests bind the unified methods STATICALLY, so unlike the REST tests they never pass
+    // through invokeExchangeDynamically -> detypeForComparison and receive the raw struct.
+    // `assert (exchange.isDictionary (response))` then sees a boxed Tickers/Ticker, not the
+    // symbol-keyed dictionary the unified test asserts. Project on the TEST path only.
+    detypeWsTypedCoreCalls (content: string): string {
+        const map = this.pascalTypedCoreNames (false);
+        const pascals = new Set<string> ();
+        for (const name of Object.keys (map)) {
+            // the snapshot cores hand back the live ws structure on purpose; the ws tests
+            // already `.Copy()` them and assert on the book's own accessors
+            if (!(name in SNAPSHOT_CORES)) {
+                pascals.add (map[name]);
+            }
+        }
+        const callRe = /await exchange\.(\w+)\(/g;
+        let out = '';
+        let last = 0;
+        let match = callRe.exec (content);
+        while (match !== null) {
+            if (pascals.has (match[1])) {
+                const open = match.index + match[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close !== -1) {
+                    out += content.slice (last, match.index);
+                    out += 'detypeForComparison(' + content.slice (match.index, close + 1) + ')';
+                    last = close + 1;
+                    callRe.lastIndex = last;
+                }
+            }
+            match = callRe.exec (content);
+        }
+        return out + content.slice (last);
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string and char literals
+    matchingParen (content: string, open: number): number {
+        let depth = 0;
+        let i = open;
+        while (i < content.length) {
+            const ch = content[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                i += 1;
+                while (i < content.length && content[i] !== quote) {
+                    i += (content[i] === '\\') ? 2 : 1;
+                }
+            } else if (ch === '(') {
+                depth += 1;
+            } else if (ch === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
+    }
+
+    // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
+    // generated declaration. Positional, because the prediction tier renames the first
+    // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
+    // merged view of both tables: position -> narrowed C# type, per method name
+    coreArgTypes (methodName: string): Record<number, string> | undefined {
+        const strings = CORE_STRING_ARGS[methodName];
+        const numerics = CORE_NUMERIC_ARGS[methodName];
+        if (strings === undefined && numerics === undefined) {
+            return undefined;
+        }
+        const merged: Record<number, string> = {};
+        for (const pos of strings || []) {
+            merged[pos] = 'string';
+        }
+        for (const pos of Object.keys (numerics || {})) {
+            merged[Number (pos)] = (numerics as any)[pos];
+        }
+        return merged;
+    }
+
+    // renames every free occurrence of `name` to `alias` inside a generated method body,
+    // skipping string literals and member access (`.name`) so dictionary keys such as
+    // "timeframe" and properties such as `this.timeframe` are left untouched.
+    renameLocalInBody (body: string, name: string, alias: string): string {
+        let out = '';
+        let i = 0;
+        while (i < body.length) {
+            const ch = body[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < body.length) {
+                    if (body[j] === '\\') { j += 2; continue; }
+                    if (body[j] === quote) { j++; break; }
+                    j++;
+                }
+                out += body.substring (i, j);
+                i = j;
+                continue;
+            }
+            if (/[A-Za-z_]/.test (ch)) {
+                let j = i;
+                while (j < body.length && /[\w]/.test (body[j])) {
+                    j++;
+                }
+                const word = body.substring (i, j);
+                const prev = out[out.length - 1];
+                out += (word === name && prev !== '.') ? alias : word;
+                i = j;
+                continue;
+            }
+            out += ch;
+            i++;
+        }
+        return out;
+    }
+
+    typeCoreArgs (content: string): string {
+        const names = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS));
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const positions = this.coreArgTypes (methodName);
+            if (positions === undefined) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
+            const params = this.splitCsharpParams (plist);
+            const shadows: string[] = [];
+            const renames: string[][] = [];
+            let changed = false;
+            for (const posKey of Object.keys (positions)) {
+                const pos = Number (posKey);
+                const targetType = positions[pos];
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                // a body that assigns to the parameter cannot hold the narrowed type (the RHS
+                // is `object`), so the body's uses are renamed to an `object` local seeded from
+                // the parameter. The PUBLIC parameter keeps its original name and gains the
+                // narrowed type — no `<name>Typed` appears in any signature. `ref name` counts
+                // as an assignment: the helper mutates in place and needs an `object` slot.
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                    || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
+                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
+                if (reassigned) {
+                    const alias = paramName + 'Var';
+                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
+                    renames.push ([ paramName, alias ]);
+                }
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            if (renames.length) {
+                for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                    for (const [ name, alias ] of renames) {
+                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
+                    }
+                }
+            }
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            if (shadows.length) {
+                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // narrowing a core parameter to `string` breaks every intra-core call site that still
+    // holds the value in an `object` local, so each such argument gets an explicit
+    // `((string)expr)`. The value is a string by contract (the TS signature says so); the
+    // cast only makes the existing assumption explicit to the C# compiler.
+    castCoreArgCallSites (content: string, receivers = [ 'this.', 'base.' ]): string {
+        const allNames = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)));
+        for (const methodName of allNames) {
+            const positions = this.coreArgTypes (methodName) as Record<number, string>;
+            for (const receiver of receivers) {
+                const needle = receiver + methodName + '(';
+                let from = 0;
+            for (;;) {
+                const at = content.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = content[at - 1];
+                if (before !== undefined && /[\w.]/.test (before)) {
+                    from = at + needle.length;
+                    continue;
+                }
+                const open = at + needle.length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    from = at + needle.length;
+                    continue;
+                }
+                const args = this.splitCsharpParams (content.substring (open + 1, close));
+                let changed = false;
+                for (const posKey of Object.keys (positions)) {
+                    const pos = Number (posKey);
+                    const targetType = positions[pos];
+                    const arg = args[pos];
+                    if (arg === undefined) {
+                        continue;
+                    }
+                    const trimmed = arg.trim ();
+                    if (trimmed === '') {
+                        continue;
+                    }
+                    if (targetType === 'string') {
+                        if (trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
+                            continue;
+                        }
+                        args[pos] = '((string)' + trimmed + ')';
+                        changed = true;
+                        continue;
+                    }
+                    // numeric: a direct unbox-cast of a boxed Int32 throws, so convert
+                    const helper = (targetType === 'Int64?') ? 'ToInt64Arg'
+                        : (targetType === 'Int64') ? 'ToInt64ArgRequired'
+                            : (targetType === 'double?') ? 'ToDoubleArg' : 'ToDoubleArgRequired';
+                    if (trimmed.startsWith (helper + '(') || trimmed.startsWith ('ccxt.BaseExchange.' + helper + '(')) {
+                        continue;
+                    }
+                    args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
+                    changed = true;
+                }
+                const replacement = changed ? needle + args.join (',') + ')' : content.substring (at, close + 1);
+                content = content.substring (0, at) + replacement + content.substring (close + 1);
+                from = at + replacement.length;
+                }
+            }
+        }
+        return content;
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string literals and comments
+    matchingParen (text: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const ch = text[i];
+            if (ch === '"') {
+                i++;
+                while (i < text.length && text[i] !== '"') {
+                    if (text[i] === '\\') {
+                        i++;
+                    }
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '/' && text[i + 1] === '/') {
+                while (i < text.length && text[i] !== '\n') {
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '(') {
+                depth++;
+            } else if (ch === ')') {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    // top-level comma split of a C# parameter/argument list. Skips string and char
+    // literals, whose embedded commas would otherwise shift every later position.
+    splitCsharpParams (plist: string): string[] {
+        const out: string[] = [];
+        let depth = 0;
+        let cur = '';
+        for (let i = 0; i < plist.length; i++) {
+            const ch = plist[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < plist.length) {
+                    if (plist[j] === '\\') { j += 2; continue; }
+                    if (plist[j] === quote) { j++; break; }
+                    j++;
+                }
+                cur += plist.substring (i, j);
+                i = j - 1;
+                continue;
+            }
+            if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
+                depth++;
+            } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {
+                depth--;
+            }
+            if (ch === ',' && depth === 0) {
+                out.push (cur);
+                cur = '';
+            } else {
+                cur += ch;
+            }
+        }
+        if (cur !== '') {
+            out.push (cur);
+        }
+        return out;
     }
 
     unwrapTaskIfNeeded(type: string): string {
@@ -648,12 +2323,16 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
+        // typed cores already return the struct/list (see typeCores), so the wrapper no longer
+        // re-materialises it — it just forwards the typed core result
+        if (this.typedCoreType (methodName, this.isPrediction) !== '') {
+            return `return res;`;
+        }
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
             // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
             return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
         }
-
         if (methodName === 'watchOHLCVForSymbols') {
             return `return Helper.ConvertToDictionaryOHLCVList(res);`
         }
@@ -701,26 +2380,15 @@ class NewTranspiler {
         return returnStatement;
     }
 
-    getDefaultParamsWrappers(rawParameters: any []) {
-        const res: string[] = [];
-
-        rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer === 'undefined';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                res.push(decl);
-            }
-        });
-
-        return res.join("\n");
-    }
-
     inden(level: number) {
         return '    '.repeat(level);
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
+        // the PascalCase core IS the public C# API. Method wrappers (cast-only and
+        // converting) have been retired; only the `class Binance : binance` aliases
+        // remain, emitted by createExchangesWrappers / needsCapitalizedClass.
+        return '';
         // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
         const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
@@ -728,8 +2396,17 @@ class NewTranspiler {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+        // a typed core is emitted PascalCase (pascalizeTypedCores), so it already *is* the public
+        // API — a wrapper here would be a duplicate declaration of the same name
+        if (isAsync && this.typedCoreType (methodName, this.isPrediction, exchangeName) !== '') {
+            return '';
+        }
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
+        // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
+        // exact type the core emits — unqualified `OrderBook` binds to ccxt.pro.OrderBook here
+        const typedCore = this.typedCoreType (methodName, this.isPrediction, exchangeName);
+        const wrapperReturnType = (typedCore !== '' && isAsync) ? `Task<${this.qualifyTypedCoreType (typedCore)}>` : returnType;
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map((param: any) => this.safeCsharpName(param.name)).join(', ');
@@ -741,9 +2418,8 @@ class NewTranspiler {
             methodDoc.push(csharpComments[exchangeName][methodName]);
         }
         const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
+            `${one}public ${isAsync ? 'async ' : ''}${wrapperReturnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
@@ -763,34 +2439,46 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
-        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
-        // emit it as a required parameter sitting after optionals (CS1737)
-        restoreParamsBagInitializers(wrappers);
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
-        const shouldCreateClassWrappers = exchange === 'BaseExchange';
-        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = this.getNamespace (ws);
-        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        // prediction REST exchanges are not part of createExchangesWrappers (Exchange.Wrappers.cs),
-        // so their Capitalized wrapper class is emitted into their own wrapper file
-        const needsCapitalizedClass = ws || this.isPrediction;
-        const capitalizeStatement = needsCapitalizedClass ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
-        const file = [
-            namespace,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public partial class ${exchange}`,
-            '{',
-            wrappersIndented,
-            '}',
-            classes
-        ].join('\n')
+    createClassAliasFile (ids: string[], path: string, namespace: string) {
+        // one file per tier holding every `class Binance : binance` alias, so the
+        // generator never recreates a per-exchange wrapper directory
+        if (!ids.length) {
+            if (fs.existsSync (path)) {
+                fs.unlinkSync (path);
+                log.magenta ('×', (path as any).yellow)
+            }
+            return;
+        }
+        const header = this.createGeneratedHeader().join('\n');
+        const classes = [ '// class wrappers' ];
+        ids.forEach ((exchange: string) => {
+            const capitalized = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+            const constructor = `public ${capitalized}(object args = null) : base(args) { }`;
+            classes.push (`public class  ${capitalized}: ${exchange} { ${constructor} }`);
+        });
+        const file = [ namespace, '', header, classes.join('\n') ].join('\n') + '\n';
         log.magenta ('→', (path as any).yellow)
-
         overwriteFileAndFolder (path, file);
+    }
+
+    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // Method wrappers have been retired: the PascalCase core is the public C# API.
+        // This emitter now only writes the documented `class Binance : binance` aliases,
+        // consolidated into one file per tier (createClassAliasFile). Any per-exchange
+        // wrapper file that would be an empty partial class is deleted instead.
+        const namespace = this.getNamespace (ws);
+        const header = this.createGeneratedHeader().join('\n');
+        if (exchange === 'BaseExchange') {
+            const classes = this.createExchangesWrappers().filter(e => !!e).join('\n');
+            const file = [ namespace, '', header, classes ].join('\n') + '\n';
+            log.magenta ('→', (path as any).yellow)
+            overwriteFileAndFolder (path, file);
+            return;
+        }
+        if (fs.existsSync (path)) {
+            fs.unlinkSync (path);
+            log.magenta ('×', (path as any).yellow)
+        }
     }
 
     transpileErrorHierarchy (force = true) {
@@ -951,13 +2639,12 @@ class NewTranspiler {
 
         // the 62 symbol-based trading methods declared in TS `class Exchange extends BaseExchange`
         const exchangeTierNames = this.getExchangeTierMethodNames (baseExchangeFile);
-        // methods that TS places in `class Exchange` but which C#'s hand-written BaseExchange WS layer
-        // (cs/ccxt/ws/Exchange.WsBridge.cs) depends on, so they must remain reachable from BaseExchange:
-        //   loadOrderBook          — hand-written in WsBridge.cs (drop the transpiled copy)
-        //   fetchRestOrderBookSafe — called by BaseExchange.loadOrderBook
-        //   fetchOrderBook         — called by fetchRestOrderBookSafe (also overridden by every venue)
+        // loadOrderBook is hand-written on partial class Exchange (WsBridge.cs); drop the
+        // transpiled copy. fetchOrderBook / fetchRestOrderBookSafe stay on the Exchange tier
+        // so the prediction sibling can type fetchOrderBook as PredictionOrderBook (CS0508
+        // if either name is declared on shared BaseExchange).
         const droppedOnBase = [ 'loadOrderBook' ];
-        const retainedOnBase = [ 'fetchRestOrderBookSafe', 'fetchOrderBook' ];
+        const retainedOnBase: string[] = [];
         const isExchangeTier = (methodName: string) => exchangeTierNames.has (methodName) && !retainedOnBase.includes (methodName) && !droppedOnBase.includes (methodName);
 
         // create wrappers with specific types — base-tier wrappers stay on BaseExchange (inherited by
@@ -1028,7 +2715,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + baseMethods + "\n";
+            const file = fileHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, false))), false) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -1036,7 +2723,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + exchangeBody + "\n}\n";
+                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (exchangeBody, false))), false) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -1065,7 +2752,9 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            const baseMethods = parts[1]
+            // fetchOrderBook lives on the Exchange / PredictionExchange siblings, not on
+            // BaseExchange, so the prediction declaration is virtual (not override).
+            const baseMethods = parts[1];
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',
@@ -1081,15 +2770,8 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
-            // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
-            // venue that does NOT override a unified method still exposes the prediction-typed signature
-            // instead of inheriting the crypto-typed wrapper from Exchange.Wrappers.cs
-            const prevIsPrediction = this.isPrediction;
-            this.isPrediction = true;
-            const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
-            this.isPrediction = prevIsPrediction;
-            const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
+            // method wrappers retired: PascalCase cores on PredictionExchange are the public API
+            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))), true) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -1262,7 +2944,7 @@ class NewTranspiler {
         const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'csharp-worker.js'),
+                filename: resolve(__dirname, 'csharp-worker.ts'),
                 maxThreads,
             });
         }
@@ -1270,7 +2952,7 @@ class NewTranspiler {
         const configKey = JSON.stringify (parserConfig);
 
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
@@ -1328,9 +3010,10 @@ class NewTranspiler {
         }
 
         // the wrapper folder is needed up front: a skipped exchange must have BOTH its
-        // transpiled class and its wrapper already up to date
+        // transpiled class and its wrapper already up to date. ws/prediction-ws aliases
+        // live in one consolidated file, so only the REST tiers have a folder stamp.
         const wrapperFolder = ws
-            ? (this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER)
+            ? undefined
             : (this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER);
 
         // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
@@ -1369,14 +3052,17 @@ class NewTranspiler {
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchangeFiles[i].replace('.ts','');
-                const path = wrapperFolder + exchangeName + '.cs';
-                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+        }
+        // ws / prediction-ws class aliases are written once, from the full id list, so a
+        // scoped run cannot truncate the file to just the exchanges it transpiled
+        if (ws) {
+            if (this.isPrediction) {
+                this.createClassAliasFile (predictionWsIds, PREDICTION_WS_CLASS_ALIAS_FILE, this.getNamespace (true));
+            } else {
+                this.createClassAliasFile (wsIds, WS_CLASS_ALIAS_FILE, this.getNamespace (true));
             }
+        } else if (this.isPrediction) {
+            this.createClassAliasFile (predictionIds, PREDICTION_CLASS_ALIAS_FILE, this.getNamespace (false));
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
@@ -1417,6 +3103,16 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
+        const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
+        if (classDecl) {
+            this.currentVenue = classDecl[1];
+            const parent = classDecl[2].split ('.').pop () as string;
+            if (parent !== 'Exchange' && parent !== 'PredictionExchange' && parent !== this.currentVenue) {
+                this.venueParents[this.currentVenue] = parent;
+            }
+        }
+        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content))));
+        this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
@@ -1751,6 +3447,10 @@ class NewTranspiler {
             [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
 
+        // the legacy request-builders bind Exchange statically, so the typed cores'
+        // PascalCase rename applies to their call sites too (declarations left alone)
+        contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
+
         const file = [
             'using ccxt;',
             'namespace Tests;',
@@ -1856,8 +3556,15 @@ class NewTranspiler {
             ];
 
             if (!isWs) {
+                // REST tests hold the exchange as `BaseExchange`, so a unified call can bind
+                // neither statically (prediction is a sibling tier) nor through `dynamic`:
+                // the DLR picks the overload from the arguments' STATIC type, which is
+                // `object`, so every narrowed core parameter (`string symbol`, `Int64? limit`)
+                // is rejected with RuntimeBinderException. Route through the reflective helper
+                // instead -- it resolves the PascalCase rename and coerces the boxed scalars.
                 regexes = regexes.concat([
-                    [/await exchange\.(\w+)\(/g, 'await ((dynamic)exchange).$1('],
+                    [ /await exchange\.(\w+)\(\s*\)/g, 'await invokeExchangeDynamically(exchange, "$1")' ],
+                    [ /await exchange\.(\w+)\(/g, 'await invokeExchangeDynamically(exchange, "$1", ' ],
                 ]);
             }
 
@@ -1870,6 +3577,14 @@ class NewTranspiler {
             }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
+            if (isWs) {
+                // WS tests bind the unified methods statically (no `dynamic` hop), so a core
+                // parameter narrowed to `string` needs the same explicit cast the cores get
+                contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
+                contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
+                // must run last: it matches the PascalCase names the previous pass produced
+                contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);
+            }
             const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
                 namespace,
@@ -1913,6 +3628,12 @@ class NewTranspiler {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
+        const baseTestsOnly = process.argv.includes ('--baseTests')
+        if (baseTestsOnly) {
+            await this.transpileBaseTestsToCSharp(force);
+            return;
+        }
+
         // the three groups are independent — run them concurrently
         await Promise.all ([
             this.transpileBaseTestsToCSharp(force),
@@ -1929,7 +3650,7 @@ async function runMain () {
     const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x))
     const prediction = process.argv.includes ('--prediction') || allArePredictionOnly
-    const baseOnly = process.argv.includes ('--baseTests')
+    const baseTestsOnly = process.argv.includes ('--baseTests')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
@@ -1950,7 +3671,7 @@ async function runMain () {
         // one transpiler instance, so the single piscina pool (and its warm per-thread
         // Transpilers) survives into the ws stage instead of paying a second process
         // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
+        await transpiler.transpileEverything (force, false, examples, prediction)
         await transpiler.transpileWS (force)
         if (!inputExchanges.length) {
             // full ws builds also transpile the prediction ws exchanges
@@ -1966,10 +3687,10 @@ async function runMain () {
                 await transpiler.transpileWS (force, true)
             }
         }
-    } else if (test) {
-        await transpiler.transpileTests ()
+    } else if (test || baseTestsOnly) {
+        await transpiler.transpileTests () 
     } else {
-        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
+        await transpiler.transpileEverything (force, false, examples, prediction)
     }
 }
 

@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_api_v1_exchangeinfo = publicGetApiV1ExchangeInfo = Entry[_Dict]('api/v1/exchangeInfo', 'public', 'GET', {'cost': 5})
@@ -35,7 +34,7 @@ class ImplicitAPI:
     private_get_api_v1_futures_getbestorder = privateGetApiV1FuturesGetBestOrder = Entry[_Dict]('api/v1/futures/getBestOrder', 'private', 'GET', {'cost': 1})
     private_get_api_v1_coininfo = privateGetApiV1CoinInfo = Entry[_Dict]('api/v1/coinInfo', 'private', 'GET', {'cost': 1})
     private_get_api_v1_account_vipinfo = privateGetApiV1AccountVipInfo = Entry[_Dict]('api/v1/account/vipInfo', 'private', 'GET', {'cost': 1})
-    private_get_api_v1_account = privateGetApiV1Account = Entry[_List]('api/v1/account', 'private', 'GET', {'cost': 1})
+    private_get_api_v1_account = privateGetApiV1Account = Entry[_Dict]('api/v1/account', 'private', 'GET', {'cost': 1})
     private_get_api_v1_account_trades = privateGetApiV1AccountTrades = Entry[_List]('api/v1/account/trades', 'private', 'GET', {'cost': 5})
     private_get_api_v1_account_type = privateGetApiV1AccountType = Entry[_List]('api/v1/account/type', 'private', 'GET', {'cost': 5})
     private_get_api_v1_account_chaintype = privateGetApiV1AccountChainType = Entry[_List]('api/v1/account/chainType', 'private', 'GET', {'cost': 1})

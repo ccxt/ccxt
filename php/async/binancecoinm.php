@@ -44,16 +44,20 @@ class binancecoinm extends binance {
     }
 
     public function transfer_in(string $code, mixed $amount, $params = array()) {
-        return Async\async(function () use ($code, $amount, $params) {
-            // transfer from spot wallet to coinm futures wallet
-            return Async\await($this->futuresTransfer($code, $amount, 3, $params));
-        })();
+        return Async\async(self::do_transfer_in(...))($code, $amount, $params);
+    }
+
+    private function do_transfer_in(string $code, mixed $amount, $params = array()) {
+        // transfer from spot wallet to coinm futures wallet
+        return Async\await($this->futuresTransfer($code, $amount, 3, $params));
     }
 
     public function transfer_out(string $code, mixed $amount, $params = array()) {
-        return Async\async(function () use ($code, $amount, $params) {
-            // transfer from coinm futures wallet to spot wallet
-            return Async\await($this->futuresTransfer($code, $amount, 4, $params));
-        })();
+        return Async\async(self::do_transfer_out(...))($code, $amount, $params);
+    }
+
+    private function do_transfer_out(string $code, mixed $amount, $params = array()) {
+        // transfer from coinm futures wallet to spot wallet
+        return Async\await($this->futuresTransfer($code, $amount, 4, $params));
     }
 }

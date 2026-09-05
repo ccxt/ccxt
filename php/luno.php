@@ -215,10 +215,51 @@ class luno extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
+                    // Luno prices by PAIR CATEGORY 30-day volume tier:
+                    // crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    // ladder, and the maker side is a charge in one category and a rebate
+                    // in another at the same tier. A single scalar cannot represent that,
+                    // so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    // published schedule has been verified. The values below are the
+                    // exchange-wide fallback => crypto/fiat at the entry tier, which is the
+                    // dearest cell in the table and therefore the safe direction to quote
+                    // for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased' => true, // based on volume from your primary currency (not the same for everyone)
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.001'),
-                    'maker' => $this->parse_number('0'),
+                    'taker' => $this->parse_number('0.006'),
+                    'maker' => $this->parse_number('0.004'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.006') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('200000'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.003') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('40000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('80000000'), $this->parse_number('0.0007') ),
+                            array( $this->parse_number('120000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('160000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('300000000'), $this->parse_number('0.0005') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.003') ),
+                            array( $this->parse_number('200000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('20000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('40000000'), $this->parse_number('-0.0001') ),
+                            array( $this->parse_number('80000000'), $this->parse_number('-0.0001') ),
+                            array( $this->parse_number('120000000'), $this->parse_number('-0.0002') ),
+                            array( $this->parse_number('160000000'), $this->parse_number('-0.0002') ),
+                            array( $this->parse_number('300000000'), $this->parse_number('-0.0002') ),
+                        ),
+                    ),
                 ),
             ),
             'exceptions' => array(
@@ -531,9 +572,37 @@ class luno extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'trading_status');
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // $market; $markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            $fiats = array( 'ZAR' );
+            // live-but-unverified counters, kept on the exchange-wide default; the $market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            $unverifiedQuotes = array( 'MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU' );
+            $stablecoins = array( 'USDT', 'USDC' );
+            $taker = null;
+            $maker = null;
+            if ($this->in_array($quote, $fiats)) {
+                if ($this->in_array($base, $stablecoins)) {
+                    $taker = $this->parse_number('0.002');
+                    $maker = $this->parse_number('-0.0001'); // a rebate, not a charge
+                } else {
+                    $taker = $this->parse_number('0.006');
+                    $maker = $this->parse_number('0.004');
+                }
+            } elseif (!$this->in_array($quote, $unverifiedQuotes)) {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                $taker = $this->parse_number('0.001');
+                $maker = $this->parse_number('0.0008');
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
+                'taker' => $taker,
+                'maker' => $maker,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
@@ -798,7 +867,7 @@ class luno extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1002,15 +1071,15 @@ class luno extends Exchange {
             } elseif (($type === 'BID') || ($type === 'BUY')) {
                 $side = 'buy';
             }
-            if ($side === 'sell' && $trade['is_buy']) {
+            if (($side === 'sell') && ($trade['is_buy'] === true)) {
                 $takerOrMaker = 'maker';
-            } elseif ($side === 'buy' && !$trade['is_buy']) {
+            } elseif (($side === 'buy') && ($trade['is_buy'] !== true)) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
             }
         } else {
-            $side = $trade['is_buy'] ? 'buy' : 'sell';
+            $side = ($trade['is_buy'] === true) ? 'buy' : 'sell';
         }
         $feeBaseString = $this->safe_string($trade, 'fee_base');
         $feeCounterString = $this->safe_string($trade, 'fee_counter');
@@ -1638,7 +1707,7 @@ class luno extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
+        if (count($query) > 0) {
             $url .= '?' . $this->urlencode($query);
         }
         if (($api === 'private') || ($api === 'exchangePrivate')) {

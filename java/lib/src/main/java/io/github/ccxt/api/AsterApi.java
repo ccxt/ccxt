@@ -254,9 +254,9 @@ public class AsterApi extends Exchange
      * Calls the fapiPublicGetV3PremiumIndex endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPublicGetV3PremiumIndex (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetV3PremiumIndex (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetV3PremiumIndex", optionalArgs);
     }
@@ -320,9 +320,9 @@ public class AsterApi extends Exchange
      * Calls the fapiPublicGetV3Ticker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPublicGetV3Ticker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  fapiPublicGetV3Ticker24hr (Object... optionalArgs)
     {
         return this.callAsync ("fapiPublicGetV3Ticker24hr", optionalArgs);
     }
@@ -551,9 +551,9 @@ public class AsterApi extends Exchange
      * Calls the fapiPrivateGetV3Balance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3Balance (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateGetV3Balance (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateGetV3Balance", optionalArgs);
     }
@@ -1464,9 +1464,9 @@ public class AsterApi extends Exchange
      * Calls the sapiPublicGetV3Ticker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  sapiPublicGetV3Ticker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  sapiPublicGetV3Ticker24hr (Object... optionalArgs)
     {
         return this.callAsync ("sapiPublicGetV3Ticker24hr", optionalArgs);
     }

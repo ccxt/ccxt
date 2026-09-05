@@ -89,9 +89,9 @@ public class WeexApi extends Exchange
      * Calls the publicGetApiV3MarketTicker24hr endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV3MarketTicker24hr (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetApiV3MarketTicker24hr (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV3MarketTicker24hr", optionalArgs);
     }
@@ -551,9 +551,9 @@ public class WeexApi extends Exchange
      * Calls the contractPrivateGetCapiV3AccountBalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivateGetCapiV3AccountBalance (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3AccountBalance (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivateGetCapiV3AccountBalance", optionalArgs);
     }
@@ -680,6 +680,39 @@ public class WeexApi extends Exchange
     }
 
     /**
+     * Calls the contractPrivateGetCapiV3SimBalance endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3SimBalance (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3SimBalance", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3SimPositionAllPosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3SimPositionAllPosition (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3SimPositionAllPosition", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivateGetCapiV3SimOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  contractPrivateGetCapiV3SimOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivateGetCapiV3SimOrderHistory", optionalArgs);
+    }
+
+    /**
      * Calls the contractPrivatePostCapiV3AccountIncome endpoint.
      *
      * @param optionalArgs the request parameters
@@ -798,6 +831,17 @@ public class WeexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3ModifyTpSlOrder (Object... optionalArgs)
     {
         return this.callAsync ("contractPrivatePostCapiV3ModifyTpSlOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the contractPrivatePostCapiV3SimOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  contractPrivatePostCapiV3SimOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("contractPrivatePostCapiV3SimOrder", optionalArgs);
     }
 
     /**

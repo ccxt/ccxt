@@ -82,7 +82,7 @@ func (this *BtcturkCore) GraphGetOhlcs(args ...any) <-chan any {
 	return this.callEndpointAsync("graphGetOhlcs", args...)
 }
 
-// GraphGetKlinesHistory returns a channel that yields a JSON array.
+// GraphGetKlinesHistory returns a channel that yields a JSON object.
 func (this *BtcturkCore) GraphGetKlinesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("graphGetKlinesHistory", args...)
 }

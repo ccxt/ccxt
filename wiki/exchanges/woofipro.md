@@ -13,6 +13,10 @@
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchTicker](#fetchticker)
+* [fetchTickers](#fetchtickers)
+* [fetchOpenInterest](#fetchopeninterest)
+* [fetchOpenInterests](#fetchopeninterests)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchTradingFees](#fetchtradingfees)
@@ -36,6 +40,11 @@
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [withdraw](#withdraw)
+* [fetchMarginModes](#fetchmarginmodes)
+* [fetchMarginMode](#fetchmarginmode)
+* [setMarginMode](#setmarginmode)
+* [addMargin](#addmargin)
+* [reduceMargin](#reducemargin)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
 * [fetchPosition](#fetchposition)
@@ -218,6 +227,90 @@ fetch the current funding rate for multiple markets
 
 ```javascript
 woofipro.fetchFundingRates (symbols, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchTickers (symbols?, params?)
+```
+
+
+<a name="fetchOpenInterest" id="fetchopeninterest"></a>
+
+### fetchOpenInterest{docsify-ignore}
+retrieves the open interest of a contract trading pair
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchOpenInterest (symbol, params?)
+```
+
+
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+retrieves the open interest for a list of contract trading pairs
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a dictionary of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified CCXT market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -818,6 +911,114 @@ make a withdrawal
 
 ```javascript
 woofipro.withdraw (code, amount, address, tag, params?)
+```
+
+
+<a name="fetchMarginModes" id="fetchmarginmodes"></a>
+
+### fetchMarginModes{docsify-ignore}
+fetches the set margin mode of every contract market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/?id=margin-mode-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchMarginModes (symbols?, params?)
+```
+
+
+<a name="fetchMarginMode" id="fetchmarginmode"></a>
+
+### fetchMarginMode{docsify-ignore}
+fetches the set margin mode of a contract market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated' for a market
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.setMarginMode (marginMode, symbol, params?)
+```
+
+
+<a name="addMargin" id="addmargin"></a>
+
+### addMargin{docsify-ignore}
+add margin to an isolated position
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.addMargin (symbol, amount, params?)
+```
+
+
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from an isolated position
+
+**Kind**: instance method of [<code>woofipro</code>](#woofipro)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+
+**See**: https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woofipro.reduceMargin (symbol, amount, params?)
 ```
 
 

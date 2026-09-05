@@ -59,25 +59,27 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://apidocs.hollaex.com/#sending-receiving-messages
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook' . ':' . $market['id'];
-            $orderbook = Async\await($this->watch_public($messageHash, $params));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook' . ':' . $market['id'];
+        $orderbook = Async\await($this->watch_public($messageHash, $params));
+        return $orderbook->limit();
     }
 
     public function handle_order_book(Client $client, mixed $message) {
@@ -129,30 +131,32 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://apidocs.hollaex.com/#sending-receiving-messages
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'trade' . ':' . $market['id'];
-            $trades = Async\await($this->watch_public($messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $messageHash = 'trade' . ':' . $market['id'];
+        $trades = Async\await($this->watch_public($messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, mixed $message) {
@@ -192,34 +196,36 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://apidocs.hollaex.com/#sending-receiving-messages
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'usertrade';
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $market['id'];
-            }
-            $trades = Async\await($this->watch_private($messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'usertrade';
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $market['id'];
+        }
+        $trades = Async\await($this->watch_private($messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function handle_my_trades(Client $client, mixed $message, ?array $subscription = null) {
@@ -281,34 +287,36 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://apidocs.hollaex.com/#sending-receiving-messages
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'order';
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $messageHash .= ':' . $market['id'];
-            }
-            $orders = Async\await($this->watch_private($messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'order';
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash .= ':' . $market['id'];
+        }
+        $orders = Async\await($this->watch_private($messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_order(Client $client, mixed $message, ?array $subscription = null) {
@@ -410,18 +418,20 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://apidocs.hollaex.com/#sending-receiving-messages
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            $messageHash = 'wallet';
-            return Async\await($this->watch_private($messageHash, $params));
-        })();
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://apidocs.hollaex.com/#sending-receiving-messages
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $messageHash = 'wallet';
+        return Async\await($this->watch_private($messageHash, $params));
     }
 
     public function handle_balance(Client $client, mixed $message) {
@@ -469,48 +479,52 @@ class hollaex extends \ccxt\async\hollaex {
     }
 
     public function watch_public(mixed $messageHash, $params = array()) {
-        return Async\async(function () use ($messageHash, $params) {
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'op' => 'subscribe',
-                'args' => array( $messageHash ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        })();
+        return Async\async(self::do_watch_public(...))($messageHash, $params);
+    }
+
+    private function do_watch_public(mixed $messageHash, $params = array()) {
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array( $messageHash ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
     public function watch_private(mixed $messageHash, $params = array()) {
-        return Async\async(function () use ($messageHash, $params) {
-            $this->check_required_credentials();
-            $expires = $this->safe_string($this->options, 'ws-expires');
+        return Async\async(self::do_watch_private(...))($messageHash, $params);
+    }
+
+    private function do_watch_private(mixed $messageHash, $params = array()) {
+        $this->check_required_credentials();
+        $expires = $this->safe_string($this->options, 'ws-expires');
+        if ($expires === null) {
+            $timeout = intval(($this->timeout / (string) 1000));
+            $expires = $this->sum($this->seconds(), $timeout);
             if ($expires === null) {
-                $timeout = intval(($this->timeout / (string) 1000));
-                $expires = $this->sum($this->seconds(), $timeout);
-                if ($expires === null) {
-                    throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
-                }
-                $expires = (string) $expires;
-                // we need to memoize these values to avoid generating a new $url on each method execution
-                // that would trigger a new connection on each received $message
-                $this->options['ws-expires'] = $expires;
+                throw new ArgumentsRequired($this->id . ' watchPrivate() $expires is required');
             }
-            $url = $this->urls['api']['ws'];
-            $auth = 'CONNECT' . '/stream' . $expires;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $authParams = array(
-                'api-key' => $this->apiKey,
-                'api-signature' => $signature,
-                'api-expires' => $expires,
-            );
-            $signedUrl = $url . '?' . $this->urlencode($authParams);
-            $request = array(
-                'op' => 'subscribe',
-                'args' => array( $messageHash ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
-        })();
+            $expires = (string) $expires;
+            // we need to memoize these values to avoid generating a new $url on each method execution
+            // that would trigger a new connection on each received $message
+            $this->options['ws-expires'] = $expires;
+        }
+        $url = $this->urls['api']['ws'];
+        $auth = 'CONNECT' . '/stream' . $expires;
+        $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+        $authParams = array(
+            'api-key' => $this->apiKey,
+            'api-signature' => $signature,
+            'api-expires' => $expires,
+        );
+        $signedUrl = $url . '?' . $this->urlencode($authParams);
+        $request = array(
+            'op' => 'subscribe',
+            'args' => array( $messageHash ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($signedUrl, $messageHash, $message, $messageHash));
     }
 
     public function handle_error_message(Client $client, mixed $message): ?bool {
@@ -618,7 +632,7 @@ class hollaex extends \ccxt\async\hollaex {
         //         }
         //     }
         //
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $content = $this->safe_string($message, 'message');

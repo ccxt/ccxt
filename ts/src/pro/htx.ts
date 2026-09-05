@@ -471,14 +471,14 @@ export default class htx extends htxRest {
             throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
         let messageHash: Str = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (limit);
         } else {
             messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (limit) + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method: any = this.handleOrderBookSubscription;
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             params = this.extend (params);
             params['data_type'] = 'incremental';
             method = undefined;
@@ -508,12 +508,12 @@ export default class htx extends htxRest {
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const depth = this.safeInteger (options, 'depth', 150);
         let subMessageHash: Str = undefined;
-        if (market['spot']) {
+        if (market['spot'] === true) {
             subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
         } else {
             subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (depth) + '.high_freq';
         }
-        if (!(market['spot'])) {
+        if (market['spot'] !== true) {
             params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic (market, subMessageHash, topic, params);
@@ -745,18 +745,18 @@ export default class htx extends htxRest {
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > this.safeInteger (orderbook, 'nonce', 0)) {
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
-            if (checksum) {
+            if (checksum === true) {
                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
         }
-        const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
-        const nonSpotCondition = market['contract'] && (version !== undefined) && (version - 1 === orderbook['nonce']);
-        if (spotConditon || nonSpotCondition) {
+        const spotConditon = (market['spot'] === true) && (prevSeqNum === orderbook['nonce']);
+        const nonSpotCondition = (market['contract'] === true) && (version !== undefined) && (version - 1 === orderbook['nonce']);
+        if ((spotConditon === true) || (nonSpotCondition === true)) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
-            orderbook['nonce'] = spotConditon ? seqNum : version;
+            orderbook['nonce'] = (spotConditon === true) ? seqNum : version;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
@@ -843,7 +843,7 @@ export default class htx extends htxRest {
         if (symbol !== undefined) {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
-        if (market['spot']) {
+        if (market['spot'] === true) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -876,7 +876,7 @@ export default class htx extends htxRest {
             market = this.market (symbol);
             symbol = market['symbol'];
             type = market['type'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
             marketId = market['lowercaseId'];
         } else {
             type = this.safeString (this.options, 'defaultType', 'spot');
@@ -1007,7 +1007,7 @@ export default class htx extends htxRest {
             symbol = market['symbol'];
             type = market['type'];
             suffix = market['lowercaseId'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
         } else {
             type = this.safeString (this.options, 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
@@ -1561,7 +1561,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeValue (trade, 'aggressor');
         let takerOrMaker: Str = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = aggressor ? 'taker' : 'maker';
+            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
         }
         return this.safeTrade ({
             'info': trade,
@@ -1607,7 +1607,7 @@ export default class htx extends htxRest {
         let subType: SubType = undefined;
         if (market !== undefined) {
             type = market['type'];
-            subType = market['linear'] ? 'linear' : 'inverse';
+            subType = (market['linear'] === true) ? 'linear' : 'inverse';
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
             if (type === 'spot') {
@@ -1835,7 +1835,7 @@ export default class htx extends htxRest {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                if (isUnifiedAccount) {
+                if (isUnifiedAccount === true) {
                     // usdt contracts account
                     prefix = 'accounts_unify';
                     messageHash = prefix;
@@ -2077,7 +2077,6 @@ export default class htx extends htxRest {
                 messageHash += '.' + currencyId.toLowerCase ();
                 subscription = this.safeValue (client.subscriptions, messageHash);
             }
-            const type = this.safeString (subscription, 'type');
             const subType = this.safeString (subscription, 'subType');
             if (topic === 'accounts_unify') {
                 // {
@@ -2107,30 +2106,16 @@ export default class htx extends htxRest {
             } else if (subType === 'linear') {
                 const margin = this.safeString (subscription, 'margin');
                 if (margin === 'cross') {
-                    const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
-                    const balances = this.safeValue (first, fieldName, []);
-                    const balancesLength = balances.length;
-                    if (balancesLength > 0) {
-                        for (let i = 0; i < balances.length; i++) {
-                            const balance = balances[i];
-                            const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
-                            const market = this.safeMarket (marketId);
-                            const currencyId = this.safeString (balance, 'margin_asset');
-                            const currency = this.safeCurrency (currencyId);
-                            const code = this.safeString (market, 'settle', currency['code']);
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the market was delisted
-                            if (code !== undefined) {
-                                const account = this.account ();
-                                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
-                                account['used'] = this.safeString (balance, 'margin_frozen');
-                                const accountsByCode: Dict = {};
-                                accountsByCode[code] = account;
-                                const symbol = market['symbol'];
-                                this.balance[symbol] = this.safeBalance (accountsByCode);
-                            }
-                        }
+                    // the cross account is one shared margin balance, keyed by the settle currency
+                    const currencyId = this.safeString2 (first, 'margin_asset', 'margin_account');
+                    const code = this.safeCurrencyCode (currencyId);
+                    if (code !== undefined) {
+                        const account = this.account ();
+                        account['free'] = this.safeString2 (first, 'withdraw_available', 'margin_available');
+                        account['used'] = this.safeString (first, 'margin_frozen');
+                        account['total'] = this.safeString (first, 'margin_balance');
+                        this.balance[code] = account;
+                        this.balance = this.safeBalance (this.balance);
                     }
                 } else {
                     // isolated margin
@@ -2512,7 +2497,7 @@ export default class htx extends htxRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
@@ -2806,7 +2791,7 @@ export default class htx extends htxRest {
         const aggressor = this.safeValue (trade, 'aggressor');
         let takerOrMaker: Str = undefined;
         if (aggressor !== undefined) {
-            takerOrMaker = aggressor ? 'taker' : 'maker';
+            takerOrMaker = (aggressor === true) ? 'taker' : 'maker';
         } else {
             takerOrMaker = this.safeStringLower (trade, 'role');
         }

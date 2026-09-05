@@ -46,6 +46,7 @@ export interface TradingFeeInterface {
     taker: Num;
     percentage: Bool;
     tierBased: Bool;
+    tiers?: Dict;
 }
 export type Fee = FeeInterface | undefined;
 export type FeeString = FeeStringInterface | undefined;
@@ -57,6 +58,8 @@ export interface Precision {
     amount: Num;
     price: Num;
     cost?: Num;
+    base?: Num;
+    quote?: Num;
 }
 export interface MarketInterface {
     id: Str;
@@ -76,6 +79,8 @@ export interface MarketInterface {
     swap: Bool;
     future: Bool;
     option: Bool;
+    index?: Bool;
+    stock?: Bool;
     prediction?: Bool;
     contract: Bool;
     settle: Str;
@@ -504,6 +509,9 @@ export interface DepositAddress {
     address: Str;
     tag?: Str;
 }
+/** fetchDepositAddressesByNetwork: address structures indexed by unified network code */
+export interface DepositAddresses extends Dictionary<DepositAddress> {
+}
 export interface WithdrawalResponse {
     info: any;
     id: string;
@@ -729,6 +737,9 @@ export interface Greeks {
     lastPrice: Num;
     underlyingPrice: Num;
     info: any;
+}
+/** fetchAllGreeks: greeks structures indexed by unified market symbol */
+export interface AllGreeks extends Dictionary<Greeks> {
 }
 export interface Conversion {
     info: any;

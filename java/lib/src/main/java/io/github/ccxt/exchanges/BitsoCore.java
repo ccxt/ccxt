@@ -2146,7 +2146,7 @@ public class BitsoCore extends BitsoApi
                     Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
     put( "deposit", new java.util.HashMap<String, Object>() {{
         put( "fee", BitsoCore.this.safeNumber(entry, "fee") );
-        put( "percentage", !Helpers.isTrue(BitsoCore.this.safeValue(entry, "is_fixed")) );
+        put( "percentage", (!Helpers.isEqual(BitsoCore.this.safeValue(entry, "is_fixed"), true)) );
     }} );
     put( "withdraw", new java.util.HashMap<String, Object>() {{
         put( "fee", null );
@@ -2355,7 +2355,7 @@ public class BitsoCore extends BitsoApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", this.urlencode(query)));
             }
@@ -2370,7 +2370,7 @@ public class BitsoCore extends BitsoApi
             Object request = String.join((String)"", (java.util.List<String>)content);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(method, "GET")) && Helpers.isTrue(!Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     request = Helpers.add(request, body);
@@ -2415,7 +2415,7 @@ public class BitsoCore extends BitsoApi
                     success = false;
                 }
             }
-            if (!Helpers.isTrue(success))
+            if (Helpers.isTrue(!Helpers.isEqual(success, true)))
             {
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
                 Object error = this.safeValue(response, "error");

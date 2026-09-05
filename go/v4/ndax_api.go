@@ -27,7 +27,7 @@ func (this *NdaxCore) PublicGetEnableXP2FA(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetEnableXP2FA", args...)
 }
 
-// PublicGetGetL2Snapshot returns a channel that yields a JSON object.
+// PublicGetGetL2Snapshot returns a channel that yields a JSON array.
 func (this *NdaxCore) PublicGetGetL2Snapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetL2Snapshot", args...)
 }

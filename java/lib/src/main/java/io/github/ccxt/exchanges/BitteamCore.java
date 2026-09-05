@@ -530,7 +530,7 @@ public class BitteamCore extends BitteamApi
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new java.util.HashMap<String, Object>() {{}});
         Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
-        if (Helpers.isTrue(quoteInUsd))
+        if (Helpers.isTrue(Helpers.isEqual(quoteInUsd, true)))
         {
             Object settings = this.safeValue(market, "settings", new java.util.HashMap<String, Object>() {{}});
             minCost = this.safeNumber(settings, "limit_usd");

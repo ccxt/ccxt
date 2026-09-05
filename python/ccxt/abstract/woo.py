@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     v1_pub_get_hist_kline = v1PubGetHistKline = Entry[_Dict]('hist/kline', ['v1', 'pub'], 'GET', {'cost': 10})
@@ -60,7 +59,6 @@ class ImplicitAPI:
     v1_private_delete_client_order = v1PrivateDeleteClientOrder = Entry[_Dict]('client/order', ['v1', 'private'], 'DELETE', {'cost': 1})
     v1_private_delete_orders = v1PrivateDeleteOrders = Entry[_List]('orders', ['v1', 'private'], 'DELETE', {'cost': 1})
     v1_private_delete_asset_withdraw = v1PrivateDeleteAssetWithdraw = Entry[_Dict]('asset/withdraw', ['v1', 'private'], 'DELETE', {'cost': 120})
-    v2_private_get_client_holding = v2PrivateGetClientHolding = Entry[_Dict]('client/holding', ['v2', 'private'], 'GET', {'cost': 1})
     v3_public_get_systeminfo = v3PublicGetSystemInfo = Entry[_Dict]('systemInfo', ['v3', 'public'], 'GET', {'cost': 1})
     v3_public_get_instruments = v3PublicGetInstruments = Entry[_Dict]('instruments', ['v3', 'public'], 'GET', {'cost': 1})
     v3_public_get_token = v3PublicGetToken = Entry[_Dict]('token', ['v3', 'public'], 'GET', {'cost': 1})

@@ -105,7 +105,7 @@ public partial class bitget : ccxt.bitget
             var instTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
-        } else if (isTrue(isTrue((getValue(market, "swap"))) || isTrue((getValue(market, "future")))))
+        } else if (isTrue(isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)))))
         {
             var instTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -138,16 +138,17 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object messageHash = add("ticker:", symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object messageHash = add("ticker:", symbolVar);
         object instType = null;
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
@@ -163,7 +164,7 @@ public partial class bitget : ccxt.bitget
         object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
         ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
         ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
-        return await this.watchPublic(uta, messageHash, args, parameters);
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic(uta, messageHash, args, parameters));
     }
 
     /**
@@ -194,7 +195,7 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -236,9 +237,9 @@ public partial class bitget : ccxt.bitget
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(tickers, "symbol")] = tickers;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -453,7 +454,7 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -468,7 +469,7 @@ public partial class bitget : ccxt.bitget
         object market = this.market(getValue(symbols, 0));
         object instType = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
@@ -495,9 +496,9 @@ public partial class bitget : ccxt.bitget
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(tickers, "symbol")] = tickers;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.bidsasks, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbols));
     }
 
     public virtual void handleBidAsk(WebSocketClient client, object message)
@@ -551,18 +552,21 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes");
-        object interval = this.safeString(timeframes, timeframe);
+        object interval = this.safeString(timeframes, timeframeVar);
         object messageHash = null;
         object instType = null;
         object uta = null;
@@ -583,19 +587,19 @@ public partial class bitget : ccxt.bitget
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "uta", true },
             });
-            messageHash = add("kline:", symbol);
+            messageHash = add("kline:", symbolVar);
         } else
         {
             ((IDictionary<string,object>)args)["channel"] = add("candle", interval);
             ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
-            messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+            messageHash = add(add(add("candles:", timeframeVar), ":"), symbolVar);
         }
         object ohlcv = await this.watchPublic(uta, messageHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     /**
@@ -788,7 +792,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         object volumeIndex = 5;
-        if (isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "inverse"))))
+        if (isTrue(isTrue((!isEqual(market, null))) && isTrue((isEqual(getValue(market, "inverse"), true)))))
         {
             volumeIndex = 6;
         }
@@ -808,10 +812,10 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -894,7 +898,7 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -903,7 +907,7 @@ public partial class bitget : ccxt.bitget
         }
         symbols = this.marketSymbols(symbols);
         object channel = "books";
-        object incrementalFeed = true;
+        bool incrementalFeed = true;
         if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
         {
             channel = add(channel, ((object)limit).ToString());
@@ -940,10 +944,10 @@ public partial class bitget : ccxt.bitget
         object orderbook = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (isTrue(incrementalFeed))
         {
-            return (orderbook as IOrderBook).limit();
+            return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
         } else
         {
-            return orderbook;
+            return ccxt.BaseExchange.ToOrderBookSnapshot(orderbook);
         }
     }
 
@@ -1006,7 +1010,7 @@ public partial class bitget : ccxt.bitget
         object data = this.safeValue(message, "data");
         object rawOrderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(rawOrderBook, "ts");
-        object incrementalBook = isEqual(channel, "books");
+        bool incrementalBook = isEqual(channel, "books");
         if (isTrue(incrementalBook))
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -1025,16 +1029,16 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            object isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
+            bool isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
-            if (isTrue(isTrue(!isTrue(isSnapshot) && isTrue(checksum)) && isTrue((!isEqual(responseChecksum, null)))))
+            if (isTrue(isTrue(!isTrue(isSnapshot) && isTrue((isEqual(checksum, true)))) && isTrue((!isEqual(responseChecksum, null)))))
             {
                 object storedAsks = getValue(storedOrderBook, "asks");
                 object storedBids = getValue(storedOrderBook, "bids");
-                object asksLength = getArrayLength(storedAsks);
-                object bidsLength = getArrayLength(storedBids);
+                int asksLength = getArrayLength(storedAsks);
+                int bidsLength = getArrayLength(storedBids);
                 object payloadArray = new List<object>() {};
                 for (object i = 0; isLessThan(i, 25); postFixIncrement(ref i))
                 {
@@ -1049,7 +1053,7 @@ public partial class bitget : ccxt.bitget
                         ((IList<object>)payloadArray).Add(getValue(getValue(getValue(storedAsks, i), 2), 1));
                     }
                 }
-                object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
+                string payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
                 object calculatedChecksum = this.crc32(payload, true);
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
@@ -1060,8 +1064,8 @@ public partial class bitget : ccxt.bitget
         } else
         {
             object orderbook = this.orderBook(new Dictionary<string, object>() {});
-            object bidsKey = "bids";
-            object asksKey = "asks";
+            string bidsKey = "bids";
+            string asksKey = "asks";
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
             if (isTrue(inOp(rawOrderBook, "a")))
             {
@@ -1122,10 +1126,10 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -1142,10 +1146,11 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -1190,16 +1195,16 @@ public partial class bitget : ccxt.bitget
         {
             object first = this.safeValue(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        object result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        if (isTrue(isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true)))
         {
             object filtered = this.removeRepeatedTradesFromArray(result);
             filtered = this.sortBy(filtered, "timestamp");
-            return filtered;
+            return ccxt.BaseExchange.ToTradeList(filtered);
         }
-        return result;
+        return ccxt.BaseExchange.ToTradeList(result);
     }
 
     /**
@@ -1273,7 +1278,7 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object data = this.safeList(message, "data", new List<object>() {});
-        object length = getArrayLength(data);
+        int length = getArrayLength(data);
         // fix chronological order by reversing
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
@@ -1441,7 +1446,7 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1450,7 +1455,7 @@ public partial class bitget : ccxt.bitget
         }
         object market = null;
         object messageHash = "";
-        object subscriptionHash = "positions";
+        string subscriptionHash = "positions";
         object instType = "USDT-FUTURES";
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
@@ -1487,9 +1492,9 @@ public partial class bitget : ccxt.bitget
         object newPositions = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newPositions;
+            return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return this.filterBySymbolsSinceLimit(newPositions, symbols, since, limit, true);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(newPositions, symbols, since, limit, true));
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)
@@ -1597,9 +1602,9 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -1730,8 +1735,10 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1743,14 +1750,14 @@ public partial class bitget : ccxt.bitget
         var isTriggerparametersVariable = this.isTriggerOrder(parameters);
         isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
-        object messageHash = ((bool) isTrue((isTrigger))) ? "triggerOrder" : "order";
+        object messageHash = ((bool) isTrue((isEqual(isTrigger, true)))) ? "triggerOrder" : "order";
         object subscriptionHash = "order:trades";
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
             marketId = getValue(market, "id");
-            messageHash = add(add(messageHash, ":"), symbol);
+            messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "uta", false);
@@ -1765,11 +1772,11 @@ public partial class bitget : ccxt.bitget
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin")))) && isTrue((isEqual(symbol, null)))))
+        if (isTrue(isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin")))) && isTrue((isEqual(symbolVar, null)))))
         {
             marketId = "default";
         }
-        if (isTrue(isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(type, "spot")))) && isTrue((isEqual(symbol, null)))))
+        if (isTrue(isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(type, "spot")))) && isTrue((isEqual(symbolVar, null)))))
         {
             messageHash = add(add(messageHash, ":"), subType);
         } else if (isTrue(isEqual(productType, "USDT-FUTURES")))
@@ -1792,16 +1799,16 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue((!isEqual(symbol, null)))))
+        if (isTrue(isTrue(isEqual(type, "spot")) && isTrue((!isEqual(symbolVar, null)))))
         {
-            subscriptionHash = add(add(subscriptionHash, ":"), symbol);
+            subscriptionHash = add(add(subscriptionHash, ":"), symbolVar);
         }
-        if (isTrue(isTrigger))
+        if (isTrue(isEqual(isTrigger, true)))
         {
             subscriptionHash = add(subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
         object instId = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        object channel = ((bool) isTrue(isTrigger)) ? "orders-algo" : "orders";
+        object channel = ((bool) isTrue((isEqual(isTrigger, true)))) ? "orders-algo" : "orders";
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -1841,9 +1848,9 @@ public partial class bitget : ccxt.bitget
         object orders = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -1947,9 +1954,9 @@ public partial class bitget : ccxt.bitget
         object data = this.safeList(message, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object category = this.safeStringLower(first, "category", instType);
-        object isLinearSwap = (isEqual(category, "usdt-futures"));
-        object isInverseSwap = (isEqual(category, "coin-futures"));
-        object isUSDCFutures = (isEqual(category, "usdc-futures"));
+        bool isLinearSwap = (isEqual(category, "usdt-futures"));
+        bool isInverseSwap = (isEqual(category, "coin-futures"));
+        bool isUSDCFutures = (isEqual(category, "usdc-futures"));
         if (isTrue(isEqual(instType, "uta")))
         {
             // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
@@ -1970,7 +1977,7 @@ public partial class bitget : ccxt.bitget
             this.orders = new ArrayCacheBySymbolById(limit);
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object isTrigger = isTrue((isEqual(channel, "orders-algo"))) || isTrue((isEqual(channel, "ordersAlgo")));
+        bool isTrigger = isTrue((isEqual(channel, "orders-algo"))) || isTrue((isEqual(channel, "ordersAlgo")));
         object stored = ((bool) isTrue(isTrigger)) ? this.triggerOrders : this.orders;
         object messageHash = ((bool) isTrue(isTrigger)) ? "triggerOrder" : "order";
         object marketSymbols = new Dictionary<string, object>() {};
@@ -1987,7 +1994,7 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
             }
         }
-        object keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object symbol = getValue(keys, i);
@@ -2172,8 +2179,8 @@ public partial class bitget : ccxt.bitget
         //         "stpMode": "none"
         //     }
         //
-        object isSpot = !isTrue((inOp(order, "posMode")));
-        object isMargin = (inOp(order, "loanType"));
+        bool isSpot = !isTrue((inOp(order, "posMode")));
+        bool isMargin = (inOp(order, "loanType"));
         object category = this.safeStringLower(order, "category");
         if (isTrue(isEqual(category, "spot")))
         {
@@ -2201,7 +2208,7 @@ public partial class bitget : ccxt.bitget
             };
         }
         object triggerPrice = this.safeNumber(order, "triggerPrice");
-        object isTriggerOrder = (!isEqual(triggerPrice, null));
+        bool isTriggerOrder = (!isEqual(triggerPrice, null));
         object price = null;
         if (!isTrue(isTriggerOrder))
         {
@@ -2217,8 +2224,8 @@ public partial class bitget : ccxt.bitget
         object type = this.safeString(order, "orderType");
         object accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));
         object newSizeValue = this.omitZero(this.safeString2(order, "newSize", "cumExecValue"));
-        object isMarketOrder = (isEqual(type, "market"));
-        object isBuy = (isEqual(side, "buy"));
+        bool isMarketOrder = (isEqual(type, "market"));
+        bool isBuy = (isEqual(side, "buy"));
         object totalAmount = null;
         object filledAmount = null;
         object cost = null;
@@ -2315,8 +2322,10 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2324,11 +2333,11 @@ public partial class bitget : ccxt.bitget
         }
         object market = null;
         object messageHash = "myTrades";
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            messageHash = add(add(messageHash, ":"), symbol);
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
+            messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
@@ -2370,9 +2379,9 @@ public partial class bitget : ccxt.bitget
         object trades = await this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -2493,8 +2502,8 @@ public partial class bitget : ccxt.bitget
         }
         object stored = this.myTrades;
         object data = this.safeList(message, "data", new List<object>() {});
-        object length = getArrayLength(data);
-        object messageHash = "myTrades";
+        int length = getArrayLength(data);
+        string messageHash = "myTrades";
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeStringLower(arg, "instType");
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
@@ -2507,7 +2516,7 @@ public partial class bitget : ccxt.bitget
                 // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
                 // otherwise resolves to the swap market and the messageHash never matches).
                 object category = this.safeStringLower(trade, "category");
-                object marketType = "contract";
+                string marketType = "contract";
                 if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "margin")))))
                 {
                     marketType = "spot";
@@ -2540,7 +2549,7 @@ public partial class bitget : ccxt.bitget
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> watchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object uta = null;
@@ -2556,7 +2565,7 @@ public partial class bitget : ccxt.bitget
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object instType = null;
-        object channel = "account";
+        string channel = "account";
         if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
         {
             instType = "USDT-FUTURES";
@@ -2600,7 +2609,7 @@ public partial class bitget : ccxt.bitget
         }
         object instTypeLower = ((bool) isTrue((isEqual(instType, null)))) ? "" : ((string)instType).ToLower();
         object messageHash = add("balance:", instTypeLower);
-        return await this.watchPrivate(uta, messageHash, messageHash, args, parameters);
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(uta, messageHash, messageHash, args, parameters));
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)
@@ -2762,14 +2771,14 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPublic(object uta, object messageHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) isTrue(uta)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (isTrue(sandboxMode))
+        if (isTrue(isEqual(sandboxMode, true)))
         {
             object instType = this.safeString(args, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                if (isTrue(uta))
+                if (isTrue(isEqual(uta, true)))
                 {
                     url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic");
                 } else
@@ -2782,21 +2791,21 @@ public partial class bitget : ccxt.bitget
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
     public async virtual Task<object> unWatchPublic(object uta, object messageHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) isTrue(uta)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (isTrue(sandboxMode))
+        if (isTrue(isEqual(sandboxMode, true)))
         {
             object instType = this.safeString(args, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                if (isTrue(uta))
+                if (isTrue(isEqual(uta, true)))
                 {
                     url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic");
                 } else
@@ -2809,29 +2818,29 @@ public partial class bitget : ccxt.bitget
             { "op", "unsubscribe" },
             { "args", new List<object>() {args} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
     public async virtual Task<object> watchPublicMultiple(object uta, object messageHashes, object argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) isTrue(uta)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (isTrue(sandboxMode))
+        if (isTrue(isEqual(sandboxMode, true)))
         {
             object argsArrayFirst = this.safeDict(argsArray, 0, new Dictionary<string, object>() {});
             object instType = this.safeString(argsArrayFirst, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                url = ((bool) isTrue(uta)) ? getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
+                url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "demo"), "public");
             }
         }
         object request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", argsArray },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
@@ -2841,15 +2850,15 @@ public partial class bitget : ccxt.bitget
         this.checkRequiredCredentials();
         object url = this.safeString(parameters, "url", "");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
-            object timestamp = ((object)this.seconds()).ToString();
+            string timestamp = ((object)this.seconds()).ToString();
             object auth = add(add(timestamp, "GET"), "/user/verify");
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
-            object operation = "login";
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string operation = "login";
             object request = new Dictionary<string, object>() {
                 { "op", operation },
                 { "args", new List<object>() {new Dictionary<string, object>() {
@@ -2859,7 +2868,7 @@ public partial class bitget : ccxt.bitget
     { "sign", signature },
 }} },
             };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
         return await (future as Exchange.Future);
@@ -2868,14 +2877,14 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, object args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = ((bool) isTrue(uta)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPrivate") : getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPrivate") : getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
-        if (isTrue(sandboxMode))
+        if (isTrue(isEqual(sandboxMode, true)))
         {
             object instType = this.safeString(args, "instType");
             if (isTrue(isTrue(isTrue((!isEqual(instType, "SCOIN-FUTURES"))) && isTrue((!isEqual(instType, "SUSDT-FUTURES")))) && isTrue((!isEqual(instType, "SUSDC-FUTURES")))))
             {
-                if (isTrue(uta))
+                if (isTrue(isEqual(uta, true)))
                 {
                     url = getValue(getValue(getValue(this.urls, "api"), "demo"), "utaPrivate");
                 } else
@@ -2891,7 +2900,7 @@ public partial class bitget : ccxt.bitget
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, subscriptionHash);
     }
 
@@ -2900,7 +2909,7 @@ public partial class bitget : ccxt.bitget
         //
         //  { event: "login", code: 0 }
         //
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = this.safeValue((client as WebSocketClient).futures, messageHash);
         (future as Future).resolve(true);
     }
@@ -2927,7 +2936,7 @@ public partial class bitget : ccxt.bitget
         {
             if (isTrue(e is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -3024,7 +3033,7 @@ public partial class bitget : ccxt.bitget
         //         }
         //     }
         //
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             return;
         }

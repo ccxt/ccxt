@@ -78,6 +78,7 @@ public class BitbankCore extends BitbankApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarginModes", false );
                 put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );
@@ -1315,7 +1316,7 @@ public class BitbankCore extends BitbankApi
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "public"))) || Helpers.isTrue((Helpers.isEqual(api, "markets")))))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -1347,7 +1348,7 @@ public class BitbankCore extends BitbankApi
             } else
             {
                 auth = Helpers.add(auth, Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), path));
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     query = this.urlencode(query);
                     url = Helpers.add(url, Helpers.add("?", query));
@@ -1389,7 +1390,7 @@ public class BitbankCore extends BitbankApi
         }
         Object success = this.safeInteger(response, "success");
         Object data = this.safeValue(response, "data");
-        if (Helpers.isTrue(!Helpers.isTrue(success) || !Helpers.isTrue(data)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(success, null)) || Helpers.isTrue(Helpers.isEqual(success, null))) || Helpers.isTrue(Helpers.isEqual(success, 0)))) || Helpers.isTrue((Helpers.isEqual(data, null)))))
         {
             Object errorMessages = new java.util.HashMap<String, Object>() {{
                 put( "10000", "URL does not exist" );

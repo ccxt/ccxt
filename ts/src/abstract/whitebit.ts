@@ -63,7 +63,7 @@ interface Exchange {
     v4PrivatePostMainAccountHistory (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountWithdraw (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountWithdrawPay (params?: {}): Promise<List>;
-    v4PrivatePostMainAccountTransfer (params?: {}): Promise<Dict>;
+    v4PrivatePostMainAccountTransfer (params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartPlans (params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartInvestment (params?: {}): Promise<Dict>;
     v4PrivatePostMainAccountSmartInvestmentClose (params?: {}): Promise<Dict>;
@@ -71,7 +71,7 @@ interface Exchange {
     v4PrivatePostMainAccountFee (params?: {}): Promise<List>;
     v4PrivatePostMainAccountSmartInterestPaymentHistory (params?: {}): Promise<Dict>;
     v4PrivatePostTradeAccountBalance (params?: {}): Promise<Dict>;
-    v4PrivatePostTradeAccountExecutedHistory (params?: {}): Promise<Dict>;
+    v4PrivatePostTradeAccountExecutedHistory (params?: {}): Promise<Dict | List>;
     v4PrivatePostTradeAccountOrderHistory (params?: {}): Promise<Dict>;
     v4PrivatePostTradeAccountOrder (params?: {}): Promise<Dict>;
     v4PrivatePostOrderCollateralLimit (params?: {}): Promise<Dict>;
@@ -91,7 +91,7 @@ interface Exchange {
     v4PrivatePostOrderBulk (params?: {}): Promise<List>;
     v4PrivatePostOrderModify (params?: {}): Promise<Dict>;
     v4PrivatePostOrderConditionalCancel (params?: {}): Promise<List>;
-    v4PrivatePostOrders (params?: {}): Promise<Dict>;
+    v4PrivatePostOrders (params?: {}): Promise<List>;
     v4PrivatePostOcoOrders (params?: {}): Promise<List>;
     v4PrivatePostOrderCollateralOco (params?: {}): Promise<Dict>;
     v4PrivatePostOrderOcoCancel (params?: {}): Promise<Dict>;
@@ -103,7 +103,7 @@ interface Exchange {
     v4PrivatePostSubAccountCreate (params?: {}): Promise<Dict>;
     v4PrivatePostSubAccountDelete (params?: {}): Promise<Dict>;
     v4PrivatePostSubAccountEdit (params?: {}): Promise<Dict>;
-    v4PrivatePostSubAccountList (params?: {}): Promise<List>;
+    v4PrivatePostSubAccountList (params?: {}): Promise<Dict>;
     v4PrivatePostSubAccountTransfer (params?: {}): Promise<Dict>;
     v4PrivatePostSubAccountBlock (params?: {}): Promise<Dict>;
     v4PrivatePostSubAccountUnblock (params?: {}): Promise<Dict>;

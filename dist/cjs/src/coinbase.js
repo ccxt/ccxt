@@ -151,6 +151,7 @@ class coinbase extends coinbase$1["default"] {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -927,7 +928,16 @@ class coinbase extends coinbase$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
+        }
+        else if (method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, params));
+        }
+        else {
+            response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, params));
+        }
         return this.parseTransactions(response['data'], undefined, since, limit);
     }
     /**
@@ -967,7 +977,7 @@ class coinbase extends coinbase$1["default"] {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         let currencyType = undefined;
-        [currencyType, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'currencyType');
+        [currencyType, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray(results, 'type', 'deposit', false);
@@ -1174,7 +1184,7 @@ class coinbase extends coinbase$1["default"] {
         let status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         if (status === undefined) {
             const committed = this.safeBool(transaction, 'committed');
-            status = committed ? 'ok' : 'pending';
+            status = (committed === true) ? 'ok' : 'pending';
         }
         const id = this.safeString(transaction, 'id');
         const currencyId = this.safeString(amountAndCurrencyObject, 'currency');
@@ -1303,7 +1313,7 @@ class coinbase extends coinbase$1["default"] {
         const v3Price = this.safeString(trade, 'price');
         let v3Cost = undefined;
         let v3Amount = this.safeString(trade, 'size');
-        if (sizeInQuote) {
+        if (sizeInQuote === true) {
             // calculate base size
             v3Cost = v3Amount;
             v3Amount = Precise["default"].stringDiv(v3Amount, v3Price);
@@ -1365,7 +1375,7 @@ class coinbase extends coinbase$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1661,7 +1671,7 @@ class coinbase extends coinbase$1["default"] {
             'swap': false,
             'future': false,
             'option': false,
-            'active': !tradingDisabled,
+            'active': tradingDisabled !== true,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -1841,8 +1851,8 @@ class coinbase extends coinbase$1["default"] {
         }
         const takerFeeRate = this.safeNumber(feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber(feeTier, 'maker_fee_rate');
-        const taker = takerFeeRate ? takerFeeRate : this.parseNumber('0.06');
-        const maker = makerFeeRate ? makerFeeRate : this.parseNumber('0.04');
+        const taker = (takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0) ? takerFeeRate : this.parseNumber('0.06');
+        const maker = (makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0) ? makerFeeRate : this.parseNumber('0.04');
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -1858,7 +1868,7 @@ class coinbase extends coinbase$1["default"] {
             'swap': isSwap,
             'future': !isSwap,
             'option': false,
-            'active': !tradingDisabled,
+            'active': tradingDisabled !== true,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -2496,7 +2506,7 @@ class coinbase extends coinbase$1["default"] {
         if (marketType === 'future') {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, params));
         }
-        else if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
+        else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, params));
         }
@@ -3016,7 +3026,7 @@ class coinbase extends coinbase$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3063,7 +3073,7 @@ class coinbase extends coinbase$1["default"] {
             'side': side.toUpperCase(),
         };
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             params = this.omit(params, 'reduceOnly');
             params['amount'] = amount;
             return await this.closePosition(symbol, side, params);
@@ -3176,7 +3186,7 @@ class coinbase extends coinbase$1["default"] {
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new errors.NotSupported(this.id + ' createOrder() only stop limit orders are supported');
             }
-            if (market['spot'] && (side === 'buy')) {
+            if ((market['spot'] === true) && (side === 'buy')) {
                 let total = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -3225,7 +3235,7 @@ class coinbase extends coinbase$1["default"] {
         params = this.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode']);
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview) {
+        if (preview === true) {
             params = this.omit(params, ['preview', 'test']);
             request = this.omit(request, 'client_order_id');
             response = await this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, params));
@@ -3546,7 +3556,7 @@ class coinbase extends coinbase$1["default"] {
         }
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview) {
+        if (preview === true) {
             params = this.omit(params, ['preview', 'test']);
             response = await this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, params));
         }
@@ -4938,7 +4948,7 @@ class coinbase extends coinbase$1["default"] {
         }
         const market = this.market(symbol);
         let response = undefined;
-        if (market['future']) {
+        if (market['future'] === true) {
             const productId = this.safeString(market, 'product_id');
             if (productId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPosition() requires a "product_id" in params');
@@ -5150,7 +5160,7 @@ class coinbase extends coinbase$1["default"] {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market(symbol);
-            if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
+            if ((isSpot && (market['spot'] === true)) || (!isSpot && (market['spot'] !== true))) {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
@@ -5284,7 +5294,7 @@ class coinbase extends coinbase$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = fullPath;
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -5295,7 +5305,7 @@ class coinbase extends coinbase$1["default"] {
             if (authorization !== undefined) {
                 authorizationString = authorization;
             }
-            else if (this.token && !this.checkRequiredCredentials(false)) {
+            else if ((this.token !== '') && !this.checkRequiredCredentials(false)) {
                 authorizationString = 'Bearer ' + this.token;
             }
             else {
@@ -5303,14 +5313,14 @@ class coinbase extends coinbase$1["default"] {
                 const seconds = this.seconds();
                 let payload = '';
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                         payload = body;
                     }
                 }
                 else {
                     if (!isV3) {
-                        if (Object.keys(query).length) {
+                        if (Object.keys(query).length > 0) {
                             payload += '?' + this.urlencode(query);
                         }
                     }
@@ -5368,7 +5378,7 @@ class coinbase extends coinbase$1["default"] {
                     'Content-Type': 'application/json',
                 };
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                     }
                 }
@@ -5444,7 +5454,7 @@ class coinbase extends coinbase$1["default"] {
             }
         }
         const advancedTrade = this.options['advanced'];
-        if (!('data' in response) && (!advancedTrade)) {
+        if (!('data' in response) && (advancedTrade !== true)) {
             throw new errors.ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
         return undefined;

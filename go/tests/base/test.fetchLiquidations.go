@@ -6,29 +6,29 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchLiquidations(exchange ccxt.ICoreExchange, skippedProperties any, code any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchLiquidations"
-		if !IsTrue(GetValue(exchange.GetHas(), "fetchLiquidations")) {
-
-			ch <- true
-			return nil
-		}
-
-		items := (<-exchange.FetchLiquidations(code))
-		PanicOnError(items)
-		Assert(IsArray(items), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), code), " must return an array. "), exchange.Json(items)))
-		// const now = exchange.Getmilliseconds() ();
-		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-			TestLiquidation(exchange, skippedProperties, method, GetValue(items, i), code)
-		}
-		AssertTimestampOrder(exchange, method, code, items)
+	ch := make(chan any, 1)
+	go testFetchLiquidationsBody(ch, exchange, skippedProperties, code)
+	return ch
+}
+func testFetchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchLiquidations"
+	if IsTrue(IsTrue(IsEqual(GetValue(exchange.GetHas(), "fetchLiquidations"), nil)) || IsTrue(IsEqual(GetValue(exchange.GetHas(), "fetchLiquidations"), false))) {
 
 		ch <- true
 		return nil
+	}
 
-	}()
-	return ch
+	items := (<-exchange.FetchLiquidations(code))
+	PanicOnError(items)
+	Assert(IsArray(items), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), code), " must return an array. "), exchange.Json(items)))
+	// const now = exchange.Getmilliseconds() ();
+	for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
+		TestLiquidation(exchange, skippedProperties, method, GetValue(items, i), code)
+	}
+	AssertTimestampOrder(exchange, method, code, items)
+
+	ch <- true
+	return nil
 }
