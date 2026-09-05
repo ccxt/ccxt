@@ -4290,9 +4290,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStop: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isStop: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLoss: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfit: bool = !is_equal(&takeProfitPrice, &Value::Null);
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut postOnly: Value = ternary(is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string())))), Value::Bool(true), self.safe_bool2(params.clone(), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), &[Value::Bool(false)]));
         let mut endTime: Value = self.safe_string_k(params.clone(), "end_time", &[]);
@@ -4612,8 +4612,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stopLimitGTC: Value = self.safe_dict_k(orderConfiguration.clone(), "stop_limit_stop_limit_gtc", &[]);
         let mut stopLimitGTD: Value = self.safe_dict_k(orderConfiguration.clone(), "stop_limit_stop_limit_gtd", &[]);
         let mut marketIOC: Value = self.safe_dict_k(orderConfiguration.clone(), "market_market_ioc", &[]);
-        let mut isLimit: Value = Value::Bool(is_true(&(!is_equal(&limitGTC, &Value::Null))) || is_true(&(!is_equal(&limitGTD, &Value::Null))) || is_true(&(!is_equal(&limitIOC, &Value::Null))));
-        let mut isStop: Value = Value::Bool(is_true(&(!is_equal(&stopLimitGTC, &Value::Null))) || is_true(&(!is_equal(&stopLimitGTD, &Value::Null))));
+        let mut isLimit: bool = is_true(&(!is_equal(&limitGTC, &Value::Null))) || is_true(&(!is_equal(&limitGTD, &Value::Null))) || is_true(&(!is_equal(&limitIOC, &Value::Null)));
+        let mut isStop: bool = is_true(&(!is_equal(&stopLimitGTC, &Value::Null))) || is_true(&(!is_equal(&stopLimitGTD, &Value::Null)));
         let mut price: Value = Value::Null;
         let mut amount: Value = Value::Null;
         let mut postOnly: Value = Value::Null;
@@ -6762,7 +6762,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTradingFees".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut productType: Value = ternary(is_true(&isSpot), Value::Str("SPOT".to_string()), Value::Str("FUTURE".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -7000,7 +7000,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut version: Value = get_value(&api, &Value::Int(0));
-        let mut signed: Value = Value::Bool(is_equal(&get_value(&api, &Value::Int(1)), &Value::Str("private".to_string())));
+        let mut signed: bool = is_equal(&get_value(&api, &Value::Int(1)), &Value::Str("private".to_string()));
         let mut isV3: Value = Value::Bool(is_equal(&version, &Value::Str("v3".to_string())));
         let mut pathPart: Value = ternary(is_true(&(isV3)), Value::Str("api/v3".to_string()), Value::Str("v2".to_string()));
         let mut fullPath: Value = add(&add(&add(&Value::Str("/".to_string()), &pathPart), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
@@ -7039,7 +7039,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                let mut isCloudAPiKey: Value = Value::Bool(is_true(&(is_greater_than_or_equal(&get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())), &Value::Int(0)))) || is_true(&(Value::Bool(starts_with(&self.secret, &Value::Str("-----BEGIN".to_string()))))));
+                let mut isCloudAPiKey: bool = is_true(&(is_greater_than_or_equal(&get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())), &Value::Int(0)))) || is_true(&(Value::Bool(starts_with(&self.secret, &Value::Str("-----BEGIN".to_string())))));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 let mut isV2CloudAPiKey: Value = Value::Bool(is_equal(&get_array_length(&self.secret), &Value::Int(88)) || is_true(&self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)])) || is_true(&Value::Bool(ends_with(&self.secret, &Value::Str("=".to_string())))));
                 if is_true(&isCloudAPiKey) || is_true(&isV2CloudAPiKey) {

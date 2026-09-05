@@ -2295,10 +2295,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut tifRaw: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
-        let mut isMarket: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isStopOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isMarket: bool = is_equal(&orderType, &Value::Str("MARKET".to_string()));
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitPrice, &Value::Null);
+        let mut isStopLossOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isStopOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut timeInForce: Value = self.map_time_in_force(tifRaw.clone());
         if is_true(&isMarket) {
             operationType = Value::Str("create_market_order".to_string());
@@ -4639,7 +4639,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             error = Value::Bool(true);
         }
-        let mut nonEmptyMessage: Value = Value::Bool(is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string())))));
+        let mut nonEmptyMessage: bool = is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string()))));
         if is_true(&error) || is_true(&nonEmptyMessage) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone()); // Try deeper catch first

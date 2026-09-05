@@ -1324,7 +1324,7 @@ impl PoloniexCore {
         //           ],
         //
         let mut ohlcvLength: Value = get_array_length(&ohlcv);
-        let mut isContract: Value = Value::Bool(is_equal(&ohlcvLength, &Value::Int(9)));
+        let mut isContract: bool = is_equal(&ohlcvLength, &Value::Int(9));
         if is_true(&isContract) {
             return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(7), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }

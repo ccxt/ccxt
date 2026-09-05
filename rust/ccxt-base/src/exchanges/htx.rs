@@ -3788,7 +3788,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4023,7 +4023,7 @@ impl HtxCore {
             }
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".to_string())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".to_string())]);
-            let mut hasLeverage: Value = Value::Bool(is_true(&crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".to_string()))) || is_true(&crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".to_string()))));
+            let mut hasLeverage: bool = is_true(&crate::precise::Precise::stringGt(&leverageRatio, &Value::Str("1".to_string()))) || is_true(&crate::precise::Precise::stringGt(&superLeverageRatio, &Value::Str("1".to_string())));
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -4407,7 +4407,7 @@ impl HtxCore {
         if !is_equal(&first, &Value::Null) {
             market = self.market(first.clone());
         }
-        let mut isSubTypeRequested: Value = Value::Bool(is_true(&(Value::Bool(in_op(&params, &Value::Str("subType".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("business_type".to_string()))))));
+        let mut isSubTypeRequested: bool = is_true(&(Value::Bool(in_op(&params, &Value::Str("subType".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("business_type".to_string())))));
         let mut type_var: Value = Value::Null;
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -4416,11 +4416,11 @@ impl HtxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
-        let mut inverse: Value = Value::Bool(is_equal(&subType, &Value::Str("inverse".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
+        let mut inverse: bool = is_equal(&subType, &Value::Str("inverse".to_string()));
         let mut response: Value = Value::Null;
         if !is_true(&isSpot) || is_true(&isSubTypeRequested) {
             if is_true(&linear) {
@@ -5787,16 +5787,16 @@ impl HtxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut spot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut inverse: Value = Value::Bool(is_equal(&subType, &Value::Str("inverse".to_string())));
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut spot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut inverse: bool = is_equal(&subType, &Value::Str("inverse".to_string()));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isolated: Value = Value::Bool(is_equal(&marginMode, &Value::Str("isolated".to_string())));
-        let mut cross: Value = Value::Bool(is_equal(&marginMode, &Value::Str("cross".to_string())));
-        let mut margin: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) || is_true(&(is_true(&spot) && is_true(&(is_true(&cross) || is_true(&isolated))))));
+        let mut isolated: bool = is_equal(&marginMode, &Value::Str("isolated".to_string()));
+        let mut cross: bool = is_equal(&marginMode, &Value::Str("cross".to_string()));
+        let mut margin: bool = is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))) || is_true(&(is_true(&spot) && is_true(&(is_true(&cross) || is_true(&isolated)))));
         let mut response: Value = Value::Null;
         if is_true(&isMultiAssetMode) || is_true(&(is_true(&linear) && is_true(&(is_true(&swap) || is_true(&future))))) {
             let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
@@ -6604,7 +6604,7 @@ impl HtxCore {
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut contract: Value = Value::Bool(is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string())))));
+        let mut contract: bool = is_true(&(is_equal(&marketType, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&marketType, &Value::Str("future".to_string()))));
         if is_true(&contract) && is_true(&(is_equal(&symbol, &Value::Null))) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" fetchOrders() requires a symbol argument for ".to_string())), &marketType), &Value::Str(" orders".to_string()))));
         }
@@ -6779,7 +6779,7 @@ impl HtxCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchOpenOrders".to_string()), &[market.clone(), params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut isLinear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut response: Value = Value::Null;
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
             if !is_equal(&symbol, &Value::Null) {
@@ -7741,7 +7741,7 @@ impl HtxCore {
         }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("createOrder".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut isLinear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[Value::Bool(false)]);
         let mut hedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[Value::Str("gtc".to_string())]);
@@ -7806,10 +7806,10 @@ impl HtxCore {
         let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("tp_trigger_price".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callback_rate".to_string()), &[]);
         let mut trailingTriggerPrice: Value = self.safe_number_k(params.clone(), "trailingTriggerPrice", &[price.clone()]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
         let mut clientOrderId: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("algo_client_order_id".to_string())]), &[]);
         if is_true(&isLinear) && is_true(&(is_true(&isTrailingPercentOrder) || is_true(&isTrigger) || is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder))) {
             if !is_equal(&clientOrderId, &Value::Null) {
@@ -7957,10 +7957,10 @@ impl HtxCore {
         let mut stopLossTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("sl_trigger_price".to_string()), &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("tp_trigger_price".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_number_k(params.clone(), "trailingPercent", &[]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
         let mut response: Value = Value::Null;
         if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
             if is_true(&isTrailingPercentOrder) {
@@ -8348,7 +8348,7 @@ impl HtxCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
+        let mut isLinear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -9128,8 +9128,8 @@ impl HtxCore {
             while { if !__for_first_779 { i = add(&i, &Value::Int(1)); } __for_first_779 = false; is_less_than(&i, &get_array_length(&allAddresses)) } {
             let mut address: Value = get_value(&allAddresses, &i);
             let mut address: Value = get_value(&allAddresses, &i);
-            let mut noteMatch: Value = Value::Bool(is_true(&(is_equal(&note, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("note".to_string())), &note))));
-            let mut networkMatch: Value = Value::Bool(is_true(&(is_equal(&networkCode, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("network".to_string())), &networkCode))));
+            let mut noteMatch: bool = is_true(&(is_equal(&note, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("note".to_string())), &note)));
+            let mut networkMatch: bool = is_true(&(is_equal(&networkCode, &Value::Null))) || is_true(&(is_equal(&get_value(&address, &Value::Str("network".to_string())), &networkCode)));
             if is_true(&noteMatch) && is_true(&networkMatch) {
                 append_to_array(&mut addresses, address.clone());
             }
@@ -9619,16 +9619,16 @@ impl HtxCore {
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("transfer".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut fromAccountId: Value = self.convert_type_to_account(fromAccount.clone());
         let mut toAccountId: Value = self.convert_type_to_account(toAccount.clone());
-        let mut toCross: Value = Value::Bool(is_equal(&toAccountId, &Value::Str("cross".to_string())));
-        let mut fromCross: Value = Value::Bool(is_equal(&fromAccountId, &Value::Str("cross".to_string())));
-        let mut toIsolated: Value = Value::Bool(is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(toAccountId.clone(), self.ids.clone())));
-        let mut fromIsolated: Value = Value::Bool(is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(fromAccountId.clone(), self.ids.clone())));
-        let mut fromSpot: Value = Value::Bool(is_equal(&fromAccountId, &Value::Str("pro".to_string())));
-        let mut toSpot: Value = Value::Bool(is_equal(&toAccountId, &Value::Str("pro".to_string())));
+        let mut toCross: bool = is_equal(&toAccountId, &Value::Str("cross".to_string()));
+        let mut fromCross: bool = is_equal(&fromAccountId, &Value::Str("cross".to_string()));
+        let mut toIsolated: bool = is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(toAccountId.clone(), self.ids.clone()));
+        let mut fromIsolated: bool = is_true(&(!is_equal(&self.ids, &Value::Null))) && is_true(&self.in_array(fromAccountId.clone(), self.ids.clone()));
+        let mut fromSpot: bool = is_equal(&fromAccountId, &Value::Str("pro".to_string()));
+        let mut toSpot: bool = is_equal(&toAccountId, &Value::Str("pro".to_string()));
         if is_true(&fromSpot) && is_true(&toSpot) {
             panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" transfer () cannot make a transfer between ".to_string())), &fromAccount), &Value::Str(" and ".to_string())), &toAccount)));
         }
-        let mut fromOrToFuturesAccount: Value = Value::Bool(is_true(&(is_equal(&fromAccountId, &Value::Str("futures".to_string())))) || is_true(&(is_equal(&toAccountId, &Value::Str("futures".to_string())))));
+        let mut fromOrToFuturesAccount: bool = is_true(&(is_equal(&fromAccountId, &Value::Str("futures".to_string())))) || is_true(&(is_equal(&toAccountId, &Value::Str("futures".to_string()))));
         let mut response: Value = Value::Null;
         if is_true(&fromOrToFuturesAccount) {
             let mut type_var: Value = add(&add(&fromAccountId, &Value::Str("-to-".to_string())), &toAccountId);
@@ -10339,7 +10339,7 @@ impl HtxCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut pathString: Value = path.clone();
         let mut url: Value = Value::Str("/".to_string());
-        let mut isArrayParams: Value = Value::Bool(is_array(&params));
+        let mut isArrayParams: bool = is_array(&params);
         let mut query: Value = Value::Null;
         if is_true(&isArrayParams) {
             query = Value::Map({
@@ -10842,7 +10842,7 @@ impl HtxCore {
         let mut rawPositionSide: Value = self.safe_string_k(position.clone(), "position_side", &[]);
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         let mut side: Value = directionSide.clone();
-        let mut isHedgedPositionSide: Value = Value::Bool(is_true(&(is_equal(&rawPositionSide, &Value::Str("long".to_string())))) || is_true(&(is_equal(&rawPositionSide, &Value::Str("short".to_string())))));
+        let mut isHedgedPositionSide: bool = is_true(&(is_equal(&rawPositionSide, &Value::Str("long".to_string())))) || is_true(&(is_equal(&rawPositionSide, &Value::Str("short".to_string()))));
         if is_true(&isHedgedPositionSide) {
             side = rawPositionSide.clone();
         }

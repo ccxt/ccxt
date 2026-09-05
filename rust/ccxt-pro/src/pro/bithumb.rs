@@ -331,7 +331,7 @@ impl BithumbCore {
         }
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTicker".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isGenerationTwo: Value = Value::Bool(is_equal(&generation, &Value::Int(2)));
+        let mut isGenerationTwo: bool = is_equal(&generation, &Value::Int(2));
         let mut url: Value = ternary(is_true(&isGenerationTwo), get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("publicGen2".to_string())), get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string())));
         let mut market: Value = self.market(symbol.clone());
         let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
@@ -387,7 +387,7 @@ impl BithumbCore {
         }
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isGenerationTwo: Value = Value::Bool(is_equal(&generation, &Value::Int(2)));
+        let mut isGenerationTwo: bool = is_equal(&generation, &Value::Int(2));
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut symbolsLength: Value = ternary(is_true(&(is_equal(&symbols, &Value::Null))), Value::Int(0), get_array_length(&symbols));
         if is_true(&isGenerationTwo) && is_true(&(is_equal(&symbolsLength, &Value::Int(0)))) {
@@ -519,7 +519,7 @@ impl BithumbCore {
         //     }
         //
         let mut content: Value = self.safe_dict_k(message.clone(), "content", &[]);
-        let mut isGenerationTwo: Value = Value::Bool(is_equal(&content, &Value::Null));
+        let mut isGenerationTwo: bool = is_equal(&content, &Value::Null);
         let mut tickerMessage: Value = Value::Null;
         if is_true(&isGenerationTwo) {
             tickerMessage = message.clone();
@@ -670,7 +670,7 @@ impl BithumbCore {
         }
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isGenerationTwo: Value = Value::Bool(is_equal(&generation, &Value::Int(2)));
+        let mut isGenerationTwo: bool = is_equal(&generation, &Value::Int(2));
         let mut url: Value = ternary(is_true(&isGenerationTwo), get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("publicGen2".to_string())), get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string())));
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -889,7 +889,7 @@ impl BithumbCore {
         }
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTrades".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isGenerationTwo: Value = Value::Bool(is_equal(&generation, &Value::Int(2)));
+        let mut isGenerationTwo: bool = is_equal(&generation, &Value::Int(2));
         let mut url: Value = ternary(is_true(&isGenerationTwo), get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("publicGen2".to_string())), get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string())));
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
@@ -980,7 +980,7 @@ impl BithumbCore {
                 continue;
             }
             let mut code: Value = self.safe_string_k(rawTrade.clone(), "code", &[]);
-            let mut isGenerationTwo: Value = Value::Bool(!is_equal(&code, &Value::Null));
+            let mut isGenerationTwo: bool = !is_equal(&code, &Value::Null);
             let mut fallbackSymbol: Value = Value::Null;
             if is_true(&isGenerationTwo) {
                 fallbackSymbol = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);

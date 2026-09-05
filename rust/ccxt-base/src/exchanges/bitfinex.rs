@@ -1724,7 +1724,7 @@ impl BitfinexCore {
         let mut name: Value = self.safe_string(label.clone(), Value::Int(1), &[]);
         let mut pool: Value = self.safe_list(get_value(&indexed, &Value::Str("pool".to_string())), id.clone(), &[Value::List(vec![])]);
         let mut rawType: Value = self.safe_string(pool.clone(), Value::Int(1), &[]);
-        let mut isCryptoCoin: Value = Value::Bool(is_true(&(!is_equal(&rawType, &Value::Null))) || is_true(&(Value::Bool(in_op(&get_value(&indexed, &Value::Str("explorer".to_string())), &id))))); // "hacky" solution
+        let mut isCryptoCoin: bool = is_true(&(!is_equal(&rawType, &Value::Null))) || is_true(&(Value::Bool(in_op(&get_value(&indexed, &Value::Str("explorer".to_string())), &id)))); // "hacky" solution
         let mut type_var: Value = ternary(is_true(&isCryptoCoin), Value::Str("crypto".to_string()), Value::Null);
         let mut feeValues: Value = self.safe_list(get_value(&indexed, &Value::Str("fees".to_string())), id.clone(), &[Value::List(vec![])]);
         let mut fees: Value = self.safe_list(feeValues.clone(), Value::Int(1), &[Value::List(vec![])]);
@@ -1843,7 +1843,7 @@ impl BitfinexCore {
             let mut keys: Value = object_keys(&accountsByType);
             panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchBalance() type parameter must be one of ".to_string())), &join(&keys, &Value::Str(", ".to_string())))));
         }
-        let mut isDerivative: Value = Value::Bool(is_equal(&requestedType, &Value::Str("derivatives".to_string())));
+        let mut isDerivative: bool = is_equal(&requestedType, &Value::Str("derivatives".to_string()));
         let mut query: Value = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut response: Value = self.private_post_auth_r_wallets(&[query.clone()]).await;
         let mut balances: Value = self.to_array(response.clone());
@@ -1866,9 +1866,9 @@ impl BitfinexCore {
             let mut type_var: Value = self.safe_string(balance.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string_lower(balance.clone(), Value::Int(1), &[Value::Str("".to_string())]);
             let mut start: Value = subtract(&get_array_length(&currencyId), &Value::Int(2));
-            let mut isDerivativeCode: Value = Value::Bool(is_equal(&slice(&currencyId, &start, &Value::Null), &Value::Str("f0".to_string())));
+            let mut isDerivativeCode: bool = is_equal(&slice(&currencyId, &start, &Value::Null), &Value::Str("f0".to_string()));
             // this will only filter the derivative codes if the requestedType is 'derivatives'
-            let mut derivativeCondition: Value = Value::Bool(!is_true(&isDerivative) || is_true(&isDerivativeCode));
+            let mut derivativeCondition: bool = !is_true(&isDerivative) || is_true(&isDerivativeCode);
             if is_true(&(is_equal(&accountType, &type_var))) && is_true(&derivativeCondition) {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(balance.clone(), Value::Int(2), &[]));
@@ -2048,7 +2048,7 @@ impl BitfinexCore {
         if is_equal(&type_var, &Value::Str("derivatives".to_string())) {
             currencyId = self.safe_string(underlying.clone(), Value::Int(0), &[transferId.clone()]);
             let mut start: Value = subtract(&get_array_length(&currencyId), &Value::Int(2));
-            let mut isDerivativeCode: Value = Value::Bool(is_equal(&slice(&currencyId, &start, &Value::Null), &Value::Str("F0".to_string())));
+            let mut isDerivativeCode: bool = is_equal(&slice(&currencyId, &start, &Value::Null), &Value::Str("F0".to_string()));
             if !is_true(&isDerivativeCode) {
                 currencyId = add(&currencyId, &Value::Str("F0".to_string()));
             }
@@ -2171,7 +2171,7 @@ impl BitfinexCore {
         //
         let mut length: Value = get_array_length(&ticker);
         let mut firstValue: Value = self.safe_number(ticker.clone(), Value::Int(0), &[]);
-        let mut isFetchTicker: Value = Value::Bool(!is_equal(&firstValue, &Value::Null)); // if it's Nan, then it's string (symbol)
+        let mut isFetchTicker: bool = !is_equal(&firstValue, &Value::Null); // if it's Nan, then it's string (symbol)
         let mut symbol: Value = Value::Null;
         let mut minusIndex: Value = Value::Int(0);
         if is_true(&isFetchTicker) {
@@ -2180,7 +2180,7 @@ impl BitfinexCore {
             let mut marketId: Value = self.safe_string(ticker.clone(), Value::Int(0), &[]);
             market = self.safe_market(&[marketId.clone(), market.clone()]);
         }
-        let mut isFundingCurrency: Value = Value::Bool(is_greater_than_or_equal(&length, &Value::Int(17)));
+        let mut isFundingCurrency: bool = is_greater_than_or_equal(&length, &Value::Int(17));
         symbol = self.safe_symbol(Value::Null, &[market.clone()]);
         let mut last: Value = Value::Null;
         let mut bid: Value = Value::Null;
@@ -2337,7 +2337,7 @@ impl BitfinexCore {
         //
         let mut tradeList: Value = self.safe_list_k(trade.clone(), "result", &[Value::List(vec![])]);
         let mut tradeLength: Value = get_array_length(&tradeList);
-        let mut isPrivate: Value = Value::Bool(is_greater_than(&tradeLength, &Value::Int(5)));
+        let mut isPrivate: bool = is_greater_than(&tradeLength, &Value::Int(5));
         let mut id: Value = self.safe_string(tradeList.clone(), Value::Int(0), &[]);
         let mut amountIndex: Value = ternary(is_true(&isPrivate), Value::Int(4), Value::Int(2));
         let mut side: Value = Value::Null;
@@ -2726,9 +2726,9 @@ impl BitfinexCore {
                 orderType = Value::Str("STOP".to_string());
             }
         }
-        let mut ioc: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("IOC".to_string())));
-        let mut fok: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("FOK".to_string())));
-        let mut postOnly: Value = Value::Bool(is_true(&(is_equal(&postOnlyParam, &Value::Bool(true)))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string())))));
+        let mut ioc: bool = is_equal(&timeInForce, &Value::Str("IOC".to_string()));
+        let mut fok: bool = is_equal(&timeInForce, &Value::Str("FOK".to_string()));
+        let mut postOnly: bool = is_true(&(is_equal(&postOnlyParam, &Value::Bool(true)))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string()))));
         if is_true(&(is_true(&ioc) || is_true(&fok))) && is_true(&(is_equal(&price, &Value::Null))) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires a price argument with IOC and FOK orders".to_string()))));
         }
@@ -5296,7 +5296,7 @@ impl BitfinexCore {
                 add_element_to_object(&mut request, &Value::Str("price_aux_limit".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             }
         }
-        let mut postOnly: Value = Value::Bool(is_true(&(is_equal(&postOnlyParam, &Value::Bool(true)))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string())))));
+        let mut postOnly: bool = is_true(&(is_equal(&postOnlyParam, &Value::Bool(true)))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string()))));
         if is_true(&(!is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_equal(&triggerPrice, &Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }

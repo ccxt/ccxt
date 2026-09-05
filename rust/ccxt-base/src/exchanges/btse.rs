@@ -2700,7 +2700,7 @@ impl BtseCore {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
         }
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("MARKET".to_string())));
-        let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("LIMIT".to_string())));
+        let mut isLimitOrder: bool = is_equal(&type_var, &Value::Str("LIMIT".to_string()));
         let mut postOnly: Value = Value::Bool(false);
         // exchange-specific postOnly is the same as the unified one
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), postOnly.clone(), &[params.clone()]); postOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }; // this will remove PO from params.timeInForce if present
@@ -2714,10 +2714,10 @@ impl BtseCore {
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut isTriggerOrder: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isConditionalOrder: Value = Value::Bool(is_true(&(is_true(&isTriggerOrder) || is_true(&isStopLossOrder))) && is_true(&(is_true(&isMarketOrder) || is_true(&isLimitOrder))));
-        let mut isAlgoOrder: Value = Value::Bool(is_true(&isConditionalOrder) || is_true(&(!is_true(&isMarketOrder) && !is_true(&isLimitOrder))));
+        let mut isTriggerOrder: bool = is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
+        let mut isStopLossOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isConditionalOrder: bool = is_true(&(is_true(&isTriggerOrder) || is_true(&isStopLossOrder))) && is_true(&(is_true(&isMarketOrder) || is_true(&isLimitOrder)));
+        let mut isAlgoOrder: bool = is_true(&isConditionalOrder) || is_true(&(!is_true(&isMarketOrder) && !is_true(&isLimitOrder)));
         if is_true(&isLimitOrder) || is_true(&(is_equal(&type_var, &Value::Str("PEG".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("OCO".to_string())))) {
             if is_equal(&price, &Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a price argument for ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
@@ -2726,7 +2726,7 @@ impl BtseCore {
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        let mut needsQuoteSize: Value = Value::Bool(is_true(&(is_true(&isMarketOrder) || is_true(&(is_equal(&type_var, &Value::Str("TRAILING".to_string())))))) && is_true(&(is_equal(&upperSide, &Value::Str("BUY".to_string())))));
+        let mut needsQuoteSize: bool = is_true(&(is_true(&isMarketOrder) || is_true(&(is_equal(&type_var, &Value::Str("TRAILING".to_string())))))) && is_true(&(is_equal(&upperSide, &Value::Str("BUY".to_string()))));
         if is_true(&needsQuoteSize) {
             let mut quoteAmount: Value = Value::Null;
             let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
@@ -2933,7 +2933,7 @@ impl BtseCore {
             }
         }
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("MARKET".to_string())));
-        let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("LIMIT".to_string())));
+        let mut isLimitOrder: bool = is_equal(&type_var, &Value::Str("LIMIT".to_string()));
         let mut postOnly: Value = Value::Bool(false);
         // exchange-specific postOnly is the same as the unified one
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), postOnly.clone(), &[params.clone()]); postOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }; // this will remove PO from params.timeInForce if present
@@ -2947,10 +2947,10 @@ impl BtseCore {
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut isTriggerOrder: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isConditionalOrder: Value = Value::Bool(is_true(&(is_true(&isTriggerOrder) || is_true(&isStopLossOrder))) && is_true(&(is_true(&isMarketOrder) || is_true(&isLimitOrder))));
-        let mut isAlgoOrder: Value = Value::Bool(is_true(&isConditionalOrder) || is_true(&(!is_true(&isMarketOrder) && !is_true(&isLimitOrder))));
+        let mut isTriggerOrder: bool = is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
+        let mut isStopLossOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isConditionalOrder: bool = is_true(&(is_true(&isTriggerOrder) || is_true(&isStopLossOrder))) && is_true(&(is_true(&isMarketOrder) || is_true(&isLimitOrder)));
+        let mut isAlgoOrder: bool = is_true(&isConditionalOrder) || is_true(&(!is_true(&isMarketOrder) && !is_true(&isLimitOrder)));
         if is_true(&isLimitOrder) || is_true(&(is_equal(&type_var, &Value::Str("OCO".to_string())))) {
             if is_equal(&price, &Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&self.id, &Value::Str(" createOrder() requires a price argument for ".to_string())), &type_var), &Value::Str(" orders".to_string()))));
@@ -4904,7 +4904,7 @@ impl BtseCore {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        let mut isBodyDelete: Value = Value::Bool(is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) && is_true(&(is_equal(&Value::Bool(starts_with(&path, &Value::Str("futures/api/v3/".to_string()))), &Value::Bool(true)))));
+        let mut isBodyDelete: bool = is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) && is_true(&(is_equal(&Value::Bool(starts_with(&path, &Value::Str("futures/api/v3/".to_string()))), &Value::Bool(true))));
         let mut queryString: Value = Value::Str("".to_string());
         if is_true(&(is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))))) && !is_true(&isBodyDelete) {
             if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {

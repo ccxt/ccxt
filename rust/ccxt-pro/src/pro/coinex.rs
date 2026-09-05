@@ -642,8 +642,8 @@ impl CoinexCore {
         let mut firstEntry: Value = get_value(&balances, &Value::Int(0));
         let mut updated: Value = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]);
         let mut unrealizedPnl: Value = self.safe_string_k(firstEntry.clone(), "unrealized_pnl", &[]);
-        let mut isSpot: Value = Value::Bool(!is_equal(&updated, &Value::Null));
-        let mut isSwap: Value = Value::Bool(!is_equal(&unrealizedPnl, &Value::Null));
+        let mut isSpot: bool = !is_equal(&updated, &Value::Null);
+        let mut isSwap: bool = !is_equal(&unrealizedPnl, &Value::Null);
         let mut info: Value = Value::Null;
         let mut account: Value = Value::Null;
         let mut rawBalances: Value = Value::List(vec![]);
@@ -830,7 +830,7 @@ impl CoinexCore {
             m
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
-        let mut isSpot: Value = Value::Bool(is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1))));
+        let mut isSpot: bool = is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1)));
         let mut defaultType: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, defaultType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -895,7 +895,7 @@ impl CoinexCore {
         })]);
         let mut trades: Value = self.safe_list_k(data.clone(), "deal_list", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
-        let mut isSpot: Value = Value::Bool(is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1))));
+        let mut isSpot: bool = is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1)));
         let mut defaultType: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, defaultType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1046,7 +1046,7 @@ impl CoinexCore {
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut market: Value = Value::Null;
         let mut messageHashes: Value = Value::List(vec![]);
-        let mut symbolsDefined: Value = Value::Bool(!is_equal(&symbols, &Value::Null));
+        let mut symbolsDefined: bool = !is_equal(&symbols, &Value::Null);
         if is_true(&symbolsDefined) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1139,7 +1139,7 @@ impl CoinexCore {
         let mut market: Value = Value::Null;
         let mut callerMethodName: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchTradesForSymbols".to_string())]); callerMethodName = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut symbolsDefined: Value = Value::Bool(!is_equal(&symbols, &Value::Null));
+        let mut symbolsDefined: bool = !is_equal(&symbols, &Value::Null);
         if is_true(&symbolsDefined) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1227,7 +1227,7 @@ impl CoinexCore {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" watchOrderBookForSymbols() aggregation must be one of ".to_string())), &join(&aggregations, &Value::Str(", ".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("aggregation".to_string()), &[]);
-        let mut symbolsDefined: Value = Value::Bool(!is_equal(&symbols, &Value::Null));
+        let mut symbolsDefined: bool = !is_equal(&symbols, &Value::Null);
         if !is_true(&symbolsDefined) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOrderBookForSymbols() requires a symbol argument".to_string()))));
         }
@@ -1333,7 +1333,7 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut isSpot: Value = Value::Bool(is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1))));
+        let mut isSpot: bool = is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1)));
         let mut defaultType: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1771,7 +1771,7 @@ impl CoinexCore {
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut messageHashes: Value = Value::List(vec![]);
         let mut market: Value = Value::Null;
-        let mut symbolsDefined: Value = Value::Bool(!is_equal(&symbols, &Value::Null));
+        let mut symbolsDefined: bool = !is_equal(&symbols, &Value::Null);
         if is_true(&symbolsDefined) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1915,9 +1915,9 @@ impl CoinexCore {
         //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         //
         let mut message: Value = self.safe_string_lower(response.clone(), Value::Str("message".to_string()), &[]);
-        let mut isErrorMessage: Value = Value::Bool(is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("ok".to_string())))));
+        let mut isErrorMessage: bool = is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("ok".to_string()))));
         let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
-        let mut isErrorCode: Value = Value::Bool(is_true(&(!is_equal(&errorCode, &Value::Null))) && is_true(&(!is_equal(&errorCode, &Value::Str("0".to_string())))));
+        let mut isErrorCode: bool = is_true(&(!is_equal(&errorCode, &Value::Null))) && is_true(&(!is_equal(&errorCode, &Value::Str("0".to_string()))));
         if is_true(&isErrorCode) || is_true(&isErrorMessage) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());

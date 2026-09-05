@@ -686,7 +686,7 @@ impl CexCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut isFiat: Value = Value::Bool(is_equal(&self.safe_bool_k(rawCurrency.clone(), "fiat", &[]), &Value::Bool(true)));
+        let mut isFiat: bool = is_equal(&self.safe_bool_k(rawCurrency.clone(), "fiat", &[]), &Value::Bool(true));
         let mut type_var: Value = ternary(is_true(&isFiat), Value::Str("fiat".to_string()), Value::Str("crypto".to_string()));
         let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
         let mut networks: Value = Value::Map({
@@ -1575,7 +1575,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut isClosedOrders: Value = Value::Bool(is_equal(&status, &Value::Str("closed".to_string())));
+        let mut isClosedOrders: bool = is_equal(&status, &Value::Str("closed".to_string()));
         if is_true(&isClosedOrders) {
             add_element_to_object(&mut request, &Value::Str("archived".to_string()), Value::Bool(true));
         }
@@ -2353,7 +2353,7 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut fromMain: Value = Value::Bool(is_equal(&fromAccount, &Value::Str("".to_string())));
+        let mut fromMain: bool = is_equal(&fromAccount, &Value::Str("".to_string()));
         let mut targetAccount: Value = ternary(is_true(&fromMain), toAccount.clone(), fromAccount.clone());
         let mut guid: Value = self.safe_string_k(params.clone(), "guid", &[self.uuid(&[])]);
         let mut request: Value = Value::Map({

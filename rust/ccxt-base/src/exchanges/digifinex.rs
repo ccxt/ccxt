@@ -2755,9 +2755,9 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut swap: Value = Value::Bool(is_equal(&marketType, &Value::Str("swap".to_string())));
+        let mut swap: bool = is_equal(&marketType, &Value::Str("swap".to_string()));
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
-        let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("limit".to_string())));
+        let mut isLimitOrder: bool = is_equal(&type_var, &Value::Str("limit".to_string()));
         let mut marketIdRequest: Value = ternary(is_true(&swap), Value::Str("instrument_id".to_string()), Value::Str("symbol".to_string()));
         add_element_to_object(&mut request, &marketIdRequest, get_value(&market, &Value::Str("id".to_string())));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]);
@@ -3239,7 +3239,7 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut swap: Value = Value::Bool(is_equal(&marketType, &Value::Str("swap".to_string())));
+        let mut swap: bool = is_equal(&marketType, &Value::Str("swap".to_string()));
         if is_true(&swap) {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
@@ -4238,8 +4238,8 @@ impl DigifinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut fromSwap: Value = Value::Bool(is_equal(&fromAccount, &Value::Str("swap".to_string())));
-        let mut toSwap: Value = Value::Bool(is_equal(&toAccount, &Value::Str("swap".to_string())));
+        let mut fromSwap: bool = is_equal(&fromAccount, &Value::Str("swap".to_string()));
+        let mut toSwap: bool = is_equal(&toAccount, &Value::Str("swap".to_string()));
         let mut response: Value = Value::Null;
         let mut amountString: Value = self.currency_to_precision(code.clone(), amount.clone(), &[]);
         if is_true(&fromSwap) || is_true(&toSwap) {
@@ -5924,7 +5924,7 @@ impl DigifinexCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut signed: Value = Value::Bool(is_equal(&get_value(&api, &Value::Int(0)), &Value::Str("private".to_string())));
+        let mut signed: bool = is_equal(&get_value(&api, &Value::Int(0)), &Value::Str("private".to_string()));
         let mut endpoint: Value = get_value(&api, &Value::Int(1));
         let mut pathPart: Value = ternary(is_true(&(is_equal(&endpoint, &Value::Str("spot".to_string())))), Value::Str("/v3".to_string()), Value::Str("/swap/v2".to_string()));
         let mut request: Value = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));

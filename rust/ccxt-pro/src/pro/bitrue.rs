@@ -461,8 +461,8 @@ impl BitrueCore {
             let mut used: Value = self.safe_string_k(balance.clone(), "L", &[]);
             let mut balanceUpdateTime: Value = self.safe_integer_k(balance.clone(), "T", &[Value::Int(0)]);
             let mut lockBalanceUpdateTime: Value = self.safe_integer_k(balance.clone(), "t", &[Value::Int(0)]);
-            let mut updateFree: Value = Value::Bool(!is_equal(&balanceUpdateTime, &Value::Int(0)));
-            let mut updateUsed: Value = Value::Bool(!is_equal(&lockBalanceUpdateTime, &Value::Int(0)));
+            let mut updateFree: bool = !is_equal(&balanceUpdateTime, &Value::Int(0));
+            let mut updateUsed: bool = !is_equal(&lockBalanceUpdateTime, &Value::Int(0));
             if is_true(&updateFree) || is_true(&updateUsed) {
                 if is_true(&updateFree) {
                     add_element_to_object(&mut account, &Value::Str("free".to_string()), free.clone());
@@ -710,7 +710,7 @@ impl BitrueCore {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut parts: Value = split(&channel, &Value::Str("_".to_string()));
         let mut channelKind: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-        let mut isFutures: Value = Value::Bool(is_equal(&channelKind, &Value::Str("e".to_string())));
+        let mut isFutures: bool = is_equal(&channelKind, &Value::Str("e".to_string()));
         let mut market: Value = Value::Null;
         if is_true(&isFutures) {
             let mut wsBaseQuote: Value = self.safe_string_lower(parts.clone(), Value::Int(2), &[]);
@@ -892,7 +892,7 @@ impl BitrueCore {
             m
         })]);
         let mut data: Value = self.safe_list_k(tick.clone(), "data", &[Value::List(vec![])]);
-        let mut appended: Value = Value::Bool(false);
+        let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
@@ -905,7 +905,7 @@ impl BitrueCore {
             }
             let mut trade: Value = self.parse_ws_trade(get_value(&data, &i), &[market.clone()]);
             stored.append(trade.clone());
-            appended = Value::Bool(true);
+            appended = true;
         }
         }
         if is_true(&appended) {

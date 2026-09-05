@@ -2968,7 +2968,7 @@ impl CoinbaseinternationalCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut version: Value = get_value(&api, &Value::Int(0));
-        let mut signed: Value = Value::Bool(is_equal(&get_value(&api, &Value::Int(1)), &Value::Str("private".to_string())));
+        let mut signed: bool = is_equal(&get_value(&api, &Value::Int(1)), &Value::Str("private".to_string()));
         let mut fullPath: Value = add(&add(&add(&Value::Str("/".to_string()), &version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut savedPath: Value = add(&Value::Str("/api".to_string()), &fullPath);

@@ -1928,7 +1928,7 @@ impl DydxCore {
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isConditional: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null) || !is_equal(&stopLossPrice, &Value::Null) || !is_equal(&takeProfitPrice, &Value::Null));
+        let mut isConditional: bool = !is_equal(&triggerPrice, &Value::Null) || !is_equal(&stopLossPrice, &Value::Null) || !is_equal(&takeProfitPrice, &Value::Null);
         let mut isMarket: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("GTT".to_string())]);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);

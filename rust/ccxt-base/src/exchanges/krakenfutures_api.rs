@@ -32,6 +32,11 @@ impl KrakenfuturesCore {
         self.call_method(Value::Str("public_get_tickers".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetTickersSymbol` implicit endpoint.
+    pub async fn public_get_tickers_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_tickers_symbol".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetHistory` implicit endpoint.
     pub async fn public_get_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_history".to_string()), optional_args).await

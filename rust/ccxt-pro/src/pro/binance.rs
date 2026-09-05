@@ -2198,7 +2198,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //     }
         //
         let mut executionType: Value = self.safe_string_k(trade.clone(), "x", &[]);
-        let mut isTradeExecution: Value = Value::Bool(is_equal(&executionType, &Value::Str("TRADE".to_string())));
+        let mut isTradeExecution: bool = is_equal(&executionType, &Value::Str("TRADE".to_string()));
         if !is_true(&isTradeExecution) {
             return self.parse_trade(trade.clone(), &[market.clone()]);
         }
@@ -2404,10 +2404,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = ternary(is_true(&(is_equal(&get_value(&firstMarket, &Value::Str("linear".to_string())), &Value::Bool(true)))), Value::Str("future".to_string()), Value::Str("delivery".to_string()));
             wsUrlType = type_var.clone();
         }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut timezone: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("timezone".to_string()), &[]); timezone = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isUtc8: Value = Value::Bool(is_true(&(!is_equal(&timezone, &Value::Null))) && is_true(&(is_true(&(is_equal(&timezone, &Value::Str("+08:00".to_string())))) || is_true(&crate::precise::Precise::stringEq(&timezone, &Value::Str("8".to_string()))))));
+        let mut isUtc8: bool = is_true(&(!is_equal(&timezone, &Value::Null))) && is_true(&(is_true(&(is_equal(&timezone, &Value::Str("+08:00".to_string())))) || is_true(&crate::precise::Precise::stringEq(&timezone, &Value::Str("8".to_string())))));
         let mut rawHashes: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
         {
@@ -2428,7 +2428,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = replace_str(&marketId, &Value::Str("_perp".to_string()), &Value::Str("".to_string()));
             }
-            let mut shouldUseUTC8: Value = Value::Bool(is_true(&isUtc8) && is_true(&isSpot));
+            let mut shouldUseUTC8: bool = is_true(&isUtc8) && is_true(&isSpot);
             let mut suffix: Value = Value::Str("@+08:00".to_string());
             let mut utcSuffix: Value = ternary(is_true(&shouldUseUTC8), suffix.clone(), Value::Str("".to_string()));
             append_to_array(&mut rawHashes, add(&add(&add(&add(&add(&marketId, &Value::Str("@".to_string())), &klineType), &Value::Str("_".to_string())), &interval), &utcSuffix));
@@ -2499,10 +2499,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             type_var = ternary(is_true(&(is_equal(&get_value(&firstMarket, &Value::Str("linear".to_string())), &Value::Bool(true)))), Value::Str("future".to_string()), Value::Str("delivery".to_string()));
             wsUrlType = type_var.clone();
         }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut timezone: Value = Value::Null;
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("timezone".to_string()), &[]); timezone = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isUtc8: Value = Value::Bool(is_true(&(!is_equal(&timezone, &Value::Null))) && is_true(&(is_true(&(is_equal(&timezone, &Value::Str("+08:00".to_string())))) || is_true(&crate::precise::Precise::stringEq(&timezone, &Value::Str("8".to_string()))))));
+        let mut isUtc8: bool = is_true(&(!is_equal(&timezone, &Value::Null))) && is_true(&(is_true(&(is_equal(&timezone, &Value::Str("+08:00".to_string())))) || is_true(&crate::precise::Precise::stringEq(&timezone, &Value::Str("8".to_string())))));
         let mut rawHashes: Value = Value::List(vec![]);
         let mut subMessageHashes: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
@@ -2524,7 +2524,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = replace_str(&marketId, &Value::Str("_perp".to_string()), &Value::Str("".to_string()));
             }
-            let mut shouldUseUTC8: Value = Value::Bool(is_true(&isUtc8) && is_true(&isSpot));
+            let mut shouldUseUTC8: bool = is_true(&isUtc8) && is_true(&isSpot);
             let mut suffix: Value = Value::Str("@+08:00".to_string());
             let mut utcSuffix: Value = ternary(is_true(&shouldUseUTC8), suffix.clone(), Value::Str("".to_string()));
             append_to_array(&mut rawHashes, add(&add(&add(&add(&add(&marketId, &Value::Str("@".to_string())), &klineType), &Value::Str("_".to_string())), &interval), &utcSuffix));
@@ -3156,12 +3156,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(false), Value::Bool(true)]);
-        let mut isBidAsk: Value = Value::Bool(is_equal(&channelName, &Value::Str("bookTicker".to_string())));
-        let mut isMarkPrice: Value = Value::Bool(is_equal(&channelName, &Value::Str("markPrice".to_string())));
+        let mut isBidAsk: bool = is_equal(&channelName, &Value::Str("bookTicker".to_string()));
+        let mut isMarkPrice: bool = is_equal(&channelName, &Value::Str("markPrice".to_string()));
         let mut use1sFreq: Value = self.safe_bool_k(params.clone(), "use1sFreq", &[Value::Bool(true)]);
         let mut firstMarket: Value = Value::Null;
         let mut marketType: Value = Value::Null;
-        let mut symbolsDefined: Value = Value::Bool(!is_equal(&symbols, &Value::Null));
+        let mut symbolsDefined: bool = !is_equal(&symbols, &Value::Null);
         if !is_equal(&symbols, &Value::Null) {
             firstMarket = self.market(get_value(&symbols, &Value::Int(0)));
         }
@@ -3188,7 +3188,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
         // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
-        let mut isOptionTicker: Value = Value::Bool(is_equal(&marketType, &Value::Str("option".to_string())) && !is_true(&isMarkPrice) && !is_true(&isBidAsk));
+        let mut isOptionTicker: bool = is_equal(&marketType, &Value::Str("option".to_string())) && !is_true(&isMarkPrice) && !is_true(&isBidAsk);
         if is_true(&isMarkPrice) && !is_true(&self.in_array(marketType.clone(), Value::List(vec![Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() does not support ".to_string())), &marketType), &Value::Str(" markets yet".to_string()))));
         }
@@ -3563,8 +3563,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }
 
     pub fn handle_tickers_and_bids_asks(&mut self, mut client: Value, mut message: Value, mut methodType: Value) {
-        let mut isBidAsk: Value = Value::Bool(is_equal(&methodType, &Value::Str("bidasks".to_string())));
-        let mut isMarkPrice: Value = Value::Bool(is_equal(&methodType, &Value::Str("markPrices".to_string())));
+        let mut isBidAsk: bool = is_equal(&methodType, &Value::Str("bidasks".to_string()));
+        let mut isMarkPrice: bool = is_equal(&methodType, &Value::Str("markPrices".to_string()));
         let mut unifiedPrefix: Value = Value::Null;
         if is_true(&isBidAsk) {
             unifiedPrefix = Value::Str("bidask".to_string());
@@ -3935,7 +3935,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("authenticate".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isIsolatedMargin: Value = Value::Bool(is_equal(&marginMode, &Value::Str("isolated".to_string())));
+        let mut isIsolatedMargin: bool = is_equal(&marginMode, &Value::Str("isolated".to_string()));
         let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
         // For margin use WebSocket API listenToken subscription
         if is_equal(&type_var, &Value::Str("margin".to_string())) || is_true(&isIsolatedMargin) {
@@ -3953,7 +3953,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Null;
         }
         params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut isStock: Value = Value::Bool(is_equal(&type_var, &Value::Str("stock".to_string())));
+        let mut isStock: bool = is_equal(&type_var, &Value::Str("stock".to_string()));
         let mut options: Value = self.safe_value(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4071,7 +4071,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&type_var, &Value::Str("margin".to_string())) {
             return Value::Null;
         }
-        let mut isStock: Value = Value::Bool(is_equal(&type_var, &Value::Str("stock".to_string())));
+        let mut isStock: bool = is_equal(&type_var, &Value::Str("stock".to_string()));
         let mut options: Value = self.safe_value(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4816,11 +4816,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingDelta: Value = self.safe_string_k(params.clone(), "trailingDelta", &[]);
         let mut trailingPercent: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("trailingPercent".to_string()), Value::Str("callbackRate".to_string()), Value::Str("trailingDelta".to_string())]), &[]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null) || !is_equal(&trailingDelta, &Value::Null));
-        let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isConditional: Value = Value::Bool(is_true(&isTriggerOrder) || is_true(&isTrailingPercentOrder) || is_true(&isStopLoss) || is_true(&isTakeProfit));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isStopLoss: bool = !is_equal(&stopLossPrice, &Value::Null) || !is_equal(&trailingDelta, &Value::Null);
+        let mut isTakeProfit: bool = !is_equal(&takeProfitPrice, &Value::Null);
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isConditional: bool = is_true(&isTriggerOrder) || is_true(&isTrailingPercentOrder) || is_true(&isStopLoss) || is_true(&isTakeProfit);
         let mut payload: Value = self.parent.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut returnRateLimits: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrderWs".to_string()), Value::Str("returnRateLimits".to_string()), &[Value::Bool(false)]); returnRateLimits = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6846,7 +6846,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
                         let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                         if !is_true(&self.is_empty(fees.clone())) {
-                            let mut insertNewFeeCurrency: Value = Value::Bool(true);
+                            let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);
                                 let mut __for_first_86: bool = true;
@@ -6860,7 +6860,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                         feeCostString = Value::Str("0".to_string());
                                     }
                                     add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".to_string())), &i), &Value::Str("cost".to_string()), crate::runtime::parse_float(&feeCostString));
-                                    insertNewFeeCurrency = Value::Bool(false);
+                                    insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
@@ -7066,7 +7066,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //    }
         //
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
-        let mut rejected: Value = Value::Bool(false);
+        let mut rejected: bool = false;
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7088,7 +7088,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            rejected = Value::Bool(true);
+            rejected = true;
             // private endpoint uses id as messageHash
             client.reject(&[e.clone(), id.clone()]);
             // public endpoint stores messageHash in subscriptions

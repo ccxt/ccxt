@@ -2009,14 +2009,14 @@ impl MudrexCore {
                 m.insert("amount".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let mut useInr: Value = Value::Bool(false);
+        let mut useInr: bool = false;
         if is_equal(&code, &Value::Str("INR".to_string())) {
-            useInr = Value::Bool(true);
+            useInr = true;
         }  else {
             // default USDT does not use the inr path
             let mut tradeCurrency: Value = self.safe_string2(params.clone(), Value::Str("trade_currency".to_string()), Value::Str("tradeCurrency".to_string()), &[]);
             if is_equal(&tradeCurrency, &Value::Str("INR".to_string())) {
-                useInr = Value::Bool(true);
+                useInr = true;
             }
         }
         let mut response: Value = Value::Null;

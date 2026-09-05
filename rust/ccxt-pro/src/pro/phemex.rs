@@ -610,7 +610,7 @@ impl PhemexCore {
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut usePerpetualApi: Value = Value::Bool(is_equal(&self.safe_string_k(params.clone(), "settle", &[]), &Value::Str("USDT".to_string())));
+        let mut usePerpetualApi: bool = is_equal(&self.safe_string_k(params.clone(), "settle", &[]), &Value::Str("USDT".to_string()));
         let mut messageHash: Value = Value::Str(":balance".to_string());
         messageHash = ternary(is_true(&usePerpetualApi), add(&Value::Str("perpetual".to_string()), &messageHash), add(&type_var, &messageHash));
         return self.subscribe_private(type_var.clone(), messageHash.clone(), &[params.clone()]).await;
@@ -840,7 +840,7 @@ impl PhemexCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut isSwap: Value = get_value(&market, &Value::Str("swap".to_string()));
-        let mut settleIsUSDT: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())));
+        let mut settleIsUSDT: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string()));
         let mut name: Value = Value::Str("spot_market24h".to_string());
         if is_equal(&isSwap, &Value::Bool(true)) {
             name = ternary(is_true(&settleIsUSDT), Value::Str("perp_market24h_pack_p".to_string()), Value::Str("market24h".to_string()));
@@ -887,7 +887,7 @@ impl PhemexCore {
         let mut first: Value = get_value(&symbols, &Value::Int(0));
         let mut market: Value = self.market(first.clone());
         let mut isSwap: Value = get_value(&market, &Value::Str("swap".to_string()));
-        let mut settleIsUSDT: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())));
+        let mut settleIsUSDT: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string()));
         let mut name: Value = Value::Str("spot_market24h".to_string());
         if is_equal(&isSwap, &Value::Bool(true)) {
             name = ternary(is_true(&settleIsUSDT), Value::Str("perp_market24h_pack_p".to_string()), Value::Str("market24h".to_string()));
@@ -953,8 +953,8 @@ impl PhemexCore {
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut requestId: Value = self.request_id();
         let mut isSwap: Value = get_value(&market, &Value::Str("swap".to_string()));
-        let mut settleIsUSDT: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())));
-        let mut isUsdtSwap: Value = Value::Bool(is_true(&(is_equal(&isSwap, &Value::Bool(true)))) && is_true(&settleIsUSDT));
+        let mut settleIsUSDT: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string()));
+        let mut isUsdtSwap: bool = is_true(&(is_equal(&isSwap, &Value::Bool(true)))) && is_true(&settleIsUSDT);
         let mut name: Value = ternary(is_true(&isUsdtSwap), Value::Str("trade_p".to_string()), Value::Str("trade".to_string()));
         let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
         let mut method: Value = add(&name, &Value::Str(".subscribe".to_string()));
@@ -1002,8 +1002,8 @@ impl PhemexCore {
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut requestId: Value = self.request_id();
         let mut isSwap: Value = get_value(&market, &Value::Str("swap".to_string()));
-        let mut settleIsUSDT: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())));
-        let mut isUsdtSwap: Value = Value::Bool(is_true(&(is_equal(&isSwap, &Value::Bool(true)))) && is_true(&settleIsUSDT));
+        let mut settleIsUSDT: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string()));
+        let mut isUsdtSwap: bool = is_true(&(is_equal(&isSwap, &Value::Bool(true)))) && is_true(&settleIsUSDT);
         let mut name: Value = ternary(is_true(&isUsdtSwap), Value::Str("orderbook_p".to_string()), Value::Str("orderbook".to_string()));
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         let mut method: Value = add(&name, &Value::Str(".subscribe".to_string()));
@@ -1051,8 +1051,8 @@ impl PhemexCore {
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut requestId: Value = self.request_id();
         let mut isSwap: Value = get_value(&market, &Value::Str("swap".to_string()));
-        let mut settleIsUSDT: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())));
-        let mut isUsdtSwap: Value = Value::Bool(is_true(&(is_equal(&isSwap, &Value::Bool(true)))) && is_true(&settleIsUSDT));
+        let mut settleIsUSDT: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string()));
+        let mut isUsdtSwap: bool = is_true(&(is_equal(&isSwap, &Value::Bool(true)))) && is_true(&settleIsUSDT);
         let mut name: Value = ternary(is_true(&isUsdtSwap), Value::Str("kline_p".to_string()), Value::Str("kline".to_string()));
         let mut messageHash: Value = add(&add(&add(&Value::Str("kline:".to_string()), &timeframe), &Value::Str(":".to_string())), &symbol);
         let mut method: Value = add(&name, &Value::Str(".subscribe".to_string()));
@@ -1633,7 +1633,7 @@ impl PhemexCore {
             let mut symbol: Value = get_value(&parsed, &Value::Str("symbol".to_string()));
             let mut market: Value = self.market(symbol.clone());
             if is_equal(&type_var, &Value::Null) {
-                let mut isUsdt: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string())));
+                let mut isUsdt: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDT".to_string()));
                 type_var = ternary(is_true(&isUsdt), Value::Str("perpetual".to_string()), get_value(&market, &Value::Str("type".to_string())));
             }
             add_element_to_object(&mut marketIds, &symbol, Value::Bool(true));
@@ -2003,7 +2003,7 @@ impl PhemexCore {
         self.authenticate(&[]).await;
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut requestId: Value = self.seconds();
-        let mut settleIsUSDT: Value = Value::Bool(is_equal(&self.safe_value_k(params.clone(), "settle", &[Value::Str("".to_string())]), &Value::Str("USDT".to_string())));
+        let mut settleIsUSDT: bool = is_equal(&self.safe_value_k(params.clone(), "settle", &[Value::Str("".to_string())]), &Value::Str("USDT".to_string()));
         params = self.omit(params.clone(), Value::Str("settle".to_string()), &[]);
         let mut channel: Value = Value::Str("aop.subscribe".to_string());
         if is_equal(&type_var, &Value::Str("spot".to_string())) {

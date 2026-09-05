@@ -1454,7 +1454,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut typeStr: Value = ternary(is_true(&(is_equal(&type_var, &Value::Null))), Value::Str("limit".to_string()), to_lower(&type_var));
         let mut sideStr: Value = to_lower(&side);
         let mut sideInt: Value = ternary(is_true(&(is_equal(&sideStr, &Value::Str("buy".to_string())))), Value::Int(0), Value::Int(1));
-        let mut isMarket: Value = Value::Bool(is_equal(&typeStr, &Value::Str("market".to_string())));
+        let mut isMarket: bool = is_equal(&typeStr, &Value::Str("market".to_string()));
         let mut defaultTif: Value = ternary(is_true(&isMarket), Value::Str("FOK".to_string()), Value::Str("GTC".to_string()));
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[defaultTif.clone()]);
         let mut priceValue: Value = price.clone();
@@ -1999,7 +1999,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut status: Value = self.parse_order_status(statusRaw.clone());
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "createdAt", &[]));
         let mut tif: Value = self.safe_string_upper(order.clone(), Value::Str("timeInForce".to_string()), &[]);
-        let mut isMarketTif: Value = Value::Bool(is_true(&(is_equal(&tif, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&tif, &Value::Str("FAK".to_string())))));
+        let mut isMarketTif: bool = is_true(&(is_equal(&tif, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&tif, &Value::Str("FAK".to_string()))));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
         let mut outcome: Value = ternary(is_true(&(is_equal(&market, &Value::Null))), Value::Null, self.safe_string_k(market.clone(), "outcome", &[]));
         let mut outcomeObj: Value = market.clone();
@@ -3018,7 +3018,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         let mut resolvedOutcomeId: Value = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".to_string())]);
         let mut voided: Value = self.safe_bool_k(raw.clone(), "voided", &[Value::Bool(false)]);
-        let mut hasResolution: Value = Value::Bool(is_true(&(!is_equal(&resolvedOutcomeId, &Value::Str("-1".to_string())))) && is_true(&(!is_equal(&resolvedOutcomeId, &Value::Null))) && is_true(&(!is_equal(&resolvedOutcomeId, &Value::Str("".to_string())))));
+        let mut hasResolution: bool = is_true(&(!is_equal(&resolvedOutcomeId, &Value::Str("-1".to_string())))) && is_true(&(!is_equal(&resolvedOutcomeId, &Value::Null))) && is_true(&(!is_equal(&resolvedOutcomeId, &Value::Str("".to_string()))));
         let mut marketResolved: Value = Value::Bool(is_true(&hasResolution) || is_true(&voided));
         let mut resolvedOutcome: Value = Value::Null;
         let mut volume24h: Value = self.safe_number_k(raw.clone(), "volume24h", &[]);
@@ -4493,7 +4493,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         self.connect_centrifugo(url.clone()).await;
         let mut client: Value = self.client(&[url.clone()]);
-        let mut isNewSubscription: Value = Value::Bool(is_equal(&self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]), &Value::Null));
+        let mut isNewSubscription: bool = is_equal(&self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]), &Value::Null);
         if is_true(&isNewSubscription) {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -5041,7 +5041,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut filled: Value = self.from_wei(self.safe_string_k(data.clone(), "filledAmount", &[]));
         let mut status: Value = self.parse_order_status(self.safe_string_lower(data.clone(), Value::Str("status".to_string()), &[]));
         let mut tif: Value = self.safe_string_upper(data.clone(), Value::Str("timeInForce".to_string()), &[]);
-        let mut isMarketTif: Value = Value::Bool(is_true(&(is_equal(&tif, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&tif, &Value::Str("FAK".to_string())))));
+        let mut isMarketTif: bool = is_true(&(is_equal(&tif, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&tif, &Value::Str("FAK".to_string()))));
         let mut timestamp: Value = self.parse8601(self.safe_string2(data.clone(), Value::Str("updatedAt".to_string()), Value::Str("createdAt".to_string()), &[]));
         let mut parsed: Value = self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5105,7 +5105,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = self.safe_string(get_value(&self.urls, &Value::Str("api".to_string())), Value::Str("ws".to_string()), &[]);
         self.connect_centrifugo(url.clone()).await;
         let mut client: Value = self.client(&[url.clone()]);
-        let mut isNewSubscription: Value = Value::Bool(is_equal(&self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]), &Value::Null));
+        let mut isNewSubscription: bool = is_equal(&self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]), &Value::Null);
         if is_true(&isNewSubscription) {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure
@@ -5223,7 +5223,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
         let mut address: Value = self.walletAddress.clone();
-        let mut hasWallet: Value = Value::Bool(is_true(&(!is_equal(&address, &Value::Null))) && is_true(&(is_greater_than(&get_array_length(&self.walletAddress), &Value::Int(0)))));
+        let mut hasWallet: bool = is_true(&(!is_equal(&address, &Value::Null))) && is_true(&(is_greater_than(&get_array_length(&self.walletAddress), &Value::Int(0))));
         if !is_true(&hasWallet) {
             if is_equal(&self.privateKey, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a walletAddress or privateKey to watch private channels".to_string()))));

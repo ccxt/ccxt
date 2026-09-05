@@ -1342,9 +1342,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subType = self.safe_string_k(params.clone(), "subType", &[subType.clone()]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string()), Value::Str("subType".to_string())]), &[]);
         }
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
         let mut isV5Linear: Value = Value::Bool(is_true(&linear) && is_true(&(is_true(&swap) || is_true(&future))));
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
             let mut mode: Value = Value::Null;
@@ -1502,9 +1502,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subType = self.safe_string_k(params.clone(), "subType", &[subType.clone()]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string()), Value::Str("subType".to_string())]), &[]);
         }
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
         let mut isV5Linear: Value = Value::Bool(is_true(&linear) && is_true(&(is_true(&swap) || is_true(&future))));
         let mut messageHash: Value = Value::Null;
         let mut channel: Value = Value::Null;
@@ -2137,9 +2137,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("watchPositions".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
         let mut isV5Linear: Value = Value::Bool(is_true(&linear) && is_true(&(is_true(&swap) || is_true(&future))));
         let mut isLinear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear.clone(), Value::Bool(true), Value::Bool(false), isV5Linear.clone()]);
@@ -2373,9 +2373,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut messageHash: Value = Value::Null;
         let mut channel: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
-        let mut linear: Value = Value::Bool(is_equal(&subType, &Value::Str("linear".to_string())));
-        let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
-        let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("future".to_string())));
+        let mut linear: bool = is_equal(&subType, &Value::Str("linear".to_string()));
+        let mut swap: bool = is_equal(&type_var, &Value::Str("swap".to_string()));
+        let mut future: bool = is_equal(&type_var, &Value::Str("future".to_string()));
         let mut isV5Linear: Value = Value::Bool(is_true(&linear) && is_true(&(is_true(&swap) || is_true(&future))));
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
             let mut mode: Value = self.safe_string2(self.options.clone(), Value::Str("watchBalance".to_string()), Value::Str("mode".to_string()), &[Value::Str("2".to_string())]);

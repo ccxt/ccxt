@@ -1577,7 +1577,7 @@ impl BithumbCore {
                     while { if !__for_first_369 { i = add(&i, &Value::Int(1)); } __for_first_369 = false; is_less_than(&i, &marketIdsLength) } {
                     append_to_array(&mut marketIdsChunk, get_value(&marketIds, &i));
                     let mut marketIdsChunkLength: Value = get_array_length(&marketIdsChunk);
-                    let mut isLastMarketId: Value = Value::Bool(is_equal(&i, &(subtract(&marketIdsLength, &Value::Int(1)))));
+                    let mut isLastMarketId: bool = is_equal(&i, &(subtract(&marketIdsLength, &Value::Int(1))));
                     if is_true(&(is_greater_than_or_equal(&marketIdsChunkLength, &maxMarketIdsPerRequest))) || is_true(&isLastMarketId) {
                         append_to_array(&mut marketIdsChunks, marketIdsChunk.clone());
                         add_element_to_object(&mut request, &Value::Str("markets".to_string()), join(&marketIdsChunk, &Value::Str(",".to_string())));
@@ -2094,7 +2094,7 @@ impl BithumbCore {
         //
         // a workaround for their bug in date format, hours are not 0-padded
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-        let mut isGenerationTwo: Value = Value::Bool(!is_equal(&timestamp, &Value::Null));
+        let mut isGenerationTwo: bool = !is_equal(&timestamp, &Value::Null);
         let mut transactionDatetime: Value = self.safe_string_k(trade.clone(), "transaction_date", &[]);
         if !is_equal(&transactionDatetime, &Value::Null) {
             let mut parts: Value = split(&transactionDatetime, &Value::Str(" ".to_string()));
@@ -4112,14 +4112,14 @@ impl BithumbCore {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut queryKeys: Value = object_keys(&query);
         let mut queryKeysLength: Value = get_array_length(&queryKeys);
-        let mut hasQuery: Value = Value::Bool(is_greater_than(&queryKeysLength, &Value::Int(0)));
+        let mut hasQuery: bool = is_greater_than(&queryKeysLength, &Value::Int(0));
         if is_equal(&api, &Value::Str("public".to_string())) {
             if is_true(&hasQuery) {
                 url = add(&url, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut isVersionedApi: Value = Value::Bool(is_true(&Value::Bool(starts_with(&endpoint, &Value::Str("/v1/".to_string())))) || is_true(&Value::Bool(starts_with(&endpoint, &Value::Str("/v2/".to_string())))));
+            let mut isVersionedApi: bool = is_true(&Value::Bool(starts_with(&endpoint, &Value::Str("/v1/".to_string())))) || is_true(&Value::Bool(starts_with(&endpoint, &Value::Str("/v2/".to_string()))));
             if is_true(&isVersionedApi) {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();

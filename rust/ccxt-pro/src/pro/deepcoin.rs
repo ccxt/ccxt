@@ -519,14 +519,14 @@ impl DeepcoinCore {
         let mut listenKey: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut listenKeyExpiryTimestamp: Value = self.safe_integer_k(self.options.clone(), "listenKeyExpiryTimestamp", &[time.clone()]);
-            let mut expired: Value = Value::Bool(is_greater_than(&(subtract(&time, &listenKeyExpiryTimestamp)), &Value::Int(60000))); // 1 minute before expiry
+            let mut expired: bool = is_greater_than(&(subtract(&time, &listenKeyExpiryTimestamp)), &Value::Int(60000)); // 1 minute before expiry
             listenKey = self.safe_string_k(self.options.clone(), "listenKey", &[]);
             let mut response: Value = Value::Null;
             if is_equal(&listenKey, &Value::Null) {
                 response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
             }  else if is_true(&expired) {
                 let mut method: Value = self.safe_string_k(self.options.clone(), "method", &[Value::Str("privateGetDeepcoinListenkeyExtend".to_string())]);
-                let mut getNewKey: Value = Value::Bool(is_equal(&method, &Value::Str("privateGetDeepcoinListenkeyAcquire".to_string())));
+                let mut getNewKey: bool = is_equal(&method, &Value::Str("privateGetDeepcoinListenkeyAcquire".to_string()));
                 if is_true(&getNewKey) {
                     response = self.parent.private_get_deepcoin_listenkey_acquire(&[params.clone()]).await;
                 }  else {

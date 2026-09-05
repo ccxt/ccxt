@@ -1337,7 +1337,7 @@ impl AsterCore {
         //     }
         //
         let mut e: Value = self.safe_string_k(trade.clone(), "e", &[]);
-        let mut isPublicTrade: Value = Value::Bool(is_true(&(is_equal(&e, &Value::Str("trade".to_string())))) || is_true(&(is_equal(&e, &Value::Str("aggTrade".to_string())))));
+        let mut isPublicTrade: bool = is_true(&(is_equal(&e, &Value::Str("trade".to_string())))) || is_true(&(is_equal(&e, &Value::Str("aggTrade".to_string()))));
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("t".to_string()), Value::Str("a".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "T", &[]);
         let mut price: Value = self.safe_string2(trade.clone(), Value::Str("L".to_string()), Value::Str("p".to_string()), &[]);
@@ -2526,7 +2526,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut executionType: Value = self.safe_string_k(message.clone(), "x", &[]);
         if is_equal(&executionType, &Value::Str("TRADE".to_string())) {
-            let mut isSwap: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("fstream".to_string())), &Value::Int(0)));
+            let mut isSwap: bool = is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("fstream".to_string())), &Value::Int(0));
             let mut type_var: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
             let mut fakeMarket: Value = self.safe_market_structure(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2557,7 +2557,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         let mut fees: Value = self.safe_value_k(order.clone(), "fees", &[]);
                         let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
                         if !is_true(&self.is_empty(fees.clone())) {
-                            let mut insertNewFeeCurrency: Value = Value::Bool(true);
+                            let mut insertNewFeeCurrency: bool = true;
                             {
                                                                 let mut i: Value = Value::Int(0);
                                 let mut __for_first_37: bool = true;
@@ -2568,7 +2568,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                     let mut feeCost: Value = self.sum(&[get_value(&tradeFee, &Value::Str("cost".to_string())), get_value(&orderFee, &Value::Str("cost".to_string()))]);
                                     let mut feeCostString: Value = self.currency_to_precision(get_value(&tradeFee, &Value::Str("currency".to_string())), feeCost.clone(), &[]);
                                     add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".to_string())), &i), &Value::Str("cost".to_string()), ternary(is_true(&(is_equal(&feeCostString, &Value::Null))), Value::Null, crate::runtime::parse_float(&feeCostString)));
-                                    insertNewFeeCurrency = Value::Bool(false);
+                                    insertNewFeeCurrency = false;
                                     break;
                                 }
                             }

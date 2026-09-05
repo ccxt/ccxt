@@ -3250,7 +3250,7 @@ impl HashkeyCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut isMarketBuy: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))));
+        let mut isMarketBuy: bool = is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_equal(&side, &Value::Str("buy".to_string()))));
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if is_true(&(!is_true(&isMarketBuy))) && is_true(&(!is_equal(&cost, &Value::Null))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() supports cost parameter for spot market buy orders only".to_string()))));
@@ -5235,7 +5235,7 @@ impl HashkeyCore {
         if is_equal(&response, &Value::Null) {
             return Value::Null;
         }
-        let mut errorInArray: Value = Value::Bool(false);
+        let mut errorInArray: bool = false;
         let mut responseCodeString: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut responseCodeInteger: Value = self.safe_integer_k(response.clone(), "code", &[]); // some codes in response are returned as '0000' others as 0
         if is_equal(&responseCodeInteger, &Value::Int(0)) {
@@ -5247,7 +5247,7 @@ impl HashkeyCore {
                 let mut entry: Value = self.safe_dict(result.clone(), i.clone(), &[]);
                 let mut entryCodeInteger: Value = self.safe_integer_k(entry.clone(), "code", &[]);
                 if !is_equal(&entryCodeInteger, &Value::Int(0)) {
-                    errorInArray = Value::Bool(true);
+                    errorInArray = true;
                     responseCodeString = self.safe_string_k(entry.clone(), "code", &[]);
                 }
             }

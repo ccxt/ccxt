@@ -428,8 +428,8 @@ impl OkxCore {
         }
         let mut isSandbox: Value = get_value(&self.options, &Value::Str("sandboxMode".to_string()));
         let mut sandboxSuffix: Value = ternary(is_true(&(is_equal(&isSandbox, &Value::Bool(true)))), Value::Str("?brokerId=9999".to_string()), Value::Str("".to_string()));
-        let mut isBusiness: Value = Value::Bool(is_equal(&access, &Value::Str("business".to_string())));
-        let mut isPublic: Value = Value::Bool(is_equal(&access, &Value::Str("public".to_string())));
+        let mut isBusiness: bool = is_equal(&access, &Value::Str("business".to_string()));
+        let mut isPublic: bool = is_equal(&access, &Value::Str("public".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         if is_true(&isBusiness) || is_true(&(is_greater_than(&get_index_of(&channel, &Value::Str("candle".to_string())), &negate(&Value::Int(1))))) || is_true(&(is_equal(&channel, &Value::Str("orders-algo".to_string())))) {
             return add(&add(&url, &Value::Str("/business".to_string())), &sandboxSuffix);

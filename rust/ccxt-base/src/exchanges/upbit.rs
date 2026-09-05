@@ -2484,9 +2484,9 @@ impl UpbitCore {
         if is_greater_than(&numTrades, &Value::Int(0)) {
             // the timestamp in fetchOrder trades is missing
             lastTradeTimestamp = get_value(&get_value(&trades, &subtract(&numTrades, &Value::Int(1))), &Value::Str("timestamp".to_string()));
-            let mut getFeesFromTrades: Value = Value::Bool(false);
+            let mut getFeesFromTrades: bool = false;
             if is_equal(&feeCost, &Value::Null) {
-                getFeesFromTrades = Value::Bool(true);
+                getFeesFromTrades = true;
                 feeCost = Value::Str("0".to_string());
             }
             cost = Value::Str("0".to_string());
