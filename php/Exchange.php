@@ -5623,7 +5623,8 @@ class BaseExchange {
             }
             // $close (using $average)
             if ($close === null && $average !== null) {
-                $close = Precise::string_mul($average, '2');
+                // $average is the midpoint of $open and $close, so twice it is their sum
+                $close = Precise::string_sub(Precise::string_mul($average, '2'), $open);
             }
             // $average
             if ($average === null && $close !== null) {

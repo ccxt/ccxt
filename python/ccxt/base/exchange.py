@@ -4900,7 +4900,8 @@ class BaseExchange(object):
                 close = Precise.string_add(open, change)
             # close(using average)
             if close is None and average is not None:
-                close = Precise.string_mul(average, '2')
+                # average is the midpoint of open and close, so twice it is their sum
+                close = Precise.string_sub(Precise.string_mul(average, '2'), open)
             # average
             if average is None and close is not None:
                 precision = 18
