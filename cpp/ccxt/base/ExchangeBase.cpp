@@ -19,10 +19,6 @@ namespace ccxt {
 
 namespace {
 
-std::string str (const std::any& v) {
-    return std::any_cast<std::string> (toString (v));
-}
-
 // A key argument is either one key or a list of keys; the safe*N variants take the
 // list form and the plain ones are expressed in terms of them.
 list keyList (const std::any& keys) {
@@ -778,62 +774,19 @@ std::any ExchangeBase::numberToString (std::any value) {
     if (!value.has_value ()) {
         return std::any {};
     }
-    if (!isNum (value)) {
-        return toString (value);
-    }
-    if (isInt (value)) {
-        return std::any (std::to_string (toLong (value)));
-    }
-    const double x = toDouble (value);
-    if (!std::isfinite (x)) {
-        return toString (value);
-    }
-    char buffer[64];
-    const auto converted = std::to_chars (buffer, buffer + sizeof (buffer), x);
-    if (converted.ec != std::errc ()) {
-        return toString (value);
-    }
-    std::string text (buffer, converted.ptr);
-    const std::size_t at = text.find_first_of ("eE");
-    if (at == std::string::npos) {
-        return std::any (text);   // already plain decimal
-    }
-    int exponent = 0;
-    try {
-        exponent = std::stoi (text.substr (at + 1));
-    } catch (const std::exception&) {
-        return std::any (text);
-    }
-    std::string mantissa = text.substr (0, at);
-    std::string sign;
-    if (!mantissa.empty () && (mantissa[0] == '-' || mantissa[0] == '+')) {
-        sign = (mantissa[0] == '-') ? "-" : "";
-        mantissa = mantissa.substr (1);
-    }
-    // digits with the decimal point removed, plus where that point sat
-    int pointAt = static_cast<int> (mantissa.size ());
-    const std::size_t dot = mantissa.find ('.');
-    if (dot != std::string::npos) {
-        pointAt = static_cast<int> (dot);
-        mantissa.erase (dot, 1);
-    }
-    const int target = pointAt + exponent;
-    const int length = static_cast<int> (mantissa.size ());
-    if (target <= 0) {
-        return std::any (sign + "0." + std::string (static_cast<std::size_t> (-target), '0') + mantissa);
-    }
-    if (target >= length) {
-        return std::any (sign + mantissa + std::string (static_cast<std::size_t> (target - length), '0'));
-    }
-    return std::any (sign + mantissa.substr (0, static_cast<std::size_t> (target))
-                     + "." + mantissa.substr (static_cast<std::size_t> (target)));
+    return std::any (numberToText (value));
 }
 
-std::any ExchangeBase::decimalToPrecision (std::any x, std::any, std::any digits, std::any, std::any) {
-    // Placeholder: the full rounding/counting/padding engine is iteration 2 (it is what
-    // test.decimalToPrecision exercises, which is outside the agreed gate). Truncating
-    // to the requested number of decimals keeps the common path usable meanwhile.
-    return toFixed (x, digits);
+std::any ExchangeBase::decimalToPrecision (std::any x, std::any roundingMode, std::any digits,
+                                           std::any countingMode, std::any paddingMode) {
+    // The defaults match the TS signature: DECIMAL_PLACES counting, no padding. An
+    // absent roundingMode means TRUNCATE, which is what ccxt's own callers rely on.
+    const int rounding = roundingMode.has_value () ? static_cast<int> (toLong (roundingMode)) : 0;
+    const int counting = countingMode.has_value ()
+        ? static_cast<int> (toLong (countingMode)) : 2;
+    const int padding = paddingMode.has_value ()
+        ? static_cast<int> (toLong (paddingMode)) : 5;
+    return std::any (decimalToPrecisionText (x, rounding, digits, counting, padding));
 }
 
 std::any ExchangeBase::precisionFromString (std::any value) {
@@ -1173,10 +1126,188 @@ std::shared_future<std::any> ExchangeBase::throttle (std::any) {
 // network — deliberately unimplemented in iteration 1
 // ---------------------------------------------------------------------------
 
-std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any, std::any, std::any) {
+std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
+                                                  std::any headers, std::any body) {
+    // Record what sign() built BEFORE failing. The static request tests assert on
+    // exactly this -- they never want the response, only the request -- so throwing
+    // first would make every fixture unverifiable rather than merely unsent.
+    this->last_request_url = url;
+    this->last_request_body = body;
+    this->last_request_headers = headers;
     const std::string target = str (url);
-    return std::async (std::launch::async, [target] () -> std::any {
-        throw NotSupported ("HTTP transport is not implemented in the C++ port yet: " + target);
+    const std::string verb = method.has_value () ? str (method) : std::string ("GET");
+    return std::async (std::launch::async, [target, verb] () -> std::any {
+        throw NotSupported ("HTTP transport is not implemented in the C++ port yet: "
+                            + verb + " " + target);
+    }).share ();
+}
+
+// ---------------------------------------------------------------------------
+// binary, crypto and date formatting
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// Generated code hands binary around as std::any; it may hold real bytes or, on the
+// paths that have not been converted yet, a std::string of raw octets.
+bytes asBytes (const std::any& v) {
+    if (isBytes (v)) {
+        return std::any_cast<bytes> (v);
+    }
+    return bytes (str (v));
+}
+
+} // namespace
+
+std::any ExchangeBase::encode (std::any value) { return std::any (encodeUtf8 (str (value))); }
+
+std::any ExchangeBase::decode (std::any value) { return std::any (decodeUtf8 (asBytes (value))); }
+
+std::any ExchangeBase::base16ToBinary (std::any value) { return std::any (fromBase16 (str (value))); }
+
+std::any ExchangeBase::binaryToBase64 (std::any value) { return std::any (toBase64 (asBytes (value))); }
+
+std::any ExchangeBase::base58ToBinary (std::any value) { return std::any (fromBase58 (str (value))); }
+
+std::any ExchangeBase::binaryToBase58 (std::any value) { return std::any (toBase58 (asBytes (value))); }
+
+std::any ExchangeBase::binaryConcat (std::any a, std::any b) {
+    std::vector<unsigned char> out = asBytes (a).data ();
+    const std::vector<unsigned char>& tail = asBytes (b).data ();
+    out.insert (out.end (), tail.begin (), tail.end ());
+    return std::any (bytes (std::move (out)));
+}
+
+std::any ExchangeBase::binaryLength (std::any value) {
+    return std::any (static_cast<long long> (asBytes (value).size ()));
+}
+
+std::any ExchangeBase::isBinaryMessage (std::any value) { return std::any (isBytes (value)); }
+
+std::any ExchangeBase::hash (std::any payload, std::any algorithm, std::any digest) {
+    return hashBytes (asBytes (payload),
+                      algorithm.has_value () ? str (algorithm) : std::string ("sha256"),
+                      digest.has_value () ? str (digest) : std::string ("hex"));
+}
+
+std::any ExchangeBase::hmac (std::any payload, std::any key, std::any algorithm, std::any digest) {
+    return hmacBytes (asBytes (payload), asBytes (key).toString (),
+                      algorithm.has_value () ? str (algorithm) : std::string ("sha256"),
+                      digest.has_value () ? str (digest) : std::string ("hex"));
+}
+
+std::any ExchangeBase::crc32 (std::any value, std::any signed32) {
+    return std::any (crc32Of (str (value), isTrue (signed32)));
+}
+
+std::any ExchangeBase::rsa (std::any, std::any, std::any) {
+    throw NotSupported ("rsa signing is not implemented in the C++ port yet; only hmac keys work");
+}
+
+std::any ExchangeBase::eddsa (std::any, std::any, std::any) {
+    throw NotSupported ("ed25519 signing is not implemented in the C++ port yet; only hmac keys work");
+}
+
+std::any ExchangeBase::jwt (std::any, std::any, std::any, std::any) {
+    throw NotSupported ("jwt is not implemented in the C++ port yet");
+}
+
+// ccxt's uuid16/uuid22 are the uuid4 hex with the dashes removed, truncated
+std::any ExchangeBase::uuid16 () {
+    const std::string full = str (this->uuid ());
+    std::string flat;
+    for (char c : full) {
+        if (c != '-') {
+            flat += c;
+        }
+    }
+    return std::any (flat.substr (0, 16));
+}
+
+std::any ExchangeBase::uuid22 () {
+    const std::string full = str (this->uuid ());
+    std::string flat;
+    for (char c : full) {
+        if (c != '-') {
+            flat += c;
+        }
+    }
+    return std::any (flat.substr (0, 22));
+}
+
+namespace {
+
+// shared by the ymd family: UTC calendar parts of a ms timestamp
+bool utcParts (const std::any& timestamp, std::tm& out) {
+    if (!timestamp.has_value () || !isNum (timestamp)) {
+        return false;
+    }
+    const std::time_t whole = static_cast<std::time_t> (toLong (timestamp) / 1000);
+    gmtime_r (&whole, &out);
+    return true;
+}
+
+} // namespace
+
+std::any ExchangeBase::yymmdd (std::any timestamp, std::any infix) {
+    std::tm utc {};
+    if (!utcParts (timestamp, utc)) {
+        return std::any {};
+    }
+    const std::string sep = infix.has_value () ? str (infix) : std::string ("");
+    char buffer[32];
+    std::snprintf (buffer, sizeof (buffer), "%02d%s%02d%s%02d",
+                   (utc.tm_year + 1900) % 100, sep.c_str (),
+                   utc.tm_mon + 1, sep.c_str (), utc.tm_mday);
+    return std::any (std::string (buffer));
+}
+
+std::any ExchangeBase::yyyymmdd (std::any timestamp, std::any infix) {
+    std::tm utc {};
+    if (!utcParts (timestamp, utc)) {
+        return std::any {};
+    }
+    const std::string sep = infix.has_value () ? str (infix) : std::string ("-");
+    char buffer[32];
+    std::snprintf (buffer, sizeof (buffer), "%04d%s%02d%s%02d",
+                   utc.tm_year + 1900, sep.c_str (),
+                   utc.tm_mon + 1, sep.c_str (), utc.tm_mday);
+    return std::any (std::string (buffer));
+}
+
+std::any ExchangeBase::ymd (std::any timestamp, std::any infix) {
+    return this->yyyymmdd (timestamp, infix.has_value () ? infix : std::any (std::string ("-")));
+}
+
+std::any ExchangeBase::ymdhms (std::any timestamp, std::any infix) {
+    std::tm utc {};
+    if (!utcParts (timestamp, utc)) {
+        return std::any {};
+    }
+    const std::string sep = infix.has_value () ? str (infix) : std::string (" ");
+    char buffer[64];
+    std::snprintf (buffer, sizeof (buffer), "%04d-%02d-%02d%s%02d:%02d:%02d",
+                   utc.tm_year + 1900, utc.tm_mon + 1, utc.tm_mday, sep.c_str (),
+                   utc.tm_hour, utc.tm_min, utc.tm_sec);
+    return std::any (std::string (buffer));
+}
+
+// Loading markets needs the HTTP layer, which this iteration stubs out. They exist so
+// a derived exchange's generated override binds; calling one fails loudly.
+std::any ExchangeBase::callMethod (std::any name, std::any) {
+    throw NotSupported ("callMethod is only implemented on generated exchanges, not the base ("
+                        + str (name) + ")");
+}
+
+std::shared_future<std::any> ExchangeBase::fetchMarkets (std::any) {
+    return std::async (std::launch::async, [] () -> std::any {
+        throw NotSupported ("fetchMarkets needs the HTTP layer, which the C++ port does not have yet");
+    }).share ();
+}
+
+std::shared_future<std::any> ExchangeBase::fetchCurrencies (std::any) {
+    return std::async (std::launch::async, [] () -> std::any {
+        throw NotSupported ("fetchCurrencies needs the HTTP layer, which the C++ port does not have yet");
     }).share ();
 }
 
@@ -1191,11 +1322,22 @@ std::shared_future<std::any> ExchangeBase::loadMarkets (std::any, std::any) {
 // ---------------------------------------------------------------------------
 
 std::any ExchangeBase::getProperty (ExchangeBase* self, std::any name) {
-    // only the credential lookup in the transpiled base reads properties dynamically
+    // checkRequiredCredentials() walks describe().requiredCredentials and reads each
+    // named credential through here, so every name that block can contain has to
+    // resolve -- a missing one reads as undefined and the exchange reports the
+    // credential as unset even when the caller supplied it.
     const std::string key = str (name);
-    if (key == "twofa")    return self->twofa;
-    if (key == "options")  return self->options;
-    if (key == "id")       return self->id;
+    if (key == "apiKey")        return self->apiKey;
+    if (key == "secret")        return self->secret;
+    if (key == "password")      return self->password;
+    if (key == "uid")           return self->uid;
+    if (key == "login")         return self->login;
+    if (key == "walletAddress") return self->walletAddress;
+    if (key == "privateKey")    return self->privateKey;
+    if (key == "token")         return self->token;
+    if (key == "twofa")         return self->twofa;
+    if (key == "options")       return self->options;
+    if (key == "id")            return self->id;
     return std::any {};
 }
 

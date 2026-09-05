@@ -24,6 +24,11 @@ inline const std::any sha384 = std::string ("sha384");
 inline const std::any sha512 = std::string ("sha512");
 inline const std::any md5    = std::string ("md5");
 inline const std::any keccak = std::string ("keccak");
+// asymmetric-key selectors: they name the algorithm for rsa()/eddsa(), which are not
+// wired yet -- the constants have to exist because binance's sign() references them on
+// its RSA / ed25519 key branches even when the hmac branch is the one taken
+inline const std::any ed25519   = std::string ("ed25519");
+inline const std::any secp256k1 = std::string ("secp256k1");
 
 // -- binary <-> text ---------------------------------------------------------------
 

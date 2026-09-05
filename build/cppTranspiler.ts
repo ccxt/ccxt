@@ -215,6 +215,16 @@ function rewriteSuperCalls (content: string, parentClass: string): string {
     return content.replace (/\bbase\.(\w+)\s*\(/g, `${parentClass}::$1(`);
 }
 
+// TS `catch (e) { ... throw e; }` becomes `catch (const std::exception& e) { ... throw e; }`,
+// which SLICES: rethrowing the caught reference by value copies it down to the static
+// type, so a BadRequest leaves the catch block as a bare std::exception and every
+// `catch (const BadRequest&)` further up stops matching. It also destroys the message,
+// which is how 227 static request fixtures came to report only "std::exception".
+// `throw;` rethrows the original object untouched.
+function rewriteRethrow (content: string): string {
+    return content.replace (/\bthrow e;/g, 'throw;');
+}
+
 // `x instanceof T` emits dynamic_cast on a std::any, which cannot compile.
 function rewriteInstanceOf (content: string): string {
     return content.replace (
@@ -289,14 +299,15 @@ function rewriteAnyMemberAccess (content: string): string {
 }
 
 function applyCommonFixes (content: string): string {
-    return rewriteErrorClassValues (
+    return rewriteRethrow (
+        rewriteErrorClassValues (
         rewriteInstanceOf (
             rewritePreciseCalls (
                 rewriteSelfShadowingLocals (
                 rewriteAnyMemberAccess (
                 rewriteWsClientAccess (
                     rewriteAsyncLambdasMutable (
-                        rewriteDynamicDispatch (content))))))));
+                        rewriteDynamicDispatch (content)))))))));
 }
 
 // ---------------------------------------------------------------------------
@@ -501,13 +512,81 @@ class CppTranspilerDriver {
         }
     }
 
+    // The static request/response tests call methods by name ("fetchTicker") with an
+    // argument list read out of a JSON fixture. C++ has no reflection, so the dispatch
+    // has to be generated: scan the emitted class for its public async methods and emit
+    // a name -> call table. Arity is taken from the signature, and every argument is
+    // read positionally out of the list, so a fixture that supplies fewer arguments
+    // than the signature declares simply leaves the rest undefined -- exactly what the
+    // TS harness does by spreading a short array.
+    createDispatchTable (id: string, content: string): string {
+        // Unified methods an exchange does NOT override are inherited from the base
+        // class, and the fixtures call those by name too (fetchFundingInterval,
+        // cancelOrderWithClientOrderId, ...). Scanning only the exchange's own class
+        // left them undispatchable, so the base fragments are scanned as well; a name
+        // the exchange overrides is seen first and wins.
+        let scanned = content;
+        for (const fragment of [ BASE_METHODS_FILE, TRADING_METHODS_FILE ]) {
+            if (fs.existsSync (fragment)) {
+                scanned += '\n' + fs.readFileSync (fragment).toString ();
+            }
+        }
+        return this.buildDispatchTable (id, scanned);
+    }
+
+    buildDispatchTable (id: string, content: string): string {
+        // `virtual` is optional: the backend emits it on some methods and only
+        // `override` on others
+        const signature = /^\s*(?:virtual )?std::shared_future<std::any> (\w+)\(([^)]*)\)/gm;
+        const seen = new Set<string> ();
+        const branches: string[] = [];
+        let match: RegExpExecArray | null;
+        while ((match = signature.exec (content)) !== null) {
+            const name = match[1];
+            if (seen.has (name)) {
+                continue;
+            }
+            seen.add (name);
+            const args = match[2].trim ();
+            const arity = args.length ? args.split (',').length : 0;
+            const passed: string[] = [];
+            for (let i = 0; i < arity; i++) {
+                passed.push (`::getValue(args, ${i})`);
+            }
+            branches.push (
+                `        if (which == "${name}") return awaitValue(this->${name}(${passed.join (', ')}));`
+            );
+        }
+        return [
+            '    // GENERATED dispatch table - see createDispatchTable in build/cppTranspiler.ts',
+            '    virtual std::any callMethod (std::any name, std::any args) override {',
+            '        const std::string which = ::toString(name).has_value()',
+            '            ? std::any_cast<std::string>(::toString(name)) : std::string();',
+            ...branches,
+            `        throw NotSupported (std::string("${id} has no unified method ") + which);`,
+            '    }',
+            ''
+        ].join ('\n');
+    }
+
     createExchangeFile (id: string, result: any): string {
         let content = result.content as string;
         // the abstract tier carries the implicit API methods (see generateImplicitAPI)
         const parent = id + 'Api';
         content = content.replace (/^class\s+(\w+)\s*:\s*public\s+\w+/m, `class $1 : public ${parent}`);
+        // C++ does not inherit constructors, and the backend emits none, so the class
+        // would only have the implicit default one -- `binance(config)` would not
+        // compile. Pull the parent's in explicitly.
+        content = content.replace (/^(class\s+\w+\s*:\s*public\s+\w+\s*\n?\{\s*\npublic:\n)/m,
+                                   `$1    using ${parent}::${parent};\n`);
         content = rewriteSuperCalls (content, parent);
         content = applyCommonFixes (content);
+        // append the dispatch table inside the class body, just before its closing `};`
+        const dispatch = this.createDispatchTable (id, content);
+        const lastBrace = content.lastIndexOf ('};');
+        if (lastBrace !== -1) {
+            content = content.slice (0, lastBrace) + dispatch + content.slice (lastBrace);
+        }
         return [
             '#pragma once',
             '',

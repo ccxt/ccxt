@@ -128,6 +128,11 @@ public:
 
     Precise () = default;
 
+    // generated code writes `Precise(add(a, b))`, and every value there is a std::any
+    explicit Precise (const std::any& input)
+        : Precise (input.has_value () ? std::any_cast<std::string> (::toString (input))
+                                      : std::string ()) {}
+
     explicit Precise (const std::string& input) {
         std::string text = input;
         // strip whitespace so values straight off the wire parse
@@ -199,9 +204,9 @@ public:
             out.insert (out.size () - static_cast<std::size_t> (this->decimals), ".");
         } else if (this->decimals < 0) {
             // value = digits * 10^-decimals, so a negative `decimals` scales UP. The
-            // constructor normalises this away, but stringDiv sets decimals straight
+            // constructor normalises this away, but divText sets decimals straight
             // from a caller-supplied precision, which ccxt does pass negative:
-            // stringDiv('69696900000', '1e8', -1) is '690', not '69'.
+            // divText('69696900000', '1e8', -1) is '690', not '69'.
             out += std::string (static_cast<std::size_t> (-this->decimals), '0');
         }
         return (this->negative && !this->isZero ()) ? "-" + out : out;
@@ -223,13 +228,13 @@ private:
 
     // -- the string-level engine ------------------------------------------------------
     //
-    // PRIVATE on purpose. Generated code writes `Precise::stringDiv(std::string("1"),
+    // PRIVATE on purpose. Generated code writes `Precise::divText(std::string("1"),
     // std::string("0"))`, and a public std::string overload would be an exact match and
     // win over the std::any one -- returning "" where ccxt means undefined, because a
     // std::string cannot represent absence. Hiding these forces every outside call
     // through the std::any API below, which can.
 
-    static std::string stringAdd (const std::string& x, const std::string& y) {
+    static std::string addText (const std::string& x, const std::string& y) {
         Precise a (x);
         Precise b (y);
         align (a, b);
@@ -249,13 +254,13 @@ private:
         return out.toString ();
     }
 
-    static std::string stringSub (const std::string& x, const std::string& y) {
+    static std::string subText (const std::string& x, const std::string& y) {
         Precise b (y);
         b.negative = !b.negative;
-        return stringAdd (x, b.toString ());
+        return addText (x, b.toString ());
     }
 
-    static std::string stringMul (const std::string& x, const std::string& y) {
+    static std::string mulText (const std::string& x, const std::string& y) {
         const Precise a (x);
         const Precise b (y);
         Precise out;
@@ -267,7 +272,7 @@ private:
     }
 
     // ccxt's default precision for division is 18 decimal places
-    static std::string stringDiv (const std::string& x, const std::string& y, int precision = 18) {
+    static std::string divText (const std::string& x, const std::string& y, int precision = 18) {
         const Precise a (x);
         const Precise b (y);
         if (b.isZero ()) {
@@ -305,20 +310,20 @@ private:
         return a.negative ? -sign : sign;
     }
 
-    static bool stringGt (const std::string& x, const std::string& y) { return compare (x, y) > 0; }
-    static bool stringGe (const std::string& x, const std::string& y) { return compare (x, y) >= 0; }
-    static bool stringLt (const std::string& x, const std::string& y) { return compare (x, y) < 0; }
-    static bool stringLe (const std::string& x, const std::string& y) { return compare (x, y) <= 0; }
-    static bool stringEquals (const std::string& x, const std::string& y) { return compare (x, y) == 0; }
-    static bool stringEq (const std::string& x, const std::string& y) { return compare (x, y) == 0; }
+    static bool gtText (const std::string& x, const std::string& y) { return compare (x, y) > 0; }
+    static bool geText (const std::string& x, const std::string& y) { return compare (x, y) >= 0; }
+    static bool ltText (const std::string& x, const std::string& y) { return compare (x, y) < 0; }
+    static bool leText (const std::string& x, const std::string& y) { return compare (x, y) <= 0; }
+    static bool equalsText (const std::string& x, const std::string& y) { return compare (x, y) == 0; }
+    static bool eqText (const std::string& x, const std::string& y) { return compare (x, y) == 0; }
 
-    static std::string stringAbs (const std::string& x) {
+    static std::string absText (const std::string& x) {
         Precise a (x);
         a.negative = false;
         return a.toString ();
     }
 
-    static std::string stringNeg (const std::string& x) {
+    static std::string negText (const std::string& x) {
         Precise a (x);
         a.negative = !a.negative;
         a.reduce ();
@@ -326,17 +331,17 @@ private:
     }
 
     // TS returns the winning *Precise*, so the result comes back normalised:
-    // stringMin('1.0000', '2') is '1', not '1.0000'. Returning the raw input would
+    // minText('1.0000', '2') is '1', not '1.0000'. Returning the raw input would
     // leak the caller's formatting into arithmetic that is supposed to be canonical.
-    static std::string stringMin (const std::string& x, const std::string& y) {
-        return Precise (stringLt (x, y) ? x : y).toString ();
+    static std::string minText (const std::string& x, const std::string& y) {
+        return Precise (ltText (x, y) ? x : y).toString ();
     }
 
-    static std::string stringMax (const std::string& x, const std::string& y) {
-        return Precise (stringGt (x, y) ? x : y).toString ();
+    static std::string maxText (const std::string& x, const std::string& y) {
+        return Precise (gtText (x, y) ? x : y).toString ();
     }
 
-    static std::string stringMod (const std::string& x, const std::string& y) {
+    static std::string modText (const std::string& x, const std::string& y) {
         Precise a (x);
         Precise b (y);
         if (b.isZero ()) {
@@ -413,35 +418,76 @@ public:
         return v.has_value () ? std::any_cast<std::string> (::toString (v)) : std::string ();
     }
 
+    // Every TS static guards its operands first: the value-returning ones propagate
+    // undefined, the comparisons collapse to false. Without this, asText() turns an
+    // absent operand into "" and Precise("") reads as 0, so stringMul(undefined, '1')
+    // would quietly be '0' instead of undefined -- a wrong number rather than a
+    // missing one, which is far worse in an amount or a price.
+    static bool anyUndefined (const std::any& x, const std::any& y) {
+        return !x.has_value () || !y.has_value ();
+    }
+
     static std::any stringAdd (const std::any& x, const std::any& y) {
-        return std::any (stringAdd (asText (x), asText (y)));
+        if (anyUndefined (x, y)) return std::any {};
+        return std::any (addText (asText (x), asText (y)));
     }
     static std::any stringSub (const std::any& x, const std::any& y) {
-        return std::any (stringSub (asText (x), asText (y)));
+        if (anyUndefined (x, y)) return std::any {};
+        return std::any (subText (asText (x), asText (y)));
     }
     static std::any stringMul (const std::any& x, const std::any& y) {
-        return std::any (stringMul (asText (x), asText (y)));
+        if (anyUndefined (x, y)) return std::any {};
+        return std::any (mulText (asText (x), asText (y)));
     }
     static std::any stringDiv (const std::any& x, const std::any& y) {
-        const std::string out = stringDiv (asText (x), asText (y));
+        if (anyUndefined (x, y)) return std::any {};
+        const std::string out = divText (asText (x), asText (y));
         return out.empty () ? std::any {} : std::any (out);
     }
     static std::any stringDiv (const std::any& x, const std::any& y, const std::any& precision) {
+        if (anyUndefined (x, y)) return std::any {};
         const int places = precision.has_value () ? static_cast<int> (toLong (precision)) : 18;
-        const std::string out = stringDiv (asText (x), asText (y), places);
+        const std::string out = divText (asText (x), asText (y), places);
         return out.empty () ? std::any {} : std::any (out);
     }
-    static bool stringGt (const std::any& x, const std::any& y) { return stringGt (asText (x), asText (y)); }
-    static bool stringGe (const std::any& x, const std::any& y) { return stringGe (asText (x), asText (y)); }
-    static bool stringLt (const std::any& x, const std::any& y) { return stringLt (asText (x), asText (y)); }
-    static bool stringLe (const std::any& x, const std::any& y) { return stringLe (asText (x), asText (y)); }
-    static bool stringEquals (const std::any& x, const std::any& y) { return stringEquals (asText (x), asText (y)); }
-    static bool stringEq (const std::any& x, const std::any& y) { return stringEq (asText (x), asText (y)); }
-    static std::any stringAbs (const std::any& x) { return std::any (stringAbs (asText (x))); }
-    static std::any stringNeg (const std::any& x) { return std::any (stringNeg (asText (x))); }
-    static std::any stringMin (const std::any& x, const std::any& y) { return std::any (stringMin (asText (x), asText (y))); }
-    static std::any stringMax (const std::any& x, const std::any& y) { return std::any (stringMax (asText (x), asText (y))); }
-    static std::any stringMod (const std::any& x, const std::any& y) { return std::any (stringMod (asText (x), asText (y))); }
+    static bool stringGt (const std::any& x, const std::any& y) {
+        return anyUndefined (x, y) ? false : gtText (asText (x), asText (y));
+    }
+    static bool stringGe (const std::any& x, const std::any& y) {
+        return anyUndefined (x, y) ? false : geText (asText (x), asText (y));
+    }
+    static bool stringLt (const std::any& x, const std::any& y) {
+        return anyUndefined (x, y) ? false : ltText (asText (x), asText (y));
+    }
+    static bool stringLe (const std::any& x, const std::any& y) {
+        return anyUndefined (x, y) ? false : leText (asText (x), asText (y));
+    }
+    static bool stringEquals (const std::any& x, const std::any& y) {
+        return anyUndefined (x, y) ? false : equalsText (asText (x), asText (y));
+    }
+    static bool stringEq (const std::any& x, const std::any& y) {
+        return anyUndefined (x, y) ? false : eqText (asText (x), asText (y));
+    }
+    static std::any stringAbs (const std::any& x) {
+        if (!x.has_value ()) return std::any {};
+        return std::any (absText (asText (x)));
+    }
+    static std::any stringNeg (const std::any& x) {
+        if (!x.has_value ()) return std::any {};
+        return std::any (negText (asText (x)));
+    }
+    static std::any stringMin (const std::any& x, const std::any& y) {
+        if (anyUndefined (x, y)) return std::any {};
+        return std::any (minText (asText (x), asText (y)));
+    }
+    static std::any stringMax (const std::any& x, const std::any& y) {
+        if (anyUndefined (x, y)) return std::any {};
+        return std::any (maxText (asText (x), asText (y)));
+    }
+    static std::any stringMod (const std::any& x, const std::any& y) {
+        if (anyUndefined (x, y)) return std::any {};
+        return std::any (modText (asText (x), asText (y)));
+    }
 
     // TS keeps the left operand's `decimals` and never aligns, so a fractional operand
     // is already meaningless there; mirror that by operating on the integer digits.
