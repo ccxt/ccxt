@@ -3557,8 +3557,9 @@ public class BaseExchange {
     }
 
     public Object binaryToBase58(Object buff2) {
-        byte[] buff = (byte[])buff2;
-        return Crypto.binaryToHex(buff);
+        // bitcoin-alphabet base58, mirrors TS `binaryToBase58 = base58.encode` (@scure/base);
+        // used by pacifica request signing — must NOT be hex
+        return Encode.binaryToBase58(buff2);
     }
 
     public Object toFixed(Object number, Object decimals) {
