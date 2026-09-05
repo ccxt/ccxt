@@ -1093,6 +1093,8 @@ std::any ExchangeBase::roundTimeframe (std::any timeframe, std::any timestamp, s
 
 std::shared_future<std::any> ExchangeBase::sleep (std::any ms) {
     const long long duration = toLong (ms);
+    // sleep keeps launch::async: the whole point is that time passes, and a
+    // deferred body would not start until someone awaited it
     return std::async (std::launch::async, [duration] () -> std::any {
         std::this_thread::sleep_for (std::chrono::milliseconds (duration));
         return std::any {};
@@ -1119,7 +1121,7 @@ std::any ExchangeBase::resolve (std::any value, std::any) { return value; }
 std::any ExchangeBase::reject (std::any value, std::any) { return value; }
 
 std::shared_future<std::any> ExchangeBase::throttle (std::any) {
-    return std::async (std::launch::async, [] () -> std::any { return std::any {}; }).share ();
+    return std::async (std::launch::deferred, [] () -> std::any { return std::any {}; }).share ();
 }
 
 // ---------------------------------------------------------------------------
@@ -1136,7 +1138,7 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
     this->last_request_headers = headers;
     const std::string target = str (url);
     const std::string verb = method.has_value () ? str (method) : std::string ("GET");
-    return std::async (std::launch::async, [target, verb] () -> std::any {
+    return std::async (std::launch::deferred, [target, verb] () -> std::any {
         throw NotSupported ("HTTP transport is not implemented in the C++ port yet: "
                             + verb + " " + target);
     }).share ();
@@ -1300,19 +1302,19 @@ std::any ExchangeBase::callMethod (std::any name, std::any) {
 }
 
 std::shared_future<std::any> ExchangeBase::fetchMarkets (std::any) {
-    return std::async (std::launch::async, [] () -> std::any {
+    return std::async (std::launch::deferred, [] () -> std::any {
         throw NotSupported ("fetchMarkets needs the HTTP layer, which the C++ port does not have yet");
     }).share ();
 }
 
 std::shared_future<std::any> ExchangeBase::fetchCurrencies (std::any) {
-    return std::async (std::launch::async, [] () -> std::any {
+    return std::async (std::launch::deferred, [] () -> std::any {
         throw NotSupported ("fetchCurrencies needs the HTTP layer, which the C++ port does not have yet");
     }).share ();
 }
 
 std::shared_future<std::any> ExchangeBase::loadMarkets (std::any, std::any) {
-    return std::async (std::launch::async, [] () -> std::any {
+    return std::async (std::launch::deferred, [] () -> std::any {
         throw NotSupported ("loadMarkets requires the HTTP transport, not implemented yet");
     }).share ();
 }

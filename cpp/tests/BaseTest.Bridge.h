@@ -92,7 +92,7 @@ inline void assertDeepEqual (ccxt::Exchange& exchange, const std::any& skippedPr
 // the shared tests run. The C++ model is covered by cpp/tests/test_value_model.cpp,
 // which runs as its own binary, so there is nothing extra to do here.
 inline std::shared_future<std::any> testLanguageSpecific () {
-    return std::async (std::launch::async, []() -> std::any {
+    return std::async (std::launch::deferred, []() -> std::any {
         return true;
     }).share ();
 }
