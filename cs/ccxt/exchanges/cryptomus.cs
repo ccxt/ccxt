@@ -1274,7 +1274,7 @@ public partial class cryptomus : Exchange
             } else
             {
                 object query = this.urlencode(parameters);
-                if (isTrue(!isEqual(getArrayLength(query), 0)))
+                if (isTrue(!isEqual(((string)query).Length, 0)))
                 {
                     url = add(url, add("?", query));
                 }
@@ -1286,7 +1286,7 @@ public partial class cryptomus : Exchange
         } else
         {
             object query = this.urlencode(parameters);
-            if (isTrue(!isEqual(getArrayLength(query), 0)))
+            if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));
             }

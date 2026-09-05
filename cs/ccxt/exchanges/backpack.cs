@@ -2635,7 +2635,7 @@ public partial class backpack : Exchange
             } else
             {
                 object queryString = this.urlencode(sortedParams);
-                if (isTrue(isGreaterThan(getArrayLength(queryString), 0)))
+                if (isTrue(isGreaterThan(((string)queryString).Length, 0)))
                 {
                     queryString = add(queryString, "&");
                 }
@@ -2660,7 +2660,7 @@ public partial class backpack : Exchange
         if (isTrue(isEqual(method, "GET")))
         {
             object query = this.urlencode(sortedParams);
-            if (isTrue(!isEqual(getArrayLength(query), 0)))
+            if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 endpoint = add(endpoint, add("?", query));
             }
