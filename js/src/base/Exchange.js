@@ -28,7 +28,7 @@ import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
-import * as Starknet from '../static_dependencies/starknet/index.js';
+import * as Starknet from './functions/starknet.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
@@ -1808,15 +1808,15 @@ export class BaseExchange {
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = ethSigToPrivate(signature);
         const publicKey = getStarkKey(privateKey);
-        const callData = Starknet.CallData.compile({
+        const callData = Starknet.compileCalldata({
             'implementation': accountClassHash,
-            'selector': Starknet.hash.getSelectorFromName('initialize'),
-            'calldata': Starknet.CallData.compile({
+            'selector': Starknet.getSelectorFromName('initialize'),
+            'calldata': Starknet.compileCalldata({
                 'signer': publicKey,
                 'guardian': '0',
             }),
         });
-        const address = Starknet.hash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
+        const address = Starknet.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
@@ -1840,7 +1840,7 @@ export class BaseExchange {
             }, messageTypes),
             'message': messageData,
         };
-        const msgHash = Starknet.typedData.getMessageHash(request, address);
+        const msgHash = Starknet.getMessageHash(request, address);
         return msgHash;
     }
     starknetSign(msgHash, pri) {
@@ -1853,10 +1853,10 @@ export class BaseExchange {
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     extendedStarknetGetSelectorFromName(name) {
-        return Starknet.hash.getSelectorFromName(name);
+        return Starknet.getSelectorFromName(name);
     }
     extendedStarknetComputePoseidonHashOnElements(data) {
-        return Starknet.hash.computePoseidonHashOnElements(data);
+        return Starknet.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId', '')), sha256, 'hex'))).toString();
