@@ -18,6 +18,7 @@
 #include "helpers.h"
 
 #include <any>
+#include <functional>
 #include <future>
 #include <string>
 
@@ -100,13 +101,17 @@ public:
     std::any isSandboxModeEnabled;
 
     // -- rate limiting --------------------------------------------------------------
-    std::any enableRateLimit;
-    std::any rateLimit;
-    std::any rateLimiterAlgorithm;
+    // These carry TS class-field defaults (ts/src/base/Exchange.ts:362-367), which are
+    // in place BEFORE describe() merges over them. Leaving them undefined made
+    // initRestRateLimiter() -- reached from afterConstruct() -- reject every exchange
+    // with "rateLimit property is not configured".
+    std::any enableRateLimit = std::any (true);
+    std::any rateLimit = std::any (2000);
+    std::any rateLimiterAlgorithm = std::any (std::string ("leakyBucket"));
     std::any tokenBucket;
     std::any throttler;
     std::any timeout;
-    std::any rollingWindowSize;
+    std::any rollingWindowSize = std::any (0.0);
 
     // -- market and currency state --------------------------------------------------
     // what the last sign() produced -- the static request tests assert against these
@@ -333,6 +338,14 @@ public:
     // Iteration 1 is offline by design (see the PRD success criteria). libcurl is found
     // and linked by CMake so the dependency is proven, but no transport is wired yet;
     // calling this throws rather than silently returning nothing.
+    // Injectable transport. When set, fetch() delegates here instead of performing a
+    // request, and the return value is used as the already-decoded response body. This
+    // is what makes the static response tests possible: they install a hook that yields
+    // the fixture's canned httpResponse, exactly as the reference harness does by
+    // reassigning exchange.fetch (setFetchResponse in ts/src/test/tests.helpers.ts).
+    // A real libcurl transport can be installed the same way later.
+    std::function<std::any (std::any url, std::any method, std::any headers, std::any body)> fetchImpl;
+
     virtual std::shared_future<std::any> fetch (std::any url, std::any method = std::any {},
                                                 std::any headers = std::any {},
                                                 std::any body = std::any {});
