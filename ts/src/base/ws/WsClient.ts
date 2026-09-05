@@ -92,7 +92,9 @@ export default class WsClient extends Client {
         }
         this.connection.onerror = this.onError.bind (this)
         this.connection.onclose = this.onClose.bind (this)
-        if (isNode && !isBun) {
+        if (isBun) {
+            this.connection.addEventListener ('pong', this.onPong.bind (this));
+        } else if (isNode) {
             this.connection
                 .on ('ping', this.onPing.bind (this))
                 .on ('pong', this.onPong.bind (this))
