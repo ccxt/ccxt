@@ -127,37 +127,6 @@ public partial class BaseExchange
         return a;
     }
 
-    public static object plusEqual(object a, object value)
-    {
-
-        a = normalizeIntIfNeeded(a);
-        value = normalizeIntIfNeeded(value);
-
-        if (value == null)
-            return null;
-        if (a.GetType() == typeof(Int64))
-        {
-            a = (Int64)a + (Int64)value;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            a = (int)a + (int)value;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            a = (double)a + (double)value;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            a = (string)a + (string)value;
-        }
-        else
-        {
-            return null;
-        }
-        return a;
-    }
-
     public object parseJson(object json)
     {
         // var jsonString = json.ToString();

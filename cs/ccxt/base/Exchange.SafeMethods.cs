@@ -35,8 +35,6 @@ public partial class BaseExchange
     }
     // falsy and truthy methods wrappers
 
-    // tmp safe number
-    public static object SafeNumberN(object obj, List<object> keys, object defaultValue = null) => SafeFloatN(obj, keys, defaultValue);
     public object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
 
     ////////////////////////////////////////////////////////
