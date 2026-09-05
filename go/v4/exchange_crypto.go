@@ -4,7 +4,6 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	ed25 "crypto/ed25519"
-	"crypto/elliptic"
 	"crypto/hmac"
 	md5Hash "crypto/md5"
 	"crypto/rand"
@@ -18,7 +17,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"hash/crc32"
-	"math/big"
 	"strings"
 
 	"golang.org/x/crypto/sha3"
@@ -427,38 +425,6 @@ func interfacesToBytes(input []any) ([]uint8, error) {
 	return result, nil
 }
 
-func stringToPrivateKey(privKeyStr string) *ecdsa.PrivateKey {
-	// Decode PEM formatted private key
-	block, _ := pem.Decode([]byte(privKeyStr))
-	if block == nil {
-		return nil
-	}
-
-	// Parse the ECDSA private key
-	privKey, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		return nil
-	}
-
-	return privKey
-}
-
-var secp256k1Curve = &elliptic.CurveParams{
-	Name:    "secp256k1",
-	BitSize: 256,
-	P:       fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"),
-	N:       fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"),
-	B:       fromHex("07"),
-	Gx:      fromHex("79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"),
-	Gy:      fromHex("483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"),
-}
-
-// Helper function to convert hex string to big.Int
-func fromHex(s string) *big.Int {
-	b, _ := new(big.Int).SetString(s, 16)
-	return b
-}
-
 // Helper function to convert a string hex to byte array
 func hexToBytes(hexStr string) ([]byte, bool) {
 	bytes, err := hex.DecodeString(hexStr)
@@ -471,18 +437,6 @@ func hexToBytes(hexStr string) ([]byte, bool) {
 // Helper function to convert byte array to hex string
 func toHex(bytes []byte) string {
 	return hex.EncodeToString(bytes)
-}
-
-func enforceLowS(s *big.Int) *big.Int {
-	// secp256k1 curve order
-	curveOrder := fromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141")
-
-	// If s is greater than curveOrder / 2, calculate the new s as curveOrder - s
-	halfOrder := new(big.Int).Div(curveOrder, big.NewInt(2))
-	if s.Cmp(halfOrder) > 0 {
-		s.Sub(curveOrder, s)
-	}
-	return s
 }
 
 func Ecdsa(request any, secret any, curveFunc func() string, hashFunc func() string) map[string]any {

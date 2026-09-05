@@ -51,21 +51,6 @@ func int64OrNil(v *int64) any {
 	return *v
 }
 
-func createOb(Obtype string) OrderBookInterface {
-	switch strings.ToLower(Obtype) {
-	case "counted":
-		return &CountedOrderBook{}
-	case "indexed":
-		return &IndexedOrderBook{}
-	// case "incremental":
-	// 	return &IncrementalOrderBook{}
-	// case "incrementalindexed":
-	// 	return &IncrementalIndexedOrderBook{}
-	default:
-		return &WsOrderBook{}
-	}
-}
-
 func (this *WsOrderBook) ToMap() map[string]any {
 	result := map[string]any{
 		"asks":      this.Asks.GetDataCopy(),

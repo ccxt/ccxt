@@ -2117,10 +2117,6 @@ func normalizeNumbers(data any) any {
 	}
 }
 
-func throwDynamicException(exceptionType any, message any) {
-	ThrowDynamicException(exceptionType, message)
-}
-
 func ThrowDynamicException(exceptionType any, message any) {
 	functionError := exceptionType.(func(...any) error)
 	errorMsg := functionError(message)

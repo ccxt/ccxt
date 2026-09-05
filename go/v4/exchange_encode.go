@@ -310,11 +310,6 @@ func (e *BaseExchange) IntToBase16(number any) string {
 	}
 }
 
-// This function requires implementation of a message packer
-func (e *BaseExchange) packb(data any) any {
-	return nil
-}
-
 func (e *BaseExchange) Rawencode(params ...any) string {
 	parameters := params[0].(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
@@ -500,16 +495,4 @@ func Base64urlencode(s any) string {
 		str = base64.StdEncoding.EncodeToString(s.([]byte))
 	}
 	return strings.TrimRight(strings.ReplaceAll(strings.ReplaceAll(str, "+", "-"), "/", "_"), "=")
-}
-
-func (e *BaseExchange) stringToCharsArray(str any) any {
-	// Convert the input to a string
-	inputStr := fmt.Sprintf("%v", str)
-	// Create a slice to hold the result
-	res := make([]string, len(inputStr))
-	// Iterate over each character in the string and add it to the result slice
-	for i, ch := range inputStr {
-		res[i] = string(ch)
-	}
-	return res
 }
