@@ -1,0 +1,8 @@
+# ninja log v5
+0	1931	1788590307216591718	CMakeFiles/ccxt.dir/ccxt/base/helpers.cpp.o	4f89cf024db7c578
+1931	11622	1788590316890646046	CMakeFiles/ccxt.dir/ccxt/base/ExchangeBase.cpp.o	bbc2836418169fdd
+11622	12708	1788590317994652246	CMakeFiles/ccxt.dir/ccxt/base/Crypto.cpp.o	d49ca36baedd5567
+12708	13792	1788590319079658339	CMakeFiles/ccxt.dir/ccxt/base/Number.cpp.o	95d4c8ee74e5a5c7
+13792	13899	1788590319181658912	libccxt.a	ef2c37256a76635a
+13899	573460	1788590878296803845	CMakeFiles/ccxt-static-binance.dir/tests/static_binance.cpp.o	8c15617cda88cdda
+573461	576944	1788590882165826677	ccxt-static-binance	663f6b729d5a3aa2

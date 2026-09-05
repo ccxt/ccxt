@@ -116,7 +116,7 @@ public:
     // static request tests read what sign() built out of last_request_url /
     // last_request_body instead of sending anything.
     virtual std::shared_future<std::any> callEndpoint (std::any name, std::any params = std::any {}) {
-        return std::async (std::launch::async, [this, name, params] () -> std::any {
+        return std::async (std::launch::deferred, [this, name, params] () -> std::any {
             if (!isDict (this->endpointRegistry)) {
                 this->defineRestApi ();
             }

@@ -240,7 +240,16 @@ function rewriteInstanceOf (content: string): string {
 function rewriteAsyncLambdasMutable (content: string): string {
     return content.replace (
         /std::async\(std::launch::async, \[=\]\(\) -> std::any \{/g,
-        'std::async(std::launch::async, [=]() mutable -> std::any {'
+        // launch::deferred, not launch::async. The backend spawns a thread per async
+        // call, and ccxt's value model (D1) is a graph of shared_ptr-backed dicts and
+        // lists with no locking -- `this` and every captured container are shared
+        // across those threads, so two overlapping calls corrupt the heap. That is not
+        // theoretical: the static request run aborted nondeterministically with
+        // "malloc(): unaligned tcache chunk" and "double free or corruption".
+        // Deferred runs the body on the awaiting thread at get() time, which is exactly
+        // the sequential semantics the transpiled code was written against in JS.
+        // Real parallelism has to come back with locking, not a raw thread per call.
+        'std::async(std::launch::deferred, [=]() mutable -> std::any {'
     );
 }
 
