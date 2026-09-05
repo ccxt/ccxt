@@ -61,26 +61,47 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeFloat': 'double?',
     'safeFloat2': 'double?',
     'safeFloatN': 'double?',
-    // Exchange.Time.cs (iso8601 is declared `string` but returns null for a null input)
+    // Exchange.Time.cs (iso8601/ymd* are declared `string` but return null for a null input)
     'parse8601': 'Int64?',
     'iso8601': 'string?',
+    'ymdhms': 'string?',
+    'yyyymmdd': 'string?',
+    'yymmdd': 'string?',
+    'microseconds': 'Int64',
+    // Exchange.cs
+    'seconds': 'Int64',
+    'parseTimeframe': 'int',
+    'isEmpty': 'bool',
     // Exchange.Number.cs (numberToString is declared `string` but returns null for null)
     'numberToString': 'string?',
     'decimalToPrecision': 'string',
+    'precisionFromString': 'int',
     // Exchange.Encode.cs
     'urlencode': 'string',
+    'urlencodeWithArrayRepeat': 'string',
+    'urlencodeNested': 'string',
     'rawencode': 'string',
     'intToBase16': 'string',
     'stringToBase64': 'string',
-    // Exchange.cs
-    'parseTimeframe': 'int',
+    'binaryToBase64': 'string',
+    'binaryToString': 'string',
+    'encode': 'string?', // `(string)data` pass-through: null in, null out
+    'decode': 'string?',
+    // Exchange.String.cs
+    'uuid': 'string',
+    'uuid16': 'string',
+    'uuid22': 'string',
+    'capitalize': 'string',
     // Exchange.Functions.cs / Exchange.Generic.cs
     'keysort': 'Dictionary<string, object>',
     'sortBy': 'List<object>',
     'sortBy2': 'List<object>',
     'filterBy': 'List<object>',
+    'extractParams': 'List<object>',
     'toArray': 'IList<object>',
     'isArray': 'bool',
+    'inArray': 'bool',
+    'isJsonEncodedObject': 'bool',
 };
 
 // <Identifier>.<name>(...) -> C# type, keyed on the full callee text
@@ -128,6 +149,11 @@ const LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 
 function isNullable (type) {
     return type.endsWith ('?') || type.startsWith ('Dictionary<') || type.startsWith ('List<') || type.startsWith ('IList<');
+}
+
+// the nullable spelling of a C# type (a `= null` / `= undefined` declaration needs one)
+function nullableOf (type) {
+    return isNullable (type) ? type : type + '?';
 }
 
 // can a value of `source` be stored in a local declared `target` WITHOUT changing the
