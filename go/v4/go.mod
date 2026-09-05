@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/NethermindEth/juno v0.14.0
 	github.com/consensys/gnark-crypto v0.18.1
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/elliottech/lighter-go v1.0.6
 	github.com/ethereum/go-ethereum v1.17.0
 	github.com/google/uuid v1.6.0
@@ -19,7 +20,6 @@ require (
 	github.com/ProjectZKM/Ziren/crates/go-runtime/zkvm_runtime v0.0.0-20251001021608-1fe7b43fc4d6 // indirect
 	github.com/bits-and-blooms/bitset v1.21.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.4.0 // indirect
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/elliottech/poseidon_crypto v0.0.15 // indirect
 	github.com/ethereum/c-kzg-4844/v2 v2.1.5 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect

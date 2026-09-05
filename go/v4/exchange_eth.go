@@ -13,9 +13,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/vmihailenco/msgpack/v5"
+	"golang.org/x/crypto/sha3"
 
 	"github.com/elliottech/lighter-go/client"
 	"github.com/elliottech/lighter-go/client/http"
@@ -1403,34 +1403,30 @@ func (this *BaseExchange) EthGetAddressFromPrivateKey(privateKey any) string {
 	cleanPrivateKey := strings.TrimPrefix(privateKeyStr, "0x")
 
 	// Parse the hex string to bytes
-	privateKeyBytes, err := hexutil.Decode("0x" + cleanPrivateKey)
+	privateKeyBytes, err := hex.DecodeString(cleanPrivateKey)
 	if err != nil {
 		panic(fmt.Sprintf("failed to decode private key: %v", err))
 	}
 
-	// Convert bytes to ECDSA private key
-	privKey, err := crypto.ToECDSA(privateKeyBytes)
-	if err != nil {
-		panic(fmt.Sprintf("failed to parse private key: %v", err))
-	}
-
-	// Get the uncompressed public key (remove the 0x04 prefix to get just the coordinates)
-	publicKeyBytes := crypto.FromECDSAPub(&privKey.PublicKey)
-	if publicKeyBytes == nil {
-		panic("failed to get public key bytes")
+	// Derive the uncompressed public key (0x04 || X || Y) on secp256k1
+	publicKeyBytes, ok := secp256k1PublicKeyUncompressed(privateKeyBytes)
+	if !ok {
+		panic("failed to parse private key: invalid secp256k1 secret")
 	}
 
 	// Remove the first byte (0x04 prefix) - we only want the 64 bytes (X + Y coordinates)
 	publicKeyWithoutPrefix := publicKeyBytes[1:]
 
 	// Hash the public key with Keccak256
-	addressHash := crypto.Keccak256(publicKeyWithoutPrefix)
+	keccak := sha3.NewLegacyKeccak256()
+	keccak.Write(publicKeyWithoutPrefix)
+	addressHash := keccak.Sum(nil)
 
 	// Take the last 20 bytes (40 hex chars) as the address
 	addressBytes := addressHash[len(addressHash)-20:]
 
 	// Convert to hex and add 0x prefix
-	return "0x" + hexutil.Encode(addressBytes)[2:]
+	return "0x" + hex.EncodeToString(addressBytes)
 }
 
 // ============================= EIP-712 Dynamic Helper Functions ============================= //

@@ -1,67 +1,45 @@
 package ccxt
 
 import (
-	"math/big"
-
-	// secp256k1Hash "github.com/ethereum/go-ethereum/crypto/secp256k1"
-	"github.com/ethereum/go-ethereum/crypto"
+	dcrsecp256k1 "github.com/decred/dcrd/dcrec/secp256k1/v4"
+	secp256k1ecdsa "github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
 )
 
+// signSecp256k1 produces a 64-byte [r || s] signature and the recovery id for a
+// 32-byte digest, using deterministic RFC6979 nonces and canonical low-s.
+//
+// This is byte-for-byte what go-ethereum's crypto.Sign returned (both its cgo
+// libsecp256k1 path and its pure-Go signature_nocgo.go path, which is this very
+// SignCompact call), but without pulling go-ethereum/crypto into CCXT's own code.
 func signSecp256k1(message []byte, seckey []byte) ([]byte, int, bool) {
-	// Sign the message using Ethereum's crypto.Sign function
-	// https://github.com/ethereum/go-ethereum/issues/26306
-	privKey, err := crypto.ToECDSA(seckey)
-	if err != nil {
+	if len(message) != 32 || len(seckey) != 32 {
 		return nil, 0, false
 	}
-
-	signature, err := crypto.Sign(message, privKey)
-	if err != nil {
+	var privKey dcrsecp256k1.PrivateKey
+	if overflow := privKey.Key.SetByteSlice(seckey); overflow || privKey.Key.IsZero() {
 		return nil, 0, false
 	}
+	defer privKey.Zero()
 
-	recoveryID := int(signature[64])
-
-	// Enforce low-s rule
-	r := new(big.Int).SetBytes(signature[:32])
-	s := new(big.Int).SetBytes(signature[32:64])
-	s = enforceLowS(s)
-
-	// Convert r and s back to byte slices
-	rBytes := r.FillBytes(make([]byte, 32))
-	sBytes := s.FillBytes(make([]byte, 32))
-
-	// Reconstruct the signature
-	signature = append(rBytes, sBytes...)
-
+	// compact form is [v+27 || r || s]; s is already normalised to the low half
+	// of the curve order and v adjusted accordingly.
+	compact := secp256k1ecdsa.SignCompact(&privKey, message, false)
+	recoveryID := int(compact[0] - 27)
+	signature := make([]byte, 64)
+	copy(signature, compact[1:])
 	return signature, recoveryID, true
 }
 
-// func signSecp256k1(message []byte, seckey []byte) ([]byte, int, bool) {
-// 	// Sign the message with the secp256k1 private key
-// 	// return nil, 0, false
-// 	signature, err := secp256k1Hash.Sign(message, seckey)
-// 	if err != nil {
-// 		return nil, 0, false
-// 	}
-
-// 	recoveryID := int(signature[64])
-
-// 	// // Split the signature into r and s components
-// 	r := new(big.Int).SetBytes(signature[:32])
-// 	s := new(big.Int).SetBytes(signature[32:64])
-
-// 	// // Enforce low-s rule on the 's' value
-// 	s = enforceLowS(s)
-
-// 	// // Convert r and s back to byte slices
-// 	rBytes := r.FillBytes(make([]byte, 32))
-// 	sBytes := s.FillBytes(make([]byte, 32))
-
-// 	// // Reconstruct the signature with the adjusted low-s value
-// 	signature = append(rBytes, sBytes...)
-
-// 	// The recovery ID is the last byte in the original signature
-
-// 	return signature, recoveryID, true
-// }
+// secp256k1PublicKeyUncompressed returns the 65-byte 0x04-prefixed public key
+// for a 32-byte secret, or false if the secret is not a valid scalar.
+func secp256k1PublicKeyUncompressed(seckey []byte) ([]byte, bool) {
+	if len(seckey) != 32 {
+		return nil, false
+	}
+	var privKey dcrsecp256k1.PrivateKey
+	if overflow := privKey.Key.SetByteSlice(seckey); overflow || privKey.Key.IsZero() {
+		return nil, false
+	}
+	defer privKey.Zero()
+	return privKey.PubKey().SerializeUncompressed(), true
+}
