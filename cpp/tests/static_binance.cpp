@@ -96,8 +96,21 @@ int runRequestTests (const std::string& only) {
             std::shared_ptr<binance> exchange;
             std::string label = methodName;
             try {
+                // an entry may carry `disabled` (bool or a reason string); the reference
+                // harness skips those rather than counting them
+                const std::any disabledFlag = ::getValue (entryAny, std::string ("disabled"));
+                if (disabledFlag.has_value ()
+                    && (isTrue (disabledFlag) || (isStr (disabledFlag) && !str (disabledFlag).empty ()))) {
+                    report.skipped++;
+                    continue;
+                }
                 exchange = offlineExchange (options);
                 label = methodName + " [" + describeEntry (*exchange, entryAny) + "]";
+                // per-entry options are deep-extended over the exchange's own
+                const std::any entryOptions = ::getValue (entryAny, std::string ("options"));
+                if (isDict (entryOptions)) {
+                    exchange->options = exchange->deepExtend (exchange->options, entryOptions);
+                }
                 const std::any input = ::getValue (entryAny, std::string ("input"));
                 // the call is expected to fail at fetch() -- what matters is the
                 // request sign() built on the way there
@@ -113,7 +126,7 @@ int runRequestTests (const std::string& only) {
                 }
                 const std::any expectedUrl = ::getValue (entryAny, std::string ("url"));
                 if (!expectedUrl.has_value ()) {
-                    continue;   // entries without a url assert only on the body
+                    continue;
                 }
                 if (!exchange->last_request_url.has_value ()) {
                     std::cout << "[TEST_FAILURE][STATIC_REQUEST][binance][" << label
@@ -124,12 +137,23 @@ int runRequestTests (const std::string& only) {
                     continue;
                 }
                 const std::string actual = str (exchange->last_request_url);
-                if (sameUrl (str (expectedUrl), actual, skipKeys)) {
+                const std::any expectedBody = ::getValue (entryAny, std::string ("output"));
+                std::string why;
+                if (sameRequest (str (expectedUrl), actual, expectedBody,
+                                 exchange->last_request_body, skipKeys, why)) {
                     report.passed++;
                 } else {
-                    std::cout << "[TEST_FAILURE][STATIC_REQUEST][binance][" << label << "]\n"
+                    std::cout << "[TEST_FAILURE][STATIC_REQUEST][binance][" << label
+                              << "] " << why << "\n"
                               << "  expected: " << str (expectedUrl) << "\n"
                               << "  actual:   " << actual << std::endl;
+                    if (expectedBody.has_value () || exchange->last_request_body.has_value ()) {
+                        std::cout << "  exp body: "
+                                  << (expectedBody.has_value () ? str (expectedBody) : "<none>") << "\n"
+                                  << "  act body: "
+                                  << (exchange->last_request_body.has_value ()
+                                      ? str (exchange->last_request_body) : "<none>") << std::endl;
+                    }
                     report.failed++;
                 }
             } catch (const std::exception& e) {
@@ -140,7 +164,7 @@ int runRequestTests (const std::string& only) {
         }
     }
     std::cout << "static request tests: " << report.passed << " passed, "
-              << report.failed << " failed" << std::endl;
+              << report.failed << " failed, " << report.skipped << " skipped" << std::endl;
     return report.failed ? 1 : 0;
 }
 

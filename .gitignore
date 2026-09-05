@@ -98,3 +98,4 @@ mcp/mcpb/staging/
 # rust/ccxt/src/exchanges/mod.rs
 # rust/ccxt-prediction/src/prediction/mod.rs
 cpp/build/
+cpp/build-asan/
