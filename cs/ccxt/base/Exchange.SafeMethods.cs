@@ -38,9 +38,6 @@ public partial class BaseExchange
     // tmp safe number
     public static object SafeNumberN(object obj, List<object> keys, object defaultValue = null) => SafeFloatN(obj, keys, defaultValue);
     public object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
-    // public static object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
-    // public float safeNumber(object obj, object key, float defaultValue = -1) => safeFloatN(obj, new List<object> { key }, defaultValue);
-    // public float safeNumber2(object obj, object key1, object key2, float defaultValue = -1) => safeFloatN(obj, new List<object> { key1, key2 }, defaultValue);
 
     ////////////////////////////////////////////////////////
 
