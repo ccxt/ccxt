@@ -461,10 +461,7 @@ class BaseExchange(SyncExchange):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
 
     def handle_message(self, client, message):
-        always = True
-        if always:
-            raise NotSupported(self.id + '.handle_message() not implemented yet')
-        return {}
+        raise NotSupported(self.id + '.handle_message() not implemented yet')
 
     def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context

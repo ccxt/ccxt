@@ -109,11 +109,10 @@ class Client(object):
             del self.rejections[message_hash]
         return future
 
-    def reusable_future(self, message_hash):
-        return self.future(message_hash)  # only used in go
-
     def reusableFuture(self, message_hash):
-        return self.future(message_hash)  # only used in go
+        # camelCase on purpose: the transpiler emits `client.reusableFuture(...)`
+        # verbatim into python/ccxt/pro/*.py, so this is the only reachable spelling
+        return self.future(message_hash)
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
