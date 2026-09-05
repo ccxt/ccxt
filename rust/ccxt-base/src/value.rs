@@ -2069,10 +2069,6 @@ pub(crate) fn book_store_array_side(book: &mut Value, side_key: &str, delta: Val
     }
 }
 
-pub(crate) fn book_store_side(book: &mut Value, side_key: &str, price: f64, size: f64) {
-    let delta = Value::List(vec![Value::Float(price), Value::Float(size)]);
-    book_store_array_side(book, side_key, delta);
-}
 
 // ─── Value method API exposed to the transpiled tests ─────────────────────
 
