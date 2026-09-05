@@ -82,7 +82,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "fetchOrders", true );
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
-                put( "fetchTicker", "emulated" );
+                put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", "emulated" );
@@ -126,6 +126,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             put( "cost", 1 );
                         }} );
                         put( "tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tickers/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "history", new java.util.HashMap<String, Object>() {{
@@ -285,6 +288,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "notFound", BadRequest.class );
                     put( "Server Error", ExchangeError.class );
                     put( "unknownError", ExchangeError.class );
+                    put( "contractNotFound", BadSymbol.class );
                 }} );
                 put( "broad", new java.util.HashMap<String, Object>() {{
                     put( "invalidArgument", BadRequest.class );
@@ -690,6 +694,57 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object timestamp = this.parse8601(this.safeString(response, "serverTime"));
             Object orderBook = this.safeDict(response, "orderBook", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrderBook(orderBook, symbol, timestamp);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+            }};
+            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            //
+            //    {
+            //        "result": "success",
+            //        "ticker": {
+            //            "tag": "perpetual",
+            //            "pair": "XBT:USD",
+            //            "symbol": "PF_XBTUSD",
+            //            "markPrice": 77343.38154086835,
+            //            "bid": 77333,
+            //            "bidSize": 0.0776,
+            //            "ask": 77334,
+            //            "askSize": 0.4929,
+            //            "vol24h": 8309.2546,
+            //            "openInterest": 1950.596600000000000,
+            //            "open24h": 77332,
+            //            "indexPrice": 77340.22,
+            //            "last": 77334,
+            //            "lastTime": "2026-09-02T17:52:21.057577Z",
+            //            "lastSize": 0.0114,
+            //            "suspended": false
+            //        },
+            //        "serverTime": "2026-09-02T17:52:21.671Z"
+            //    }
+            //
+            Object ticker = this.safeDict(response, "ticker", new java.util.HashMap<String, Object>() {{}});
+            return this.parseTicker(ticker, market);
         });
 
     }
