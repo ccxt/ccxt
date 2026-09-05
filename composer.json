@@ -184,7 +184,6 @@
         "react/promise-timer": "1.11.0",
         "react/socket": "1.17.0",
         "react/stream": "1.4.0",
-        "ringcentral/psr7": "1.3.0",
         "symfony/deprecation-contracts": "3.7.0",
         "symfony/polyfill-mbstring": "1.38.2",
         "symfony/polyfill-php80": "1.37.0"
