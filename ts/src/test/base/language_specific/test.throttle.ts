@@ -1,6 +1,6 @@
 /* eslint-disable */
 import assert from 'assert'
-import { Throttler } from '../../../base/functions/throttle.js'
+import { Throttler, QUEUE_COMPACTION_THRESHOLD } from '../../../base/functions/throttle.js'
 import type { Dict } from '../../../base/types.js'
 
 async function testThrottle () {
@@ -109,7 +109,10 @@ async function testThrottle () {
 // never runs in CI, so this guards against a future refactor of the index
 // arithmetic silently dropping or replaying a queued resolver.
 async function testThrottleQueueCompaction () {
-    const total = 3000
+    // sized off the real threshold (rather than a hardcoded number) so this
+    // stays a meaningful coverage guarantee even if QUEUE_COMPACTION_THRESHOLD
+    // is ever raised
+    const total = QUEUE_COMPACTION_THRESHOLD * 3
     const throttler = new Throttler ({
         'tokens': total + 10, // abundant tokens: no request should ever have to wait
         'cost': 1,
@@ -124,6 +127,10 @@ async function testThrottleQueueCompaction () {
     for (let i = 0; i < total; i++) {
         assert (order[i] === i, `testThrottleQueueCompaction: resolution order broken at index ${i}, got ${order[i]}`)
     }
+    // a fully drained queue always ends up reset to this state whether or not
+    // compaction fired along the way, but a non-zero queueHead/queue.length
+    // here would mean the burst didn't actually finish draining
+    assert (throttler.queueHead === 0 && throttler.queue.length === 0, `testThrottleQueueCompaction: queue did not fully drain (queueHead=${throttler.queueHead}, queue.length=${throttler.queue.length})`)
     console.log (`testThrottleQueueCompaction succeeded for ${total} queued items`)
 }
 
