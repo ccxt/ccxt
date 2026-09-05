@@ -894,7 +894,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_sells(...))($symbol, $since, $limit, $params);
     }
 
@@ -922,7 +922,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($sellsData, null, $since, $limit);
     }
 
-    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_buys(...))($symbol, $since, $limit, $params);
     }
 
@@ -950,7 +950,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($buysData, null, $since, $limit);
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_with_method(...))($method, $code, $since, $limit, $params);
     }
 
@@ -4648,7 +4648,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function deposit(string $code, float $amount, string $id, $params = array()) {
+    public function deposit(string $code, float $amount, string $id, $params = array()): PromiseInterface {
         return Async\async(self::do_deposit(...))($code, $amount, $id, $params);
     }
 
@@ -4728,7 +4728,7 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit(...))($id, $code, $params);
     }
 
@@ -4844,7 +4844,7 @@ class coinbase extends Exchange {
         return $this->parse_deposit_method_ids($result);
     }
 
-    public function fetch_deposit_method_id(string $id, $params = array()) {
+    public function fetch_deposit_method_id(string $id, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit_method_id(...))($id, $params);
     }
 

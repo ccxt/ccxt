@@ -859,7 +859,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_sells(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch $sells
@@ -883,7 +883,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($sellsData, null, $since, $limit);
     }
 
-    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_buys(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch $buys
@@ -907,7 +907,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($buysData, null, $since, $limit);
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $request = null;
         list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         if ($this->markets === null) {
@@ -4457,7 +4457,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function deposit(string $code, float $amount, string $id, $params = array()) {
+    public function deposit(string $code, float $amount, string $id, $params = array()): array {
         /**
          * make a deposit
          *
@@ -4533,7 +4533,7 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
          *
@@ -4641,7 +4641,7 @@ class coinbase extends Exchange {
         return $this->parse_deposit_method_ids($result);
     }
 
-    public function fetch_deposit_method_id(string $id, $params = array()) {
+    public function fetch_deposit_method_id(string $id, $params = array()): array {
         /**
          * fetch the deposit $id for a fiat currency associated with this account
          *

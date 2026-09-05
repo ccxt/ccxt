@@ -900,7 +900,7 @@ class luno extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_state(...))($state, $symbol, $since, $limit, $params);
     }
 

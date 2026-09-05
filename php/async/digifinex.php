@@ -768,7 +768,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_v1($params = array()) {
+    public function fetch_markets_v1($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_v1(...))($params);
     }
 
@@ -2976,7 +2976,7 @@ class digifinex extends Exchange {
         return $address;
     }
 
-    public function fetch_transactions_by_type(mixed $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_by_type(mixed $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_by_type(...))($type, $code, $since, $limit, $params);
     }
 

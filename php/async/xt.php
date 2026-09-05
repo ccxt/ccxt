@@ -1129,7 +1129,7 @@ class xt extends Exchange {
         return $this->parse_markets($symbols);
     }
 
-    public function fetch_swap_and_future_markets($params = array()) {
+    public function fetch_swap_and_future_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_swap_and_future_markets(...))($params);
     }
 
@@ -2647,7 +2647,7 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2720,7 +2720,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_contract_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 

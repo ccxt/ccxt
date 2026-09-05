@@ -7481,7 +7481,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_derivatives_open_interest_history(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -8703,7 +8703,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_volatility_history(...))($code, $params);
     }
 
