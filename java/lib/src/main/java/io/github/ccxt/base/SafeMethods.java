@@ -85,16 +85,18 @@ public final class SafeMethods {
         return (res == null) ? 0L : res;
     }
 
-    public static Object SafeInteger(Object obj, Object key, Object... defaultValue) {
-        Long res = SafeIntegerN(obj, Arrays.asList(key), defaultValue);
-        return (res == null) ? null : res;
+    // Long or null on every path (SafeIntegerN converts the found value AND the
+    // default with toLongQuiet), so these are declared Long — never a primitive:
+    // an absent key must stay null.
+    public static Long SafeInteger(Object obj, Object key, Object... defaultValue) {
+        return SafeIntegerN(obj, Arrays.asList(key), defaultValue);
     }
 
-    public static Object SafeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public static Long SafeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeIntegerN(obj, Arrays.asList(key1, key2), defaultValue);
     }
 
-    public static Object safeIntegerN(Object obj, List<Object> keys, Object... defaultValue) {
+    public static Long safeIntegerN(Object obj, List<Object> keys, Object... defaultValue) {
         return SafeIntegerN(obj, keys, defaultValue);
     }
 

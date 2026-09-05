@@ -219,27 +219,57 @@ function predictionSourceFiles () {
 // ============================================================================
 
 
-// helper → Java type. Every entry MUST be a hand-written Java base method whose
+// accessor → Java type. Every entry MUST be a hand-written Java base method whose
 // runtime value is always an instance of that type (or null). Transpiled base
 // methods (safeBool/safeDict/safeList/safeNumber...) do NOT qualify: their Java
 // bodies return whatever the TS default argument was, boxed as Object.
 //
+// Two modes per family:
+//   - DIRECT: the BaseExchange forwarder is declared with the narrowed type, so
+//     the narrowed local needs no cast.
+//   - CAST: the forwarder is still declared `Object` (it hands a non-conforming
+//     default back untouched), so the local only narrows when the default is
+//     absent or provably of the target type, and the printed initializer gets a
+//     `(T)` cast — a checkcast on a T/null is free.
+//
+// Always the BOXED type (String/Long/Double), never a primitive: an absent key
+// yields null and unboxing null would NPE.
+//
 // SafeMethods.SafeStringTyped / safeString2 / SafeStringN coerce the found value to
 // String and drop a non-String default (`instanceof String s ? s : null`), so they
 // are String-or-null unconditionally — and `BaseExchange` declares them `String`.
-const STRING_ACCESSORS = new Set([
-    'safeString', 'safeString2', 'safeStringN',
-]);
+//
+// SafeMethods.SafeIntegerN / safeIntegerProduct convert the found value AND the
+// default with toLongQuiet, so they are Long-or-null unconditionally — and
+// `BaseExchange` declares safeInteger/safeInteger2/safeIntegerN/safeIntegerProduct
+// `Long`.
+//
+// SafeMethods.SafeFloatN converts the found value AND the default with
+// toDoubleQuiet — Double-or-null; `BaseExchange` declares safeFloat* `Double`.
+const DIRECT_ACCESSORS: { [name: string]: string } = {
+    'safeString': 'String', 'safeString2': 'String', 'safeStringN': 'String',
+    'safeInteger': 'Long', 'safeInteger2': 'Long', 'safeIntegerN': 'Long',
+    'safeIntegerProduct': 'Long',
+    'safeFloat': 'Double', 'safeFloat2': 'Double', 'safeFloatN': 'Double',
+};
 
-// SafeMethods.safeStringUpper* / safeStringLower* return the found value
-// `.toUpperCase()`d, but hand the DEFAULT back untouched (`Object`), so they stay
-// declared `Object` in Java and a narrowed local needs a `(String)` cast. They
-// classify only when the default is absent or provably a String; index of that
-// argument:
-const STRING_CASE_ACCESSORS: { [name: string]: number } = {
-    'safeStringUpper': 2, 'safeStringLower': 2,
-    'safeStringUpper2': 3, 'safeStringLower2': 3,
-    'safeStringUpperN': 2, 'safeStringLowerN': 2,
+// Object-declared families that return the found value converted to the target
+// type but hand the DEFAULT back untouched. They classify only when the default
+// argument is absent or provably of the target type; `defaultIndex` is the
+// position of that argument.
+//
+// safeStringUpper* / safeStringLower*: `.toUpperCase()`d String, default untouched.
+// safeTimestamp* / safeIntegerProduct2 / safeIntegerProductN: `(long)` product,
+// default untouched (SafeMethods.safeTimestampN / safeIntegerProduct2 / N).
+const CAST_ACCESSORS: { [name: string]: { type: string, defaultIndex: number } } = {
+    'safeStringUpper': { type: 'String', defaultIndex: 2 }, 'safeStringLower': { type: 'String', defaultIndex: 2 },
+    'safeStringUpper2': { type: 'String', defaultIndex: 3 }, 'safeStringLower2': { type: 'String', defaultIndex: 3 },
+    'safeStringUpperN': { type: 'String', defaultIndex: 2 }, 'safeStringLowerN': { type: 'String', defaultIndex: 2 },
+    'safeTimestamp': { type: 'Long', defaultIndex: 2 },
+    'safeTimestamp2': { type: 'Long', defaultIndex: 3 },
+    'safeTimestampN': { type: 'Long', defaultIndex: 2 },
+    'safeIntegerProduct2': { type: 'Long', defaultIndex: 4 },
+    'safeIntegerProductN': { type: 'Long', defaultIndex: 3 },
 };
 
 // hand-written base methods declared with a String return in Java
@@ -247,6 +277,13 @@ const STRING_CASE_ACCESSORS: { [name: string]: number } = {
 // reassignment keeps the local a String
 const STRING_RETURNING_BASE_METHODS = new Set([
     'iso8601', 'numberToString',
+]);
+
+// hand-written base methods declared `Long` in Java (BaseExchange.milliseconds /
+// seconds / parse8601) — used only to prove a later reassignment keeps the local
+// a Long
+const LONG_RETURNING_BASE_METHODS = new Set([
+    'milliseconds', 'seconds', 'parse8601',
 ]);
 
 // Precise.string* statics are declared `public static String` in Precise.java
@@ -270,65 +307,83 @@ function isThisOrSuperCall (node: any): boolean {
         && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
 
-// `this.safeString(...)` resolving to the base accessor in ts/src/base/functions/type.ts
-// (an exchange override would be transpiled with an `Object` return, so it must not classify)
-function isBaseStringAccessorCall (printer: any, node: any): boolean {
+// the Java type of `this.safeX(...)` when it resolves to a base accessor in
+// ts/src/base/functions/type.ts (an exchange override would be transpiled with an
+// `Object` return, so it must not classify), else undefined
+function baseAccessorType (printer: any, node: any): string | undefined {
     if (!isThisCall (node)) {
-        return false;
+        return undefined;
     }
     const name = node.expression.name.escapedText;
-    const defaultIndex = STRING_CASE_ACCESSORS[name];
-    if (!STRING_ACCESSORS.has (name) && defaultIndex === undefined) {
-        return false;
+    const direct = DIRECT_ACCESSORS[name];
+    const cast = CAST_ACCESSORS[name];
+    if (direct === undefined && cast === undefined) {
+        return undefined;
     }
     const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
     if (declaration === undefined || !ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
-        return false;
+        return undefined;
     }
-    if (defaultIndex !== undefined && node.arguments.length > defaultIndex) {
-        return isProvablyStringExpression (printer, node.arguments[defaultIndex], undefined);
+    if (direct !== undefined) {
+        return direct;
     }
-    return true;
+    if (node.arguments.length > cast.defaultIndex && !isProvablyOfType (printer, node.arguments[cast.defaultIndex], undefined, cast.type)) {
+        return undefined;
+    }
+    return cast.type;
 }
 
-// the Java cast a narrowed `safeString*` initializer/reassignment needs: none for
-// the String-declared accessors, `(String)` for the Object-declared case family
+// the Java cast a narrowed accessor initializer/reassignment needs: none for a
+// direct family, `(T)` for a cast family
 function accessorCast (node: any): string {
-    return (STRING_CASE_ACCESSORS[node.expression.name.escapedText] !== undefined) ? '(String)' : '';
+    const cast = CAST_ACCESSORS[node.expression.name.escapedText];
+    return (cast !== undefined) ? `(${cast.type})` : '';
 }
 
-// true when the printed Java for `node` is statically a String (or null).
+// true when the printed Java for `node` is statically a `javaType` (or null).
 // `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
 // is consistent with whatever type that local ends up with.
 //
 // A bare base accessor call is only accepted at the TOP level (`nested` false):
 // the declaration/reassignment hooks below handle exactly that shape (adding the
-// cast the case family needs). Inside a ternary arm a case-family call would print
-// uncast and javac rejects the conditional; the String-declared accessors would be
-// fine there, but that refinement is deliberately not made here so the set of
-// narrowed locals stays unchanged.
-function isProvablyStringExpression (printer: any, node: any, selfName: string | undefined, nested = false): boolean {
+// cast a cast family needs). Inside a ternary arm a cast-family call would print
+// uncast and javac rejects the conditional; the direct families would be fine
+// there, but that refinement is deliberately not made here so the set of
+// narrowed locals stays predictable.
+function isProvablyOfType (printer: any, node: any, selfName: string | undefined, javaType: string, nested = false): boolean {
     if (node === undefined) {
         return false;
     }
     switch (node.kind) {
-        case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
         case ts.SyntaxKind.NullKeyword:
             return true;
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return javaType === 'String';
+        case ts.SyntaxKind.NumericLiteral:
+            // the Java printer emits an integer literal as `int` (or `long` past
+            // 2^31-1) and a fractional one as `double`; only the exact box fits:
+            // `Long x = 5` does not compile (int → Long is not a boxing
+            // conversion), so a numeric literal never proves a Long/Double.
+            return false;
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            return false;
         case ts.SyntaxKind.Identifier:
             return node.escapedText === 'undefined' || node.escapedText === selfName;
         case ts.SyntaxKind.ParenthesizedExpression:
-            return isProvablyStringExpression (printer, node.expression, selfName, nested);
+            return isProvablyOfType (printer, node.expression, selfName, javaType, nested);
         case ts.SyntaxKind.ConditionalExpression:
-            return isProvablyStringExpression (printer, node.whenTrue, selfName, true) && isProvablyStringExpression (printer, node.whenFalse, selfName, true);
+            return isProvablyOfType (printer, node.whenTrue, selfName, javaType, true) && isProvablyOfType (printer, node.whenFalse, selfName, javaType, true);
         case ts.SyntaxKind.BinaryExpression:
-            // `'lit' + x` prints Helpers.add(String, Object) → String
-            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+            // `'lit' + x` prints Helpers.add(String, Object) → String; every other
+            // arithmetic form prints Helpers.add/subtract/... → Object
+            return javaType === 'String'
+                && node.operatorToken.kind === ts.SyntaxKind.PlusToken
                 && (node.left.kind === ts.SyntaxKind.StringLiteral || node.left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
         case ts.SyntaxKind.CallExpression: {
-            if (isBaseStringAccessorCall (printer, node)) {
-                return !nested;
+            const accessorType = baseAccessorType (printer, node);
+            if (accessorType !== undefined) {
+                return !nested && accessorType === javaType;
             }
             const callee = node.expression;
             if (!ts.isPropertyAccessExpression (callee)) {
@@ -337,9 +392,16 @@ function isProvablyStringExpression (printer: any, node: any, selfName: string |
             // escapedText is a branded `__String` on the typed node; it is a plain string at runtime
             const method = String (callee.name.escapedText);
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return STRING_RETURNING_BASE_METHODS.has (method);
+                if (javaType === 'String') {
+                    return STRING_RETURNING_BASE_METHODS.has (method);
+                }
+                if (javaType === 'Long') {
+                    return LONG_RETURNING_BASE_METHODS.has (method);
+                }
+                return false;
             }
-            return callee.expression.kind === ts.SyntaxKind.Identifier
+            return javaType === 'String'
+                && callee.expression.kind === ts.SyntaxKind.Identifier
                 && (callee.expression as any).escapedText === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
@@ -401,8 +463,99 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
         && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
 }
 
+// hand-written base methods reachable as `this.x(...)` whose Java return is NOT
+// `Object`: a primitive (`int`/`long`) or a boxed numeric. As a ternary sibling
+// of a boxed local either one can turn the conditional numeric (JLS 15.25),
+// which unboxes the local — NPE on null. Every other `this.x(...)` prints as
+// Object (transpiled) or String (a reference conditional either way).
+const NON_OBJECT_RETURNING_BASE_METHODS: { [name: string]: string } = {
+    'microseconds': 'long', 'parseTimeframe': 'int', 'precisionFromString': 'int',
+    'binaryLength': 'int', 'randNumber': 'int', 'calculateWsBackoffDelay': 'int',
+    'milliseconds': 'Long', 'seconds': 'Long', 'parse8601': 'Long', 'toDydxLong': 'Long',
+    'parseNumber': 'Double',
+};
+
+// the other arm of `c ? x : <sibling>` when `x` is a Long/Double local. Safe only
+// when the sibling provably prints as an expression that keeps the conditional a
+// reference conditional of the same box, or a non-numeric reference (JLS 15.25:
+// no binary numeric promotion, so `x` is never unboxed and the result stays a
+// reference): `null`, `undefined`, a String/object/array literal, an element
+// access (`Helpers.GetValue` → Object), a `this.` call returning Object or the
+// SAME box, a `Precise.` static (String/boolean), the local itself, or another
+// local initialized from a same-typed base accessor. A numeric literal (`int`),
+// an unknown identifier (an `int` loop counter, another box), `x.length` (`int`),
+// `Math.*` (`double`) or a different-box call (`this.parseNumber` → Double next
+// to a Long) is rejected.
+function isSafeTernarySibling (printer: any, sibling: any, selfName: string, javaType: string): boolean {
+    while (ts.isParenthesizedExpression (sibling) || ts.isAsExpression (sibling)) {
+        sibling = sibling.expression;
+    }
+    switch (sibling.kind) {
+        case ts.SyntaxKind.NullKeyword:
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case ts.SyntaxKind.ObjectLiteralExpression:
+        case ts.SyntaxKind.ArrayLiteralExpression:
+        case ts.SyntaxKind.ElementAccessExpression:
+            return true;
+        case ts.SyntaxKind.Identifier: {
+            if (sibling.escapedText === 'undefined' || sibling.escapedText === selfName) {
+                return true;
+            }
+            // another local whose initializer is a same-typed base accessor: it is
+            // either narrowed to the same box or left `Object` — safe either way
+            const declaration = printer.getChecker ().getSymbolAtLocation (sibling)?.valueDeclaration;
+            if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+                return false;
+            }
+            let initializer = declaration.initializer;
+            while (ts.isParenthesizedExpression (initializer)) {
+                initializer = initializer.expression;
+            }
+            return baseAccessorType (printer, initializer) === javaType;
+        }
+        case ts.SyntaxKind.CallExpression: {
+            const callee = sibling.expression;
+            if (!ts.isPropertyAccessExpression (callee)) {
+                return false;
+            }
+            const method = String (callee.name.escapedText);
+            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
+                const accessorType = baseAccessorType (printer, sibling);
+                if (accessorType !== undefined) {
+                    return accessorType === javaType;
+                }
+                const returnType = NON_OBJECT_RETURNING_BASE_METHODS[method];
+                return returnType === undefined || returnType === javaType;
+            }
+            // `Precise.string*` statics print String/boolean (a reference conditional
+            // either way); every other non-`this` callee is rejected — `x.indexOf()`
+            // prints `Helpers.getIndexOf` → int, `Math.*` → double, and so on
+            return ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Precise';
+        }
+        case ts.SyntaxKind.ConditionalExpression:
+            return isSafeTernarySibling (printer, sibling.whenTrue, selfName, javaType)
+                && isSafeTernarySibling (printer, sibling.whenFalse, selfName, javaType);
+        default:
+            return false;
+    }
+}
+
+// is `n` the key of `delete obj[n]`, looking through `(n as number)` / `(n)`: the
+// Java printer emits `.remove((String)key)`, which does not compile for a Long
+function isDeleteKey (n: any): boolean {
+    let child = n;
+    let current = n.parent;
+    while (current !== undefined && (ts.isParenthesizedExpression (current) || ts.isAsExpression (current))) {
+        child = current;
+        current = current.parent;
+    }
+    return current !== undefined && ts.isElementAccessExpression (current) && current.argumentExpression === child
+        && current.parent !== undefined && ts.isDeleteExpression (current.parent);
+}
+
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean): boolean {
+function isSafeToNarrow (printer: any, declaration: any, sourceName: string, javaType: string, isProFile: boolean): boolean {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -438,10 +591,32 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
+        if (javaType !== 'String' && isDeleteKey (n)) {
+            return false; // `delete obj[x]` prints `.remove((String)x)`: inconvertible for a Long/Double
+        }
+        if (javaType !== 'String') {
+            // `c ? x : 0` with a Long `x` is a NUMERIC conditional in Java (JLS 15.25:
+            // binary numeric promotion unboxes `x` — NPE on null, and the result
+            // box changes from Integer to Long). Keep the local `Object` unless the
+            // sibling arm provably prints as a reference type that does not promote.
+            // Looks through `(x)` / `(x as number)` so a wrapped arm is caught too.
+            let arm = n;
+            let ternary = parent;
+            while (ternary !== undefined && (ts.isParenthesizedExpression (ternary) || ts.isAsExpression (ternary))) {
+                arm = ternary;
+                ternary = ternary.parent;
+            }
+            if (ternary !== undefined && ts.isConditionalExpression (ternary) && ternary.condition !== arm) {
+                const sibling = (ternary.whenTrue === arm) ? ternary.whenFalse : ternary.whenTrue;
+                if (!isSafeTernarySibling (printer, sibling, sourceName, javaType)) {
+                    return false;
+                }
+            }
+        }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                if (!isProvablyStringExpression (printer, parent.right, sourceName)) {
+                if (!isProvablyOfType (printer, parent.right, sourceName, javaType)) {
                     return false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
@@ -449,11 +624,11 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
             }
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
-        // (`Ticker fetchTicker(String symbol)`) would win Java overload resolution
-        // over the `Object...` core once an argument expression is a String. Keep
-        // any local that feeds such a call `Object` (directly or nested — e.g.
-        // `Helpers.add(String, String)` also returns String) so the call keeps
-        // binding to the core.
+        // (`Ticker fetchTicker(String symbol)` / `OrderBook fetchOrderBook(String, Long)`)
+        // would win Java overload resolution over the `Object...` core once an
+        // argument expression is a String/Long. Keep any local that feeds such a
+        // call `Object` (directly or nested — e.g. `Helpers.add(String, String)`
+        // also returns String) so the call keeps binding to the core.
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
             return false;
         }
@@ -489,7 +664,8 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
     while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
         initializer = initializer.expression;
     }
-    if (!isBaseStringAccessorCall (printer, initializer)) {
+    const javaType = baseAccessorType (printer, initializer);
+    if (javaType === undefined) {
         return undefined;
     }
     if (!ts.isIdentifier (declaration.name)) {
@@ -499,10 +675,10 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile)) {
+    if (!isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile)) {
         return undefined;
     }
-    return 'String';
+    return javaType;
 }
 
 export function patchJavaLocalTypes (transpiler: any): void {
@@ -544,9 +720,9 @@ export function patchJavaLocalTypes (transpiler: any): void {
         }
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${accessorCast (initializer)}${value}`;
     };
-    // `x = this.safeStringUpper(...)` on a narrowed local: the case family is
-    // declared `Object` in Java, so the reassignment needs the same cast the
-    // declaration got (a String-declared accessor needs none)
+    // `x = this.safeStringUpper(...)` / `x = this.safeTimestamp(...)` on a narrowed
+    // local: the cast families are declared `Object` in Java, so the reassignment
+    // needs the same cast the declaration got (a direct family needs none)
     const originalBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node: any, identation: number) {
         const printed = originalBinary (node, identation);
@@ -557,7 +733,7 @@ export function patchJavaLocalTypes (transpiler: any): void {
         while (ts.isParenthesizedExpression (right)) {
             right = right.expression;
         }
-        if (!isBaseStringAccessorCall (printer, right)) {
+        if (baseAccessorType (printer, right) === undefined) {
             return printed;
         }
         const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
