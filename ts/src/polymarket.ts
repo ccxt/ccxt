@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/polymarket.js';
 import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, RateLimitExceeded, ExchangeNotAvailable, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, OperationFailed, OnMaintenance, RequestTimeout, InvalidNonce } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, TRUNCATE, SIGNIFICANT_DIGITS } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import type { Dict, Int, Str, Strings, Num, Market, Currencies, Currency, NullableDict, Ticker, Tickers, OrderBook, Trade, OHLCV, FundingRate, FundingRates, FundingRateHistory, OpenInterest, OpenInterests, TradingFees, Status, List, Endpoint, int, Order, OrderType, OrderSide, OrderRequest, Balances, Position, Transaction, FundingHistory, Leverage, MarginMode, MarginModification } from './base/types.js';
@@ -1229,7 +1229,7 @@ export default class polymarket extends Exchange {
         if ((triggerPrice !== undefined) || (attached !== undefined)) {
             throw new NotSupported (this.id + ' createOrder() does not support trigger or attached stop orders yet');
         }
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = this.safeSymbol (undefined, market);
         const isMarketOrder = (type === 'market');
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
         const isPostOnlyTimeInForce = (timeInForce === 'PO');
@@ -2712,6 +2712,21 @@ export default class polymarket extends Exchange {
             }
         }
         return result;
+    }
+
+    override priceToPrecision (symbol: Str, price: any): Str {
+        // the venue caps prices at five significant figures on top of the
+        // per-instrument decimal precision
+        const market = this.market (symbol);
+        const significant = this.decimalToPrecision (price, ROUND, 5, SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (significant, ROUND, market['precision']['price'], TICK_SIZE);
+    }
+
+    override amountToPrecision (symbol: Str, amount: any): Str {
+        // quantities carry the same five significant figures cap
+        const market = this.market (symbol);
+        const significant = this.decimalToPrecision (amount, TRUNCATE, 5, SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (significant, TRUNCATE, market['precision']['amount'], TICK_SIZE);
     }
 
     override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
