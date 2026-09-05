@@ -2,7 +2,6 @@
 <?php
 
 include './ccxt.php';
-include 'Console/Table.php'; // pear-install it from here: https://pear.php.net/package/Console_Table/
 
 date_default_timezone_set('UTC');
 
@@ -27,11 +26,37 @@ function flatten ($array) {
     }, []);
 }
 
+// renders a plain ASCII table: +---+ rules, left-aligned padded cells
 function tabulate ($headers, $rows) {
-    $tbl = new Console_Table();
-    $tbl->setHeaders ($headers);
-    $tbl->addData ($rows);
-    return $tbl->getTable ();
+    $widths = array ();
+    foreach ($headers as $i => $header) {
+        $widths[$i] = strlen ((string) $header);
+    }
+    foreach ($rows as $row) {
+        foreach (array_values ($row) as $i => $cell) {
+            $length = strlen ((string) $cell);
+            if (!isset ($widths[$i]) || ($length > $widths[$i])) {
+                $widths[$i] = $length;
+            }
+        }
+    }
+    $rule = '+';
+    foreach ($widths as $width) {
+        $rule .= str_repeat ('-', $width + 2) . '+';
+    }
+    $format_row = function ($cells) use ($widths) {
+        $line = '|';
+        foreach ($widths as $i => $width) {
+            $cell = isset ($cells[$i]) ? (string) $cells[$i] : '';
+            $line .= ' ' . str_pad ($cell, $width) . ' |';
+        }
+        return $line;
+    };
+    $table = $rule . "\n" . $format_row (array_values ($headers)) . "\n" . $rule . "\n";
+    foreach ($rows as $row) {
+        $table .= $format_row (array_values ($row)) . "\n";
+    }
+    return $table . $rule . "\n";
 }
 
 function pairs_table_helper ($pair) {
