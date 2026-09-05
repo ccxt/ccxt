@@ -52,7 +52,7 @@ interface Exchange {
     tradePatchTradeAutoCancel (params?: {}): Promise<Dict>;
     tradeDeleteTradeOrders (params?: {}): Promise<List>;
     tradeDeleteTradeOrdersCoid (params?: {}): Promise<List>;
-    tradeDeleteTradeOrdersAll (params?: {}): Promise<List>;
+    tradeDeleteTradeOrdersAll (params?: {}): Promise<Dict>;
     tradeDeleteAccountProxy (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}

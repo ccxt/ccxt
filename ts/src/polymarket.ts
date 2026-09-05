@@ -1486,7 +1486,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list with the raw acknowledgement of the venue
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const args: Dict = {};
         let signableArgs: any[] = [];
@@ -2557,7 +2557,12 @@ export default class polymarket extends Exchange {
      */
     async createProxyCredentials (params = {}): Promise<Dict> {
         this.checkRequiredCredentials ();
-        const proxyPrivateKey = this.randomBytes (32);
+        // the session key derives from an ecdsa signature under the wallet
+        // key over a timestamped nonce - unpredictable without the wallet
+        // secret and unique per provisioning, the paradex stark-key idiom
+        const nonceMessage = 'polymarket-perps-proxy:' + this.milliseconds ().toString () + ':' + this.randNumber (9).toString ();
+        const seedSignature = this.signMessage (nonceMessage, this.privateKey);
+        const proxyPrivateKey = this.hash (this.encode (seedSignature), keccak, 'hex');
         const proxyAddress = this.ethGetAddressFromPrivateKey (proxyPrivateKey);
         const owner = this.ethGetAddressFromPrivateKey (this.privateKey);
         const ts = this.milliseconds ();
