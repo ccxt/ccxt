@@ -188,28 +188,28 @@ public final class SafeMethods {
         return (opt(defaultValue) instanceof String s) ? s : null;
     }
 
-    public static Object SafeString(Object obj, Object key, Object... defaultValue) {
+    public static String SafeString(Object obj, Object key, Object... defaultValue) {
         return SafeStringTyped(obj, key, defaultValue);
     }
 
-    public static Object safeString(Object obj, Object key, Object... defaultValue) {
+    public static String safeString(Object obj, Object key, Object... defaultValue) {
         return SafeStringTyped(obj, key, defaultValue);
     }
 
-    public static Object safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
-        Object result = SafeStringTyped(obj, key1);
+    public static String safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        String result = SafeStringTyped(obj, key1);
         return (result != null) ? result :  SafeStringTyped(obj, key2, defaultValue);
     }
 
-    public static Object safeStringN(Object obj, Object keys, Object... defaultValue) {
+    public static String safeStringN(Object obj, Object keys, Object... defaultValue) {
         return SafeStringN(obj, (List<Object>) keys, defaultValue);
     }
 
-    public static Object SafeStringN(Object obj, Object keys, Object... defaultValue) {
+    public static String SafeStringN(Object obj, Object keys, Object... defaultValue) {
         return SafeStringN(obj, (List<Object>) keys, defaultValue);
     }
 
-    public static Object SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
+    public static String SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
         Object result = SafeValueN(obj, keys);
         if (result != null) {
             if (result instanceof String s) {

@@ -199,12 +199,14 @@ function predictionSourceFiles () {
 //
 //     Object price = this.safeString(ticker, "price");
 // becomes
-//     String price = (String)this.safeString(ticker, "price");
+//     String price = this.safeString(ticker, "price");
 //
-// `BaseExchange.safeString*` is hand-written and delegates to `SafeMethods`, whose
-// bodies return a `String` or `null` on every path, but its declared return type is
-// `Object`, so the cast is what lets javac accept the narrowed declaration (a
-// checkcast on a String/null is free). Boxed `String`, never a primitive: an absent
+// `BaseExchange.safeString / safeString2 / safeStringN` are hand-written, delegate
+// to `SafeMethods`, and are DECLARED `String` (their bodies return a `String` or
+// null on every path), so the narrowed declaration needs no cast. The
+// `safeStringUpper* / safeStringLower*` family is still declared `Object` (it hands
+// a non-String default back untouched), so those keep a `(String)` cast — a
+// checkcast on a String/null is free. Boxed `String`, never a primitive: an absent
 // key yields null.
 //
 // It is applied as a monkey-patch on `transpiler.javaTranspiler` from BOTH the
@@ -224,14 +226,16 @@ function predictionSourceFiles () {
 //
 // SafeMethods.SafeStringTyped / safeString2 / SafeStringN coerce the found value to
 // String and drop a non-String default (`instanceof String s ? s : null`), so they
-// are String-or-null unconditionally.
+// are String-or-null unconditionally — and `BaseExchange` declares them `String`.
 const STRING_ACCESSORS = new Set([
     'safeString', 'safeString2', 'safeStringN',
 ]);
 
 // SafeMethods.safeStringUpper* / safeStringLower* return the found value
-// `.toUpperCase()`d, but hand the DEFAULT back untouched (`Object`). They classify
-// only when the default is absent or provably a String; index of that argument:
+// `.toUpperCase()`d, but hand the DEFAULT back untouched (`Object`), so they stay
+// declared `Object` in Java and a narrowed local needs a `(String)` cast. They
+// classify only when the default is absent or provably a String; index of that
+// argument:
 const STRING_CASE_ACCESSORS: { [name: string]: number } = {
     'safeStringUpper': 2, 'safeStringLower': 2,
     'safeStringUpper2': 3, 'safeStringLower2': 3,
@@ -287,14 +291,22 @@ function isBaseStringAccessorCall (printer: any, node: any): boolean {
     return true;
 }
 
+// the Java cast a narrowed `safeString*` initializer/reassignment needs: none for
+// the String-declared accessors, `(String)` for the Object-declared case family
+function accessorCast (node: any): string {
+    return (STRING_CASE_ACCESSORS[node.expression.name.escapedText] !== undefined) ? '(String)' : '';
+}
+
 // true when the printed Java for `node` is statically a String (or null).
 // `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
 // is consistent with whatever type that local ends up with.
 //
 // A bare base accessor call is only accepted at the TOP level (`nested` false):
-// the accessor is declared `Object` in Java, and the reassignment hook below casts
-// exactly that shape (`x = (String)this.safeString(...)`). Inside a ternary arm
-// the same call would print uncast and javac rejects the conditional.
+// the declaration/reassignment hooks below handle exactly that shape (adding the
+// cast the case family needs). Inside a ternary arm a case-family call would print
+// uncast and javac rejects the conditional; the String-declared accessors would be
+// fine there, but that refinement is deliberately not made here so the set of
+// narrowed locals stays unchanged.
 function isProvablyStringExpression (printer: any, node: any, selfName: string | undefined, nested = false): boolean {
     if (node === undefined) {
         return false;
@@ -526,10 +538,15 @@ export function patchJavaLocalTypes (transpiler: any): void {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, javaType);
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = (${javaType})${value}`;
+        let initializer = declaration.initializer;
+        while (ts.isParenthesizedExpression (initializer)) {
+            initializer = initializer.expression;
+        }
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${accessorCast (initializer)}${value}`;
     };
-    // `x = this.safeString(...)` on a narrowed local: the accessor is declared
-    // `Object` in Java, so the reassignment needs the same cast the declaration got
+    // `x = this.safeStringUpper(...)` on a narrowed local: the case family is
+    // declared `Object` in Java, so the reassignment needs the same cast the
+    // declaration got (a String-declared accessor needs none)
     const originalBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node: any, identation: number) {
         const printed = originalBinary (node, identation);
@@ -549,13 +566,17 @@ export function patchJavaLocalTypes (transpiler: any): void {
         if (javaType === undefined) {
             return printed;
         }
+        const cast = accessorCast (right);
+        if (cast === '') {
+            return printed;
+        }
         const marker = `${printer.printNode (node.left, 0)} = this.`;
         const at = printed.indexOf (marker);
         if (at === -1) {
             return printed;
         }
         const head = at + marker.length - 'this.'.length;
-        return printed.slice (0, head) + `(${javaType})` + printed.slice (head);
+        return printed.slice (0, head) + cast + printed.slice (head);
     };
     printer._localTypesPatched = true;
 }
