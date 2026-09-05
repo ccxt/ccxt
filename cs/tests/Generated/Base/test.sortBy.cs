@@ -13,7 +13,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object arr = new List<object>() {new Dictionary<string, object>() {
+            List<object> arr = new List<object>() {new Dictionary<string, object>() {
             { "x", 5 },
         }, new Dictionary<string, object>() {
             { "x", 2 },
@@ -57,7 +57,7 @@ public partial class BaseTest
             object emptyArray = exchange.sortBy(new List<object>() {}, "x");
             AssertDeepEqual(exchange, null, "sortBy", emptyArray, new List<object>() {});
             // regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
-            object arrTwoDigits = new List<object>() {new Dictionary<string, object>() {
+            List<object> arrTwoDigits = new List<object>() {new Dictionary<string, object>() {
             { "x", 10 },
         }, new Dictionary<string, object>() {
             { "x", 1 },
@@ -107,7 +107,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // sort ascending by key1, then key2 (key1 values are all distinct here)
-            object arr = new List<object>() {new Dictionary<string, object>() {
+            List<object> arr = new List<object>() {new Dictionary<string, object>() {
             { "x", 3 },
             { "y", 1 },
         }, new Dictionary<string, object>() {
@@ -135,7 +135,7 @@ public partial class BaseTest
             { "y", 1 },
         }});
             // sort descending by key1
-            object arr2 = new List<object>() {new Dictionary<string, object>() {
+            List<object> arr2 = new List<object>() {new Dictionary<string, object>() {
             { "x", 3 },
             { "y", 1 },
         }, new Dictionary<string, object>() {
@@ -163,7 +163,7 @@ public partial class BaseTest
             { "y", 4 },
         }});
             // when key1 values are equal, sort by key2 ascending
-            object arr3 = new List<object>() {new Dictionary<string, object>() {
+            List<object> arr3 = new List<object>() {new Dictionary<string, object>() {
             { "x", 1 },
             { "y", 5 },
         }, new Dictionary<string, object>() {
@@ -191,7 +191,7 @@ public partial class BaseTest
             { "y", 9 },
         }});
             // when key1 values are equal, sort by key2 descending
-            object arr4 = new List<object>() {new Dictionary<string, object>() {
+            List<object> arr4 = new List<object>() {new Dictionary<string, object>() {
             { "x", 1 },
             { "y", 5 },
         }, new Dictionary<string, object>() {
@@ -219,7 +219,7 @@ public partial class BaseTest
             { "y", 1 },
         }});
             // mixed: sort by key1 first, then key2 as tiebreaker
-            object arr5 = new List<object>() {new Dictionary<string, object>() {
+            List<object> arr5 = new List<object>() {new Dictionary<string, object>() {
             { "x", 2 },
             { "y", 3 },
         }, new Dictionary<string, object>() {

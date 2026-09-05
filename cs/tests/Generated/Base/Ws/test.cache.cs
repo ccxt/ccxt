@@ -90,29 +90,29 @@ public partial class BaseTest
         // ----------------------------------------------------------------------------
         
             var timestampCache = new ArrayCacheByTimestamp();
-            object ohlcv1 = new List<object>() {100, 1, 2, 3};
-            object ohlcv2 = new List<object>() {200, 5, 6, 7};
+            List<object> ohlcv1 = new List<object>() {100, 1, 2, 3};
+            List<object> ohlcv2 = new List<object>() {200, 5, 6, 7};
             timestampCache.append(ohlcv1);
             timestampCache.append(ohlcv2);
             Assert(equals(timestampCache, new List<object>() {ohlcv1, ohlcv2}));
-            object modify2 = new List<object>() {200, 10, 11, 12};
+            List<object> modify2 = new List<object>() {200, 10, 11, 12};
             timestampCache.append(modify2);
             Assert(equals(timestampCache, new List<object>() {ohlcv1, modify2}));
             
         // ----------------------------------------------------------------------------
         
             var cacheSymbolId = new ArrayCacheBySymbolById();
-            object object1 = new Dictionary<string, object>() {
+            Dictionary<string, object> object1 = new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "abcdef" },
                 { "i", 1 },
             };
-            object object2 = new Dictionary<string, object>() {
+            Dictionary<string, object> object2 = new Dictionary<string, object>() {
                 { "symbol", "ETH/USDT" },
                 { "id", "qwerty" },
                 { "i", 2 },
             };
-            object object3 = new Dictionary<string, object>() {
+            Dictionary<string, object> object3 = new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "abcdef" },
                 { "i", 3 },
@@ -183,7 +183,7 @@ public partial class BaseTest
             { "id", "10" },
             { "i", 20 },
         }}));
-            object middle = new Dictionary<string, object>() {
+            Dictionary<string, object> middle = new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "8" },
                 { "i", 28 },
@@ -210,7 +210,7 @@ public partial class BaseTest
             { "id", "8" },
             { "i", 28 },
         }}));
-            object otherMiddle = new Dictionary<string, object>() {
+            Dictionary<string, object> otherMiddle = new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "7" },
                 { "i", 27 },
@@ -266,7 +266,7 @@ public partial class BaseTest
             { "id", "32" },
             { "i", 42 },
         }}));
-            object first = new Dictionary<string, object>() {
+            Dictionary<string, object> first = new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "8" },
                 { "i", 38 },
@@ -293,7 +293,7 @@ public partial class BaseTest
             { "id", "8" },
             { "i", 38 },
         }}));
-            object another = new Dictionary<string, object>() {
+            Dictionary<string, object> another = new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "30" },
                 { "i", 50 },
@@ -326,7 +326,7 @@ public partial class BaseTest
             // test ArrayCacheBySymbolById limit with symbol set
             string symbol = "BTC/USDT";
             var cacheSymbolId2 = new ArrayCacheBySymbolById();
-            object initialLength = 5;
+            int initialLength = 5;
             for (object i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
             {
                 cacheSymbolId2.append(new Dictionary<string, object>() {
@@ -341,7 +341,7 @@ public partial class BaseTest
         // ----------------------------------------------------------------------------
         
             var cacheSymbolId3 = new ArrayCacheBySymbolById();
-            object appendItemsLength = 3;
+            int appendItemsLength = 3;
             for (object i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
             {
                 cacheSymbolId3.append(new Dictionary<string, object>() {
@@ -350,7 +350,7 @@ public partial class BaseTest
                     { "i", i },
                 });
             }
-            object outsideLimit = 5;
+            int outsideLimit = 5;
             limited = cacheSymbolId3.getLimit(symbol, outsideLimit);
             Assert(isEqual(appendItemsLength, limited));
             outsideLimit = 2; // if limit < newsUpdate that should be returned

@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
                 { "symbol", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "123" },
             { "clientOrderId", "1234" },
@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
             { "fee", new Dictionary<string, object>() {} },
             { "trades", new List<object>() {} },
         };
-        object emptyAllowedFor = new List<object>() {"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"}; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+        List<object> emptyAllowedFor = new List<object>() {"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"}; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         //

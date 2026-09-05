@@ -83,7 +83,7 @@ public partial class testMainClass : BaseTest
         bool isQuanto = isTrue((!isEqual(quanto, null))) && isTrue(quanto);
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
-        object emptyAllowedFor = new List<object>() {"margin"};
+        List<object> emptyAllowedFor = new List<object>() {"margin"};
         if (isTrue(!isEqual(contract, true)))
         {
             ((IList<object>)emptyAllowedFor).Add("contractSize");
@@ -133,13 +133,13 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "prediction", "other"};
+        List<object> validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "prediction", "other"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
-        object validSubTypes = new List<object>() {"linear", "inverse", "quanto", null};
+        List<object> validSubTypes = new List<object>() {"linear", "inverse", "quanto", null};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        object checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
+        List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
         for (object i = 0; isLessThan(i, getArrayLength(checkedTypes)); postFixIncrement(ref i))
         {
             object type = getValue(checkedTypes, i);
@@ -151,7 +151,7 @@ public partial class testMainClass : BaseTest
         // check if 'subType' is consistent
         if (isTrue(isTrue((isEqual(swap, true))) || isTrue((isEqual(future, true)))))
         {
-            object checkedSubTypes = new List<object>() {"linear", "inverse"};
+            List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
             for (object i = 0; isLessThan(i, getArrayLength(checkedSubTypes)); postFixIncrement(ref i))
             {
                 object subType = getValue(checkedSubTypes, i);
@@ -266,7 +266,7 @@ public partial class testMainClass : BaseTest
             bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
             bool isPrice = isEqual(priceOrAmountKey, "price");
-            object isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
+            bool isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
             if (isTrue(isTrue(isTrue(isTrue(isNonSpot) && isTrue(isPrice)) && isTrue(isExclusivePair)) && isTrue(isTickSize5)))
             {
                 continue;

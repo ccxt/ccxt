@@ -443,8 +443,8 @@ public partial class delta : Exchange
         object settle = quote;
         object strike = this.safeString(optionParts, 2);
         object datetime = this.convertExpireDate(expiry);
-        object timestamp = this.parse8601(datetime);
-        object optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
+        Int64? timestamp = this.parse8601(datetime);
+        string optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(optionType, "-"), bs), "-"), strike), "-"), expiry) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
@@ -583,9 +583,9 @@ public partial class delta : Exchange
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object underMaintenance = this.safeString(result, "under_maintenance");
-        object status = ((bool) isTrue((isEqual(underMaintenance, "true")))) ? "maintenance" : "ok";
-        object updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
+        string? underMaintenance = this.safeString(result, "under_maintenance");
+        string status = ((bool) isTrue((isEqual(underMaintenance, "true")))) ? "maintenance" : "ok";
+        Int64? updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", updated },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -655,15 +655,15 @@ public partial class delta : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object id = this.safeString(rawCurrency, "symbol");
-        object numericId = this.safeInteger(rawCurrency, "id");
+        string? id = this.safeString(rawCurrency, "symbol");
+        Int64? numericId = this.safeInteger(rawCurrency, "id");
         object code = this.safeCurrencyCode(id);
         object chains = this.safeList(rawCurrency, "networks", new List<object>() {});
-        object networks = new Dictionary<string, object>() {};
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
-            object networkId = this.safeString(chain, "network");
+            string? networkId = this.safeString(chain, "network");
             object networkCode = this.networkIdToCode(networkId, code);
             if (isTrue(!isEqual(networkCode, null)))
             {
@@ -735,7 +735,7 @@ public partial class delta : Exchange
 
     public virtual object indexByStringifiedNumericId(object input)
     {
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         if (isTrue(isEqual(input, null)))
         {
             return null;
@@ -745,7 +745,7 @@ public partial class delta : Exchange
         {
             object key = getValue(keys, i);
             object item = getValue(input, key);
-            object numericIdString = this.safeString(item, "numericId");
+            string? numericIdString = this.safeString(item, "numericId");
             if (isTrue(isEqual(numericIdString, null)))
             {
                 continue;
@@ -946,11 +946,11 @@ public partial class delta : Exchange
         //     }
         //
         object markets = this.safeList(response, "result", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object type = this.safeString(market, "contract_type");
+            string? type = this.safeString(market, "contract_type");
             if (isTrue(isTrue(isTrue((isEqual(type, "options_combos"))) || isTrue((isEqual(type, "binary_call_options")))) || isTrue((isEqual(type, "binary_put_options")))))
             {
                 continue;
@@ -960,11 +960,11 @@ public partial class delta : Exchange
             object underlyingAsset = this.safeDict(market, "underlying_asset", new Dictionary<string, object>() {});
             object settlingAsset = this.safeDict(market, "settling_asset");
             object productSpecs = this.safeDict(market, "product_specs", new Dictionary<string, object>() {});
-            object baseId = this.safeString(underlyingAsset, "symbol");
-            object quoteId = this.safeString(quotingAsset, "symbol");
-            object settleId = this.safeString(settlingAsset, "symbol");
-            object id = this.safeString(market, "symbol");
-            object numericId = this.safeInteger(market, "id");
+            string? baseId = this.safeString(underlyingAsset, "symbol");
+            string? quoteId = this.safeString(quotingAsset, "symbol");
+            string? settleId = this.safeString(settlingAsset, "symbol");
+            string? id = this.safeString(market, "symbol");
+            Int64? numericId = this.safeInteger(market, "id");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
@@ -976,8 +976,8 @@ public partial class delta : Exchange
             bool future = (isEqual(type, "futures"));
             bool option = (isTrue(isTrue(callOptions) || isTrue(putOptions)) || isTrue(moveOptions));
             object strike = this.safeString(market, "strike_price");
-            object expiryDatetime = this.safeString(market, "settlement_time");
-            object expiry = this.parse8601(expiryDatetime);
+            string? expiryDatetime = this.safeString(market, "settlement_time");
+            Int64? expiry = this.parse8601(expiryDatetime);
             object contractSize = this.safeNumber(market, "contract_value");
             object amountPrecision = null;
             if (isTrue(spot))
@@ -989,7 +989,7 @@ public partial class delta : Exchange
                 amountPrecision = this.parseNumber("1");
             }
             bool linear = (isEqual(settle, quote));
-            object optionType = null;
+            string? optionType = null;
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(isTrue(isTrue(swap) || isTrue(future)) || isTrue(option)))
             {
@@ -1021,7 +1021,7 @@ public partial class delta : Exchange
                     type = "swap";
                 }
             }
-            object state = this.safeString(market, "state");
+            string? state = this.safeString(market, "state");
             ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", numericId },
@@ -1195,16 +1195,16 @@ public partial class delta : Exchange
         //         "turnover_symbol": "USDT"
         //     }
         //
-        object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
-        object marketId = this.safeString(ticker, "symbol");
+        Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
+        string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object last = this.safeString(ticker, "close");
+        string? last = this.safeString(ticker, "close");
         object quotes = this.safeDict(ticker, "quotes", new Dictionary<string, object>() {});
         // turnover_symbol names the currency turnover is denominated in, and on
         // spot markets that is the base currency rather than the quote
-        object turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
-        object quoteId = this.safeStringUpper(market, "quoteId");
+        string? turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
+        string? quoteId = this.safeStringUpper(market, "quoteId");
         bool baseDenominated = isTrue(isTrue((!isEqual(turnoverSymbol, null))) && isTrue((!isEqual(quoteId, null)))) && isTrue((!isEqual(turnoverSymbol, quoteId)));
         object quoteVolume = ((bool) isTrue(baseDenominated)) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1247,7 +1247,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
@@ -1525,11 +1525,11 @@ public partial class delta : Exchange
         //     }
         //
         object tickers = this.safeList(response, "result", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(tickers, i);
-            object contractType = this.safeString(rawTicker, "contract_type");
+            string? contractType = this.safeString(rawTicker, "contract_type");
             if (isTrue(isTrue(isTrue((isEqual(contractType, "options_combos"))) || isTrue((isEqual(contractType, "binary_call_options")))) || isTrue((isEqual(contractType, "binary_put_options")))))
             {
                 continue;
@@ -1559,7 +1559,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -1638,17 +1638,17 @@ public partial class delta : Exchange
         //         "size":1
         //     }
         //
-        object id = this.safeString(trade, "id");
-        object orderId = this.safeString(trade, "order_id");
-        object timestamp = this.parse8601(this.safeString(trade, "created_at"));
+        string? id = this.safeString(trade, "id");
+        string? orderId = this.safeString(trade, "order_id");
+        Int64? timestamp = this.parse8601(this.safeString(trade, "created_at"));
         timestamp = this.safeIntegerProduct(trade, "timestamp", 0.001, timestamp);
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "size");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "size");
         object product = this.safeDict(trade, "product", new Dictionary<string, object>() {});
-        object marketId = this.safeString(product, "symbol");
+        string? marketId = this.safeString(product, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object sellerRole = this.safeString(trade, "seller_role");
-        object side = this.safeString(trade, "side");
+        string? sellerRole = this.safeString(trade, "seller_role");
+        string? side = this.safeString(trade, "side");
         if (isTrue(isEqual(side, null)))
         {
             if (isTrue(isEqual(sellerRole, "taker")))
@@ -1659,19 +1659,19 @@ public partial class delta : Exchange
                 side = "buy";
             }
         }
-        object takerOrMaker = this.safeString(trade, "role");
+        string? takerOrMaker = this.safeString(trade, "role");
         object metaData = this.safeDict(trade, "meta_data", new Dictionary<string, object>() {});
-        object type = this.safeString(metaData, "order_type");
+        string? type = this.safeString(metaData, "order_type");
         if (isTrue(!isEqual(type, null)))
         {
             type = ((string)type).Replace((string)"_order", (string)"");
         }
-        object feeCostString = this.safeString(trade, "commission");
+        string? feeCostString = this.safeString(trade, "commission");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object settlingAsset = this.safeDict(product, "settling_asset", new Dictionary<string, object>() {});
-            object feeCurrencyId = this.safeString(settlingAsset, "symbol");
+            string? feeCurrencyId = this.safeString(settlingAsset, "symbol");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
@@ -1711,7 +1711,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.publicGetTradesSymbol(this.extend(request, parameters));
@@ -1770,10 +1770,10 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object duration = this.parseTimeframe(timeframeVar);
+        int duration = this.parseTimeframe(timeframeVar);
         limitVar = ((bool) isTrue((isTrue(isTrue(!isEqual(limitVar, null)) && isTrue(!isEqual(limitVar, null))) && isTrue(!isEqual(limitVar, 0))))) ? limitVar : 2000; // max 2000
         object until = this.safeIntegerProduct(parameters, "until", 0.001);
         bool untilIsDefined = (!isEqual(until, null));
@@ -1796,7 +1796,7 @@ public partial class delta : Exchange
             ((IDictionary<string,object>)request)["start"] = start;
             ((IDictionary<string,object>)request)["end"] = ((bool) isTrue(untilIsDefined)) ? until : this.sum(start, multiply(limitVar, duration));
         }
-        object price = this.safeString(parameters, "price");
+        string? price = this.safeString(parameters, "price");
         if (isTrue(isEqual(price, "mark")))
         {
             ((IDictionary<string,object>)request)["symbol"] = add("MARK:", getValue(market, "id"));
@@ -1826,14 +1826,14 @@ public partial class delta : Exchange
     public override object parseBalance(object response)
     {
         object balances = this.safeList(response, "result", new List<object>() {});
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new Dictionary<string, object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
-            object currencyId = this.safeString(balance, "asset_id");
+            string? currencyId = this.safeString(balance, "asset_id");
             object currency = this.safeDict(currenciesByNumericId, currencyId);
             object code = ((bool) isTrue((isEqual(currency, null)))) ? currencyId : getValue(currency, "code");
             object account = this.account();
@@ -1895,7 +1895,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
         };
         object response = await this.privateGetPositions(this.extend(request, parameters));
@@ -1981,12 +1981,12 @@ public partial class delta : Exchange
         //         "realized_funding": "string"
         //     }
         //
-        object marketId = this.safeString(position, "product_symbol");
+        string? marketId = this.safeString(position, "product_symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
-        object sizeString = this.safeString(position, "size");
-        object side = null;
+        Int64? timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
+        string? sizeString = this.safeString(position, "size");
+        string? side = null;
         if (isTrue(!isEqual(sizeString, null)))
         {
             if (isTrue(Precise.stringGt(sizeString, "0")))
@@ -2028,7 +2028,7 @@ public partial class delta : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "open", "open" },
             { "pending", "open" },
             { "closed", "closed" },
@@ -2096,10 +2096,10 @@ public partial class delta : Exchange
         //         "product_symbol": "BTCUSD"
         //     }
         //
-        object id = this.safeString(order, "id");
-        object clientOrderId = this.safeString(order, "client_order_id");
-        object createdAt = this.safeString(order, "created_at");
-        object timestamp = null;
+        string? id = this.safeString(order, "id");
+        string? clientOrderId = this.safeString(order, "client_order_id");
+        string? createdAt = this.safeString(order, "created_at");
+        Int64? timestamp = null;
         if (isTrue(!isEqual(createdAt, null)))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(createdAt, "-"), 0)))
@@ -2110,30 +2110,30 @@ public partial class delta : Exchange
                 timestamp = this.safeIntegerProduct(order, "created_at", 0.001);
             }
         }
-        object marketId = this.safeString(order, "product_id");
+        string? marketId = this.safeString(order, "product_id");
         object marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new Dictionary<string, object>() {});
         market = this.safeValue(marketsByNumericId, marketId, market);
         object symbol = ((bool) isTrue((isEqual(market, null)))) ? marketId : getValue(market, "symbol");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
-        object side = this.safeString(order, "side");
-        object type = this.safeString(order, "order_type");
+        string? side = this.safeString(order, "side");
+        string? type = this.safeString(order, "order_type");
         if (isTrue(!isEqual(type, null)))
         {
             type = ((string)type).Replace((string)"_order", (string)"");
         }
-        object price = this.safeString(order, "limit_price");
-        object amount = this.safeString(order, "size");
-        object remaining = this.safeString(order, "unfilled_size");
-        object average = this.safeString(order, "average_fill_price");
+        string? price = this.safeString(order, "limit_price");
+        string? amount = this.safeString(order, "size");
+        string? remaining = this.safeString(order, "unfilled_size");
+        string? average = this.safeString(order, "average_fill_price");
         object fee = null;
-        object feeCostString = this.safeString(order, "paid_commission");
+        string? feeCostString = this.safeString(order, "paid_commission");
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object feeCurrencyCode = null;
             if (isTrue(!isEqual(market, null)))
             {
                 object settlingAsset = this.safeDict(getValue(market, "info"), "settling_asset", new Dictionary<string, object>() {});
-                object feeCurrencyId = this.safeString(settlingAsset, "symbol");
+                string? feeCurrencyId = this.safeString(settlingAsset, "symbol");
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             }
             fee = new Dictionary<string, object>() {
@@ -2183,7 +2183,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         object orderType = add(type, "_order");
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
             { "size", this.amountToPrecision(getValue(market, "symbol"), amount) },
             { "side", side },
@@ -2193,7 +2193,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(getValue(market, "symbol"), price);
         }
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2265,7 +2265,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", parseInt(id) },
             { "product_id", getValue(market, "numericId") },
         };
@@ -2323,7 +2323,7 @@ public partial class delta : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", parseInt(id) },
             { "product_id", getValue(market, "numericId") },
         };
@@ -2386,7 +2386,7 @@ public partial class delta : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
         };
         object response = this.privateDeleteOrdersAll(this.extend(request, parameters));
@@ -2420,9 +2420,9 @@ public partial class delta : Exchange
         {
             market = this.market(symbol);
         }
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
+        string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid", "clientOid"});
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2499,7 +2499,7 @@ public partial class delta : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2564,7 +2564,7 @@ public partial class delta : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2644,7 +2644,7 @@ public partial class delta : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -2683,7 +2683,7 @@ public partial class delta : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "pnl", "pnl" },
             { "deposit", "transaction" },
             { "withdrawal", "transaction" },
@@ -2712,11 +2712,11 @@ public partial class delta : Exchange
         //         "uuid":"70bb5679da3c4637884e2dc63efaa846"
         //     }
         //
-        object id = this.safeString(item, "uuid");
-        object direction = null;
+        string? id = this.safeString(item, "uuid");
+        string? direction = null;
         object account = null;
         object metaData = this.safeDict(item, "meta_data", new Dictionary<string, object>() {});
-        object referenceId = this.safeString(metaData, "transaction_id");
+        string? referenceId = this.safeString(metaData, "transaction_id");
         object referenceAccount = null;
         object type = this.safeString(item, "transaction_type");
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(type, "deposit"))) || isTrue((isEqual(type, "commission_rebate")))) || isTrue((isEqual(type, "referral_bonus")))) || isTrue((isEqual(type, "pnl")))) || isTrue((isEqual(type, "withdrawal_cancellation")))) || isTrue((isEqual(type, "promo_credit")))))
@@ -2727,14 +2727,14 @@ public partial class delta : Exchange
             direction = "out";
         }
         type = this.parseLedgerEntryType(type);
-        object currencyId = this.safeString(item, "asset_id");
+        string? currencyId = this.safeString(item, "asset_id");
         object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         currency = this.safeValue(currenciesByNumericId, currencyId, currency);
         object code = ((bool) isTrue((isEqual(currency, null)))) ? null : getValue(currency, "code");
-        object amount = this.safeString(item, "amount");
-        object timestamp = this.parse8601(this.safeString(item, "created_at"));
-        object after = this.safeString(item, "balance");
-        object before = Precise.stringMax("0", Precise.stringSub(after, amount));
+        string? amount = this.safeString(item, "amount");
+        Int64? timestamp = this.parse8601(this.safeString(item, "created_at"));
+        string? after = this.safeString(item, "balance");
+        string? before = Precise.stringMax("0", Precise.stringSub(after, amount));
         string status = "ok";
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
@@ -2769,10 +2769,10 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_symbol", getValue(currency, "id") },
         };
-        object networkCode = this.safeStringUpper(parameters, "network");
+        string? networkCode = this.safeStringUpper(parameters, "network");
         if (isTrue(!isEqual(networkCode, null)))
         {
             ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
@@ -2816,9 +2816,9 @@ public partial class delta : Exchange
         //        "custodian": "fireblocks"
         //    }
         //
-        object address = this.safeString(depositAddress, "address");
-        object marketId = this.safeString(depositAddress, "asset_symbol");
-        object networkId = this.safeString(depositAddress, "network");
+        string? address = this.safeString(depositAddress, "address");
+        string? marketId = this.safeString(depositAddress, "asset_symbol");
+        string? networkId = this.safeString(depositAddress, "network");
         object code = this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return new Dictionary<string, object>() {
@@ -2848,7 +2848,7 @@ public partial class delta : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
@@ -2915,7 +2915,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_types", "perpetual_futures" },
         };
         object response = await this.publicGetTickers(this.extend(request, parameters));
@@ -3014,10 +3014,10 @@ public partial class delta : Exchange
         //         "volume": 1226.3029999999485
         //     }
         //
-        object timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
-        object marketId = this.safeString(contract, "symbol");
-        object fundingRateString = this.safeString(contract, "funding_rate");
-        object fundingRate = Precise.stringDiv(fundingRateString, "100");
+        Int64? timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
+        string? marketId = this.safeString(contract, "symbol");
+        string? fundingRateString = this.safeString(contract, "funding_rate");
+        string? fundingRate = Precise.stringDiv(fundingRateString, "100");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -3082,7 +3082,7 @@ public partial class delta : Exchange
         {
             amount = Precise.stringMul(amount, "-1");
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
             { "delta_margin", amount },
         };
@@ -3136,7 +3136,7 @@ public partial class delta : Exchange
         //         "user_id": 30084879
         //     }
         //
-        object marketId = this.safeString(data, "product_symbol");
+        string? marketId = this.safeString(data, "product_symbol");
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", data },
@@ -3170,7 +3170,7 @@ public partial class delta : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchOpenInterest() supports contract markets only")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
@@ -3281,8 +3281,8 @@ public partial class delta : Exchange
         //         "volume": 0.15200000000000002
         //     }
         //
-        object timestamp = this.safeIntegerProduct(interest, "timestamp", 0.001);
-        object marketId = this.safeString(interest, "symbol");
+        Int64? timestamp = this.safeIntegerProduct(interest, "timestamp", 0.001);
+        string? marketId = this.safeString(interest, "symbol");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
             { "baseVolume", this.safeNumber(interest, "oi_value") },
@@ -3309,7 +3309,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
         };
         object response = await this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters));
@@ -3332,8 +3332,8 @@ public partial class delta : Exchange
 
     public override object parseLeverage(object leverage, object market = null)
     {
-        object marketId = this.safeString(leverage, "index_symbol");
-        object leverageValue = this.safeInteger(leverage, "leverage");
+        string? marketId = this.safeString(leverage, "index_symbol");
+        Int64? leverageValue = this.safeInteger(leverage, "leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -3362,7 +3362,7 @@ public partial class delta : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "numericId") },
             { "leverage", leverage },
         };
@@ -3400,7 +3400,7 @@ public partial class delta : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "states", "expired" },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -3468,7 +3468,7 @@ public partial class delta : Exchange
         //
         object result = this.safeList(response, "result", new List<object>() {});
         object settlements = this.parseSettlements(result, market);
-        object sorted = this.sortBy(settlements, "timestamp");
+        List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
@@ -3527,8 +3527,8 @@ public partial class delta : Exchange
         //         "maintenance_margin_scaling_factor":"0.000002"
         //     }
         //
-        object datetime = this.safeString(settlement, "settlement_time");
-        object marketId = this.safeString(settlement, "symbol");
+        string? datetime = this.safeString(settlement, "settlement_time");
+        string? marketId = this.safeString(settlement, "symbol");
         return new Dictionary<string, object>() {
             { "info", settlement },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -3540,7 +3540,7 @@ public partial class delta : Exchange
 
     public virtual object parseSettlements(object settlements, object market)
     {
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
@@ -3562,7 +3562,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
@@ -3673,8 +3673,8 @@ public partial class delta : Exchange
         //         "volume": 0.005
         //     }
         //
-        object timestamp = this.safeIntegerProduct(greeks, "timestamp", 0.001);
-        object marketId = this.safeString(greeks, "symbol");
+        Int64? timestamp = this.safeIntegerProduct(greeks, "timestamp", 0.001);
+        string? marketId = this.safeString(greeks, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object stats = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
         object quotes = this.safeDict(greeks, "quotes", new Dictionary<string, object>() {});
@@ -3714,7 +3714,7 @@ public partial class delta : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "close_all_portfolio", true },
             { "close_all_isolated", true },
         };
@@ -3841,9 +3841,9 @@ public partial class delta : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"isolated", "portfolio"});
-        object subaccountUserId = this.safeString(parameters, "subaccount_user_id");
+        string? subaccountUserId = this.safeString(parameters, "subaccount_user_id");
         this.checkRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "margin_mode", marginMode },
         };
         return ccxt.BaseExchange.ToDict(await this.privatePutUsersMarginMode(this.extend(request, parameters)));
@@ -3863,7 +3863,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
@@ -3974,10 +3974,10 @@ public partial class delta : Exchange
         //         "volume": 0.005
         //     }
         //
-        object marketId = this.safeString(chain, "symbol");
+        string? marketId = this.safeString(chain, "symbol");
         market = this.safeMarket(marketId, market);
         object quotes = this.safeDict(chain, "quotes", new Dictionary<string, object>() {});
-        object timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
+        Int64? timestamp = this.safeIntegerProduct(chain, "timestamp", 0.001);
         return new Dictionary<string, object>() {
             { "info", chain },
             { "currency", this.safeString(chain, "currency") },
@@ -4356,8 +4356,8 @@ public partial class delta : Exchange
         //         "user_id": 30084879
         //     }
         //
-        object marketId = this.safeString(info, "product_symbol");
-        object datetime = this.safeString(info, "created_at");
+        string? marketId = this.safeString(info, "product_symbol");
+        string? datetime = this.safeString(info, "created_at");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
@@ -4428,7 +4428,7 @@ public partial class delta : Exchange
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         //
         object error = this.safeDict(response, "error", new Dictionary<string, object>() {});
-        object errorCode = this.safeString(error, "code");
+        string? errorCode = this.safeString(error, "code");
         if (isTrue(!isEqual(errorCode, null)))
         {
             object feedback = add(add(this.id, " "), body);

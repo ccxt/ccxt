@@ -61,7 +61,7 @@ public partial class gemini : ccxt.gemini
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTrades() marketId is required")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
     { "name", "l2" },
@@ -97,7 +97,7 @@ public partial class gemini : ccxt.gemini
         if (isTrue(this.newUpdates))
         {
             object first = this.safeList(trades, 0);
-            object tradeSymbol = this.safeString(first, "symbol");
+            string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
@@ -129,14 +129,14 @@ public partial class gemini : ccxt.gemini
         //        "makerSide": "bid"
         //    }
         //
-        object timestamp = this.safeInteger(trade, "timestamp");
-        object id = this.safeString2(trade, "event_id", "tid");
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString2(trade, "quantity", "amount");
-        object side = this.safeStringLower(trade, "side");
+        Int64? timestamp = this.safeInteger(trade, "timestamp");
+        string? id = this.safeString2(trade, "event_id", "tid");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString2(trade, "quantity", "amount");
+        string? side = this.safeStringLower(trade, "side");
         if (isTrue(isEqual(side, null)))
         {
-            object marketSide = this.safeStringLower(trade, "makerSide");
+            string? marketSide = this.safeStringLower(trade, "makerSide");
             if (isTrue(isEqual(marketSide, "bid")))
             {
                 side = "sell";
@@ -145,7 +145,7 @@ public partial class gemini : ccxt.gemini
                 side = "buy";
             }
         }
-        object marketId = this.safeStringLower(trade, "symbol");
+        string? marketId = this.safeStringLower(trade, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -179,7 +179,7 @@ public partial class gemini : ccxt.gemini
         //
         object trade = this.parseWsTrade(message);
         object symbol = getValue(trade, "symbol");
-        object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+        Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -233,13 +233,13 @@ public partial class gemini : ccxt.gemini
         //         ]
         //     }
         //
-        object marketId = this.safeStringLower(message, "symbol");
+        string? marketId = this.safeStringLower(message, "symbol");
         object market = this.safeMarket(marketId);
         object trades = this.safeValue(message, "trades");
         if (isTrue(!isEqual(trades, null)))
         {
             object symbol = getValue(market, "symbol");
-            object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
             {
@@ -260,8 +260,8 @@ public partial class gemini : ccxt.gemini
     {
         if (isTrue(!isEqual(trades, null)))
         {
-            object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            object storesForSymbols = new Dictionary<string, object>() {};
+            Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
             {
                 object marketId = getValue(getValue(trades, i), "symbol");
@@ -314,7 +314,7 @@ public partial class gemini : ccxt.gemini
         }
         object market = this.market(symbol);
         object timeframeId = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
     { "name", add("candles_", timeframeId) },
@@ -358,7 +358,7 @@ public partial class gemini : ccxt.gemini
         //         ]
         //     }
         //
-        object type = this.safeString(message, "type", "");
+        string? type = this.safeString(message, "type", "");
         object timeframeId = slice(type, 8, null);
         int timeframeEndIndex = getIndexOf(timeframeId, "_");
         timeframeId = slice(timeframeId, 0, timeframeEndIndex);
@@ -375,7 +375,7 @@ public partial class gemini : ccxt.gemini
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
             if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue(!isEqual(timeframe, null))))
             {
@@ -419,7 +419,7 @@ public partial class gemini : ccxt.gemini
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBook() marketId is required")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "subscriptions", new List<object>() {new Dictionary<string, object>() {
     { "name", "l2" },
@@ -436,7 +436,7 @@ public partial class gemini : ccxt.gemini
     {
         bool isInitial = isTrue(isTrue((inOp(message, "auction_events"))) && isTrue((inOp(message, "trades")))) && isTrue((inOp(message, "changes")));
         object changes = this.safeValue(message, "changes", new List<object>() {});
-        object marketId = this.safeStringLower(message, "symbol");
+        string? marketId = this.safeStringLower(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
@@ -459,7 +459,7 @@ public partial class gemini : ccxt.gemini
             object delta = getValue(changes, i);
             object price = this.safeNumber(delta, 1);
             object size = this.safeNumber(delta, 2);
-            object side = ((bool) isTrue((isEqual(getValue(delta, 0), "buy")))) ? "bids" : "asks";
+            string side = ((bool) isTrue((isEqual(getValue(delta, 0), "buy")))) ? "bids" : "asks";
             object bookside = getValue(orderbook, side);
             (bookside as IOrderBookSide).store(price, size);
             ((IDictionary<string,object>)orderbook)[(string)side] = bookside;
@@ -544,9 +544,9 @@ public partial class gemini : ccxt.gemini
         for (object i = 0; isLessThan(i, getArrayLength(rawBidAskChanges)); postFixIncrement(ref i))
         {
             object entry = getValue(rawBidAskChanges, i);
-            object rawSide = this.safeString(entry, "side");
+            string? rawSide = this.safeString(entry, "side");
             object price = this.safeNumber(entry, "price");
-            object sizeString = this.safeString(entry, "remaining");
+            string? sizeString = this.safeString(entry, "remaining");
             if (isTrue(Precise.stringEq(sizeString, "0")))
             {
                 continue;
@@ -565,7 +565,7 @@ public partial class gemini : ccxt.gemini
         ((IDictionary<string,object>)currentBidAsk)["timestamp"] = timestamp;
         ((IDictionary<string,object>)currentBidAsk)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)currentBidAsk)["info"] = rawBidAskChanges;
-        object bidsAsksDict = new Dictionary<string, object>() {};
+        Dictionary<string, object> bidsAsksDict = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)bidsAsksDict)[(string)symbol] = currentBidAsk;
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = currentBidAsk;
         callDynamically(client as WebSocketClient, "resolve", new object[] {bidsAsksDict, messageHash});
@@ -588,8 +588,8 @@ public partial class gemini : ccxt.gemini
         {
             throw new NotSupported ((string)add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
         }
-        object messageHashes = new List<object>() {};
-        object marketIds = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        List<object> marketIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -647,7 +647,7 @@ public partial class gemini : ccxt.gemini
             object entry = getValue(rawOrderBookChanges, i);
             object price = this.safeNumber(entry, "price");
             object size = this.safeNumber(entry, "remaining");
-            object rawSide = this.safeString(entry, "side");
+            string? rawSide = this.safeString(entry, "side");
             if (isTrue(isEqual(rawSide, "bid")))
             {
                 (bids as IOrderBookSide).store(price, size);
@@ -730,7 +730,7 @@ public partial class gemini : ccxt.gemini
         {
             await this.loadMarkets();
         }
-        object authParams = new Dictionary<string, object>() {
+        Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "url", url },
         };
         await this.authenticate(authParams);
@@ -806,7 +806,7 @@ public partial class gemini : ccxt.gemini
         string messageHash = "orders";
         if (isTrue(isEqual(this.orders, null)))
         {
-            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
@@ -841,11 +841,11 @@ public partial class gemini : ccxt.gemini
         //         "socket_sequence": 139
         //     }
         //
-        object timestamp = this.safeInteger(order, "timestampms");
-        object status = this.safeString(order, "type");
-        object marketId = this.safeString(order, "symbol");
-        object typeId = this.safeString(order, "order_type");
-        object behavior = this.safeString(order, "behavior");
+        Int64? timestamp = this.safeInteger(order, "timestampms");
+        string? status = this.safeString(order, "type");
+        string? marketId = this.safeString(order, "symbol");
+        string? typeId = this.safeString(order, "order_type");
+        string? behavior = this.safeString(order, "behavior");
         string timeInForce = "GTC";
         bool postOnly = false;
         if (isTrue(isEqual(behavior, "immediate-or-cancel")))
@@ -886,7 +886,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual object parseWsOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "accepted", "open" },
             { "booked", "open" },
             { "fill", "closed" },
@@ -899,7 +899,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual object parseWsOrderType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "exchange limit", "limit" },
             { "market buy", "market" },
             { "market sell", "market" },
@@ -955,18 +955,18 @@ public partial class gemini : ccxt.gemini
             this.handleOrder(client as WebSocketClient, message);
             return;
         }
-        object reason = this.safeString(message, "reason");
+        string? reason = this.safeString(message, "reason");
         if (isTrue(isEqual(reason, "error")))
         {
             this.handleError(client as WebSocketClient, message);
         }
-        object methods = new Dictionary<string, object>() {
+        Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "l2_updates", this.handleL2Updates },
             { "trade", this.handleTrade },
             { "subscription_ack", this.handleSubscription },
             { "heartbeat", this.handleHeartbeat },
         };
-        object type = this.safeString(message, "type", "");
+        string? type = this.safeString(message, "type", "");
         if (isTrue(isGreaterThanOrEqual(getIndexOf(type, "candles"), 0)))
         {
             this.handleOHLCV(client as WebSocketClient, message);
@@ -980,23 +980,23 @@ public partial class gemini : ccxt.gemini
         // handle multimarketdata
         if (isTrue(isEqual(type, "update")))
         {
-            object ts = this.safeInteger(message, "timestampms", this.milliseconds());
-            object eventId = this.safeInteger(message, "eventId");
+            Int64? ts = this.safeInteger(message, "timestampms", this.milliseconds());
+            Int64? eventId = this.safeInteger(message, "eventId");
             object events = this.safeList(message, "events");
             if (isTrue(isEqual(events, null)))
             {
                 return;
             }
-            object orderBookItems = new List<object>() {};
-            object bidaskItems = new List<object>() {};
-            object collectedEventsOfTrades = new List<object>() {};
+            List<object> orderBookItems = new List<object>() {};
+            List<object> bidaskItems = new List<object>() {};
+            List<object> collectedEventsOfTrades = new List<object>() {};
             int eventsLength = getArrayLength(events);
             for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
             {
                 object eventVar = getValue(events, i);
-                object eventType = this.safeString(eventVar, "type");
+                string? eventType = this.safeString(eventVar, "type");
                 bool isOrderBook = isTrue(isTrue((isEqual(eventType, "change"))) && isTrue((inOp(eventVar, "side")))) && isTrue(this.inArray(getValue(eventVar, "side"), new List<object>() {"ask", "bid"}));
-                object eventReason = this.safeString(eventVar, "reason");
+                string? eventReason = this.safeString(eventVar, "reason");
                 bool isBidAsk = isTrue((isEqual(eventReason, "top-of-book"))) || isTrue((isTrue(isTrue(isOrderBook) && isTrue((isEqual(eventReason, "initial")))) && isTrue(isEqual(eventsLength, 2))));
                 if (isTrue(isBidAsk))
                 {
@@ -1030,7 +1030,7 @@ public partial class gemini : ccxt.gemini
     public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = this.safeString(parameters, "url");
+        string? url = this.safeString(parameters, "url");
         if (isTrue(isEqual(url, null)))
         {
             return;
@@ -1045,13 +1045,13 @@ public partial class gemini : ccxt.gemini
         int urlLength = ((string)url).Length;
         object endIndex = ((bool) isTrue((isGreaterThanOrEqual(urlParamsIndex, 0)))) ? urlParamsIndex : urlLength;
         object request = slice(url, startIndex, endIndex);
-        object payload = new Dictionary<string, object>() {
+        Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "request", request },
             { "nonce", this.nonce() },
         };
-        object b64 = this.stringToBase64(this.json(payload));
+        string b64 = this.stringToBase64(this.json(payload));
         string signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384, "hex");
-        object defaultOptions = new Dictionary<string, object>() {
+        Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
                     { "headers", new Dictionary<string, object>() {} },
@@ -1061,7 +1061,7 @@ public partial class gemini : ccxt.gemini
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
-        object headers = new Dictionary<string, object>() {
+        Dictionary<string, object> headers = new Dictionary<string, object>() {
             { "X-GEMINI-APIKEY", this.apiKey },
             { "X-GEMINI-PAYLOAD", b64 },
             { "X-GEMINI-SIGNATURE", signature },

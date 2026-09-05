@@ -852,14 +852,14 @@ public partial class cryptocom : Exchange
 
     public override object parseCurrency(object currency)
     {
-        object id = this.safeString(currency, "_coin_id");
+        string? id = this.safeString(currency, "_coin_id");
         object code = this.safeCurrencyCode(id);
-        object networks = new Dictionary<string, object>() {};
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = this.safeList(currency, "network_list", new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
-            object networkId = this.safeString(chain, "network_id");
+            string? networkId = this.safeString(chain, "network_id");
             object network = this.networkIdToCode(networkId, code);
             if (isTrue(!isEqual(network, null)))
             {
@@ -1003,30 +1003,30 @@ public partial class cryptocom : Exchange
         //
         object resultResponse = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(resultResponse, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
-            object inst_type = this.safeString(market, "inst_type");
+            string? inst_type = this.safeString(market, "inst_type");
             bool spot = isEqual(inst_type, "CCY_PAIR");
             bool swap = isEqual(inst_type, "PERPETUAL_SWAP");
             bool future = isEqual(inst_type, "FUTURE");
             bool option = isEqual(inst_type, "WARRANT");
-            object baseId = this.safeString(market, "base_ccy");
-            object quoteId = this.safeString(market, "quote_ccy");
+            string? baseId = this.safeString(market, "base_ccy");
+            string? quoteId = this.safeString(market, "quote_ccy");
             object settleId = ((bool) isTrue(spot)) ? null : quoteId;
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object settle = ((bool) isTrue(spot)) ? null : this.safeCurrencyCode(settleId);
-            object optionType = this.safeStringLower(market, "put_call");
+            string? optionType = this.safeStringLower(market, "put_call");
             object strike = this.safeString(market, "strike");
             object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
-            object type = null;
-            object contract = null;
+            string? type = null;
+            bool? contract = null;
             if (isTrue(isEqual(inst_type, "CCY_PAIR")))
             {
                 type = "spot";
@@ -1048,8 +1048,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
-            object isLinear = ((bool) isTrue((isEqual(contract, true)))) ? true : null;
-            object isInverse = ((bool) isTrue((isEqual(contract, true)))) ? false : null;
+            bool? isLinear = ((bool) isTrue((isEqual(contract, true)))) ? true : null;
+            bool? isInverse = ((bool) isTrue((isEqual(contract, true)))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -1121,7 +1121,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = null;
@@ -1221,7 +1221,7 @@ public partial class cryptocom : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters));
         }
         object market = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1235,7 +1235,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -1315,7 +1315,7 @@ public partial class cryptocom : Exchange
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
         if (isTrue(!isEqual(since, null)))
@@ -1326,7 +1326,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -1391,7 +1391,7 @@ public partial class cryptocom : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar, timeframeVar, parameters, 300));
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
@@ -1404,8 +1404,8 @@ public partial class cryptocom : Exchange
             ((IDictionary<string,object>)request)["count"] = limitVar;
         }
         Int64 now = this.microseconds();
-        object duration = this.parseTimeframe(timeframeVar);
-        object until = this.safeInteger(parameters, "until", now);
+        int duration = this.parseTimeframe(timeframeVar);
+        Int64? until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(since, null)))
         {
@@ -1466,7 +1466,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
         if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((!isEqual(limit, 0)))))
@@ -1495,7 +1495,7 @@ public partial class cryptocom : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
         object orderBook = this.safeValue(data, 0);
-        object timestamp = this.safeInteger(orderBook, "t");
+        Int64? timestamp = this.safeInteger(orderBook, "t");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, symbol, timestamp));
     }
 
@@ -1504,13 +1504,13 @@ public partial class cryptocom : Exchange
         object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(responseResult, "data", new List<object>() {});
         object positionBalances = this.safeValue(getValue(data, 0), "position_balances", new List<object>() {});
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         for (object i = 0; isLessThan(i, getArrayLength(positionBalances)); postFixIncrement(ref i))
         {
             object balance = getValue(positionBalances, i);
-            object currencyId = this.safeString(balance, "instrument_name");
+            string? currencyId = this.safeString(balance, "instrument_name");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "quantity");
@@ -1607,7 +1607,7 @@ public partial class cryptocom : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
         object response = await this.v1PrivatePostPrivateGetOrderDetail(this.extend(request, parameters));
@@ -1661,7 +1661,7 @@ public partial class cryptocom : Exchange
         }
         object market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
@@ -1670,7 +1670,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object broker = this.safeString(this.options, "broker", "CCXT");
+        string? broker = this.safeString(this.options, "broker", "CCXT");
         ((IDictionary<string,object>)request)["broker_id"] = broker;
         object marketType = null;
         object marginMode = null;
@@ -1687,7 +1687,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["spot_margin"] = "SPOT";
         }
-        object timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        string? timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (isTrue(!isEqual(timeInForce, null)))
         {
             if (isTrue(isEqual(timeInForce, "GTC")))
@@ -1710,7 +1710,7 @@ public partial class cryptocom : Exchange
             ((IDictionary<string,object>)request)["exec_inst"] = new List<object>() {"POST_ONLY"};
             ((IDictionary<string,object>)request)["time_in_force"] = "GOOD_TILL_CANCEL";
         }
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         bool isTrigger = (!isEqual(triggerPrice, null));
@@ -1719,7 +1719,7 @@ public partial class cryptocom : Exchange
         if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["ref_price"] = this.priceToPrecision(symbol, triggerPrice);
-            object priceString = this.numberToString(price);
+            string? priceString = this.numberToString(price);
             if (isTrue(isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
             {
                 if (isTrue(isEqual(side, "buy")))
@@ -1851,21 +1851,21 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object ordersRequests = new List<object>() {};
+        List<object> ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object marketId = this.safeString(rawOrder, "symbol");
-            object type = this.safeString(rawOrder, "type");
-            object side = this.safeString(rawOrder, "side");
+            string? marketId = this.safeString(rawOrder, "symbol");
+            string? type = this.safeString(rawOrder, "type");
+            string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object contigency = this.safeString(parameters, "contingency_type", "LIST");
-        object request = new Dictionary<string, object>() {
+        string? contigency = this.safeString(parameters, "contingency_type", "LIST");
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contingency_type", contigency },
             { "order_list", ordersRequests },
         };
@@ -1912,10 +1912,10 @@ public partial class cryptocom : Exchange
         //   }
         //
         object result = this.safeValue(response, "result", new List<object>() {});
-        object listId = this.safeString(result, "list_id");
+        string? listId = this.safeString(result, "list_id");
         if (isTrue(!isEqual(listId, null)))
         {
-            object ocoOrders = new List<object>() {new Dictionary<string, object>() {
+            List<object> ocoOrders = new List<object>() {new Dictionary<string, object>() {
     { "order_id", listId },
 }};
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(ocoOrders));
@@ -1940,7 +1940,7 @@ public partial class cryptocom : Exchange
         // and market-buy orders need to send notional instead of quantity
         object market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
         };
@@ -1948,9 +1948,9 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object broker = this.safeString(this.options, "broker", "CCXT");
+        string? broker = this.safeString(this.options, "broker", "CCXT");
         ((IDictionary<string,object>)request)["broker_id"] = broker;
-        object timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
+        string? timeInForce = this.safeStringUpper2(parameters, "timeInForce", "time_in_force");
         if (isTrue(!isEqual(timeInForce, null)))
         {
             if (isTrue(isEqual(timeInForce, "GTC")))
@@ -1973,7 +1973,7 @@ public partial class cryptocom : Exchange
             ((IDictionary<string,object>)request)["exec_inst"] = new List<object>() {"POST_ONLY"};
             ((IDictionary<string,object>)request)["time_in_force"] = "GOOD_TILL_CANCEL";
         }
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "ref_price"});
         object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         bool isTrigger = (!isEqual(triggerPrice, null));
@@ -1981,7 +1981,7 @@ public partial class cryptocom : Exchange
         bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrigger))
         {
-            object priceString = this.numberToString(price);
+            string? priceString = this.numberToString(price);
             if (isTrue(isTrue(isTrue((isEqual(uppercaseType, "LIMIT"))) || isTrue((isEqual(uppercaseType, "STOP_LIMIT")))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
             {
                 if (isTrue(isEqual(side, "buy")))
@@ -2067,9 +2067,9 @@ public partial class cryptocom : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
-                    object amountString = this.numberToString(amount);
-                    object priceString = this.numberToString(price);
-                    object costRequest = Precise.stringMul(amountString, priceString);
+                    string? amountString = this.numberToString(amount);
+                    string? priceString = this.numberToString(price);
+                    string? costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
             } else
@@ -2116,13 +2116,13 @@ public partial class cryptocom : Exchange
     public virtual object editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(id, null)))
         {
             ((IDictionary<string,object>)request)["order_id"] = id;
         } else
         {
-            object originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
+            string? originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
             if (isTrue(isEqual(originalClientOrderId, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
@@ -2158,7 +2158,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -2190,7 +2190,7 @@ public partial class cryptocom : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
         object response = await this.v1PrivatePostPrivateCancelOrder(this.extend(request, parameters));
@@ -2232,17 +2232,17 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object orderRequests = new List<object>() {};
+        List<object> orderRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
-            object order = new Dictionary<string, object>() {
+            Dictionary<string, object> order = new Dictionary<string, object>() {
                 { "instrument_name", getValue(market, "id") },
                 { "order_id", ((object)id).ToString() },
             };
             ((IList<object>)orderRequests).Add(order);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contingency_type", "LIST" },
             { "order_list", orderRequests },
         };
@@ -2267,20 +2267,20 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object orderRequests = new List<object>() {};
+        List<object> orderRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
-            object id = this.safeString(order, "id");
-            object symbol = this.safeString(order, "symbol");
+            string? id = this.safeString(order, "id");
+            string? symbol = this.safeString(order, "symbol");
             object market = this.market(symbol);
-            object orderItem = new Dictionary<string, object>() {
+            Dictionary<string, object> orderItem = new Dictionary<string, object>() {
                 { "instrument_name", getValue(market, "id") },
                 { "order_id", ((object)((string)id)).ToString() },
             };
             ((IList<object>)orderRequests).Add(orderItem);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contingency_type", "LIST" },
             { "order_list", orderRequests },
         };
@@ -2308,7 +2308,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -2385,7 +2385,7 @@ public partial class cryptocom : Exchange
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2400,7 +2400,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -2484,7 +2484,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object currency = this.safeCurrency(code); // for instance, USDC is not inferred from markets but it's still available
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", amount },
             { "address", address },
@@ -2540,7 +2540,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object currency = this.safeCurrency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
         object response = await this.v1PrivatePostPrivateGetDepositAddress(this.extend(request, parameters));
@@ -2570,18 +2570,18 @@ public partial class cryptocom : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
         }
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, addressesLength); postFixIncrement(ref i))
         {
             object value = this.safeDict(addresses, i);
-            object addressString = this.safeString(value, "address");
-            object currencyId = this.safeString(value, "currency");
+            string? addressString = this.safeString(value, "address");
+            string? currencyId = this.safeString(value, "currency");
             object responseCode = this.safeCurrencyCode(currencyId);
             var addresstagVariable = this.parseAddress(addressString);
             var address = ((IList<object>) addresstagVariable)[0];
             var tag = ((IList<object>) addresstagVariable)[1];
             this.checkAddress(address);
-            object networkId = this.safeString(value, "network");
+            string? networkId = this.safeString(value, "network");
             object network = this.networkIdToCode(networkId, responseCode);
             if (isTrue(!isEqual(network, null)))
             {
@@ -2609,7 +2609,7 @@ public partial class cryptocom : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object network = this.safeStringUpper(parameters, "network");
+        string? network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
         object depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object depositAddresses = depositAddressesRaw;
@@ -2641,7 +2641,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object currency = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.safeCurrency(code);
@@ -2656,7 +2656,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -2710,7 +2710,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object currency = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.safeCurrency(code);
@@ -2725,7 +2725,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -2795,10 +2795,10 @@ public partial class cryptocom : Exchange
         //         "t": 1687402657575
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "t");
-        object marketId = this.safeString(ticker, "i");
+        Int64? timestamp = this.safeInteger(ticker, "t");
+        string? marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market, "_");
-        object last = this.safeString(ticker, "a");
+        string? last = this.safeString(ticker, "a");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
@@ -2860,10 +2860,10 @@ public partial class cryptocom : Exchange
         //     }
         //
         object timestamp = this.safeInteger2(trade, "t", "create_time");
-        object marketId = this.safeString2(trade, "i", "instrument_name");
+        string? marketId = this.safeString2(trade, "i", "instrument_name");
         market = this.safeMarket(marketId, market, "_");
-        object feeCurrency = this.safeString(trade, "fee_instrument_name");
-        object feeCostString = this.safeString(trade, "fees");
+        string? feeCurrency = this.safeString(trade, "fee_instrument_name");
+        string? feeCostString = this.safeString(trade, "fees");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString2(trade, "d", "trade_id") },
@@ -2901,7 +2901,7 @@ public partial class cryptocom : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ACTIVE", "open" },
             { "CANCELED", "canceled" },
             { "FILLED", "closed" },
@@ -2913,7 +2913,7 @@ public partial class cryptocom : Exchange
 
     public virtual object parseTimeInForce(object timeInForce)
     {
-        object timeInForces = new Dictionary<string, object>() {
+        Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "GOOD_TILL_CANCEL", "GTC" },
             { "IMMEDIATE_OR_CANCEL", "IOC" },
             { "FILL_OR_KILL", "FOK" },
@@ -2969,7 +2969,7 @@ public partial class cryptocom : Exchange
         //             "order_id" : "6142909896519488207"
         //     }
         //
-        object code = this.safeInteger(order, "code");
+        Int64? code = this.safeInteger(order, "code");
         if (isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, 0)))))
         {
             return this.safeOrder(new Dictionary<string, object>() {
@@ -2979,11 +2979,11 @@ public partial class cryptocom : Exchange
                 { "status", "rejected" },
             });
         }
-        object created = this.safeInteger(order, "create_time");
-        object marketId = this.safeString(order, "instrument_name");
+        Int64? created = this.safeInteger(order, "create_time");
+        string? marketId = this.safeString(order, "instrument_name");
         object symbol = this.safeSymbol(marketId, market);
         object execInst = this.safeValue(order, "exec_inst");
-        object postOnly = null;
+        bool? postOnly = null;
         if (isTrue(!isEqual(execInst, null)))
         {
             postOnly = false;
@@ -2997,7 +2997,7 @@ public partial class cryptocom : Exchange
                 }
             }
         }
-        object feeCurrency = this.safeString(order, "fee_instrument_name");
+        string? feeCurrency = this.safeString(order, "fee_instrument_name");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(order, "order_id") },
@@ -3027,7 +3027,7 @@ public partial class cryptocom : Exchange
 
     public virtual object parseDepositStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "0", "pending" },
             { "1", "ok" },
             { "2", "failed" },
@@ -3038,7 +3038,7 @@ public partial class cryptocom : Exchange
 
     public virtual object parseWithdrawalStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "0", "pending" },
             { "1", "pending" },
             { "2", "failed" },
@@ -3095,8 +3095,8 @@ public partial class cryptocom : Exchange
         //         "create_time":1607063412000
         //     }
         //
-        object type = null;
-        object rawStatus = this.safeString(transaction, "status");
+        string? type = null;
+        string? rawStatus = this.safeString(transaction, "status");
         object status = null;
         if (isTrue(inOp(transaction, "client_wid")))
         {
@@ -3107,13 +3107,13 @@ public partial class cryptocom : Exchange
             type = "deposit";
             status = this.parseDepositStatus(rawStatus);
         }
-        object addressString = this.safeString(transaction, "address");
+        string? addressString = this.safeString(transaction, "address");
         var addresstagVariable = this.parseAddress(addressString);
         var address = ((IList<object>) addresstagVariable)[0];
         var tag = ((IList<object>) addresstagVariable)[1];
-        object currencyId = this.safeString(transaction, "currency");
+        string? currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger(transaction, "create_time");
+        Int64? timestamp = this.safeInteger(transaction, "create_time");
         object feeCost = this.safeNumber(transaction, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
@@ -3157,7 +3157,7 @@ public partial class cryptocom : Exchange
         * @returns {Array} the marginMode in lowercase
         */
         parameters ??= new Dictionary<string, object>();
-        object defaultType = this.safeString(this.options, "defaultType");
+        string? defaultType = this.safeString(this.options, "defaultType");
         object isMargin = this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, "margin");
         object marginMode = null;
@@ -3200,7 +3200,7 @@ public partial class cryptocom : Exchange
         //
         object networkList = this.safeList(fee, "network_list", new List<object>() {});
         int networkListLength = getArrayLength(networkList);
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
                 { "fee", null },
@@ -3217,8 +3217,8 @@ public partial class cryptocom : Exchange
             for (object i = 0; isLessThan(i, networkListLength); postFixIncrement(ref i))
             {
                 object networkInfo = getValue(networkList, i);
-                object networkId = this.safeString(networkInfo, "network_id");
-                object currencyCode = this.safeString(currency, "code");
+                string? networkId = this.safeString(networkInfo, "network_id");
+                string? currencyCode = this.safeString(currency, "code");
                 object networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (isTrue(!isEqual(networkCode, null)))
                 {
@@ -3284,7 +3284,7 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -3298,7 +3298,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -3361,12 +3361,12 @@ public partial class cryptocom : Exchange
         //         "instrument_name": "USD"
         //     }
         //
-        object timestamp = this.safeInteger(item, "event_timestamp_ms");
-        object currencyId = this.safeString(item, "instrument_name");
+        Int64? timestamp = this.safeInteger(item, "event_timestamp_ms");
+        string? currencyId = this.safeString(item, "instrument_name");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object amount = this.safeString(item, "transaction_qty");
-        object direction = null;
+        string? amount = this.safeString(item, "transaction_qty");
+        string? direction = null;
         if (isTrue(Precise.stringLt(amount, "0")))
         {
             direction = "out";
@@ -3399,7 +3399,7 @@ public partial class cryptocom : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object ledgerType = new Dictionary<string, object>() {
+        Dictionary<string, object> ledgerType = new Dictionary<string, object>() {
             { "TRADING", "trade" },
             { "TRADE_FEE", "fee" },
             { "WITHDRAW_FEE", "fee" },
@@ -3547,7 +3547,7 @@ public partial class cryptocom : Exchange
         {
             type = "WARRANT";
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_type", ((string)type).ToUpper() },
         };
         object response = await this.v1PublicGetPublicGetExpiredSettlementPrice(this.extend(request, parameters));
@@ -3571,7 +3571,7 @@ public partial class cryptocom : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
-        object sorted = this.sortBy(settlements, "timestamp");
+        List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
@@ -3585,8 +3585,8 @@ public partial class cryptocom : Exchange
         //         "t": 1685087999500
         //     }
         //
-        object timestamp = this.safeInteger(settlement, "x");
-        object marketId = this.safeString(settlement, "i");
+        Int64? timestamp = this.safeInteger(settlement, "x");
+        string? marketId = this.safeString(settlement, "i");
         return new Dictionary<string, object>() {
             { "info", settlement },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -3608,7 +3608,7 @@ public partial class cryptocom : Exchange
         //         }
         //     ]
         //
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
@@ -3637,7 +3637,7 @@ public partial class cryptocom : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingRate() supports swap contracts only")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "valuation_type", "estimated_funding_rate" },
             { "count", 1 },
@@ -3673,7 +3673,7 @@ public partial class cryptocom : Exchange
         //                     "t": 1687892400000
         //                 },
         //
-        object timestamp = this.safeInteger(contract, "t");
+        Int64? timestamp = this.safeInteger(contract, "t");
         object fundingTimestamp = null;
         if (isTrue(!isEqual(timestamp, null)))
         {
@@ -3738,7 +3738,7 @@ public partial class cryptocom : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "valuation_type", "funding_hist" },
         };
@@ -3750,7 +3750,7 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -3775,12 +3775,12 @@ public partial class cryptocom : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
-        object marketId = this.safeString(result, "instrument_name");
-        object rates = new List<object>() {};
+        string? marketId = this.safeString(result, "instrument_name");
+        List<object> rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
-            object timestamp = this.safeInteger(entry, "t");
+            Int64? timestamp = this.safeInteger(entry, "t");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId, market) },
@@ -3789,7 +3789,7 @@ public partial class cryptocom : Exchange
                 { "datetime", this.iso8601(timestamp) },
             });
         }
-        object sorted = this.sortBy(rates, "timestamp");
+        List<object> sorted = this.sortBy(rates, "timestamp");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit));
     }
 
@@ -3810,7 +3810,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
         object response = await this.v1PrivatePostPrivateGetPositions(this.extend(request, parameters));
@@ -3858,7 +3858,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -3903,11 +3903,11 @@ public partial class cryptocom : Exchange
         //
         object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object positions = this.safeList(responseResult, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
-            object marketId = this.safeString(entry, "instrument_name");
+            string? marketId = this.safeString(entry, "instrument_name");
             object marketInner = this.safeMarket(marketId, null, null, "contract");
             ((IList<object>)result).Add(this.parsePosition(entry, marketInner));
         }
@@ -3929,11 +3929,11 @@ public partial class cryptocom : Exchange
         //         "type": "PERPETUAL_SWAP"
         //     }
         //
-        object marketId = this.safeString(position, "instrument_name");
+        string? marketId = this.safeString(position, "instrument_name");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = this.safeSymbol(marketId, market, null, "contract");
-        object timestamp = this.safeInteger(position, "update_timestamp_ms");
-        object amount = this.safeString(position, "quantity");
+        Int64? timestamp = this.safeInteger(position, "update_timestamp_ms");
+        string? amount = this.safeString(position, "quantity");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3970,7 +3970,7 @@ public partial class cryptocom : Exchange
 
     public virtual object paramsToString(object obj, object level)
     {
-        object maxLevel = 3;
+        int maxLevel = 3;
         if (isTrue(isGreaterThanOrEqual(level, maxLevel)))
         {
             return ((object)obj).ToString();
@@ -4033,12 +4033,12 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
             { "type", "MARKET" },
         };
-        object type = this.safeStringUpper(parameters, "type");
-        object price = this.safeString(parameters, "price");
+        string? type = this.safeStringUpper(parameters, "type");
+        string? price = this.safeString(parameters, "price");
         if (isTrue(!isEqual(type, null)))
         {
             ((IDictionary<string,object>)request)["type"] = type;
@@ -4080,7 +4080,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
         };
         object response = await this.v1PrivatePostPrivateGetInstrumentFeeRate(this.extend(request, parameters));
@@ -4150,16 +4150,16 @@ public partial class cryptocom : Exchange
         //         "effective_deriv_taker_rate_bps": "3"
         //  }
         //
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["info"] = response;
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
             object isSwap = getValue(market, "swap");
-            object takerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            object makerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
-            object tradingFee = new Dictionary<string, object>() {
+            string takerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            string makerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            Dictionary<string, object> tradingFee = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
                 { "maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")) },
@@ -4181,7 +4181,7 @@ public partial class cryptocom : Exchange
         //      "effective_taker_rate_bps": "6.9"
         // }
         //
-        object marketId = this.safeString(fee, "instrument_name");
+        string? marketId = this.safeString(fee, "instrument_name");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -4198,8 +4198,8 @@ public partial class cryptocom : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object type = this.safeString(api, 0);
-        object access = this.safeString(api, 1);
+        string? type = this.safeString(api, 0);
+        string? access = this.safeString(api, 1);
         object url = add(add(getValue(getValue(this.urls, "api"), ((string)type)), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(access, "public")))
@@ -4251,7 +4251,7 @@ public partial class cryptocom : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        object errorCode = this.safeString(response, "code");
+        string? errorCode = this.safeString(response, "code");
         if (isTrue(!isEqual(errorCode, "0")))
         {
             object feedback = add(add(this.id, " "), body);

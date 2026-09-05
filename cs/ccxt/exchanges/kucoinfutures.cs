@@ -47,7 +47,7 @@ public partial class kucoinfutures : kucoin
     public async override Task<ccxt.Tickers> FetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "futuresPublicGetAllTickers" },
         };
         Dictionary<string, object> extendedRequest = this.extend(request, parameters);
@@ -74,7 +74,7 @@ public partial class kucoinfutures : kucoin
         }
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
         };
@@ -98,7 +98,7 @@ public partial class kucoinfutures : kucoin
 
     public virtual object parseTransferType(object transferType)
     {
-        object transferTypes = new Dictionary<string, object>() {
+        Dictionary<string, object> transferTypes = new Dictionary<string, object>() {
             { "spot", "TRADE" },
             { "funding", "MAIN" },
         };

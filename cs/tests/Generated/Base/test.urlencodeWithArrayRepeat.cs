@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object dict2 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict2 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "product_ids", new List<object>() {"AA", "BB"} },
             };
