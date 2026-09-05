@@ -57,6 +57,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeStringUpper2': 'string?',
     'safeStringUpperN': 'string?',
     'safeInteger': 'Int64?',
+    'safeInteger2': 'Int64?',
+    'safeIntegerN': 'Int64?',
     'safeIntegerProduct': 'Int64?',
     'safeFloat': 'double?',
     'safeFloat2': 'double?',
