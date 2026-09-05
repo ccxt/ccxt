@@ -11,7 +11,7 @@ std::shared_future<std::any> testFetchHistory();
 
 std::shared_future<std::any> testFetchHistoryBase()
 {
-    return std::async(std::launch::async, [=]() mutable -> std::any {
+    return std::async(std::launch::deferred, [=]() mutable -> std::any {
         ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
             { std::string("id"), std::string("sampleexchange") },
             { std::string("fetchHistoryCacheSize"), 2 },
@@ -68,7 +68,7 @@ std::shared_future<std::any> testFetchHistoryBase()
 // }
 std::shared_future<std::any> testFetchHistory()
 {
-    return std::async(std::launch::async, [=]() mutable -> std::any {
+    return std::async(std::launch::deferred, [=]() mutable -> std::any {
         awaitValue(testFetchHistoryBase());
         return std::any{};
     }).share();
