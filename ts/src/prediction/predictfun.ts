@@ -146,7 +146,13 @@ export default class predictfun extends Exchange {
      * @description Retrieves all outcome markets from outcomeMeta.
      * Each binary outcome becomes one CCXT prediction market with two outcomes: YES and NO.
      * @see https://dev.predict.fun/get-categories-25326910e0
+     * @see https://dev.predict.fun/search-categories-and-markets-27399810e0
      * @param {object} [params] extra parameters
+     * @param {string} [params.query] a single search term — routes the call through the search endpoint and returns only the matching markets
+     * @param {string[]} [params.queries] multiple search terms (alternative to query), the results are merged and deduplicated
+     * @param {string[]} [params.tags] predictfun tag ids
+     * @param {string} [params.slug] direct lookup by event slug
+     * @param {int} [params.limit] the maximum number of events to collect markets from
      * @returns {Market[]} array of market structures
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
@@ -190,10 +196,13 @@ export default class predictfun extends Exchange {
      * @name predictfun#fetchEvents
      * @description fetches prediction-market events (market topics); the call must be scoped by query/queries/tags, eventId, or an l1Category/l2Category listing filter
      * @see https://dev.predict.fun/get-categories-25326910e0
+     * @see https://dev.predict.fun/search-categories-and-markets-27399810e0
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.query] a single search term — routes the call through GET /v1/search instead of the categories listing
+     * @param {string[]} [params.queries] multiple search terms (alternative to query), searched one by one and merged deduplicated by event slug
      * @param {string[]} [params.tags] predictfun tag ids
      * @param {string} [params.slug] direct lookup by event slug
-     * @param {int} [params.limit] the maximum number of events to return
+     * @param {int} [params.limit] the maximum number of events to return, capped at 25 per search term when searching
      * @param {string} [params.sort] 'VOLUME_24H_DESC' | 'VOLUME_ALL_DESC' | 'PUBLISHED_AT_ASC' | 'PUBLISHED_AT_DESC'
      * @param {string} [params.status] 'OPEN' | 'RESOLVED'
      * @param {string} [params.marketVariant] predictfun enum value ('SPORTS_MATCH', 'CRYPTO_UP_DOWN' etc.)
@@ -205,6 +214,7 @@ export default class predictfun extends Exchange {
             this.requireEventQuery (params);
         }
         const queries = this.parseSearchQueries (params);
+        const queriesLength = queries.length;
         params = this.omit (params, [ 'query', 'queries' ]);
         const userLimit = this.safeInteger (params, 'limit');
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
@@ -221,6 +231,11 @@ export default class predictfun extends Exchange {
             const response = await this.predictfunGetV1CategoriesSlug (this.extend ({ 'slug': slug }, rest));
             const data = this.safeDict (response, 'data');
             rawTopics = [ data ];
+        } else if (queriesLength > 0) {
+            // a query/queries scope is answered by the dedicated search endpoint — the categories
+            // listing has no text filter, so paging it and matching client-side would both miss
+            // the venue's semantic matches and cost one request per page
+            rawTopics = await this.fetchRawTopicsByQueries (queries, params);
         } else {
             const request: Dict = {};
             const tags = this.safeList (params, 'tags', []);
@@ -435,8 +450,166 @@ export default class predictfun extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        const postParams = this.omit (params, [ 'tags' ]);
+        let postParams = this.omit (params, [ 'tags' ]);
+        // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
+        // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
+        const rawStatus = this.safeString (params, 'status');
+        if (rawStatus === 'OPEN') {
+            postParams = this.extend (postParams, { 'status': 'active' });
+        } else if (rawStatus === 'RESOLVED') {
+            postParams = this.extend (postParams, { 'status': 'closed' });
+        }
         return this.applyEventFetchParams (result, postParams, queries);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#fetchRawTopicsByQueries
+     * @description searches categories and markets for every query term and returns the raw market topics, deduplicated by slug
+     * @see https://dev.predict.fun/search-categories-and-markets-27399810e0
+     * @param {string[]} queries the search terms
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] the maximum number of results per type per term, capped at 25 by the venue
+     * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
+     * @returns {object[]} an array of raw market topics, each with a nested markets list
+     */
+    async fetchRawTopicsByQueries (queries: string[], params = {}): Promise<any[]> {
+        // the endpoint caps limit at 25 per result type and defaults to 10
+        let limit = this.safeInteger (params, 'limit', 10);
+        if (limit > 25) {
+            limit = 25;
+        }
+        // resolved rows are excluded unless asked for — the unified status filter drives that
+        const status = this.safeString (params, 'status');
+        let includeResolved = 'false';
+        if ((status !== undefined) && (status !== 'active') && (status !== 'OPEN')) {
+            includeResolved = 'true';
+        }
+        // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
+        const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'status', 'eventId', 'slug', 'tags', 'marketVariant' ]);
+        const topicsBySlug: Dict = {};
+        const topicSlugs: string[] = [];
+        const marketsBySlug: Dict = {};
+        const marketSlugs: string[] = [];
+        const seenMarketIds: Dict = {};
+        const queriesLength = queries.length;
+        for (let i = 0; i < queriesLength; i++) {
+            const request: Dict = {
+                'query': queries[i],
+                'limit': limit,
+                'includeResolved': includeResolved,
+            };
+            const response = await this.predictfunGetV1Search (this.extend (request, rest));
+            //
+            //     {
+            //         "data": {
+            //             "categories": [
+            //                 {
+            //                     "id": 405022,
+            //                     "slug": "eth-updown-15m-1787839200",
+            //                     "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                     "description": "This market will resolve to \"Up\" ...",
+            //                     "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
+            //                     "isNegRisk": false,
+            //                     "isYieldBearing": false,
+            //                     "marketVariant": "CRYPTO_UP_DOWN",
+            //                     "variantData": null,
+            //                     "createdAt": "2026-08-26T14:00:02.000Z",
+            //                     "publishedAt": "2026-08-26T14:00:20.780Z",
+            //                     "startsAt": "2026-08-27T14:00:00.000Z",
+            //                     "endsAt": "2026-08-27T14:15:00.000Z",
+            //                     "status": "OPEN",
+            //                     "isVisible": true,
+            //                     "tags": [ { "id": "2", "name": "Crypto" } ],
+            //                     "markets": [ { "id": 1739803, "categorySlug": "eth-updown-15m-1787839200", ... } ]
+            //                 }
+            //             ],
+            //             "markets": [
+            //                 {
+            //                     "id": 1739803,
+            //                     "imageUrl": "https://static.predict.fun/automarket-eth-usd-15-minutes",
+            //                     "title": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                     "question": "Ethereum Up or Down - August 27, 10AM-10:15AM ET",
+            //                     "description": "This market will resolve to \"Up\" ...",
+            //                     "tradingStatus": "OPEN",
+            //                     "status": "REGISTERED",
+            //                     "isVisible": true,
+            //                     "isNegRisk": false,
+            //                     "isYieldBearing": false,
+            //                     "feeRateBps": 200,
+            //                     "conditionId": "0xa8e9c348c299989329debd86aaef81a1c4880d42c3954a684bdc731f7a113487",
+            //                     "outcomes": [ { "name": "Up", "indexSet": 1, "onChainId": "630152...", "status": null } ],
+            //                     "isBoosted": false,
+            //                     "categorySlug": "eth-updown-15m-1787839200",
+            //                     "marketVariant": "CRYPTO_UP_DOWN"
+            //                 }
+            //             ]
+            //         },
+            //         "success": true
+            //     }
+            //
+            const data = this.safeDict (response, 'data', {});
+            const categories = this.safeList (data, 'categories', []) as any[];
+            const categoriesLength = categories.length;
+            for (let ci = 0; ci < categoriesLength; ci++) {
+                const category = categories[ci];
+                const categorySlug = this.safeString (category, 'slug');
+                if ((categorySlug !== undefined) && !(categorySlug in topicsBySlug)) {
+                    topicsBySlug[categorySlug] = category;
+                    topicSlugs.push (categorySlug);
+                }
+            }
+            const rawMarkets = this.safeList (data, 'markets', []) as any[];
+            const rawMarketsLength = rawMarkets.length;
+            for (let mi = 0; mi < rawMarketsLength; mi++) {
+                const rawMarket = rawMarkets[mi];
+                const marketSlug = this.safeString (rawMarket, 'categorySlug');
+                const marketId = this.safeString (rawMarket, 'id');
+                if ((marketSlug === undefined) || (marketId === undefined) || (marketId in seenMarketIds)) {
+                    continue;
+                }
+                seenMarketIds[marketId] = true;
+                if (!(marketSlug in marketsBySlug)) {
+                    marketsBySlug[marketSlug] = [];
+                    marketSlugs.push (marketSlug);
+                }
+                // push through a local and write the slice back — the go transpiler's
+                // AppendToArray reassigns only a local copy of a map-stored array
+                const bucket = marketsBySlug[marketSlug];
+                bucket.push (rawMarket);
+                marketsBySlug[marketSlug] = bucket;
+            }
+        }
+        const result: any[] = [];
+        const topicSlugsLength = topicSlugs.length;
+        for (let i = 0; i < topicSlugsLength; i++) {
+            result.push (topicsBySlug[topicSlugs[i]]);
+        }
+        const marketSlugsLength = marketSlugs.length;
+        for (let i = 0; i < marketSlugsLength; i++) {
+            const marketSlug = marketSlugs[i];
+            if (marketSlug in topicsBySlug) {
+                continue; // the enclosing category came back in full, nested markets included
+            }
+            // a market-only hit carries no category row — synthesize the enclosing topic from the
+            // matched market rows so parseEvent still sees the shape it expects
+            const orphanMarkets = marketsBySlug[marketSlug];
+            const first = this.safeDict (orphanMarkets, 0, {});
+            result.push ({
+                'slug': marketSlug,
+                'title': this.safeString (first, 'title'),
+                'description': this.safeString (first, 'description'),
+                'imageUrl': this.safeString (first, 'imageUrl'),
+                'marketVariant': this.safeString (first, 'marketVariant'),
+                'isNegRisk': this.safeBool (first, 'isNegRisk'),
+                'isYieldBearing': this.safeBool (first, 'isYieldBearing'),
+                'isVisible': this.safeBool (first, 'isVisible'),
+                'status': this.safeString (first, 'status'),
+                'markets': orphanMarkets,
+            });
+        }
+        return result;
     }
 
     /**
