@@ -91,11 +91,9 @@ inline std::string pathOf (const std::string& url) {
     return (at == std::string::npos) ? url : url.substr (0, at);
 }
 
-// key=value pairs of a query string or an urlencoded body, minus the keys the fixture
-// says are not reproducible (signature, timestamp, ...)
-inline std::vector<std::string> paramPairs (const std::string& text,
-                                            const std::vector<std::string>& skipKeys) {
-    std::vector<std::string> out;
+// A query string or urlencoded body as ordered key -> value pairs.
+inline std::vector<std::pair<std::string, std::string>> parsePairs (const std::string& text) {
+    std::vector<std::pair<std::string, std::string>> out;
     std::size_t start = 0;
     while (start <= text.size ()) {
         const std::size_t amp = text.find ('&', start);
@@ -103,13 +101,10 @@ inline std::vector<std::string> paramPairs (const std::string& text,
                                                      ? std::string::npos : amp - start);
         if (!pair.empty ()) {
             const std::size_t eq = pair.find ('=');
-            const std::string key = (eq == std::string::npos) ? pair : pair.substr (0, eq);
-            bool skip = false;
-            for (const auto& s : skipKeys) {
-                if (key == s) { skip = true; break; }
-            }
-            if (!skip) {
-                out.push_back (pair);
+            if (eq == std::string::npos) {
+                out.emplace_back (pair, std::string ());
+            } else {
+                out.emplace_back (pair.substr (0, eq), pair.substr (eq + 1));
             }
         }
         if (amp == std::string::npos) {
@@ -117,8 +112,145 @@ inline std::vector<std::string> paramPairs (const std::string& text,
         }
         start = amp + 1;
     }
-    std::sort (out.begin (), out.end ());
     return out;
+}
+
+// Recursive value comparison, mirroring assertNewAndStoredOutputInner: dicts compare
+// by key count then per stored key (skipKeys skipped), lists element-wise, everything
+// else as text. A urlencoded field can itself hold a JSON document -- binance sends the
+// whole basket of a createOrders call as `batchOrders=[{...},{...}]` -- and comparing
+// that as raw text is wrong twice over: it is order sensitive where the reference is
+// not, and it cannot skip a non-reproducible key nested inside.
+bool sameAny (const std::any& expected, const std::any& actual,
+              const std::vector<std::string>& skipKeys, std::string& why);
+
+inline bool skippedKey (const std::string& key, const std::vector<std::string>& skipKeys) {
+    for (const auto& s : skipKeys) {
+        if (key == s) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline bool sameAnyImpl (const std::any& expected, const std::any& actual,
+                         const std::vector<std::string>& skipKeys, std::string& why) {
+    if (ccxt::isDict (expected) && ccxt::isDict (actual)) {
+        const auto& e = std::any_cast<ccxt::dict> (expected);
+        const auto& a = std::any_cast<ccxt::dict> (actual);
+        if (e.size () != a.size ()) {
+            why = "output length mismatch";
+            return false;
+        }
+        for (const auto& kv : e.entries ()) {
+            if (skippedKey (kv.first, skipKeys)) {
+                continue;
+            }
+            if (!a.has (kv.first)) {
+                why = "output key missing: " + kv.first;
+                return false;
+            }
+            if (!sameAnyImpl (kv.second, a.get (kv.first), skipKeys, why)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    if (ccxt::isList (expected) && ccxt::isList (actual)) {
+        const auto& e = std::any_cast<ccxt::list> (expected);
+        const auto& a = std::any_cast<ccxt::list> (actual);
+        if (e.size () != a.size ()) {
+            why = "output length mismatch";
+            return false;
+        }
+        for (std::size_t i = 0; i < e.size (); i++) {
+            if (!sameAnyImpl (e.get (static_cast<long> (i)), a.get (static_cast<long> (i)),
+                              skipKeys, why)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    if (str (expected) != str (actual)) {
+        why = str (expected) + " != " + str (actual);
+        return false;
+    }
+    return true;
+}
+
+// A urlencoded field value: parsed and compared structurally when it holds JSON.
+inline bool sameScalarOrJson (const std::string& expected, const std::string& actual,
+                              const std::vector<std::string>& skipKeys, std::string& why) {
+    const bool looksJson = !expected.empty () && (expected[0] == '{' || expected[0] == '[');
+    if (!looksJson) {
+        if (expected != actual) {
+            why = expected + " != " + actual;
+            return false;
+        }
+        return true;
+    }
+    ccxt::Exchange parser;
+    const std::any e = parser.parseJson (expected);
+    const std::any a = parser.parseJson (actual);
+    if (!e.has_value () || !a.has_value ()) {
+        if (expected != actual) {
+            why = expected + " != " + actual;
+            return false;
+        }
+        return true;
+    }
+    return sameAnyImpl (e, a, skipKeys, why);
+}
+
+// Reproduces assertNewAndStoredOutputInner for a flat urlencoded payload:
+//
+//   1. the TOTAL key counts must match (counted before any skipping), and
+//   2. every stored key that is NOT in skipKeys must be present in the new payload
+//      with an equal value.
+//
+// Extra keys on the new side are never inspected, only counted. That asymmetry is load
+// bearing: binance renames the client-id field per order type (newClientOrderId ->
+// clientAlgoId for linear conditional orders), the fixture skips the stored name, and
+// the renamed one on the new side is only ever counted. Removing skipKeys from both
+// sides and comparing sets -- which is what this used to do -- fails those.
+inline bool samePayload (const std::string& expected, const std::string& actual,
+                         const std::vector<std::string>& skipKeys, std::string& why) {
+    const auto storedPairs = parsePairs (expected);
+    const auto newPairs = parsePairs (actual);
+    if (storedPairs.size () != newPairs.size ()) {
+        why = "output length mismatch (" + std::to_string (storedPairs.size ())
+            + " stored vs " + std::to_string (newPairs.size ()) + " new)";
+        return false;
+    }
+    const auto skipped = [&skipKeys] (const std::string& key) {
+        for (const auto& s : skipKeys) {
+            if (key == s) {
+                return true;
+            }
+        }
+        return false;
+    };
+    for (const auto& kv : storedPairs) {
+        if (skipped (kv.first)) {
+            continue;
+        }
+        bool found = false;
+        for (const auto& other : newPairs) {
+            if (other.first == kv.first) {
+                found = true;
+                if (!sameScalarOrJson (kv.second, other.second, skipKeys, why)) {
+                    why = "value mismatch for " + kv.first + ": " + why;
+                    return false;
+                }
+                break;
+            }
+        }
+        if (!found) {
+            why = "output key missing: " + kv.first;
+            return false;
+        }
+    }
+    return true;
 }
 
 inline std::string queryOf (const std::string& url) {
@@ -139,15 +271,9 @@ inline bool sameRequest (const std::string& expectedUrl, const std::string& actu
     }
     const bool haveBody = expectedBody.has_value () || actualBody.has_value ();
     if (!haveBody) {
-        const auto expectedParams = paramPairs (queryOf (expectedUrl), skipKeys);
-        const auto actualParams = paramPairs (queryOf (actualUrl), skipKeys);
-        if (expectedParams != actualParams) {
-            why = "query";
-            return false;
-        }
-        return true;
+        return samePayload (queryOf (expectedUrl), queryOf (actualUrl), skipKeys, why);
     }
-    // outputType for binance is "urlencoded"; a json body is compared as text
+    // binance's outputType is "urlencoded"; a json body is compared as text
     const std::string expectedText = expectedBody.has_value () ? str (expectedBody) : std::string ();
     const std::string actualText = actualBody.has_value () ? str (actualBody) : std::string ();
     if (!expectedText.empty () && (expectedText[0] == '{' || expectedText[0] == '[')) {
@@ -157,13 +283,7 @@ inline bool sameRequest (const std::string& expectedUrl, const std::string& actu
         }
         return true;
     }
-    const auto expectedParams = paramPairs (expectedText, skipKeys);
-    const auto actualParams = paramPairs (actualText, skipKeys);
-    if (expectedParams != actualParams) {
-        why = "body";
-        return false;
-    }
-    return true;
+    return samePayload (expectedText, actualText, skipKeys, why);
 }
 
 } // namespace statictests
