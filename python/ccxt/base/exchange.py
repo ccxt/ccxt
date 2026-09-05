@@ -1021,14 +1021,16 @@ class BaseExchange(object):
             get = dictionary_or_list.get
             for key in key_list:
                 value = get(key)
-                if value is not None and value != '':
+                # skip None and empty str without paying a cross-type rich
+                # comparison against '' for every non-str value
+                if value is not None and (type(value) is not str or value):
                     return value
         elif isinstance(dictionary_or_list, list):
             length = len(dictionary_or_list)
             for key in key_list:
                 if isinstance(key, int) and 0 <= key < length:
                     value = dictionary_or_list[key]
-                    if value is not None and value != '':
+                    if value is not None and (type(value) is not str or value):
                         return value
         return None
 
