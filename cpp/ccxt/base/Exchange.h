@@ -47,6 +47,12 @@ public:
     // Applies describe() and then the caller's overrides, mirroring what the TS
     // constructor does above the transpile delimiter.
     void initialiseDefaults (const std::any& config) {
+        // TS seeds options from getDefaultOptions() before describe() merges over it
+        // (ts/src/base/Exchange.ts:557). These are not cosmetic defaults:
+        // defaultNetworkCodeReplacements lives there, and without it
+        // prioritizedNetworkAliases() finds nothing and networkIdToCode() hands back the
+        // raw alias -- binance reported the ETH chain as ERC20 instead of ETH.
+        this->options = this->getDefaultOptions ();
         const std::any described = this->describe ();
         if (isDict (described)) {
             for (const auto& kv : std::any_cast<dict> (described).entries ()) {
@@ -58,6 +64,12 @@ public:
                 this->assign (kv.first, kv.second);
             }
         }
+        // The TS constructor ends with this (ts/src/base/Exchange.ts:632). It is what
+        // derives options['networksById'] by inverting options['networks'], among other
+        // post-describe setup -- without it networkIdToCode() is an identity function
+        // and every network id comes back unmapped ('LIGHTNING' instead of
+        // 'BTCLIGHTNING').
+        this->afterConstruct ();
     }
 
     // describe() returns a flat map of settings; route the ones that are real members
@@ -75,7 +87,9 @@ public:
         if (key == "features")           { this->features = value; return; }
         if (key == "urls")               { this->urls = value; return; }
         if (key == "api")                { this->api = value; return; }
-        if (key == "options")            { this->options = value; return; }
+        // deep-extend, never replace: the getDefaultOptions() seed above and each
+        // describe() tier in the chain all contribute, exactly as TS's deepExtend does
+        if (key == "options")            { this->options = this->deepExtend (this->options, value); return; }
         if (key == "timeframes")         { this->timeframes = value; return; }
         if (key == "fees")               { this->fees = value; return; }
         if (key == "limits")             { this->limits = value; return; }
