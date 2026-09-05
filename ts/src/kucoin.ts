@@ -2757,7 +2757,8 @@ export default class kucoin extends Exchange {
             'previousClose': undefined,
             'change': this.safeString2 (ticker, 'changePrice', 'priceChange'),
             'percentage': percentage,
-            'average': this.safeString (ticker, 'averagePrice'),
+            // `averagePrice` is yesterday's closed window, so safeTicker derives average
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'markPrice': this.safeString2 (ticker, 'markPrice', 'value'),

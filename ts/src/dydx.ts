@@ -943,15 +943,15 @@ export default class dydx extends Exchange {
 
     parseOrderType (type: Str) {
         const types: Dict = {
-            'LIMIT': 'LIMIT',
-            'STOP_LIMIT': 'LIMIT',
-            'TAKE_PROFIT_LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_MARKET': 'MARKET',
-            'TAKE_PROFIT_MARKET': 'MARKET',
-            'TRAILING_STOP': 'MARKET',
+            'LIMIT': 'limit',
+            'STOP_LIMIT': 'limit',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_MARKET': 'market',
+            'TRAILING_STOP': 'market',
         };
-        return this.safeStringUpper (types, type, type);
+        return this.safeStringLower (types, type, type);
     }
 
     /**

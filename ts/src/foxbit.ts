@@ -1859,7 +1859,8 @@ export default class foxbit extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'state')),
             'symbol': this.safeString (market, 'symbol'),
-            'type': this.safeString (order, 'type'),
+            // wire types are upper case, and a STOP_ prefix shows in triggerPrice below
+            'type': this.parseOrderType (this.safeString (order, 'type')),
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': this.safeBool (order, 'post_only'),
             'reduceOnly': undefined,
@@ -1965,6 +1966,18 @@ export default class foxbit extends Exchange {
             'comment': undefined,
             'internal': undefined,
         };
+    }
+
+    parseOrderType (type: Str) {
+        // a unified type is market or limit, so each of the five wire words maps to one of the two
+        const types: Dict = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'INSTANT': 'market',
+        };
+        return this.safeStringLower (types, (type as string), type);
     }
 
     parseLedgerEntryType (type: any) {

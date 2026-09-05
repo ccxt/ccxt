@@ -1201,10 +1201,9 @@ export default class blofin extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            // it may be incorrect to use total, free and used for swap accounts
+            // `frozen` counts orders only, so used is derived from total and free
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'frozen');
             result[code as IndexType] = account;
         }
         return this.safeBalance (result);

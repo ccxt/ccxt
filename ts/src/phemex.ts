@@ -1945,12 +1945,8 @@ export default class phemex extends Exchange {
                 } else if (sideId !== undefined) {
                     side = (sideId === '1') ? 'buy' : 'sell';
                 }
-                const ordType = this.safeString (trade, 'ordType');
-                if (ordType === '1') {
-                    type = 'market';
-                } else if (ordType === '2') {
-                    type = 'limit';
-                }
+                // ordType carries the same numeric encoding in both trade shapes
+                type = this.parseOrderType (this.safeString (trade, 'ordType'));
                 priceString = this.safeString (trade, 'execPriceRp');
                 amountString = this.safeString (trade, 'execQtyRq');
                 costString = this.safeString (trade, 'execValueRv');
@@ -2323,16 +2319,22 @@ export default class phemex extends Exchange {
         const types: Dict = {
             '1': 'market',
             '2': 'limit',
-            '3': 'stop',
-            '4': 'stopLimit',
+            // a unified type is market or limit, so each code maps to what its order
+            // becomes once triggered: 3 is Stop, 4 and 9 are StopLimit
+            '3': 'market',
+            '4': 'limit',
             '5': 'market',
             '6': 'limit',
             '7': 'market',
             '8': 'market',
-            '9': 'stopLimit',
+            '9': 'limit',
             '10': 'market',
             'Limit': 'limit',
             'Market': 'market',
+            'Stop': 'market',
+            'StopLimit': 'limit',
+            'MarketIfTouched': 'market',
+            'LimitIfTouched': 'limit',
         };
         return this.safeString (types, (type as string), type);
     }
