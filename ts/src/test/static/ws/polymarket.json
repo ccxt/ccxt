@@ -1,7 +1,20 @@
 {
     "exchange": "polymarket",
     "skipKeys": [],
-    "options": {},
+    "options": {
+        "proxyCredentials": {
+            "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+            "privateKey": "0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+            "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw",
+            "expires": 9999999999999
+        },
+        "watchPositions": {
+            "fetchPositionsSnapshot": false
+        },
+        "watchBalance": {
+            "fetchBalanceSnapshot": false
+        }
+    },
     "methods": {
         "watchOrderBook": [
             {
@@ -1188,6 +1201,483 @@
                 ],
                 "parsedResponse": true,
                 "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "watch the orders channel, the frame carries one short-form order object",
+                "method": "watchOrders",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "orders",
+                        "ts": 1788546565800,
+                        "ets": 1788546565789,
+                        "sq": 35879860000,
+                        "data": {
+                            "oid": 1234567890,
+                            "iid": 6,
+                            "buy": true,
+                            "p": "79000.0",
+                            "qty": "0.001",
+                            "tif": "gtc",
+                            "po": false,
+                            "ro": false,
+                            "rest": "0.001",
+                            "fill": "0",
+                            "cts": 1788546565789,
+                            "uts": 1788546565789,
+                            "status": "open"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "orders"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "oid": 1234567890,
+                            "iid": 6,
+                            "buy": true,
+                            "p": "79000.0",
+                            "qty": "0.001",
+                            "tif": "gtc",
+                            "po": false,
+                            "ro": false,
+                            "rest": "0.001",
+                            "fill": "0",
+                            "cts": 1788546565789,
+                            "uts": 1788546565789,
+                            "status": "open"
+                        },
+                        "id": "1234567890",
+                        "clientOrderId": null,
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546565789,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 79000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "watch the fills channel, the data field is an array of short-form fill objects",
+                "method": "watchMyTrades",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "fills",
+                        "ts": 1788546571800,
+                        "ets": 1788546571789,
+                        "sq": 35879861000,
+                        "data": [
+                            {
+                                "tid": 3738280849593744,
+                                "oid": 1234567891,
+                                "iid": 6,
+                                "side": "short",
+                                "p": "80100.0",
+                                "qty": "0.002",
+                                "taker": true,
+                                "fee": "0.064",
+                                "fea": "pUSD",
+                                "psz": "0.003",
+                                "pep": "79650.0",
+                                "pnl": "0.9",
+                                "liq": false,
+                                "adl": false,
+                                "ts": 1788546571789
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "fills"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "3738280849593744",
+                        "info": {
+                            "tid": 3738280849593744,
+                            "oid": 1234567891,
+                            "iid": 6,
+                            "side": "short",
+                            "p": "80100.0",
+                            "qty": "0.002",
+                            "taker": true,
+                            "fee": "0.064",
+                            "fea": "pUSD",
+                            "psz": "0.003",
+                            "pep": "79650.0",
+                            "pnl": "0.9",
+                            "liq": false,
+                            "adl": false,
+                            "ts": 1788546571789
+                        },
+                        "timestamp": 1788546571789,
+                        "datetime": "2026-09-04T18:29:31.789Z",
+                        "symbol": "BTC/USD:PUSD",
+                        "order": "1234567891",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80100,
+                        "amount": 0.002,
+                        "cost": 160.2,
+                        "fee": {
+                            "currency": "PUSD",
+                            "cost": 0.064
+                        },
+                        "fees": [
+                            {
+                                "currency": "PUSD",
+                                "cost": 0.064
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "watch the portfolio channel, every frame is a full snapshot with long field names plus the adl index",
+                "method": "watchPositions",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "portfolio",
+                        "ts": 1788546565789,
+                        "ets": 1788546565789,
+                        "sq": 35879862000,
+                        "data": {
+                            "positions": [
+                                {
+                                    "instrument_id": 6,
+                                    "symbol": "BTC-USD",
+                                    "size": "0.001",
+                                    "entry_price": "79650.0",
+                                    "leverage": 10,
+                                    "cross": true,
+                                    "initial_margin": "7.97",
+                                    "maintenance_margin": "3.99",
+                                    "position_value": "79.65",
+                                    "liquidation_price": "72000.0",
+                                    "unrealized_pnl": "-0.10",
+                                    "return_on_equity": "-0.0125",
+                                    "cumulative_funding": "0.01",
+                                    "adl_index": 0
+                                }
+                            ],
+                            "margin": {
+                                "total_account_value": "100.00",
+                                "available_order_margin": "90.00",
+                                "total_initial_margin": "10.00",
+                                "total_maintenance_margin": "5.00",
+                                "total_position_value": "79.65"
+                            },
+                            "withdrawable": "90.00",
+                            "in_liquidation": false,
+                            "timestamp": 1788546565789
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "portfolio"
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instrument_id": 6,
+                            "symbol": "BTC-USD",
+                            "size": "0.001",
+                            "entry_price": "79650.0",
+                            "leverage": 10,
+                            "cross": true,
+                            "initial_margin": "7.97",
+                            "maintenance_margin": "3.99",
+                            "position_value": "79.65",
+                            "liquidation_price": "72000.0",
+                            "unrealized_pnl": "-0.10",
+                            "return_on_equity": "-0.0125",
+                            "cumulative_funding": "0.01",
+                            "adl_index": 0,
+                            "timestamp": 1788546565789
+                        },
+                        "id": null,
+                        "symbol": "BTC/USD:PUSD",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 7.97,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 3.99,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 79650,
+                        "notional": 79.65,
+                        "leverage": 10,
+                        "unrealizedPnl": -0.1,
+                        "realizedPnl": null,
+                        "contracts": 0.001,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": 72000,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": 7.97,
+                        "marginMode": "cross",
+                        "side": "long",
+                        "percentage": -1.25,
+                        "hedged": false,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "watch the margin summary through the portfolio channel",
+                "method": "watchBalance",
+                "input": [],
+                "url": "wss://ws.perpetuals.polymarket.com/v1/ws",
+                "messages": [
+                    {
+                        "id": 1,
+                        "data": {
+                            "status": "ok"
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "data": [
+                            {
+                                "status": "ok"
+                            }
+                        ]
+                    },
+                    {
+                        "ch": "portfolio",
+                        "ts": 1788546565789,
+                        "ets": 1788546565789,
+                        "sq": 35879862000,
+                        "data": {
+                            "positions": [
+                                {
+                                    "instrument_id": 6,
+                                    "symbol": "BTC-USD",
+                                    "size": "0.001",
+                                    "entry_price": "79650.0",
+                                    "leverage": 10,
+                                    "cross": true,
+                                    "initial_margin": "7.97",
+                                    "maintenance_margin": "3.99",
+                                    "position_value": "79.65",
+                                    "liquidation_price": "72000.0",
+                                    "unrealized_pnl": "-0.10",
+                                    "return_on_equity": "-0.0125",
+                                    "cumulative_funding": "0.01",
+                                    "adl_index": 0
+                                }
+                            ],
+                            "margin": {
+                                "total_account_value": "100.00",
+                                "available_order_margin": "90.00",
+                                "total_initial_margin": "10.00",
+                                "total_maintenance_margin": "5.00",
+                                "total_position_value": "79.65"
+                            },
+                            "withdrawable": "90.00",
+                            "in_liquidation": false,
+                            "timestamp": 1788546565789
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "req": "post",
+                        "op": {
+                            "type": "auth",
+                            "args": {
+                                "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+                                "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw"
+                            }
+                        }
+                    },
+                    {
+                        "id": 2,
+                        "req": "sub",
+                        "chs": [
+                            "portfolio"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "positions": [
+                            {
+                                "instrument_id": 6,
+                                "symbol": "BTC-USD",
+                                "size": "0.001",
+                                "entry_price": "79650.0",
+                                "leverage": 10,
+                                "cross": true,
+                                "initial_margin": "7.97",
+                                "maintenance_margin": "3.99",
+                                "position_value": "79.65",
+                                "liquidation_price": "72000.0",
+                                "unrealized_pnl": "-0.10",
+                                "return_on_equity": "-0.0125",
+                                "cumulative_funding": "0.01",
+                                "adl_index": 0
+                            }
+                        ],
+                        "margin": {
+                            "total_account_value": "100.00",
+                            "available_order_margin": "90.00",
+                            "total_initial_margin": "10.00",
+                            "total_maintenance_margin": "5.00",
+                            "total_position_value": "79.65"
+                        },
+                        "withdrawable": "90.00",
+                        "in_liquidation": false,
+                        "timestamp": 1788546565789
+                    },
+                    "timestamp": 1788546565789,
+                    "datetime": "2026-09-04T18:29:25.789Z",
+                    "PUSD": {
+                        "free": 90,
+                        "used": 10,
+                        "total": 100
+                    },
+                    "free": {
+                        "PUSD": 90
+                    },
+                    "used": {
+                        "PUSD": 10
+                    },
+                    "total": {
+                        "PUSD": 100
+                    }
+                }
             }
         ]
     }

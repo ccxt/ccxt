@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import polymarketRest from '../polymarket.js';
-import { ExchangeError, NotSupported } from '../base/errors.js';
+import { ExchangeError, NotSupported, AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import type { Int, Str, Market, OrderBook, Trade, OHLCV, Dict, Strings, Ticker, Tickers } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, Str, Market, OrderBook, Trade, OHLCV, Dict, Strings, Ticker, Tickers, Order, Position, Balances } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -14,13 +14,13 @@ export default class polymarket extends polymarketRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchBidsAsks': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
-                'watchPositions': false,
+                'watchOrders': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -36,6 +36,14 @@ export default class polymarket extends polymarketRest {
                 },
             },
             'options': {
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true,
+                },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true,
+                    'awaitBalanceSnapshot': true,
+                },
                 // the venue serves klines over ws for these intervals only, rest also has 1s
                 'wsTimeframes': {
                     '1m': '1m',
@@ -76,15 +84,17 @@ export default class polymarket extends polymarketRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    sendSubscription (action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context: Dict = {}, params = {}) {
+    sendSubscription (action: string, channels: string[], messageHashes: string[], subMessageHashes: string[], context: Dict = {}, params = {}, checkHashes: Strings = undefined) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         // the base watch only sends the request when one of the hashes is not
         // subscribed yet, so a pending entry is registered under the same
-        // condition - otherwise no ack would ever arrive to consume it
+        // condition - otherwise no ack would ever arrive to consume it, the
+        // private channels register a shared hash next to narrowed ones
+        const hashesToCheck = (checkHashes === undefined) ? messageHashes : checkHashes;
         let willSend = false;
-        for (let i = 0; i < messageHashes.length; i++) {
-            if (!(messageHashes[i] in client.subscriptions)) {
+        for (let i = 0; i < hashesToCheck.length; i++) {
+            if (!(hashesToCheck[i] in client.subscriptions)) {
                 willSend = true;
             }
         }
@@ -620,6 +630,395 @@ export default class polymarket extends polymarketRest {
         client.resolve (ohlcv, messageHash);
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name polymarket#authenticate
+     * @description authenticates the websocket connection with the session proxy credentials, provisioning them first when needed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} resolves once the connection is authenticated
+     */
+    async authenticate (params = {}): Promise<any> {
+        const credentials = await this.loadProxyCredentials ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        const messageHash = 'authenticated';
+        const future = client.reusableFuture (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const id = this.requestId ();
+            const pending: Dict = {
+                'method': 'auth',
+                'messageHashes': [ messageHash ],
+                'subMessageHashes': [ messageHash ],
+            };
+            client.subscriptions['req:' + id.toString ()] = pending;
+            const request: Dict = {
+                'id': id,
+                'req': 'post',
+                'op': {
+                    'type': 'auth',
+                    'args': {
+                        'proxy': this.safeString (credentials, 'proxy'),
+                        'secret': this.safeString (credentials, 'secret'),
+                    },
+                },
+            };
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
+        }
+        return await future;
+    }
+
+    /**
+     * @method
+     * @name polymarket#watchOrders
+     * @description watches information on the orders made by the user
+     * @see https://docs.polymarket.com/perps/realtime-updates
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = 'orders:' + symbol;
+        }
+        const subscribeHashes = [ 'orders' ];
+        const request = this.sendSubscription ('sub', [ 'orders' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
+        const url = this.urls['api']['ws'];
+        const orders = await this.watch (url, messageHash, request, 'orders');
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message: any) {
+        //
+        //     {
+        //         "ch": "orders",
+        //         "ts": 1788546565800,
+        //         "sq": 35879860000,
+        //         "data": {
+        //             "oid": 1234567890,
+        //             "iid": 6,
+        //             "buy": true,
+        //             "p": "79000.0",
+        //             "qty": "0.001",
+        //             "tif": "gtc",
+        //             "po": false,
+        //             "ro": false,
+        //             "rest": "0.001",
+        //             "fill": "0",
+        //             "cts": 1788546565789,
+        //             "uts": 1788546565789,
+        //             "status": "open"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const parsed = this.parseOrder (data);
+        stored.append (parsed);
+        client.resolve (stored, 'orders');
+        const symbol = this.safeString (parsed, 'symbol');
+        if (symbol !== undefined) {
+            client.resolve (stored, 'orders:' + symbol);
+        }
+    }
+
+    /**
+     * @method
+     * @name polymarket#watchMyTrades
+     * @description watches information on the trades made by the user
+     * @see https://docs.polymarket.com/perps/realtime-updates
+     * @param {string} [symbol] unified market symbol of the market the trades were made in
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trade structures to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = 'myTrades:' + symbol;
+        }
+        const subscribeHashes = [ 'fills' ];
+        const request = this.sendSubscription ('sub', [ 'fills' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
+        const url = this.urls['api']['ws'];
+        const trades = await this.watch (url, messageHash, request, 'fills');
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client: Client, message: any) {
+        //
+        //     {
+        //         "ch": "fills",
+        //         "ts": 1788546571800,
+        //         "sq": 35879861000,
+        //         "data": [
+        //             {
+        //                 "tid": 3738280849593744,
+        //                 "oid": 1234567891,
+        //                 "iid": 6,
+        //                 "side": "short",
+        //                 "p": "80100.0",
+        //                 "qty": "0.002",
+        //                 "taker": true,
+        //                 "fee": "0.064",
+        //                 "fea": "pUSD",
+        //                 "psz": "0.003",
+        //                 "pep": "79650.0",
+        //                 "pnl": "0.9",
+        //                 "liq": false,
+        //                 "adl": false,
+        //                 "ts": 1788546571789
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (message, 'data');
+        let rows = [];
+        if (Array.isArray (data)) {
+            rows = data;
+        } else {
+            rows.push (data);
+        }
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            return;
+        }
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.myTrades;
+        const symbols: Dict = {};
+        for (let i = 0; i < rows.length; i++) {
+            const row = this.safeDict (rows, i, {});
+            const parsed = this.parseTrade (row);
+            stored.append (parsed);
+            const symbol = this.safeString (parsed, 'symbol');
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
+        }
+        client.resolve (stored, 'myTrades');
+        const symbolKeys = Object.keys (symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            client.resolve (stored, 'myTrades:' + symbol);
+        }
+    }
+
+    /**
+     * @method
+     * @name polymarket#watchPositions
+     * @description watches information on the open positions of the account, the venue pushes a full portfolio snapshot roughly every five seconds
+     * @see https://docs.polymarket.com/perps/realtime-updates
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] not used by polymarket watchPositions
+     * @param {int} [limit] not used by polymarket watchPositions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        symbols = this.marketSymbols (symbols);
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        this.setPositionsCache (client, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.positions;
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
+            // the portfolio channel pushes one snapshot at subscribe time and
+            // then only on changes, so the first call hydrates over rest
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const subscribeHashes = [ 'portfolio' ];
+        const request = this.sendSubscription ('sub', [ 'portfolio' ], [ 'positions' ], subscribeHashes, {}, params, subscribeHashes);
+        const newPositions = await this.watch (url, 'positions', request, 'portfolio');
+        if (this.newUpdates) {
+            return this.filterBySymbolsSinceLimit (newPositions, symbols, since, limit, true);
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
+        if (this.positions !== undefined) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        if (fetchPositionsSnapshot === true) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
+        const positions = await this.fetchPositions ();
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            cache.append (positions[i]);
+        }
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+        }
+        client.resolve (cache, 'positions');
+    }
+
+    /**
+     * @method
+     * @name polymarket#watchBalance
+     * @description watches the account margin summary, the venue pushes a full portfolio snapshot roughly every five seconds
+     * @see https://docs.polymarket.com/perps/realtime-updates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    override async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        this.setBalanceCache (client);
+        const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', true);
+        const awaitBalanceSnapshot = this.handleOption ('watchBalance', 'awaitBalanceSnapshot', true);
+        const balanceLoaded = ('info' in this.balance);
+        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true) && (!balanceLoaded)) {
+            // the portfolio channel pushes one snapshot at subscribe time and
+            // then only on changes, so the first call hydrates over rest
+            const snapshot = await client.future ('fetchBalanceSnapshot');
+            return snapshot as Balances;
+        }
+        const subscribeHashes = [ 'portfolio' ];
+        const request = this.sendSubscription ('sub', [ 'portfolio' ], [ 'balance' ], subscribeHashes, {}, params, subscribeHashes);
+        return await this.watch (url, 'balance', request, 'portfolio');
+    }
+
+    setBalanceCache (client: Client) {
+        const balanceLoaded = ('info' in this.balance);
+        if (balanceLoaded) {
+            return;
+        }
+        const fetchBalanceSnapshot = this.handleOption ('watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot === true) {
+            const messageHash = 'fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash);
+            }
+        }
+    }
+
+    async loadBalanceSnapshot (client: Client, messageHash: string) {
+        const balance = await this.fetchBalance ();
+        this.balance = this.extend (this.balance, balance);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (this.balance);
+        }
+        client.resolve (this.balance, 'balance');
+    }
+
+    handlePortfolio (client: Client, message: any) {
+        //
+        //     {
+        //         "ch": "portfolio",
+        //         "ts": 1788546565789,
+        //         "sq": 35879860000,
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "instrument_id": 6,
+        //                     "symbol": "BTC-USD",
+        //                     "size": "0.001",
+        //                     "entry_price": "79650.0",
+        //                     "leverage": 10,
+        //                     "cross": true,
+        //                     "initial_margin": "7.97",
+        //                     "maintenance_margin": "3.99",
+        //                     "position_value": "79.65",
+        //                     "liquidation_price": "72000.0",
+        //                     "unrealized_pnl": "-0.10",
+        //                     "return_on_equity": "-0.0125",
+        //                     "cumulative_funding": "0.01",
+        //                     "adl_index": 0
+        //                 }
+        //             ],
+        //             "margin": {
+        //                 "total_account_value": "100.00",
+        //                 "available_order_margin": "90.00",
+        //                 "total_initial_margin": "10.00",
+        //                 "total_maintenance_margin": "5.00",
+        //                 "total_position_value": "50.00"
+        //             },
+        //             "withdrawable": "90.00",
+        //             "in_liquidation": false,
+        //             "timestamp": 1788546565789
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const rows = this.safeList (data, 'positions', []);
+        const newPositions = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = this.safeDict (rows, i, {});
+            const extended = this.extend (row, { 'timestamp': timestamp });
+            const position = this.parsePosition (extended);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        client.resolve (newPositions, 'positions');
+        const margin = this.safeDict (data, 'margin', {});
+        const result: Dict = {
+            'info': data,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const account = this.account ();
+        account['total'] = this.safeString (margin, 'total_account_value');
+        account['free'] = this.safeString (margin, 'available_order_margin');
+        account['used'] = this.safeString (margin, 'total_initial_margin');
+        // pUSD is the only collateral asset on the venue
+        result['PUSD'] = account;
+        this.balance = this.safeBalance (result);
+        client.resolve (this.balance, 'balance');
+    }
+
     handleAck (client: Client, message: any) {
         //
         // subscribe or unsubscribe acknowledgement
@@ -634,7 +1033,34 @@ export default class polymarket extends polymarketRest {
         const id = this.safeString (message, 'id');
         const data = this.safeValue (message, 'data');
         if (!Array.isArray (data)) {
-            // post replies carry a data object, at the public stage only the ping op sends posts
+            // post replies carry a data object - the auth op is matched back
+            // through its pending entry, anything else counts like a pong
+            if (id !== undefined) {
+                const postKey = 'req:' + id;
+                const postPending = this.safeDict (client.subscriptions, postKey);
+                if (postPending !== undefined) {
+                    delete client.subscriptions[postKey];
+                    const postAction = this.safeString (postPending, 'method');
+                    if (postAction === 'auth') {
+                        const authStatus = this.safeString (data, 'status');
+                        if (authStatus === 'ok') {
+                            // resolve the future object directly so it stays
+                            // cached and later authenticate calls reuse it
+                            const future = this.safeValue (client.futures, 'authenticated');
+                            if (future !== undefined) {
+                                future.resolve (true);
+                            }
+                        } else {
+                            const authError = new AuthenticationError (this.id + ' authentication failed ' + this.json (data));
+                            client.reject (authError, 'authenticated');
+                            if ('authenticated' in client.subscriptions) {
+                                delete client.subscriptions['authenticated'];
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
             client.lastPong = this.safeInteger (message, 'ts', this.milliseconds ());
             return;
         }
@@ -717,6 +1143,9 @@ export default class polymarket extends polymarketRest {
             'trades': this.handleTrades,
             'tickers': this.handleTicker,
             'klines': this.handleOHLCV,
+            'orders': this.handleOrder,
+            'fills': this.handleMyTrades,
+            'portfolio': this.handlePortfolio,
         };
         const method = this.safeValue (methods, family);
         if (method !== undefined) {
