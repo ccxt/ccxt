@@ -421,6 +421,11 @@ export default class polymarket extends Exchange {
             }
             const code = this.safeCurrencyCode (baseId);
             if (!((code as string) in result)) {
+                // the venue tags each underlying with a category - only the
+                // crypto ones are unified as crypto, equities, commodities and
+                // indices map onto the other currency type
+                const category = this.safeString (instrument, 'category');
+                const currencyType = (category === 'crypto') ? 'crypto' : 'other';
                 result[code as string] = this.safeCurrencyStructure ({
                     'id': baseId,
                     'code': code,
@@ -431,7 +436,7 @@ export default class polymarket extends Exchange {
                     'withdraw': false,
                     'fee': undefined,
                     'precision': this.parseNumber (this.parsePrecision (this.safeString (instrument, 'quantity_decimals'))),
-                    'type': 'crypto',
+                    'type': currencyType,
                     'networks': {},
                 });
             }

@@ -3124,10 +3124,36 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "parse base currencies from the instruments payload, the same mock answers both parallel requests so the collateral loop skips these rows",
+                "description": "parse base currencies from the instruments payload - an index underlying maps to the other type while a crypto one stays crypto; the same mock answers both parallel requests so the collateral loop skips these rows",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": [
+                    {
+                        "instrument_id": 1,
+                        "instrument_type": "perpetual",
+                        "category": "index",
+                        "isolated_only": false,
+                        "symbol": "SP500-USD",
+                        "base_asset": "SP500",
+                        "quote_asset": "pUSD",
+                        "funding_interval": "1h",
+                        "quantity_decimals": 5,
+                        "price_decimals": 1,
+                        "price_bounds": "0.05",
+                        "liquidation_fee": "0.005",
+                        "max_order_count": 200,
+                        "min_notional": "10",
+                        "max_market_notional": "1000000",
+                        "max_limit_notional": "5000000",
+                        "max_leverage": 20,
+                        "risk_tiers": [
+                            {
+                                "lower_bound": "0",
+                                "max_leverage": 20
+                            }
+                        ],
+                        "ui_live_time": 1785542400000
+                    },
                     {
                         "instrument_id": 6,
                         "instrument_type": "perpetual",
@@ -3156,6 +3182,56 @@
                     }
                 ],
                 "parsedResponse": {
+                    "SP500": {
+                        "info": {
+                            "instrument_id": 1,
+                            "instrument_type": "perpetual",
+                            "category": "index",
+                            "isolated_only": false,
+                            "symbol": "SP500-USD",
+                            "base_asset": "SP500",
+                            "quote_asset": "pUSD",
+                            "funding_interval": "1h",
+                            "quantity_decimals": 5,
+                            "price_decimals": 1,
+                            "price_bounds": "0.05",
+                            "liquidation_fee": "0.005",
+                            "max_order_count": 200,
+                            "min_notional": "10",
+                            "max_market_notional": "1000000",
+                            "max_limit_notional": "5000000",
+                            "max_leverage": 20,
+                            "risk_tiers": [
+                                {
+                                    "lower_bound": "0",
+                                    "max_leverage": 20
+                                }
+                            ],
+                            "ui_live_time": 1785542400000
+                        },
+                        "id": "SP500",
+                        "numericId": null,
+                        "code": "SP500",
+                        "precision": 0.00001,
+                        "type": "other",
+                        "name": "SP500",
+                        "active": true,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
                     "BTC": {
                         "info": {
                             "instrument_id": 6,
