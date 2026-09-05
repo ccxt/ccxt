@@ -26,8 +26,8 @@ public partial class testMainClass : BaseTest
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-        object marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
-        object collectedTypes = new List<object>() {};
+        List<object> marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
+        List<object> collectedTypes = new List<object>() {};
         List<object> allMarkets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
         for (object i = 0; isLessThan(i, getArrayLength(allMarkets)); postFixIncrement(ref i))
         {

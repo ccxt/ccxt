@@ -28,7 +28,7 @@ public partial class BaseTest
             // headroom on a 102ms measured sleep and failed whenever the box was under
             // load. Keep a ceiling only to catch a sleep that is genuinely broken — a
             // seconds/milliseconds mix-up, or one that never returns.
-            object maxOvershoot = 2000;
+            int maxOvershoot = 2000;
             object maxElapsed = add(sleepAmount, maxOvershoot);
             bool elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
             bool elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);

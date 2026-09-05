@@ -287,17 +287,17 @@ public partial class revolutx : Exchange
      */
     public override object parseMarket(object market)
     {
-        object id = this.safeString(market, "id");
+        string? id = this.safeString(market, "id");
         object bs = this.safeString(market, "base", "");
         object quote = this.safeString(market, "quote", "");
         object baseId = bs;
         object quoteId = quote;
-        object baseStep = this.safeString(market, "base_step");
-        object quoteStep = this.safeString(market, "quote_step");
-        object minOrderSize = this.safeString(market, "min_order_size");
-        object maxOrderSize = this.safeString(market, "max_order_size");
-        object minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
-        object status = this.safeString(market, "status");
+        string? baseStep = this.safeString(market, "base_step");
+        string? quoteStep = this.safeString(market, "quote_step");
+        string? minOrderSize = this.safeString(market, "min_order_size");
+        string? maxOrderSize = this.safeString(market, "max_order_size");
+        string? minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
+        string? status = this.safeString(market, "status");
         bool active = (isEqual(status, "active"));
         object symbol = add(add(bs, "/"), quote);
         return new Dictionary<string, object>() {
@@ -369,8 +369,8 @@ public partial class revolutx : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
-        object region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
         if (isTrue(!isEqual(region, null)))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -388,7 +388,7 @@ public partial class revolutx : Exchange
         //
         object markets = this.safeDict(response, "data", response);
         List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -414,13 +414,13 @@ public partial class revolutx : Exchange
      */
     public override object parseCurrency(object currency)
     {
-        object id = this.safeString2(currency, "id", "symbol", "");
+        string? id = this.safeString2(currency, "id", "symbol", "");
         object code = this.safeCurrencyCode(id);
-        object name = this.safeString(currency, "name");
+        string? name = this.safeString(currency, "name");
         object scale = this.safeInteger(currency, "scale");
-        object status = this.safeString(currency, "status");
+        string? status = this.safeString(currency, "status");
         bool active = (isEqual(status, "active"));
-        object assetType = this.safeString(currency, "asset_type");
+        string? assetType = this.safeString(currency, "asset_type");
         object type = ((bool) isTrue((isEqual(assetType, "crypto")))) ? "crypto" : "fiat";
         object precision = ((bool) isTrue((!isEqual(scale, null)))) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
         return new Dictionary<string, object>() {
@@ -464,8 +464,8 @@ public partial class revolutx : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
-        object region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
         if (isTrue(!isEqual(region, null)))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -479,7 +479,7 @@ public partial class revolutx : Exchange
         //
         object currencies = this.safeDict(response, "data", response);
         List<object> keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -488,7 +488,7 @@ public partial class revolutx : Exchange
                 { "id", key },
             });
             object parsed = this.parseCurrency(currencyData);
-            object code = this.safeString(parsed, "code", "");
+            string? code = this.safeString(parsed, "code", "");
             if (isTrue(isEqual(code, "")))
             {
                 continue;
@@ -509,16 +509,16 @@ public partial class revolutx : Exchange
      */
     public override object parseTicker(object ticker, object market = null)
     {
-        object tickerSymbol = this.safeString(ticker, "symbol");
+        string? tickerSymbol = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(tickerSymbol, market, "/");
-        object bid = this.safeString(ticker, "bid");
-        object ask = this.safeString(ticker, "ask");
-        object last = this.safeString(ticker, "last_price");
-        object high = this.safeString(ticker, "high_24h");
-        object low = this.safeString(ticker, "low_24h");
-        object priceChange = this.safeString(ticker, "price_change_24h");
-        object baseVolume = this.safeString(ticker, "volume_24h");
-        object timestamp = this.safeInteger(ticker, "timestamp");
+        string? bid = this.safeString(ticker, "bid");
+        string? ask = this.safeString(ticker, "ask");
+        string? last = this.safeString(ticker, "last_price");
+        string? high = this.safeString(ticker, "high_24h");
+        string? low = this.safeString(ticker, "low_24h");
+        string? priceChange = this.safeString(ticker, "price_change_24h");
+        string? baseVolume = this.safeString(ticker, "volume_24h");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
         object open = null;
         if (isTrue(isTrue(!isEqual(last, null)) && isTrue(!isEqual(priceChange, null))))
         {
@@ -527,7 +527,7 @@ public partial class revolutx : Exchange
         object percentage = null;
         if (isTrue(isTrue(!isEqual(open, null)) && isTrue(!isEqual(priceChange, null))))
         {
-            object percentageString = Precise.stringDiv(priceChange, open, 8);
+            string? percentageString = Precise.stringDiv(priceChange, open, 8);
             percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         }
         return this.safeTicker(new Dictionary<string, object>() {
@@ -571,10 +571,10 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object marketIds = new List<object>() {};
+            List<object> marketIds = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
@@ -583,7 +583,7 @@ public partial class revolutx : Exchange
             }
             ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
-        object region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
         if (isTrue(!isEqual(region, null)))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -601,14 +601,14 @@ public partial class revolutx : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         object metadata = this.safeDict(response, "metadata", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(metadata, "timestamp");
-        object result = new Dictionary<string, object>() {};
+        Int64? timestamp = this.safeInteger(metadata, "timestamp");
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object tickerData = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)tickerData)["timestamp"] = timestamp;
             object ticker = this.parseTicker(tickerData);
-            object symbol = this.safeString(ticker, "symbol", "");
+            string? symbol = this.safeString(ticker, "symbol", "");
             if (isTrue(isEqual(symbol, "")))
             {
                 continue;
@@ -617,7 +617,7 @@ public partial class revolutx : Exchange
         }
         if (isTrue(!isEqual(symbols, null)))
         {
-            object filtered = new Dictionary<string, object>() {};
+            Dictionary<string, object> filtered = new Dictionary<string, object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object s = getValue(symbols, i);
@@ -676,14 +676,14 @@ public partial class revolutx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
         if (isTrue(!isEqual(region, null)))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -700,7 +700,7 @@ public partial class revolutx : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object metadata = this.safeDict(response, "metadata", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(metadata, "timestamp");
+        Int64? timestamp = this.safeInteger(metadata, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
@@ -715,7 +715,7 @@ public partial class revolutx : Exchange
      */
     public override object parseOHLCV(object ohlcv, object market = null)
     {
-        object timestamp = this.safeInteger(ohlcv, "start");
+        Int64? timestamp = this.safeInteger(ohlcv, "start");
         object open = this.safeNumber(ohlcv, "open");
         object high = this.safeNumber(ohlcv, "high");
         object low = this.safeNumber(ohlcv, "low");
@@ -748,7 +748,7 @@ public partial class revolutx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", this.safeInteger(this.timeframes, timeframeVar, 5) },
         };
@@ -764,7 +764,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["until"] = this.milliseconds();
         }
-        object region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
+        string? region = this.safeString2(parameters, "region", "region", getValue(this.options, "region"));
         if (isTrue(!isEqual(region, null)))
         {
             ((IDictionary<string,object>)request)["region"] = region;
@@ -794,13 +794,13 @@ public partial class revolutx : Exchange
      */
     public override object parseTrade(object trade, object market = null)
     {
-        object id = this.safeString(trade, "id");
-        object tradeSymbol = this.safeString(trade, "symbol");
+        string? id = this.safeString(trade, "id");
+        string? tradeSymbol = this.safeString(trade, "symbol");
         object symbol = this.safeSymbol(tradeSymbol, market, "/");
         object price = this.safeNumber(trade, "price");
         object amount = this.safeNumber(trade, "quantity");
-        object side = this.safeStringLower(trade, "side");
-        object timestamp = this.safeInteger(trade, "timestamp");
+        string? side = this.safeStringLower(trade, "side");
+        Int64? timestamp = this.safeInteger(trade, "timestamp");
         object cost = null;
         if (isTrue(isTrue(!isEqual(price, null)) && isTrue(!isEqual(amount, null))))
         {
@@ -849,7 +849,7 @@ public partial class revolutx : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(market, null)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -870,7 +870,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object cursor = this.safeString(parameters, "cursor");
+        string? cursor = this.safeString(parameters, "cursor");
         if (isTrue(!isEqual(cursor, null)))
         {
             ((IDictionary<string,object>)request)["cursor"] = cursor;
@@ -886,7 +886,7 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -918,13 +918,13 @@ public partial class revolutx : Exchange
         //     ]
         //
         object data = ((bool) isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? response : this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object currency = this.safeString(balance, "currency");
+            string? currency = this.safeString(balance, "currency");
             object code = this.safeCurrencyCode(currency);
             if (isTrue(isEqual(code, null)))
             {
@@ -932,8 +932,8 @@ public partial class revolutx : Exchange
             }
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            object reserved = this.safeString(balance, "reserved");
-            object staked = this.safeString(balance, "staked");
+            string? reserved = this.safeString(balance, "reserved");
+            string? staked = this.safeString(balance, "staked");
             object used = reserved;
             if (isTrue(!isEqual(staked, null)))
             {
@@ -956,7 +956,7 @@ public partial class revolutx : Exchange
      */
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending_new", "open" },
             { "new", "open" },
             { "partially_filled", "open" },
@@ -980,25 +980,25 @@ public partial class revolutx : Exchange
      */
     public override object parseOrder(object order, object market = null)
     {
-        object orderId = this.safeString2(order, "id", "venue_order_id");
-        object clientOrderId = this.safeString(order, "client_order_id");
-        object orderSymbol = this.safeString(order, "symbol");
+        string? orderId = this.safeString2(order, "id", "venue_order_id");
+        string? clientOrderId = this.safeString(order, "client_order_id");
+        string? orderSymbol = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(orderSymbol, market, "/");
-        object side = this.safeStringLower(order, "side");
-        object orderType = this.safeStringLower(order, "type");
-        object quantity = this.safeString(order, "quantity");
-        object filledQuantity = this.safeString(order, "filled_quantity");
-        object leavesQuantity = this.safeString(order, "leaves_quantity");
-        object price = this.safeString(order, "price");
-        object averageFillPrice = this.safeString(order, "average_fill_price");
-        object amount = this.safeString(order, "amount");
-        object filledAmount = this.safeString(order, "filled_amount");
-        object totalFee = this.safeString(order, "total_fee");
-        object feeCurrency = this.safeString(order, "fee_currency");
+        string? side = this.safeStringLower(order, "side");
+        string? orderType = this.safeStringLower(order, "type");
+        string? quantity = this.safeString(order, "quantity");
+        string? filledQuantity = this.safeString(order, "filled_quantity");
+        string? leavesQuantity = this.safeString(order, "leaves_quantity");
+        string? price = this.safeString(order, "price");
+        string? averageFillPrice = this.safeString(order, "average_fill_price");
+        string? amount = this.safeString(order, "amount");
+        string? filledAmount = this.safeString(order, "filled_amount");
+        string? totalFee = this.safeString(order, "total_fee");
+        string? feeCurrency = this.safeString(order, "fee_currency");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
-        object timeInForce = this.safeStringUpper(order, "time_in_force");
-        object createdDate = this.safeInteger(order, "created_date");
-        object updatedDate = this.safeInteger(order, "updated_date");
+        string? timeInForce = this.safeStringUpper(order, "time_in_force");
+        Int64? createdDate = this.safeInteger(order, "created_date");
+        Int64? updatedDate = this.safeInteger(order, "updated_date");
         object fee = null;
         if (isTrue(!isEqual(totalFee, null)))
         {
@@ -1074,14 +1074,14 @@ public partial class revolutx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
-        object cost = this.safeString2(parameters, "cost", "quote_size");
-        object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
+        string? cost = this.safeString2(parameters, "cost", "quote_size");
+        string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
-        object orderConfiguration = new Dictionary<string, object>() {};
+        Dictionary<string, object> orderConfiguration = new Dictionary<string, object>() {};
         if (isTrue(isEqual(type, "limit")))
         {
-            object limitConfig = new Dictionary<string, object>() {};
+            Dictionary<string, object> limitConfig = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(cost, null)))
             {
                 ((IDictionary<string,object>)limitConfig)["quote_size"] = this.costToPrecision(symbol, cost);
@@ -1109,7 +1109,7 @@ public partial class revolutx : Exchange
             {
                 throw new InvalidOrder ((string)add(this.id, " createOrder() executionInstructions are only supported for limit orders")) ;
             }
-            object marketConfig = new Dictionary<string, object>() {};
+            Dictionary<string, object> marketConfig = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(cost, null)))
             {
                 ((IDictionary<string,object>)marketConfig)["quote_size"] = this.costToPrecision(symbol, cost);
@@ -1122,7 +1122,7 @@ public partial class revolutx : Exchange
         {
             throw new InvalidOrder ((string)add(add(this.id, " createOrder() does not support order type "), type)) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
             { "symbol", getValue(market, "id") },
             { "side", side },
@@ -1138,8 +1138,8 @@ public partial class revolutx : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orderData = ((bool) isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object venueOrderId = this.safeString(orderData, "venue_order_id");
-        object state = this.safeString(orderData, "state");
+        string? venueOrderId = this.safeString(orderData, "venue_order_id");
+        string? state = this.safeString(orderData, "state");
         object order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
             { "id", venueOrderId },
             { "symbol", getValue(market, "id") },
@@ -1167,7 +1167,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "venue_order_id", id },
         };
         object response = await this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters));
@@ -1211,7 +1211,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "venue_order_id", id },
         };
         object response = await this.privateGet10OrdersVenueOrderId(this.extend(request, parameters));
@@ -1259,7 +1259,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             object market = this.market(symbol);
@@ -1269,7 +1269,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object cursor = this.safeString(parameters, "cursor");
+        string? cursor = this.safeString(parameters, "cursor");
         if (isTrue(!isEqual(cursor, null)))
         {
             ((IDictionary<string,object>)request)["cursor"] = cursor;
@@ -1284,7 +1284,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["order_types"] = String.Join(",", ((IList<object>)orderTypes).ToArray());
         }
-        object side = this.safeString(parameters, "side");
+        string? side = this.safeString(parameters, "side");
         if (isTrue(!isEqual(side, null)))
         {
             ((IDictionary<string,object>)request)["side"] = side;
@@ -1297,7 +1297,7 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -1328,7 +1328,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             object market = this.market(symbol);
@@ -1356,7 +1356,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object cursor = this.safeString(parameters, "cursor");
+        string? cursor = this.safeString(parameters, "cursor");
         if (isTrue(!isEqual(cursor, null)))
         {
             ((IDictionary<string,object>)request)["cursor"] = cursor;
@@ -1373,7 +1373,7 @@ public partial class revolutx : Exchange
         }
         object response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -1414,11 +1414,11 @@ public partial class revolutx : Exchange
      */
     public virtual object parseMyTrade(object trade, object market = null)
     {
-        object id = this.safeString(trade, "tid");
-        object orderId = this.safeString(trade, "oid");
+        string? id = this.safeString(trade, "tid");
+        string? orderId = this.safeString(trade, "oid");
         object price = this.safeNumber(trade, "p");
         object amount = this.safeNumber(trade, "q");
-        object side = this.safeStringLower(trade, "s");
+        string? side = this.safeStringLower(trade, "s");
         object timestamp = this.safeInteger2(trade, "tdt", "pdt");
         object isMaker = this.safeBool(trade, "im", false);
         object takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
@@ -1471,7 +1471,7 @@ public partial class revolutx : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object thirtyDays = 2592000000;
@@ -1496,7 +1496,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object cursor = this.safeString(parameters, "cursor");
+        string? cursor = this.safeString(parameters, "cursor");
         if (isTrue(!isEqual(cursor, null)))
         {
             ((IDictionary<string,object>)request)["cursor"] = cursor;
@@ -1513,7 +1513,7 @@ public partial class revolutx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -1549,11 +1549,11 @@ public partial class revolutx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
-        object cost = this.safeString2(parameters, "cost", "quote_size");
-        object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
+        string? cost = this.safeString2(parameters, "cost", "quote_size");
+        string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
             { "venue_order_id", id },
         };
@@ -1586,8 +1586,8 @@ public partial class revolutx : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orderData = ((bool) isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object newVenueOrderId = this.safeString(orderData, "venue_order_id");
-        object state = this.safeString(orderData, "state");
+        string? newVenueOrderId = this.safeString(orderData, "venue_order_id");
+        string? state = this.safeString(orderData, "state");
         object order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
             { "id", newVenueOrderId },
             { "symbol", getValue(market, "id") },
@@ -1607,7 +1607,7 @@ public partial class revolutx : Exchange
                 return null;
             }
             object feedback = add(add(this.id, " "), body);
-            object errorMessage = null;
+            string? errorMessage = null;
             if (isTrue((response is IDictionary<string, object>)))
             {
                 errorMessage = this.safeString2(response, "message", "error");

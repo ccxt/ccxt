@@ -1,5 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
+import { installCsharpLocalTypes } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -41,6 +42,9 @@ export function setupCsharpPrinter (transpiler) {
         }
         return undefined;
     };
+    // concrete types for generated locals (see build/csharp-local-types.js); installed here
+    // so the pooled workers and the main-thread transpiler emit identical declarations
+    installCsharpLocalTypes (transpiler);
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread

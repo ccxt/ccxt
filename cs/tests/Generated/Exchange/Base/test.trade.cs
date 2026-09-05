@@ -18,7 +18,7 @@ public partial class testMainClass : BaseTest
                 { "fees", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "12345-67890:09876/54321" },
             { "timestamp", 1502962946216 },
@@ -38,7 +38,7 @@ public partial class testMainClass : BaseTest
         };
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side
-        object emptyAllowedFor = new List<object>() {"fees", "fee", "symbol", "order", "id", "takerOrMaker"};
+        List<object> emptyAllowedFor = new List<object>() {"fees", "fee", "symbol", "order", "id", "takerOrMaker"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);

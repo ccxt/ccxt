@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // Test 1: Basic list of dicts with string key
-            object input1 = new List<object>() {new Dictionary<string, object>() {
+            List<object> input1 = new List<object>() {new Dictionary<string, object>() {
             { "id", "a" },
             { "val", 1 },
         }, new Dictionary<string, object>() {
@@ -23,7 +23,7 @@ public partial class BaseTest
             { "id", "c" },
             { "val", 3 },
         }};
-            object expected1 = new Dictionary<string, object>() {
+            Dictionary<string, object> expected1 = new Dictionary<string, object>() {
                 { "a", new Dictionary<string, object>() {
                     { "id", "a" },
                     { "val", 1 },
@@ -40,14 +40,14 @@ public partial class BaseTest
             object result1 = exchange.indexBy(input1, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result1, expected1);
             // Test 2: Skip elements with None/undefined values
-            object input2 = new List<object>() {new Dictionary<string, object>() {
+            List<object> input2 = new List<object>() {new Dictionary<string, object>() {
             { "id", "a" },
             { "val", 1 },
         }, new Dictionary<string, object>() {
             { "id", "b" },
             { "val", 3 },
         }};
-            object expected2 = new Dictionary<string, object>() {
+            Dictionary<string, object> expected2 = new Dictionary<string, object>() {
                 { "a", new Dictionary<string, object>() {
                     { "id", "a" },
                     { "val", 1 },
@@ -60,7 +60,7 @@ public partial class BaseTest
             object result2 = exchange.indexBy(input2, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result2, expected2);
             // Test 3: Skip elements missing the key
-            object input3 = new List<object>() {new Dictionary<string, object>() {
+            List<object> input3 = new List<object>() {new Dictionary<string, object>() {
             { "id", "a" },
             { "val", 1 },
         }, new Dictionary<string, object>() {
@@ -69,7 +69,7 @@ public partial class BaseTest
             { "id", "b" },
             { "val", 3 },
         }};
-            object expected3 = new Dictionary<string, object>() {
+            Dictionary<string, object> expected3 = new Dictionary<string, object>() {
                 { "a", new Dictionary<string, object>() {
                     { "id", "a" },
                     { "val", 1 },
@@ -82,12 +82,12 @@ public partial class BaseTest
             object result3 = exchange.indexBy(input3, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result3, expected3);
             // Test 4: Empty array
-            object input4 = new List<object>() {};
-            object expected4 = new Dictionary<string, object>() {};
+            List<object> input4 = new List<object>() {};
+            Dictionary<string, object> expected4 = new Dictionary<string, object>() {};
             object result4 = exchange.indexBy(input4, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result4, expected4);
             // Test 5: Duplicate keys (last one wins)
-            object input5 = new List<object>() {new Dictionary<string, object>() {
+            List<object> input5 = new List<object>() {new Dictionary<string, object>() {
             { "id", "a" },
             { "val", 1 },
         }, new Dictionary<string, object>() {
@@ -97,7 +97,7 @@ public partial class BaseTest
             { "id", "a" },
             { "val", 3 },
         }};
-            object expected5 = new Dictionary<string, object>() {
+            Dictionary<string, object> expected5 = new Dictionary<string, object>() {
                 { "a", new Dictionary<string, object>() {
                     { "id", "a" },
                     { "val", 3 },
@@ -106,7 +106,7 @@ public partial class BaseTest
             object result5 = exchange.indexBy(input5, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result5, expected5);
             // Test 6: Numeric key values
-            object input6 = new List<object>() {new Dictionary<string, object>() {
+            List<object> input6 = new List<object>() {new Dictionary<string, object>() {
             { "code", 1 },
             { "name", "one" },
         }, new Dictionary<string, object>() {
@@ -116,7 +116,7 @@ public partial class BaseTest
             { "code", 3 },
             { "name", "three" },
         }};
-            object expected6 = new Dictionary<string, object>() {
+            Dictionary<string, object> expected6 = new Dictionary<string, object>() {
                 { "1", new Dictionary<string, object>() {
                     { "code", 1 },
                     { "name", "one" },
@@ -133,8 +133,8 @@ public partial class BaseTest
             object result6 = exchange.indexBy(input6, "code");
             AssertDeepEqual(exchange, null, "testIndexBy", result6, expected6);
             // Test 7: List of arrays with integer key
-            object input7 = new List<object>() {new List<object>() {"a", 1}, new List<object>() {"b", 2}, new List<object>() {"c", 3}};
-            object expected7 = new Dictionary<string, object>() {
+            List<object> input7 = new List<object>() {new List<object>() {"a", 1}, new List<object>() {"b", 2}, new List<object>() {"c", 3}};
+            Dictionary<string, object> expected7 = new Dictionary<string, object>() {
                 { "a", new List<object>() {"a", 1} },
                 { "b", new List<object>() {"b", 2} },
                 { "c", new List<object>() {"c", 3} },
@@ -142,11 +142,11 @@ public partial class BaseTest
             object result7 = exchange.indexBy(input7, 0);
             AssertDeepEqual(exchange, null, "testIndexBy", result7, expected7);
             // Test 8: Single element
-            object input8 = new List<object>() {new Dictionary<string, object>() {
+            List<object> input8 = new List<object>() {new Dictionary<string, object>() {
             { "id", "only" },
             { "val", 42 },
         }};
-            object expected8 = new Dictionary<string, object>() {
+            Dictionary<string, object> expected8 = new Dictionary<string, object>() {
                 { "only", new Dictionary<string, object>() {
                     { "id", "only" },
                     { "val", 42 },

@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
         bool hasCancelAllOrders = isTrue((!isEqual(getValue(exchange.has, "cancelAllOrders"), null))) && isTrue((!isEqual(getValue(exchange.has, "cancelAllOrders"), false)));
         assert(isTrue(isTrue(hasCancelOrder) || isTrue(hasCancelOrders)) || isTrue(hasCancelAllOrders), add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
-        object limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
+        double limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         object market = exchange.market(symbol);
         bool isSwapFuture = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
         bool hasFetchBalance = isTrue((!isEqual(getValue(exchange.has, "fetchBalance"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchBalance"), false)));
@@ -139,7 +139,7 @@ public partial class testMainClass : BaseTest
             // ### close the traded position ###
             //
             object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
-            object parameters = new Dictionary<string, object>() {};
+            Dictionary<string, object> parameters = new Dictionary<string, object>() {};
             // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
             if (isTrue(isSwapFuture))
             {
@@ -164,8 +164,8 @@ public partial class testMainClass : BaseTest
         assert(!isEqual(filledString, null), add(add(logPrefix, " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
         // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
         // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
-        object maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
-        object minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
+        string? maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
+        string? minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
         assert(Precise.stringLe(filledString, maxExpectedFilledAmount), add(add(logPrefix, " filled amount is more than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         assert(Precise.stringGe(filledString, minExpectedFilledAmount), add(add(logPrefix, " filled amount is less than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         // order state should be "closed"

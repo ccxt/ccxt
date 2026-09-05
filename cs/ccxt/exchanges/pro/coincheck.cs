@@ -64,7 +64,7 @@ public partial class coincheck : ccxt.coincheck
         object market = this.market(symbol);
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-orderbook") },
         };
@@ -137,7 +137,7 @@ public partial class coincheck : ccxt.coincheck
         symbolVar = getValue(market, "symbol");
         object messageHash = add("trade:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-trades") },
         };
@@ -171,7 +171,7 @@ public partial class coincheck : ccxt.coincheck
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
@@ -201,9 +201,9 @@ public partial class coincheck : ccxt.coincheck
         //
         object symbol = this.symbol(this.safeString(trade, 2));
         object timestamp = this.safeTimestamp(trade, 0);
-        object side = this.safeString(trade, 5);
-        object priceString = this.safeString(trade, 3);
-        object amountString = this.safeString(trade, 4);
+        string? side = this.safeString(trade, 5);
+        string? priceString = this.safeString(trade, 3);
+        string? amountString = this.safeString(trade, 4);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, 1) },
             { "info", trade },

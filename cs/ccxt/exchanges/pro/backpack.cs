@@ -65,7 +65,7 @@ public partial class backpack : ccxt.backpack
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
         };
@@ -92,7 +92,7 @@ public partial class backpack : ccxt.backpack
         object secretBytes = this.base64ToBinary(this.secret);
         object seed = this.arraySlice(secretBytes, 0, 32);
         object signature = eddsa(this.encode(payload), seed, ed25519);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
             { "signature", new List<object>() {this.apiKey, signature, ts, recvWindow} },
@@ -132,8 +132,8 @@ public partial class backpack : ccxt.backpack
             } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "candles"), 0)))
             {
                 List<object> splitHashes = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-                object symbol = this.safeString(splitHashes, 2);
-                object timeframe = this.safeString(splitHashes, 3);
+                string? symbol = this.safeString(splitHashes, 2);
+                string? timeframe = this.safeString(splitHashes, 3);
                 if (isTrue(isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))) && isTrue((inOp(this.ohlcvs, symbol)))))
                 {
                     if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
@@ -257,8 +257,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object messageHashes = new List<object>() {};
-        object topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -287,8 +287,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -319,7 +319,7 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         object ticker = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(ticker, "s");
+        string? marketId = this.safeString(ticker, "s");
         object market = this.safeMarket(marketId);
         object symbol = this.safeSymbol(marketId, market);
         object parsedTicker = this.parseWsTicker(ticker, market);
@@ -344,13 +344,13 @@ public partial class backpack : ccxt.backpack
         //         v: '5542.3911'
         //     }
         //
-        object microseconds = this.safeInteger(ticker, "E", 0);
+        Int64? microseconds = this.safeInteger(ticker, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
-        object marketId = this.safeString(ticker, "s");
+        string? marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market);
-        object last = this.safeString(ticker, "c");
-        object open = this.safeString(ticker, "o");
+        string? last = this.safeString(ticker, "c");
+        string? open = this.safeString(ticker, "o");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -392,8 +392,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -421,8 +421,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -451,7 +451,7 @@ public partial class backpack : ccxt.backpack
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId);
         object symbol = this.safeSymbol(marketId, market);
         object parsedBidAsk = this.parseWsBidAsk(data, market);
@@ -475,15 +475,15 @@ public partial class backpack : ccxt.backpack
         //         u: 1328288557
         //     }
         //
-        object marketId = this.safeString(ticker, "s");
+        string? marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        object symbol = this.safeString(market, "symbol");
-        object microseconds = this.safeInteger(ticker, "E", 0);
+        string? symbol = this.safeString(market, "symbol");
+        Int64? microseconds = this.safeInteger(ticker, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
-        object ask = this.safeString(ticker, "a");
-        object askVolume = this.safeString(ticker, "A");
-        object bid = this.safeString(ticker, "b");
-        object bidVolume = this.safeString(ticker, "B");
+        string? ask = this.safeString(ticker, "a");
+        string? askVolume = this.safeString(ticker, "A");
+        string? bid = this.safeString(ticker, "b");
+        string? bidVolume = this.safeString(ticker, "B");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -557,14 +557,14 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
-            object marketId = this.safeString(symbolAndTimeframe, 0);
+            string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
-            object tf = this.safeString(symbolAndTimeframe, 1);
+            string? tf = this.safeString(symbolAndTimeframe, 1);
             object interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)topics).Add(add(add(add("kline.", interval), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("candles:", getValue(market, "symbol")), ":"), interval));
@@ -602,14 +602,14 @@ public partial class backpack : ccxt.backpack
         {
             await this.loadMarkets();
         }
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
-            object marketId = this.safeString(symbolAndTimeframe, 0);
+            string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
-            object tf = this.safeString(symbolAndTimeframe, 1);
+            string? tf = this.safeString(symbolAndTimeframe, 1);
             object interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)topics).Add(add(add(add("kline.", interval), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:candles:", getValue(market, "symbol")), ":"), interval));
@@ -639,10 +639,10 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(data, "s");
         object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
-        object stream = this.safeString(message, "stream", "");
+        string? stream = this.safeString(message, "stream", "");
         List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object timeframe = this.safeString(parts, 1, "");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
@@ -651,7 +651,7 @@ public partial class backpack : ccxt.backpack
         }
         if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
         {
-            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
         }
@@ -740,8 +740,8 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -753,7 +753,7 @@ public partial class backpack : ccxt.backpack
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
-            object tradeSymbol = this.safeString(first, "symbol");
+            string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         object result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
@@ -782,8 +782,8 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((string)add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -814,12 +814,12 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(data, "s");
         object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.trades, symbol))))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
@@ -847,14 +847,14 @@ public partial class backpack : ccxt.backpack
         //         t: 10782547
         //     }
         //
-        object microseconds = this.safeInteger(trade, "E", 0);
+        Int64? microseconds = this.safeInteger(trade, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
-        object id = this.safeString(trade, "t");
-        object marketId = this.safeString(trade, "s");
+        string? id = this.safeString(trade, "t");
+        string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         object isBuyerMaker = this.safeBool(trade, "m");
-        object side = null;
-        object takerOrMaker = null;
+        string? side = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
             takerOrMaker = "taker";
@@ -866,9 +866,9 @@ public partial class backpack : ccxt.backpack
                 side = "buy";
             }
         }
-        object price = this.safeString(trade, "p");
-        object amount = this.safeString(trade, "q");
-        object orderId = null;
+        string? price = this.safeString(trade, "p");
+        string? amount = this.safeString(trade, "q");
+        string? orderId = null;
         if (isTrue(isEqual(side, "buy")))
         {
             orderId = this.safeString(trade, "b");
@@ -932,8 +932,8 @@ public partial class backpack : ccxt.backpack
         }
         symbols = this.marketSymbols(symbols, null, false);
         object marketIds = this.marketIds(symbols);
-        object messageHashes = new List<object>() {};
-        object topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -978,8 +978,8 @@ public partial class backpack : ccxt.backpack
         }
         symbols = this.marketSymbols(symbols, null, false);
         object marketIds = this.marketIds(symbols);
-        object messageHashes = new List<object>() {};
-        object topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -1012,15 +1012,15 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(data, "s");
         object symbol = this.safeSymbol(marketId);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object storedOrderBook = getValue(this.orderbooks, symbol);
-        object nonce = this.safeInteger(storedOrderBook, "nonce");
-        object deltaNonce = this.safeInteger(data, "u");
+        Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
+        Int64? deltaNonce = this.safeInteger(data, "u");
         object messageHash = add("orderbook:", symbol);
         if (isTrue(isEqual(nonce, null)))
         {
@@ -1070,8 +1070,8 @@ public partial class backpack : ccxt.backpack
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         object firstDelta = this.safeDict(cache, 0);
-        object nonce = this.safeInteger(orderbook, "nonce");
-        object firstDeltaStart = this.safeInteger(firstDelta, "U");
+        Int64? nonce = this.safeInteger(orderbook, "nonce");
+        Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
         if (isTrue(isEqual(nonce, null)))
         {
             return getArrayLength(cache);
@@ -1087,8 +1087,8 @@ public partial class backpack : ccxt.backpack
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaStart = this.safeInteger(delta, "U");
-            object deltaEnd = this.safeInteger(delta, "u");
+            Int64? deltaStart = this.safeInteger(delta, "U");
+            Int64? deltaEnd = this.safeInteger(delta, "u");
             if (isTrue(isTrue((isEqual(deltaStart, null))) || isTrue((isEqual(deltaEnd, null)))))
             {
                 return getArrayLength(cache);
@@ -1202,14 +1202,14 @@ public partial class backpack : ccxt.backpack
         //
         string messageHash = "orders";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object parsed = this.parseWsOrder(data, market);
         object orders = this.orders;
         if (isTrue(isEqual(orders, null)))
         {
-            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
@@ -1247,24 +1247,24 @@ public partial class backpack : ccxt.backpack
         //         z: '0.0010'
         //     },
         //
-        object id = this.safeString(order, "i");
-        object clientOrderId = this.safeString(order, "c");
-        object microseconds = this.safeInteger(order, "E", 0);
+        string? id = this.safeString(order, "i");
+        string? clientOrderId = this.safeString(order, "c");
+        Int64? microseconds = this.safeInteger(order, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
-        object marketId = this.safeString(order, "s");
+        string? marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object type = this.safeStringLower(order, "o");
-        object timeInForce = this.safeString(order, "f");
+        string? type = this.safeStringLower(order, "o");
+        string? timeInForce = this.safeString(order, "f");
         object side = this.parseWsOrderSide(this.safeString(order, "S"));
-        object price = this.safeString(order, "p");
+        string? price = this.safeString(order, "p");
         object triggerPrice = this.safeNumber(order, "P");
-        object amount = this.safeString(order, "q");
-        object cost = this.safeString(order, "Z");
-        object filled = this.safeString(order, "l");
+        string? amount = this.safeString(order, "q");
+        string? cost = this.safeString(order, "Z");
+        string? filled = this.safeString(order, "l");
         object fee = null;
-        object feeCurrency = this.safeString(order, "N");
+        string? feeCurrency = this.safeString(order, "N");
         if (isTrue(!isEqual(feeCurrency, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1299,7 +1299,7 @@ public partial class backpack : ccxt.backpack
 
     public virtual object parseWsOrderStatus(object status, object market = null)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "New", "open" },
             { "Filled", "closed" },
             { "Cancelled", "canceled" },
@@ -1313,7 +1313,7 @@ public partial class backpack : ccxt.backpack
 
     public virtual object parseWsOrderSide(object side)
     {
-        object sides = new Dictionary<string, object>() {
+        Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "Bid", "buy" },
             { "Ask", "sell" },
         };
@@ -1339,8 +1339,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object messageHashes = new List<object>() {};
-        object topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1379,8 +1379,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object messageHashes = new List<object>() {};
-        object topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1430,7 +1430,7 @@ public partial class backpack : ccxt.backpack
         }
         object cache = this.positions;
         object parsedPosition = this.parseWsPosition(data);
-        object microseconds = this.safeInteger(data, "E", 0);
+        Int64? microseconds = this.safeInteger(data, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         ((IDictionary<string,object>)parsedPosition)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsedPosition)["datetime"] = this.iso8601(timestamp);
@@ -1462,18 +1462,18 @@ public partial class backpack : ccxt.backpack
         //         s: 'ETH_USDC_PERP'
         //     }
         //
-        object id = this.safeString(position, "i");
-        object marketId = this.safeString(position, "s");
+        string? id = this.safeString(position, "i");
+        string? marketId = this.safeString(position, "s");
         object marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
         object symbol = getValue(marketResolved, "symbol");
-        object notional = this.safeString(position, "n");
-        object liquidationPrice = this.safeString(position, "l");
-        object entryPrice = this.safeString(position, "b");
-        object realizedPnl = this.safeString(position, "p");
-        object unrealisedPnl = this.safeString(position, "P");
-        object contracts = this.safeString(position, "Q");
-        object markPrice = this.safeString(position, "M");
+        string? notional = this.safeString(position, "n");
+        string? liquidationPrice = this.safeString(position, "l");
+        string? entryPrice = this.safeString(position, "b");
+        string? realizedPnl = this.safeString(position, "p");
+        string? unrealisedPnl = this.safeString(position, "P");
+        string? contracts = this.safeString(position, "Q");
+        string? markPrice = this.safeString(position, "M");
         object netQuantity = this.safeNumber(position, "q");
         object hedged = false;
         object side = "long";
@@ -1488,7 +1488,7 @@ public partial class backpack : ccxt.backpack
             hedged = null;
             side = null;
         }
-        object microseconds = this.safeInteger(position, "E", 0);
+        Int64? microseconds = this.safeInteger(position, "E", 0);
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object maintenanceMarginPercentage = this.safeNumber(position, "m");
         object initialMarginPercentage = this.safeNumber(position, "f");
@@ -1527,7 +1527,7 @@ public partial class backpack : ccxt.backpack
             return;
         }
         object data = this.safeDict(message, "data");
-        object eventVar = this.safeString(data, "e");
+        string? eventVar = this.safeString(data, "e");
         if (isTrue(isEqual(eventVar, "ticker")))
         {
             this.handleTicker(client as WebSocketClient, message);
@@ -1564,7 +1564,7 @@ public partial class backpack : ccxt.backpack
         //     }
         //
         object error = this.safeDict(message, "error", new Dictionary<string, object>() {});
-        object code = this.safeInteger(error, "code");
+        Int64? code = this.safeInteger(error, "code");
         try
         {
             if (isTrue(!isEqual(code, null)))

@@ -164,7 +164,7 @@ public partial class testMainClass : BaseTest
                 assert(isLessThan(ts, maxTs), add(add(add("timestamp more than ", ((object)maxTs).ToString()), " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if (isTrue(!isEqual(nowToCheck, null)))
                 {
-                    object maxMsOffset = 60000; // 1 min
+                    int maxMsOffset = 60000; // 1 min
                     assert(isLessThan(ts, add(nowToCheck, maxMsOffset)), add(add(add(add(add("returned item timestamp (", exchange.iso8601(ts)), ") is ahead of the current time ("), exchange.iso8601(nowToCheck)), ")"), logText));
                 }
             }
@@ -462,7 +462,7 @@ public partial class testMainClass : BaseTest
                 // TICK_SIZE should be above zero
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
                 // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
-                object decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
+                List<object> decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
                 if (isTrue(isTrue(isEqual(key, "amount")) && isTrue(inOp(skippedProperties, "precisionAmountAbnormal"))))
                 {
                     return;
@@ -530,7 +530,7 @@ public partial class testMainClass : BaseTest
             // set 'since' to 5 minute ago for optimal results
             object sinceTime = subtract(exchange.milliseconds(), multiply(multiply(1000, 60), 5));
             // iterate
-            object methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
+            List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
             for (object i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
             {
                 object singularFetchName = getValue(methods_singular, i);
@@ -549,7 +549,7 @@ public partial class testMainClass : BaseTest
             // search through plural methods
             if (isTrue(isEqual(fetchedOrder, null)))
             {
-                object methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
+                List<object> methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
                 for (object i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
                 {
                     object pluralFetchName = getValue(methods_plural, i);
@@ -690,7 +690,7 @@ public partial class testMainClass : BaseTest
                 return a;
             } else
             {
-                object result = new List<object>() {};
+                List<object> result = new List<object>() {};
                 for (object i = 0; isLessThan(i, getArrayLength(a)); postFixIncrement(ref i))
                 {
                     ((IList<object>)result).Add(getValue(a, i));

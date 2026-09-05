@@ -55,7 +55,7 @@ public partial class lbank : ccxt.lbank
     public virtual object requestId()
     {
         this.lockId();
-        object previousValue = this.safeInteger(this.options, "requestId", 0);
+        Int64? previousValue = this.safeInteger(this.options, "requestId", 0);
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)this.options)["requestId"] = newValue;
         this.unlockId();
@@ -100,7 +100,7 @@ public partial class lbank : ccxt.lbank
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         object timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("fetchOHLCV:", getValue(market, "symbol")), ":"), timeframeId);
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "kbar" },
             { "kbar", timeframeId },
@@ -148,7 +148,7 @@ public partial class lbank : ccxt.lbank
         object timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("ohlcv:", getValue(market, "symbol")), ":"), timeframeId);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "kbar" },
             { "kbar", timeframeId },
@@ -216,7 +216,7 @@ public partial class lbank : ccxt.lbank
         //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
-        object marketId = this.safeString(message, "pair");
+        string? marketId = this.safeString(message, "pair");
         object symbol = this.safeSymbol(marketId, null, "_");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
@@ -224,14 +224,14 @@ public partial class lbank : ccxt.lbank
         if (isTrue(!isEqual(records, null)))
         {
             object rawOHLCV = this.safeValue(records, 0, new List<object>() {});
-            object parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
+            List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
             object timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
-                object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
             }
@@ -242,14 +242,14 @@ public partial class lbank : ccxt.lbank
         {
             object rawOHLCV = this.safeValue(message, "kbar", new Dictionary<string, object>() {});
             object timeframeId = this.safeString(rawOHLCV, "slot");
-            object datetime = this.safeString(rawOHLCV, "t");
-            object parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
+            string? datetime = this.safeString(rawOHLCV, "t");
+            List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
-                object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
             }
@@ -279,7 +279,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "fetchTickerWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTicker:", getValue(market, "symbol"));
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "tick" },
             { "pair", getValue(market, "id") },
@@ -309,7 +309,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "watchTicker");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("ticker:", getValue(market, "symbol"));
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "tick" },
             { "pair", getValue(market, "id") },
@@ -341,7 +341,7 @@ public partial class lbank : ccxt.lbank
         //         "TS":"2019-07-01T11:33:55.188"
         //     }
         //
-        object marketId = this.safeString(message, "pair");
+        string? marketId = this.safeString(message, "pair");
         object symbol = this.safeSymbol(marketId);
         object market = this.safeMarket(marketId);
         object parsedTicker = this.parseWsTicker(message, market);
@@ -375,9 +375,9 @@ public partial class lbank : ccxt.lbank
         //         "TS":"2019-07-01T11:33:55.188"
         //     }
         //
-        object marketId = this.safeString(ticker, "pair");
+        string? marketId = this.safeString(ticker, "pair");
         object symbol = this.safeSymbol(marketId, market);
-        object datetime = this.safeString(ticker, "TS");
+        string? datetime = this.safeString(ticker, "TS");
         object tickerData = this.safeValue(ticker, "tick");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -429,7 +429,7 @@ public partial class lbank : ccxt.lbank
         {
             limit = 10;
         }
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "trade" },
             { "pair", getValue(market, "id") },
@@ -462,7 +462,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "watchTrades");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("trades:", getValue(market, "symbol"));
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "trade" },
             { "pair", getValue(market, "id") },
@@ -501,13 +501,13 @@ public partial class lbank : ccxt.lbank
         //         "TS":"2019-06-28T19:55:49.466"
         //     }
         //
-        object marketId = this.safeString(message, "pair");
+        string? marketId = this.safeString(message, "pair");
         object symbol = this.safeSymbol(marketId);
         object market = this.safeMarket(marketId);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
@@ -540,16 +540,16 @@ public partial class lbank : ccxt.lbank
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
-        object timestamp = this.safeInteger(trade, 0);
+        Int64? timestamp = this.safeInteger(trade, 0);
         object datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(datetime);
         }
-        object rawSide = this.safeString2(trade, "direction", 3);
+        string? rawSide = this.safeString2(trade, "direction", 3);
         List<object> parts = ((string)((string)rawSide)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object firstPart = this.safeString(parts, 0);
-        object secondPart = this.safeString(parts, 1);
+        string? firstPart = this.safeString(parts, 0);
+        string? secondPart = this.safeString(parts, 1);
         object side = firstPart;
         // reverse if it was 'maker'
         if (isTrue(isTrue(!isEqual(secondPart, null)) && isTrue(isEqual(secondPart, "maker"))))
@@ -606,7 +606,7 @@ public partial class lbank : ccxt.lbank
             messageHash = add("orders:", getValue(market, "symbol"));
             pair = ((string)getValue(market, "id"));
         }
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "orderUpdate" },
             { "subscribeKey", key },
@@ -637,12 +637,12 @@ public partial class lbank : ccxt.lbank
         //         "TS":"2019-06-28T14:49:37.816"
         //     }
         //
-        object marketId = this.safeString(message, "pair");
+        string? marketId = this.safeString(message, "pair");
         object symbol = this.safeSymbol(marketId, null, "_");
         object myOrders = this.orders;
         if (isTrue(isEqual(this.orders, null)))
         {
-            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
         }
         object order = this.parseWsOrder(message);
@@ -701,20 +701,20 @@ public partial class lbank : ccxt.lbank
         //     }
         //
         object orderUpdate = this.safeValue(order, "orderUpdate", new Dictionary<string, object>() {});
-        object rawType = this.safeString(orderUpdate, "type", "");
+        string? rawType = this.safeString(orderUpdate, "type", "");
         List<object> typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object side = this.safeString(typeParts, 0);
-        object exchangeType = this.safeString(typeParts, 1);
+        string? side = this.safeString(typeParts, 0);
+        string? exchangeType = this.safeString(typeParts, 1);
         object type = null;
         if (isTrue(isTrue(!isEqual(rawType, "buy")) && isTrue(!isEqual(rawType, "sell"))))
         {
             type = ((bool) isTrue((isEqual(exchangeType, "market")))) ? "market" : "limit";
         }
-        object marketId = this.safeString(order, "pair");
+        string? marketId = this.safeString(order, "pair");
         object symbol = this.safeSymbol(marketId, market, "_");
-        object timestamp = this.safeInteger(orderUpdate, "updateTime");
-        object status = this.safeString(orderUpdate, "orderStatus");
-        object orderAmount = this.safeString(orderUpdate, "orderAmt");
+        Int64? timestamp = this.safeInteger(orderUpdate, "updateTime");
+        string? status = this.safeString(orderUpdate, "orderStatus");
+        string? orderAmount = this.safeString(orderUpdate, "orderAmt");
         object cost = null;
         if (isTrue(isTrue((isEqual(type, "market"))) && isTrue((isEqual(side, "buy")))))
         {
@@ -746,7 +746,7 @@ public partial class lbank : ccxt.lbank
 
     public virtual object parseWsOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "-1", "canceled" },
             { "0", "open" },
             { "1", "open" },
@@ -774,7 +774,7 @@ public partial class lbank : ccxt.lbank
         object key = await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
         string messageHash = "balance";
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "assetUpdate" },
             { "subscribeKey", key },
@@ -801,12 +801,12 @@ public partial class lbank : ccxt.lbank
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object timestamp = this.parse8601(this.safeString(message, "TS"));
-        object datetime = this.iso8601(timestamp);
+        Int64? timestamp = this.parse8601(this.safeString(message, "TS"));
+        string? datetime = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
         ((IDictionary<string,object>)this.balance)["datetime"] = datetime;
-        object currencyId = this.safeString(data, "assetCode");
+        string? currencyId = this.safeString(data, "assetCode");
         object code = this.safeCurrencyCode(currencyId);
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
@@ -845,7 +845,7 @@ public partial class lbank : ccxt.lbank
         {
             limit = 100;
         }
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "depth" },
             { "depth", limit },
@@ -883,7 +883,7 @@ public partial class lbank : ccxt.lbank
         {
             limitVar = 100;
         }
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "depth" },
             { "depth", limitVar },
@@ -952,11 +952,11 @@ public partial class lbank : ccxt.lbank
         //         "TS": "2019-06-28T17:49:22.722"
         //     }
         //
-        object marketId = this.safeString(message, "pair");
+        string? marketId = this.safeString(message, "pair");
         object symbol = this.safeSymbol(marketId);
         object orderBook = this.safeValue(message, "depth", message);
-        object datetime = this.safeString(message, "TS");
-        object timestamp = this.parse8601(datetime);
+        string? datetime = this.safeString(message, "TS");
+        Int64? timestamp = this.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -991,7 +991,7 @@ public partial class lbank : ccxt.lbank
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
-        object pingId = this.safeString(message, "ping");
+        string? pingId = this.safeString(message, "ping");
         try
         {
             await client.send(new Dictionary<string, object>() {
@@ -1006,19 +1006,19 @@ public partial class lbank : ccxt.lbank
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object status = this.safeString(message, "status");
+        string? status = this.safeString(message, "status");
         if (isTrue(isEqual(status, "error")))
         {
             this.handleErrorMessage(client as WebSocketClient, message);
             return;
         }
-        object type = this.safeString2(message, "type", "action");
+        string? type = this.safeString2(message, "type", "action");
         if (isTrue(isEqual(type, "ping")))
         {
             this.spawn(this.handlePing, new object[] { client, message});
             return;
         }
-        object handlers = new Dictionary<string, object>() {
+        Dictionary<string, object> handlers = new Dictionary<string, object>() {
             { "kbar", this.handleOHLCV },
             { "depth", this.handleOrderBook },
             { "trade", this.handleTrades },
@@ -1081,17 +1081,17 @@ public partial class lbank : ccxt.lbank
                 };
             } else
             {
-                object expires = this.safeInteger(authenticated, "expires", 0);
+                Int64? expires = this.safeInteger(authenticated, "expires", 0);
                 if (isTrue(isLessThan(expires, now)))
                 {
-                    object request = new Dictionary<string, object>() {
+                    Dictionary<string, object> request = new Dictionary<string, object>() {
                         { "subscribeKey", getValue(authenticated, "key") },
                     };
                     object response = await this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters));
                     //
                     //    {"result": "true"}
                     //
-                    object result = this.safeString(response, "result");
+                    string? result = this.safeString(response, "result");
                     if (isTrue(!isEqual(result, "true")))
                     {
                         throw new ExchangeError ((string)add(this.id, " failed to refresh the SubscribeKey")) ;

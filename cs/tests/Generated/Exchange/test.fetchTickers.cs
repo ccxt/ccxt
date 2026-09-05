@@ -67,7 +67,7 @@ public partial class testMainClass : BaseTest
             object nonInactiveMarkets = testSharedMethods.getActiveMarkets(exchange);
             int notInactiveSymbolsLength = getArrayLength(nonInactiveMarkets);
             int obtainedTickersLength = getArrayLength(tickersValues);
-            object minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+            double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
             assert(isGreaterThanOrEqual(obtainedTickersLength, multiply(notInactiveSymbolsLength, minRatio)), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)notInactiveSymbolsLength).ToString()), " active markets"));
             //
             // ensure tickers length is less than markets length

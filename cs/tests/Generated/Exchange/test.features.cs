@@ -9,8 +9,8 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFeatures(BaseExchange exchange, object skippedProperties)
     {
-        object marketTypes = new List<object>() {"spot", "swap", "future", "option"};
-        object subTypes = new List<object>() {"linear", "inverse"};
+        List<object> marketTypes = new List<object>() {"spot", "swap", "future", "option"};
+        List<object> subTypes = new List<object>() {"linear", "inverse"};
         object features = exchange.features;
         List<object> keys = new List<object>(((IDictionary<string,object>)features).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -46,7 +46,7 @@ public partial class testMainClass : BaseTest
     }
     public static void testFeaturesInner(BaseExchange exchange, object skippedProperties, object featureObj)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "sandbox", false },
             { "createOrder", new Dictionary<string, object>() {
                 { "marginMode", false },

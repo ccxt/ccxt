@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
         if (!isTrue((inOp(skippedProperties, "networks"))))
         {
             // only allow these whitelisted unified networkCodes to be repeated
-            object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"};
+            List<object> allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"};
             // safeDict, not exchange.options['networks']: a direct missing-key access throws
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
@@ -41,7 +41,7 @@ public partial class testMainClass : BaseTest
             //
             List<object> networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
-            object collectedNetworkIds = new List<object>() {};
+            List<object> collectedNetworkIds = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
                 object networkCode = getValue(networkCodes, i);
@@ -53,7 +53,7 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)collectedNetworkIds).Add(networkId);
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-            object collectedNetworkCodes = new List<object>() {};
+            List<object> collectedNetworkCodes = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
                 string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();

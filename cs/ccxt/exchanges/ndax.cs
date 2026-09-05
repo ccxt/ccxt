@@ -615,7 +615,7 @@ public partial class ndax : Exchange
         //         "msg":"PONG"
         //     }
         //
-        object message = this.safeString(response, "msg");
+        string? message = this.safeString(response, "msg");
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) isTrue((isEqual(message, "PONG")))) ? "ok" : "error" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -635,7 +635,7 @@ public partial class ndax : Exchange
         {
             throw new AuthenticationError ((string)add(this.id, " signIn() requires exchange.login, exchange.password")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "grant_type", "client_credentials" },
         };
         object response = await this.publicGetAuthenticate(this.extend(request, parameters));
@@ -648,13 +648,13 @@ public partial class ndax : Exchange
         //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
         //     }
         //
-        object sessionToken = this.safeString(response, "SessionToken");
+        string? sessionToken = this.safeString(response, "SessionToken");
         if (isTrue(!isEqual(sessionToken, null)))
         {
             ((IDictionary<string,object>)this.options)["sessionToken"] = sessionToken;
             return response;
         }
-        object pending2faToken = this.safeString(response, "Pending2FaToken");
+        string? pending2faToken = this.safeString(response, "Pending2FaToken");
         if (isTrue(!isEqual(pending2faToken, null)))
         {
             if (isTrue(isEqual(this.twofa, null)))
@@ -691,8 +691,8 @@ public partial class ndax : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
-        object request = new Dictionary<string, object>() {
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
         };
         object response = await this.publicGetGetProducts(this.extend(request, parameters));
@@ -720,9 +720,9 @@ public partial class ndax : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object id = this.safeString(rawCurrency, "ProductId");
+        string? id = this.safeString(rawCurrency, "ProductId");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
-        object ProductType = this.safeString(rawCurrency, "ProductType");
+        string? ProductType = this.safeString(rawCurrency, "ProductType");
         object type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
         if (isTrue(isEqual(ProductType, "Unknown")))
         {
@@ -766,8 +766,8 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
-        object request = new Dictionary<string, object>() {
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
         };
         object response = await this.publicGetGetInstruments(this.extend(request, parameters));
@@ -822,13 +822,13 @@ public partial class ndax : Exchange
 
     public override object parseMarket(object market)
     {
-        object id = this.safeString(market, "InstrumentId");
+        string? id = this.safeString(market, "InstrumentId");
         // const lowercaseId = this.safeStringLower (market, 'symbol');
-        object baseId = this.safeString(market, "Product1");
-        object quoteId = this.safeString(market, "Product2");
+        string? baseId = this.safeString(market, "Product1");
+        string? quoteId = this.safeString(market, "Product2");
         object bs = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
         object quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
-        object sessionStatus = this.safeString(market, "SessionStatus");
+        string? sessionStatus = this.safeString(market, "SessionStatus");
         object isDisable = this.safeValue(market, "IsDisable");
         bool sessionRunning = (isEqual(sessionStatus, "Running"));
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -890,7 +890,7 @@ public partial class ndax : Exchange
         amountKey ??= 8;
         countOrIdKey ??= 2;
         object nonce = null;
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", new List<object>() {} },
             { "asks", new List<object>() {} },
@@ -906,7 +906,7 @@ public partial class ndax : Exchange
                 timestamp = this.safeInteger(level, 2);
             } else
             {
-                object newTimestamp = this.safeInteger(level, 2);
+                Int64? newTimestamp = this.safeInteger(level, 2);
                 if (isTrue(!isEqual(newTimestamp, null)))
                 {
                     timestamp = mathMax(timestamp, newTimestamp);
@@ -917,14 +917,14 @@ public partial class ndax : Exchange
                 nonce = this.safeInteger(level, 0);
             } else
             {
-                object newNonce = this.safeInteger(level, 0);
+                Int64? newNonce = this.safeInteger(level, 0);
                 if (isTrue(!isEqual(newNonce, null)))
                 {
                     nonce = mathMax(nonce, newNonce);
                 }
             }
             object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
-            object levelSide = this.safeInteger(level, 9);
+            Int64? levelSide = this.safeInteger(level, 9);
             object side = ((bool) isTrue((isTrue(isTrue(!isEqual(levelSide, null)) && isTrue(!isEqual(levelSide, null))) && isTrue(!isEqual(levelSide, 0))))) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
@@ -950,14 +950,14 @@ public partial class ndax : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
         limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? 100 : limitVar; // default 100
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", getValue(market, "id") },
             { "Depth", limitVar },
@@ -1036,20 +1036,20 @@ public partial class ndax : Exchange
         //         "lowest_price_24h":73700.01
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "TimeStamp");
-        object marketId = this.safeString(ticker, "InstrumentId");
+        Int64? timestamp = this.safeInteger(ticker, "TimeStamp");
+        string? marketId = this.safeString(ticker, "InstrumentId");
         if (isTrue(isEqual(marketId, null)))
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
         market = this.safeMarket(marketId, market, "_");
         object symbol = this.safeSymbol(marketId, market);
-        object last = this.safeString2(ticker, "LastTradedPx", "last_price");
-        object percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
-        object change = this.safeString(ticker, "Rolling24HrPxChange");
-        object open = this.safeString(ticker, "SessionOpen");
-        object baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
-        object quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
+        string? last = this.safeString2(ticker, "LastTradedPx", "last_price");
+        string? percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
+        string? change = this.safeString(ticker, "Rolling24HrPxChange");
+        string? open = this.safeString(ticker, "SessionOpen");
+        string? baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
+        string? quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1123,13 +1123,13 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", getValue(market, "id") },
         };
@@ -1202,18 +1202,18 @@ public partial class ndax : Exchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", getValue(market, "id") },
             { "Interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object duration = this.parseTimeframe(timeframeVar);
+        int duration = this.parseTimeframe(timeframeVar);
         Int64 now = this.milliseconds();
         if (isTrue(isEqual(since, null)))
         {
@@ -1359,17 +1359,17 @@ public partial class ndax : Exchange
         //         "OMSId":1
         //     }
         //
-        object priceString = null;
-        object amountString = null;
-        object costString = null;
+        string? priceString = null;
+        string? amountString = null;
+        string? costString = null;
         object timestamp = null;
-        object id = null;
-        object marketId = null;
+        string? id = null;
+        string? marketId = null;
         object side = null;
-        object orderId = null;
-        object takerOrMaker = null;
-        object fee = new Dictionary<string, object>() {};
-        object type = null;
+        string? orderId = null;
+        string? takerOrMaker = null;
+        Dictionary<string, object> fee = new Dictionary<string, object>() {};
+        string? type = null;
         if (isTrue(((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             priceString = this.safeString(trade, 3);
@@ -1392,10 +1392,10 @@ public partial class ndax : Exchange
             takerOrMaker = this.safeStringLower(trade, "MakerTaker");
             side = this.safeStringLower(trade, "Side");
             type = this.safeStringLower(trade, "OrderType");
-            object feeCostString = this.safeString(trade, "Fee");
+            string? feeCostString = this.safeString(trade, "Fee");
             if (isTrue(!isEqual(feeCostString, null)))
             {
-                object feeCurrencyId = this.safeString(trade, "FeeProductId");
+                string? feeCurrencyId = this.safeString(trade, "FeeProductId");
                 object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
                 fee = new Dictionary<string, object>() {
                     { "cost", feeCostString },
@@ -1434,13 +1434,13 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "InstrumentId", getValue(market, "id") },
         };
@@ -1474,9 +1474,9 @@ public partial class ndax : Exchange
         {
             throw new AuthenticationError ((string)add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
         }
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         this.checkRequiredCredentials();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "UserId", this.uid },
             { "UserName", this.login },
@@ -1485,10 +1485,10 @@ public partial class ndax : Exchange
         //
         //     [ 449 ] // comma-separated list of account ids
         //
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object accountId = this.safeString(response, i);
+            string? accountId = this.safeString(response, i);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
@@ -1501,7 +1501,7 @@ public partial class ndax : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
@@ -1509,7 +1509,7 @@ public partial class ndax : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
-            object currencyId = this.safeString(balance, "ProductId");
+            string? currencyId = this.safeString(balance, "ProductId");
             if (isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
             {
                 object code = this.safeCurrencyCode(currencyId);
@@ -1536,7 +1536,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -1549,7 +1549,7 @@ public partial class ndax : Exchange
             accountId = this.parseToInt(getValue(getValue(this.accounts, 0), "id"));
         }
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -1590,7 +1590,7 @@ public partial class ndax : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "Trade", "trade" },
             { "Deposit", "transaction" },
             { "Withdraw", "transaction" },
@@ -1626,12 +1626,12 @@ public partial class ndax : Exchange
         //         "TimeStamp": 1607532331591
         //     }
         //
-        object currencyId = this.safeString(item, "ProductId");
+        string? currencyId = this.safeString(item, "ProductId");
         currency = this.safeCurrency(currencyId, currency);
-        object credit = this.safeString(item, "CR");
-        object debit = this.safeString(item, "DR");
+        string? credit = this.safeString(item, "CR");
+        string? debit = this.safeString(item, "DR");
         object amount = null;
-        object direction = null;
+        string? direction = null;
         if (isTrue(Precise.stringLt(credit, "0")))
         {
             amount = credit;
@@ -1641,8 +1641,8 @@ public partial class ndax : Exchange
             amount = debit;
             direction = "out";
         }
-        object before = null;
-        object after = this.safeString(item, "Balance");
+        string? before = null;
+        string? after = this.safeString(item, "Balance");
         if (isTrue(isEqual(direction, "out")))
         {
             before = Precise.stringAdd(after, amount);
@@ -1650,7 +1650,7 @@ public partial class ndax : Exchange
         {
             before = Precise.stringMax("0", Precise.stringSub(after, amount));
         }
-        object timestamp = this.safeInteger(item, "TimeStamp");
+        Int64? timestamp = this.safeInteger(item, "TimeStamp");
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", this.safeString(item, "TransactionId") },
@@ -1684,7 +1684,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -1693,7 +1693,7 @@ public partial class ndax : Exchange
         object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -1730,7 +1730,7 @@ public partial class ndax : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "Accepted", "open" },
             { "Rejected", "rejected" },
             { "Working", "open" },
@@ -1814,8 +1814,8 @@ public partial class ndax : Exchange
         //         "OMSId":1
         //     }
         //
-        object timestamp = this.safeInteger(order, "ReceiveTime");
-        object marketId = this.safeString(order, "Instrument");
+        Int64? timestamp = this.safeInteger(order, "ReceiveTime");
+        string? marketId = this.safeString(order, "Instrument");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString2(order, "ReplacementOrderId", "OrderId") },
             { "clientOrderId", this.safeString2(order, "ReplacementClOrdId", "ClientOrderId") },
@@ -1859,7 +1859,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -1869,7 +1869,7 @@ public partial class ndax : Exchange
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         object clientOrderId = this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
         object orderType = this.safeInteger(getValue(this.options, "orderTypes"), this.capitalize(type));
-        object triggerPrice = this.safeString(parameters, "triggerPrice");
+        string? triggerPrice = this.safeString(parameters, "triggerPrice");
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             if (isTrue(isEqual(type, "market")))
@@ -1884,7 +1884,7 @@ public partial class ndax : Exchange
         object market = this.market(symbol);
         object orderSide = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
         object amountString = this.amountToPrecision(symbol, amount);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentId", this.parseToInt(getValue(market, "id")) },
             { "omsId", omsId },
             { "AccountId", accountId },
@@ -1939,7 +1939,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -1952,7 +1952,7 @@ public partial class ndax : Exchange
         object market = this.market(symbol);
         object orderSide = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
         object amountString = this.amountToPrecision(symbol, amount);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OrderIdToReplace", parseInt(id) },
             { "InstrumentId", this.parseToInt(getValue(market, "id")) },
             { "omsId", omsId },
@@ -2002,7 +2002,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2011,7 +2011,7 @@ public partial class ndax : Exchange
         object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -2088,7 +2088,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2097,7 +2097,7 @@ public partial class ndax : Exchange
         object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -2132,7 +2132,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2146,7 +2146,7 @@ public partial class ndax : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
         };
         object clientOrderId = this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
@@ -2177,7 +2177,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2191,7 +2191,7 @@ public partial class ndax : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -2263,7 +2263,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2272,7 +2272,7 @@ public partial class ndax : Exchange
         object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(getValue(getValue(this.accounts, 0), "id")));
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -2357,7 +2357,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2371,7 +2371,7 @@ public partial class ndax : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
             { "OrderId", parseInt(id) },
@@ -2443,7 +2443,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2457,7 +2457,7 @@ public partial class ndax : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OMSId", this.parseToInt(omsId) },
             { "OrderId", parseInt(id) },
         };
@@ -2528,7 +2528,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2538,7 +2538,7 @@ public partial class ndax : Exchange
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
             { "ProductId", getValue(currency, "id") },
@@ -2576,13 +2576,13 @@ public partial class ndax : Exchange
         //         "DepositInfo":"[\"r3e95RwVsLH7yCbnMfyh7SA8FdwUJCB4S2?memo=241452010\"]"
         //     }
         //
-        object depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
+        string? depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         object depositInfo = parseJson(depositInfoString);
         int depositInfoLength = getArrayLength(depositInfo);
-        object lastString = this.safeString(depositInfo, subtract(depositInfoLength, 1), "");
+        string? lastString = this.safeString(depositInfo, subtract(depositInfoLength, 1), "");
         List<object> parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
-        object address = this.safeString(parts, 0);
-        object tag = this.safeString(parts, 1);
+        string? address = this.safeString(parts, 0);
+        string? tag = this.safeString(parts, 1);
         object code = null;
         if (isTrue(!isEqual(currency, null)))
         {
@@ -2609,7 +2609,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "GenerateNewKey", true },
         };
         return await this.FetchDepositAddress(((string)code), this.extend(request, parameters));
@@ -2629,7 +2629,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2643,7 +2643,7 @@ public partial class ndax : Exchange
         {
             currency = this.currency(code);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -2697,7 +2697,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2711,7 +2711,7 @@ public partial class ndax : Exchange
         {
             currency = this.currency(code);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
         };
@@ -2745,7 +2745,7 @@ public partial class ndax : Exchange
 
     public virtual object parseTransactionStatusByType(object status = null, object type = null)
     {
-        object statusesByType = new Dictionary<string, object>() {
+        Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
                 { "New", "pending" },
                 { "AdminProcessing", "pending" },
@@ -2849,10 +2849,10 @@ public partial class ndax : Exchange
         //         "NotionalProductId": 0
         //     }
         //
-        object id = null;
-        object currencyId = this.safeString(transaction, "ProductId");
+        string? id = null;
+        string? currencyId = this.safeString(transaction, "ProductId");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object type = null;
+        string? type = null;
         if (isTrue(inOp(transaction, "DepositId")))
         {
             id = this.safeString(transaction, "DepositId");
@@ -2863,16 +2863,16 @@ public partial class ndax : Exchange
             type = "withdrawal";
         }
         object templateForm = this.parseJson(this.safeValue2(transaction, "TemplateForm", "DepositInfo"));
-        object updated = this.safeInteger(transaction, "LastUpdateTimeStamp");
+        Int64? updated = this.safeInteger(transaction, "LastUpdateTimeStamp");
         if (isTrue(!isEqual(templateForm, null)))
         {
             updated = this.safeInteger(templateForm, "LastUpdated", updated);
         }
-        object address = this.safeString2(templateForm, "ExternalAddress", "ToAddress");
-        object timestamp = this.safeInteger(templateForm, "TimeSubmitted");
+        string? address = this.safeString2(templateForm, "ExternalAddress", "ToAddress");
+        Int64? timestamp = this.safeInteger(templateForm, "TimeSubmitted");
         object feeCost = this.safeNumber(transaction, "FeeAmount");
-        object transactionStatus = this.safeString(transaction, "TicketStatus");
-        object fee = new Dictionary<string, object>() {};
+        string? transactionStatus = this.safeString(transaction, "TicketStatus");
+        Dictionary<string, object> fee = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2923,7 +2923,7 @@ public partial class ndax : Exchange
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         // this method required login, password and twofa key
-        object sessionToken = this.safeString(this.options, "sessionToken");
+        string? sessionToken = this.safeString(this.options, "sessionToken");
         if (isTrue(isEqual(sessionToken, null)))
         {
             throw new AuthenticationError ((string)add(this.id, " call signIn() method to obtain a session token")) ;
@@ -2933,7 +2933,7 @@ public partial class ndax : Exchange
             throw new AuthenticationError ((string)add(this.id, " withdraw() requires exchange.twofa credentials")) ;
         }
         this.checkAddress(address);
-        object omsId = this.safeInteger(this.options, "omsId", 1);
+        Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -2943,7 +2943,7 @@ public partial class ndax : Exchange
         object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         object currency = this.currency(code);
-        object withdrawTemplateTypesRequest = new Dictionary<string, object>() {
+        Dictionary<string, object> withdrawTemplateTypesRequest = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
             { "ProductId", getValue(currency, "id") },
@@ -2967,8 +2967,8 @@ public partial class ndax : Exchange
         {
             throw new ExchangeError ((string)add(add(this.id, " withdraw() could not find a withdraw template type for "), getValue(currency, "code"))) ;
         }
-        object templateName = this.safeString(firstTemplateType, "TemplateName");
-        object withdrawTemplateRequest = new Dictionary<string, object>() {
+        string? templateName = this.safeString(firstTemplateType, "TemplateName");
+        Dictionary<string, object> withdrawTemplateRequest = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
             { "ProductId", getValue(currency, "id") },
@@ -2984,7 +2984,7 @@ public partial class ndax : Exchange
         //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         //     }
         //
-        object template = this.safeString(withdrawTemplateResponse, "Template");
+        string? template = this.safeString(withdrawTemplateResponse, "Template");
         if (isTrue(isEqual(template, null)))
         {
             throw new ExchangeError ((string)add(add(this.id, " withdraw() could not find a withdraw template for "), getValue(currency, "code"))) ;
@@ -2998,14 +2998,14 @@ public partial class ndax : Exchange
                 ((IDictionary<string,object>)withdrawTemplate)["Memo"] = tagVar;
             }
         }
-        object withdrawPayload = new Dictionary<string, object>() {
+        Dictionary<string, object> withdrawPayload = new Dictionary<string, object>() {
             { "omsId", omsId },
             { "AccountId", accountId },
             { "ProductId", getValue(currency, "id") },
             { "TemplateForm", this.json(withdrawTemplate) },
             { "TemplateType", templateName },
         };
-        object withdrawRequest = new Dictionary<string, object>() {
+        Dictionary<string, object> withdrawRequest = new Dictionary<string, object>() {
             { "TfaType", "Google" },
             { "TFaCode", totp(this.twofa) },
             { "Payload", this.json(withdrawPayload) },
@@ -3037,7 +3037,7 @@ public partial class ndax : Exchange
                 };
             } else if (isTrue(isEqual(path, "Authenticate2FA")))
             {
-                object pending2faToken = this.safeString(this.options, "pending2faToken");
+                string? pending2faToken = this.safeString(this.options, "pending2faToken");
                 if (isTrue(!isEqual(pending2faToken, null)))
                 {
                     headers = new Dictionary<string, object>() {
@@ -3053,7 +3053,7 @@ public partial class ndax : Exchange
         } else if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object sessionToken = this.safeString(this.options, "sessionToken");
+            string? sessionToken = this.safeString(this.options, "sessionToken");
             if (isTrue(isEqual(sessionToken, null)))
             {
                 string nonce = ((object)this.nonce()).ToString();
@@ -3105,7 +3105,7 @@ public partial class ndax : Exchange
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
         //     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
         //
-        object message = this.safeString(response, "errormsg");
+        string? message = this.safeString(response, "errormsg");
         if (isTrue(isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, "")))))
         {
             object feedback = add(add(this.id, " "), body);

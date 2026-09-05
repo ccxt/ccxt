@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "regirock" },
             });
-            object obj1 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", new List<object>() {1, 2} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -34,7 +34,7 @@ public partial class BaseTest
                 } },
                 { "other1", "x" },
             };
-            object obj2 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj2 = new Dictionary<string, object>() {
                 { "a", 2 },
                 { "b", new List<object>() {3, 4} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -75,7 +75,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(getValue(obj2, "b"), 0), obj2SnapshotB0), "obj2.b[0] was mutated after extend");
             Assert(isEqual(getValue(obj2, "other2"), obj2SnapshotOther2), "obj2['other2'] was mutated after extend");
             // --- test 2: multi-step extend – apply a third patch on top of the first result ---
-            object obj3 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj3 = new Dictionary<string, object>() {
                 { "a", 3 },
                 { "b", new List<object>() {5, 6} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -104,19 +104,19 @@ public partial class BaseTest
             Assert(isEqual(getValue(getValue(extended, "b"), 0), 3), "extended['b'][0] was mutated by second extend");
             Assert(!isTrue((inOp(extended, "other3"))), "extended['other3'] should not exist after second extend");
             // --- test 3: four-step chained extend on same base object ---
-            object bs = new Dictionary<string, object>() {
+            Dictionary<string, object> bs = new Dictionary<string, object>() {
                 { "x", 0 },
                 { "keep", "yes" },
             };
-            object patch1 = new Dictionary<string, object>() {
+            Dictionary<string, object> patch1 = new Dictionary<string, object>() {
                 { "x", 1 },
                 { "p1", true },
             };
-            object patch2 = new Dictionary<string, object>() {
+            Dictionary<string, object> patch2 = new Dictionary<string, object>() {
                 { "x", 2 },
                 { "p2", true },
             };
-            object patch3 = new Dictionary<string, object>() {
+            Dictionary<string, object> patch3 = new Dictionary<string, object>() {
                 { "x", 3 },
                 { "p3", true },
             };
@@ -135,11 +135,11 @@ public partial class BaseTest
             Assert(!isTrue((inOp(r1, "p3"))), "r1['p3'] leaked into r1");
             Assert(!isTrue((inOp(bs, "p2"))), "base['p2'] leaked into base");
             // --- test 4: extend with undefined values does NOT overwrite existing keys ---
-            object withValues = new Dictionary<string, object>() {
+            Dictionary<string, object> withValues = new Dictionary<string, object>() {
                 { "keep1", "A" },
                 { "keep2", "B" },
             };
-            object withUndefs = new Dictionary<string, object>() {
+            Dictionary<string, object> withUndefs = new Dictionary<string, object>() {
                 { "keep1", null },
                 { "keep2", null },
                 { "newKey", "C" },

@@ -102,7 +102,7 @@ public partial class testMainClass
             { "isWs", this.wsTests },
             { "useProxy", getCliArgValue("--useProxy") },
         }, newLine);
-        object exchangeArgs = new Dictionary<string, object>() {
+        Dictionary<string, object> exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
             { "debug", this.debug },
             { "enableRateLimit", true },
@@ -151,7 +151,7 @@ public partial class testMainClass
 
     public async virtual Task<object> importFiles(BaseExchange exchange)
     {
-        object properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
+        List<object> properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
         ((IList<object>)properties).Add("loadMarkets");
         ((IList<object>)properties).Add("afterConstruct");
         if (isTrue(isSync()))
@@ -295,7 +295,7 @@ public partial class testMainClass
         {
             return true;
         }
-        object skipMessage = null;
+        string? skipMessage = null;
         bool supportedByExchange = isTrue(isTrue((inOp(exchange.has, methodName))) && isTrue((!isEqual(getValue(exchange.has, methodName), null)))) && isTrue((!isEqual(getValue(exchange.has, methodName), false)));
         if (isTrue(!isTrue(isLoadMarkets) && isTrue((isTrue((isGreaterThan(getArrayLength(this.onlySpecificTests), 0))) && isTrue((!isEqual(exchange.inArray(methodName, this.onlySpecificTests), true)))))))
         {
@@ -351,7 +351,7 @@ public partial class testMainClass
     {
         object finalSkips = new Dictionary<string, object>() {};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
-        object methodNames = new List<object>() {methodName, add(add(methodName, "."), this.ext)};
+        List<object> methodNames = new List<object>() {methodName, add(add(methodName, "."), this.ext)};
         for (object i = 0; isLessThan(i, getArrayLength(methodNames)); postFixIncrement(ref i))
         {
             object mName = getValue(methodNames, i);
@@ -368,7 +368,7 @@ public partial class testMainClass
             }
         }
         // get "object-specific" skips
-        object objectSkips = new Dictionary<string, object>() {
+        Dictionary<string, object> objectSkips = new Dictionary<string, object>() {
             { "orderBook", new List<object>() {"fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols"} },
             { "ticker", new List<object>() {"fetchTicker", "fetchTickers", "watchTicker", "watchTickers"} },
             { "trade", new List<object>() {"fetchTrades", "watchTrades", "watchTradesForSymbols"} },
@@ -446,8 +446,8 @@ public partial class testMainClass
                     {
                         object isOnMaintenance = (e is OnMaintenance);
                         object isExchangeNotAvailable = (e is ExchangeNotAvailable);
-                        object shouldFail = null;
-                        object retSuccess = null;
+                        bool? shouldFail = null;
+                        bool? retSuccess = null;
                         if (isTrue(isLoadMarkets))
                         {
                             // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
@@ -526,7 +526,7 @@ public partial class testMainClass
     public async virtual Task<object> runPublicTests(BaseExchange exchange, object symbols)
     {
         object primarySymbol = getValue(symbols, 0);
-        object tests = new Dictionary<string, object>() {
+        Dictionary<string, object> tests = new Dictionary<string, object>() {
             { "features", new List<object>() {} },
             { "afterConstruct", new List<object>() {} },
             { "fetchCurrencies", new List<object>() {} },
@@ -580,7 +580,7 @@ public partial class testMainClass
     public async virtual Task<object> runTests(BaseExchange exchange, object tests, object isPublicTest)
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
-        object promises = new List<object>() {};
+        List<object> promises = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(testNames)); postFixIncrement(ref i))
         {
             object testName = getValue(testNames, i);
@@ -591,7 +591,7 @@ public partial class testMainClass
         // promises.push (testThrottle ());
         object results = await promiseAll(promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        object failedMethods = new List<object>() {};
+        List<object> failedMethods = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(testNames)); postFixIncrement(ref i))
         {
             object testName = getValue(testNames, i);
@@ -675,7 +675,7 @@ public partial class testMainClass
     public virtual object getMarketsFromExchange(BaseExchange exchange, object spot = null)
     {
         spot ??= true;
-        object res = new Dictionary<string, object>() {};
+        Dictionary<string, object> res = new Dictionary<string, object>() {};
         object markets = exchange.markets;
         List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -697,9 +697,9 @@ public partial class testMainClass
     {
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
-        object codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
-        object spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
-        object swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
+        List<object> codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
+        List<object> spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
+        List<object> swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
         object targetSymbols = ((bool) isTrue(spot)) ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -723,7 +723,7 @@ public partial class testMainClass
         if (isTrue(isEqual(symbol, null)))
         {
             object activeMarkets = exchange.filterBy(currentTypeMarkets, "active", true);
-            object activeSymbols = new List<object>() {};
+            List<object> activeSymbols = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(activeMarkets)); postFixIncrement(ref i))
             {
                 ((IList<object>)activeSymbols).Add(getValue(getValue(activeMarkets, i), "symbol"));
@@ -817,7 +817,7 @@ public partial class testMainClass
         object marketType = exchange.safeString(defaultMarket, "type");
         object quote = exchange.safeString(defaultMarket, "quote");
         object settle = exchange.safeString(defaultMarket, "settle");
-        object candidates = new List<object>() {};
+        List<object> candidates = new List<object>() {};
         List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
         {
@@ -837,7 +837,7 @@ public partial class testMainClass
                     object volume = this.getTickerVolume(exchange, ticker);
                     if (isTrue(isGreaterThan(volume, 0)))
                     {
-                        object entry = new Dictionary<string, object>() {};
+                        Dictionary<string, object> entry = new Dictionary<string, object>() {};
                         ((IDictionary<string,object>)entry)["symbol"] = tickerSymbol;
                         ((IDictionary<string,object>)entry)["volume"] = volume;
                         ((IList<object>)candidates).Add(entry);
@@ -851,7 +851,7 @@ public partial class testMainClass
         {
             return defaultSymbols;
         }
-        object result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
+        List<object> result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
         if (isTrue(isGreaterThan(rankedLength, 1)))
         {
             ((IList<object>)result).Add(exchange.safeString(getValue(ranked, 1), "symbol"));
@@ -1068,7 +1068,7 @@ public partial class testMainClass
                     string dedashed = ((string)lowerPart).Replace((string)"-", (string)" ");
                     eventQuery = ((string)dedashed).Replace((string)"_", (string)" ");
                 }
-                object eventParams = new Dictionary<string, object>() {};
+                Dictionary<string, object> eventParams = new Dictionary<string, object>() {};
                 if (isTrue(!isEqual(eventQuery, null)))
                 {
                     ((IDictionary<string,object>)eventParams)["query"] = eventQuery;
@@ -1095,7 +1095,7 @@ public partial class testMainClass
                 // series filter) is a real bug that only surfaces if the path is actually asserted.
                 // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
                 // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
-                object scopesToTest = new List<object>() {};
+                List<object> scopesToTest = new List<object>() {};
                 if (isTrue(!isEqual(eventId, null)))
                 {
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
@@ -1162,7 +1162,7 @@ public partial class testMainClass
             }
         }
         dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
-        object publicTests = new Dictionary<string, object>() {
+        Dictionary<string, object> publicTests = new Dictionary<string, object>() {
             { "fetchStatus", new List<object>() {} },
             { "fetchTime", new List<object>() {} },
             { "fetchTradingFee", new List<object>() {outcomeSymbol} },
@@ -1187,7 +1187,7 @@ public partial class testMainClass
         }
         if (isTrue(isTrue((isTrue(this.privateTest) || isTrue(this.privateTestOnly))) && !isTrue(this.wsTests)))
         {
-            object privateTests = new Dictionary<string, object>() {
+            Dictionary<string, object> privateTests = new Dictionary<string, object>() {
                 { "fetchBalance", new List<object>() {} },
                 { "fetchPositions", new List<object>() {outcomeSymbol} },
                 { "fetchMyTrades", new List<object>() {outcomeSymbol} },
@@ -1377,7 +1377,7 @@ public partial class testMainClass
         //     await test ('InvalidOrder', exchange, symbol);
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
-        object tests = new Dictionary<string, object>() {
+        Dictionary<string, object> tests = new Dictionary<string, object>() {
             { "signIn", new List<object>() {} },
             { "fetchBalance", new List<object>() {} },
             { "fetchAccounts", new List<object>() {} },
@@ -1456,7 +1456,7 @@ public partial class testMainClass
             return true;
         }
         // try proxy several times
-        object maxRetries = 3;
+        int maxRetries = 3;
         object exceptionMessageString = null;
         for (object j = 0; isLessThan(j, maxRetries); postFixIncrement(ref j))
         {
@@ -1633,7 +1633,7 @@ public partial class testMainClass
 
     public virtual object loadStaticData(object folder, object targetExchange = null)
     {
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         if (isTrue(isTrue(!isEqual(targetExchange, null)) && isTrue(!isEqual(targetExchange, ""))))
         {
             // read a single exchange
@@ -1695,7 +1695,7 @@ public partial class testMainClass
 
     public virtual object urlencodedToDict(object url)
     {
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> parts = ((string)url).Split(new [] {((string)"&")}, StringSplitOptions.None).ToList<object>();
         for (object i = 0; isLessThan(i, getArrayLength(parts)); postFixIncrement(ref i))
         {
@@ -2103,7 +2103,7 @@ public partial class testMainClass
         {
             return null;
         }
-        object newInput = new List<object>() {};
+        List<object> newInput = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
         {
             object current = getValue(input, i);
@@ -2313,7 +2313,7 @@ public partial class testMainClass
                 // worker could execute it inline on the blocked stack and the
                 // rejection loop would then wait on the very watch side it is
                 // buried on top of
-                object promises = new List<object> {this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)};
+                List<object> promises = new List<object> {this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)};
                 await promiseAll(promises);
                 this.assertWsSentMessages(exchange, url, data);
             } else
@@ -2321,7 +2321,7 @@ public partial class testMainClass
                 // 'parsedResponse' asserts the final state after every frame
                 // was replayed — live structures like orderbooks keep updating
                 // after the first resolution, so serialize only at the end
-                object promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
+                List<object> promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
                 object results = await promiseAll(promises);
                 object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
@@ -2462,7 +2462,7 @@ public partial class testMainClass
                 }
             }
         }
-        object options = new Dictionary<string, object>() {
+        Dictionary<string, object> options = new Dictionary<string, object>() {
             { "markets", markets },
             { "currencies", currencies },
             { "enableRateLimit", false },
@@ -2509,7 +2509,7 @@ public partial class testMainClass
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (isTrue(!isEqual(predictionEvents, null)))
         {
-            object eventMarkets = new List<object>() {};
+            List<object> eventMarkets = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(predictionEvents)); postFixIncrement(ref i))
             {
                 object evMarkets = exchange.safeList(getValue(predictionEvents, i), "markets", new List<object>() {});
@@ -2817,7 +2817,7 @@ public partial class testMainClass
         }
         List<object> exchanges = new List<object>(((IDictionary<string,object>)staticData).Keys);
         Exchange exchange = ((Exchange)initExchange("Exchange", new Dictionary<string, object>() {})); // tmp to do the calculations until we have the ast-transpiler transpiling this code
-        object promises = new List<object>() {};
+        List<object> promises = new List<object>() {};
         object sum = 0;
         if (isTrue(isTrue(!isEqual(targetExchange, null)) && isTrue(!isEqual(targetExchange, ""))))
         {
@@ -2908,7 +2908,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2976,7 +2976,7 @@ public partial class testMainClass
         object createOrdersRequest = new Dictionary<string, object>() {};
         try
         {
-            object orders = new List<object>() {new Dictionary<string, object>() {
+            List<object> orders = new List<object>() {new Dictionary<string, object>() {
     { "symbol", "BTC/USDT:USDT" },
     { "type", "limit" },
     { "side", "sell" },
@@ -3617,7 +3617,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            object parameters = new Dictionary<string, object>() {
+            Dictionary<string, object> parameters = new Dictionary<string, object>() {
                 { "subaccount_id", 1234 },
                 { "max_fee", 10 },
                 { "deriveWalletAddress", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749" },

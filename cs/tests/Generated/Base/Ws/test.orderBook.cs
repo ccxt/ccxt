@@ -8,14 +8,14 @@ public partial class BaseTest
 {
         public void testWsOrderBook()
         {
-            object orderBookInput = new Dictionary<string, object>() {
+            Dictionary<string, object> orderBookInput = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {9.1, 11}, new List<object>() {8.2, 12}, new List<object>() {7.3, 13}, new List<object>() {6.4, 14}, new List<object>() {4.5, 13}, new List<object>() {4.5, 0}} },
                 { "asks", new List<object>() {new List<object>() {16.6, 10}, new List<object>() {15.5, 11}, new List<object>() {14.4, 12}, new List<object>() {13.3, 13}, new List<object>() {12.2, 14}, new List<object>() {11.1, 13}} },
                 { "timestamp", 1574827239000 },
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object orderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> orderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {9.1, 11}, new List<object>() {8.2, 12}, new List<object>() {7.3, 13}, new List<object>() {6.4, 14}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}, new List<object>() {14.4, 12}, new List<object>() {15.5, 11}, new List<object>() {16.6, 10}} },
                 { "timestamp", 1574827239000 },
@@ -23,7 +23,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object storeBid = new Dictionary<string, object>() {
+            Dictionary<string, object> storeBid = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {9.1, 11}, new List<object>() {8.2, 12}, new List<object>() {7.3, 13}, new List<object>() {6.4, 14}, new List<object>() {3, 4}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}, new List<object>() {14.4, 12}, new List<object>() {15.5, 11}, new List<object>() {16.6, 10}} },
                 { "timestamp", 1574827239000 },
@@ -31,7 +31,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object limitedOrderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> limitedOrderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {9.1, 11}, new List<object>() {8.2, 12}, new List<object>() {7.3, 13}, new List<object>() {6.4, 14}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}, new List<object>() {14.4, 12}, new List<object>() {15.5, 11}} },
                 { "timestamp", 1574827239000 },
@@ -39,7 +39,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object limitedDeletedOrderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> limitedDeletedOrderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {9.1, 11}, new List<object>() {8.2, 12}, new List<object>() {7.3, 13}, new List<object>() {6.4, 14}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}, new List<object>() {14.4, 12}} },
                 { "timestamp", 1574827239000 },
@@ -47,14 +47,14 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object indexedOrderBookInput = new Dictionary<string, object>() {
+            Dictionary<string, object> indexedOrderBookInput = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
                 { "asks", new List<object>() {new List<object>() {16.6, 10, "1240"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {12.2, 14, "1244"}, new List<object>() {11.1, 13, "1244"}} },
                 { "timestamp", 1574827239000 },
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object indexedOrderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> indexedOrderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
                 { "timestamp", 1574827239000 },
@@ -62,7 +62,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object limitedIndexedOrderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> limitedIndexedOrderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
                 { "timestamp", 1574827239000 },
@@ -110,7 +110,7 @@ public partial class BaseTest
             //     'nonce': 69,
             //     'symbol': undefined,
             // };
-            object overwrite1234 = new Dictionary<string, object>() {
+            Dictionary<string, object> overwrite1234 = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {9.1, 11, "1235"}, new List<object>() {9, 3, "1231"}, new List<object>() {9, 1, "1232"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}, new List<object>() {4, 2, "12399"}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
                 { "timestamp", 1574827239000 },
@@ -118,7 +118,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object overwrite1244 = new Dictionary<string, object>() {
+            Dictionary<string, object> overwrite1244 = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
                 { "asks", new List<object>() {new List<object>() {13.3, 13, "1243"}, new List<object>() {13.5, 13, "1244"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
                 { "timestamp", 1574827239000 },
@@ -126,14 +126,14 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object countedOrderBookInput = new Dictionary<string, object>() {
+            Dictionary<string, object> countedOrderBookInput = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, 1}, new List<object>() {9.1, 11, 1}, new List<object>() {8.2, 12, 1}, new List<object>() {7.3, 13, 1}, new List<object>() {7.3, 0, 1}, new List<object>() {6.4, 14, 5}, new List<object>() {4.5, 13, 5}, new List<object>() {4.5, 13, 1}, new List<object>() {4.5, 13, 0}} },
                 { "asks", new List<object>() {new List<object>() {16.6, 10, 1}, new List<object>() {15.5, 11, 1}, new List<object>() {14.4, 12, 1}, new List<object>() {13.3, 13, 3}, new List<object>() {12.2, 14, 3}, new List<object>() {11.1, 13, 3}, new List<object>() {11.1, 13, 12}} },
                 { "timestamp", 1574827239000 },
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object countedOrderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> countedOrderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, 1}, new List<object>() {9.1, 11, 1}, new List<object>() {8.2, 12, 1}, new List<object>() {6.4, 14, 5}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, 12}, new List<object>() {12.2, 14, 3}, new List<object>() {13.3, 13, 3}, new List<object>() {14.4, 12, 1}, new List<object>() {15.5, 11, 1}, new List<object>() {16.6, 10, 1}} },
                 { "timestamp", 1574827239000 },
@@ -141,7 +141,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object storedCountedOrderbookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> storedCountedOrderbookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, 1}, new List<object>() {9.1, 11, 1}, new List<object>() {8.2, 12, 1}, new List<object>() {6.4, 14, 5}, new List<object>() {1, 1, 6}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, 12}, new List<object>() {12.2, 14, 3}, new List<object>() {13.3, 13, 3}, new List<object>() {14.4, 12, 1}, new List<object>() {15.5, 11, 1}, new List<object>() {16.6, 10, 1}} },
                 { "timestamp", 1574827239000 },
@@ -149,7 +149,7 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object limitedCountedOrderBookTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> limitedCountedOrderBookTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10, 1}, new List<object>() {9.1, 11, 1}, new List<object>() {8.2, 12, 1}, new List<object>() {6.4, 14, 5}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, 12}, new List<object>() {12.2, 14, 3}, new List<object>() {13.3, 13, 3}, new List<object>() {14.4, 12, 1}, new List<object>() {15.5, 11, 1}} },
                 { "timestamp", 1574827239000 },
@@ -378,7 +378,7 @@ public partial class BaseTest
             // a delete on a surviving level must remove exactly that level
             desyncBids.storeArray(new List<object>() {9.1, 0});
             desyncBook.limit();
-            object desyncTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> desyncTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 10}, new List<object>() {8.2, 12}, new List<object>() {6.4, 14}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 7}, new List<object>() {12.2, 14}, new List<object>() {13.3, 13}} },
                 { "timestamp", 1574827239000 },
@@ -389,7 +389,7 @@ public partial class BaseTest
             Assert(equals(desyncBook, desyncTarget));
             // every row must be a well formed price and amount pair, the php
             // corruption produced rows holding only an amount
-            object desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
+            List<object> desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
             for (object i = 0; isLessThan(i, getArrayLength(desyncSides)); postFixIncrement(ref i))
             {
                 object side = getValue(desyncSides, i);
@@ -407,14 +407,14 @@ public partial class BaseTest
             // delta arriving later for a trimmed id previously threw in js and looped
             // in php while python handled it, an update of a trimmed id must reinsert
             // cleanly and a delete of a trimmed id must be a no op
-            object trimIndexedInput = new Dictionary<string, object>() {
+            Dictionary<string, object> trimIndexedInput = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 1, "x"}, new List<object>() {9, 1, "y"}, new List<object>() {8, 1, "z"}, new List<object>() {7, 1, "w"}, new List<object>() {6, 1, "v"}} },
                 { "asks", new List<object>() {new List<object>() {11, 1, "a"}, new List<object>() {12, 1, "b"}, new List<object>() {13, 1, "c"}, new List<object>() {14, 1, "d"}, new List<object>() {15, 1, "e"}} },
                 { "timestamp", 1574827239000 },
                 { "nonce", 70 },
                 { "symbol", null },
             };
-            object trimIndexedTarget = new Dictionary<string, object>() {
+            Dictionary<string, object> trimIndexedTarget = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {10, 1, "x"}, new List<object>() {9, 1, "y"}, new List<object>() {8, 1, "z"}} },
                 { "asks", new List<object>() {new List<object>() {11, 1, "a"}, new List<object>() {12, 1, "b"}, new List<object>() {13, 1, "c"}} },
                 { "timestamp", 1574827239000 },

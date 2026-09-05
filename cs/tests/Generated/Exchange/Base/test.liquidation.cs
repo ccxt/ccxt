@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testLiquidation(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
             { "contracts", exchange.parseNumber("1.234") },
@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
             { "datetime", "2017-09-01T00:00:00" },
         };
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"};
+        List<object> emptyAllowedFor = new List<object>() {"timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);

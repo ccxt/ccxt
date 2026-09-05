@@ -666,7 +666,7 @@ public partial class modetrade : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object status = this.safeString(data, "status");
+        string? status = this.safeString(data, "status");
         if (isTrue(isEqual(status, null)))
         {
             status = "error";
@@ -734,14 +734,14 @@ public partial class modetrade : Exchange
         //     "liquidation_tier": "1"
         //   }
         //
-        object marketId = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "symbol", "");
         List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string marketType = "swap";
-        object baseId = this.safeString(parts, 1);
-        object quoteId = this.safeString(parts, 2);
+        string? baseId = this.safeString(parts, 1);
+        string? quoteId = this.safeString(parts, 2);
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object settleId = this.safeString(parts, 2);
+        string? settleId = this.safeString(parts, 2);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -888,16 +888,16 @@ public partial class modetrade : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object currencyId = this.safeString(rawCurrency, "token");
+        string? currencyId = this.safeString(rawCurrency, "token");
         object networks = this.safeList(rawCurrency, "chain_details", new List<object>() {});
         object code = this.safeCurrencyCode(currencyId);
         object minPrecision = null;
-        object resultingNetworks = new Dictionary<string, object>() {};
+        Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             // TODO: transform chain id to human readable name
-            object networkId = this.safeString(network, "chain_id", "");
+            string? networkId = this.safeString(network, "chain_id", "");
             object precision = this.parsePrecision(this.safeString(network, "decimals"));
             if (isTrue(!isEqual(precision, null)))
             {
@@ -950,11 +950,11 @@ public partial class modetrade : Exchange
 
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
     {
-        object feeCost = this.safeString(item, feeAmountKey);
+        string? feeCost = this.safeString(item, feeAmountKey);
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurrencyId = this.safeString(item, feeTokenKey);
+            string? feeCurrencyId = this.safeString(item, feeTokenKey);
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -994,22 +994,22 @@ public partial class modetrade : Exchange
         //     }
         //
         bool isFromFetchOrder = (inOp(trade, "id"));
-        object timestamp = this.safeInteger(trade, "executed_timestamp");
-        object marketId = this.safeString(trade, "symbol");
+        Int64? timestamp = this.safeInteger(trade, "executed_timestamp");
+        string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object price = this.safeString(trade, "executed_price");
-        object amount = this.safeString(trade, "executed_quantity");
-        object order_id = this.safeString(trade, "order_id");
+        string? price = this.safeString(trade, "executed_price");
+        string? amount = this.safeString(trade, "executed_quantity");
+        string? order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
-        object feeCost = this.safeString(fee, "cost");
+        string? feeCost = this.safeString(fee, "cost");
         if (isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((!isEqual(fee, null)))))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
-        object cost = Precise.stringMul(price, amount);
-        object side = this.safeStringLower(trade, "side");
-        object id = this.safeString(trade, "id");
+        string? cost = Precise.stringMul(price, amount);
+        string? side = this.safeStringLower(trade, "side");
+        string? id = this.safeString(trade, "id");
         object takerOrMaker = null;
         if (isTrue(isFromFetchOrder))
         {
@@ -1052,7 +1052,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -1093,14 +1093,14 @@ public partial class modetrade : Exchange
         //            "sum_unitary_funding": 521.367
         //         }
         //
-        object symbol = this.safeString(fundingRate, "symbol");
+        string? symbol = this.safeString(fundingRate, "symbol");
         market = ((bool) isTrue((isEqual(symbol, null)))) ? market : this.market(symbol);
-        object nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
-        object estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
-        object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
-        object fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
-        object nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
-        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        Int64? nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
+        Int64? estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
+        Int64? lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
+        string? fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
+        string? nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
+        string? millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         object fundingSymbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         return new Dictionary<string, object>() {
             { "info", fundingRate },
@@ -1126,7 +1126,7 @@ public partial class modetrade : Exchange
 
     public virtual object parseFundingInterval(object interval)
     {
-        object intervals = new Dictionary<string, object>() {
+        Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },
             { "14400000", "4h" },
             { "28800000", "8h" },
@@ -1168,7 +1168,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters));
@@ -1296,12 +1296,12 @@ public partial class modetrade : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "rows", new List<object>() {});
-        object rates = new List<object>() {};
+        List<object> rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
-            object marketId = this.safeString(entry, "symbol");
-            object timestamp = this.safeInteger(entry, "funding_rate_timestamp");
+            string? marketId = this.safeString(entry, "symbol");
+            Int64? timestamp = this.safeInteger(entry, "funding_rate_timestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId) },
@@ -1310,7 +1310,7 @@ public partial class modetrade : Exchange
                 { "datetime", this.iso8601(timestamp) },
             });
         }
-        object sorted = this.sortBy(rates, "timestamp");
+        List<object> sorted = this.sortBy(rates, "timestamp");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolVar, since, limit));
     }
 
@@ -1328,13 +1328,13 @@ public partial class modetrade : Exchange
         //         "updated_time": 1682235722003
         // }
         //
-        object marketId = this.safeString(income, "symbol");
+        string? marketId = this.safeString(income, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object amount = this.safeString(income, "funding_fee");
         object code = this.safeCurrencyCode("USDC");
-        object timestamp = this.safeInteger(income, "updated_time");
+        Int64? timestamp = this.safeInteger(income, "updated_time");
         object rate = this.safeNumber(income, "funding_rate");
-        object paymentType = this.safeString(income, "payment_type");
+        string? paymentType = this.safeString(income, "payment_type");
         amount = ((bool) isTrue((isEqual(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
         return new Dictionary<string, object>() {
             { "info", income },
@@ -1375,7 +1375,7 @@ public partial class modetrade : Exchange
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500));
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1386,7 +1386,7 @@ public partial class modetrade : Exchange
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
         }
-        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+        Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
@@ -1469,9 +1469,9 @@ public partial class modetrade : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object maker = this.safeString(data, "futures_maker_fee_rate");
-        object taker = this.safeString(data, "futures_taker_fee_rate");
-        object result = new Dictionary<string, object>() {};
+        string? maker = this.safeString(data, "futures_maker_fee_rate");
+        string? taker = this.safeString(data, "futures_taker_fee_rate");
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -1510,7 +1510,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limitVar, null)))
@@ -1537,7 +1537,7 @@ public partial class modetrade : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(data, "timestamp");
+        Int64? timestamp = this.safeInteger(data, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
@@ -1568,7 +1568,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
@@ -1650,27 +1650,27 @@ public partial class modetrade : Exchange
         //   }
         //
         object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
-        object orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
+        string? orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
         object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
-        object marketId = this.safeString(order, "symbol");
+        string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object price = this.safeString2(order, "order_price", "price");
-        object amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
-        object cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
-        object orderType = this.safeStringLower2(order, "order_type", "type");
+        string? price = this.safeString2(order, "order_price", "price");
+        string? amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
+        string? cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
+        string? orderType = this.safeStringLower2(order, "order_type", "type");
         object status = this.safeValue2(order, "status", "algoStatus");
         object success = this.safeBool(order, "success");
         if (isTrue(!isEqual(success, null)))
         {
             status = ((bool) isTrue((success))) ? "NEW" : "REJECTED";
         }
-        object side = this.safeStringLower(order, "side");
+        string? side = this.safeStringLower(order, "side");
         object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
         object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        object remaining = Precise.stringSub(cost, filled);
+        string? remaining = Precise.stringSub(cost, filled);
         object fee = this.safeValue2(order, "total_fee", "totalFee");
-        object feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
+        string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         object transactions = this.safeValue(order, "Transactions");
         object triggerPrice = this.safeNumber(order, "triggerPrice");
         object takeProfitPrice = null;
@@ -1724,7 +1724,7 @@ public partial class modetrade : Exchange
 
     public virtual object parseTimeInForce(object timeInForce)
     {
-        object timeInForces = new Dictionary<string, object>() {
+        Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "ioc", "IOC" },
             { "fok", "FOK" },
             { "post_only", "PO" },
@@ -1740,7 +1740,7 @@ public partial class modetrade : Exchange
     {
         if (isTrue(!isEqual(status, null)))
         {
-            object statuses = new Dictionary<string, object>() {
+            Dictionary<string, object> statuses = new Dictionary<string, object>() {
                 { "NEW", "open" },
                 { "FILLED", "closed" },
                 { "CANCEL_SENT", "canceled" },
@@ -1762,7 +1762,7 @@ public partial class modetrade : Exchange
 
     public virtual object parseOrderType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "LIMIT", "limit" },
             { "MARKET", "market" },
             { "POST_ONLY", "limit" },
@@ -1806,19 +1806,19 @@ public partial class modetrade : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
         }
         string orderSide = ((string)side).ToUpper();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
         };
-        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         bool hasStopLoss = !isEqual(stopLoss, null);
         bool hasTakeProfit = !isEqual(takeProfit, null);
-        object algoType = this.safeString(parameters, "algoType");
+        string? algoType = this.safeString(parameters, "algoType");
         bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         bool isMarket = isEqual(orderType, "MARKET");
-        object timeInForce = this.safeStringLower(parameters, "timeInForce");
+        string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
         object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
@@ -1852,7 +1852,7 @@ public partial class modetrade : Exchange
         {
             ((IDictionary<string,object>)request)[(string)orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
@@ -1864,7 +1864,7 @@ public partial class modetrade : Exchange
         } else if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             ((IDictionary<string,object>)request)["algo_type"] = "TP_SL";
-            object outterOrder = new Dictionary<string, object>() {
+            Dictionary<string, object> outterOrder = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
                 { "reduce_only", false },
                 { "algo_type", "POSITIONAL_TP_SL" },
@@ -1875,7 +1875,7 @@ public partial class modetrade : Exchange
             if (isTrue(hasStopLoss))
             {
                 object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
-                object stopLossOrder = new Dictionary<string, object>() {
+                Dictionary<string, object> stopLossOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
                     { "trigger_price", this.priceToPrecision(symbol, stopLossPrice) },
@@ -1887,7 +1887,7 @@ public partial class modetrade : Exchange
             if (isTrue(hasTakeProfit))
             {
                 object takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
-                object takeProfitOrder = new Dictionary<string, object>() {
+                Dictionary<string, object> takeProfitOrder = new Dictionary<string, object>() {
                     { "side", closeSide },
                     { "algo_type", "TP_SL" },
                     { "trigger_price", this.priceToPrecision(symbol, takeProfitPrice) },
@@ -1933,7 +1933,7 @@ public partial class modetrade : Exchange
         }
         object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
@@ -1968,21 +1968,21 @@ public partial class modetrade : Exchange
         {
             await this.loadMarkets();
         }
-        object ordersRequests = new List<object>() {};
+        List<object> ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object marketId = this.safeString(rawOrder, "symbol");
+            string? marketId = this.safeString(rawOrder, "symbol");
             if (isTrue(isEqual(marketId, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires a symbol for each order")) ;
             }
-            object type = this.safeString(rawOrder, "type", "");
-            object side = this.safeString(rawOrder, "side");
+            string? type = this.safeString(rawOrder, "type", "");
+            string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
+            string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             object stopLoss = this.safeValue(orderParams, "stopLoss");
             object takeProfit = this.safeValue(orderParams, "takeProfit");
             bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
@@ -1993,7 +1993,7 @@ public partial class modetrade : Exchange
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
         };
         object response = await this.v1PrivatePostBatchOrder(this.extend(request, parameters));
@@ -2045,10 +2045,10 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
         if (isTrue(!isEqual(triggerPrice, null)))
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -2077,7 +2077,7 @@ public partial class modetrade : Exchange
                 ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
             }
             string orderType = ((string)type).ToUpper();
-            object timeInForce = this.safeStringLower(parameters, "timeInForce");
+            string? timeInForce = this.safeStringLower(parameters, "timeInForce");
             bool isMarket = isEqual(orderType, "MARKET");
             object postOnly = this.isPostOnly(isMarket, null, parameters);
             if (isTrue(postOnly))
@@ -2093,7 +2093,7 @@ public partial class modetrade : Exchange
             {
                 ((IDictionary<string,object>)request)["order_type"] = orderType;
             }
-            object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+            string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
             parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"});
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -2150,11 +2150,11 @@ public partial class modetrade : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id") },
         };
-        object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
-        object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
+        string? clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
+        string? clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
         if (isTrue(isEqual(trigger, true)))
@@ -2197,7 +2197,7 @@ public partial class modetrade : Exchange
         //     "status": "CANCEL_SENT"
         // }
         //
-        object extendParams = new Dictionary<string, object>() {
+        Dictionary<string, object> extendParams = new Dictionary<string, object>() {
             { "symbol", symbol },
         };
         if (isTrue(isByClientOrder))
@@ -2236,7 +2236,7 @@ public partial class modetrade : Exchange
         }
         object clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(!isEqual(clientOrderIds, null)))
         {
@@ -2279,7 +2279,7 @@ public partial class modetrade : Exchange
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             object market = this.market(symbol);
@@ -2339,8 +2339,8 @@ public partial class modetrade : Exchange
             market = this.market(symbol);
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object request = new Dictionary<string, object>() {};
-        object clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
         object response = null;
         if (isTrue(isEqual(trigger, true)))
@@ -2588,7 +2588,7 @@ public partial class modetrade : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "oid", id },
         };
         object response = await this.v1PrivateGetOrderOidTrades(this.extend(request, parameters));
@@ -2701,7 +2701,7 @@ public partial class modetrade : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         object balances = this.safeList(response, "holding", new List<object>() {});
@@ -2762,7 +2762,7 @@ public partial class modetrade : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -2777,7 +2777,7 @@ public partial class modetrade : Exchange
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        object transactionType = this.safeString(parameters, "type");
+        string? transactionType = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
         if (isTrue(!isEqual(transactionType, null)))
         {
@@ -2815,13 +2815,13 @@ public partial class modetrade : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object currencyId = this.safeString(item, "token");
+        string? currencyId = this.safeString(item, "token");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeNumber(item, "amount");
-        object side = this.safeString(item, "token_side");
+        string? side = this.safeString(item, "token_side");
         object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
-        object timestamp = this.safeInteger(item, "created_time");
+        Int64? timestamp = this.safeInteger(item, "created_time");
         object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
@@ -2844,7 +2844,7 @@ public partial class modetrade : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
@@ -2874,16 +2874,16 @@ public partial class modetrade : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         // example in fetchLedger
-        object code = this.safeString(transaction, "token");
-        object movementDirection = this.safeStringLower(transaction, "token_side");
+        string? code = this.safeString(transaction, "token");
+        string? movementDirection = this.safeStringLower(transaction, "token_side");
         if (isTrue(isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";
         }
         object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
-        object addressTo = this.safeString(transaction, "target_address");
-        object addressFrom = this.safeString(transaction, "source_address");
-        object timestamp = this.safeInteger(transaction, "created_time");
+        string? addressTo = this.safeString(transaction, "target_address");
+        string? addressFrom = this.safeString(transaction, "source_address");
+        Int64? timestamp = this.safeInteger(transaction, "created_time");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString2(transaction, "id", "withdraw_id") },
@@ -2910,7 +2910,7 @@ public partial class modetrade : Exchange
 
     public virtual object parseTransactionStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "NEW", "pending" },
             { "CONFIRMING", "pending" },
             { "PROCESSING", "pending" },
@@ -2938,7 +2938,7 @@ public partial class modetrade : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", "DEPOSIT" },
         };
         return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
@@ -2958,7 +2958,7 @@ public partial class modetrade : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", "WITHDRAW" },
         };
         return await this.FetchDepositsWithdrawals(code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
@@ -2978,7 +2978,7 @@ public partial class modetrade : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters));
         object currency = this.safeValue(currencyRows, 0);
         object rows = this.safeList(currencyRows, 1, new List<object>() {});
@@ -3062,8 +3062,8 @@ public partial class modetrade : Exchange
             }
         }
         object currency = this.currency(codeVar);
-        object verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
-        object chainId = this.safeString(parameters, "chainId");
+        string? verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
+        string? chainId = this.safeString(parameters, "chainId");
         object currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         object coinNetwork = ((bool) isTrue((isEqual(chainId, null)))) ? new Dictionary<string, object>() {} : this.safeDict(currencyNetworks, chainId, new Dictionary<string, object>() {});
         object coinNetworkId = this.safeNumber(coinNetwork, "id");
@@ -3073,13 +3073,13 @@ public partial class modetrade : Exchange
         }
         object withdrawNonce = await this.getWithdrawNonce(parameters);
         object nonce = this.nonce();
-        object domain = new Dictionary<string, object>() {
+        Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "chainId", chainId },
             { "name", "Orderly" },
             { "verifyingContract", verifyingContractAddress },
             { "version", "1" },
         };
-        object messageTypes = new Dictionary<string, object>() {
+        Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "Withdraw", new List<object>() {new Dictionary<string, object>() {
     { "name", "brokerId" },
     { "type", "string" },
@@ -3103,7 +3103,7 @@ public partial class modetrade : Exchange
     { "type", "uint64" },
 }} },
         };
-        object withdrawRequest = new Dictionary<string, object>() {
+        Dictionary<string, object> withdrawRequest = new Dictionary<string, object>() {
             { "brokerId", this.safeString(this.options, "keyBrokerId", "mode") },
             { "chainId", this.parseToInt(chainId) },
             { "receiver", address },
@@ -3114,7 +3114,7 @@ public partial class modetrade : Exchange
         };
         object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
         object signature = this.signMessage(msg, this.privateKey);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "signature", signature },
             { "userAddress", address },
             { "verifyingContract", verifyingContractAddress },
@@ -3137,7 +3137,7 @@ public partial class modetrade : Exchange
 
     public override object parseLeverage(object leverage, object market = null)
     {
-        object leverageValue = this.safeInteger(leverage, "max_leverage");
+        Int64? leverageValue = this.safeInteger(leverage, "max_leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeString(market, "symbol") },
@@ -3219,7 +3219,7 @@ public partial class modetrade : Exchange
         {
             throw new BadRequest ((string)add(this.id, " leverage should be between 1 and 50")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
         };
         return ccxt.BaseExchange.ToDict(await this.v1PrivatePostClientLeverage(this.extend(request, parameters)));
@@ -3249,10 +3249,10 @@ public partial class modetrade : Exchange
         //     "unsettled_pnl": 354.858492
         // }
         //
-        object contract = this.safeString(position, "symbol");
+        string? contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
-        object size = this.safeString(position, "position_qty");
-        object side = null;
+        string? size = this.safeString(position, "position_qty");
+        string? side = null;
         if (isTrue(Precise.stringGt(size, "0")))
         {
             side = "long";
@@ -3260,13 +3260,13 @@ public partial class modetrade : Exchange
         {
             side = "short";
         }
-        object contractSize = this.safeString(market, "contractSize");
-        object markPrice = this.safeString(position, "mark_price");
-        object timestamp = this.safeInteger(position, "timestamp");
-        object entryPrice = this.safeString(position, "average_open_price");
-        object unrealisedPnl = this.safeString(position, "unsettled_pnl");
+        string? contractSize = this.safeString(market, "contractSize");
+        string? markPrice = this.safeString(position, "mark_price");
+        Int64? timestamp = this.safeInteger(position, "timestamp");
+        string? entryPrice = this.safeString(position, "average_open_price");
+        string? unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);
-        object notional = Precise.stringMul(size, markPrice);
+        string? notional = Precise.stringMul(size, markPrice);
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3320,7 +3320,7 @@ public partial class modetrade : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchPosition() requires a symbol argument")) ;
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         object response = await this.v1PrivateGetPositionSymbol(this.extend(request, parameters));
@@ -3447,7 +3447,7 @@ public partial class modetrade : Exchange
                 object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (isTrue(!isEqual(isSandboxMode, true)))
                 {
-                    object brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
+                    string? brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if (isTrue(isEqual(path, "batch-order")))
                     {
                         object ordersList = this.safeList(parameters, "orders", new List<object>() {});
@@ -3522,7 +3522,7 @@ public partial class modetrade : Exchange
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
         object success = this.safeBool(response, "success");
-        object errorCode = this.safeString(response, "code");
+        string? errorCode = this.safeString(response, "code");
         if (isTrue(!isEqual(success, true)))
         {
             object feedback = add(add(this.id, " "), this.json(response));
