@@ -81,12 +81,12 @@ func (this *Xt) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Xt) FetchSwapAndFutureMarkets(params ...any) ([]map[string]any, error) {
+func (this *Xt) FetchSwapAndFutureMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSwapAndFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**

@@ -515,7 +515,7 @@ func (this *KrakenfuturesCore) fetchMarketsBody(ch chan any, optionalArgs ...any
 		var symbol any = id
 		var split []string = Split(id, "_")
 		var splitMarket any = this.SafeString(split, 1)
-		var baseId any = Slice(splitMarket, 0, Subtract(GetLength(splitMarket), 3))
+		var baseId string = Slice(splitMarket, 0, Subtract(GetLength(splitMarket), 3))
 		var quoteId string = "usd" // always USD
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
@@ -3503,7 +3503,7 @@ func (this *KrakenfuturesCore) fetchFundingRateHistoryBody(ch chan any, optional
 			"datetime":    datetime,
 		})
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -4159,7 +4159,7 @@ func (this *KrakenfuturesCore) Sign(path any, optionalArgs ...any) any {
 		}
 		auth = Add(auth, endpoint)                                       // 1
 		var hash any = this.Hash(this.Encode(auth), sha256, "binary")    // 2
-		var secret any = this.Base64ToBinary(this.Secret)                // 3
+		var secret []byte = this.Base64ToBinary(this.Secret)             // 3
 		var signature string = this.Hmac(hash, secret, sha512, "base64") // 4-5
 		headers = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",

@@ -1003,7 +1003,7 @@ func (this *OpinionCore) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 			ccxt.AppendToArray(&candles, []any{timestamp, price, price, price, price, nil})
 		}
 	}
-	var sorted any = this.SortBy(candles, 0)
+	var sorted []any = this.SortBy(candles, 0)
 
 	ch <- this.FilterBySinceLimit(sorted, since, limit, 0)
 	return nil
@@ -1292,7 +1292,7 @@ func (this *OpinionCore) createOrderBody(ch chan any, outcome any, typeVar any, 
 		"signatureType": signatureType,
 	}
 	var signature any = this.SignOpinionOrder(order, exchangeAddress)
-	var signatureNo0x any = this.Remove0xPrefix(signature)
+	var signatureNo0x string = this.Remove0xPrefix(signature)
 	var orderBody map[string]any = this.Extend(map[string]any{
 		"salt":            salt,
 		"maker":           maker,
@@ -1874,7 +1874,7 @@ func (this *OpinionCore) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 
 	retRes14518 := (<-this.LoadApiKey())
 	ccxt.PanicOnError(retRes14518)
-	var outcomesLength any = 0
+	var outcomesLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 		outcomesLength = ccxt.GetArrayLength(outcomes)
 
@@ -1950,12 +1950,12 @@ func (this *OpinionCore) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
 func (this *OpinionCore) SignHash(hash any, privateKey any) any {
-	var signature any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
 	var rRaw any = ccxt.GetValue(signature, "r")
 	var sRaw any = ccxt.GetValue(signature, "s")
-	var r any = ccxt.PadStart(rRaw, 64, "0")
-	var s any = ccxt.PadStart(sRaw, 64, "0")
+	var r string = ccxt.PadStart(rRaw, 64, "0")
+	var s string = ccxt.PadStart(sRaw, 64, "0")
 	return map[string]any{
 		"r": ccxt.Add("0x", r),
 		"s": ccxt.Add("0x", s),

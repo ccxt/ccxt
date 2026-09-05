@@ -1615,7 +1615,7 @@ func (this *P2bCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		AddElementToObject(params, "request", Add("/api/v2/", path))
 		AddElementToObject(params, "nonce", ToString(this.Nonce()))
-		var payload any = this.StringToBase64(this.Json(params)) // Body json encoded in base64
+		var payload string = this.StringToBase64(this.Json(params)) // Body json encoded in base64
 		headers = map[string]any{
 			"Content-Type":    "application/json",
 			"X-TXC-APIKEY":    this.ApiKey,

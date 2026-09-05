@@ -571,7 +571,7 @@ func (this *HollaexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var coins any = this.SafeDict(response, "coins", map[string]any{})
-	var values any = ObjectValues(coins)
+	var values []any = ObjectValues(coins)
 
 	ch <- this.ParseCurrencies(values)
 	return nil
@@ -1144,7 +1144,7 @@ func (this *HollaexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var paginate any = false
-	var maxLimit any = 500
+	var maxLimit int = 500
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)

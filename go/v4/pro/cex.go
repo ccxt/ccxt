@@ -1335,7 +1335,7 @@ func (this *CexCore) HandleInitOHLCV(client any, message any) {
 	var data any = this.SafeValue(message, "data", []any{})
 	var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 	stored := ccxt.NewArrayCacheByTimestamp(limit)
-	var sorted any = this.SortBy(data, 0)
+	var sorted []any = this.SortBy(data, 0)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(sorted)); i++ {
 		stored.Append(this.ParseOHLCV(ccxt.GetValue(sorted, i), market))
 	}

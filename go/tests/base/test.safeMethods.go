@@ -239,7 +239,7 @@ func TestSafeInteger() {
 	// safeInteger
 	var inputDict any = HelperDefaultInputDict()
 	var inputList []any = []any{"Hi", 2}
-	var factor any = 10
+	var factor int = 10
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "i"), 1))
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "f"), 0))
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "strNumber"), 3))

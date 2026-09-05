@@ -18,7 +18,7 @@ func testFetchMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	markets := (<-exchange.FetchMarkets())
 	PanicOnError(markets)
 	AssertDictionaryResponse(exchange, method, markets)
-	var marketValues any = ObjectValues(markets)
+	var marketValues []any = ObjectValues(markets)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues)
 	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
 		TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))

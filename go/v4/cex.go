@@ -1140,7 +1140,7 @@ func (this *CexCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var balances any = this.SafeDict(data, "balancesPerAccounts", map[string]any{})
-	var arrays any = this.ToArray(balances)
+	var arrays []any = this.ToArray(balances)
 
 	ch <- this.ParseAccounts(arrays, params)
 	return nil
@@ -2355,7 +2355,7 @@ func (this *CexCore) HandleErrors(code any, reason any, url any, method any, hea
 		if IsTrue(IsEqual(body, nil)) {
 			panic(NullResponse(Add(this.Id, " returned empty response")))
 		} else if IsTrue(IsEqual(GetValue(body, 0), "{")) {
-			var fixed any = this.FixStringifiedJsonMembers(body)
+			var fixed string = this.FixStringifiedJsonMembers(body)
 			response = this.ParseJson(fixed)
 		} else {
 			panic(NullResponse(Add(Add(this.Id, " returned unparsed response: "), body)))

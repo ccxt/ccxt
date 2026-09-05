@@ -762,19 +762,19 @@ func (this *LighterCore) Pow(n any, m any) any {
 	return r
 }
 func (this *LighterCore) HashMessage(message any) any {
-	var binaryMessage any = this.Encode(message)
-	var binaryMessageLength any = this.BinaryLength(binaryMessage)
-	var x19 any = this.Base16ToBinary("19")
-	var newline any = this.Base16ToBinary("0a")
-	var prefix any = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
+	var binaryMessage string = this.Encode(message)
+	var binaryMessageLength int = this.BinaryLength(binaryMessage)
+	var x19 []byte = this.Base16ToBinary("19")
+	var newline []byte = this.Base16ToBinary("0a")
+	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func (this *LighterCore) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *LighterCore) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) any {
@@ -1047,8 +1047,8 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var priceStr any = this.PriceToPrecision(symbol, price)
 	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
 	var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
-	var triggerPriceStr any = "0"                     // default is 0
-	var defaultClientOrderId any = this.RandNumber(9) // c# only support int32 2147483647.
+	var triggerPriceStr any = "0"                       // default is 0
+	var defaultClientOrderId int64 = this.RandNumber(9) // c# only support int32 2147483647.
 	var clientOrderId any = this.SafeInteger2(params, "client_order_index", "clientOrderId", defaultClientOrderId)
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
 	if IsTrue(isConditional) {
@@ -2108,7 +2108,7 @@ func (this *LighterCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		}
 	} else {
 		endTs = Ternary(IsTrue((!IsEqual(until, nil))), until, now)
-		var defaultLimit any = 100
+		var defaultLimit int = 100
 		if IsTrue(!IsEqual(limit, nil)) {
 			startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
 		} else {

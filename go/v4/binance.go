@@ -6830,8 +6830,8 @@ func (this *BinanceCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
 	// the reality is that the time range wider than 500 candles won't work right
-	var defaultLimit any = 500
-	var maxLimit any = 1000
+	var defaultLimit int = 500
+	var maxLimit int = 1000
 	var price any = this.SafeString(params, "price")
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"price", "until"})
@@ -7447,7 +7447,7 @@ func (this *BinanceCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	//         },
 	//     ]
 	//
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -10505,7 +10505,7 @@ func (this *BinanceCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 
 	orders := (<-this.FetchOrders(symbol, since, nil, params))
 	PanicOnError(orders)
-	var filteredOrders any = this.FilterBy(orders, "status", "closed")
+	var filteredOrders []any = this.FilterBy(orders, "status", "closed")
 
 	ch <- this.FilterBySinceLimit(filteredOrders, since, limit)
 	return nil
@@ -10569,7 +10569,7 @@ func (this *BinanceCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...an
 
 	orders := (<-this.FetchOrders(symbol, since, nil, params))
 	PanicOnError(orders)
-	var filteredOrders any = this.FilterBy(orders, "status", "canceled")
+	var filteredOrders []any = this.FilterBy(orders, "status", "canceled")
 
 	ch <- this.FilterBySinceLimit(filteredOrders, since, limit)
 	return nil
@@ -10633,10 +10633,10 @@ func (this *BinanceCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalA
 
 	orders := (<-this.FetchOrders(symbol, since, nil, params))
 	PanicOnError(orders)
-	var canceledOrders any = this.FilterBy(orders, "status", "canceled")
-	var closedOrders any = this.FilterBy(orders, "status", "closed")
+	var canceledOrders []any = this.FilterBy(orders, "status", "canceled")
+	var closedOrders []any = this.FilterBy(orders, "status", "closed")
 	var filteredOrders any = this.ArrayConcat(canceledOrders, closedOrders)
-	var sortedOrders any = this.SortBy(filteredOrders, "timestamp")
+	var sortedOrders []any = this.SortBy(filteredOrders, "timestamp")
 
 	ch <- this.FilterBySinceLimit(sortedOrders, since, limit)
 	return nil
@@ -11730,7 +11730,7 @@ func (this *BinanceCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	if IsTrue(IsEqual(response, nil)) {
 		panic(NullResponse(Add(this.Id, " method() returned empty response")))
 	}
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -11835,7 +11835,7 @@ func (this *BinanceCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	if IsTrue(IsString(response)) {
 		response = this.ParseJson(response)
 	}
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -12583,7 +12583,7 @@ func (this *BinanceCore) fetchTransactionFeesBody(ch chan any, optionalArgs ...a
 	//  ]
 	//
 	var withdrawFees map[string]any = map[string]any{}
-	var coins any = this.ToArray(response)
+	var coins []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
 		var entry any = GetValue(coins, i)
 		var currencyId any = this.SafeString(entry, "coin")
@@ -13070,7 +13070,7 @@ func (this *BinanceCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 		if IsTrue(IsEqual(response, nil)) {
 			panic(NullResponse(Add(this.Id, " method() returned empty response")))
 		}
-		var fees any = this.ToArray(response)
+		var fees []any = this.ToArray(response)
 		for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 			var fee any = this.ParseTradingFee(GetValue(fees, i))
 			var symbol any = GetValue(fee, "symbol")
@@ -13768,7 +13768,7 @@ func (this *BinanceCore) ParseAccountPosition(position any, optionalArgs ...any)
 			var rightSide any = Precise.StringSub(Precise.StringMul(Precise.StringDiv("1", entryPriceSignString), size), walletBalance)
 			liquidationPriceStringRaw = Precise.StringDiv(leftSide, rightSide)
 		}
-		var pricePrecision any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
+		var pricePrecision int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
 		var pricePrecisionPlusOne any = Add(pricePrecision, 1)
 		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
 		// round half up
@@ -13958,7 +13958,7 @@ func (this *BinanceCore) ParsePositionRisk(position any, optionalArgs ...any) an
 				}
 				var inner any = Precise.StringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
 				var leftSide any = Precise.StringAdd(inner, entryPriceSignString)
-				var quotePrecision any = this.PrecisionFromString(this.SafeString2(precision, "quote", "price"))
+				var quotePrecision int = this.PrecisionFromString(this.SafeString2(precision, "quote", "price"))
 				if IsTrue(!IsEqual(quotePrecision, nil)) {
 					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, contractsAbs), "1", quotePrecision)
 				}
@@ -13974,7 +13974,7 @@ func (this *BinanceCore) ParsePositionRisk(position any, optionalArgs ...any) an
 				}
 				var leftSide any = Precise.StringMul(contractsAbs, contractSizeString)
 				var rightSide any = Precise.StringSub(Precise.StringDiv("1", entryPriceSignString), Precise.StringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-				var basePrecision any = this.PrecisionFromString(this.SafeString(precision, "base"))
+				var basePrecision int = this.PrecisionFromString(this.SafeString(precision, "base"))
 				if IsTrue(!IsEqual(basePrecision, nil)) {
 					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, rightSide), "1", basePrecision)
 				}
@@ -14111,7 +14111,7 @@ func (this *BinanceCore) loadLeverageBracketsBody(ch chan any, optionalArgs ...a
 		if IsTrue(IsEqual(response, nil)) {
 			panic(NullResponse(Add(this.Id, " loadLeverageBrackets() returned empty response")))
 		}
-		var entries any = this.ToArray(response)
+		var entries []any = this.ToArray(response)
 		for i := 0; IsLessThan(i, GetArrayLength(entries)); i++ {
 			var entry any = GetValue(entries, i)
 			var marketId any = this.SafeString(entry, "symbol")
@@ -14418,7 +14418,7 @@ func (this *BinanceCore) fetchOptionPositionsBody(ch chan any, optionalArgs ...a
 	//     ]
 	//
 	var result any = []any{}
-	var positions any = this.ToArray(response)
+	var positions []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		AppendToArray(&result, this.ParseOptionPosition(GetValue(positions, i), market))
 	}
@@ -14826,7 +14826,7 @@ func (this *BinanceCore) fetchPositionsRiskBody(ch chan any, optionalArgs ...any
 	if IsTrue(IsEqual(response, nil)) {
 		panic(NullResponse(Add(this.Id, " method() returned empty response")))
 	}
-	var positions any = this.ToArray(response)
+	var positions []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		var rawPosition any = GetValue(positions, i)
 		var entryPriceString any = this.SafeString(rawPosition, "entryPrice")
@@ -15393,7 +15393,7 @@ func (this *BinanceCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ..
 	//     ]
 	//
 	var settlements any = this.ParseSettlements(response, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -15474,7 +15474,7 @@ func (this *BinanceCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs 
 	//     ]
 	//
 	var settlements any = this.ParseSettlements(response, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -18315,7 +18315,7 @@ func (this *BinanceCore) fetchConvertCurrenciesBody(ch chan any, optionalArgs ..
 	//     ]
 	//
 	var result map[string]any = map[string]any{}
-	var assets any = this.ToArray(response)
+	var assets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 		var entry any = GetValue(assets, i)
 		var id any = this.SafeString(entry, "asset")
@@ -18504,7 +18504,7 @@ func (this *BinanceCore) fetchConvertTradeBody(ch chan any, id any, optionalArgs
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if IsTrue(IsEqual(code, "BUSD")) {
-		var msInDay any = 86400000
+		var msInDay int = 86400000
 		var now int64 = this.Milliseconds()
 		if IsTrue(!IsEqual(code, nil)) {
 			var currency any = this.Currency(code)
@@ -18579,7 +18579,7 @@ func (this *BinanceCore) fetchConvertTradeHistoryBody(ch chan any, optionalArgs 
 		PanicOnError(retRes1523112)
 	}
 	var request map[string]any = map[string]any{}
-	var msInThirtyDays any = 2592000000
+	var msInThirtyDays int = 2592000000
 	var now int64 = this.Milliseconds()
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
@@ -19023,7 +19023,7 @@ func (this *BinanceCore) fetchPositionsADLRankBody(ch chan any, optionalArgs ...
 	//         }
 	//     ]
 	//
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}

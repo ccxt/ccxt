@@ -19,7 +19,7 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	// iteration risks blocking until the test-runner kills the whole exchange.
 	// a validated book is already a pass, so keep sampling only while updates
 	// keep arriving quickly and stop once the book goes quiet.
-	var maxIdleTime any = 5000
+	var maxIdleTime int = 5000
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var idle bool = false

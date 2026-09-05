@@ -4112,7 +4112,7 @@ func (this *BybitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -4471,7 +4471,7 @@ func (this *BybitCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var defaultLimit any = 25
+	var defaultLimit int = 25
 	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 		// limit: [1, 50]. Default: 1
 		defaultLimit = 50
@@ -10362,7 +10362,7 @@ func (this *BybitCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(result, "list", []any{})
 	var settlements any = this.ParseSettlements(data, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
@@ -10449,7 +10449,7 @@ func (this *BybitCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs ..
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(result, "list", []any{})
 	var settlements any = this.ParseSettlements(data, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
@@ -11559,7 +11559,7 @@ func (this *BybitCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var market any = nil
 	var subType any = nil
-	var symbolsLength any = 0
+	var symbolsLength int = 0
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(symbolsLength, 0)) {
@@ -12469,7 +12469,7 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 				body = "{}"
 			}
 			var payload any = Add(Add(timestamp, this.ApiKey), body)
-			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
+			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"Content-Type":     "application/json",
 				"X-BAPI-API-KEY":   this.ApiKey,
@@ -12487,7 +12487,7 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "X-BAPI-SIGN-TYPE", "2")
 			}
 			var query map[string]any = this.Extend(map[string]any{}, params)
-			var queryEncoded any = this.Rawencode(query)
+			var queryEncoded string = this.Rawencode(query)
 			var auth_base any = Add(Add(ToString(timestamp), this.ApiKey), ToString(GetValue(this.Options, "recvWindow")))
 			var authFull any = nil
 			if IsTrue(IsEqual(method, "POST")) {
@@ -12511,7 +12511,7 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 				"timestamp":   timestamp,
 			})
 			var sortedQuery map[string]any = this.Keysort(query)
-			var auth any = this.Rawencode(sortedQuery, true)
+			var auth string = this.Rawencode(sortedQuery, true)
 			var signature any = nil
 			if IsTrue(IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), OpNeg(1))) {
 				signature = Rsa(auth, this.Secret, sha256)

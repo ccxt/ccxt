@@ -1798,7 +1798,7 @@ func (this *HashkeyCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	//         ...
 	//     ]
 	//
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -3526,7 +3526,7 @@ func (this *HashkeyCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		PanicOnError(retRes314012)
 	}
 	var request map[string]any = map[string]any{}
-	var orderIds any = Join(ids, ",")
+	var orderIds string = Join(ids, ",")
 	AddElementToObject(request, "ids", orderIds)
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -4390,7 +4390,7 @@ func (this *HashkeyCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	//     ]
 	//
 	var rates any = []any{}
-	var rows any = this.ToArray(response)
+	var rows []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var entry any = GetValue(rows, i)
 		var timestamp any = this.SafeInteger(entry, "settleTime")
@@ -4402,7 +4402,7 @@ func (this *HashkeyCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySinceLimit(sorted, since, limit)
 	return nil
@@ -5197,7 +5197,7 @@ func (this *HashkeyCore) Sign(path any, optionalArgs ...any) any {
 func (this *HashkeyCore) CustomUrlencode(optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result any = this.Urlencode(params)
+	var result string = this.Urlencode(params)
 	result = Replace(result, "%2C", ",")
 	return result
 }

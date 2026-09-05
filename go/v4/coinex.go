@@ -5286,7 +5286,7 @@ func (this *CoinexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -6666,7 +6666,7 @@ func (this *CoinexCore) Sign(path any, optionalArgs ...any) any {
 			"timestamp": nonce,
 		}, query)
 		query = this.Keysort(query)
-		var urlencoded any = this.Rawencode(query)
+		var urlencoded string = this.Rawencode(query)
 		var signature any = this.Hash(this.Encode(Add(Add(urlencoded, "&secret_key="), this.Secret)), sha256)
 		headers = map[string]any{
 			"Authorization": ToLower(signature),
@@ -6690,7 +6690,7 @@ func (this *CoinexCore) Sign(path any, optionalArgs ...any) any {
 				"tonce":     nonce,
 			}, query)
 			query = this.Keysort(query)
-			var urlencoded any = this.Rawencode(query)
+			var urlencoded string = this.Rawencode(query)
 			var signature any = this.Hash(this.Encode(Add(Add(urlencoded, "&secret_key="), this.Secret)), md5)
 			headers = map[string]any{
 				"Authorization": ToUpper(signature),
@@ -6704,7 +6704,7 @@ func (this *CoinexCore) Sign(path any, optionalArgs ...any) any {
 		} else if IsTrue(IsEqual(version, "v2")) {
 			this.CheckRequiredCredentials()
 			query = this.Keysort(query)
-			var urlencoded any = this.Rawencode(query)
+			var urlencoded string = this.Rawencode(query)
 			var preparedString any = Add(Add(Add(Add(method, "/"), version), "/"), path)
 			if IsTrue(IsEqual(method, "POST")) {
 				body = this.Json(query)

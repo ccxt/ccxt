@@ -224,7 +224,7 @@ func (this *RevolutxCore) Sign(path any, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryLength int = GetArrayLength(queryKeys)
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), implodedPath)
-	var queryString any = ""
+	var queryString string = ""
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
@@ -247,7 +247,7 @@ func (this *RevolutxCore) Sign(path any, optionalArgs ...any) any {
 			bodyString = body
 		}
 		var message any = Add(Add(Add(Add(timestamp, ToUpper(method)), requestPath), queryString), bodyString)
-		var signature any = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
+		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		headers = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
 			"X-Revx-Timestamp": timestamp,
@@ -1475,7 +1475,7 @@ func (this *RevolutxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 		var market any = this.Market(symbol)
 		AddElementToObject(request, "symbols", GetValue(market, "id"))
 	}
-	var thirtyDays any = 2592000000
+	var thirtyDays int = 2592000000
 	var until any = this.SafeInteger2(params, "until", "until")
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "start_date", since)
@@ -1640,7 +1640,7 @@ func (this *RevolutxCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var thirtyDays any = 2592000000
+	var thirtyDays int = 2592000000
 	var until any = this.SafeInteger2(params, "until", "until")
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "start_date", since)

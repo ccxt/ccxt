@@ -642,7 +642,7 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	}
 	var length int = GetArrayLength(usedProxies)
 	if IsTrue(IsGreaterThan(length, 1)) {
-		var joinedProxyNames any = Join(usedProxies, ",")
+		var joinedProxyNames string = Join(usedProxies, ",")
 		panic(InvalidProxySettings(Add(Add(Add(this.Id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")))
 	}
 	return proxyUrl
@@ -708,7 +708,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	// check
 	var length int = GetArrayLength(usedProxies)
 	if IsTrue(IsGreaterThan(length, 1)) {
-		var joinedProxyNames any = Join(usedProxies, ",")
+		var joinedProxyNames string = Join(usedProxies, ",")
 		panic(InvalidProxySettings(Add(Add(Add(this.Id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")))
 	}
 	return []any{httpProxy, httpsProxy, socksProxy}
@@ -742,7 +742,7 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	// check
 	var length int = GetArrayLength(usedProxies)
 	if IsTrue(IsGreaterThan(length, 1)) {
-		var joinedProxyNames any = Join(usedProxies, ",")
+		var joinedProxyNames string = Join(usedProxies, ",")
 		panic(InvalidProxySettings(Add(Add(Add(this.Id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")))
 	}
 	return []any{wsProxy, wssProxy, wsSocksProxy}
@@ -832,7 +832,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 		return []any{}
 	}
 	var sinceIsDefined bool = this.ValueIsDefined(since)
-	var parsedArray any = this.ToArray(array)
+	var parsedArray []any = this.ToArray(array)
 	var result any = parsedArray
 	if IsTrue(sinceIsDefined) {
 		result = []any{}
@@ -865,7 +865,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	_ = tail
 	var valueIsDefined bool = this.ValueIsDefined(value)
 	var sinceIsDefined bool = this.ValueIsDefined(since)
-	var parsedArray any = this.ToArray(array)
+	var parsedArray []any = this.ToArray(array)
 	var result any = parsedArray
 	// single-pass filter for both symbol and since
 	if IsTrue(IsTrue(valueIsDefined) || IsTrue(sinceIsDefined)) {
@@ -1272,7 +1272,7 @@ func (this *BaseExchange) ParseCurrency(rawCurrency any) any {
 }
 func (this *BaseExchange) ParseCurrencies(rawCurrencies any) any {
 	var result map[string]any = map[string]any{}
-	var arr any = this.ToArray(rawCurrencies)
+	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(arr)); i++ {
 
 		var parsed any = this.DerivedExchange.ParseCurrency(GetValue(arr, i))
@@ -2343,7 +2343,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	this.Markets_by_id = this.CreateSafeDictionary()
 	// handle marketId conflicts
 	// we insert spot markets first
-	var marketValues any = this.SortBy(this.ToArray(markets), "spot", true, true)
+	var marketValues []any = this.SortBy(this.ToArray(markets), "spot", true, true)
 	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
 		var value any = GetValue(marketValues, i)
 		if IsTrue(InOp(this.Markets_by_id, GetValue(value, "id"))) {
@@ -2382,7 +2382,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	var marketsSortedById map[string]any = this.Keysort(this.Markets_by_id)
 	this.Symbols = ObjectKeys(marketsSortedBySymbol)
 	this.Ids = ObjectKeys(marketsSortedById)
-	var numCurrencies any = 0
+	var numCurrencies int = 0
 	if IsTrue(!IsEqual(currencies, nil)) {
 		var keys []string = ObjectKeys(currencies)
 		numCurrencies = GetArrayLength(keys)
@@ -2438,7 +2438,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 			}
 			AppendToArray(&resultingCurrencies, highestPrecisionCurrency)
 		}
-		var sortedCurrencies any = this.SortBy(resultingCurrencies, "code")
+		var sortedCurrencies []any = this.SortBy(resultingCurrencies, "code")
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
 	}
 	this.Currencies_by_id = this.IndexBySafe(this.Currencies, "id")
@@ -2568,7 +2568,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 			trades = rawTrades
 		}
 		// this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
-		var tradesLength any = 0
+		var tradesLength int = 0
 		var isArray bool = IsArray(trades)
 		if IsTrue(isArray) {
 			tradesLength = GetArrayLength(trades)
@@ -3182,9 +3182,9 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
 		}
 	}
 	var result any = []any{}
-	var feeValues any = ObjectValues(reduced)
+	var feeValues []any = ObjectValues(reduced)
 	for i := 0; IsLessThan(i, GetArrayLength(feeValues)); i++ {
-		var reducedFeeValues any = ObjectValues(GetValue(feeValues, i))
+		var reducedFeeValues []any = ObjectValues(GetValue(feeValues, i))
 		result = this.ArrayConcat(result, reducedFeeValues)
 	}
 	return result
@@ -3249,7 +3249,7 @@ func (this *BaseExchange) SafeTicker(ticker any, optionalArgs ...any) any {
 		}
 		// average
 		if IsTrue(IsTrue(IsEqual(average, nil)) && IsTrue(!IsEqual(close, nil))) {
-			var precision any = 18
+			var precision int = 18
 			if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(this.IsTickPrecision())) {
 				var marketPrecision any = this.SafeDict(market, "precision")
 				var precisionPrice any = this.SafeString(marketPrecision, "price")
@@ -4107,7 +4107,7 @@ func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
 		AppendToArray(&results, this.DerivedExchange.ParseOHLCV(GetValue(ohlcvs, i), market))
 	}
-	var sorted any = this.SortBy(results, 0)
+	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)
 }
 func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) any {
@@ -4118,7 +4118,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	_ = marketIdKey
 	symbols = this.MarketSymbols(symbols)
 	var tiers map[string]any = map[string]any{}
-	var symbolsLength any = 0
+	var symbolsLength int = 0
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 	}
@@ -4220,7 +4220,7 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	symbols = this.MarketSymbols(symbols)
-	var positionsArray any = this.ToArray(positions)
+	var positionsArray []any = this.ToArray(positions)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(positionsArray)); i++ {
 		var position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positionsArray, i)), params)
@@ -4242,7 +4242,7 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	symbols = this.MarketSymbols(symbols)
-	var ranksArray any = this.ToArray(ranks)
+	var ranksArray []any = this.ToArray(ranks)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ranksArray)); i++ {
 		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranksArray, i)), params)
@@ -4253,7 +4253,7 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountsArray any = this.ToArray(accounts)
+	var accountsArray []any = this.ToArray(accounts)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(accountsArray)); i++ {
 		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(GetValue(accountsArray, i)), params)
@@ -4270,7 +4270,7 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var tradesArray any = this.ToArray(trades)
+	var tradesArray []any = this.ToArray(trades)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
 		var parsed any = nil
@@ -4321,7 +4321,7 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var transactionsArray any = this.ToArray(transactions)
+	var transactionsArray []any = this.ToArray(transactions)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(transactionsArray)); i++ {
 		var transaction map[string]any = this.Extend(this.DerivedExchange.ParseTransaction(GetValue(transactionsArray, i), currency), params)
@@ -4340,7 +4340,7 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var transfersArray any = this.ToArray(transfers)
+	var transfersArray []any = this.ToArray(transfers)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(transfersArray)); i++ {
 		var transfer map[string]any = this.Extend(this.DerivedExchange.ParseTransfer(GetValue(transfersArray, i), currency), params)
@@ -4360,7 +4360,7 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var result any = []any{}
-	var arrayData any = this.ToArray(data)
+	var arrayData []any = this.ToArray(data)
 	for i := 0; IsLessThan(i, GetArrayLength(arrayData)); i++ {
 
 		var itemOrItems any = this.DerivedExchange.ParseLedgerEntry(GetValue(arrayData, i), currency)
@@ -4777,13 +4777,13 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	_ = limit
 	var ms any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var ohlcvs any = []any{}
-	var i_timestamp any = 0
+	var i_timestamp int = 0
 	// const open = 1;
-	var i_high any = 2
-	var i_low any = 3
-	var i_close any = 4
-	var i_volume any = 5
-	var i_count any = 6
+	var i_high int = 2
+	var i_low int = 3
+	var i_close int = 4
+	var i_volume int = 5
+	var i_count int = 6
 	var tradesLength int = GetArrayLength(trades)
 	var oldest any = mathMin(tradesLength, limit)
 	var options any = this.SafeDict(this.Options, "buildOHLCVC", map[string]any{})
@@ -6244,7 +6244,7 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 				return true
 			} else {
 				// check if base currency is inside dict
-				var baseCurrencyCode any = Replace(currencyCode, leverageSuffix, "")
+				var baseCurrencyCode string = Replace(currencyCode, leverageSuffix, "")
 				if IsTrue(IsTrue((!IsEqual(existingCurrencies, nil))) && IsTrue((InOp(existingCurrencies, baseCurrencyCode)))) {
 					return true
 				}
@@ -6658,7 +6658,7 @@ func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since a
 		PanicOnError(borrowRate)
 		AppendToArray(&result, borrowRate)
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	return this.FilterByCurrencySinceLimit(sorted, code, since, limit)
 }
 func (this *BaseExchange) ParseIsolatedBorrowRates(info any) any {
@@ -6683,7 +6683,7 @@ func (this *BaseExchange) ParseFundingRateHistories(response any, optionalArgs .
 		var entry any = GetValue(response, i)
 		AppendToArray(&rates, this.DerivedExchange.ParseFundingRateHistory(entry, market))
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any = Ternary(IsTrue((IsEqual(market, nil))), nil, GetValue(market, "symbol"))
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
@@ -6736,7 +6736,7 @@ func (this *BaseExchange) ParseLongShortRatioHistory(response any, optionalArgs 
 		var entry any = GetValue(response, i)
 		AppendToArray(&rates, this.ParseLongShortRatio(entry, market))
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any = Ternary(IsTrue((IsEqual(market, nil))), nil, GetValue(market, "symbol"))
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
@@ -6968,7 +6968,7 @@ func (this *BaseExchange) ParseOpenInterestsHistory(response any, optionalArgs .
 		PanicOnError(interest)
 		AppendToArray(&interests, interest)
 	}
-	var sorted any = this.SortBy(interests, "timestamp")
+	var sorted []any = this.SortBy(interests, "timestamp")
 	var symbol any = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
@@ -7221,7 +7221,7 @@ func (this *BaseExchange) CheckRequiredArgument(methodName any, argument any, ar
 	_ = options
 	var optionsLength int = GetArrayLength(options)
 	if IsTrue(IsTrue((IsEqual(argument, nil))) || IsTrue((IsTrue((IsGreaterThan(optionsLength, 0))) && IsTrue((!IsTrue((this.InArray(argument, options)))))))) {
-		var messageOptions any = Join(options, ", ")
+		var messageOptions string = Join(options, ", ")
 		var message any = Add(Add(Add(Add(Add(this.Id, " "), methodName), "() requires a "), argumentName), " argument")
 		if IsTrue(!IsEqual(messageOptions, "")) {
 			message = Add(message, Add(Add(Add(", one of ", "("), messageOptions), ")"))
@@ -7354,7 +7354,7 @@ func (this *BaseExchange) ParseIncomes(incomes any, optionalArgs ...any) any {
 		PanicOnError(parsed)
 		AppendToArray(&result, parsed)
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
@@ -7631,7 +7631,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 		uniqueResults = this.RemoveRepeatedElementsFromArray(result)
 	}
 	var key any = Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
-	var sortedRes any = this.SortBy(uniqueResults, key)
+	var sortedRes []any = this.SortBy(uniqueResults, key)
 
 	ch <- this.FilterBySinceLimit(sortedRes, since, limit, key)
 	return nil
@@ -8072,7 +8072,7 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
 			AddElementToObject(uniqueResult, id, entry)
 		}
 	}
-	var values any = ObjectValues(uniqueResult)
+	var values []any = ObjectValues(uniqueResult)
 	return values
 }
 func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) any {
@@ -8144,7 +8144,7 @@ func (this *BaseExchange) ParseLiquidations(liquidations any, optionalArgs ...an
 		PanicOnError(parsed)
 		AppendToArray(&result, parsed)
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
@@ -8281,7 +8281,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 5, map[string]any{})
 	_ = params
-	var conversionsArray any = this.ToArray(conversions)
+	var conversionsArray []any = this.ToArray(conversions)
 	var result any = []any{}
 	var fromCurrency any = nil
 	var toCurrency any = nil
@@ -8298,7 +8298,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 		var conversion map[string]any = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
 		AppendToArray(&result, conversion)
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.SafeCurrency(code)
@@ -8310,8 +8310,8 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	if IsTrue(IsEqual(code, nil)) {
 		return this.FilterBySinceLimit(sorted, since, limit)
 	}
-	var fromConversion any = this.FilterBy(sorted, "fromCurrency", code)
-	var toConversion any = this.FilterBy(sorted, "toCurrency", code)
+	var fromConversion []any = this.FilterBy(sorted, "fromCurrency", code)
+	var toConversion []any = this.FilterBy(sorted, "toCurrency", code)
 	var both any = this.ArrayConcat(fromConversion, toConversion)
 	return this.FilterBySinceLimit(both, since, limit)
 }
@@ -8330,9 +8330,9 @@ func (this *BaseExchange) ConvertExpireDate(date any) any {
 		return nil
 	}
 	// parse YYMMDD to datetime string
-	var year any = Slice(date, 0, 2)
-	var month any = Slice(date, 2, 4)
-	var day any = Slice(date, 4, 6)
+	var year string = Slice(date, 0, 2)
+	var month string = Slice(date, 2, 4)
+	var day string = Slice(date, 4, 6)
 	var reconstructedDate any = Add(Add(Add(Add(Add(Add("20", year), "-"), month), "-"), day), "T00:00:00Z")
 	return reconstructedDate
 }
@@ -8341,10 +8341,10 @@ func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date any) any {
 		return nil
 	}
 	// parse 240119 to 19JAN24
-	var year any = Slice(date, 0, 2)
-	var monthRaw any = Slice(date, 2, 4)
+	var year string = Slice(date, 0, 2)
+	var monthRaw string = Slice(date, 2, 4)
 	var month any = nil
-	var day any = Slice(date, 4, 6)
+	var day string = Slice(date, 4, 6)
 	if IsTrue(IsEqual(monthRaw, "01")) {
 		month = "JAN"
 	} else if IsTrue(IsEqual(monthRaw, "02")) {
@@ -8396,10 +8396,10 @@ func (this *BaseExchange) ConvertMarketIdExpireDate(date any) any {
 	if IsTrue(IsEqual(GetLength(date), 6)) {
 		date = Add("0", date)
 	}
-	var year any = Slice(date, 0, 2)
-	var monthName any = Slice(date, 2, 5)
+	var year string = Slice(date, 0, 2)
+	var monthName string = Slice(date, 2, 5)
 	var month any = this.SafeString(monthMappping, monthName)
-	var day any = Slice(date, 5, 7)
+	var day string = Slice(date, 5, 7)
 	var reconstructedDate any = Add(Add(day, month), year)
 	return reconstructedDate
 }
@@ -8636,7 +8636,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			this.Orders = nil
 		} else if IsTrue(IsTrue(IsEqual(topic, "positions")) && IsTrue((!IsEqual(this.Positions, nil)))) {
 			this.Positions = nil
-			var clients any = ObjectValues(this.Clients)
+			var clients []any = ObjectValues(this.Clients)
 			for i := 0; IsLessThan(i, GetArrayLength(clients)); i++ {
 				var client any = GetValue(clients, i)
 				var futures any = (client.(Client)).Futures
@@ -8667,7 +8667,7 @@ func (this *BaseExchange) TimeframeFromMilliseconds(ms any) any {
 	if IsTrue(IsLessThanOrEqual(ms, 0)) {
 		return ""
 	}
-	var second any = 1000
+	var second int = 1000
 	var minute any = Multiply(60, second)
 	var hour any = Multiply(60, minute)
 	var day any = Multiply(24, hour)

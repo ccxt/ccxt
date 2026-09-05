@@ -3848,7 +3848,7 @@ func (this *CryptocomCore) fetchSettlementHistoryBody(ch chan any, optionalArgs 
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(result, "data", []any{})
 	var settlements any = this.ParseSettlements(data, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -4086,7 +4086,7 @@ func (this *CryptocomCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -4286,7 +4286,7 @@ func (this *CryptocomCore) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *CryptocomCore) ParamsToString(object any, level any) any {
-	var maxLevel any = 3
+	var maxLevel int = 3
 	if IsTrue(IsGreaterThanOrEqual(level, maxLevel)) {
 		return ToString(object)
 	}

@@ -3469,9 +3469,9 @@ func (this *BitgetCore) fetchDefaultMarketsBody(ch chan any, params any) any {
 				var expiryParts []string = Split(expiryDatetime, "-")
 				var yearPart any = this.SafeString(expiryParts, 0, "")
 				var dayPart any = this.SafeString(expiryParts, 2, "")
-				var year any = Slice(yearPart, 2, 4)
+				var year string = Slice(yearPart, 2, 4)
 				var month any = this.SafeString(expiryParts, 1)
-				var day any = Slice(dayPart, 0, 2)
+				var day string = Slice(dayPart, 0, 2)
 				var expiryString any = Add(Add(year, month), day)
 				typeVar = "future"
 				future = true
@@ -3743,9 +3743,9 @@ func (this *BitgetCore) fetchUtaMarketsBody(ch chan any, params any) any {
 				var expiryParts []string = Split(expiryDatetime, "-")
 				var yearPart any = this.SafeString(expiryParts, 0, "")
 				var dayPart any = this.SafeString(expiryParts, 2, "")
-				var year any = Slice(yearPart, 2, 4)
+				var year string = Slice(yearPart, 2, 4)
 				var month any = this.SafeString(expiryParts, 1)
-				var day any = Slice(dayPart, 0, 2)
+				var day string = Slice(dayPart, 0, 2)
 				var expiryString any = Add(Add(year, month), day)
 				typeVar = "future"
 				future = true
@@ -6102,9 +6102,9 @@ func (this *BitgetCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		retRes444212 := (<-this.LoadMarkets())
 		PanicOnError(retRes444212)
 	}
-	var defaultLimit any = 100 // default 100, max 1000
-	var maxLimitForRecentEndpoint any = 1000
-	var maxLimitForHistoryEndpoint any = 200 // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
+	var defaultLimit int = 100 // default 100, max 1000
+	var maxLimitForRecentEndpoint int = 1000
+	var maxLimitForHistoryEndpoint int = 200 // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
 	var useHistoryEndpoint any = this.SafeBool(params, "useHistoryEndpoint", false)
 	var useHistoryEndpointForPagination any = this.SafeBool(params, "useHistoryEndpointForPagination", true)
 	var paginate any = false
@@ -6138,7 +6138,7 @@ func (this *BitgetCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		timeframes = GetValue(timeframesOption, marketType)
 		AddElementToObject(request, "granularity", this.SafeString(timeframes, timeframe, timeframe))
 	}
-	var msInDay any = 86400000
+	var msInDay int = 86400000
 	var now int64 = this.Milliseconds()
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var until any = this.SafeInteger(params, "until")
@@ -6199,7 +6199,7 @@ func (this *BitgetCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		AddElementToObject(request, "startTime", calculatedStartTime)
 		// for contract, maximum 90 days allowed between start-end times
 		if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
-			var maxDistanceDaysForContracts any = 90
+			var maxDistanceDaysForContracts int = 90
 			// only correct if request is larger
 			if IsTrue(IsGreaterThan(Subtract(calculatedEndTime, calculatedStartTime), Multiply(maxDistanceDaysForContracts, msInDay))) {
 				calculatedEndTime = this.Sum(calculatedStartTime, Multiply(maxDistanceDaysForContracts, msInDay))
@@ -6888,7 +6888,7 @@ func (this *BitgetCore) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		if IsTrue(!IsEqual(feeDetail, nil)) {
 			var parsedFeeDetail any = JsonParse(feeDetail)
-			var feeValues any = ObjectValues(parsedFeeDetail)
+			var feeValues []any = ObjectValues(parsedFeeDetail)
 			var feeObject any = nil
 			for i := 0; IsLessThan(i, GetArrayLength(feeValues)); i++ {
 				var feeValue any = GetValue(feeValues, i)
@@ -11100,7 +11100,7 @@ func (this *BitgetCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -11573,7 +11573,7 @@ func (this *BitgetCore) ParseFundingHistories(contracts any, optionalArgs ...any
 		// }
 		AppendToArray(&result, this.ParseFundingHistory(contract, market))
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = nil
 	if IsTrue(!IsEqual(market, nil)) {
 		symbol = GetValue(market, "symbol")
@@ -13839,7 +13839,7 @@ func (this *BitgetCore) fetchConvertTradeHistoryBody(ch chan any, optionalArgs .
 		PanicOnError(retRes1116112)
 	}
 	var request map[string]any = map[string]any{}
-	var msInDay any = 86400000
+	var msInDay int = 86400000
 	var now int64 = this.Milliseconds()
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)

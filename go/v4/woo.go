@@ -4107,7 +4107,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "content-type", "application/json")
 			} else {
 				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
-					var query any = this.Urlencode(params)
+					var query string = this.Urlencode(params)
 					url = Add(url, Add("?", query))
 					auth = Add(auth, Add("?", query))
 				}
@@ -4581,7 +4581,7 @@ func (this *WooCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
