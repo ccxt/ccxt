@@ -473,27 +473,6 @@ func ConvertInt64ToBigInt(data any) any { // these functions change in place the
 
 }
 
-// func ConvertInt64ToBigInt(data any) any {
-// 	switch v := data.(type) {
-// 	case map[string]any:
-// 		newMap := make(map[string]any, len(v))
-// 		for key, value := range v {
-// 			newMap[key] = ConvertInt64ToBigInt(value)
-// 		}
-// 		return newMap
-// 	case []any:
-// 		newSlice := make([]any, len(v))
-// 		for i, item := range v {
-// 			newSlice[i] = ConvertInt64ToBigInt(item)
-// 		}
-// 		return newSlice
-// 	case int64:
-// 		return uint8(v)
-// 	default:
-// 		return v // Leave other types unchanged
-// 	}
-// }
-
 func DeepExtend(objs ...any) map[string]any { //tmp duplicated implementation
 	var outObj any
 	for _, x := range objs {
@@ -544,31 +523,6 @@ func ConvertInt64ToInt(data any) any { // these functions change in place the ob
 	}
 }
 
-// func ConvertInt64ToInt(data any) any { // "good"
-// 	switch v := data.(type) {
-// 	case map[string]any:
-// 		newMap := make(map[string]any, len(v))
-// 		for key, value := range v {
-// 			newMap[key] = ConvertInt64ToInt(value)
-// 		}
-// 		return newMap
-// 	case []any:
-// 		newSlice := make([]any, len(v))
-// 		for i, item := range v {
-// 			newSlice[i] = ConvertInt64ToInt(item)
-// 		}
-// 		return newSlice
-// 	case int64:
-// 		return int(v)
-// 	default:
-// 		return v // Leave other types unchanged
-// 	}
-// }
-
-// decodeHyperliquidMessage maps a generic map[string]any (produced by ParseJson)
-// onto one of the typed hyperliquid message structs above via encoding/json.
-// Field matching is case-insensitive and unknown keys are ignored, matching the
-// mapstructure.Decode behaviour this replaces.
 func decodeHyperliquidMessage(input any, output any) error {
 	raw, err := json.Marshal(input)
 	if err != nil {

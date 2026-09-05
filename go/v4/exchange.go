@@ -30,7 +30,7 @@ import (
 
 type BaseExchange struct {
 	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
-	MarketsMutex *sync.Mutex
+	MarketsMutex   *sync.Mutex
 	// cachedCurrenciesMutex  sync.Mutex
 	loadMu                 sync.Mutex
 	marketsLoading         bool
@@ -313,7 +313,6 @@ func (this *BaseExchange) Init(userConfig map[string]any) {
 	}
 	// to do
 }
-
 
 // Dual-stack (IPv4 + IPv6) networking helpers for the hand-written Go base.
 // Every HTTP transport and WebSocket dialer constructed by the base exchange
@@ -750,10 +749,6 @@ func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
 
-func (this *BaseExchange) callDynamically(name2 any, args ...any) <-chan any {
-	return this.callInternal(name2.(string), args...)
-}
-
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
@@ -1045,58 +1040,6 @@ func toCost(value any) (float64, bool) {
 	}
 	return 0, false
 }
-
-// func (this *BaseExchange) callInternal(name2 string, args ...any) any {
-// 	name := strings.Title(strings.ToLower(name2))
-// 	baseType := reflect.TypeOf(this.Itf)
-
-// 	for i := 0; i < baseType.NumMethod(); i++ {
-// 		method := baseType.Method(i)
-// 		if name == method.Name {
-// 			methodType := method.Type
-// 			numIn := methodType.NumIn()
-// 			isVariadic := methodType.IsVariadic()
-
-// 			in := make([]reflect.Value, numIn)
-// 			argCount := len(args)
-
-// 			for k := 0; k < numIn; k++ {
-// 				if k < argCount {
-// 					param := args[k]
-// 					if param == nil {
-// 						// Get the type of the k-th parameter
-// 						paramType := methodType.In(k)
-// 						// Create a zero value of the parameter type (which will be `nil` for pointers, slices, maps, etc.)
-// 						in[k] = reflect.Zero(paramType)
-// 					} else {
-// 						in[k] = reflect.ValueOf(param)
-// 					}
-// 				} else {
-// 					paramType := methodType.In(k)
-// 					in[k] = reflect.Zero(paramType)
-// 				}
-// 			}
-
-// 			if isVariadic && argCount >= numIn-1 {
-// 				variadicArgs := make([]reflect.Value, argCount-(numIn-1))
-// 				for k := numIn - 1; k < argCount; k++ {
-// 					param := args[k]
-// 					if param == nil {
-// 						paramType := methodType.In(numIn - 1).Elem()
-// 						variadicArgs[k-(numIn-1)] = reflect.Zero(paramType)
-// 					} else {
-// 						variadicArgs[k-(numIn-1)] = reflect.ValueOf(param)
-// 					}
-// 				}
-// 				in[numIn-1] = reflect.ValueOf(variadicArgs)
-// 			}
-
-// 			res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-// 			return res[0].Interface()
-// 		}
-// 	}
-// 	return nil
-// }
 
 func (this *BaseExchange) CheckRequiredDependencies() {
 	// to do
@@ -1397,45 +1340,6 @@ func (this *BaseExchange) Unique(obj any) []any {
 	}
 	return uniqueList
 }
-
-// func (this *BaseExchange) callInternal(name2 string, args ...any) any {
-// 	name := strings.Title(strings.ToLower(name2))
-// 	baseType := reflect.TypeOf(this.Itf)
-
-// 	// baseValue := reflect.ValueOf(this.Itf)
-// 	// method3 := baseValue.MethodByName(name)
-// 	// fmt.Println(method3.Interface())
-// 	// method2, err := baseType.MethodByName(name)
-
-// 	// if !err {
-// 	// 	fmt.Println((method2))
-// 	// }
-
-// 	for i := 0; i < baseType.NumMethod(); i++ {
-// 		method := baseType.Method(i)
-// 		if name == method.Name {
-// 			// methodType := method.Type
-// 			in := make([]reflect.Value, len(args))
-// 			for k, param := range args {
-// 				val := reflect.ValueOf(param)
-// 				if !val.IsValid() {
-// 					//fmt.Println(val)
-// 					//panic("value is invalid")
-// 					// paramType := val.Type()
-// 					// in[k] = reflect.Zero(paramType)
-// 					val = reflect.Zero(nil)
-// 				}
-// 				in[k] = val
-// 			}
-// 			var res []reflect.Value
-// 			/*temp := reflect.ValueOf(this.Itf).MethodByName(name)
-// 			x1 := reflect.ValueOf(temp).FieldByName("flag").Uint()*/
-// 			res = reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-// 			return res[0].Interface().(any)
-// 		}
-// 	}
-// 	return nil
-// }
 
 func (this *BaseExchange) RetrieveStarkAccount(sig any, account any, hash any) any {
 	return nil // to do
@@ -2151,20 +2055,6 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 	return future.Await()
 }
 
-// func (this *BaseExchange) Spawn(method any, args ...any) <-chan any {
-// 	future := NewFuture()
-
-// 	go func() {
-// 		response := <-(CallDynamically(method, args...).(<-chan any))
-// 		if err, ok := response.(error); ok {
-// 			future.Reject(err)
-// 		} else {
-// 			future.Resolve(response)
-// 		}
-// 	}()
-// 	return future.Await()
-// }
-
 // Spawn starts an async call on its own goroutine and hands back a *Future.
 //
 // The spawned goroutine is the ROOT of its own stack: anything that escapes the closure
@@ -2502,7 +2392,7 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 	for i := int64(1); i < capped; i++ {
 		delay = delay * factor
 	}
-	jitterMillis := now % 1000 // rng-free jitter
+	jitterMillis := now % 1000                                               // rng-free jitter
 	jittered := int64(float64(delay) * (0.8 + float64(jitterMillis)/2500.0)) // 0.8x .. 1.2x
 	if jittered > maxDelay {
 		jittered = maxDelay // the ceiling holds regardless of jitter
