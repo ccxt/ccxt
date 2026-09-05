@@ -90,6 +90,9 @@ std::any getIndexOf (const std::any& haystack, const std::any& needle);
 // ---------------------------------------------------------------------------
 
 std::any toString (const std::any& v);
+// toString() as a plain std::string -- the same conversion, without the std::any box.
+// Used wherever C++ code (rather than transpiled code) needs the text.
+std::string str (const std::any& v);
 bool startsWith (const std::any& s, const std::any& prefix);
 bool endsWith (const std::any& s, const std::any& suffix);
 std::any trim (const std::any& s);

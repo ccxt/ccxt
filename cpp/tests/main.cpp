@@ -11,12 +11,17 @@
 
 #include "BaseTest.Bridge.h"
 
+// Hand-written, not generated: ts/src/test/base/test.cryptography.ts is marked
+// NO_AUTO_TRANSPILE, so every port maintains its own copy (C# included).
+#include "Manual/test.cryptography.h"
+
 #include "Generated/Base/test.aggregate.h"
 #include "Generated/Base/test.arrayConcat.h"
 #include "Generated/Base/test.arraysConcat.h"
 #include "Generated/Base/test.capitalize.h"
 #include "Generated/Base/test.clone.h"
 #include "Generated/Base/test.constants.h"
+#include "Generated/Base/test.decimalToPrecision.h"
 #include "Generated/Base/test.deepExtend.h"
 #include "Generated/Base/test.extend.h"
 #include "Generated/Base/test.extractParams.h"
@@ -67,6 +72,7 @@ struct Case {
 // The gated core. Everything here must pass for the build to be green.
 const std::vector<Case> CORE = {
     { "constants",                     testConstants },
+    { "cryptography",                  testCryptography },
     { "aggregate",                     testAggregate },
     { "extend",                        testExtend },
     { "deepExtend",                    testDeepExtend },
@@ -80,6 +86,7 @@ const std::vector<Case> CORE = {
     { "precise",                       testPrecise },
     { "parsePrecision",                testParsePrecision },
     { "precisionFromString",           testPrecisionFromString },
+    { "decimalToPrecision",            testDecimalToPrecision },
     { "safeMethods",                   testSafeMethods },
     { "omit",                          testOmit },
     { "keysort",                       testKeysort },
@@ -109,7 +116,6 @@ const std::vector<Case> CORE = {
 // a runtime piece this iteration deliberately left out; printing the list keeps the gap
 // in front of whoever runs the suite.
 const std::vector<std::pair<const char*, const char*>> STAGED = {
-    { "cryptography",           "NO_AUTO_TRANSPILE in TS; needs the OpenSSL hmac/hash layer" },
     { "base16ToBinary",         "binary value type not in the iteration-1 runtime" },
     { "base58ToBinary",         "binary value type + base58 alphabet" },
     { "base64ToBinary",         "binary value type + base64" },
@@ -122,7 +128,6 @@ const std::vector<std::pair<const char*, const char*>> STAGED = {
     { "urlencodeBase64",        "binary value type + base64" },
     { "numberToBE",             "binary value type not in the iteration-1 runtime" },
     { "encodeDecode",           "binary value type not in the iteration-1 runtime" },
-    { "decimalToPrecision",     "Number.h (decimalToPrecision) is iteration 2" },
     { "ethMethods",             "no secp256k1/keccak layer yet" },
     { "uuid",                   "needs a seeded RNG in the runtime" },
     { "datetime",               "Time.h (parse8601/iso8601) is iteration 2" },

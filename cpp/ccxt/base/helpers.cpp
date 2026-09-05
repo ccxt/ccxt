@@ -525,6 +525,8 @@ std::any getIndexOf (const std::any& haystack, const std::any& needle) {
 
 std::any toString (const std::any& v) { return std::any (anyToString (v)); }
 
+std::string str (const std::any& v) { return anyToString (v); }
+
 bool startsWith (const std::any& s, const std::any& prefix) {
     const std::string str = anyToString (s);
     const std::string pre = anyToString (prefix);
