@@ -508,18 +508,7 @@ public final class Crypto {
     /** keccak256(X || Y)[12..32] as 40 lowercase hex chars, no 0x — mirrors web3j Keys.getAddress. */
     public static String secp256k1EthAddress(BigInteger privKey) {
         byte[] hash = keccakDigest(secp256k1PublicKeyBytes(privKey));
-        return bytesToHex(java.util.Arrays.copyOfRange(hash, 12, hash.length));
-    }
-
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexArray = "0123456789abcdef".toCharArray();
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
+        return binaryToHex(java.util.Arrays.copyOfRange(hash, 12, hash.length));
     }
 
 
@@ -832,7 +821,7 @@ public final class Crypto {
         BigInteger priv = toPrivateKeyBigInt(privateKey);
         String lower = secp256k1EthAddress(priv);
         // EIP-55: uppercase hex digit i when nibble i of keccak256(lowercase address) >= 8
-        String hash = bytesToHex(keccakDigest(lower.getBytes(StandardCharsets.US_ASCII)));
+        String hash = binaryToHex(keccakDigest(lower.getBytes(StandardCharsets.US_ASCII)));
         StringBuilder sb = new StringBuilder("0x");
         for (int i = 0; i < lower.length(); i++) {
             char c = lower.charAt(i);

@@ -71,12 +71,6 @@ public final class Encode {
         return Base64.getEncoder().encodeToString(buff);
     }
 
-    public static String Base64ToBase64Url(String base64, boolean stripPadding) {
-        String base64Url = base64.replace('+', '-').replace('/', '_');
-        if (stripPadding) base64Url = trimRight(base64Url, '=');
-        return base64Url;
-    }
-
     private static String trimRight(String s, char ch) {
         int i = s.length();
         while (i > 0 && s.charAt(i - 1) == ch) i--;
