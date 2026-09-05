@@ -564,6 +564,7 @@ export default class kalshi extends Exchange {
         const result = this.safeStringLower (raw, 'result');
         const resolved = (status === 'settled') || ((result !== undefined) && (result !== ''));
         const endDate = this.safeString (raw, 'expiration_time');
+        const expiry = ((endDate !== undefined) && (endDate !== '')) ? this.parse8601 (endDate) : undefined;
         const volume = this.safeNumber2 (raw, 'volume_fp', 'volume');
         const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
@@ -665,8 +666,8 @@ export default class kalshi extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
-            'expiryDatetime': endDate,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
             'taker': 0.07,

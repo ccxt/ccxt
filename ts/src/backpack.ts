@@ -1172,14 +1172,13 @@ export default class backpack extends Exchange {
         const rawRates = this.toArray (response);
         for (let i = 0; i < rawRates.length; i++) {
             const rate = rawRates[i];
-            const datetime = this.safeString (rate, 'intervalEndTimestamp');
-            const timestamp = this.parse8601 (datetime);
+            const timestamp = this.parse8601 (this.safeString (rate, 'intervalEndTimestamp'));
             rates.push ({
                 'info': rate,
                 'symbol': market['symbol'],
                 'fundingRate': this.safeNumber (rate, 'fundingRate'),
                 'timestamp': timestamp,
-                'datetime': datetime,
+                'datetime': this.iso8601 (timestamp),
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');

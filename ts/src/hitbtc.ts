@@ -3003,13 +3003,13 @@ export default class hitbtc extends Exchange {
                 const entry = fundingRateData[j];
                 const symbolInner = this.safeSymbol (marketInner['symbol']);
                 const fundingRate = this.safeNumber (entry, 'funding_rate');
-                const datetime = this.safeString (entry, 'timestamp');
+                const timestamp = this.parse8601 (this.safeString (entry, 'timestamp'));
                 rates.push ({
                     'info': entry,
                     'symbol': symbolInner,
                     'fundingRate': fundingRate,
-                    'timestamp': this.parse8601 (datetime),
-                    'datetime': datetime,
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
                 });
             }
         }
@@ -3200,7 +3200,7 @@ export default class hitbtc extends Exchange {
         //
         const marginMode = this.safeString (position, 'type');
         const leverage = this.safeNumber (position, 'leverage');
-        const datetime = this.safeString (position, 'updated_at');
+        const timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         const positions = this.safeValue (position, 'positions', []);
         let liquidationPrice: Num = undefined;
         let entryPrice: Num = undefined;
@@ -3237,8 +3237,8 @@ export default class hitbtc extends Exchange {
             'lastPrice': undefined,
             'side': undefined,
             'hedged': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -3268,14 +3268,14 @@ export default class hitbtc extends Exchange {
         //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
-        const datetime = this.safeString (interest, 'timestamp');
+        const timestamp = this.parse8601 (this.safeString (interest, 'timestamp'));
         const value = this.safeNumber (interest, 'open_interest');
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': value,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, market);
     }
@@ -3423,8 +3423,8 @@ export default class hitbtc extends Exchange {
         //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
-        const fundingDateTime = this.safeString (contract, 'next_funding_time');
-        const datetime = this.safeString (contract, 'timestamp');
+        const fundingTimestamp = this.parse8601 (this.safeString (contract, 'next_funding_time'));
+        const timestamp = this.parse8601 (this.safeString (contract, 'timestamp'));
         return {
             'info': contract,
             'symbol': this.safeSymbol (undefined, market),
@@ -3432,11 +3432,11 @@ export default class hitbtc extends Exchange {
             'indexPrice': this.safeNumber (contract, 'index_price'),
             'interestRate': this.safeNumber (contract, 'interest_rate'),
             'estimatedSettlePrice': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
-            'fundingTimestamp': this.parse8601 (fundingDateTime),
-            'fundingDatetime': fundingDateTime,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': this.safeNumber (contract, 'indicative_funding_rate'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
@@ -3533,7 +3533,7 @@ export default class hitbtc extends Exchange {
         //
         const currencies = this.safeValue (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
-        const datetime = this.safeString (data, 'updated_at');
+        const timestamp = this.parse8601 (this.safeString (data, 'updated_at'));
         return {
             'info': data,
             'symbol': this.safeString (market, 'symbol'),
@@ -3543,8 +3543,8 @@ export default class hitbtc extends Exchange {
             'total': undefined,
             'code': this.safeString (currencyInfo, 'code'),
             'status': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 

@@ -2254,7 +2254,7 @@ export default class krakenfutures extends Exchange {
             //     updateReason: null,
             //     error: null
             //
-            const datetime = this.safeString (orderDictFromFetchOrder, 'timestamp');
+            const orderTimestamp = this.parse8601 (this.safeString (orderDictFromFetchOrder, 'timestamp'));
             const innerStatus = this.safeString (order, 'status');
             const fetchOrderPriceTriggerOptions = this.safeDict (orderDictFromFetchOrder, 'priceTriggerOptions', {});
             const fetchOrderTriggerPrice = this.safeString (fetchOrderPriceTriggerOptions, 'triggerPrice');
@@ -2263,8 +2263,8 @@ export default class krakenfutures extends Exchange {
                 'info': order,
                 'id': this.safeString (orderDictFromFetchOrder, 'orderId'),
                 'clientOrderId': this.safeString (orderDictFromFetchOrder, 'cliOrdId'),
-                'timestamp': this.parse8601 (datetime),
-                'datetime': datetime,
+                'timestamp': orderTimestamp,
+                'datetime': this.iso8601 (orderTimestamp),
                 'lastTradeTimestamp': undefined,
                 'lastUpdateTimestamp': this.parse8601 (this.safeString (orderDictFromFetchOrder, 'lastUpdateTimestamp')),
                 'symbol': unifiedSymbol,
@@ -3030,13 +3030,13 @@ export default class krakenfutures extends Exchange {
         const result: FundingRateHistory[] = [];
         for (let i = 0; i < rates.length; i++) {
             const item = rates[i];
-            const datetime = this.safeString (item, 'timestamp');
+            const timestamp = this.parse8601 (this.safeString (item, 'timestamp'));
             result.push ({
                 'info': item,
                 'symbol': symbol,
                 'fundingRate': this.safeNumber (item, 'relativeFundingRate'),
-                'timestamp': this.parse8601 (datetime),
-                'datetime': datetime,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
@@ -3126,14 +3126,14 @@ export default class krakenfutures extends Exchange {
         if (leverage !== undefined) {
             marginType = 'isolated';
         }
-        const datetime = this.safeString (position, 'fillTime');
+        const timestamp = this.parse8601 (this.safeString (position, 'fillTime'));
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         return {
             'info': position,
             'symbol': market['symbol'],
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
@@ -3295,12 +3295,12 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2022-04-12T01:22:53.420Z"
         //    }
         //
-        const datetime = this.safeString (transfer, 'serverTime');
+        const timestamp = this.parse8601 (this.safeString (transfer, 'serverTime'));
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': this.safeString (currency, 'code'),
             'amount': undefined,
             'fromAccount': undefined,

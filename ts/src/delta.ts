@@ -3338,14 +3338,14 @@ export default class delta extends Exchange {
         //         "maintenance_margin_scaling_factor":"0.000002"
         //     }
         //
-        const datetime = this.safeString (settlement, 'settlement_time');
+        const timestamp = this.parse8601 (this.safeString (settlement, 'settlement_time'));
         const marketId = this.safeString (settlement, 'symbol');
         return {
             'info': settlement,
             'symbol': this.safeSymbol (marketId, market),
             'price': this.safeNumber (settlement, 'settlement_price'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
@@ -4149,15 +4149,15 @@ export default class delta extends Exchange {
         //     }
         //
         const marketId = this.safeString (info, 'product_symbol');
-        const datetime = this.safeString (info, 'created_at');
+        const timestamp = this.parse8601 (this.safeString (info, 'created_at'));
         return {
             'info': info,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'rank': this.safeInteger (info, 'adl_level'),
             'rating': undefined,
             'percentage': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         } as ADL;
     }
 

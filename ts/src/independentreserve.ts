@@ -1109,7 +1109,7 @@ export default class independentreserve extends Exchange {
         const amount = this.safeDict (transaction, 'Amount');
         const destination = this.safeDict (transaction, 'Destination');
         const currencyId = this.safeString (transaction, 'PrimaryCurrencyCode');
-        const datetime = this.safeString (transaction, 'CreatedTimestampUtc');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'CreatedTimestampUtc'));
         const address = this.safeString (destination, 'Address');
         const tag = this.safeString (destination, 'Tag');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -1122,8 +1122,8 @@ export default class independentreserve extends Exchange {
             'network': undefined,
             'amount': this.safeNumber (amount, 'Total'),
             'status': this.safeString (transaction, 'Status'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'addressFrom': undefined,
             'addressTo': address,
