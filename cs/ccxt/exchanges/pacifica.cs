@@ -704,7 +704,7 @@ public partial class pacifica : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetInfo(parameters); // meta
@@ -748,7 +748,7 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         object markets = this.safeList(response, "data", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     /**
@@ -759,11 +759,11 @@ public partial class pacifica : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object markets = await this.fetchMarkets(parameters);
-        return this.filterBy(markets, "type", "swap");
+        object markets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchMarkets(parameters));
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.filterBy(markets, "type", "swap"));
     }
 
     public override object parseMarket(object market)
@@ -917,7 +917,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAccount = null;
@@ -966,7 +966,7 @@ public partial class pacifica : Exchange
         object timestamp = this.safeInteger(data, "updated_at");
         ((IDictionary<string,object>)result)["timestamp"] = timestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(timestamp);
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -1002,7 +1002,7 @@ public partial class pacifica : Exchange
             object request = new Dictionary<string, object>() {
                 { "account", userAccount },
             };
-            settings = await this.fetchAccountSettings(this.extend(request, parameters));
+            settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(this.extend(request, parameters)));
         }
         object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
@@ -1061,7 +1061,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} Dict repacked from list by symbol key
      */
-    public async virtual Task<object> fetchAccountSettings(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchAccountSettings(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAccount = null;
@@ -1086,7 +1086,7 @@ public partial class pacifica : Exchange
         //   "error": null,
         //   "code": null
         // }
-        return this.parseAccountSettings(this.safeList(response, "data", new List<object>() {}));
+        return ccxt.BaseExchange.ToDict(this.parseAccountSettings(this.safeList(response, "data", new List<object>() {})));
     }
 
     public async virtual Task loadAccountSettings(object refresh = null, object parameters = null)
@@ -1097,7 +1097,7 @@ public partial class pacifica : Exchange
         if (isTrue(isTrue((isEqual(settings, null))) || isTrue((isEqual(refresh, true)))))
         {
             ((IDictionary<string,object>)this.options)["settings"] = this.createSafeDictionary();
-            settings = await this.fetchAccountSettings(parameters);
+            settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(parameters));
             ((IDictionary<string,object>)this.options)["settings"] = settings;
         }
     }
@@ -1148,7 +1148,7 @@ public partial class pacifica : Exchange
             object request = new Dictionary<string, object>() {
                 { "account", userAccount },
             };
-            settings = await this.fetchAccountSettings(this.extend(request, parameters));
+            settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(this.extend(request, parameters)));
         }
         // {
         //   "WLFI/USDC:USDC": {
@@ -1201,7 +1201,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1260,7 +1260,7 @@ public partial class pacifica : Exchange
             { "asks", this.safeList(levels, 1, new List<object>() {}) },
         };
         object timestamp = this.safeInteger(data, "t");
-        return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a"));
     }
 
     /**
@@ -1272,7 +1272,7 @@ public partial class pacifica : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetInfoPrices(parameters);
@@ -1298,7 +1298,7 @@ public partial class pacifica : Exchange
         //   }
         //
         object result = this.safeList(response, "data", new List<object>() {});
-        return this.parseFundingRates(result, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
     }
 
     public override object parseFundingRate(object info, object market = null)
@@ -2034,7 +2034,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2090,7 +2090,7 @@ public partial class pacifica : Exchange
                 { "symbol", symbol },
             }));
         }
-        return ordersToReturn;
+        return ccxt.BaseExchange.ToOrderList(ordersToReturn);
     }
 
     public virtual object cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
@@ -2423,7 +2423,7 @@ public partial class pacifica : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2465,7 +2465,7 @@ public partial class pacifica : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;
             }
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -3134,7 +3134,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "update_margin_mode";
@@ -3158,7 +3158,7 @@ public partial class pacifica : Exchange
         // {
         //     "success": true
         // }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3172,7 +3172,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "update_leverage";
@@ -3195,7 +3195,7 @@ public partial class pacifica : Exchange
         // {
         //     "success": true
         // }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3323,7 +3323,7 @@ public partial class pacifica : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3331,8 +3331,8 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object swapMarkets = await this.fetchSwapMarkets();
-        return this.parseOpenInterests(swapMarkets, symbols);
+        object swapMarkets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchSwapMarkets());
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(swapMarkets, symbols));
     }
 
     /**
@@ -3353,7 +3353,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object ois = await this.fetchOpenInterests(new List<object>() {symbolVar}, parameters);
+        object ois = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToOpenInterest(getValue(ois, symbolVar));
     }
 
@@ -3629,7 +3629,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "transfer_funds";
@@ -3652,7 +3652,7 @@ public partial class pacifica : Exchange
         // }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransfer(data);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -3693,7 +3693,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    public async override Task<object> createSubAccount(object name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object finalHeaders = new Dictionary<string, object>() {};
@@ -3768,7 +3768,7 @@ public partial class pacifica : Exchange
         //   "code": null,
         // }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public async virtual Task<object> bindAgentWallet(object agentAddress, object parameters = null)
@@ -3782,13 +3782,13 @@ public partial class pacifica : Exchange
         return await this.privatePostAgentBind(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> createApiKey(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "create_api_key";
         object sigPayload = new Dictionary<string, object>() {};
         object request = this.postActionRequest(operationType, sigPayload, parameters);
-        return await this.privatePostAccountApiKeysCreate(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeysCreate(this.extend(request, parameters)));
     }
 
     public async virtual Task<object> revokeApiKey(object apiKey, object parameters = null)
@@ -3802,13 +3802,13 @@ public partial class pacifica : Exchange
         return await this.privatePostAccountApiKeysRevoke(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchApiKeys(object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchApiKeys(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "list_api_keys";
         object sigPayload = new Dictionary<string, object>() {};
         object request = this.postActionRequest(operationType, sigPayload, parameters);
-        return await this.privatePostAccountApiKeys(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostAccountApiKeys(this.extend(request, parameters)));
     }
 
     public async virtual Task<object> approveBuilderCode(object builderCode, object maxFeeRate, object parameters = null)
@@ -3823,12 +3823,12 @@ public partial class pacifica : Exchange
         return await this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchBuilderApprovals(object address)
+    public async virtual Task<List<Dictionary<string, object>>> FetchBuilderApprovals(object address)
     {
         object request = new Dictionary<string, object>() {
             { "account", address },
         };
-        return await this.publicGetAccountBuilderCodesApprovals(this.extend(request));
+        return ccxt.BaseExchange.ToDictList(await this.publicGetAccountBuilderCodesApprovals(this.extend(request)));
     }
 
     public async virtual Task<object> revokeBuilderCode(object builderCode, object parameters = null)

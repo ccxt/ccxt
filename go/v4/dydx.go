@@ -740,7 +740,7 @@ func (this *DydxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var data any = this.SafeDict(response, "markets", map[string]any{})
-	var markets any = ObjectValues(data)
+	var markets []any = ObjectValues(data)
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -1022,7 +1022,7 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -1500,7 +1500,7 @@ func (this *DydxCore) HashMessage(message any) any {
 	return this.Hash(message, keccak, "hex")
 }
 func (this *DydxCore) SignHash(hash any, privateKey any) any {
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
 	return map[string]any{
@@ -1658,8 +1658,8 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var quantumConversionExponent any = GetValue(marketInfo, "quantumConversionExponent")
 	var priceScale any = this.Pow("10", Precise.StringSub(Precise.StringSub(atomicResolution, quantumConversionExponent), "-6"))
 	var subticks any = Precise.StringMul(priceStr, priceScale)
-	var clientMetadata any = 0
-	var conditionalType any = 0
+	var clientMetadata int = 0
+	var conditionalType int = 0
 	var conditionalOrderTriggerSubticks any = "0"
 	var orderFlag any = nil
 	var timeInForceNumber any = nil
@@ -1726,7 +1726,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSeconds)
 	}
 	var sideNumber any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), 1, 2)
-	var defaultClientOrderId any = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
+	var defaultClientOrderId int64 = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
 	var clientOrderId any = this.SafeInteger(params, "clientOrderId", defaultClientOrderId)
 	var orderPayload map[string]any = map[string]any{
 		"order": map[string]any{
@@ -1769,7 +1769,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 func (this *DydxCore) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) any {
 	var nameSp any = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var prefixAddress any = Add(Add(address, "-"), ToString(subAccountNumber))
-	var prefix any = this.Uuid5(nameSp, prefixAddress)
+	var prefix string = this.Uuid5(nameSp, prefixAddress)
 	var orderInfo any = Add(Add(Add(Add(Add(Add(prefix, "-"), this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
 	return this.Uuid5(nameSp, orderInfo)
 }
@@ -2554,8 +2554,8 @@ func (this *DydxCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		"methodName": "fetchTransfers",
 	})))
 	PanicOnError(response)
-	var transferIn any = this.FilterBy(response, "type", "TRANSFER_IN")
-	var transferOut any = this.FilterBy(response, "type", "TRANSFER_OUT")
+	var transferIn []any = this.FilterBy(response, "type", "TRANSFER_IN")
+	var transferOut []any = this.FilterBy(response, "type", "TRANSFER_OUT")
 	var rows any = this.ArrayConcat(transferIn, transferOut)
 
 	ch <- this.ParseTransfers(rows, currency, since, limit)
@@ -2747,7 +2747,7 @@ func (this *DydxCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		"methodName": "fetchWithdrawals",
 	})))
 	PanicOnError(response)
-	var rows any = this.FilterBy(response, "type", "WITHDRAWAL")
+	var rows []any = this.FilterBy(response, "type", "WITHDRAWAL")
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)
 	return nil
@@ -2796,7 +2796,7 @@ func (this *DydxCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"methodName": "fetchDeposits",
 	})))
 	PanicOnError(response)
-	var rows any = this.FilterBy(response, "type", "DEPOSIT")
+	var rows []any = this.FilterBy(response, "type", "DEPOSIT")
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)
 	return nil
@@ -2845,8 +2845,8 @@ func (this *DydxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		"methodName": "fetchDepositsWithdrawals",
 	})))
 	PanicOnError(response)
-	var withdrawals any = this.FilterBy(response, "type", "WITHDRAWAL")
-	var deposits any = this.FilterBy(response, "type", "DEPOSIT")
+	var withdrawals []any = this.FilterBy(response, "type", "WITHDRAWAL")
+	var deposits []any = this.FilterBy(response, "type", "DEPOSIT")
 	var rows any = this.ArrayConcat(withdrawals, deposits)
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)

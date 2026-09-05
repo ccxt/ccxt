@@ -58927,12 +58927,41 @@
 						"2cfe87e8-12df-4671-b9a9-0758898fd54b"
 					]
 				},
-				"parsedResponse": {
-					"cancelled_count": 2,
-					"market_ids_affected": [
-						"2cfe87e8-12df-4671-b9a9-0758898fd54b"
-					]
-				}
+				"parsedResponse": [
+					{
+						"id": null,
+						"clientOrderId": null,
+						"timestamp": null,
+						"datetime": null,
+						"lastTradeTimestamp": null,
+						"lastUpdateTimestamp": null,
+						"status": "canceled",
+						"type": null,
+						"timeInForce": null,
+						"side": null,
+						"price": null,
+						"average": null,
+						"amount": null,
+						"filled": null,
+						"remaining": null,
+						"cost": null,
+						"fee": null,
+						"reduceOnly": null,
+						"postOnly": null,
+						"trades": [],
+						"outcome": null,
+						"outcomeId": null,
+						"label": null,
+						"market": null,
+						"event": null,
+						"info": {
+							"cancelled_count": 2,
+							"market_ids_affected": [
+								"2cfe87e8-12df-4671-b9a9-0758898fd54b"
+							]
+						}
+					}
+				]
 			}
 		]
 	}

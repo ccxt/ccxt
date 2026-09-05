@@ -5,7 +5,7 @@ env:
   HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
-  CARGO_BUILD_JOBS: "1"
+  CARGO_BUILD_JOBS: "2"
 
 on:
   workflow_dispatch:
@@ -94,7 +94,9 @@ jobs:
           rustup component add clippy
           cargo clippy --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base -- -D warnings
       - name: Build Rust examples
-        if: env.important_modified == 'true'
+        if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/rust/target
         run: cargo build --manifest-path examples/rust/Cargo.toml --bins
       - name: Build tests
         run: npm run buildRust --tests

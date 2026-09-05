@@ -15,12 +15,9 @@ var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
 var index = require('../static_dependencies/ethers/index.js');
-require('../static_dependencies/ethers/utils/base58.js');
 require('../static_dependencies/ethers/utils/errors.js');
-require('../static_dependencies/ethers/utils/fixednumber.js');
 require('../static_dependencies/ethers/utils/maths.js');
 require('../static_dependencies/ethers/utils/utf8.js');
-require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
 require('@noble/curves/abstract/poseidon.js');
@@ -6541,6 +6538,34 @@ class BaseExchange {
             'used': undefined,
             'total': undefined,
         };
+    }
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     */
+    mergeBalanceAccount(result, code, account) {
+        if (!(code in result)) {
+            result[code] = account;
+            return result;
+        }
+        const fields = ['free', 'used', 'total', 'debt'];
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const current = this.safeString(result[code], field);
+            const incoming = this.safeString(account, field);
+            if (current === undefined) {
+                result[code][field] = incoming;
+            }
+            else if (incoming !== undefined) {
+                result[code][field] = Precise["default"].stringAdd(current, incoming);
+            }
+        }
+        return result;
     }
     commonCurrencyCode(code) {
         if (!this.substituteCommonCurrencyCodes) {

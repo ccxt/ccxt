@@ -1089,7 +1089,7 @@ func (this *Coinbase) Withdraw(code string, amount float64, address string, opti
 	}
 	return NewTransaction(res), nil
 }
-func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 
 	opts := FetchDepositAddressesByNetworkOptionsStruct{}
 
@@ -1100,9 +1100,9 @@ func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...Fet
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return DepositAddresses{}, CreateReturnError(res)
 	}
-	return NewDepositAddressArray(res), nil
+	return NewDepositAddresses(res), nil
 }
 
 /**
@@ -1491,7 +1491,7 @@ func (this *Coinbase) EditOrderWithClientOrderId(clientOrderId string, symbol st
 func (this *Coinbase) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Coinbase) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Coinbase) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Coinbase) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {

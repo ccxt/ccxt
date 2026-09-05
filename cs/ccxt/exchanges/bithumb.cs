@@ -547,7 +547,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
@@ -728,7 +728,7 @@ public partial class bithumb : Exchange
                 }
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
@@ -806,7 +806,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -828,7 +828,7 @@ public partial class bithumb : Exchange
             };
             response = await this.privatePostInfoBalance(this.extend(request, parameters));
         }
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -843,7 +843,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -934,7 +934,7 @@ public partial class bithumb : Exchange
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             timestamp = this.safeInteger(data, "timestamp");
         }
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1090,7 +1090,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1118,7 +1118,7 @@ public partial class bithumb : Exchange
             int marketIdsLength = getArrayLength(marketIds);
             if (isTrue(isEqual(marketIdsLength, 0)))
             {
-                return result;
+                return ccxt.BaseExchange.ToTickers(result);
             }
             object marketIdsChunks = new List<object>() {};
             object promises = new List<object>() {};
@@ -1289,7 +1289,7 @@ public partial class bithumb : Exchange
                 }
             }
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     /**
@@ -2865,7 +2865,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2908,7 +2908,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "success", new List<object>() {});
-        return this.parseOrders(data, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
     }
 
     public async override Task<ccxt.Order> CancelUnifiedOrder(object order, object parameters = null)
@@ -3152,7 +3152,7 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    public async virtual Task<object> fetchWithdrawalWhitelist(object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawalWhitelist(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3182,7 +3182,7 @@ public partial class bithumb : Exchange
         //         },
         //     ]
         //
-        return response;
+        return ccxt.BaseExchange.ToDictList(response);
     }
 
     /**

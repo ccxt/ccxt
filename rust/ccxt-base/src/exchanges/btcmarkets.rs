@@ -1013,8 +1013,8 @@ impl BtcmarketsCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_449: bool = true;
-            while { if !__for_first_449 { i = add(&i, &Value::Int(1)); } __for_first_449 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_450: bool = true;
+            while { if !__for_first_450 { i = add(&i, &Value::Int(1)); } __for_first_450 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "assetName", &[]);
@@ -1474,8 +1474,8 @@ impl BtcmarketsCore {
         let mut numericIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_450: bool = true;
-            while { if !__for_first_450 { i = add(&i, &Value::Int(1)); } __for_first_450 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_451: bool = true;
+            while { if !__for_first_451 { i = add(&i, &Value::Int(1)); } __for_first_451 = false; is_less_than(&i, &get_array_length(&ids)) } {
             // numericIds[i] = parseInt (ids[i]);
             append_to_array(&mut numericIds, crate::runtime::parse_int(&get_value(&ids, &i)));
         }

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1545,7 +1545,7 @@ class htx(Exchange, ImplicitAPI):
             allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
-    async def fetch_markets_by_type_and_sub_type(self, type: Str, subType: Str, params={}):
+    async def fetch_markets_by_type_and_sub_type(self, type: Str, subType: Str, params={}) -> list[Market]:
         """
  @ignore
         retrieves data on all markets of a certain type and/or subtype
@@ -2549,7 +2549,7 @@ class htx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrderTrades() is only supported for spot markets')
         return await self.fetch_spot_order_trades(id, symbol, since, limit, params)
 
-    async def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch all the trades made from a single order
@@ -3026,7 +3026,7 @@ class htx(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    async def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}):
+    async def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}) -> Str:
         """
         fetch all the accounts by a type and marginModeassociated with a profile
 
@@ -3039,7 +3039,7 @@ class htx(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accounts = await self.load_accounts()
-        accountId = self.safe_value_2(params, 'accountId', 'account-id')
+        accountId = self.safe_string_2(params, 'accountId', 'account-id')
         if accountId is not None:
             return accountId
         if type == 'spot':
@@ -3430,7 +3430,6 @@ class htx(Exchange, ImplicitAPI):
             if isolated:
                 for i in range(0, len(data)):
                     entry = data[i]
-                    symbol = self.safe_symbol(self.safe_string(entry, 'symbol'))
                     balances = self.safe_value(entry, 'list')
                     subResult = {}
                     for j in range(0, len(balances)):
@@ -3439,7 +3438,11 @@ class htx(Exchange, ImplicitAPI):
                         code = self.safe_currency_code(currencyId)
                         if code is not None:
                             subResult[code] = self.parse_margin_balance_helper(balance, code, subResult)
-                    result[symbol] = self.safe_balance(subResult)
+                    subCodes = list(subResult.keys())
+                    for j in range(0, len(subCodes)):
+                        subCode = subCodes[j]
+                        result = self.merge_balance_account(result, subCode, subResult[subCode])
+                result = self.safe_balance(result)
             else:
                 balances = self.safe_value(data, 'list', [])
                 for i in range(0, len(balances)):
@@ -3684,7 +3687,7 @@ class htx(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    async def fetch_spot_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
@@ -3758,7 +3761,7 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_closed_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         return await self.fetch_spot_orders_by_states('filled', symbol, since, limit, params)
 
-    async def fetch_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchContractOrders() requires a symbol argument')
         if self.markets is None:
@@ -5964,7 +5967,7 @@ class htx(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
@@ -6016,7 +6019,7 @@ class htx(Exchange, ImplicitAPI):
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
-    async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params={}):
+    async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params={}) -> list[DepositAddress]:
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)

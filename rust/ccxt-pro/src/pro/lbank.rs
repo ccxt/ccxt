@@ -823,8 +823,8 @@ impl LbankCore {
         let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_469: bool = true;
-            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_468: bool = true;
+            while { if !__for_first_468 { i = add(&i, &Value::Int(1)); } __for_first_468 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_ws_trade(get_value(&rawTrades, &i), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             stored.append(trade.clone());

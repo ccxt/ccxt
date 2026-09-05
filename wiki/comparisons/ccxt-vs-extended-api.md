@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Extended (x10) Python SDK -->
-<!-- description: CCXT and x10-python-trading-starknet compared on StarkNet order signing, onboarding, streaming, rate limits and portability across seven languages. -->
+<!-- description: CCXT and x10-python-trading-starknet compared on StarkNet order signing, onboarding, streaming, rate limits and portability across eight languages. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Extended's official SDK is Python-only and leans on a Rust library for Stark signing. CCXT does the same Poseidon hashing and Stark signature in seven languages, with 53 unified capabilities and 10 streaming methods. -->
+<!-- summary: Extended's official SDK is Python-only and leans on a Rust library for Stark signing. CCXT does the same Poseidon hashing and Stark signature in eight languages, with 53 unified capabilities and 10 streaming methods. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Extended (x10) Python SDK
@@ -15,7 +15,7 @@ The question that decides it: **is Extended your only venue, in Python?**
 ## TL;DR
 
 - **Pick the official SDK** if Extended is your only venue and you work in Python. Its Rust-backed Stark signing, its onboarding flow that derives a Stark key pair from an Ethereum account, and its vault and builder-code modules have no CCXT equivalent.
-- **Pick CCXT** if you want `create_order` to mean the same thing on Extended, Hyperliquid, Binance and Bybit, in any of seven languages, with the Poseidon hashing, Stark signing and account lookup already written.
+- **Pick CCXT** if you want `create_order` to mean the same thing on Extended, Hyperliquid, Binance and Bybit, in any of eight languages, with the Poseidon hashing, Stark signing and account lookup already written.
 - **Signing is not the thing you give up.** CCXT takes `apiKey` and `privateKey` as credentials, fetches your L2 vault and Stark key from the account endpoint, builds the settlement and signs it — the same path in Python, Go, C#, PHP, Java, JavaScript and TypeScript.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides it: **is Extended your only venue, in Python?**
 | | **CCXT** | **x10-python-trading-starknet** |
 | --- | --- | --- |
 | Venues covered | 104 (Extended is one of them) | Extended only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python 3.10+ |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python 3.10+ |
 | Packages to install | 1 (`ccxt`) | the SDK plus a compiled Rust Stark-crypto wrapper |
 | Unified market data + trading API | yes — 53 unified capabilities, 31 `fetch*` methods | no — Extended's own request and response models |
 | Instrument addressing | unified symbols: `'BTC/USDC:USDC'` | market names: `BTC-USD` |
@@ -161,11 +161,11 @@ CCXT's ten streaming methods for Extended are `watchOrderBook`, `watchTrades`, `
 
 ## Where the differences actually bite
 
-### Seven languages, one API — signing included
+### Eight languages, one API — signing included
 
 This is the largest practical gap. The official SDK is Python, and its Stark signing is accelerated by a compiled Rust wrapper with per-platform wheels (Linux glibc and musl on x86 and arm64, macOS arm64, Windows x86; Windows arm64 is marked experimental). Porting that to Go or C# is not a translation exercise, it is a cryptography project.
 
-CCXT implements `extendedStarknetSign`, the Poseidon hash and the selector derivation in its base class in every language it ships, so the same order-signing path exists in TypeScript, JavaScript, Python, PHP, C#, Go and Java.
+CCXT implements `extendedStarknetSign`, the Poseidon hash and the selector derivation in its base class in every language it ships, so the same order-signing path exists in TypeScript, JavaScript, Python, PHP, C#, Go, Java and Rust.
 
 <!-- tabs:start -->
 
@@ -275,7 +275,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Does CCXT sign Extended orders itself, or do I need the x10 SDK?**
-CCXT signs them itself. It builds the order settlement, computes the SNIP-12 Poseidon message hash and produces the Stark-curve signature in its base class — implemented natively in all seven CCXT languages, with no Rust wrapper to install.
+CCXT signs them itself. It builds the order settlement, computes the SNIP-12 Poseidon message hash and produces the Stark-curve signature in its base class — implemented natively in all eight CCXT languages, with no Rust wrapper to install.
 
 **What credentials does CCXT need for Extended?**
 `apiKey` and `privateKey`. Your L2 vault id and Stark public key are read from the account endpoint on first use, so you do not pass them in. The official SDK asks for all four up front.

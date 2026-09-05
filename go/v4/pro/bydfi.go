@@ -1337,7 +1337,7 @@ func (this *BydfiCore) HandleUnSubscription(client any, subscription any) {
 	var subHashIsPrefix any = this.SafeBool(subscription, "subHashIsPrefix", false)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, i)
-		var subHash any = ccxt.Replace(unsubHash, "unsubscribe::", "")
+		var subHash string = ccxt.Replace(unsubHash, "unsubscribe::", "")
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, subHashIsPrefix)
 	}
 	this.CleanCache(subscription)

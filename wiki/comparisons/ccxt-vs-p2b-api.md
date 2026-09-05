@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the P2B API and the official PHP client -->
 <!-- description: P2B publishes one PHP client, last touched in 2022. Compare it and the raw P2B API with CCXT on languages, streaming, nonce handling, rate limits and error types. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: P2B's only official client is a four-commit PHP library from 2022 that requires PHP 7.2. CCXT covers the same v2 API in seven languages, with six streaming methods and a rate limiter tuned to P2B's documented 10 requests per second. -->
+<!-- summary: P2B's only official client is a four-commit PHP library from 2022 that requires PHP 7.2. CCXT covers the same v2 API in eight languages, with six streaming methods and a rate limiter tuned to P2B's documented 10 requests per second. -->
 <!-- weight: 100 -->
 
 # CCXT vs the P2B API and the official PHP client
@@ -15,7 +15,7 @@ P2B publishes exactly one client library: [`P2B-team/php-p2b-api`](https://githu
 ## TL;DR
 
 - **Pick the official PHP client** if you are writing PHP, you only need a few endpoints, and you would rather vendor a 200-line wrapper than a general-purpose library — with the caveat that it targets PHP 7.2 and Guzzle 6.
-- **Pick CCXT** if you want P2B in any of seven languages, with 22 unified capabilities, six streaming methods, typed errors and a throttler set to P2B's own documented limit of 10 requests per second.
+- **Pick CCXT** if you want P2B in any of eight languages, with 22 unified capabilities, six streaming methods, typed errors and a throttler set to P2B's own documented limit of 10 requests per second.
 - **Nothing is hidden either way.** All 18 P2B endpoints are generated as [implicit methods](/docs/exchanges/p2b/implicit-api) in CCXT, signed and rate-limited, so the unified API is not a ceiling.
 
 ## At a glance
@@ -23,7 +23,7 @@ P2B publishes exactly one client library: [`P2B-team/php-p2b-api`](https://githu
 | | **CCXT** | **`php-p2b-api`** |
 | --- | --- | --- |
 | Exchanges covered | 104 (P2B is one of them) | P2B only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | PHP only (`php: ^7.2`, `guzzlehttp/guzzle: ^6.0`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | PHP only (`php: ^7.2`, `guzzlehttp/guzzle: ^6.0`) |
 | Distribution | `pip install ccxt`, `npm install ccxt`, … | clone the repository (its `composer.json` names it `p2pb2b/php-p2pb2b-api`) |
 | Repository activity | continuous releases | 4 commits, last in October 2022 |
 | Unified market data + trading API | yes — same method names across every exchange | no — P2B's own request/response shapes |
@@ -164,9 +164,9 @@ CCXT implements six streaming methods for `p2b` — `watchOrderBook`, `watchTrad
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
-This is the main event for P2B. The only official client is PHP; CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures.
+This is the main event for P2B. The only official client is PHP; CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures.
 
 <!-- tabs:start -->
 

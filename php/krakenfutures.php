@@ -73,7 +73,7 @@ class krakenfutures extends Exchange {
                 'fetchOrders' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchTicker' => 'emulated',
+                'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => 'emulated',
@@ -113,6 +113,7 @@ class krakenfutures extends Exchange {
                         'instruments' => array( 'cost' => 1 ),
                         'orderbook' => array( 'cost' => 1 ),
                         'tickers' => array( 'cost' => 1 ),
+                        'tickers/{symbol}' => array( 'cost' => 1 ),
                         'history' => array( 'cost' => 1 ),
                         'historicalfundingrates' => array( 'cost' => 1 ),
                     ),
@@ -218,6 +219,7 @@ class krakenfutures extends Exchange {
                     'notFound' => '\\ccxt\\BadRequest',
                     'Server Error' => '\\ccxt\\ExchangeError',
                     'unknownError' => '\\ccxt\\ExchangeError',
+                    'contractNotFound' => '\\ccxt\\BadSymbol',
                 ),
                 'broad' => array(
                     'invalidArgument' => '\\ccxt\\BadRequest',
@@ -592,6 +594,50 @@ class krakenfutures extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($response, 'serverTime'));
         $orderBook = $this->safe_dict($response, 'orderBook', array());
         return $this->parse_order_book($orderBook, $symbol, $timestamp);
+    }
+
+    public function fetch_ticker(string $symbol, $params = array()): array {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://docs.kraken.com/api-reference/market-data/get-$ticker-by-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetTickersSymbol($this->extend($request, $params));
+        //
+        //    {
+        //        "result" => "success",
+        //        "ticker" => array(
+        //            "tag" => "perpetual",
+        //            "pair" => "XBT:USD",
+        //            "symbol" => "PF_XBTUSD",
+        //            "markPrice" => 77343.38154086835,
+        //            "bid" => 77333,
+        //            "bidSize" => 0.0776,
+        //            "ask" => 77334,
+        //            "askSize" => 0.4929,
+        //            "vol24h" => 8309.2546,
+        //            "openInterest" => 1950.596600000000000,
+        //            "open24h" => 77332,
+        //            "indexPrice" => 77340.22,
+        //            "last" => 77334,
+        //            "lastTime" => "2026-09-02T17:52:21.057577Z",
+        //            "lastSize" => 0.0114,
+        //            "suspended" => false
+        //        ),
+        //        "serverTime" => "2026-09-02T17:52:21.671Z"
+        //    }
+        //
+        $ticker = $this->safe_dict($response, 'ticker', array());
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {

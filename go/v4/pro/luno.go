@@ -393,7 +393,7 @@ func (this *LunoCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(message, "")) {
 		return
 	}
-	var subscriptions any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
 	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(handlers)); j++ {
 		var handler any = ccxt.GetValue(handlers, j)

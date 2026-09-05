@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, DepositAddresses } from './base/types.js';
 /**
  * @class htx
  * @augments Exchange
@@ -92,7 +92,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<List>;
+    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<Market[]>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -258,7 +258,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    fetchAccountIdByType(type: string, marginMode?: Str, symbol?: Str, params?: {}): Promise<any>;
+    fetchAccountIdByType(type: string, marginMode?: Str, symbol?: Str, params?: {}): Promise<Str>;
     /**
      * @method
      * @name htx#fetchCurrencies
@@ -567,7 +567,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddresses>;
     /**
      * @method
      * @name htx#fetchDepositAddress
@@ -578,7 +578,7 @@ export default class htx extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    fetchWithdrawAddresses(code: string, note?: Str, networkCode?: Str, params?: {}): Promise<List>;
+    fetchWithdrawAddresses(code: string, note?: Str, networkCode?: Str, params?: {}): Promise<DepositAddress[]>;
     /**
      * @method
      * @name htx#fetchDeposits

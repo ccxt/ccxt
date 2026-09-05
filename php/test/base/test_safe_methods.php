@@ -340,6 +340,28 @@ function test_safe_float() {
     assert($exchange->safe_float_n($input_dict, ['a', 'b', 'strNumber']) === floatval(3));
     // @ts-expect-error
     assert($exchange->safe_float_n($input_list, [3, 2, 1]) === floatval(2));
+    // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+    assert($exchange->safe_float($input_dict, 'nonexistent') === null, 'safeFloat failed for missing key');
+    assert($exchange->safe_float($input_dict, 'nonexistent', 5) === 5, 'safeFloat failed for missing key with default');
+    assert($exchange->safe_float($input_dict, 'emptyString') === null, 'safeFloat failed for empty string');
+    assert($exchange->safe_float($input_dict, 'str') === null, 'safeFloat failed for non-numeric string');
+    assert($exchange->safe_float($input_dict, 'undefined') === null, 'safeFloat failed for None value');
+    assert($exchange->safe_float(null, 'i') === null, 'safeFloat failed for undefined container');
+    assert($exchange->safe_float(null, 'i', 7) === 7, 'safeFloat failed for undefined container with default');
+    assert($exchange->safe_float($input_list, 5) === null, 'safeFloat failed for out-of-range list index');
+    // safeFloat2 - negative paths
+    assert($exchange->safe_float_2($input_dict, 'nonexistent', 'nonexistent2') === null, 'safeFloat2 failed for missing keys');
+    assert($exchange->safe_float_2($input_dict, 'nonexistent', 'str') === null, 'safeFloat2 failed for missing then non-numeric');
+    assert($exchange->safe_float_2($input_dict, 'nonexistent', 'emptyString') === null, 'safeFloat2 failed for missing then empty string');
+    assert($exchange->safe_float_2($input_dict, 'nonexistent', 'nonexistent2', 9) === 9, 'safeFloat2 failed for missing keys with default');
+    assert($exchange->safe_float_2(null, 'i', 'f') === null, 'safeFloat2 failed for undefined container');
+    // safeFloatN - negative paths
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'nonexistent']) === null, 'safeFloatN failed for missing keys');
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'emptyString']) === null, 'safeFloatN failed for empty string');
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'str']) === null, 'safeFloatN failed for non-numeric string');
+    assert($exchange->safe_float_n($input_dict, ['a', 'b', 'nonexistent'], 11) === 11, 'safeFloatN failed for missing keys with default');
+    assert($exchange->safe_float_n(null, ['a', 'b', 'i']) === null, 'safeFloatN failed for undefined container');
+    assert($exchange->safe_float_n($input_list, [5, 6]) === null, 'safeFloatN failed for out-of-range list indices');
 }
 
 

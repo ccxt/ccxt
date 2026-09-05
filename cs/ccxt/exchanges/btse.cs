@@ -687,7 +687,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSpotApiV33Time(parameters);
@@ -697,7 +697,7 @@ public partial class btse : Exchange
         //         "epoch": 1770378517
         //     }
         //
-        return this.safeTimestamp(response, "epoch");
+        return ccxt.BaseExchange.ToInt64Value(this.safeTimestamp(response, "epoch"));
     }
 
     /**
@@ -708,7 +708,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(getValue(this.options, "adjustForTimeDifference"), true)))
@@ -718,7 +718,7 @@ public partial class btse : Exchange
         object response = await this.publicGetPublicApiMarketV1Markets(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "symbols", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
@@ -999,7 +999,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1031,7 +1031,7 @@ public partial class btse : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
-        return this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks"));
     }
 
     /**
@@ -1151,7 +1151,7 @@ public partial class btse : Exchange
      * @param {string} [params.wallet] futures wallet name, CROSS@ by default, or ISOLATED@ followed by the market id with -USDT appended
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1193,7 +1193,7 @@ public partial class btse : Exchange
             };
             response = await this.privateGetFuturesApiV23UserWallet(this.extend(request, parameters));
         }
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseBalance(object response)
@@ -1269,7 +1269,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1362,7 +1362,7 @@ public partial class btse : Exchange
             // php copies arrays by value, so the mutated list must be written back explicitly
             ((IDictionary<string,object>)result)[(string)symbolKey] = tiersList;
         }
-        return result;
+        return ccxt.BaseExchange.ToLeverageTiers(result);
     }
 
     /**
@@ -1383,7 +1383,7 @@ public partial class btse : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
-        object result = await this.fetchLeverageTiers(new List<object>() {symbol}, parameters);
+        object result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToLeverageTierList(getValue(result, symbol));
     }
 
@@ -1396,7 +1396,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1405,7 +1405,7 @@ public partial class btse : Exchange
         parameters = this.omit(parameters, "type");
         object response = await this.publicGetPublicApiMarketV1Ticker24hr(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(data, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
     /**
@@ -1555,7 +1555,7 @@ public partial class btse : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1572,7 +1572,7 @@ public partial class btse : Exchange
                 ((IList<object>)rows).Add(row);
             }
         }
-        return this.parseOpenInterests(rows, symbols);
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(rows, symbols));
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -1633,7 +1633,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1650,7 +1650,7 @@ public partial class btse : Exchange
                 ((IList<object>)rows).Add(row);
             }
         }
-        return this.parseFundingRates(rows, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rows, symbols));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2871,7 +2871,7 @@ public partial class btse : Exchange
      * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2891,7 +2891,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["timeoutMs"] = timeout;
             response = await this.privatePostFuturesApiV3TradeOrdersCancelAllAfter(this.extend(request, parameters));
         }
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -3117,7 +3117,7 @@ public partial class btse : Exchange
      * @param {string} [params.type] 'spot', 'swap' or 'future' (default is 'spot')
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3164,7 +3164,7 @@ public partial class btse : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public async virtual Task<object> requestWalletHistoryRows(object methodName, object historyTypes, object code = null, object since = null, object limit = null, object parameters = null)
@@ -3814,7 +3814,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         // NB!!! This method also sets margin mode to cross on btse
         // btse do not have specific endpoint for marginMode
@@ -3833,7 +3833,7 @@ public partial class btse : Exchange
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
         };
-        return await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters)));
     }
 
     /**
@@ -3894,7 +3894,7 @@ public partial class btse : Exchange
      * @param {bool} [params.hedged] set to true to use dualSidePosition, required for setting marginMode to cross on btse
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         object marginModeVar = marginMode;
         // btse do not have specific endpoint for marginModeVar
@@ -3938,7 +3938,7 @@ public partial class btse : Exchange
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },
         };
-        return await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToDict(await this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters)));
     }
 
     /**
@@ -4076,7 +4076,7 @@ public partial class btse : Exchange
      * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4101,7 +4101,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["marginMode"] = ((string)marginMode).ToUpper();
         }
         object response = await this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters));
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

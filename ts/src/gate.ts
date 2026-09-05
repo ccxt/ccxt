@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses } from './base/types.js';
 
 /**
  * @class gate
@@ -1819,7 +1819,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchOptionUnderlyings () {
+    async fetchOptionUnderlyings (): Promise<Str[]> {
         const underlyingsResponse = await this.publicOptionsGetUnderlyings ();
         //
         //    [
@@ -2344,7 +2344,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2357,7 +2357,7 @@ export default class gate extends Exchange {
         const currencyId = this.safeString (response, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const parsed = this.parseDepositAddresses (chains, undefined, false);
-        return this.indexBy (parsed, 'network') as DepositAddress[];
+        return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
     /**
@@ -3358,7 +3358,7 @@ export default class gate extends Exchange {
         //         "leverage": "2"
         //     }
         //
-        const result: Dict = {
+        let result: Dict = {
             'info': response,
         };
         const isolated = marginMode === 'margin' && type === 'spot';
@@ -3380,23 +3380,18 @@ export default class gate extends Exchange {
         for (let i = 0; i < (data as List).length; i++) {
             const entry = data[i];
             if (isolated) {
-                const marketId = this.safeString (entry, 'currency_pair');
-                const symbolInner = this.safeSymbol (marketId, undefined, '_', 'margin');
                 const base = this.safeValue (entry, 'base', {});
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
-                const subResult: Dict = {};
-                subResult[baseCode as string] = this.parseBalanceHelper (base);
-                subResult[quoteCode as string] = this.parseBalanceHelper (quote);
-                result[symbolInner] = this.safeBalance (subResult);
+                result = this.mergeBalanceAccount (result, baseCode as string, this.parseBalanceHelper (base));
+                result = this.mergeBalanceAccount (result, quoteCode as string, this.parseBalanceHelper (quote));
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
                 result[code as string] = this.parseBalanceHelper (entry);
             }
         }
-        const returnResult = isolated ? result : this.safeBalance (result);
-        return returnResult as Balances;
+        return this.safeBalance (result);
     }
 
     /**
@@ -3478,7 +3473,7 @@ export default class gate extends Exchange {
         return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // separated option logic because the from, to and limit parameters weren't functioning
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -7176,7 +7171,7 @@ export default class gate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7426,7 +7421,7 @@ export default class gate extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]
      */
-    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

@@ -715,7 +715,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(getValue(this.options, "adjustForTimeDifference"), true)))
@@ -723,7 +723,7 @@ public partial class backpack : Exchange
             await this.loadTimeDifference();
         }
         object response = await this.publicGetApiV1Markets(parameters);
-        return this.parseMarkets(response);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
     public override object parseMarket(object market)
@@ -923,7 +923,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -933,7 +933,7 @@ public partial class backpack : Exchange
         object request = new Dictionary<string, object>() {};
         object response = await this.publicGetApiV1Tickers(this.extend(request, parameters));
         object tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
     /**
@@ -1032,7 +1032,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1066,7 +1066,7 @@ public partial class backpack : Exchange
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
-        return orderbook;
+        return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
     /**
@@ -1537,14 +1537,14 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiV1Time(parameters);
         //
         //     1753131712992
         //
-        return this.safeInteger(response, 0, this.milliseconds());
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, 0, this.milliseconds()));
     }
 
     /**
@@ -1555,7 +1555,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1563,7 +1563,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         object response = await this.privateGetApiV1Capital(parameters);
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseBalance(object response)

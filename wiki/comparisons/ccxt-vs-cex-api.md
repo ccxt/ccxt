@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the CEX.IO API and cexio-spot-trading -->
 <!-- description: CEX.IO's official client is Node.js only and passes calls through by name. Compare it with CCXT on languages, unified structures, streaming, rate limits and errors. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: CEX.IO's official client is a Node.js RPC passthrough — you still name endpoints and parse raw payloads. CCXT gives the same Spot Trading API 43 unified capabilities and 8 streaming methods, in seven languages. -->
+<!-- summary: CEX.IO's official client is a Node.js RPC passthrough — you still name endpoints and parse raw payloads. CCXT gives the same Spot Trading API 43 unified capabilities and 8 streaming methods, in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the CEX.IO API and cexio-spot-trading
@@ -21,7 +21,7 @@ They are aimed at different things, and the difference is visible in one line of
 | | **CCXT** | **`@cex-io/cexio-spot-trading`** |
 | --- | --- | --- |
 | Exchanges covered | 104 (CEX.IO is one of them) | CEX.IO Spot Trading only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | **Node.js only** |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | **Node.js only** |
 | Packages to install | **1** (`ccxt`) | one per CEX.IO product line |
 | Unified market data + trading API | yes — 43 capabilities on `cex` | no — you name endpoints, you parse payloads |
 | Programming model | `fetch_ticker('BTC/USDT')` | `callPublic('get_ticker')` / `callPrivate('do_my_new_order', {...})` |
@@ -143,11 +143,11 @@ CEX.IO's client does handle connecting and authenticating the socket, which is g
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
 `cexio-spot-trading` is Node.js. If your service is in Python, Go, C# or PHP, there is no official CEX.IO client for it, and you are writing the signing and the payload mapping yourself.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures:
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures:
 
 <!-- tabs:start -->
 

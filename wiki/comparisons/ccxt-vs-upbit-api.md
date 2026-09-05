@@ -21,7 +21,7 @@ This is one of the closer comparisons on this site, because the official SDK is 
 | | **CCXT** | **Official Upbit SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Upbit is one of them) | Upbit only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, TypeScript, Go — separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, TypeScript, Go — separate codebases |
 | Install | `pip install ccxt` / `npm i ccxt` | `pip install upbit-sdk` and the per-language equivalents |
 | Unified market data + trading API | yes — same method names on every exchange | no — Upbit's own request and response shapes |
 | Symbols | `'BTC/KRW'` | `'KRW-BTC'` — quote currency first |

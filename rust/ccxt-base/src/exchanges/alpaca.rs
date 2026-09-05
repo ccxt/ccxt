@@ -1363,8 +1363,8 @@ impl AlpacaCore {
                 let mut pageToken: Value = self.safe_string_k(response.clone(), "next_page_token", &[]);
                 {
                                         let mut i: Value = Value::Int(1);
-                    let mut __for_first_211: bool = true;
-                    while { if !__for_first_211 { i = add(&i, &Value::Int(1)); } __for_first_211 = false; is_less_than(&i, &paginationCalls) } {
+                    let mut __for_first_212: bool = true;
+                    while { if !__for_first_212 { i = add(&i, &Value::Int(1)); } __for_first_212 = false; is_less_than(&i, &paginationCalls) } {
                     let mut ohlcvsLength: Value = get_array_length(&ohlcvs);
                     if is_true(&(is_equal(&pageToken, &Value::Null))) || is_true(&(is_true(&(!is_equal(&limit, &Value::Null))) && is_true(&(is_greater_than_or_equal(&ohlcvsLength, &limit))))) {
                         break;
@@ -1564,8 +1564,8 @@ impl AlpacaCore {
         let mut marketIds: Value = object_keys(&snapshots);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_212: bool = true;
-            while { if !__for_first_212 { i = add(&i, &Value::Int(1)); } __for_first_212 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_213: bool = true;
+            while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -2435,8 +2435,8 @@ impl AlpacaCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_213: bool = true;
-                while { if !__for_first_213 { i = add(&i, &Value::Int(1)); } __for_first_213 = false; is_less_than(&i, &get_array_length(&ledger)) } {
+                let mut __for_first_214: bool = true;
+                while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&ledger)) } {
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut activityType: Value = self.safe_string_k(entry.clone(), "activity_type", &[]);
@@ -2475,8 +2475,8 @@ impl AlpacaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_214: bool = true;
-            while { if !__for_first_214 { i = add(&i, &Value::Int(1)); } __for_first_214 = false; is_less_than(&i, &get_array_length(&transfers)) } {
+            let mut __for_first_215: bool = true;
+            while { if !__for_first_215 { i = add(&i, &Value::Int(1)); } __for_first_215 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut entry: Value = get_value(&transfers, &i);
             let mut entry: Value = get_value(&transfers, &i);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);

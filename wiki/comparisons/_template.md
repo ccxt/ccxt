@@ -86,7 +86,7 @@ single question that decides between them.>
 | | **CCXT** | **<Thing>** |
 | --- | --- | --- |
 | Exchanges covered | 104 | |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | |
 | Packages to install | 1 (`ccxt`) | |
 | Unified market data + trading API | yes | |
 | WebSockets | yes, `watch*` methods | |
@@ -159,7 +159,7 @@ the rest — a padded page is worse than a short one.>
 
 ### Portability is the whole point
 ### One package versus many
-### Seven languages, one API
+### Eight languages, one API
 ### WebSockets that look like REST
 ### Rate limits you do not have to model
 ### Precision, rounding and string math

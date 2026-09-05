@@ -1230,7 +1230,7 @@ func (this *BitvavoCore) HandleUnsubscriptionStatus(client any, message any) any
 			continue
 		}
 		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), key)
-		var subHash any = ccxt.Replace(key, "unsubscribe:", "")
+		var subHash string = ccxt.Replace(key, "unsubscribe:", "")
 		this.CleanCache(subscription)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, key)
 		// bitvavo resolves-and-deletes the data futures on every message, so at
@@ -1664,7 +1664,7 @@ func (this *BitvavoCore) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any
 }
 func (this *BitvavoCore) RequestId() any {
 	var ts string = ccxt.ToString(this.Milliseconds())
-	var randomNumber any = this.RandNumber(4)
+	var randomNumber int64 = this.RandNumber(4)
 	var randomPart string = ccxt.ToString(randomNumber)
 	return ccxt.ParseInt(ccxt.Add(ts, randomPart))
 }

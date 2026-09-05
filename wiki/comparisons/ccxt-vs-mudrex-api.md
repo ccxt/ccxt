@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Mudrex API and the official Mudrex Python SDK -->
 <!-- description: Mudrex ships an official Python-only futures SDK with no throttling and no WebSockets. Compare it with CCXT on coverage, streaming, rate limiting and languages. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: mudrex-sdk is Python-only, wraps the futures trading API and states plainly that it does not throttle requests. CCXT covers the same API with 30 unified capabilities, three watch* methods and a rate limiter that is on by default, in seven languages. -->
+<!-- summary: mudrex-sdk is Python-only, wraps the futures trading API and states plainly that it does not throttle requests. CCXT covers the same API with 30 unified capabilities, three watch* methods and a rate limiter that is on by default, in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Mudrex API and the official Mudrex Python SDK
@@ -15,7 +15,7 @@ Mudrex publishes one client library: [`mudrex-python-sdk`](https://github.com/mu
 ## TL;DR
 
 - **Pick `mudrex-sdk`** if you are in Python, Mudrex is your only venue, and you want method and field names that match Mudrex's own reference exactly — `place_order(..., order_type="LONG", trigger_type="MARKET")` is Mudrex's model, not a translation of it.
-- **Pick CCXT** if you want market data as well as trading, WebSocket candles and tickers, a rate limiter that is on by default, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you want market data as well as trading, WebSocket candles and tickers, a rate limiter that is on by default, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **Rate limiting is the sharpest difference.** The SDK's README states: "This SDK does **not** throttle requests — it fires them immediately… You are responsible for pacing your requests." CCXT's throttler is on by default with per-endpoint weights.
 
 ## At a glance
@@ -23,7 +23,7 @@ Mudrex publishes one client library: [`mudrex-python-sdk`](https://github.com/mu
 | | **CCXT** | **`mudrex-sdk`** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Mudrex is one of them) | Mudrex only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python 3.9+ only |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python 3.9+ only |
 | Scope | market data + trading | trading API only (`TradeClient`) |
 | Unified market data + trading API | yes — same method names across every exchange | no — Mudrex's own request/response shapes |
 | Unified capabilities implemented | 30 for `mudrex`, of which 14 are `fetch*` | n/a |
@@ -169,9 +169,9 @@ price = exchange.price_to_precision('BTC/USDT:USDT', 61234.56789)
 
 The SDK explicitly leaves this to you — its troubleshooting section walks through the "Order value less than minimum required value" error and tells you to read `min_order_value` from `get_future(symbol)` yourself.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in every one. `mudrex-sdk` is Python only.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in every one. `mudrex-sdk` is Python only.
 
 <!-- tabs:start -->
 

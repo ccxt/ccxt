@@ -1830,7 +1830,7 @@ class bitopro extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawal(...))($id, $code, $params);
     }
 

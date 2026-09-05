@@ -1865,7 +1865,7 @@ fetch all the accounts associated with a profile
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 
 | Param | Type | Required | Description |
@@ -5949,6 +5949,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [independentreserve](/exchanges/independentreserve.md#fetchticker)
 * [indodax](/exchanges/indodax.md#fetchticker)
 * [kraken](/exchanges/kraken.md#fetchticker)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchticker)
 * [kucoin](/exchanges/kucoin.md#fetchticker)
 * [latoken](/exchanges/latoken.md#fetchticker)
 * [lbank](/exchanges/lbank.md#fetchticker)

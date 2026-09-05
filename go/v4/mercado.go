@@ -348,7 +348,7 @@ func (this *MercadoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	//
 	var result any = []any{}
 	var amountLimits any = this.SafeValue(this.Options, "limits", map[string]any{})
-	var coins any = this.ToArray(response)
+	var coins []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
 		var coin any = GetValue(coins, i)
 		var baseId any = coin

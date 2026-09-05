@@ -293,9 +293,9 @@ func (this *BitflyerCore) Describe() any {
 	})
 }
 func (this *BitflyerCore) ParseExpiryDate(expiry any) any {
-	var day any = Slice(expiry, 0, 2)
-	var monthName any = Slice(expiry, 2, 5)
-	var year any = Slice(expiry, 5, 9)
+	var day string = Slice(expiry, 0, 2)
+	var monthName string = Slice(expiry, 2, 5)
+	var year string = Slice(expiry, 5, 9)
 	var months map[string]any = map[string]any{
 		"JAN": "01",
 		"FEB": "02",
@@ -415,7 +415,7 @@ func (this *BitflyerCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 				baseId = Slice(id, 0, 3)
 				quoteId = Slice(id, 3, 6)
 				// last 9 chars are expiry date
-				var expiryDate any = Slice(id, OpNeg(9), nil)
+				var expiryDate string = Slice(id, OpNeg(9), nil)
 				expiry = this.ParseExpiryDate(expiryDate)
 			} else {
 				var splitAlias []string = Split(alias, "_")

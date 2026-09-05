@@ -595,7 +595,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbol));
     }
 
@@ -608,7 +608,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
@@ -630,9 +630,9 @@ public partial class pacifica : ccxt.pacifica
         object tickers = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            return this.filterByArrayTickers(tickers, "symbol", symbols);
+            return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
         }
-        return this.tickers;
+        return ccxt.BaseExchange.ToTickers(this.tickers);
     }
 
     /**

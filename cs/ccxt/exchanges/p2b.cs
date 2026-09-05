@@ -343,7 +343,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
@@ -377,7 +377,7 @@ public partial class p2b : Exchange
         //    }
         //
         object markets = this.safeList(response, "result", new List<object>() {});
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
@@ -450,7 +450,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -484,7 +484,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        return this.parseTickers(result, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -609,7 +609,7 @@ public partial class p2b : Exchange
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -652,7 +652,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object timestamp = this.safeIntegerProduct(response, "current_time", 1000);
-        return this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
     }
 
     /**
@@ -866,7 +866,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -892,7 +892,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        return this.parseBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
     }
 
     public override object parseBalance(object response)

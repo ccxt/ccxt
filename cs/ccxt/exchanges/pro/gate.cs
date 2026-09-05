@@ -838,7 +838,7 @@ public partial class gate : ccxt.gate
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
-        object result = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(result, symbolVar));
     }
 
@@ -853,12 +853,10 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {
-            { "method", "tickers" },
-        }, parameters));
+        return ccxt.BaseExchange.ToTickers(await this.subscribeWatchTickersAndBidsAsks(symbols, "watchTickers", this.extend(new Dictionary<string, object>() {             { "method", "tickers" },         }, parameters)));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -1631,9 +1629,7 @@ public partial class gate : ccxt.gate
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        object positions = await this.FetchPositions(null, new Dictionary<string, object>() {
-            { "type", type },
-        });
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, }));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

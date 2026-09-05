@@ -76,10 +76,27 @@ const KNOWN_STRUCT_TYPES = new Map<string, string>([
     ['Greeks', 'Greeks'],
     ['Fee', 'Fee'],
     ['CrossBorrowRate', 'BorrowRate'],
-    ['IsolatedBorrowRate', 'BorrowRate'],
+    // Isolated rates carry `symbol`/`base`/`baseRate`/`quote`/`quoteRate` —
+    // none of which `BorrowRate::from_value` reads, so mapping them onto the
+    // cross-margin struct silently decoded to all-`None`.
+    ['IsolatedBorrowRate', 'IsolatedBorrowRate'],
     ['BorrowRate', 'BorrowRate'],
     ['BorrowInterest', 'BorrowInterest'],
     ['Status', 'Status'],
+    ['MarginModification', 'MarginModification'],
+    ['Conversion', 'Conversion'],
+    ['ADL', 'ADL'],
+    ['LongShortRatio', 'LongShortRatio'],
+    ['FundingRateHistory', 'FundingRateHistory'],
+    ['FundingHistory', 'FundingHistory'],
+    ['Account', 'Account'],
+    ['PositionModeInfo', 'PositionModeInfo'],
+    // TS `Option` (the options-contract snapshot) collides with Rust's
+    // `core::option::Option`, so the Rust struct is `OptionContract`.
+    ['Option', 'OptionContract'],
+    ['LastPrice', 'LastPrice'],
+    ['DepositWithdrawFee', 'DepositWithdrawFee'],
+    ['MarginLoan', 'MarginLoan'],
 ]);
 
 // Plural CCXT collection types — these are `pub type X = HashMap<String, T>;`
@@ -95,6 +112,19 @@ const KNOWN_MAP_TYPES = new Map<string, string>([
     ['Leverages', 'Leverage'],
     ['MarginModes', 'MarginMode'],
     ['TradingFees', 'TradingFee'],
+    ['CrossBorrowRates', 'BorrowRate'],
+    ['IsolatedBorrowRates', 'IsolatedBorrowRate'],
+    ['LastPrices', 'LastPrice'],
+    ['OptionChain', 'OptionContract'],
+    ['DepositWithdrawFees', 'DepositWithdrawFee'],
+    ['AllGreeks', 'Greeks'],
+    ['DepositAddresses', 'DepositAddress'],
+]);
+
+// Collection types whose entries are LISTS of a struct —
+// `pub type X = HashMap<String, Vec<T>>;` in `types.rs` (TS: `Dictionary<T[]>`).
+const KNOWN_MAP_OF_VEC_TYPES = new Map<string, string>([
+    ['LeverageTiers', 'LeverageTier'],
 ]);
 
 // Combined lookup for "is this a name we can produce a decoder for?".
@@ -106,6 +136,10 @@ function knownReturnType(name: string): { rustType: string, decode: (v: string) 
     const mapElem = KNOWN_MAP_TYPES.get(name);
     if (mapElem) {
         return { rustType: name, decode: v => `dict_from_value(&${v}, ${mapElem}::from_value)` };
+    }
+    const mapVecElem = KNOWN_MAP_OF_VEC_TYPES.get(name);
+    if (mapVecElem) {
+        return { rustType: name, decode: v => `dict_from_value(&${v}, |row| vec_from_value(&row, ${mapVecElem}::from_value))` };
     }
     return null;
 }
@@ -160,6 +194,10 @@ interface MethodInfo {
 const ALLOWED_PREFIXES = [
     'fetch', 'create', 'edit', 'cancel', 'close',
     'setP', 'setM', 'setL', 'transfer', 'withdraw',
+    // Margin-account unified methods (`borrowCrossMargin`, `repayIsolatedMargin`,
+    // `addMargin`, `reduceMargin`, …). Without these the `Promise<MarginLoan>` /
+    // `Promise<MarginModification>` methods never reach `mapReturnType` at all.
+    'borrow', 'repay', 'addMargin', 'reduceMargin',
     // WS (`watch*`) methods — emitted only into the `ccxt_pro` typed layer;
     // the REST / prediction passes filter them out (they'd never be reachable
     // on a REST/prediction Core anyway).

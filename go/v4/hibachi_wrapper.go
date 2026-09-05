@@ -820,7 +820,7 @@ func (this *Hibachi) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @param {int} [params.until] timestamp in ms of the latest settlement
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
  */
-func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) (map[string]any, error) {
+func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchMySettlementHistoryOptionsStruct{}
 
@@ -837,9 +837,9 @@ func (this *Hibachi) FetchMySettlementHistory(options ...FetchMySettlementHistor
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMySettlementHistory(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1039,7 +1039,7 @@ func (this *Hibachi) EditOrderWithClientOrderId(clientOrderId string, symbol str
 func (this *Hibachi) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Hibachi) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Hibachi) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Hibachi) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1078,7 +1078,7 @@ func (this *Hibachi) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Hibachi) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Hibachi) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Hibachi) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Hibachi) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {

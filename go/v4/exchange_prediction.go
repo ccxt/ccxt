@@ -142,7 +142,7 @@ func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs 
     result = this.FilterEventsByTags(result, this.SafeList(params, "tags"))
     // own-line length read so the regex transpiler treats `queries` as an array (count())
     // and not a string (strlen()); guard undefined since the default is undefined
-    var queriesLength any = 0
+    var queriesLength int = 0
     if IsTrue(!IsEqual(queries, nil)) {
         queriesLength = GetArrayLength(queries)
     }
@@ -206,7 +206,7 @@ func  (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any,
     // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
     searchIn := GetArg(optionalArgs, 0, nil)
     _ = searchIn
-    var queriesLength any = 0
+    var queriesLength int = 0
     if IsTrue(!IsEqual(queries, nil)) {
         queriesLength = GetArrayLength(queries)
     }
@@ -252,7 +252,7 @@ func  (this *PredictionExchange) NormalizeTagKey(tag any) any  {
     // plain concatenation would create ("us open" vs "household")
     var lower string = ToLower(tag)
     var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
-    var chars any = this.StringToCharsArray(lower)
+    var chars []string = this.StringToCharsArray(lower)
     var s any = ""
     var pendingSep bool = false
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
@@ -536,7 +536,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
     var lower any = Ternary(IsTrue((IsEqual(slug, nil))), "", ToLower(slug))
     var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
-    var chars any = this.StringToCharsArray(lower)
+    var chars []string = this.StringToCharsArray(lower)
     var s any = ""
     var lastDash bool = true // start true to drop leading separators
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
@@ -565,7 +565,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
             AppendToArray(&parts, w)
         }
     }
-    var joined any = Join(parts, "_")
+    var joined string = Join(parts, "_")
     return ToUpper(joined)
 }
 func  (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any) any  {
@@ -597,7 +597,7 @@ func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug a
     }
     var upper string = ToUpper(outcome)
     var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    var chars any = this.StringToCharsArray(upper)
+    var chars []string = this.StringToCharsArray(upper)
     var label any = ""
     var pendingSep bool = false
     for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
@@ -624,7 +624,7 @@ func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) an
     // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
     currencies := GetArg(optionalArgs, 0, nil)
     _ = currencies
-    var marketsList any = this.ToArray(markets)
+    var marketsList []any = this.ToArray(markets)
     var aliased any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(marketsList)); i++ {
         var row any = GetValue(marketsList, i)
@@ -676,7 +676,7 @@ func  (this *PredictionExchange) IndexMarketOutcomes(market any)  {
             if IsTrue(!IsEqual(existing, nil)) {
                 var existingId any = this.SafeString(existing, "outcomeId")
                 if IsTrue(IsTrue(IsTrue((!IsEqual(existingId, nil))) && IsTrue((!IsEqual(ocId, nil)))) && IsTrue((!IsEqual(existingId, ocId)))) {
-                    var idLen any =                     GetLength(ocId)
+                    var idLen int =                     GetLength(ocId)
                     var suffix any = ocId
                     if IsTrue(IsGreaterThan(idLen, 6)) {
                         suffix = Slice(ocId, Subtract(idLen, 6), nil)
@@ -898,7 +898,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
         return nil
     }
     // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-    var normalized any = Replace(ToLower(marketPart), "-", "_")
+    var normalized string = Replace(ToLower(marketPart), "-", "_")
     var rawWords []string = Split(normalized, "_")
     var words any = []any{}
     var hasLetters bool = false
@@ -911,7 +911,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
             continue
         }
         var wordHasLetters bool = false
-        var chars any = this.StringToCharsArray(word)
+        var chars []string = this.StringToCharsArray(word)
         for ci := 0; IsLessThan(ci, GetArrayLength(chars)); ci++ {
             if IsTrue(IsGreaterThanOrEqual(GetIndexOf(letters, GetValue(chars, ci)), 0)) {
                 wordHasLetters = true
@@ -2012,7 +2012,7 @@ func  (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs 
     _ = limit
     params := GetArg(optionalArgs, 3, map[string]any {})
     _ = params
-    var rows any = this.ToArray(trades)
+    var rows []any = this.ToArray(trades)
     var results any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(GetValue(rows, i), outcomeObj)
@@ -2045,7 +2045,7 @@ func  (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs 
     _ = limit
     params := GetArg(optionalArgs, 3, map[string]any {})
     _ = params
-    var rows any = this.ToArray(orders)
+    var rows []any = this.ToArray(orders)
     var results any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(GetValue(rows, i), outcomeObj)
@@ -2072,7 +2072,7 @@ func  (this *PredictionExchange) ParsePredictionPositions(positions any, optiona
     // per venue: kalshi positions are market-level, polymarket ones are per token)
     params := GetArg(optionalArgs, 0, map[string]any {})
     _ = params
-    var rows any = this.ToArray(positions)
+    var rows []any = this.ToArray(positions)
     var results any = []any{}
     for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(GetValue(rows, i))
@@ -2131,7 +2131,7 @@ func  (this *PredictionExchange) PadHexToEven(hex any) any  {
         return ""
     }
     // prepend a nibble so the hex has an even number of characters (whole bytes)
-    var hexLength any =     GetLength(hex)
+    var hexLength int =     GetLength(hex)
     if IsTrue(!IsEqual((Mod(hexLength, 2)), 0)) {
         return Add("0", hex)
     }
@@ -2142,7 +2142,7 @@ func  (this *PredictionExchange) PadHexAddress(address any) any  {
         return ""
     }
     // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-    var stripped any = this.Remove0xPrefix(address)
+    var stripped string = this.Remove0xPrefix(address)
     return Add("000000000000000000000000", stripped)
 }
 func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {

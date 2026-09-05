@@ -27,6 +27,11 @@ func (this *KrakenfuturesCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
+// PublicGetTickersSymbol returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PublicGetTickersSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickersSymbol", args...)
+}
+
 // PublicGetHistory returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PublicGetHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHistory", args...)

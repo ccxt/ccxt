@@ -1172,7 +1172,7 @@ func (this *BackpackCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, "endTime", this.ParseToInt(Divide(until, 1000))) // convert milliseconds to seconds
 	}
-	var defaultLimit any = 100
+	var defaultLimit int = 100
 	if IsTrue(IsEqual(since, nil)) {
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = defaultLimit
@@ -1192,7 +1192,7 @@ func (this *BackpackCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 
 	response := (<-this.PublicGetApiV1Klines(this.Extend(request, params)))
 	PanicOnError(response)
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -1414,7 +1414,7 @@ func (this *BackpackCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 	//     ]
 	//
 	var rates any = []any{}
-	var rawRates any = this.ToArray(response)
+	var rawRates []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawRates)); i++ {
 		var rate any = GetValue(rawRates, i)
 		var datetime any = this.SafeString(rate, "intervalEndTimestamp")
@@ -1427,7 +1427,7 @@ func (this *BackpackCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 			"datetime":    datetime,
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -1483,7 +1483,7 @@ func (this *BackpackCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		response = (<-this.PublicGetApiV1Trades(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var responseList any = this.ToArray(response)
+	var responseList []any = this.ToArray(response)
 
 	ch <- this.ParseTrades(responseList, market, since, limit)
 	return nil
@@ -1547,7 +1547,7 @@ func (this *BackpackCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 
 	response := (<-this.PrivateGetWapiV1HistoryFills(this.Extend(request, params)))
 	PanicOnError(response)
-	var responseList any = this.ToArray(response)
+	var responseList []any = this.ToArray(response)
 
 	ch <- this.ParseTrades(responseList, market, since, limit)
 	return nil
@@ -2952,9 +2952,9 @@ func (this *BackpackCore) Sign(path any, optionalArgs ...any) any {
 			}
 			payload = Add(Add(Add(Add(Add(Add(Add("instruction=", instruction), "&"), queryString), "timestamp="), ts), "&window="), recvWindow)
 		}
-		var secretBytes any = this.Base64ToBinary(this.Secret)
+		var secretBytes []byte = this.Base64ToBinary(this.Secret)
 		var seed any = this.ArraySlice(secretBytes, 0, 32)
-		var signature any = Eddsa(this.Encode(payload), seed, ed25519)
+		var signature string = Eddsa(this.Encode(payload), seed, ed25519)
 		headers = map[string]any{
 			"X-Timestamp": ts,
 			"X-Window":    recvWindow,
@@ -2968,7 +2968,7 @@ func (this *BackpackCore) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if IsTrue(IsEqual(method, "GET")) {
-		var query any = this.Urlencode(sortedParams)
+		var query string = this.Urlencode(sortedParams)
 		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			endpoint = Add(endpoint, Add("?", query))
 		}
@@ -2986,7 +2986,7 @@ func (this *BackpackCore) GenerateBatchPayload(params any, ts any, recvWindow an
 	for i := 0; IsLessThan(i, GetArrayLength(params)); i++ {
 		var order any = this.SafeDict(params, i, map[string]any{})
 		var sortedOrder map[string]any = this.Keysort(order)
-		var orderQuery any = this.Urlencode(sortedOrder)
+		var orderQuery string = this.Urlencode(sortedOrder)
 		payload = Add(payload, Add(Add(Add(Add("instruction=", instruction), "&"), orderQuery), "&"))
 		if IsTrue(IsEqual(i, (Subtract(GetArrayLength(params), 1)))) {
 			payload = Add(payload, Add(Add(Add("timestamp=", ts), "&window="), recvWindow))

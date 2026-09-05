@@ -740,7 +740,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_v1($params = array()) {
+    public function fetch_markets_v1($params = array()): array {
         $response = $this->publicSpotGetMarkets($params);
         //
         //     {
@@ -2868,7 +2868,7 @@ class digifinex extends Exchange {
         return $address;
     }
 
-    public function fetch_transactions_by_type(mixed $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_by_type(mixed $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

@@ -142,7 +142,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -152,7 +152,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbols = this.marketSymbols(symbols, null, false);
         string channel = "ticker24h";
         object tickers = await this.watchPublicMultiple(channel, channel, symbols, parameters);
-        return this.filterByArray(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -533,7 +533,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -583,7 +583,7 @@ public partial class bitvavo : ccxt.bitvavo
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**
@@ -1666,10 +1666,10 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarketsWs(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarketsWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchRequest("getMarkets", parameters);
+        return ccxt.BaseExchange.ToMarketInterfaceList(await this.watchRequest("getMarkets", parameters));
     }
 
     /**
@@ -1746,7 +1746,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
-    public async override Task<object> fetchBalanceWs(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1754,7 +1754,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        return await this.watchRequest("privateGetBalance", parameters);
+        return ccxt.BaseExchange.ToBalances(await this.watchRequest("privateGetBalance", parameters));
     }
 
     public virtual void handleFetchBalance(WebSocketClient client, object message)

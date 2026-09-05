@@ -1169,8 +1169,8 @@ impl BitoproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i = add(&i, &Value::Int(1)); } __for_first_387 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_388: bool = true;
+            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1328,8 +1328,8 @@ impl BitoproCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { i = add(&i, &Value::Int(1)); } __for_first_388 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_389: bool = true;
+            while { if !__for_first_389 { i = add(&i, &Value::Int(1)); } __for_first_389 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1596,16 +1596,16 @@ impl BitoproCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_390: bool = true;
-            while { if !__for_first_390 { i = add(&i, &Value::Int(1)); } __for_first_390 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
+            let mut __for_first_391: bool = true;
+            while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&dataKeys)) } {
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut orderIds: Value = get_value(&data, &marketId);
             let mut orderIds: Value = get_value(&data, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_389: bool = true;
-                while { if !__for_first_389 { j = add(&j, &Value::Int(1)); } __for_first_389 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
+                let mut __for_first_390: bool = true;
+                while { if !__for_first_390 { j = add(&j, &Value::Int(1)); } __for_first_390 = false; is_less_than(&j, &get_array_length(&orderIds)) } {
                 append_to_array(&mut orders, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), get_value(&orderIds, &j));

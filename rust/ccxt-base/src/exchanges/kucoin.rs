@@ -3448,8 +3448,8 @@ impl KucoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_875: bool = true;
-            while { if !__for_first_875 { i = add(&i, &Value::Int(1)); } __for_first_875 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
+            let mut __for_first_877: bool = true;
+            while { if !__for_first_877 { i = add(&i, &Value::Int(1)); } __for_first_877 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
             let mut market: Value = get_value(&symbolsData, &i);
             let mut market: Value = get_value(&symbolsData, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -3630,8 +3630,8 @@ impl KucoinCore {
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_876: bool = true;
-            while { if !__for_first_876 { i = add(&i, &Value::Int(1)); } __for_first_876 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_878: bool = true;
+            while { if !__for_first_878 { i = add(&i, &Value::Int(1)); } __for_first_878 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -3843,8 +3843,8 @@ impl KucoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_877: bool = true;
-            while { if !__for_first_877 { i = add(&i, &Value::Int(1)); } __for_first_877 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
+            let mut __for_first_879: bool = true;
+            while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&symbolsData)) } {
             let mut market: Value = get_value(&symbolsData, &i);
             let mut market: Value = get_value(&symbolsData, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -4086,8 +4086,8 @@ impl KucoinCore {
         let mut chainsLength: Value = get_array_length(&chains);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_878: bool = true;
-            while { if !__for_first_878 { j = add(&j, &Value::Int(1)); } __for_first_878 = false; is_less_than(&j, &chainsLength) } {
+            let mut __for_first_880: bool = true;
+            while { if !__for_first_880 { j = add(&j, &Value::Int(1)); } __for_first_880 = false; is_less_than(&j, &chainsLength) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -4224,8 +4224,8 @@ impl KucoinCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_879: bool = true;
-            while { if !__for_first_879 { i = add(&i, &Value::Int(1)); } __for_first_879 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_881: bool = true;
+            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "id", &[]);
@@ -4405,8 +4405,8 @@ impl KucoinCore {
             let mut chains: Value = self.safe_list_k(fee.clone(), "chains", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_880: bool = true;
-                while { if !__for_first_880 { i = add(&i, &Value::Int(1)); } __for_first_880 = false; is_less_than(&i, &get_array_length(&chains)) } {
+                let mut __for_first_882: bool = true;
+                while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&chains)) } {
                 let mut chain: Value = get_value(&chains, &i);
                 let mut chain: Value = get_value(&chains, &i);
                 let mut chainId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -4851,8 +4851,8 @@ impl KucoinCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_881: bool = true;
-            while { if !__for_first_881 { i = add(&i, &Value::Int(1)); } __for_first_881 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_883: bool = true;
+            while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             add_element_to_object(get_value_mut(&mut tickers, &i), &Value::Str("time".to_string()), time.clone());
             let mut ticker: Value = self.parse_spot_or_uta_ticker(get_value(&tickers, &i), &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
@@ -5701,7 +5701,7 @@ impl KucoinCore {
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
- * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
     pub async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -6762,8 +6762,8 @@ impl KucoinCore {
         let mut isContract: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_882: bool = true;
-            while { if !__for_first_882 { i = add(&i, &Value::Int(1)); } __for_first_882 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_884: bool = true;
+            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             if is_equal(&symbol, &Value::Null) {
@@ -6815,8 +6815,8 @@ impl KucoinCore {
         let mut symbol: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_883: bool = true;
-            while { if !__for_first_883 { i = add(&i, &Value::Int(1)); } __for_first_883 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_885: bool = true;
+            while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -6930,8 +6930,8 @@ impl KucoinCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_884: bool = true;
-            while { if !__for_first_884 { i = add(&i, &Value::Int(1)); } __for_first_884 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_886: bool = true;
+            while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -10908,12 +10908,10 @@ impl KucoinCore {
             let mut assets: Value = self.safe_value_k(data.clone(), "assets", &[data.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_885: bool = true;
-                while { if !__for_first_885 { i = add(&i, &Value::Int(1)); } __for_first_885 = false; is_less_than(&i, &get_array_length(&assets)) } {
+                let mut __for_first_887: bool = true;
+                while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&assets)) } {
                 let mut entry: Value = get_value(&assets, &i);
                 let mut entry: Value = get_value(&assets, &i);
-                let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
-                let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("_".to_string())]);
                 let mut base: Value = self.safe_dict_k(entry.clone(), "baseAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10924,17 +10922,12 @@ impl KucoinCore {
 })]);
                 let mut baseCode: Value = self.safe_currency_code(self.safe_string_k(base.clone(), "currency", &[]), &[]);
                 let mut quoteCode: Value = self.safe_currency_code(self.safe_string_k(quote.clone(), "currency", &[]), &[]);
-                let mut subResult: Value = Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                });
                 if !is_equal(&baseCode, &Value::Null) {
-                    add_element_to_object(&mut subResult, &baseCode, self.parse_balance_helper(base.clone()));
+                    result = self.merge_balance_account(result.clone(), baseCode.clone(), self.parse_balance_helper(base.clone()));
                 }
                 if !is_equal(&quoteCode, &Value::Null) {
-                    add_element_to_object(&mut subResult, &quoteCode, self.parse_balance_helper(quote.clone()));
+                    result = self.merge_balance_account(result.clone(), quoteCode.clone(), self.parse_balance_helper(quote.clone()));
                 }
-                add_element_to_object(&mut result, &symbol, self.safe_balance(subResult.clone()));
             }
             }
         }  else if is_true(&cross) {
@@ -10945,8 +10938,8 @@ impl KucoinCore {
             let mut accounts: Value = self.safe_list_k(data.clone(), "accounts", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_886: bool = true;
-                while { if !__for_first_886 { i = add(&i, &Value::Int(1)); } __for_first_886 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+                let mut __for_first_888: bool = true;
+                while { if !__for_first_888 { i = add(&i, &Value::Int(1)); } __for_first_888 = false; is_less_than(&i, &get_array_length(&accounts)) } {
                 let mut balance: Value = get_value(&accounts, &i);
                 let mut balance: Value = get_value(&accounts, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -10960,8 +10953,8 @@ impl KucoinCore {
             let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_887: bool = true;
-                while { if !__for_first_887 { i = add(&i, &Value::Int(1)); } __for_first_887 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_889: bool = true;
+                while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut balance: Value = get_value(&data, &i);
                 let mut balance: Value = get_value(&data, &i);
                 let mut balanceType: Value = self.safe_string_k(balance.clone(), "type", &[]);
@@ -10979,11 +10972,7 @@ impl KucoinCore {
             }
             }
         }
-        let mut returnType: Value = result.clone();
-        if !is_true(&isolated) {
-            returnType = self.safe_balance(result.clone());
-        }
-        return returnType;
+        return self.safe_balance(result.clone());
 
     Value::Null
 }
@@ -11187,21 +11176,15 @@ impl KucoinCore {
         if is_true(&isIsolated) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_889: bool = true;
-                while { if !__for_first_889 { i = add(&i, &Value::Int(1)); } __for_first_889 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+                let mut __for_first_891: bool = true;
+                while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&accounts)) } {
                 let mut entry: Value = get_value(&accounts, &i);
                 let mut entry: Value = get_value(&accounts, &i);
-                let mut marketId: Value = self.safe_string_k(entry.clone(), "accountSubtype", &[]);
-                let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
-                let mut subResult: Value = Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                    m
-                });
                 let mut currencies: Value = self.safe_list_k(entry.clone(), "currencies", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_888: bool = true;
-                    while { if !__for_first_888 { j = add(&j, &Value::Int(1)); } __for_first_888 = false; is_less_than(&j, &get_array_length(&currencies)) } {
+                    let mut __for_first_890: bool = true;
+                    while { if !__for_first_890 { j = add(&j, &Value::Int(1)); } __for_first_890 = false; is_less_than(&j, &get_array_length(&currencies)) } {
                     let mut currencyEntry: Value = self.safe_dict(currencies.clone(), j.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11209,11 +11192,10 @@ impl KucoinCore {
                     let mut currencyId: Value = self.safe_string_k(currencyEntry.clone(), "currency", &[]);
                     let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     if !is_equal(&currencyCode, &Value::Null) {
-                        add_element_to_object(&mut subResult, &currencyCode, self.parse_balance_helper(currencyEntry.clone()));
+                        result = self.merge_balance_account(result.clone(), currencyCode.clone(), self.parse_balance_helper(currencyEntry.clone()));
                     }
                 }
                 }
-                add_element_to_object(&mut result, &symbol, self.safe_balance(subResult.clone()));
             }
             }
         }  else {
@@ -11224,8 +11206,8 @@ impl KucoinCore {
             let mut currencies: Value = self.safe_list_k(firstAccount.clone(), "currencies", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_890: bool = true;
-                while { if !__for_first_890 { i = add(&i, &Value::Int(1)); } __for_first_890 = false; is_less_than(&i, &get_array_length(&currencies)) } {
+                let mut __for_first_892: bool = true;
+                while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&currencies)) } {
                 let mut currencyEntry: Value = self.safe_dict(currencies.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11238,11 +11220,7 @@ impl KucoinCore {
             }
             }
         }
-        let mut returnType: Value = result.clone();
-        if !is_true(&isIsolated) {
-            returnType = self.safe_balance(result.clone());
-        }
-        return returnType;
+        return self.safe_balance(result.clone());
 
     Value::Null
 }
@@ -12458,8 +12436,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_891: bool = true;
-            while { if !__for_first_891 { i = add(&i, &Value::Int(1)); } __for_first_891 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_893: bool = true;
+            while { if !__for_first_893 { i = add(&i, &Value::Int(1)); } __for_first_893 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut item: Value = get_value(&response, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "currency", &[]), &[]);
@@ -12477,8 +12455,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut keys: Value = object_keys(&borrowRateHistories);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_892: bool = true;
-            while { if !__for_first_892 { i = add(&i, &Value::Int(1)); } __for_first_892 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_894: bool = true;
+            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut code: Value = get_value(&keys, &i);
             let mut code: Value = get_value(&keys, &i);
             { let __be_tmp = self.filter_by_currency_since_limit(get_value(&borrowRateHistories, &code), &[code.clone(), since.clone(), limit.clone()]); add_element_to_object(&mut borrowRateHistories, &code, __be_tmp); };
@@ -13416,8 +13394,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut fees: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_893: bool = true;
-            while { if !__for_first_893 { i = add(&i, &Value::Int(1)); } __for_first_893 = false; is_less_than(&i, &get_array_length(&dataList)) } {
+            let mut __for_first_895: bool = true;
+            while { if !__for_first_895 { i = add(&i, &Value::Int(1)); } __for_first_895 = false; is_less_than(&i, &get_array_length(&dataList)) } {
             let mut listItem: Value = get_value(&dataList, &i);
             let mut listItem: Value = get_value(&dataList, &i);
             let mut timestamp: Value = self.safe_integer2(listItem.clone(), Value::Str("timePoint".to_string()), Value::Str("settlementTime".to_string()), &[]);
@@ -13976,8 +13954,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut useClientorderId: Value = Value::Bool(false);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_894: bool = true;
-            while { if !__for_first_894 { i = add(&i, &Value::Int(1)); } __for_first_894 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
+            let mut __for_first_896: bool = true;
+            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
             useClientorderId = Value::Bool(true);
             if is_equal(&symbol, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument when cancelling by clientOrderIds".to_string()))));
@@ -13992,8 +13970,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_895: bool = true;
-            while { if !__for_first_895 { i = add(&i, &Value::Int(1)); } __for_first_895 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_897: bool = true;
+            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut orderId: Value = get_value(&ids, &i);
             let mut orderId: Value = get_value(&ids, &i);
             if is_true(&uta) {
@@ -14598,8 +14576,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_896: bool = true;
-            while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&info)) } {
+            let mut __for_first_898: bool = true;
+            while { if !__for_first_898 { i = add(&i, &Value::Int(1)); } __for_first_898 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14698,8 +14676,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut tiers: Value = self.parse_market_leverage_tiers(data.clone(), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_897: bool = true;
-            while { if !__for_first_897 { i = add(&i, &Value::Int(1)); } __for_first_897 = false; is_less_than(&i, &get_array_length(&tiers)) } {
+            let mut __for_first_899: bool = true;
+            while { if !__for_first_899 { i = add(&i, &Value::Int(1)); } __for_first_899 = false; is_less_than(&i, &get_array_length(&tiers)) } {
             let mut tier: Value = self.safe_dict(tiers.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(tier.clone(), "symbol", &[]);
             if !is_equal(&symbol, &Value::Null) {

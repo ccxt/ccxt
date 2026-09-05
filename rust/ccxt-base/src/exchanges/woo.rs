@@ -2005,8 +2005,8 @@ impl WooCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1115: bool = true;
-            while { if !__for_first_1115 { i = add(&i, &Value::Int(1)); } __for_first_1115 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_1117: bool = true;
+            while { if !__for_first_1117 { i = add(&i, &Value::Int(1)); } __for_first_1117 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2128,8 +2128,8 @@ impl WooCore {
         let mut currencyIds: Value = object_keys(&tokensById);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1116: bool = true;
-            while { if !__for_first_1116 { i = add(&i, &Value::Int(1)); } __for_first_1116 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_1118: bool = true;
+            while { if !__for_first_1118 { i = add(&i, &Value::Int(1)); } __for_first_1118 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut id: Value = get_value(&currencyIds, &i);
             let mut id: Value = get_value(&currencyIds, &i);
             let mut customCurrency: Value = Value::Map({
@@ -2163,8 +2163,8 @@ impl WooCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1117: bool = true;
-            while { if !__for_first_1117 { j = add(&j, &Value::Int(1)); } __for_first_1117 = false; is_less_than(&j, &get_array_length(&keys)) } {
+            let mut __for_first_1119: bool = true;
+            while { if !__for_first_1119 { j = add(&j, &Value::Int(1)); } __for_first_1119 = false; is_less_than(&j, &get_array_length(&keys)) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
@@ -3703,8 +3703,8 @@ impl WooCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1118: bool = true;
-            while { if !__for_first_1118 { i = add(&i, &Value::Int(1)); } __for_first_1118 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1120: bool = true;
+            while { if !__for_first_1120 { i = add(&i, &Value::Int(1)); } __for_first_1120 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -5037,8 +5037,8 @@ impl WooCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1119: bool = true;
-            while { if !__for_first_1119 { i = add(&i, &Value::Int(1)); } __for_first_1119 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1121: bool = true;
+            while { if !__for_first_1121 { i = add(&i, &Value::Int(1)); } __for_first_1121 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5155,8 +5155,8 @@ impl WooCore {
         let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { i = add(&i, &Value::Int(1)); } __for_first_1120 = false; is_less_than(&i, &get_array_length(&details)) } {
+            let mut __for_first_1122: bool = true;
+            while { if !__for_first_1122 { i = add(&i, &Value::Int(1)); } __for_first_1122 = false; is_less_than(&i, &get_array_length(&details)) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5881,8 +5881,8 @@ impl WooCore {
         let mut data: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1121: bool = true;
-            while { if !__for_first_1121 { i = add(&i, &Value::Int(1)); } __for_first_1121 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1123: bool = true;
+            while { if !__for_first_1123 { i = add(&i, &Value::Int(1)); } __for_first_1123 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
@@ -6057,8 +6057,8 @@ impl WooCore {
         let mut networkKeys: Value = object_keys(&networks);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1122: bool = true;
-            while { if !__for_first_1122 { i = add(&i, &Value::Int(1)); } __for_first_1122 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
+            let mut __for_first_1124: bool = true;
+            while { if !__for_first_1124 { i = add(&i, &Value::Int(1)); } __for_first_1124 = false; is_less_than(&i, &get_array_length(&networkKeys)) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &Value::Str("ETH".to_string())) {

@@ -946,7 +946,7 @@ class latoken(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' not support self method')
 
-    async def fetch_public_trading_fee(self, symbol: str, params={}):
+    async def fetch_public_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -972,7 +972,7 @@ class latoken(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def fetch_private_trading_fee(self, symbol: str, params={}):
+    async def fetch_private_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

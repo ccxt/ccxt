@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the dYdX v4 clients -->
 <!-- description: CCXT and dYdX's v4-clients compared on Cosmos transaction signing, indexer versus node, language coverage, streaming, licensing and portability. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: dYdX v4 orders are signed Cosmos transactions, and the official clients make you drive a node client and an indexer client separately. CCXT builds and broadcasts the same transaction behind one create_order, in seven languages. -->
+<!-- summary: dYdX v4 orders are signed Cosmos transactions, and the official clients make you drive a node client and an indexer client separately. CCXT builds and broadcasts the same transaction behind one create_order, in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the dYdX v4 clients
@@ -14,8 +14,8 @@ The question that decides it: **do you need the chain, or the exchange?**
 
 ## TL;DR
 
-- **Pick the official clients** if you need dYdX as a *chain* — transfers, staking, governance messages, transaction simulation, the testnet faucet, short-term versus long-term order semantics spelled out — or if you work in Rust or C++.
-- **Pick CCXT** if you want dYdX as an *exchange*: `create_order`, `fetch_positions`, `fetch_balance` meaning the same thing here as on Binance, Bybit and Hyperliquid, in seven languages, with the protobuf encoding and secp256k1 signing already written.
+- **Pick the official clients** if you need dYdX as a *chain* — transfers, staking, governance messages, transaction simulation, the testnet faucet, short-term versus long-term order semantics spelled out — or if you work in C++.
+- **Pick CCXT** if you want dYdX as an *exchange*: `create_order`, `fetch_positions`, `fetch_balance` meaning the same thing here as on Binance, Bybit and Hyperliquid, in eight languages, with the protobuf encoding and secp256k1 signing already written.
 - **Signing is not the thing you give up.** CCXT encodes the order message, looks up your account number and sequence, signs the transaction and broadcasts it over the node RPC — no separate Cosmos library in your code.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides it: **do you need the chain, or the exchange?**
 | | **CCXT** | **dYdX v4-clients** |
 | --- | --- | --- |
 | Venues covered | 104 (dYdX is one of them) | dYdX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | TypeScript (`v4-client-js`, `dydxjs`), Python and Rust (maintained by Nethermind), C++ (third-party, Linux only) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | TypeScript (`v4-client-js`, `dydxjs`), Python and Rust (maintained by Nethermind), C++ (third-party, Linux only) |
 | Packages to install | 1 (`ccxt`) | 1 per language, plus proto dependencies |
 | Unified market data + trading API | yes — 29 unified capabilities, 19 `fetch*` methods | no — chain messages and indexer payloads |
 | Clients to wire up | one `ccxt.dydx` instance | a node client *and* an indexer client, separately |
@@ -202,9 +202,9 @@ Basis trades, DEX-versus-CEX hedges and cross-venue liquidation monitors stop be
 
 dYdX v4 is served from three places: the indexer (reads), the node RPC (broadcast) and the node REST (account state). The official Python client gives you a `NodeClient` and an `IndexerClient` and expects you to know which one answers which question. CCXT wires all three into one exchange instance and routes each unified method to the right host — including in sandbox mode, where `set_sandbox_mode(True)` swaps all three at once.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures — the transaction signing included.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures — the transaction signing included.
 
 <!-- tabs:start -->
 
@@ -228,7 +228,7 @@ book, err := exchange.FetchOrderBook("BTC/USDC:USDC")
 
 <!-- tabs:end -->
 
-The official clients cover TypeScript, Python and Rust, plus a third-party C++ client. If your execution service is Go, C#, PHP or Java, CCXT is the shorter path; if it is Rust, `v4-client-rs` is the option and CCXT is not in the running.
+The official clients cover TypeScript, Python and Rust, plus a third-party C++ client. CCXT covers all three of those languages and Go, C#, PHP and Java besides, so the split here is chain access versus exchange coverage rather than language.
 
 ### One error hierarchy
 
@@ -249,13 +249,13 @@ Browse them on the [dYdX implicit API page](/docs/exchanges/dydx/implicit-api).
 Real advantages, not padding:
 
 - **The chain, not just the exchange.** `NodeClient` is a Cosmos client: it can query and send arbitrary chain messages, simulate transactions before broadcasting, and reach the parts of dYdX that are not order entry. CCXT models the exchange surface.
-- **Rust and C++.** `v4-client-rs` (maintained by Nethermind) and the third-party `v4-client-cpp` cover languages CCXT does not ship at all.
+- **C++, and a natively written Rust client.** The third-party `v4-client-cpp` covers a language CCXT does not ship at all, and `v4-client-rs` (maintained by Nethermind) is Rust written as Rust rather than generated into it.
 - **Short-term versus long-term orders, spelled out.** `OrderFlags.SHORT_TERM` and `OrderFlags.LONG_TERM`, `good_til_block` versus `good_til_block_time`, and the client-generated order id are first-class arguments. dYdX's order lifecycle genuinely differs between the two, and the official client makes you choose deliberately.
 - **A faucet client.** The Python package ships a faucet module for funding a testnet account, which is a small thing that saves a real detour.
 - **Private indexer channels.** Subaccount order and fill streams are available through `IndexerSocket`. CCXT's dYdX implementation streams only order books, trades and candles.
 - **`dydxjs` for low-level composition.** If you want to build and broadcast Cosmos and dYdX messages yourself with the proto and amino encoding handled, that is what it is for.
 
-If you are building on dYdX as a chain — vaults, transfers, governance, anything beyond trading — or you work in Rust, the official clients are the better tool.
+If you are building on dYdX as a chain — vaults, transfers, governance, anything beyond trading — the official clients are the better tool.
 
 ## Migrating from v4-client-py-v2 to CCXT
 

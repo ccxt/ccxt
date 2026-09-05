@@ -15,7 +15,7 @@ So the choice is **CCXT or the HTTP client you write yourself**.
 ## TL;DR
 
 - **Write it yourself** if you need DigiFinex's WebSocket feeds, which CCXT does not cover for this venue, or if you want the response fields exactly as DigiFinex names them.
-- **Pick CCXT** if you want spot, margin and swap behind one typed API with the signing, weight budget, precision handling and error mapping already written — in seven languages, and identical to how you already call Binance or OKX.
+- **Pick CCXT** if you want spot, margin and swap behind one typed API with the signing, weight budget, precision handling and error mapping already written — in eight languages, and identical to how you already call Binance or OKX.
 - **Nothing is hidden.** All 88 DigiFinex endpoints are generated as [implicit methods](/docs/exchanges/digifinex/implicit-api), signed and rate-limited, so the unified layer is never a ceiling.
 
 ## At a glance
@@ -23,7 +23,7 @@ So the choice is **CCXT or the HTTP client you write yourself**.
 | | **CCXT** | **Raw DigiFinex API** |
 | --- | --- | --- |
 | Venues covered | 104 (DigiFinex is one of them) | DigiFinex only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | n/a | none — `DigiFinex/api` is documentation only; nothing on npm or PyPI |
 | Unified market data + trading API | yes — 48 unified capabilities, 32 `fetch*` methods | no — DigiFinex's own field names and shapes |
 | Products in one client | spot, margin, swap | two documented API surfaces at different versions and paths |
@@ -153,9 +153,9 @@ Note that DigiFinex answers with `code: 0` on success and a non-zero code on fai
 
 DigiFinex's documented codes include `10005` (request frequency exceeds the limit), `10008` (timestamp invalid), `20007` (price precision error), `20008` (amount precision error) and `20011` (insufficient balance). CCXT maps them onto its [typed exception tree](/docs/manual#error-handling): `DDoSProtection`, `InvalidNonce`, `InvalidOrder`, `InsufficientFunds` and 37 more, all descending from `BaseError`. You write `except ccxt.InsufficientFunds` once and it keeps working on the next exchange, instead of matching on `20011`.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A hand-written DigiFinex client is written once per language, by you — and DigiFinex's own sample snippets cover four.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A hand-written DigiFinex client is written once per language, by you — and DigiFinex's own sample snippets cover four.
 
 <!-- tabs:start -->
 

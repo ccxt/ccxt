@@ -6,7 +6,7 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -422,7 +422,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrenciesFromWeb (params = {}) {
+    async fetchCurrenciesFromWeb (params = {}): Promise<Currencies> {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
             return {};
@@ -532,7 +532,7 @@ export default class gemini extends Exchange {
         return await this.fetchMarketsFromAPI (params);
     }
 
-    async fetchMarketsFromWeb (params = {}) {
+    async fetchMarketsFromWeb (params = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         const tables = data.split ('tbody>');
@@ -644,7 +644,7 @@ export default class gemini extends Exchange {
         return this.safeBool (statuses, status, true);
     }
 
-    async fetchUSDTMarkets (params = {}) {
+    async fetchUSDTMarkets (params = {}): Promise<Market[]> {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         if ('test' in this.urls) {
@@ -664,7 +664,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    async fetchMarketsFromAPI (params = {}) {
+    async fetchMarketsFromAPI (params = {}): Promise<Market[]> {
         const marketIdsRaw = await this.publicGetV1Symbols (params);
         //
         //     [
@@ -1952,11 +1952,10 @@ export default class gemini extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork (code, params);
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const networkGroup = this.indexBy (this.safeValue (groupedByNetwork, networkCode), 'currency');
-        return this.safeValue (networkGroup, code) as DepositAddress;
+        return this.safeValue (indexedByNetwork, networkCode) as DepositAddress;
     }
 
     /**
@@ -1969,7 +1968,7 @@ export default class gemini extends Exchange {
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1986,7 +1985,9 @@ export default class gemini extends Exchange {
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
         const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy (results, 'network') as DepositAddress[];
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy (results, 'network') as DepositAddresses;
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {

@@ -307,8 +307,8 @@ impl UpbitCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut symbol: Value = get_value(&symbols, &i);
@@ -333,8 +333,8 @@ impl UpbitCore {
         let mut channelKeys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&channelKeys)) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&channelKeys)) } {
             let mut key: Value = get_value(&channelKeys, &i);
             let mut key: Value = get_value(&channelKeys, &i);
             append_to_array(&mut finalMessage, get_value(&subscriptions, &key));
@@ -592,8 +592,8 @@ impl UpbitCore {
         let mut data: Value = self.safe_value_k(message.clone(), "orderbook_units", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut ask_price: Value = self.safe_float_k(entry.clone(), "ask_price", &[]);
@@ -753,8 +753,8 @@ impl UpbitCore {
         let mut channelKeys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&channelKeys)) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&channelKeys)) } {
             append_to_array(&mut requests, get_value(&subscriptions, &get_value(&channelKeys, &i)));
         }
         }
@@ -765,8 +765,8 @@ impl UpbitCore {
 })]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&requests)) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&requests)) } {
             append_to_array(&mut message, get_value(&requests, &i));
         }
         }
@@ -1086,8 +1086,8 @@ impl UpbitCore {
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);

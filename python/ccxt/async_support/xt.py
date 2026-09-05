@@ -1109,7 +1109,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.safe_list(data, 'symbols', [])
         return self.parse_markets(symbols)
 
-    async def fetch_swap_and_future_markets(self, params={}):
+    async def fetch_swap_and_future_markets(self, params={}) -> list[Market]:
         markets = await asyncio.gather(*[self.publicLinearGetFutureMarketV1PublicSymbolList(params), self.publicInverseGetFutureMarketV1PublicSymbolList(params)])
         #
         #     {
@@ -2496,7 +2496,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}):
+    async def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params={}) -> Order:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -2556,7 +2556,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}):
+    async def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params={}) -> Order:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

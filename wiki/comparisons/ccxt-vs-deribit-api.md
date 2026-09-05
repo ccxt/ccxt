@@ -13,7 +13,7 @@ What it does not have is a client library. The `deribit` GitHub organisation lis
 ## TL;DR
 
 - **Write it yourself** if you need something CCXT does not model — the FIX interface, combo (multi-leg) instruments as first-class objects, or order entry over the same socket you read from.
-- **Pick CCXT** if you want Deribit's options, futures, perpetuals and spot behind one typed API, with the `deri-hmac-sha256` signing, the credit-based rate limiter, order-book maintenance and reconnects already written — in seven languages.
+- **Pick CCXT** if you want Deribit's options, futures, perpetuals and spot behind one typed API, with the `deri-hmac-sha256` signing, the credit-based rate limiter, order-book maintenance and reconnects already written — in eight languages.
 - **Choosing CCXT does not hide the API.** All 122 Deribit endpoints are generated as [implicit methods](/docs/exchanges/deribit/implicit-api), signed and rate-limited, so anything the unified layer does not cover is still one call away.
 
 ## At a glance
@@ -21,7 +21,7 @@ What it does not have is a client library. The `deribit` GitHub organisation lis
 | | **CCXT** | **Raw Deribit API** |
 | --- | --- | --- |
 | Venues covered | 104 (Deribit is one of them) | Deribit only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | n/a | none published; `deribit_api` on PyPI last released 1.1.1 in September 2017 |
 | Unified market data + trading API | yes — 64 unified capabilities, 33 `fetch*` methods | no — Deribit's own JSON-RPC method names and payloads |
 | Products in one client | spot, futures, perpetuals, options | all of them, as `kind` values you handle yourself |
@@ -217,9 +217,9 @@ exchange.set_sandbox_mode(True)   # swaps in test.deribit.com for REST and WebSo
 
 One flag, both transports. No constant swapping and no forked configuration.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. A hand-written Deribit client is written once per language, by you.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. A hand-written Deribit client is written once per language, by you.
 
 <!-- tabs:start -->
 

@@ -937,7 +937,7 @@ func (this *BtseCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes8218 := (<-this.LoadMarkets())
 	PanicOnError(retRes8218)
-	var maxLimit any = 300
+	var maxLimit int = 300
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1130,7 +1130,7 @@ func (this *BtseCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		period = "7D"
 		if IsTrue(!IsEqual(since, nil)) {
 			var age any = Subtract(this.Milliseconds(), since)
-			var day any = 86400000
+			var day int = 86400000
 			if IsTrue(IsGreaterThan(age, Multiply(14, day))) {
 				period = "1M"
 			} else if IsTrue(IsGreaterThan(age, Multiply(7, day))) {
@@ -4641,7 +4641,7 @@ func (this *BtseCore) Sign(path any, optionalArgs ...any) any {
 	// legacy apis keep DELETE params in the query string, verified live
 	// in both directions
 	var isBodyDelete bool = IsTrue((IsEqual(method, "DELETE"))) && IsTrue((IsEqual(StartsWith(path, "futures/api/v3/"), true)))
-	var queryString any = ""
+	var queryString string = ""
 	if IsTrue(IsTrue((IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE"))))) && !IsTrue(isBodyDelete)) {
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			queryString = this.Urlencode(query)
@@ -4691,7 +4691,7 @@ func (this *BtseCore) FuturesRequestId(market any) any {
 	return this.SafeString(GetValue(market, "info"), "tradeCurrency", GetValue(market, "id"))
 }
 func (this *BtseCore) CleanPath(path any) any {
-	var result any = Replace(path, "spot", "")
+	var result string = Replace(path, "spot", "")
 	result = Replace(result, "futures", "")
 	result = Replace(result, "otc", "")
 	return result

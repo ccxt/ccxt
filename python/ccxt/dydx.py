@@ -2139,7 +2139,7 @@ class dydx(Exchange, ImplicitAPI):
         rows = self.array_concat(withdrawals, deposits)
         return self.parse_transactions(rows, currency, since, limit)
 
-    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         methodName = self.safe_string(params, 'methodName')
         params = self.omit(params, 'methodName')
         userAddress = None

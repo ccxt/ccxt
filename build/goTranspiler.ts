@@ -16,6 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
+import { installCcxtGoLocalTypes } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
@@ -1167,6 +1168,9 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig());
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
+        // build/go-worker.js installs the same hook for the Piscina path
+        installCcxtGoLocalTypes (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {

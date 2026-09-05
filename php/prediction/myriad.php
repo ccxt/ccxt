@@ -1648,7 +1648,7 @@ class myriad extends Exchange {
          *
          * @param {string} [$outcome] unified $outcome; when omitted cancels across all markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} the raw response with the count of cancelled orders
+         * @return {array[]} a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `$info` carries the cancelled count
          */
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a privateKey to sign the cancellation');
@@ -1677,13 +1677,16 @@ class myriad extends Exchange {
             'signature' => $signature,
             'network_id' => $this->parse_to_int($networkId),
         );
-        return Async\await($this->myriadPublicPostOrdersCancelAll($request));
+        $response = Async\await($this->myriadPublicPostOrdersCancelAll($request));
         //
         //     {
         //         "cancelled_count" => 2,
         //         "market_ids_affected" => array( "2cfe87e8-12df-4671-b9a9-0758898fd54b" )
         //     }
         //
+        // the endpoint returns a count, not the orders => hand back one canceled order
+        // structure carrying the raw $response, like limitless does
+        return array( $this->safe_prediction_order(array( 'info' => $response, 'status' => 'canceled' )) );
     }
 
     public function cancel_orders(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {

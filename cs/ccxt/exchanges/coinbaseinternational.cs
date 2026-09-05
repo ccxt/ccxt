@@ -1498,7 +1498,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetInstruments(parameters);
@@ -1551,7 +1551,7 @@ public partial class coinbaseinternational : Exchange
         //        ...
         //    ]
         //
-        return this.parseMarkets(response);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
     public override object parseMarket(object market)
@@ -1744,7 +1744,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1767,7 +1767,7 @@ public partial class coinbaseinternational : Exchange
             object quote = this.safeDict(instrument, "quote", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)tickers)[(string)symbol] = this.parseTicker(quote, this.safeMarket(marketId));
         }
-        return this.filterByArray(tickers, "symbol", symbols, true);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols, true));
     }
 
     /**
@@ -1849,7 +1849,7 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1881,7 +1881,7 @@ public partial class coinbaseinternational : Exchange
         //        }
         //    ]
         //
-        return this.parseBalance(balances);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(balances));
     }
 
     public override object parseBalance(object response)
@@ -1932,7 +1932,7 @@ public partial class coinbaseinternational : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public async override Task<object> transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1948,17 +1948,7 @@ public partial class coinbaseinternational : Exchange
         };
         object response = await this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters));
         object success = this.safeBool(response, "success");
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "id", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "currency", code },
-            { "amount", amount },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
-            { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },
-        };
+        return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", null },             { "timestamp", null },             { "datetime", null },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },         });
     }
 
     /**

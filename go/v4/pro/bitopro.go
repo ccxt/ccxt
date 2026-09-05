@@ -485,7 +485,7 @@ func (this *BitoproCore) Authenticate(url any) {
 		"nonce":    nonce,
 		"identity": this.Login,
 	})
-	var payload any = this.StringToBase64(rawData)
+	var payload string = this.StringToBase64(rawData)
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384)
 	var defaultOptions map[string]any = map[string]any{
 		"ws": map[string]any{

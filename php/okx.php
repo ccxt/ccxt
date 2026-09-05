@@ -1915,7 +1915,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type(mixed $type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()): array {
         $request = array(
             'instType' => $this->convert_to_instrument_type($type),
         );
@@ -3906,7 +3906,10 @@ class okx extends Exchange {
         //     }
         //
         $ordersData = $this->safe_list($response, 'data', array());
-        return $this->parse_orders($ordersData, $market, null, null, $params);
+        // the $request-only keys must not be merged onto every parsed order => a clientOrderIdarray()
+        // $request would otherwise come back list under the unified string field
+        $orderParams = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method' ));
+        return $this->parse_orders($ordersData, $market, null, null, $orderParams);
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array()) {
@@ -5666,7 +5669,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency $deposit via the $deposit $id
          *
@@ -5770,7 +5773,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency $withdrawal via the $withdrawal $id
          *
@@ -7440,7 +7443,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate_histories($data, $codes, $since, $limit);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * retrieves a history of a currencies borrow interest rate at specific time slots
          *
@@ -8525,7 +8528,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->uly Underlying, either $uly or $instFamily is required
          * @param {string} $params->instFamily Instrument family, either $uly or $instFamily is required
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by $market symbol
          */
         if ($this->markets === null) {
             $this->load_markets();

@@ -623,8 +623,8 @@ impl IndodaxCore {
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_827: bool = true;
-            while { if !__for_first_827 { i = add(&i, &Value::Int(1)); } __for_first_827 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_829: bool = true;
+            while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -731,8 +731,8 @@ impl IndodaxCore {
         let mut currencyIds: Value = object_keys(&free);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_828: bool = true;
-            while { if !__for_first_828 { i = add(&i, &Value::Int(1)); } __for_first_828 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_830: bool = true;
+            while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -944,8 +944,8 @@ impl IndodaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_829: bool = true;
-            while { if !__for_first_829 { i = add(&i, &Value::Int(1)); } __for_first_829 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_831: bool = true;
+            while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut rawTicker: Value = get_value(&tickers, &key);
@@ -1293,8 +1293,8 @@ impl IndodaxCore {
         let mut exchangeOrders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_830: bool = true;
-            while { if !__for_first_830 { i = add(&i, &Value::Int(1)); } __for_first_830 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_832: bool = true;
+            while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketOrders: Value = get_value(&rawOrders, &marketId);
@@ -1705,8 +1705,8 @@ impl IndodaxCore {
             let mut keys: Value = object_keys(&withdraw);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_831: bool = true;
-                while { if !__for_first_831 { i = add(&i, &Value::Int(1)); } __for_first_831 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_833: bool = true;
+                while { if !__for_first_833 { i = add(&i, &Value::Int(1)); } __for_first_833 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 transactions = self.array_concat(transactions.clone(), get_value(&withdraw, &key));
@@ -1715,8 +1715,8 @@ impl IndodaxCore {
             keys = object_keys(&deposit);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_832: bool = true;
-                while { if !__for_first_832 { i = add(&i, &Value::Int(1)); } __for_first_832 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_834: bool = true;
+                while { if !__for_first_834 { i = add(&i, &Value::Int(1)); } __for_first_834 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 transactions = self.array_concat(transactions.clone(), get_value(&deposit, &key));
@@ -1949,8 +1949,8 @@ impl IndodaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_834: bool = true;
-            while { if !__for_first_834 { i = add(&i, &Value::Int(1)); } __for_first_834 = false; is_less_than(&i, &get_array_length(&addressKeys)) } {
+            let mut __for_first_836: bool = true;
+            while { if !__for_first_836 { i = add(&i, &Value::Int(1)); } __for_first_836 = false; is_less_than(&i, &get_array_length(&addressKeys)) } {
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut marketId: Value = get_value(&addressKeys, &i);
             let mut code: Value = self.safe_currency_code(marketId.clone(), &[]);
@@ -1971,8 +1971,8 @@ impl IndodaxCore {
                         let mut networkIds: Value = split(&networkId, &Value::Str(",".to_string()));
                         {
                                                         let mut j: Value = Value::Int(0);
-                            let mut __for_first_833: bool = true;
-                            while { if !__for_first_833 { j = add(&j, &Value::Int(1)); } __for_first_833 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+                            let mut __for_first_835: bool = true;
+                            while { if !__for_first_835 { j = add(&j, &Value::Int(1)); } __for_first_835 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
                             let mut _netIdTmp: Value = self.network_id_to_code(&[get_value(&networkIds, &j), code.clone()]);
                             if !is_equal(&_netIdTmp, &Value::Null) {
                                 append_to_array(&mut network, to_upper(&_netIdTmp));

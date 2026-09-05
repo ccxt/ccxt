@@ -209,7 +209,7 @@ public partial class nado : ccxt.nado
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         if (!isTrue((inOp(this.orderbooks, getValue(market, "symbol")))))
         {
-            object snapshot = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit));
+            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
             ((IDictionary<string,object>)this.orderbooks)[(string)getValue(market, "symbol")] = this.orderBook(snapshot, limit);
         }
         object orderbook = await this.watchPublic("book_depth", market, messageHash, parameters);
@@ -263,7 +263,7 @@ public partial class nado : ccxt.nado
             ((IList<object>)messageHashes).Add(messageHash);
             if (!isTrue((inOp(this.orderbooks, getValue(market, "symbol")))))
             {
-                object snapshot = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit));
+                object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
                 ((IDictionary<string,object>)this.orderbooks)[(string)getValue(market, "symbol")] = this.orderBook(snapshot, limit);
             }
         }
@@ -345,7 +345,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of {@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV} structures indexed by market symbols
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbolsAndTimeframes);
@@ -378,7 +378,7 @@ public partial class nado : ccxt.nado
             limit = callDynamically(stored, "getLimit", new object[] {resultSymbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(resultSymbol, resultTimeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(resultSymbol, resultTimeframe, filtered));
     }
 
     /**
@@ -450,7 +450,7 @@ public partial class nado : ccxt.nado
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -479,7 +479,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -502,13 +502,13 @@ public partial class nado : ccxt.nado
         {
             if (isTrue(isEqual(messageHash, "ticker")))
             {
-                return this.filterByArray(ticker, "symbol", symbols);
+                return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbols));
             }
             object tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
-            return tickers;
+            return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -916,7 +916,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         if (isTrue(inOp(placeOrder, "trigger")))
         {
@@ -980,7 +980,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
         if (isTrue(isEqual(requestIdString, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
@@ -1060,7 +1060,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.cancelOrdersRequest(ids, symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         if (isTrue(isEqual(requestIdString, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
@@ -1124,7 +1124,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
         }
-        object request = await this.cancelAllOrdersRequest(symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         if (isTrue(isEqual(requestIdString, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;

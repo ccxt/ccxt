@@ -359,7 +359,7 @@ func (this *Coinspot) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Coinspot) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Coinspot) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Coinspot) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Coinspot) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -404,7 +404,7 @@ func (this *Coinspot) FetchDepositAddress(code string, options ...FetchDepositAd
 func (this *Coinspot) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Coinspot) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Coinspot) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Coinspot) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

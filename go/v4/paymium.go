@@ -875,7 +875,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
-				var queryString any = this.Urlencode(query)
+				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))
 			}

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the BTSE API and the official BTSE Python SDK -->
-<!-- description: BTSE's official SDK is Python-only and installs from source. CCXT covers 59 BTSE capabilities in seven languages, but ships no BTSE WebSocket support. -->
+<!-- description: BTSE's official SDK is Python-only and installs from source. CCXT covers 59 BTSE capabilities in eight languages, but ships no BTSE WebSocket support. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BTSE publishes an official Python SDK that streams. CCXT gives you 59 unified capabilities and all 128 BTSE endpoints in seven languages, but implements zero watch methods for BTSE. -->
+<!-- summary: BTSE publishes an official Python SDK that streams. CCXT gives you 59 unified capabilities and all 128 BTSE endpoints in eight languages, but implements zero watch methods for BTSE. -->
 <!-- weight: 100 -->
 
 # CCXT vs the BTSE API and the official BTSE Python SDK
@@ -13,7 +13,7 @@ The deciding question here is unusually clear, because the two sides do not over
 ## TL;DR
 
 - **Pick the official BTSE SDK** if you are in Python, BTSE is your only venue, and you need WebSocket data. CCXT implements **zero `watch*` methods for BTSE** — the vendor SDK is the only one of the two that streams.
-- **Pick CCXT** if you want 59 unified capabilities (30 of them `fetch*`), all 128 BTSE endpoints as implicit methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you want 59 unified capabilities (30 of them `fetch*`), all 128 BTSE endpoints as implicit methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **The two are not mutually exclusive.** Nothing stops you polling REST through CCXT and running a small vendor-SDK process for the private WebSocket feed. The REST surface is where portability pays; a single venue's socket is where it pays least.
 
 ## At a glance
@@ -21,7 +21,7 @@ The deciding question here is unusually clear, because the two sides do not over
 | | **CCXT** | **Official BTSE Python SDK** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BTSE is one of them) | BTSE only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python |
 | Distribution | `pip install ccxt`, `npm install ccxt`, NuGet, Go modules, Maven | not on PyPI — `git clone` then `pip install -e .` |
 | BTSE products in one client | spot and futures from one `ccxt.btse` instance | `BTSESpotClient` and `BTSEFuturesClient` |
 | Unified market data + trading API | yes — same method names across every exchange | no — BTSE's own payloads, with typed enums |
@@ -120,11 +120,11 @@ BTSE documents WebSocket feeds at `wss://ws.btse.com/ws/spot`, with a separate o
 
 This is the one axis where the vendor SDK is straightforwardly ahead, and it is worth deciding on before anything else on this page.
 
-### Seven languages, one API
+### Eight languages, one API
 
 The official SDK is Python. BTSE also publishes [btsecom/api-sample](https://github.com/btsecom/api-sample), which carries example connectors in Python, Node.js and C# plus a Postman collection — but those are samples, not a library you take a dependency on.
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in all of them.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in all of them.
 
 <!-- tabs:start -->
 

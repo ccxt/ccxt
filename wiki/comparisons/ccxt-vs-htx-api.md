@@ -13,7 +13,7 @@ Both work. The question that decides between them is the same one HTX's own repo
 ## TL;DR
 
 - **Pick the official HTX SDKs** if you trade a single product line, work in one of the five languages they cover, and want request and response models that mirror HTX's API reference literally.
-- **Pick CCXT** if you want spot, margin, futures and swaps in one client, in any of seven languages, with the rate limiter, precision handling, order-book maintenance and error taxonomy already written.
+- **Pick CCXT** if you want spot, margin, futures and swaps in one client, in any of eight languages, with the rate limiter, precision handling, order-book maintenance and error taxonomy already written.
 - **Choosing CCXT does not hide HTX's API.** All 460 HTX endpoints in CCXT's `api` block are generated as [implicit methods](/docs/exchanges/htx/implicit-api), signed and rate-limited like any unified call.
 
 ## At a glance
@@ -21,7 +21,7 @@ Both work. The question that decides between them is the same one HTX's own repo
 | | **CCXT** | **Official HTX SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (HTX is one of them) | HTX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Java, Go, C++, C# — separate codebases per language |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Java, Go, C++, C# — separate codebases per language |
 | Packages to install | **1** (`ccxt`) | **one repository per language, per product line** — spot and contract SDKs are separate projects |
 | HTX products in one client | spot, margin, coin-margined futures, coin-margined swaps, USDT-margined swaps | spot SDK covers spot; a separate contract SDK covers swap, futures and options |
 | Install method | package manager (`pip`, `npm`, `composer`, NuGet, `go get`, Maven) | clone the repo and use the source; the spot Python SDK's README says "download and open the source code directly in your python project" |
@@ -118,9 +118,9 @@ The attention gap between them is visible in the star counts: 689 on the Python 
 
 CCXT ships all of it as one `ccxt.htx` instance. `options.defaultType` selects `spot`, `margin`, `swap` or `future`; the method names do not change.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so method names, arguments and return structures are identical everywhere. HTX's SDKs are five separate codebases with separate idioms and separate release schedules — and no PHP or JavaScript SDK at all.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, so method names, arguments and return structures are identical everywhere. HTX's SDKs are five separate codebases with separate idioms and separate release schedules — and no PHP or JavaScript SDK at all.
 
 <!-- tabs:start -->
 

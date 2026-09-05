@@ -560,8 +560,8 @@ impl Bit2cCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -641,8 +641,8 @@ impl Bit2cCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut bidRow: Value = get_value(&rawBids, &i);
             let mut bidRow: Value = get_value(&rawBids, &i);
             let mut bidAmount: Value = self.safe_string(bidRow.clone(), Value::Int(1), &[]);
@@ -653,8 +653,8 @@ impl Bit2cCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_305: bool = true;
-            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut askRow: Value = get_value(&rawAsks, &i);
             let mut askRow: Value = get_value(&rawAsks, &i);
             let mut askAmount: Value = self.safe_string(askRow.clone(), Value::Int(1), &[]);
@@ -846,8 +846,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_307: bool = true;
+            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1241,8 +1241,8 @@ impl Bit2cCore {
         let mut strParts: Value = split(&str_val, &Value::Str(",".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_307: bool = true;
-            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&strParts)) } {
+            let mut __for_first_308: bool = true;
+            while { if !__for_first_308 { i = add(&i, &Value::Int(1)); } __for_first_308 = false; is_less_than(&i, &get_array_length(&strParts)) } {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }

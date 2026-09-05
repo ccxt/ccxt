@@ -1047,7 +1047,7 @@ func (this *OnetradingCore) fetchTickersBody(ch chan any, optionalArgs ...any) a
 	//     ]
 	//
 	var result map[string]any = map[string]any{}
-	var rawTickers any = this.ToArray(response)
+	var rawTickers []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
 		var ticker any = this.ParseTicker(GetValue(rawTickers, i))
 		var symbol any = GetValue(ticker, "symbol")

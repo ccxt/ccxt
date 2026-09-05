@@ -225,7 +225,7 @@ func (this *Latoken) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	}
 	return NewTradingFeeInterface(res), nil
 }
-func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublicTradingFeeOptions) (map[string]any, error) {
+func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublicTradingFeeOptions) (TradingFeeInterface, error) {
 
 	opts := FetchPublicTradingFeeOptionsStruct{}
 
@@ -236,11 +236,11 @@ func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublic
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchPublicTradingFee(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return TradingFeeInterface{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTradingFeeInterface(res), nil
 }
-func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPrivateTradingFeeOptions) (map[string]any, error) {
+func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPrivateTradingFeeOptions) (TradingFeeInterface, error) {
 
 	opts := FetchPrivateTradingFeeOptionsStruct{}
 
@@ -251,9 +251,9 @@ func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPriva
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchPrivateTradingFee(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return TradingFeeInterface{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTradingFeeInterface(res), nil
 }
 
 /**
@@ -695,7 +695,7 @@ func (this *Latoken) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Latoken) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Latoken) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Latoken) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Latoken) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -737,7 +737,7 @@ func (this *Latoken) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Latoken) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Latoken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Latoken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Latoken) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

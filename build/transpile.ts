@@ -1082,9 +1082,11 @@ class Transpiler {
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress\b(?!es)/,
+            'DepositAddresses': /-> (?:[Ll]ist\[)?DepositAddresses\b/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'AllGreeks': /-> AllGreeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
             'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
@@ -1092,7 +1094,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
-            'LedgerEntry': /-> LedgerEntry:/,
+            'LedgerEntry': /-> (?:[Ll]ist\[)?LedgerEntry\b/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
@@ -1101,9 +1103,9 @@ class Transpiler {
             'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarginModification': /-> MarginModification:/,
+            'MarginModification': /-> (?:[Ll]ist\[)?MarginModification\b/,
             'MarginLoan': /-> MarginLoan:/,
-            'Market': /(-> Market:|: Market)/,
+            'Market': /(-> (?:[Ll]ist\[)?Market\b|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
@@ -1125,7 +1127,7 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
-            'OpenInterest': /-> OpenInterest:/,
+            'OpenInterest': /-> (?:[Ll]ist\[)?OpenInterest\b/,
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
@@ -1137,7 +1139,7 @@ class Transpiler {
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
-            'TransferEntry': /-> TransferEntry:/,
+            'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
             'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
@@ -2236,7 +2238,7 @@ class Transpiler {
                     'List': 'array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')

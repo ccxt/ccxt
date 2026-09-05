@@ -1380,7 +1380,7 @@ func (this *BitstampCore) ParseCurrencies(rawCurrencies any) any {
 	// because the shared scratch key raced between concurrent
 	// fetchCurrencies invocations in the multi threaded runtimes
 	var result map[string]any = map[string]any{}
-	var arr any = this.ToArray(rawCurrencies)
+	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(arr)); i++ {
 		var market any = GetValue(arr, i)
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
@@ -2356,7 +2356,7 @@ func (this *BitstampCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		params = this.Omit(params, []any{"clientOrderId"})
 	}
 	var response any = nil
-	var capitalizedSide any = this.Capitalize(side)
+	var capitalizedSide string = this.Capitalize(side)
 	if IsTrue(IsEqual(typeVar, "market")) {
 		if IsTrue(IsEqual(capitalizedSide, "Buy")) {
 
@@ -2723,7 +2723,7 @@ func (this *BitstampCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 		response = (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var result any = this.FilterBy(response, "type", "2")
+	var result []any = this.FilterBy(response, "type", "2")
 
 	ch <- this.ParseTrades(result, market, since, limit)
 	return nil
@@ -3259,7 +3259,7 @@ func (this *BitstampCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var keys []string = ObjectKeys(item)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(GetValue(keys, i), "_"), 0)) {
-				var marketId any = Replace(GetValue(keys, i), "_", "")
+				var marketId string = Replace(GetValue(keys, i), "_", "")
 				market = this.SafeMarket(marketId, market)
 			}
 		}

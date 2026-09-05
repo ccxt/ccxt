@@ -342,8 +342,8 @@ impl LunoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_482: bool = true;
-            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_481: bool = true;
+            while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut rawTrade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
@@ -522,8 +522,8 @@ impl LunoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.custom_parse_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
@@ -620,8 +620,8 @@ impl LunoCore {
         let mut handlers: Value = Value::List(vec![Value::Str("handle_order_book".to_string()).clone(), Value::Str("handle_trades".to_string()).clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { j = add(&j, &Value::Int(1)); } __for_first_484 = false; is_less_than(&j, &get_array_length(&handlers)) } {
+            let mut __for_first_483: bool = true;
+            while { if !__for_first_483 { j = add(&j, &Value::Int(1)); } __for_first_483 = false; is_less_than(&j, &get_array_length(&handlers)) } {
             let mut handler: Value = get_value(&handlers, &j);
             let mut handler: Value = get_value(&handlers, &j);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), get_value(&subscriptions, &Value::Int(0))]);

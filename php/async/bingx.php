@@ -1028,7 +1028,7 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_inverse_swap_markets(mixed $params) {
+    public function fetch_inverse_swap_markets(mixed $params): PromiseInterface {
         return Async\async(self::do_fetch_inverse_swap_markets(...))($params);
     }
 

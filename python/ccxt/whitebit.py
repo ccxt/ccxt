@@ -3025,7 +3025,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 

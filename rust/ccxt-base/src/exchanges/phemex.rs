@@ -1873,8 +1873,8 @@ impl PhemexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { i = add(&i, &Value::Int(1)); } __for_first_1043 = false; is_less_than(&i, &get_array_length(&products)) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i = add(&i, &Value::Int(1)); } __for_first_1045 = false; is_less_than(&i, &get_array_length(&products)) } {
             let mut market: Value = get_value(&products, &i);
             let mut market: Value = get_value(&products, &i);
             let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("type".to_string()), &[]);
@@ -2036,16 +2036,16 @@ impl PhemexCore {
         let mut sides: Value = Value::List(vec![bidsKey.clone(), asksKey.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i = add(&i, &Value::Int(1)); } __for_first_1045 = false; is_less_than(&i, &get_array_length(&sides)) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i = add(&i, &Value::Int(1)); } __for_first_1047 = false; is_less_than(&i, &get_array_length(&sides)) } {
             let mut side: Value = get_value(&sides, &i);
             let mut side: Value = get_value(&sides, &i);
             let mut orders: Value = Value::List(vec![]);
             let mut bidasks: Value = self.safe_value(orderbook.clone(), side.clone(), &[]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_1044: bool = true;
-                while { if !__for_first_1044 { k = add(&k, &Value::Int(1)); } __for_first_1044 = false; is_less_than(&k, &get_array_length(&bidasks)) } {
+                let mut __for_first_1046: bool = true;
+                while { if !__for_first_1046 { k = add(&k, &Value::Int(1)); } __for_first_1046 = false; is_less_than(&k, &get_array_length(&bidasks)) } {
                 append_to_array(&mut orders, self.custom_parse_bid_ask(get_value(&bidasks, &k), &[priceKey.clone(), amountKey.clone(), market.clone()]));
             }
             }
@@ -2979,8 +2979,8 @@ impl PhemexCore {
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i = add(&i, &Value::Int(1)); } __for_first_1046 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i = add(&i, &Value::Int(1)); } __for_first_1048 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -5139,8 +5139,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { i = add(&i, &Value::Int(1)); } __for_first_1047 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i = add(&i, &Value::Int(1)); } __for_first_1049 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             append_to_array(&mut result, self.parse_position(position.clone(), &[]));
@@ -5476,8 +5476,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i = add(&i, &Value::Int(1)); } __for_first_1048 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { i = add(&i, &Value::Int(1)); } __for_first_1050 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "createTime", &[]);
@@ -5974,8 +5974,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut minNotional: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i = add(&i, &Value::Int(1)); } __for_first_1049 = false; is_less_than(&i, &get_array_length(&riskLimits)) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { i = add(&i, &Value::Int(1)); } __for_first_1051 = false; is_less_than(&i, &get_array_length(&riskLimits)) } {
             let mut tier: Value = get_value(&riskLimits, &i);
             let mut tier: Value = get_value(&riskLimits, &i);
             let mut maxNotional: Value = self.safe_integer_k(tier.clone(), "limit", &[]);
@@ -6463,8 +6463,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i = add(&i, &Value::Int(1)); } __for_first_1050 = false; is_less_than(&i, &get_array_length(&rates)) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i = add(&i, &Value::Int(1)); } __for_first_1052 = false; is_less_than(&i, &get_array_length(&rates)) } {
             let mut item: Value = get_value(&rates, &i);
             let mut item: Value = get_value(&rates, &i);
             let mut timestamp: Value = self.safe_integer_k(item.clone(), "fundingTime", &[]);
@@ -7018,8 +7018,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i = add(&i, &Value::Int(1)); } __for_first_1051 = false; is_less_than(&i, &get_array_length(&ranks)) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { i = add(&i, &Value::Int(1)); } __for_first_1053 = false; is_less_than(&i, &get_array_length(&ranks)) } {
             let mut rank: Value = get_value(&ranks, &i);
             let mut rank: Value = get_value(&ranks, &i);
             append_to_array(&mut result, self.parse_adl_rank(rank.clone(), &[]));

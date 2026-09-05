@@ -2805,7 +2805,7 @@ func (this *BitteamCore) Sign(path any, optionalArgs ...any) any {
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
-	var query any = this.Urlencode(request)
+	var query string = this.Urlencode(request)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsEqual(method, "POST")) {
@@ -2814,7 +2814,7 @@ func (this *BitteamCore) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, Add("?", query))
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
-		var auth64 any = this.StringToBase64(auth)
+		var auth64 string = this.StringToBase64(auth)
 		var signature any = Add("Basic ", auth64)
 		headers = map[string]any{
 			"Authorization": signature,

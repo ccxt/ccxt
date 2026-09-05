@@ -870,7 +870,7 @@ func (this *Bullish) Transfer(code string, amount float64, fromAccount string, t
  * @param {string} params.tradingAccountId the trading account id
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) (map[string]any, error) {
+func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchBorrowRateHistoryOptionsStruct{}
 
@@ -885,9 +885,9 @@ func (this *Bullish) FetchBorrowRateHistory(code string, options ...FetchBorrowR
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchBorrowRateHistory(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1019,7 +1019,7 @@ func (this *Bullish) EditOrderWithClientOrderId(clientOrderId string, symbol str
 func (this *Bullish) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Bullish) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bullish) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bullish) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1052,7 +1052,7 @@ func (this *Bullish) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, err
 func (this *Bullish) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bullish) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bullish) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bullish) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
