@@ -89,10 +89,15 @@ class Throttler {
             const { resolver, cost } = this.queue[this.queueHead];
             const nowTime = now ();
             const cutOffTime = nowTime - this.config.windowSize;
-            // timestamps are appended in non-decreasing (nowTime) order, so expired
-            // entries always form a prefix of the array — trim just that prefix and
-            // keep a running total instead of rescanning + rebuilding the whole
-            // array on every single iteration
+            // timestamps are appended in non-decreasing (nowTime) order when the
+            // system clock is monotonic — trim just the expired prefix and keep a
+            // running total instead of rescanning + rebuilding the whole array on
+            // every single iteration. This assumption does not hold across a
+            // backwards clock step (NTP correction, VM resume): a stale entry can
+            // then survive behind the prefix cut. That only makes totalCost an
+            // overestimate of the true live cost, never an underestimate, so
+            // admission becomes stricter rather than looser, and it self-heals
+            // once the stale entry's own timestamp expires.
             let expiredCount = 0;
             const timestampsLength = this.timestamps.length;
             while (expiredCount < timestampsLength && this.timestamps[expiredCount].timestamp <= cutOffTime) {
@@ -106,7 +111,7 @@ class Throttler {
             if (this.totalCost + cost <= this.config.maxWeight) {
                 // Enough capacity, proceed with request
                 this.timestamps.push ({ timestamp: nowTime, cost });
-                this.totalCost += cost;
+                this.totalCost += cost; // keep in sync with timestamps[] — any early exit added between the trim above and this line would desynchronise them permanently
                 resolver ();
                 this.dequeue ();
                 await Promise.resolve (); // Yield control to event loop

@@ -1,8 +1,9 @@
 /* eslint-disable */
+import assert from 'assert'
 import { Throttler } from '../../../base/functions/throttle.js'
 import type { Dict } from '../../../base/types.js'
 
-function testThrottle () {
+async function testThrottle () {
 
     const delta = 10
     const testCases: Dict[] = [
@@ -96,6 +97,59 @@ function testThrottle () {
     for (const test of testCases) {
         runner (test)
     }
+
+    await testThrottleQueueCompaction ()
+    return testThrottleRollingWindowInvariant ()
+}
+
+// exercises the periodic compaction branch in Throttler#dequeue () (queueHead
+// reaching >= 1024 under a sustained backlog) by bursting a large batch of
+// requests through a throttler with abundant tokens so nothing has to wait.
+// With a small queue, queueHead never exceeds 1024 and the slice () branch
+// never runs in CI, so this guards against a future refactor of the index
+// arithmetic silently dropping or replaying a queued resolver.
+async function testThrottleQueueCompaction () {
+    const total = 3000
+    const throttler = new Throttler ({
+        'tokens': total + 10, // abundant tokens: no request should ever have to wait
+        'cost': 1,
+    })
+    const order: number[] = []
+    const promises: Promise<void>[] = []
+    for (let i = 0; i < total; i++) {
+        promises.push (throttler.throttle (1).then (() => { order.push (i) }))
+    }
+    await Promise.all (promises)
+    assert (order.length === total, `testThrottleQueueCompaction: expected ${total} resolutions, got ${order.length}`)
+    for (let i = 0; i < total; i++) {
+        assert (order[i] === i, `testThrottleQueueCompaction: resolution order broken at index ${i}, got ${order[i]}`)
+    }
+    console.log (`testThrottleQueueCompaction succeeded for ${total} queued items`)
+}
+
+// guards the totalCost === sum(timestamps[].cost) invariant that
+// rollingWindowLoop () relies on: totalCost is now updated incrementally
+// (see review on #30266) instead of being recomputed from timestamps[] each
+// iteration, so a future change that adds an early continue/break between
+// the expired-prefix trim and the totalCost += cost update could
+// desynchronise the two permanently without this catching it.
+async function testThrottleRollingWindowInvariant () {
+    const throttler = new Throttler ({
+        'algorithm': 'rollingWindow',
+        'windowSize': 1000,
+        'rateLimit': 10, // maxWeight = windowSize / rateLimit = 100, well above what this test admits
+        'cost': 1,
+    })
+    const total = 50
+    const promises: Promise<void>[] = []
+    for (let i = 0; i < total; i++) {
+        promises.push (throttler.throttle (1).then (() => {
+            const sum = throttler.timestamps.reduce ((acc, t) => acc + t.cost, 0)
+            assert (Math.abs (throttler.totalCost - sum) < 1e-9, `testThrottleRollingWindowInvariant: totalCost (${throttler.totalCost}) desynced from timestamps[] (${sum}) after resolution ${i}`)
+        }))
+    }
+    await Promise.all (promises)
+    console.log ('testThrottleRollingWindowInvariant succeeded')
 }
 
 export default testThrottle;
