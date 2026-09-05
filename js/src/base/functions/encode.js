@@ -8,7 +8,7 @@
 /*  ------------------------------------------------------------------------ */
 import { hex as base16, base58, base64, utf8 } from "@scure/base";
 import { numberToBytesBE, numberToBytesLE, concatBytes } from '@noble/curves/utils.js';
-import { serialize } from '../../static_dependencies/messagepack/msgpack.js';
+import { serialize } from './msgpack.js';
 const rfc3986 = (s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 const scalarToString = (v) => (v instanceof Date) ? v.toISOString() : String(v);
 function stringifyWalk(prefix, value, out, opts) {
