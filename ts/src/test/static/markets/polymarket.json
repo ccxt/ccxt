@@ -16,7 +16,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": null,
+        "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 1e-05,
             "price": 0.1
         },
         "limits": {
@@ -125,7 +125,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": null,
+        "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -138,7 +138,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 1e-05,
             "price": 0.1
         },
         "limits": {
@@ -234,7 +234,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": null,
+        "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -247,7 +247,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.00001,
+            "amount": 1e-05,
             "price": 0.1
         },
         "limits": {
@@ -343,7 +343,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": null,
+        "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -452,7 +452,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": null,
+        "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -553,7 +553,7 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": null,
+        "active": true,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -567,7 +567,7 @@
         "optionType": null,
         "precision": {
             "amount": 1,
-            "price": 0.000001
+            "price": 1e-06
         },
         "limits": {
             "leverage": {

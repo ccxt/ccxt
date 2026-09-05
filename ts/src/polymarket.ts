@@ -506,7 +506,9 @@ export default class polymarket extends Exchange {
             'swap': true,
             'future': false,
             'option': false,
-            'active': undefined,
+            // the venue lists tradable instruments only, an exchange wide
+            // halt surfaces through fetchStatus via the cancel_only flag
+            'active': true,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -2715,18 +2717,33 @@ export default class polymarket extends Exchange {
     }
 
     override priceToPrecision (symbol: Str, price: any): Str {
+        if (price === undefined) {
+            return undefined;
+        }
         // the venue caps prices at five significant figures on top of the
-        // per-instrument decimal precision
+        // per-instrument decimals, deliberately for any magnitude - a six
+        // digit integer price coarsens to an effective step of ten
         const market = this.market (symbol);
         const significant = this.decimalToPrecision (price, ROUND, 5, SIGNIFICANT_DIGITS);
-        return this.decimalToPrecision (significant, ROUND, market['precision']['price'], TICK_SIZE);
+        const result = this.decimalToPrecision (significant, ROUND, market['precision']['price'], TICK_SIZE);
+        if (result === '0') {
+            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+        }
+        return result;
     }
 
     override amountToPrecision (symbol: Str, amount: any): Str {
+        if (amount === undefined) {
+            return undefined;
+        }
         // quantities carry the same five significant figures cap
         const market = this.market (symbol);
         const significant = this.decimalToPrecision (amount, TRUNCATE, 5, SIGNIFICANT_DIGITS);
-        return this.decimalToPrecision (significant, TRUNCATE, market['precision']['amount'], TICK_SIZE);
+        const result = this.decimalToPrecision (significant, TRUNCATE, market['precision']['amount'], TICK_SIZE);
+        if (result === '0') {
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {

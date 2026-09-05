@@ -96,7 +96,7 @@
                         "id": "pUSD",
                         "numericId": null,
                         "code": "PUSD",
-                        "precision": 0.000001,
+                        "precision": 1e-06,
                         "type": "crypto",
                         "name": "pUSD",
                         "active": null,
@@ -244,7 +244,7 @@
                         "future": false,
                         "option": false,
                         "index": null,
-                        "active": null,
+                        "active": true,
                         "contract": true,
                         "linear": true,
                         "inverse": false,
@@ -257,7 +257,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 0.00001,
+                            "amount": 1e-05,
                             "price": 0.1
                         },
                         "limits": {
@@ -351,7 +351,7 @@
                         "future": false,
                         "option": false,
                         "index": null,
-                        "active": null,
+                        "active": true,
                         "contract": true,
                         "linear": true,
                         "inverse": false,
@@ -364,7 +364,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 0.00001,
+                            "amount": 1e-05,
                             "price": 0.1
                         },
                         "limits": {
@@ -927,7 +927,7 @@
                         "estimatedSettlePrice": null,
                         "timestamp": 1788546972857,
                         "datetime": "2026-09-04T18:36:12.857Z",
-                        "fundingRate": 0.00000625,
+                        "fundingRate": 6.25e-06,
                         "fundingTimestamp": null,
                         "fundingDatetime": null,
                         "nextFundingRate": null,
@@ -1038,7 +1038,7 @@
                     "estimatedSettlePrice": null,
                     "timestamp": 1788546972857,
                     "datetime": "2026-09-04T18:36:12.857Z",
-                    "fundingRate": 0.0000125,
+                    "fundingRate": 1.25e-05,
                     "fundingTimestamp": null,
                     "fundingDatetime": null,
                     "nextFundingRate": null,
@@ -1078,7 +1078,7 @@
                             "timestamp": 1788541200037
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 0.00000625,
+                        "fundingRate": 6.25e-06,
                         "timestamp": 1788541200037,
                         "datetime": "2026-09-04T17:00:00.037Z"
                     },
@@ -1088,7 +1088,7 @@
                             "timestamp": 1788544800063
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 0.00000625,
+                        "fundingRate": 6.25e-06,
                         "timestamp": 1788544800063,
                         "datetime": "2026-09-04T18:00:00.063Z"
                     }

@@ -89,7 +89,8 @@ export default class polymarket extends polymarketRest {
             }
         }
         if (!willSend) {
-            return this.extend ({}, params);
+            const emptyRequest: Dict = {};
+            return this.extend (emptyRequest, params);
         }
         const id = this.requestId ();
         const request: Dict = {
@@ -97,11 +98,12 @@ export default class polymarket extends polymarketRest {
             'req': action,
             'chs': channels,
         };
-        const pending: Dict = this.extend ({
+        const basePending: Dict = {
             'method': action,
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
-        }, context);
+        };
+        const pending: Dict = this.extend (basePending, context);
         client.subscriptions['req:' + id.toString ()] = pending;
         return this.extend (request, params);
     }
