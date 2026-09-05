@@ -121,8 +121,8 @@ inline std::vector<std::pair<std::string, std::string>> parsePairs (const std::s
 // whole basket of a createOrders call as `batchOrders=[{...},{...}]` -- and comparing
 // that as raw text is wrong twice over: it is order sensitive where the reference is
 // not, and it cannot skip a non-reproducible key nested inside.
-bool sameAny (const std::any& expected, const std::any& actual,
-              const std::vector<std::string>& skipKeys, std::string& why);
+inline bool sameAnyImpl (const std::any& expected, const std::any& actual,
+                         const std::vector<std::string>& skipKeys, std::string& why);
 
 inline bool skippedKey (const std::string& key, const std::vector<std::string>& skipKeys) {
     for (const auto& s : skipKeys) {
@@ -147,7 +147,11 @@ inline bool sameAnyImpl (const std::any& expected, const std::any& actual,
                 continue;
             }
             if (!a.has (kv.first)) {
-                why = "output key missing: " + kv.first;
+                std::string got;
+                for (const auto& other : a.entries ()) {
+                    got += (got.empty () ? "" : ",") + other.first;
+                }
+                why = "output key missing: " + kv.first + " (actual keys: " + got + ")";
                 return false;
             }
             if (!sameAnyImpl (kv.second, a.get (kv.first), skipKeys, why)) {
@@ -284,6 +288,12 @@ inline bool sameRequest (const std::string& expectedUrl, const std::string& actu
         return true;
     }
     return samePayload (expectedText, actualText, skipKeys, why);
+}
+
+// public name for the recursive comparison used by the response tests
+inline bool sameAny (const std::any& expected, const std::any& actual,
+                     const std::vector<std::string>& skipKeys, std::string& why) {
+    return sameAnyImpl (expected, actual, skipKeys, why);
 }
 
 } // namespace statictests
