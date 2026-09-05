@@ -454,7 +454,7 @@ class NewTranspiler {
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see
-        // build/javaLocalTypes.js (also applied per worker thread in java-worker.js)
+        // build/javaLocalTypes.js (also applied per worker thread in java-worker.ts)
         patchJavaLocalTypes(this.transpiler);
     }
 
@@ -1408,7 +1408,7 @@ class NewTranspiler {
 
         // one shared pool, created lazily and kept alive for the lifetime of the
         // transpiler: the per-thread Transpiler and its sticky ts.Program batch (see
-        // build/worker-program-batch.js) only pay off if the threads survive across
+        // build/worker-program-batch.ts) only pay off if the threads survive across
         // calls — a REST run calls this three times (exchanges, then two test stages),
         // so a fresh pool per call would cold-start the Transpilers every time.
         // Piscina unrefs idle workers, so the pool never holds the process open.
@@ -1416,7 +1416,7 @@ class NewTranspiler {
         const maxThreads = javaWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'java-worker.js'),
+                filename: resolve(__dirname, 'java-worker.ts'),
                 maxThreads
             });
         }
@@ -1425,7 +1425,7 @@ class NewTranspiler {
 
         // One file per task (load-balances; a slow file can't stall others). `roots` is
         // the FULL stage list on every task so each worker builds ONE sticky ts.Program
-        // (see build/worker-program-batch.js) and prints each file off that checker.
+        // (see build/worker-program-batch.ts) and prints each file off that checker.
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
@@ -1466,7 +1466,7 @@ class NewTranspiler {
         // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
         // drop the exchanges whose generated <Name>Core.java is newer than their ts
         // source. This has to happen BEFORE the pool is fed, because `allFilesPath`
-        // doubles as the sticky ts.Program root list (see build/worker-program-batch.js)
+        // doubles as the sticky ts.Program root list (see build/worker-program-batch.ts)
         // — leaving a clean exchange in it would transpile and rewrite it anyway.
         // `--force` (and any single-exchange run) keeps everything.
         exchangeFiles = filterDirtyExchangeFiles('java', exchangeFiles, force, (file: string) => {

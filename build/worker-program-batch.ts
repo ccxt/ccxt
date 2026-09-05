@@ -22,15 +22,22 @@
 // A ts.Program (and its checker) is expensive to keep alive, so the cache is a
 // tiny LRU: enough to cover the concurrent stages, not enough to retain every
 // program a thread ever built.
-const MAX_CACHED_BATCHES = Number (process.env.CCXT_TRANSPILE_BATCH_CACHE) || 3;
+import type { Transpiler, TranspileProgramBatch } from 'ast-transpiler';
 
-const verbose = !!process.env.CCXT_TRANSPILE_VERBOSE;
+const MAX_CACHED_BATCHES = Number (process.env['CCXT_TRANSPILE_BATCH_CACHE']) || 3;
+
+const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
+
+interface CachedBatch {
+    transpiler: Transpiler;
+    batch: TranspileProgramBatch;
+}
 
 // key -> { transpiler, batch }; Map iteration order is insertion order, which is
 // what makes the delete/set dance below a real LRU
-const cache = new Map ();
+const cache = new Map<string, CachedBatch> ();
 
-function batchKey (configKey, roots) {
+function batchKey (configKey: string, roots: string[]): string {
     // roots arrive as a fresh array on every task (structured clone), so identity
     // cannot be used — compare by content. Joining ~130 paths costs a few
     // microseconds against a multi-second program build.
@@ -43,7 +50,7 @@ function batchKey (configKey, roots) {
  * Returns null when the installed ast-transpiler has no createProgramBatch, so
  * callers fall back to the per-file transpile*ByPath path.
  */
-export function getProgramBatch (transpiler, roots, configKey) {
+export function getProgramBatch (transpiler: Transpiler, roots: string[] | undefined, configKey: string): TranspileProgramBatch | null {
     if (typeof transpiler.createProgramBatch !== 'function') {
         return null;
     }
@@ -67,7 +74,7 @@ export function getProgramBatch (transpiler, roots, configKey) {
     }
     cache.set (key, { 'transpiler': transpiler, 'batch': batch });
     while (cache.size > MAX_CACHED_BATCHES) {
-        cache.delete (cache.keys ().next ().value);
+        cache.delete (cache.keys ().next ().value as string);
     }
     return batch;
 }

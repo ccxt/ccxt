@@ -2842,7 +2842,7 @@ ${caseStatements.join('\n')}
         const maxThreads = this.goWorkerThreads ()
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'go-worker.js'),
+                filename: resolve(__dirname, 'go-worker.ts'),
                 maxThreads,
             });
         }
@@ -2852,7 +2852,7 @@ ${caseStatements.join('\n')}
         const promises: any = [];
         const now = Date.now();
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         for (const file of allFiles) {
             promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }

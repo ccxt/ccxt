@@ -18,7 +18,7 @@
 //
 // It is applied as a monkey-patch on `transpiler.javaTranspiler` from BOTH the
 // main-thread Transpiler (build/javaTranspiler.ts#setupTranspiler) and the piscina
-// worker (build/java-worker.js) — same precedent as patchJavaPropertyTypes(), and it
+// worker (build/java-worker.ts) — same precedent as patchJavaPropertyTypes(), and it
 // keeps the ast-transpiler pin untouched. Plain ESM (not .ts) because the worker
 // thread is plain JS.
 //
