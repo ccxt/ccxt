@@ -76,6 +76,14 @@ public final class Encode {
         return buff.getBytes(StandardCharsets.UTF_8);
     }
 
+    public static String binaryToString(byte[] buff) { return BinaryToString(buff); }
+    public static String BinaryToString(byte[] buff) {
+        if (buff == null) {
+            return "";
+        }        
+        return new String(buff, StandardCharsets.UTF_8);
+    }
+
     public static String Base64ToBase64Url(String base64, boolean stripPadding) {
         String base64Url = base64.replace('+', '-').replace('/', '_');
         if (stripPadding) base64Url = trimRight(base64Url, '=');

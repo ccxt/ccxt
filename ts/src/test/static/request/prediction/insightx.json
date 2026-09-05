@@ -1,0 +1,196 @@
+{
+    "exchange": "insightx",
+    "asyncOnly": true,
+    "token": "test-jwt-token",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "signIn": [
+            {
+                "description": "signIn submits a wallet signature and replaces the configured token",
+                "method": "signIn",
+                "url": "https://mainnet-api.insightx.finance/wallet/connect",
+                "input": [
+                    {
+                        "reload": true,
+                        "network": "mantle_mainnet",
+                        "address": "0x1111111111111111111111111111111111111111",
+                        "tipInfo": "Sign this message...",
+                        "signature": "0x222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222221b"
+                    }
+                ],
+                "output": "{\"network\":\"mantle_mainnet\",\"address\":\"0x1111111111111111111111111111111111111111\",\"signature\":\"0x222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222221b\"}"
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets active listing with a bounded result",
+                "method": "fetchMarkets",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/markets?page=1&size=2&status=1",
+                "input": [
+                    {
+                        "limit": 2,
+                        "marketStatus": 1
+                    }
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents active listing grouped by event id",
+                "method": "fetchEvents",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/markets?page=1&size=100&status=1",
+                "input": [
+                    {
+                        "eventId": "9151820",
+                        "limit": 1,
+                        "marketStatus": 1
+                    }
+                ]
+            }
+        ],
+        "fetchOutcome": [
+            {
+                "description": "fetchOutcome direct lookup by raw outcome id",
+                "method": "fetchOutcome",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/market?market_id=80358378",
+                "input": [
+                    "80358378:2"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker latest probability by raw outcome id",
+                "method": "fetchTicker",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/market?market_id=80358378",
+                "input": [
+                    "80358378:2"
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition derives market identity from outcome and ignores conflicting raw params",
+                "method": "fetchPosition",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/position?market_id=80372897&outcome_idx=2",
+                "input": [
+                    "80372897:2",
+                    {
+                        "market_id": "99999999",
+                        "outcome_idx": 1
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders derives market identity from outcome and preserves the larger raw page size for client-side outcome filtering",
+                "method": "fetchOrders",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/orders?market_id=80372897&page=3&size=50&status=pending",
+                "input": [
+                    "80372897:2",
+                    1786500000000,
+                    2,
+                    {
+                        "market_id": "99999999",
+                        "outcome_idx": 1,
+                        "page": 3,
+                        "size": 50,
+                        "status": "pending"
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders queries the first native open status while preserving server pagination size",
+                "method": "fetchOpenOrders",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/orders?market_id=80372897&page=2&size=20&status=pending",
+                "input": [
+                    "80372897:2",
+                    1786500000000,
+                    1,
+                    {
+                        "page": 2,
+                        "size": 20
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders overrides a conflicting raw status with the first native closed status",
+                "method": "fetchClosedOrders",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/orders?market_id=80372897&page=1&size=20&status=filled",
+                "input": [
+                    "80372897:1",
+                    null,
+                    2,
+                    {
+                        "outcome_idx": 2,
+                        "page": 1,
+                        "size": 20,
+                        "status": "pending"
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders forces the native cancelled status and preserves pagination parameters",
+                "method": "fetchCanceledOrders",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/orders?market_id=80372897&page=2&size=20&status=cancelled",
+                "input": [
+                    "80372897:2",
+                    null,
+                    1,
+                    {
+                        "page": 2,
+                        "size": 20,
+                        "status": "pending"
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder resolves the outcome into market_id and outcome_idx for the documented place-order endpoint",
+                "method": "createOrder",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/place-order",
+                "input": [
+                    "80372897:2",
+                    "limit",
+                    "buy",
+                    5,
+                    0.4,
+                    {
+                        "market_id": 99999999,
+                        "outcome_idx": 1,
+                        "order_type": "market",
+                        "confirmOnChain": false
+                    }
+                ],
+                "output": "{\"market_id\":80372897,\"outcome_idx\":2,\"side\":\"buy\",\"order_type\":\"limit\",\"price\":0.4,\"amount\":5}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder sends the unified order id as order_id without loading an outcome",
+                "method": "cancelOrder",
+                "url": "https://mainnet-api.insightx.finance/predict/v2/cancel-order",
+                "input": [
+                    "1004",
+                    null,
+                    {
+                        "order_id": "9999"
+                    }
+                ],
+                "output": "{\"order_id\":1004}"
+            }
+        ]
+    },
+    "options": {
+        "loadAllOutcomes": true
+    }
+}

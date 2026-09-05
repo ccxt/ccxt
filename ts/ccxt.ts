@@ -231,6 +231,7 @@ import xtPro from  './src/pro/xt.js'
 
 import binancePrediction from  './src/prediction/binance.js'
 import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
+import insightxPrediction from  './src/prediction/insightx.js'
 import kalshiPrediction from  './src/prediction/kalshi.js'
 import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
@@ -430,6 +431,7 @@ const pro = {
 const prediction = {
     'binance':                binancePrediction,
     'hyperliquid':            hyperliquidPrediction,
+    'insightx':               insightxPrediction,
     'kalshi':                 kalshiPrediction,
     'limitless':              limitlessPrediction,
     'myriad':                 myriadPrediction,
