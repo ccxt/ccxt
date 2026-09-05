@@ -10,7 +10,7 @@ std::shared_future<std::any> baseTestsInit();
 
 std::shared_future<std::any> baseTestsInit()
 {
-    return std::async(std::launch::async, [=]() mutable -> std::any {
+    return std::async(std::launch::deferred, [=]() mutable -> std::any {
         awaitValue(testLanguageSpecific());
         testConstants();
         testAfterConstructor();
