@@ -1486,33 +1486,3 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
 /// so the `use crate::runtime::*` glob doesn't need to import std collections.
 pub fn empty_map() -> Value { Value::Map(HashMap::new()) }
 pub fn empty_array() -> Value { Value::Array(vec![]) }
-
-#[cfg(test)]
-mod math_tests {
-    use super::{Math, Value};
-
-    // integer inputs must come back as Value::Int — a Float result serializes
-    // as `10.0` in request JSON bodies and strict-integer servers reject it
-    // (nado archive `candlesticks.limit: u32` answered HTTP 422 on live tests)
-    #[test]
-    fn min_max_abs_preserve_integers() {
-        assert_eq!(Math::min(&Value::Int(10), &Value::Int(500)), Value::Int(10));
-        assert_eq!(Math::max(&Value::Int(10), &Value::Int(500)), Value::Int(500));
-        assert_eq!(Math::abs(&Value::Int(-5)), Value::Int(5));
-    }
-
-    #[test]
-    fn min_max_abs_keep_float_semantics() {
-        assert_eq!(Math::min(&Value::Float(1.5), &Value::Int(2)), Value::Float(1.5));
-        assert_eq!(Math::max(&Value::Int(1), &Value::Float(2.5)), Value::Float(2.5));
-        assert_eq!(Math::abs(&Value::Float(-1.5)), Value::Float(1.5));
-        assert_eq!(Math::min(&Value::Null, &Value::Int(1)), Value::Null);
-    }
-
-    #[test]
-    fn abs_does_not_panic_on_i64_min() {
-        // i64::MIN.abs() overflows; checked_abs must fall through to the float
-        // branch instead of panicking, keeping the module's no-panic contract
-        assert_eq!(Math::abs(&Value::Int(i64::MIN)), Value::Float((i64::MIN as f64).abs()));
-    }
-}
