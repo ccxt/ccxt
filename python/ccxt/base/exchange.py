@@ -1198,11 +1198,16 @@ class BaseExchange(object):
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
-        def sort_by_2_keyfunc(k):
-            value1 = k[key1]
-            value2 = k[key2]
-            return (value1 if value1 is not None else "", value2 if value2 is not None else "")
-        return sorted(array, key=sort_by_2_keyfunc, reverse=descending)
+        try:
+            # fast path: operator.itemgetter skips the python-level key callback entirely, saving one function call per element
+            # a None in either key raises TypeError during sorting (None is not comparable) and falls back to the '' substitution below
+            return sorted(array, key=itemgetter(key1, key2), reverse=descending)
+        except TypeError:
+            def sort_by_2_keyfunc(k):
+                value1 = k[key1]
+                value2 = k[key2]
+                return (value1 if value1 is not None else "", value2 if value2 is not None else "")
+            return sorted(array, key=sort_by_2_keyfunc, reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
