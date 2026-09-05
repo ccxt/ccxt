@@ -1022,21 +1022,45 @@
                         "bids": [
                             [
                                 64000,
-                                2
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
                             ],
                             [
                                 63999,
-                                1
+                                1,
+                                [
+                                    "63999",
+                                    "1",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "asks": [
                             [
                                 64001,
-                                1.5
+                                1.5,
+                                [
+                                    "64001",
+                                    "1.5",
+                                    "0",
+                                    "2"
+                                ]
                             ],
                             [
                                 64002,
-                                2
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "timestamp": 1786541300000,
@@ -1048,21 +1072,45 @@
                         "bids": [
                             [
                                 64000,
-                                2
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
                             ],
                             [
                                 63998,
-                                0.75
+                                0.75,
+                                [
+                                    "63998",
+                                    "0.75",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "asks": [
                             [
                                 64001,
-                                1.25
+                                1.25,
+                                [
+                                    "64001",
+                                    "1.25",
+                                    "0",
+                                    "2"
+                                ]
                             ],
                             [
                                 64002,
-                                2
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "timestamp": 1786541300100,
@@ -1184,21 +1232,45 @@
                         "bids": [
                             [
                                 64000,
-                                2
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
                             ],
                             [
                                 63999,
-                                1
+                                1,
+                                [
+                                    "63999",
+                                    "1",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "asks": [
                             [
                                 64001,
-                                1.5
+                                1.5,
+                                [
+                                    "64001",
+                                    "1.5",
+                                    "0",
+                                    "2"
+                                ]
                             ],
                             [
                                 64002,
-                                2
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "timestamp": 1786541300000,
@@ -1210,21 +1282,45 @@
                         "bids": [
                             [
                                 64000,
-                                2
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
                             ],
                             [
                                 63998,
-                                0.75
+                                0.75,
+                                [
+                                    "63998",
+                                    "0.75",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "asks": [
                             [
                                 64001,
-                                1.25
+                                1.25,
+                                [
+                                    "64001",
+                                    "1.25",
+                                    "0",
+                                    "2"
+                                ]
                             ],
                             [
                                 64002,
-                                2
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
                             ]
                         ],
                         "timestamp": 1786541300100,
@@ -1845,6 +1941,395 @@
                     }
                 ],
                 "disabledGO": "go truncateBidAskRows strips the order-count column that other runtimes keep in counted books - investigate separately"
+            },
+            {
+                "description": "a mismatching checksum unsubscribes and stops updating the book",
+                "options": {
+                    "watchOrderBook": {
+                        "depth": "books-rpi"
+                    }
+                },
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.okx.com:8443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "books-rpi",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "connId": "f21e6c1a"
+                    },
+                    {
+                        "arg": {
+                            "channel": "books-rpi",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "snapshot",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.5",
+                                        "0",
+                                        "2"
+                                    ],
+                                    [
+                                        "64002",
+                                        "2",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64000",
+                                        "2",
+                                        "0",
+                                        "3"
+                                    ],
+                                    [
+                                        "63999",
+                                        "1",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1786541300000",
+                                "checksum": 1300677031,
+                                "prevSeqId": -1,
+                                "seqId": 100
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books-rpi",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "update",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.25",
+                                        "0",
+                                        "2"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63999",
+                                        "0",
+                                        "0",
+                                        "0"
+                                    ],
+                                    [
+                                        "63998",
+                                        "0.75",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1786541300100",
+                                "checksum": 1,
+                                "prevSeqId": 100,
+                                "seqId": 101
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "books-rpi",
+                                "instId": "BTC-USDT-SWAP"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "books-rpi",
+                                "instId": "BTC-USDT-SWAP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64000,
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
+                            ],
+                            [
+                                63999,
+                                1,
+                                [
+                                    "63999",
+                                    "1",
+                                    "0",
+                                    "1"
+                                ]
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64001,
+                                1.5,
+                                [
+                                    "64001",
+                                    "1.5",
+                                    "0",
+                                    "2"
+                                ]
+                            ],
+                            [
+                                64002,
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
+                            ]
+                        ],
+                        "timestamp": 1786541300000,
+                        "datetime": "2026-08-12T13:28:20.000Z",
+                        "nonce": 100,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ]
+            },
+            {
+                "description": "the books channel reports a zero checksum, which is not a checksum",
+                "options": {
+                    "watchOrderBook": {
+                        "depth": "books"
+                    }
+                },
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.okx.com:8443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "connId": "f21e6c1a"
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "snapshot",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.5",
+                                        "0",
+                                        "2"
+                                    ],
+                                    [
+                                        "64002",
+                                        "2",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64000",
+                                        "2",
+                                        "0",
+                                        "3"
+                                    ],
+                                    [
+                                        "63999",
+                                        "1",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1786541300000",
+                                "checksum": 0,
+                                "prevSeqId": -1,
+                                "seqId": 100
+                            }
+                        ]
+                    },
+                    {
+                        "arg": {
+                            "channel": "books",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "action": "update",
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64001",
+                                        "1.25",
+                                        "0",
+                                        "2"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "63999",
+                                        "0",
+                                        "0",
+                                        "0"
+                                    ],
+                                    [
+                                        "63998",
+                                        "0.75",
+                                        "0",
+                                        "1"
+                                    ]
+                                ],
+                                "ts": "1786541300100",
+                                "checksum": 0,
+                                "prevSeqId": 100,
+                                "seqId": 101
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "books",
+                                "instId": "BTC-USDT-SWAP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                64000,
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
+                            ],
+                            [
+                                63999,
+                                1,
+                                [
+                                    "63999",
+                                    "1",
+                                    "0",
+                                    "1"
+                                ]
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64001,
+                                1.5,
+                                [
+                                    "64001",
+                                    "1.5",
+                                    "0",
+                                    "2"
+                                ]
+                            ],
+                            [
+                                64002,
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
+                            ]
+                        ],
+                        "timestamp": 1786541300000,
+                        "datetime": "2026-08-12T13:28:20.000Z",
+                        "nonce": 100,
+                        "symbol": "BTC/USDT:USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                64000,
+                                2,
+                                [
+                                    "64000",
+                                    "2",
+                                    "0",
+                                    "3"
+                                ]
+                            ],
+                            [
+                                63998,
+                                0.75,
+                                [
+                                    "63998",
+                                    "0.75",
+                                    "0",
+                                    "1"
+                                ]
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                64001,
+                                1.25,
+                                [
+                                    "64001",
+                                    "1.25",
+                                    "0",
+                                    "2"
+                                ]
+                            ],
+                            [
+                                64002,
+                                2,
+                                [
+                                    "64002",
+                                    "2",
+                                    "0",
+                                    "1"
+                                ]
+                            ]
+                        ],
+                        "timestamp": 1786541300100,
+                        "datetime": "2026-08-12T13:28:20.100Z",
+                        "nonce": 101,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ]
             }
         ]
     }
