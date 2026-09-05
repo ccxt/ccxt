@@ -48,8 +48,7 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
-import ethers from '../static_dependencies/ethers/index.js';
-import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from './functions/starknet.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
@@ -2098,7 +2097,7 @@ export class BaseExchange {
     }
 
     ethAbiEncode (types: any, args: any) {
-        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+        return this.base16ToBinary (abiEncode (types, args).slice (2));
     }
 
     ethEncodeStructuredData (domain: any, messageTypes: any, messageData: any) {

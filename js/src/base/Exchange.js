@@ -25,8 +25,7 @@ import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { totp } from './functions/totp.js';
-import ethers from '../static_dependencies/ethers/index.js';
-import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from './functions/starknet.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
@@ -1783,7 +1782,7 @@ export class BaseExchange {
         return modifiedContent;
     }
     ethAbiEncode(types, args) {
-        return this.base16ToBinary(ethers.encode(types, args).slice(2));
+        return this.base16ToBinary(abiEncode(types, args).slice(2));
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
