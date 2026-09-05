@@ -98,7 +98,7 @@ func signHMACSHA512(data, secret []byte) []byte {
 }
 
 func signHMACSHA384(data, secret []byte) []byte {
-	h := hmac.New(sha512Hash.New, secret)
+	h := hmac.New(sha512Hash.New384, secret)
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
