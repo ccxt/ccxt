@@ -2443,7 +2443,7 @@ export default class extended extends Exchange {
         let lastUpdateTimestamp = this.safeInteger2 (position, 'updatedAt', 'updatedTime');
         lastUpdateTimestamp = this.safeInteger (position, 'closedTime', lastUpdateTimestamp);
         const side = this.safeStringLower (position, 'side');
-        const margin = this.safeString (position, 'margin');
+        const margin = this.safeNumber (position, 'margin');
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
@@ -2455,24 +2455,24 @@ export default class extended extends Exchange {
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeString (position, 'openPrice'),
-            'notional': this.safeString (position, 'value'),
-            'leverage': this.safeString (position, 'leverage'),
-            'unrealizedPnl': this.safeString (position, 'unrealisedPnl'),
-            'realizedPnl': this.safeString (position, 'realisedPnl'),
-            'contracts': this.safeString (position, 'size'),
-            'contractSize': this.safeString (market, 'contractSize'),
+            'entryPrice': this.safeNumber (position, 'openPrice'),
+            'notional': this.safeNumber (position, 'value'),
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealisedPnl'),
+            'realizedPnl': this.safeNumber (position, 'realisedPnl'),
+            'contracts': this.safeNumber (position, 'size'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeString (position, 'liquidationPrice'),
-            'markPrice': this.safeString (position, 'markPrice'),
-            'lastPrice': this.safeString (position, 'exitPrice'),
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': this.safeNumber (position, 'exitPrice'),
             'collateral': margin,
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
-            'stopLossPrice': this.safeString (position, 'slTriggerPrice'),
-            'takeProfitPrice': this.safeString (position, 'tpTriggerPrice'),
+            'stopLossPrice': this.safeNumber (position, 'slTriggerPrice'),
+            'takeProfitPrice': this.safeNumber (position, 'tpTriggerPrice'),
         });
     }
 

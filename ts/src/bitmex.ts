@@ -2688,8 +2688,8 @@ export default class bitmex extends Exchange {
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         const notionalString = Precise.stringAbs (this.safeString2 (position, 'foreignNotional', 'homeNotional'));
         const settleCurrencyCode = this.safeString (market, 'settle');
-        const maintenanceMargin = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin'));
-        const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));
+        const maintenanceMargin = this.parseNumber (this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'maintMargin')));
+        const unrealisedPnl = this.parseNumber (this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl')));
         const contracts = this.parseNumber (Precise.stringAbs (this.safeString (position, 'currentQty')));
         const contractSize = this.safeNumber (market, 'contractSize');
         let side: Str = undefined;
