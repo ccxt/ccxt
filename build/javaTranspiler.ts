@@ -2931,7 +2931,14 @@ class NewTranspiler {
         content = this.rewriteDelayWithStringCallback(content);
 
         // ── String type fixes ──
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // De-type `String x = this.foo(...)` / `String x = Helpers.foo(...)` locals
+        // (a legacy fix for the printer's INFER_VAR_TYPE emissions) — EXCEPT the
+        // locals patchJavaLocalTypes narrowed from a String-declared base accessor
+        // (`String x = this.safeString(...)`): those are the same shape the REST
+        // cores carry, and the pro-core filter (feedsInheritedAsyncCall) already
+        // keeps any local that would shift a `this.<async>()` call onto a typed
+        // wrapper overload as `Object`. Long/Double/Boolean locals never matched.
+        content = content.replace(/String (\w+) = ((?!this\.safeString[2N]?\()(?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
