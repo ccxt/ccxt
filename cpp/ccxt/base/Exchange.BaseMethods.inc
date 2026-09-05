@@ -1027,7 +1027,7 @@
 
     virtual std::shared_future<std::any> fetchAccounts(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchAccounts() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1035,7 +1035,7 @@
 
     virtual std::shared_future<std::any> watchLiquidations(std::any symbol, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("watchLiquidationsForSymbols")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("watchLiquidationsForSymbols")), false))))
             {
                 return awaitValue(this->watchLiquidationsForSymbols(ccxt::list{symbol}, since, limit, params));
@@ -1047,7 +1047,7 @@
 
     virtual std::shared_future<std::any> watchLiquidationsForSymbols(std::any symbols, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchLiquidationsForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1055,7 +1055,7 @@
 
     virtual std::shared_future<std::any> watchMyLiquidations(std::any symbol, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("watchMyLiquidationsForSymbols")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("watchMyLiquidationsForSymbols")), false))))
             {
                 return this->watchMyLiquidationsForSymbols(ccxt::list{symbol}, since, limit, params);
@@ -1067,7 +1067,7 @@
 
     virtual std::shared_future<std::any> watchMyLiquidationsForSymbols(std::any symbols, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchMyLiquidationsForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1075,7 +1075,7 @@
 
     virtual std::shared_future<std::any> unWatchOrders(std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchOrders() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1083,7 +1083,7 @@
 
     virtual std::shared_future<std::any> unWatchTrades(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchTrades() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1091,7 +1091,7 @@
 
     virtual std::shared_future<std::any> unWatchTradesForSymbols(std::any symbols, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchTradesForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1099,7 +1099,7 @@
 
     virtual std::shared_future<std::any> watchOHLCVForSymbols(std::any symbolsAndTimeframes, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchOHLCVForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1107,7 +1107,7 @@
 
     virtual std::shared_future<std::any> unWatchOHLCVForSymbols(std::any symbolsAndTimeframes, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchOHLCVForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1115,7 +1115,7 @@
 
     virtual std::shared_future<std::any> unWatchOrderBookForSymbols(std::any symbols, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchOrderBookForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1123,7 +1123,7 @@
 
     virtual std::shared_future<std::any> unWatchPositions(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchPositions() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1131,7 +1131,7 @@
 
     virtual std::shared_future<std::any> unWatchTicker(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchTicker() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1139,7 +1139,7 @@
 
     virtual std::shared_future<std::any> unWatchMarkPrice(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchMarkPrice() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1147,7 +1147,7 @@
 
     virtual std::shared_future<std::any> unWatchMarkPrices(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchMarkPrices() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1155,7 +1155,7 @@
 
     virtual std::shared_future<std::any> fetchDepositAddresses(std::any codes = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchDepositAddresses() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1163,7 +1163,7 @@
 
     virtual std::shared_future<std::any> fetchMarginMode(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchMarginModes")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchMarginModes")), false))))
             {
                 std::any marginModes = awaitValue(this->fetchMarginModes(ccxt::list{symbol}, params));
@@ -1178,7 +1178,7 @@
 
     virtual std::shared_future<std::any> fetchMarginModes(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchMarginModes () is not supported yet"))));
             return std::any{};
         }).share();
@@ -1186,7 +1186,7 @@
 
     virtual std::shared_future<std::any> unWatchOrderBook(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchOrderBook() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1194,7 +1194,7 @@
 
     virtual std::shared_future<std::any> fetchTime(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTime() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1202,7 +1202,7 @@
 
     virtual std::shared_future<std::any> fetchTradingLimits(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTradingLimits() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1291,7 +1291,7 @@
 
     virtual std::shared_future<std::any> fetchCrossBorrowRates(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchCrossBorrowRates() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1299,7 +1299,7 @@
 
     virtual std::shared_future<std::any> fetchIsolatedBorrowRates(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchIsolatedBorrowRates() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1312,7 +1312,7 @@
 
     virtual std::shared_future<std::any> fetchLeverageTiers(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLeverageTiers() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1360,7 +1360,7 @@
 
     virtual std::shared_future<std::any> fetchFundingRates(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchFundingRates() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1368,7 +1368,7 @@
 
     virtual std::shared_future<std::any> fetchFundingIntervals(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchFundingIntervals() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1376,7 +1376,7 @@
 
     virtual std::shared_future<std::any> watchFundingRate(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchFundingRate() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1384,7 +1384,7 @@
 
     virtual std::shared_future<std::any> watchFundingRates(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchFundingRates() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1392,7 +1392,7 @@
 
     virtual std::shared_future<std::any> unWatchFundingRates(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchFundingRates() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1400,14 +1400,14 @@
 
     virtual std::shared_future<std::any> watchFundingRatesForSymbols(std::any symbols, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->watchFundingRates(symbols, params));
         }).share();
     }
 
     virtual std::shared_future<std::any> transfer(std::any code, std::any amount, std::any fromAccount, std::any toAccount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" transfer() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1415,7 +1415,7 @@
 
     virtual std::shared_future<std::any> withdraw(std::any code, std::any amount, std::any address, std::any tag = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" withdraw() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1423,7 +1423,7 @@
 
     virtual std::shared_future<std::any> createDepositAddress(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" createDepositAddress() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1431,7 +1431,7 @@
 
     virtual std::shared_future<std::any> setLeverage(std::any leverage, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" setLeverage() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1439,7 +1439,7 @@
 
     virtual std::shared_future<std::any> fetchLeverage(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchLeverages")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchLeverages")), false))))
             {
                 std::any leverages = awaitValue(this->fetchLeverages(ccxt::list{symbol}, params));
@@ -1454,7 +1454,7 @@
 
     virtual std::shared_future<std::any> fetchLeverages(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLeverages() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1462,7 +1462,7 @@
 
     virtual std::shared_future<std::any> setPositionMode(std::any hedged, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" setPositionMode() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1470,7 +1470,7 @@
 
     virtual std::shared_future<std::any> addMargin(std::any symbol, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" addMargin() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1478,7 +1478,7 @@
 
     virtual std::shared_future<std::any> reduceMargin(std::any symbol, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" reduceMargin() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1486,7 +1486,7 @@
 
     virtual std::shared_future<std::any> setMargin(std::any symbol, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" setMargin() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1494,7 +1494,7 @@
 
     virtual std::shared_future<std::any> fetchLongShortRatio(std::any symbol, std::any timeframe = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLongShortRatio() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1502,7 +1502,7 @@
 
     virtual std::shared_future<std::any> fetchLongShortRatioHistory(std::any symbol = std::any{}, std::any timeframe = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLongShortRatioHistory() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1510,7 +1510,7 @@
 
     virtual std::shared_future<std::any> fetchMarginAdjustmentHistory(std::any symbol = std::any{}, std::any type = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchMarginAdjustmentHistory() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1518,7 +1518,7 @@
 
     virtual std::shared_future<std::any> setMarginMode(std::any marginMode, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" setMarginMode() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1526,7 +1526,7 @@
 
     virtual std::shared_future<std::any> fetchDepositAddressesByNetwork(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchDepositAddressesByNetwork() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1534,7 +1534,7 @@
 
     virtual std::shared_future<std::any> fetchOpenInterestHistory(std::any symbol, std::any timeframe = std::string("1h"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchOpenInterestHistory() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1542,7 +1542,7 @@
 
     virtual std::shared_future<std::any> fetchOpenInterests(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchOpenInterests() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1550,7 +1550,7 @@
 
     virtual std::shared_future<std::any> signIn(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" signIn() is not supported yet"))));
             return std::any{};
         }).share();
@@ -1558,7 +1558,7 @@
 
     virtual std::shared_future<std::any> fetchPaymentMethods(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchPaymentMethods() is not supported yet"))));
             return std::any{};
         }).share();
@@ -3306,7 +3306,7 @@
 
     virtual std::shared_future<std::any> fetchBorrowRate(std::any code, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead"))));
             return std::any{};
         }).share();
@@ -3314,7 +3314,7 @@
 
     virtual std::shared_future<std::any> repayCrossMargin(std::any code, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" repayCrossMargin is not support yet"))));
             return std::any{};
         }).share();
@@ -3322,7 +3322,7 @@
 
     virtual std::shared_future<std::any> repayIsolatedMargin(std::any symbol, std::any code, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" repayIsolatedMargin is not support yet"))));
             return std::any{};
         }).share();
@@ -3330,7 +3330,7 @@
 
     virtual std::shared_future<std::any> borrowCrossMargin(std::any code, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" borrowCrossMargin is not support yet"))));
             return std::any{};
         }).share();
@@ -3338,7 +3338,7 @@
 
     virtual std::shared_future<std::any> borrowIsolatedMargin(std::any symbol, std::any code, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" borrowIsolatedMargin is not support yet"))));
             return std::any{};
         }).share();
@@ -3346,7 +3346,7 @@
 
     virtual std::shared_future<std::any> borrowMargin(std::any code, std::any amount, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead"))));
             return std::any{};
         }).share();
@@ -3354,7 +3354,7 @@
 
     virtual std::shared_future<std::any> repayMargin(std::any code, std::any amount, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead"))));
             return std::any{};
         }).share();
@@ -3362,7 +3362,7 @@
 
     virtual std::shared_future<std::any> fetchOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any message = std::string("");
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchTrades")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchTrades")), false))))
             {
@@ -3375,7 +3375,7 @@
 
     virtual std::shared_future<std::any> fetchSpotOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchSpotOHLCV() is not supported yet"))));
             return std::any{};
         }).share();
@@ -3383,7 +3383,7 @@
 
     virtual std::shared_future<std::any> fetchContractOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchContractOHLCV() is not supported yet"))));
             return std::any{};
         }).share();
@@ -3391,7 +3391,7 @@
 
     virtual std::shared_future<std::any> fetchOHLCVWs(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any message = std::string("");
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchTradesWs")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchTradesWs")), false))))
             {
@@ -3404,7 +3404,7 @@
 
     virtual std::shared_future<std::any> watchOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchOHLCV() is not supported yet"))));
             return std::any{};
         }).share();
@@ -3456,7 +3456,7 @@
 
     virtual std::shared_future<std::any> fetchWebEndpoint(std::any method, std::any endpointMethod, std::any returnAsJson, std::any startRegex = std::any{}, std::any endRegex = std::any{})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any errorMessage = std::string("");
             std::any options = this->safeValue(this->options, method, ccxt::dict {});
             std::any muteOnFailure = this->safeBool(options, std::string("webApiMuteFailure"), true);
@@ -4068,7 +4068,7 @@
 
     virtual std::shared_future<std::any> loadTradingLimits(std::any symbols = std::any{}, std::any reload = false, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchTradingLimits")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchTradingLimits")), false))))
             {
                 if (isTrue(isTrue(reload) || !isTrue((inOp(this->options, std::string("limitsLoaded"))))))
@@ -4498,7 +4498,7 @@
 
     virtual std::shared_future<std::any> fetch2(std::any path, std::any api = std::string("public"), std::any method = std::string("GET"), std::any params = ccxt::dict {}, std::any headers = std::any{}, std::any body = std::any{}, std::any config = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(this->enableRateLimit))
             {
                 std::any cost = this->calculateRateLimiterCost(api, method, path, params, config);
@@ -4578,14 +4578,14 @@
 
     virtual std::shared_future<std::any> request(std::any path, std::any api = std::string("public"), std::any method = std::string("GET"), std::any params = ccxt::dict {}, std::any headers = std::any{}, std::any body = std::any{}, std::any config = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->fetch2(path, api, method, params, headers, body, config));
         }).share();
     }
 
     virtual std::shared_future<std::any> loadAccounts(std::any reload = false, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(reload))
             {
                 this->accounts = awaitValue(this->fetchAccounts(params));
@@ -4683,7 +4683,7 @@
 
     virtual std::shared_future<std::any> fetchBorrowInterest(std::any code = std::any{}, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchBorrowInterest() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4691,7 +4691,7 @@
 
     virtual std::shared_future<std::any> fetchLedger(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLedger() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4699,7 +4699,7 @@
 
     virtual std::shared_future<std::any> fetchLedgerEntry(std::any id, std::any code = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLedgerEntry() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4873,7 +4873,7 @@
 
     virtual std::shared_future<std::any> fetchBalance(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchBalance() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4881,7 +4881,7 @@
 
     virtual std::shared_future<std::any> fetchBalanceWs(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchBalanceWs() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4894,7 +4894,7 @@
 
     virtual std::shared_future<std::any> watchBalance(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" watchBalance() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4902,7 +4902,7 @@
 
     virtual std::shared_future<std::any> fetchPartialBalance(std::any part, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any balance = awaitValue(this->fetchBalance(params));
             return ::getValue(balance, part);
         }).share();
@@ -4910,28 +4910,28 @@
 
     virtual std::shared_future<std::any> fetchFreeBalance(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->fetchPartialBalance(std::string("free"), params));
         }).share();
     }
 
     virtual std::shared_future<std::any> fetchUsedBalance(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->fetchPartialBalance(std::string("used"), params));
         }).share();
     }
 
     virtual std::shared_future<std::any> fetchTotalBalance(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->fetchPartialBalance(std::string("total"), params));
         }).share();
     }
 
     virtual std::shared_future<std::any> fetchStatus(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchStatus() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4939,7 +4939,7 @@
 
     virtual std::shared_future<std::any> fetchTransactionFee(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(isEqual(::getValue(this->has, std::string("fetchTransactionFees")), std::any{})) || isTrue(isEqual(::getValue(this->has, std::string("fetchTransactionFees")), false))))
             {
                 throw NotSupported(toString(add(this->id, std::string(" fetchTransactionFee() is not supported yet"))));
@@ -4950,7 +4950,7 @@
 
     virtual std::shared_future<std::any> fetchTransactionFees(std::any codes = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTransactionFees() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4958,7 +4958,7 @@
 
     virtual std::shared_future<std::any> fetchDepositWithdrawFees(std::any codes = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchDepositWithdrawFees() is not supported yet"))));
             return std::any{};
         }).share();
@@ -4966,7 +4966,7 @@
 
     virtual std::shared_future<std::any> fetchDepositWithdrawFee(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(isEqual(::getValue(this->has, std::string("fetchDepositWithdrawFees")), std::any{})) || isTrue(isEqual(::getValue(this->has, std::string("fetchDepositWithdrawFees")), false))))
             {
                 throw NotSupported(toString(add(this->id, std::string(" fetchDepositWithdrawFee() is not supported yet"))));
@@ -4989,7 +4989,7 @@
 
     virtual std::shared_future<std::any> fetchCrossBorrowRate(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             awaitValue(this->loadMarkets());
             if (isTrue(isTrue(isEqual(::getValue(this->has, std::string("fetchBorrowRates")), std::any{})) || isTrue(isEqual(::getValue(this->has, std::string("fetchBorrowRates")), false))))
             {
@@ -5007,7 +5007,7 @@
 
     virtual std::shared_future<std::any> fetchIsolatedBorrowRate(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             awaitValue(this->loadMarkets());
             if (isTrue(isTrue(isEqual(::getValue(this->has, std::string("fetchBorrowRates")), std::any{})) || isTrue(isEqual(::getValue(this->has, std::string("fetchBorrowRates")), false))))
             {
@@ -5248,7 +5248,7 @@
 
     virtual std::shared_future<std::any> fetchSpotTickers(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchSpotTickers() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5256,7 +5256,7 @@
 
     virtual std::shared_future<std::any> fetchContractTickers(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchContractTickers() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5264,7 +5264,7 @@
 
     virtual std::shared_future<std::any> fetchOrderBooks(std::any symbols = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchOrderBooks() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5272,7 +5272,7 @@
 
     virtual std::shared_future<std::any> unWatchTickers(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchTickers() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5280,7 +5280,7 @@
 
     virtual std::shared_future<std::any> unWatchFundingRate(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchFundingRate() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5288,7 +5288,7 @@
 
     virtual std::shared_future<std::any> createTwapOrder(std::any symbol, std::any side, std::any amount, std::any duration, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" createTwapOrder() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5296,7 +5296,7 @@
 
     virtual std::shared_future<std::any> createConvertTrade(std::any id, std::any fromCode, std::any toCode, std::any amount = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" createConvertTrade() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5304,7 +5304,7 @@
 
     virtual std::shared_future<std::any> fetchConvertTrade(std::any id, std::any code = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchConvertTrade() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5312,7 +5312,7 @@
 
     virtual std::shared_future<std::any> fetchConvertTradeHistory(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchConvertTradeHistory() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5320,7 +5320,7 @@
 
     virtual std::shared_future<std::any> fetchPositionMode(std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchPositionMode() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5328,7 +5328,7 @@
 
     virtual std::shared_future<std::any> fetchADLRank(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchADLRank() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5336,7 +5336,7 @@
 
     virtual std::shared_future<std::any> fetchPositionsADLRank(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchPositionsADLRank() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5344,7 +5344,7 @@
 
     virtual std::shared_future<std::any> fetchPositionADLRank(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchPositionsADLRank")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchPositionsADLRank")), false))))
             {
                 awaitValue(this->loadMarkets());
@@ -5431,7 +5431,7 @@
 
     virtual std::shared_future<std::any> createSpotOrders(std::any orders, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" createSpotOrders() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5439,7 +5439,7 @@
 
     virtual std::shared_future<std::any> createContractOrders(std::any orders, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" createContractOrders() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5447,7 +5447,7 @@
 
     virtual std::shared_future<std::any> cancelSpotOrder(std::any id, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" cancelSpotOrder() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5455,7 +5455,7 @@
 
     virtual std::shared_future<std::any> cancelContractOrder(std::any id, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" cancelContractOrder() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5463,7 +5463,7 @@
 
     virtual std::shared_future<std::any> cancelAllSpotOrders(std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" cancelAllSpotOrders() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5471,7 +5471,7 @@
 
     virtual std::shared_future<std::any> cancelAllContractOrders(std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" cancelAllContractOrders() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5479,7 +5479,7 @@
 
     virtual std::shared_future<std::any> cancelAllOrdersAfter(std::any timeout, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" cancelAllOrdersAfter() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5487,7 +5487,7 @@
 
     virtual std::shared_future<std::any> cancelOrdersForSymbols(std::any orders, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" cancelOrdersForSymbols() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5495,7 +5495,7 @@
 
     virtual std::shared_future<std::any> fetchMyLiquidations(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchMyLiquidations() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5503,7 +5503,7 @@
 
     virtual std::shared_future<std::any> fetchLiquidations(std::any symbol, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLiquidations() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5511,7 +5511,7 @@
 
     virtual std::shared_future<std::any> fetchGreeks(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchGreeks() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5519,7 +5519,7 @@
 
     virtual std::shared_future<std::any> fetchAllGreeks(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchAllGreeks() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5527,7 +5527,7 @@
 
     virtual std::shared_future<std::any> fetchOptionChain(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchOptionChain() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5535,7 +5535,7 @@
 
     virtual std::shared_future<std::any> fetchOption(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchOption() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5543,7 +5543,7 @@
 
     virtual std::shared_future<std::any> fetchConvertQuote(std::any fromCode, std::any toCode, std::any amount = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchConvertQuote() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5551,7 +5551,7 @@
 
     virtual std::shared_future<std::any> fetchDepositsWithdrawals(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchDepositsWithdrawals() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5559,7 +5559,7 @@
 
     virtual std::shared_future<std::any> fetchDeposits(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchDeposits() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5567,7 +5567,7 @@
 
     virtual std::shared_future<std::any> fetchWithdrawals(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchWithdrawals() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5575,7 +5575,7 @@
 
     virtual std::shared_future<std::any> fetchDepositsWs(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchDepositsWs() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5583,7 +5583,7 @@
 
     virtual std::shared_future<std::any> fetchWithdrawalsWs(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchWithdrawalsWs() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5591,7 +5591,7 @@
 
     virtual std::shared_future<std::any> fetchFundingRateHistory(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchFundingRateHistory() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5599,7 +5599,7 @@
 
     virtual std::shared_future<std::any> fetchFundingHistory(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchFundingHistory() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5612,7 +5612,7 @@
 
     virtual std::shared_future<std::any> fetchDepositAddress(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchDepositAddresses")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchDepositAddresses")), false))))
             {
                 std::any depositAddresses = awaitValue(this->fetchDepositAddresses(ccxt::list{code}, params));
@@ -5648,7 +5648,7 @@
 
     virtual std::shared_future<std::any> fetchContractDepositAddress(std::any code, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchContractDepositAddress() is not supported yet"))));
             return std::any{};
         }).share();
@@ -5964,7 +5964,7 @@
 
     virtual std::shared_future<std::any> loadTimeDifference(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any serverTime = awaitValue(this->fetchTime(params));
             std::any after = this->milliseconds();
             if (isTrue(isEqual(serverTime, std::any{})))
@@ -5985,7 +5985,7 @@
 
     virtual std::shared_future<std::any> fetchMarketLeverageTiers(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchLeverageTiers")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchLeverageTiers")), false))))
             {
                 std::any market = this->market(symbol);
@@ -6005,7 +6005,7 @@
 
     virtual std::shared_future<std::any> createSubAccount(std::any name, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" createSubAccount() is not supported yet"))));
             return std::any{};
         }).share();
@@ -6416,7 +6416,7 @@
 
     virtual std::shared_future<std::any> fetchLastPrices(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchLastPrices() is not supported yet"))));
             return std::any{};
         }).share();
@@ -6424,7 +6424,7 @@
 
     virtual std::shared_future<std::any> fetchTradingFees(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTradingFees() is not supported yet"))));
             return std::any{};
         }).share();
@@ -6432,7 +6432,7 @@
 
     virtual std::shared_future<std::any> fetchTradingFeesWs(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTradingFeesWs() is not supported yet"))));
             return std::any{};
         }).share();
@@ -6440,7 +6440,7 @@
 
     virtual std::shared_future<std::any> fetchConvertCurrencies(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchConvertCurrencies() is not supported yet"))));
             return std::any{};
         }).share();
@@ -6482,7 +6482,7 @@
 
     virtual std::shared_future<std::any> fetchFundingRate(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchFundingRates")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchFundingRates")), false))))
             {
                 awaitValue(this->loadMarkets());
@@ -6511,7 +6511,7 @@
 
     virtual std::shared_future<std::any> fetchFundingInterval(std::any symbol, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue(!isEqual(::getValue(this->has, std::string("fetchFundingIntervals")), std::any{})) && isTrue(!isEqual(::getValue(this->has, std::string("fetchFundingIntervals")), false))))
             {
                 awaitValue(this->loadMarkets());
@@ -6540,7 +6540,7 @@
 
     virtual std::shared_future<std::any> fetchMarkOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             /**
              * @method
              * @name exchange#fetchMarkOHLCV
@@ -6568,7 +6568,7 @@
 
     virtual std::shared_future<std::any> fetchIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             /**
              * @method
              * @name exchange#fetchIndexOHLCV
@@ -6596,7 +6596,7 @@
 
     virtual std::shared_future<std::any> fetchPremiumIndexOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             /**
              * @method
              * @name exchange#fetchPremiumIndexOHLCV
@@ -6863,7 +6863,7 @@
 
     virtual std::shared_future<std::any> fetchTransactions(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             /**
              * @method
              * @name exchange#fetchTransactions
@@ -6943,7 +6943,7 @@
 
     virtual std::shared_future<std::any> fetchPaginatedCallDynamic(std::any method, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}, std::any maxEntriesPerRequest = std::any{}, std::any removeRepeated = true)
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any maxCalls = 10;
             std::any maxCallsparamsVariable = this->handleOptionAndParams(params, method, std::string("paginationCalls"), maxCalls);
             maxCalls = ::getValue(maxCallsparamsVariable, 0);
@@ -7071,7 +7071,7 @@
 
     virtual std::shared_future<std::any> safeDeterministicCall(std::any method, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any timeframe = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any maxRetries = 3;
             std::any maxRetriesparamsVariable = this->handleOptionAndParams(params, method, std::string("maxRetries"), maxRetries);
             maxRetries = ::getValue(maxRetriesparamsVariable, 0);
@@ -7107,7 +7107,7 @@
 
     virtual std::shared_future<std::any> fetchPaginatedCallDeterministic(std::any method, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any timeframe = std::any{}, std::any params = ccxt::dict {}, std::any maxEntriesPerRequest = std::any{})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any maxCalls = 10;
             std::any maxCallsparamsVariable = this->handleOptionAndParams(params, method, std::string("paginationCalls"), maxCalls);
             maxCalls = ::getValue(maxCallsparamsVariable, 0);
@@ -7184,7 +7184,7 @@
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
     virtual std::shared_future<std::any> fetchPaginatedCallCursor(std::any method, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}, std::any cursorReceived = std::any{}, std::any cursorSent = std::any{}, std::any cursorIncrement = std::any{}, std::any maxEntriesPerRequest = std::any{})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any maxCalls = 10;
             std::any maxCallsparamsVariable = this->handleOptionAndParams(params, method, std::string("paginationCalls"), maxCalls);
             maxCalls = ::getValue(maxCallsparamsVariable, 0);
@@ -7303,7 +7303,7 @@
 
     virtual std::shared_future<std::any> fetchPaginatedCallIncremental(std::any method, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}, std::any pageKey = std::any{}, std::any maxEntriesPerRequest = std::any{})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any maxCalls = 10;
             std::any maxCallsparamsVariable = this->handleOptionAndParams(params, method, std::string("paginationCalls"), maxCalls);
             maxCalls = ::getValue(maxCallsparamsVariable, 0);
@@ -7754,7 +7754,7 @@
 
     virtual std::shared_future<std::any> loadMarketsAndSignIn()
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             awaitValue(promiseAll(ccxt::list{this->loadMarkets(), this->signIn()}));
             return std::any{};
         }).share();
@@ -7791,7 +7791,7 @@
 
     virtual std::shared_future<std::any> fetchTransfer(std::any id, std::any code = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTransfer () is not supported yet"))));
             return std::any{};
         }).share();
@@ -7799,7 +7799,7 @@
 
     virtual std::shared_future<std::any> fetchTransfers(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchTransfers () is not supported yet"))));
             return std::any{};
         }).share();
@@ -7807,7 +7807,7 @@
 
     virtual std::shared_future<std::any> unWatchOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchOHLCV () is not supported yet"))));
             return std::any{};
         }).share();
@@ -7815,7 +7815,7 @@
 
     virtual std::shared_future<std::any> withdrawWs(std::any code, std::any amount, std::any address, std::any tag = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" withdrawWs () is not supported yet"))));
             return std::any{};
         }).share();
@@ -7823,7 +7823,7 @@
 
     virtual std::shared_future<std::any> unWatchMyTrades(std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchMyTrades () is not supported yet"))));
             return std::any{};
         }).share();
@@ -7831,7 +7831,7 @@
 
     virtual std::shared_future<std::any> fetchOrdersByStatusWs(std::any status, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" fetchOrdersByStatusWs () is not supported yet"))));
             return std::any{};
         }).share();
@@ -7839,7 +7839,7 @@
 
     virtual std::shared_future<std::any> unWatchBidsAsks(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             throw NotSupported(toString(add(this->id, std::string(" unWatchBidsAsks () is not supported yet"))));
             return std::any{};
         }).share();
@@ -8030,7 +8030,7 @@
 
     virtual std::shared_future<std::any> isUTAEnabled(std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return false;  // stub
         }).share();
     }
