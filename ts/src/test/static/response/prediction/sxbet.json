@@ -221,7 +221,7 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "fetchMyTrades parses v3 fill rows",
+                "description": "fetchMyTrades parses v3 fill rows including the isMaker side",
                 "input": [],
                 "httpResponse": {
                     "status": "success",
@@ -247,7 +247,8 @@
                                 "usedBetCredits": false,
                                 "createdAt": "2026-07-31T18:47:09.586Z",
                                 "updatedAt": "2026-07-31T18:47:12.837Z",
-                                "settlement": null
+                                "settlement": null,
+                                "isMaker": false
                             }
                         ]
                     }
@@ -260,7 +261,7 @@
                         "datetime": "2026-07-31T18:47:09.586Z",
                         "type": null,
                         "side": "buy",
-                        "takerOrMaker": null,
+                        "takerOrMaker": "taker",
                         "price": 0.4,
                         "amount": 0.333334,
                         "cost": 0.333334,
@@ -290,7 +291,8 @@
                             "usedBetCredits": false,
                             "createdAt": "2026-07-31T18:47:09.586Z",
                             "updatedAt": "2026-07-31T18:47:12.837Z",
-                            "settlement": null
+                            "settlement": null,
+                            "isMaker": false
                         }
                     }
                 ]
@@ -727,6 +729,62 @@
                         }
                     }
                 ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance parses the proxy balance rows into free available and used escrowed amounts",
+                "input": [],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "balances": [
+                            {
+                                "userAddress": "0xabababababababababababababababababababab",
+                                "wallet": "0x19D1139F64B646e961aa9CB9CaBA7Cd427b84fC1",
+                                "tokenAddress": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+                                "escrowAddress": "0xF946f2AE410bCeF6cFe53FB27D4F178A79B7863D",
+                                "availableAmount": "2500000",
+                                "pendingAvailableAmount": "0",
+                                "escrowedAmount": "1000000",
+                                "pendingEscrowAmount": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "success",
+                        "data": {
+                            "balances": [
+                                {
+                                    "userAddress": "0xabababababababababababababababababababab",
+                                    "wallet": "0x19D1139F64B646e961aa9CB9CaBA7Cd427b84fC1",
+                                    "tokenAddress": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+                                    "escrowAddress": "0xF946f2AE410bCeF6cFe53FB27D4F178A79B7863D",
+                                    "availableAmount": "2500000",
+                                    "pendingAvailableAmount": "0",
+                                    "escrowedAmount": "1000000",
+                                    "pendingEscrowAmount": "0"
+                                }
+                            ]
+                        }
+                    },
+                    "USDC": {
+                        "free": 2.5,
+                        "used": 1,
+                        "total": 3.5
+                    },
+                    "free": {
+                        "USDC": 2.5
+                    },
+                    "used": {
+                        "USDC": 1
+                    },
+                    "total": {
+                        "USDC": 3.5
+                    }
+                }
             }
         ]
     }

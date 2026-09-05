@@ -62,12 +62,10 @@ export default class sxbet extends Exchange {
                 'logo': '', // todo
                 'api': {
                     'sxbet': 'https://api.sx.bet',
-                    'explorer': 'https://explorerl2.sx.technology',
                     'ws': 'wss://realtime.sx.bet/connection/websocket',
                 },
                 'test': {
                     'sxbet': 'https://api.toronto.sx.bet',
-                    'explorer': 'https://explorerl2.toronto.sx.technology',
                     'ws': 'wss://realtime.toronto.sx.bet/connection/websocket',
                 },
                 'www': 'https://sx.bet',
@@ -77,16 +75,12 @@ export default class sxbet extends Exchange {
                 'sxbet': {
                     'public': {
                         'get': {
-                            'metadata': 1,
                             'metadata/obv3': 1,
                             'orderbook-v3/snapshot': 1,
                             'trades-v3/public': 1,
                             'markets/active': 1,
                             'markets/find': 1,
                             'markets/popular': 1,
-                            'orders': 1,
-                            'orders/odds/best': 1,
-                            'trades': 1,
                             'trades/consolidated': 1,
                             'trades/orders': 1,
                             'trades/portfolio/refunds': 1,
@@ -101,9 +95,9 @@ export default class sxbet extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'user/realtime-token/api-key': 1,
                             'user/realtime-token-v3/api-key': 1,
                             'user/proxy': 1,
+                            'user/balance-v3': 1,
                             'user/transfer-to-proxy/pending': 1,
                             'user/transfer-to-proxy/status': 1,
                             'orders-v3': 1,
@@ -123,26 +117,13 @@ export default class sxbet extends Exchange {
                             'user/deploy-proxy': 1,
                             'user/transfer-to-proxy': 1,
                             'heartbeat/v3': 1,
-                            'orders/new': 1,
-                            'orders/fill/v2': 1,
-                            'orders/cancel/v2': 1,
-                            'orders/cancel/event': 1,
-                            'orders/cancel/all': 1,
-                            'orders/approve': 1,
-                        },
-                    },
-                },
-                'explorer': {
-                    'public': {
-                        'get': {
-                            'api': 1, // ?module=account&action=tokenbalance&contractaddress=...&address=...
                         },
                     },
                 },
             },
             'requiredCredentials': {
-                // apiKey is the optional X-Api-Key header (higher REST rate limits, required for
-                // websocket); trading needs walletAddress (order 'maker' field) and privateKey
+                // apiKey is the x-sx-api-key header - every private v3 route authenticates with it;
+                // trading additionally needs walletAddress (order 'maker' field) and privateKey
                 'apiKey': true,
                 'secret': false,
                 'walletAddress': true,
@@ -152,8 +133,8 @@ export default class sxbet extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    // no per-trade maker/taker cut found anywhere in the docs or /metadata —
-                    // oracleFees there is a resolution/oracle cost, not a trading fee
+                    // per-account fee rates live behind GET /user/fees-v3 and default to zero;
+                    // there is no public venue-wide maker/taker schedule to mirror here
                     'maker': 0.0,
                     'taker': 0.0,
                 },
@@ -185,6 +166,7 @@ export default class sxbet extends Exchange {
                     'RATE_LIMIT_ORDER_REQUEST_MARKET_COUNT': BadRequest,   // more than 1000 marketHashes queried
                     'BOTH_SPORTXEVENTID_MARKETHASHES_PRESENT': BadRequest,
                     'BAD_MARKET_HASHES': BadRequest,   // invalid or more than 30 hashes on /markets/find
+                    'Order not found': OrderNotFound,   // live-verified v3: GET /orders-v3/{orderId} 404s for a missing or foreign id
                 },
                 'broad': {
                     'no longer supported': NotSupported,   // e.g. "OrderBook V2 is no longer supported" (testnet V3 canary gate)
@@ -208,12 +190,14 @@ export default class sxbet extends Exchange {
                 'defaultOrderExpirySeconds': 86400,
                 // the venue caps GET /orders-v3/odds/best at 100 market hashes per request
                 'bestOddsBatchSize': 100,
+                // the venue caps DELETE /orders-v3 at maxCancelOrders (100, see /metadata/obv3) ids per request
+                'cancelOrdersBatchSize': 100,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
             },
             'streaming': {
-                // Centrifugo server pings arrive as empty frames and are answered in pong();
+                // Centrifugo server pings arrive shaped like empty frames and are answered by pong();
                 // no client-initiated keepAlive is needed
                 'keepAlive': 30000,
             },
@@ -307,7 +291,7 @@ export default class sxbet extends Exchange {
      * @ignore
      * @method
      * @name sxbet#parseSxbetMarket
-     * @description converts a single raw sx.bet market into one ccxt market with its two sides as outcomes
+     * @description converts a single raw sx.bet market into one ccxt market whose two sides become the outcomes
      * @param {object} raw the raw sx.bet market object
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
@@ -343,7 +327,7 @@ export default class sxbet extends Exchange {
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
-        // letters+digits only so it survives shortenSlug as one atomic word)
+        // letters+digits only so it survives shortenSlug in one atomic word)
         // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
         // transpiler's ARRAY hint (count()), which breaks on a string — this form emits
         // strlen()/len() correctly in both python and php
@@ -421,9 +405,11 @@ export default class sxbet extends Exchange {
             },
             'limits': {
                 'leverage': { 'min': 1, 'max': 1 },
-                'amount': { 'min': undefined, 'max': undefined },
+                // /metadata/obv3 publishes limits.orderSizeMinimum '1' (1 USDC, 1000000 base units)
+                // on both networks - the stake and its cost share the same floor
+                'amount': { 'min': 1, 'max': undefined },
                 'price': { 'min': 0, 'max': 1 },
-                'cost': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': 1, 'max': undefined },
             },
             'outcomes': outcomes,
             'info': raw,
@@ -434,13 +420,13 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#fetchEvents
-     * @description fetches sx.bet fixtures (one fixture = one event, its markets are every moneyline/spread/total line on that fixture) scoped by eventId, leagueId, sportId or a free-text query/tags match against team and league names — always live from the API, never the local cache (it POPULATES the cache for later event()/outcome lookups). sx.bet has no server-side full-text search, so query/queries/tags are matched client-side against team and league names
+     * @description fetches sx.bet fixtures (one fixture = one event, its markets are every moneyline/spread/total line on that fixture) scoped by eventId, leagueId, sportId or a free-text query/tags match against team and league names — always live from the API, never the local cache (it POPULATES the cache for later event()/outcome lookups). query/queries/tags are matched client-side over a bounded scan of /markets/active — the venue's GET /search covers team names only (not league or sport labels) and is not wired here yet
      * @see https://docs.sx.bet/api-reference/get-markets-active
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.eventId] direct lookup by unified event id (the sx.bet sportXeventId, e.g. 'L18870109')
      * @param {string} [params.query] free-text search matched against team and league names
      * @param {string[]} [params.queries] multiple free-text searches (alternative to query, unioned)
-     * @param {string[]} [params.tags] matched the same way as query/queries (sx.bet has no tag taxonomy)
+     * @param {string[]} [params.tags] matched identically to query/queries (sx.bet has no tag taxonomy)
      * @param {int} [params.leagueId] sx.bet league id (e.g. 243 for NFL) — fetched server-side
      * @param {int} [params.sportId] sx.bet sport id (e.g. 8 for Football) — fetched server-side
      * @param {string} [params.status] 'active' | 'inactive' | 'closed' | 'all'
@@ -470,8 +456,8 @@ export default class sxbet extends Exchange {
         } else if (sportId !== undefined) {
             rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportId': sportId }, rest), undefined);
         } else {
-            // no server-side scope left, only query/tags — full scan (same bound as fetchMarkets)
-            // then filter client-side, since sx.bet exposes no full-text search endpoint
+            // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
+            // bound, then filter client-side (the venue's /search covers team names only)
             rawMarkets = await this.fetchRawMarketsPaged (rest, undefined);
         }
         const queriesLength = queries.length;
@@ -659,54 +645,6 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#loadSxMetadata
-     * @description resolves and caches the network-specific values from /metadata needed to build and sign orders: the USDC token address (sx.bet orders can be denominated in USDC or WSX per-order, but every sxbet market's quote/settle is fixed to 'USDC' — see parseSxbetMarket, so only USDC-denominated liquidity/orders are surfaced), the executor address (maker order signing), the EIP-712 fill domain (chainId/version/verifyingContract) and the odds ladder step
-     * @returns {object} a dict with usdcAddress, wsxAddress, executorAddress, chainId, fillVerifyingContract, fillDomainVersion, oddsLadderStepSize, tokenTransferProxy
-     */
-    async loadSxMetadata (): Promise<Dict> {
-        const cached = this.safeDict (this.options, 'sxMetadata');
-        if (cached !== undefined) {
-            return cached;
-        }
-        const response = await this.sxbetPublicGetMetadata ();
-        const data = this.safeDict (response, 'data', {});
-        const addresses = this.safeDict (data, 'addresses', {});
-        const addressesKeys = Object.keys (addresses);
-        const addressesKeysLength = addressesKeys.length;
-        let usdcAddress: Str = undefined;
-        let wsxAddress: Str = undefined;
-        let chainId: Str = undefined;
-        if (addressesKeysLength > 0) {
-            chainId = addressesKeys[0];
-            const chainAddresses = this.safeDict (addresses, chainId, {});
-            usdcAddress = this.safeString (chainAddresses, 'USDC');
-            wsxAddress = this.safeString (chainAddresses, 'WSX');
-        }
-        const executorAddress = this.safeString (data, 'executorAddress');
-        const fillVerifyingContract = this.safeString (data, 'EIP712FillHasher');
-        const fillDomainVersion = this.safeString (data, 'domainVersion');
-        const oddsLadderStepSize = this.safeString (data, 'oddsLadderStepSize', '125');
-        const tokenTransferProxy = this.safeString (data, 'TokenTransferProxy');
-        if ((usdcAddress === undefined) || (executorAddress === undefined) || (fillVerifyingContract === undefined) || (fillDomainVersion === undefined) || (chainId === undefined) || (tokenTransferProxy === undefined)) {
-            throw new ExchangeError (this.id + ' could not resolve required fields from /metadata');
-        }
-        const metadata: Dict = {
-            'usdcAddress': usdcAddress,
-            'wsxAddress': wsxAddress,
-            'executorAddress': executorAddress,
-            'chainId': chainId,
-            'fillVerifyingContract': fillVerifyingContract,
-            'fillDomainVersion': fillDomainVersion,
-            'oddsLadderStepSize': oddsLadderStepSize,
-            'tokenTransferProxy': tokenTransferProxy,
-        };
-        this.options['sxMetadata'] = metadata;
-        return metadata;
-    }
-
-    /**
-     * @ignore
-     * @method
      * @name sxbet#loadSxObv3Metadata
      * @description fetches and caches GET /metadata/obv3 - the v3 orderbook metadata carrying the ready-made EIP-712 domain, the active base asset and the order size limits
      * @see https://docs.sx.bet/api-reference/get-metadata-obv3
@@ -728,9 +666,9 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#roundOddsToLadder
      * @description rounds an implied probability (0-1) to sx.bet's odds ladder (oddsLadderStepSize is in units of 1e-5, e.g. 125 -> a 0.125% step) — a maker's percentageOdds is rejected unless it lands exactly on the ladder
-     * @param {string} probability the implied probability as a decimal string (0-1)
-     * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata (e.g. '125')
-     * @returns {string} the probability rounded to the nearest ladder step, as a decimal string
+     * @param {string} probability the implied probability in decimal-string form (0-1)
+     * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata/obv3 (e.g. '125')
+     * @returns {string} the probability rounded to the nearest ladder step, in decimal-string form
      */
     roundOddsToLadder (probability: Str, oddsLadderStepSize: string): string {
         const tickSize = Precise.stringDiv (oddsLadderStepSize, '100000', 10);
@@ -740,26 +678,10 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#hashPersonalMessage
-     * @description hashes a binary message with the EIP-191 personal_sign prefix ("\x19Ethereum Signed Message:\n" + byte length), matching wallet.signMessage()/personal_sign used by sx.bet's maker order signature
-     * @param {Uint8Array} binaryMessage the raw bytes to sign
-     * @returns {string} the 32-byte digest to ecdsa-sign, as a '0x'-prefixed hex string
-     */
-    hashPersonalMessage (binaryMessage: any): string {
-        const binaryMessageLength = this.binaryLength (binaryMessage);
-        const x19 = this.base16ToBinary ('19');
-        const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
-    }
-
-    /**
-     * @ignore
-     * @method
      * @name sxbet#hashEip712Digest
      * @description hashes an EIP-712 encoded payload (domainSeparator‖structHash, prefixed with 0x1901 by ethEncodeStructuredData) down to the final 32-byte digest to sign, used by sx.bet's taker-fill and cancel signatures
      * @param {Uint8Array} encoded the output of this.ethEncodeStructuredData (domain, types, message)
-     * @returns {string} the 32-byte digest to ecdsa-sign, as a '0x'-prefixed hex string
+     * @returns {string} the 32-byte digest to ecdsa-sign, in '0x'-prefixed hex form
      */
     hashEip712Digest (encoded: any): string {
         return '0x' + this.hash (encoded, keccak, 'hex');
@@ -938,7 +860,7 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#createOrder
-     * @description places an order on sx.bet's v3 unified orderbook - a 'limit' order rests as GTC, a 'market' order fills immediately as IOC (or FOK via params.timeInForce). sx.bet has no shares - 'amount' is the USDC stake to risk, and 'price' is the implied probability (0-1) of the requested outcome. 'sell' bets the OPPOSITE outcome of the one requested (sx.bet is bilateral: there is no owned position to sell, only the complementary side of the same market)
+     * @description places an order on sx.bet's v3 unified orderbook - a 'limit' order rests with GTC time-in-force, a 'market' order fills immediately with IOC (or FOK via params.timeInForce). sx.bet has no shares - 'amount' is the USDC stake to risk, and 'price' is the implied probability (0-1) of the requested outcome. 'sell' bets the OPPOSITE outcome of the one requested (sx.bet is bilateral: there is no owned position to sell, only the complementary side of the same market)
      * @see https://docs.sx.bet/api-reference/post-orders-v3
      * @param {string} outcome unified outcome or outcome token id
      * @param {string} type 'limit' (GTC resting order) or 'market' (IOC immediate fill)
@@ -947,10 +869,12 @@ export default class sxbet extends Exchange {
      * @param {float} [price] implied probability (0-1) of the requested outcome; required for both order types
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] overrides the derived value - 'GTC', 'IOC' or 'FOK'
-     * @param {int} [params.expiry] unix seconds the order expires at; must be in the future (zero and past values are rejected, so is anything inside the venue's bettingDelay + 2s window), defaults to options.defaultOrderExpirySeconds from now
+     * @param {int} [params.expiry] unix seconds the order expires at; must be in the future (zero and past values are rejected, so is anything inside the fixture's betting-delay window - /metadata/obv3 resolves the delay per sport/league, live vs pregame), defaults to options.defaultOrderExpirySeconds from now
      * @param {string} [params.salt] overrides the random salt differentiating this order
      * @param {string} [params.clientOrderId] caller-chosen id echoed back on reads (max 64 chars)
      * @param {boolean} [params.waitForOutcome] wait for the matching outcome inline (default true)
+     * @param {boolean} [params.useBetCredits] fund the stake from bet credits instead of the proxy balance (IOC/FOK only)
+     * @param {string} [params.externalUserId] partner attribution id echoed back on order, fill and trade reads
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
@@ -992,8 +916,8 @@ export default class sxbet extends Exchange {
         const amountStr = this.numberToString (amount);
         const totalBetSize = this.decimalToPrecision (Precise.stringMul (amountStr, '1000000'), ROUND, 0, DECIMAL_PLACES);
         const saltNumber = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
-        // the request body carries the salt as a 32-byte hex string; the signed struct carries the
-        // same value as uint256 - both parse to one number server-side. assign to bare locals
+        // the request body carries the salt in 32-byte-hex form; the signed struct carries the
+        // same value in uint256 form - both parse to one number server-side. assign to bare locals
         // before padStart - see the transpiler notes
         const saltHexRaw = this.intToBase16 (this.parseToInt (saltNumber));
         const saltHexPadded = saltHexRaw.padStart (64, '0');
@@ -1003,7 +927,7 @@ export default class sxbet extends Exchange {
         const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
         let timeInForce = undefined;
         [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
-        // an explicit IOC/FOK on a 'limit' order is honored as given - the venue executes exactly
+        // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
         if ((type === 'market') && (timeInForce === 'GTC')) {
@@ -1051,8 +975,18 @@ export default class sxbet extends Exchange {
         if (clientOrderId !== undefined) {
             orderItem['clientOrderId'] = clientOrderId;
         }
+        // useBetCredits and externalUserId are per-order fields - route them into the order item,
+        // not the top-level body, where the venue would silently ignore them
+        const useBetCredits = this.safeBool (params, 'useBetCredits');
+        if (useBetCredits !== undefined) {
+            orderItem['useBetCredits'] = useBetCredits;
+        }
+        const externalUserId = this.safeString (params, 'externalUserId');
+        if (externalUserId !== undefined) {
+            orderItem['externalUserId'] = externalUserId;
+        }
         const waitForOutcome = this.safeBool (params, 'waitForOutcome', true);
-        const rest = this.omit (params, [ 'salt', 'expiry', 'clientOrderId', 'waitForOutcome' ]);
+        const rest = this.omit (params, [ 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ]);
         const request: Dict = { 'orders': [ orderItem ], 'waitForOutcome': waitForOutcome };
         const response = await this.sxbetPrivatePostOrdersV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
@@ -1068,7 +1002,7 @@ export default class sxbet extends Exchange {
         // with waitForOutcome the venue reports the matching result inline:
         //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
         // documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
-        // CANCELLED with reason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
+        // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
         const matchOutcome = this.safeDict (first, 'outcome');
         const usdcDecimals = '1000000';
         let filled: Num = undefined;
@@ -1092,7 +1026,8 @@ export default class sxbet extends Exchange {
                 // the unmatched remainder of an IOC was cancelled by the venue
                 orderStatus = 'canceled';
             } else if (state === 'CANCELLED') {
-                const reason = this.safeStringUpper (matchOutcome, 'reason');
+                // the documented field is cancelReason; 'reason' is kept for older responses
+                const reason = this.safeStringUpper2 (matchOutcome, 'cancelReason', 'reason');
                 orderStatus = (reason === 'EXPIRED') ? 'expired' : 'canceled';
             }
             // TIMEOUT: the wait elapsed before matching resolved - the order state is unknown here
@@ -1134,7 +1069,7 @@ export default class sxbet extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const result: PredictionOrder[] = [];
         // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
-        // report 'cancelledSubmitted' instead - treat both as cancelled
+        // report 'cancelledSubmitted' instead - treat both like cancelled
         const cancelled = this.safeList2 (data, 'cancelled', 'cancelledSubmitted', []);
         const cancelledLength = cancelled.length;
         for (let i = 0; i < cancelledLength; i++) {
@@ -1200,43 +1135,65 @@ export default class sxbet extends Exchange {
         if (idsLength === 0) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument');
         }
-        const orderItems = [];
-        for (let i = 0; i < idsLength; i++) {
-            orderItems.push ({ 'orderId': ids[i] });
+        // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
+        // chunk larger batches instead of letting the whole request 400
+        const chunkSize = this.safeInteger (this.options, 'cancelOrdersBatchSize', 100);
+        const chunkCount = this.parseToInt (this.sum (idsLength, chunkSize - 1) / chunkSize);
+        let result: PredictionOrder[] = [];
+        for (let c = 0; c < chunkCount; c++) {
+            const start = c * chunkSize;
+            let end = start + chunkSize;
+            if (end > idsLength) {
+                end = idsLength;
+            }
+            const orderItems = [];
+            for (let i = start; i < end; i++) {
+                orderItems.push ({ 'orderId': ids[i] });
+            }
+            const request: Dict = { 'orders': orderItems };
+            const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
+            result = this.arrayConcat (result, this.parseSxbetCancelResponse (response));
         }
-        const request: Dict = { 'orders': orderItems };
-        const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
-        return this.parseSxbetCancelResponse (response);
+        return result;
     }
 
     /**
      * @method
      * @name sxbet#cancelAllOrders
-     * @description cancels every resting maker order of the account, or every order of one fixture via params.sportXeventId - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
+     * @description cancels every resting maker order of the account, or every order of one fixture via params.eventId - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
      * @see https://docs.sx.bet/api-reference/delete-orders-v3-all
      * @see https://docs.sx.bet/api-reference/delete-orders-v3-event
      * @param {string} [outcome] not used by sxbet.cancelAllOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.sportXeventId] cancels every order across every market of this fixture instead of the account-wide path
+     * @param {string} [params.eventId] cancels every order across every market of this fixture instead of the account-wide path (params.sportXeventId is accepted too)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
-        const sportXeventId = this.safeString (params, 'sportXeventId');
+        const eventId = this.safeString2 (params, 'eventId', 'sportXeventId');
+        const rest = this.omit (params, [ 'eventId', 'sportXeventId' ]);
+        const isEventScoped = (eventId !== undefined);
         let response = undefined;
-        if (sportXeventId !== undefined) {
-            const rest = this.omit (params, [ 'sportXeventId' ]);
-            const request: Dict = { 'sportXeventId': sportXeventId };
+        if (isEventScoped) {
+            // the event route takes eventId in the QUERY string, not the body - sign() urlencodes
+            // body-less DELETE params
+            const request: Dict = { 'eventId': eventId };
             response = await this.sxbetPrivateDeleteOrdersV3Event (this.extend (request, rest));
         } else {
-            response = await this.sxbetPrivateDeleteOrdersV3All (params);
+            response = await this.sxbetPrivateDeleteOrdersV3All (rest);
         }
         let result = this.parseSxbetCancelResponse (response);
-        // the account-wide path paginates its async submission - keep going while more remain
+        // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool (this.safeDict (response, 'data', {}), 'hasMore', false);
         let guard = 0;
         while ((hasMore === true) && (guard < 50)) {
-            const nextResponse = await this.sxbetPrivateDeleteOrdersV3All (params);
+            let nextResponse = undefined;
+            if (isEventScoped) {
+                const nextRequest: Dict = { 'eventId': eventId };
+                nextResponse = await this.sxbetPrivateDeleteOrdersV3Event (this.extend (nextRequest, rest));
+            } else {
+                nextResponse = await this.sxbetPrivateDeleteOrdersV3All (rest);
+            }
             result = this.arrayConcat (result, this.parseSxbetCancelResponse (nextResponse));
             hasMore = this.safeBool (this.safeDict (nextResponse, 'data', {}), 'hasMore', false);
             guard = this.sum (guard, 1);
@@ -1331,20 +1288,33 @@ export default class sxbet extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @name sxbet#clampSxbetPerPage
+     * @description clamps a user limit to the venue's hard perPage ceiling - every v3 listing route rejects perPage above 100, and deeper history is reachable through the nextKey cursor instead
+     * @param {int} limit the user-requested limit
+     * @returns {int} the limit clamped to at most 100
+     */
+    clampSxbetPerPage (limit: Int): Int {
+        const maxPerPage = 100;
+        if (limit === undefined) {
+            return undefined;
+        }
+        return (limit > maxPerPage) ? maxPerPage : limit;
+    }
+
+    /**
      * @method
      * @name sxbet#fetchOpenOrders
-     * @description fetches the wallet's resting maker orders via GET /orders scoped by maker — needs only walletAddress (the endpoint is public), no privateKey
-     * @see https://docs.sx.bet/api-reference/get-orders
+     * @description fetches the account's resting maker orders via the api-key-authenticated GET /orders-v3 (the route is hardcoded to ACTIVE orders and scoped to the key's account)
+     * @see https://docs.sx.bet/api-reference/get-orders-v3
      * @param {string} [outcome] unified outcome or outcomeId — narrows to that outcome's market
-     * @param {int} [since] not supported by the venue (order rows carry no timestamp), applied client-side only if the venue adds one
-     * @param {int} [limit] the maximum number of orders to return (server-side perPage, max 1000)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. sportXeventId, page)
+     * @param {int} [since] applied client-side (the route has no date filter; rows carry createdAt)
+     * @param {int} [limit] the maximum number of orders to return (server-side perPage, max 100, default 50)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, sortBy, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
-        if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a walletAddress to identify the maker');
-        }
         const request: Dict = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
@@ -1353,7 +1323,7 @@ export default class sxbet extends Exchange {
             request['marketHash'] = this.safeString (outcomeObj['info'], 'marketHash');
         }
         if (limit !== undefined) {
-            request['perPage'] = limit;
+            request['perPage'] = this.clampSxbetPerPage (limit);
         }
         const response = await this.sxbetPrivateGetOrdersV3 (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1364,12 +1334,12 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#fetchOrders
-     * @description fetches the wallet's maker orders. sx.bet's GET /orders only serves RESTING (active) orders — filled/cancelled/expired orders leave the listing permanently (their history is only reconstructable from trades), so this returns the same set as fetchOpenOrders
-     * @see https://docs.sx.bet/api-reference/get-orders
+     * @description fetches the account's maker orders. sx.bet's GET /orders-v3 listing is hardcoded to ACTIVE orders — filled/cancelled/expired orders leave the listing permanently (their history is only reconstructable from fills), so this returns the same set that fetchOpenOrders returns
+     * @see https://docs.sx.bet/api-reference/get-orders-v3
      * @param {string} [outcome] unified outcome or outcomeId — narrows to that outcome's market
-     * @param {int} [since] not supported by the venue (order rows carry no timestamp)
-     * @param {int} [limit] the maximum number of orders to return (server-side perPage, max 1000)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. sportXeventId, page)
+     * @param {int} [since] applied client-side (the route has no date filter; rows carry createdAt)
+     * @param {int} [limit] the maximum number of orders to return (server-side perPage, max 100, default 50)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, sortBy, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
@@ -1379,8 +1349,8 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#fetchOrder
-     * @description fetches a single resting maker order by its order hash. throws OrderNotFound when the hash is no longer resting — sx.bet's GET /orders drops filled/cancelled/expired orders from the listing entirely
-     * @see https://docs.sx.bet/api-reference/get-orders
+     * @description fetches a single maker order by its order hash - unlike the listing, GET /orders-v3/{orderId} also serves filled, cancelled and expired orders while they still exist. a missing or foreign id 404s with 'Order not found', surfaced through handleErrors's OrderNotFound mapping
+     * @see https://docs.sx.bet/api-reference/get-order-v3
      * @param {string} id the order hash
      * @param {string} [outcome] unified outcome or outcomeId (labelling hint only, the request needs just the id)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1400,109 +1370,18 @@ export default class sxbet extends Exchange {
         const response = await this.sxbetPrivateGetOrdersV3OrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const row = this.safeDict (data, 'order', data);
-        if (this.safeString2 (row, 'id', 'orderId') === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() could not find order ' + id);
-        }
         return this.parsePredictionOrder (row, outcomeObj);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name sxbet#tokenAmountDivider
-     * @description resolves the raw-to-human divider for a base token amount — sx.bet denominates in USDC (6 decimals) or WSX (18 decimals); the token is recognised through the cached /metadata addresses, defaulting to USDC when the cache is cold
-     * @param {string} baseToken the base token contract address
-     * @returns {string} the power-of-ten divider as a string
-     */
-    tokenAmountDivider (baseToken: Str): string {
-        const obv3 = this.safeDict (this.options, 'sxObv3Metadata', {});
-        const activeAsset = this.safeDict (obv3, 'activeAsset', {});
-        const usdcAddress = this.safeStringLower (activeAsset, 'baseToken', '');
-        const baseTokenLower = (baseToken === undefined) ? '' : baseToken.toLowerCase ();
-        if ((usdcAddress !== '') && (baseTokenLower !== usdcAddress)) {
-            return '1000000000000000000'; // WSX, 18 decimals
-        }
-        return '1000000'; // USDC, 6 decimals
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name sxbet#parsePredictionTrade
-     * @description parses one raw GET /trades row into a unified trade. the row's bettingOutcomeOne selects the outcome the bettor backed, so every trade is a 'buy' of that outcome at the implied probability the bettor received
-     * @param {object} trade the raw sx.bet trade object
-     * @param {object} [market] the outcome object the trade belongs to (resolved from the cache by outcomeId when omitted)
-     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
-     */
-    override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
-        //
-        //     {
-        //         "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
-        //         "bettor": "0x713117eCdEfB29B919544C7502162423220fE78b",
-        //         "stake": "5471240",
-        //         "odds": "65000000000000000000",
-        //         "orderHash": "0xa39a03729714170256eb0ea3c3c14b2985f7320d6fa75663edbca8c6d6e4dc83",
-        //         "marketHash": "0x80f558d8535e4f1343e3dc0303ab6d32432c732607fc460fe910ef95845ba40d",
-        //         "maker": false,
-        //         "bettingOutcomeOne": false,
-        //         "settled": true,
-        //         "settleValue": 1,
-        //         "fillHash": "0x8e55b9a69f8b2ff4b9816f59c772da765227df104833daad946cfe36d2873938",
-        //         "tradeStatus": "SUCCESS",
-        //         "betType": 1,
-        //         "settleDate": "2026-03-13T00:25:57.472Z",
-        //         "outcome": 1,
-        //         "createdAt": "2026-03-12T23:18:47.931Z",
-        //         "sportXeventId": "L18268159",
-        //         "netReturn": "8.417292",
-        //         "betTime": 1773357527
-        //     }
-        //
-        const id = this.safeString (trade, 'fillHash');
-        let timestamp = this.safeTimestamp (trade, 'betTime');
-        if (timestamp === undefined) {
-            timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
-        }
-        const marketHash = this.safeString (trade, 'marketHash', '');
-        const bettingOutcomeOne = this.safeBool (trade, 'bettingOutcomeOne', true);
-        const outcomeId = (bettingOutcomeOne) ? marketHash : (marketHash + '-2');
-        const outcomeObj = this.safeOutcome (outcomeId, market as any);
-        const oneDenom = '100000000000000000000';
-        const odds = this.safeString (trade, 'odds');
-        const price = (odds !== undefined) ? this.parseNumber (Precise.stringDiv (odds, oneDenom)) : undefined;
-        const divider = this.tokenAmountDivider (this.safeString (trade, 'baseToken'));
-        const stake = this.safeString (trade, 'stake', '0');
-        const amount = this.parseNumber (Precise.stringDiv (stake, divider, 6));
-        const isMaker = this.safeBool (trade, 'maker', false);
-        return this.safePredictionTrade ({
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
-            'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'market'),
-            'order': this.safeString (trade, 'orderHash'),
-            'type': undefined,
-            'side': 'buy',
-            'takerOrMaker': (isMaker) ? 'maker' : 'taker',
-            'price': price,
-            'amount': amount,
-            'cost': amount,
-            'fee': undefined,
-        }, market);
     }
 
     /**
      * @method
      * @name sxbet#fetchTrades
      * @description fetches the public trade tape of one outcome's market — every bettor's settled and in-flight bets on that market. the venue requires the trades listing to be scoped, so the outcome argument is mandatory
-     * @see https://docs.sx.bet/api-reference/get-trades
+     * @see https://docs.sx.bet/api-reference/get-trades-v3-public
      * @param {string} outcome unified outcome or outcomeId
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch (server-side startDate)
-     * @param {int} [limit] the maximum number of trades to return (server-side pageSize)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. settled, tradeStatus, paginationKey)
+     * @param {int} [since] timestamp in ms of the earliest trade to return — applied client-side over the newest page (the public tape serves newest-first and has no date filter; older pages are reachable through params.nextKey)
+     * @param {int} [limit] the maximum number of trades to return (server-side perPage, max 100, default 50)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, nextKey)
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
@@ -1512,11 +1391,8 @@ export default class sxbet extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const request: Dict = { 'marketHash': this.safeString (outcomeObj['info'], 'marketHash') };
-        if (since !== undefined) {
-            request['startDate'] = this.iso8601 (since);
-        }
         if (limit !== undefined) {
-            request['perPage'] = limit;
+            request['perPage'] = this.clampSxbetPerPage (limit);
         }
         const response = await this.sxbetPublicGetTradesV3Public (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1535,12 +1411,12 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#fetchMyTrades
-     * @description fetches the wallet's trades (matched fills, both taker and maker legs) via GET /trades scoped by bettor — needs only walletAddress (the endpoint is public). settled trades embed the resolution (settled/settleValue/outcome) in the raw info
-     * @see https://docs.sx.bet/api-reference/get-trades
+     * @description fetches the account's fills (matched legs of its own orders, both taker and maker side) via the api-key-authenticated GET /fills-v3
+     * @see https://docs.sx.bet/api-reference/get-fills-v3
      * @param {string} [outcome] unified outcome or outcomeId — narrows to that outcome's market and drops the opposite side's legs
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch (server-side startDate)
-     * @param {int} [limit] the maximum number of trades to return (server-side pageSize)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. settled, sportXeventId, tradeStatus, paginationKey)
+     * @param {int} [since] timestamp in ms of the earliest fill to fetch (server-side startDate)
+     * @param {int} [limit] the maximum number of fills to return (server-side perPage, max 100, default 50)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. tradeId, orderId, endDate, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
@@ -1557,7 +1433,7 @@ export default class sxbet extends Exchange {
         if ((limit !== undefined) && (outcome === undefined)) {
             // with an outcome filter the rows are narrowed client-side - a server-side page
             // size would truncate the page before the filter and under-fill the result
-            request['perPage'] = limit;
+            request['perPage'] = this.clampSxbetPerPage (limit);
         }
         const response = await this.sxbetPrivateGetFillsV3 (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1590,7 +1466,7 @@ export default class sxbet extends Exchange {
         //         "userAddress": "0xbcc6...", "wallet": "0x4361...",
         //         "fillAmount": "333334", "fillOdds": "40000000000000000000",
         //         "returnAmount": "833335", "isBettingOutcomeOne": false,
-        //         "status": "LOCKED", "txHash": "0x6430...",
+        //         "isMaker": false, "status": "LOCKED", "txHash": "0x6430...",
         //         "ceRefundAmount": "0", "ceRefundFeeAmount": "0",
         //         "usedBetCredits": false, "createdAt": "2026-07-31T18:47:09.586Z",
         //         "updatedAt": "2026-07-31T18:47:12.837Z", "settlement": null
@@ -1607,6 +1483,12 @@ export default class sxbet extends Exchange {
         const fillAmount = this.safeString (fill, 'fillAmount', '0');
         const amount = this.parseNumber (Precise.stringDiv (fillAmount, usdcDecimals, 6));
         const timestamp = this.parse8601 (this.safeString (fill, 'createdAt'));
+        // isMaker: true when the account's order was the resting one - absent on older rows
+        const isMaker = this.safeBool (fill, 'isMaker');
+        let takerOrMaker: Str = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
+        }
         return this.safePredictionTrade ({
             'id': this.safeString (fill, 'id'),
             'info': fill,
@@ -1619,7 +1501,7 @@ export default class sxbet extends Exchange {
             'order': this.safeString (fill, 'orderId'),
             'type': undefined,
             'side': 'buy',
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': amount,
@@ -1628,58 +1510,54 @@ export default class sxbet extends Exchange {
     }
 
     /**
-     * @ignore
-     * @method
-     * @name sxbet#fetchExplorerTokenBalance
-     * @description reads one token's raw wallet balance through the SX rollup block explorer API
-     * @param {string} tokenAddress the token contract address
-     * @param {object} [params] extra request params forwarded verbatim
-     * @returns {string} the raw integer balance in token base units
-     */
-    async fetchExplorerTokenBalance (tokenAddress: Str, params = {}): Promise<Str> {
-        const request: Dict = {
-            'module': 'account',
-            'action': 'tokenbalance',
-            'contractaddress': tokenAddress,
-            'address': this.walletAddress,
-        };
-        const response = await this.explorerPublicGetApi (this.extend (request, params));
-        //
-        //     { "message": "OK", "result": "1000000000", "status": "1" }
-        //
-        const status = this.safeString (response, 'status');
-        if (status !== '1') {
-            throw new ExchangeError (this.id + ' fetchBalance() explorer error: ' + this.json (response));
-        }
-        return this.safeString (response, 'result', '0');
-    }
-
-    /**
      * @method
      * @name sxbet#fetchBalance
-     * @description fetches the wallet's USDC and WSX balances through the SX rollup block explorer — sx.bet itself has no balance endpoint. resting maker orders lock no funds (tokens only move when a fill settles on-chain), so the whole on-chain balance is reported free
-     * @see https://docs.sx.bet/developers/testnet-and-mainnet
+     * @description fetches the account's order-spendable proxy balance from GET /user/balance-v3 - v3 trading capital sits inside the obv3 proxy wallet (funded via approve()), and GTC posting is checked against availableAmount. free is the spendable availableAmount, used the escrowedAmount locked behind open bets
+     * @see https://docs.sx.bet/api-reference/get-user-balance-v3
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
     override async fetchBalance (params = {}): Promise<Balances> {
-        if (this.walletAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a walletAddress');
-        }
         const obv3 = await this.loadSxObv3Metadata ();
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
-        const usdcAddress = this.safeString (activeAsset, 'baseToken', '');
-        const usdcRaw = await this.fetchExplorerTokenBalance (usdcAddress, params);
-        const result: Dict = { 'info': { 'USDC': usdcRaw }};
-        const usdcTotal = this.parseNumber (Precise.stringDiv (usdcRaw, '1000000', 6));
-        result['USDC'] = { 'free': usdcTotal, 'used': 0, 'total': usdcTotal };
+        const usdcAddress = this.safeStringLower (activeAsset, 'baseToken', '');
+        const response = await this.sxbetPrivateGetUserBalanceV3 (params);
+        //
+        //     { "status": "success", "data": { "balances": [ {
+        //         "userAddress": "0xC3f4...", "wallet": "0x19D1...",
+        //         "tokenAddress": "0x1BC6...", "escrowAddress": "0x0Db3...",
+        //         "availableAmount": "0", "pendingAvailableAmount": "0",
+        //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const balances = this.safeList (data, 'balances', []);
+        const result: Dict = { 'info': response };
+        const usdcDecimals = '1000000';
+        const balancesLength = balances.length;
+        for (let i = 0; i < balancesLength; i++) {
+            const row = balances[i];
+            const tokenAddress = this.safeStringLower (row, 'tokenAddress', '');
+            // every sxbet market is denominated in the active base token, surfaced under 'USDC';
+            // rows of any other token keep their contract address for the code
+            let code = this.safeString (row, 'tokenAddress', '');
+            if (tokenAddress === usdcAddress) {
+                code = 'USDC';
+            }
+            const free = Precise.stringDiv (this.safeString (row, 'availableAmount', '0'), usdcDecimals, 6);
+            const used = Precise.stringDiv (this.safeString (row, 'escrowedAmount', '0'), usdcDecimals, 6);
+            result[code] = {
+                'free': this.parseNumber (free),
+                'used': this.parseNumber (used),
+                'total': this.parseNumber (Precise.stringAdd (free, used)),
+            };
+        }
         return this.safeBalance (result) as Balances;
     }
 
     /**
      * @method
      * @name sxbet#fetchPositions
-     * @description fetches the wallet's open positions from the venue's per-market aggregates (GET /positions-v3, PENDING and LOCKED bets by default; override with params.status). contracts is the total stake at risk, entryPrice the blended implied probability of the market's best-case outcome
+     * @description fetches the account's open positions from the venue's per-market aggregates (GET /positions-v3, MATCHED and LOCKED bets by default; override with params.status - the enum is MATCHED, LOCKED, SETTLED, FAILED, and pnl is populated only when the filter is exclusively SETTLED). contracts is the total stake at risk, entryPrice the blended implied probability of the market's best-case outcome
      * @see https://docs.sx.bet/api-reference/get-positions-v3
      * @param {string[]} [outcomes] filter by unified outcomes or outcomeIds
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1699,8 +1577,9 @@ export default class sxbet extends Exchange {
                 wantedMarkets[hash] = true;
             }
         }
-        // open exposure lives in PENDING and LOCKED bets - the venue requires an explicit status list
-        const request: Dict = { 'status': this.safeString (params, 'status', 'PENDING,LOCKED') };
+        // open exposure lives in MATCHED and LOCKED bets - the venue requires an explicit status
+        // list drawn from MATCHED, LOCKED, SETTLED, FAILED
+        const request: Dict = { 'status': this.safeString (params, 'status', 'MATCHED,LOCKED') };
         const rest = this.omit (params, [ 'status' ]);
         const response = await this.sxbetPrivateGetPositionsV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
@@ -1772,12 +1651,12 @@ export default class sxbet extends Exchange {
     /**
      * @method
      * @name sxbet#fetchSettlements
-     * @description fetches the wallet's settled bets — each settled GET /trades row becomes one settlement with the resolved winner, the payout (stake / odds when won, the stake back when the market voided, zero when lost) and the realized pnl
-     * @see https://docs.sx.bet/api-reference/get-trades
+     * @description fetches the account's settled bets — each settled GET /trades-v3 row becomes one settlement with the resolved winner, the payout (stake / odds when won, the stake back when the market voided, zero when lost) and the realized pnl
+     * @see https://docs.sx.bet/api-reference/get-trades-v3
      * @param {string} [outcome] filter to a single unified outcome or outcomeId
      * @param {int} [since] timestamp in ms of the earliest settlement to fetch (server-side startDate on the bet time)
-     * @param {int} [limit] the maximum number of settlements to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [limit] the maximum number of settlements to fetch (server-side perPage, max 100, default 50)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, endDate, sortAsc, nextKey)
      * @returns {object[]} a list of prediction settlement structures
      */
     override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
@@ -1796,7 +1675,7 @@ export default class sxbet extends Exchange {
         if ((limit !== undefined) && (outcome === undefined)) {
             // the outcome scope narrows rows client-side (the venue filter is per market, not
             // per side) - a server-side page size would under-fill the filtered result
-            request['perPage'] = limit;
+            request['perPage'] = this.clampSxbetPerPage (limit);
         }
         const response = await this.sxbetPrivateGetTradesV3 (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1816,7 +1695,7 @@ export default class sxbet extends Exchange {
      * @ignore
      * @method
      * @name sxbet#parseSettlement
-     * @description parses one settled GET /trades row into the unified prediction settlement shape. the raw `outcome` field carries the winner as 1 or 2 with 0 for a voided market, and the full payout of a winning bet is stake / odds (the implied probability the bettor received)
+     * @description parses one settled GET /trades-v3 row into the unified prediction settlement shape. the raw `outcome` field carries the winner, 1 or 2, with 0 for a voided market, and the full payout of a winning bet is stake / odds (the implied probability the bettor received)
      * @param {object} trade the raw settled sx.bet trade
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
@@ -1888,7 +1767,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#fetchSxbetBookSnapshot
      * @description fetches the v3 aggregated order book snapshot of one market ({outcomeOne, outcomeTwo, version} price levels)
-     * @see https://docs.sx.bet/api-reference/get-orderbook-v3-snapshot
+     * @see https://docs.sx.bet/api-reference/get-orderbook-snapshot
      * @param {string} marketHash the market hash
      * @returns {object} the raw snapshot data
      */
@@ -1902,7 +1781,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#fetchTicker
      * @description fetches the current best resting odds for a single sx.bet outcome. sx.bet is a peer-to-peer odds book (no matched-trade tape or candles), so bid/ask are the best (highest) percentageOdds resting on this outcome's own side and its mirror (1 - best percentageOdds resting on the opposite outcome)
-     * @see https://docs.sx.bet/api-reference/get-orderbook-v3-snapshot
+     * @see https://docs.sx.bet/api-reference/get-orderbook-snapshot
      * @param {string} outcome unified outcome handle or outcomeId (marketHash or marketHash + '-2')
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
@@ -1960,7 +1839,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#fetchTickers
      * @description fetches the current best resting odds for multiple sx.bet outcomes, one book snapshot per market
-     * @see https://docs.sx.bet/api-reference/get-orderbook-v3-snapshot
+     * @see https://docs.sx.bet/api-reference/get-orderbook-snapshot
      * @param {string[]} outcomes unified outcomes - required: sx.bet has thousands of markets and no endpoint returning all of them at once
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
@@ -2116,7 +1995,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#fetchOrderBook
      * @description fetches the resting maker order book for a single sx.bet outcome. bids are maker orders already betting on this outcome (priced at each maker's own implied probability, sized by their remaining stake); asks mirror the opposite outcome's maker orders (price = 1 - their implied probability, sized by how much a taker could bet against them, per sx.bet's remaining-taker-space formula) — the same YES/NO-style mirrored construction used across this codebase's other binary prediction venues
-     * @see https://docs.sx.bet/api-reference/get-orders
+     * @see https://docs.sx.bet/api-reference/get-orderbook-snapshot
      * @param {string} outcome unified outcome handle or outcomeId
      * @param {int} [limit] the maximum number of bids/asks to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2220,9 +2099,27 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
+     * @name sxbet#registerSxbetWsRequest
+     * @description tracks an outgoing Centrifugo connect/subscribe command by its request id, so an error reply can be correlated back to the awaiting future and its registered subscription hash (see handleCentrifugoFrame)
+     * @param {int} requestId the id sent with the command
+     * @param {string} messageHash the future hash the caller awaits
+     * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
+     */
+    registerSxbetWsRequest (requestId: number, messageHash: string, subscription: string) {
+        const existing = this.safeDict (this.options, 'wsPendingRequests');
+        if (existing === undefined) {
+            this.options['wsPendingRequests'] = this.createSafeDictionary ();
+        }
+        const requestIdString = this.numberToString (requestId);
+        this.options['wsPendingRequests'][requestIdString] = { 'messageHash': messageHash, 'subscription': subscription };
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name sxbet#fetchSxbetRealtimeToken
      * @description fetches the short-lived Centrifugo connection token from the relayer; requires the apiKey credential (X-Api-Key header)
-     * @see https://docs.sx.bet/api-reference/centrifugo-initialization
+     * @see https://docs.sx.bet/developers/realtime-initialization
      * @returns {string} the JWT connection token
      */
     async fetchSxbetRealtimeToken (): Promise<Str> {
@@ -2244,6 +2141,7 @@ export default class sxbet extends Exchange {
             this.options['wsConnected'] = false;
             const token = await this.fetchSxbetRealtimeToken ();
             const requestId = this.requestId (url);
+            this.registerSxbetWsRequest (requestId, 'centrifugoConnected', 'connect');
             const connectMsg: Dict = { 'connect': { 'token': token, 'name': 'ccxt' }, 'id': requestId };
             return await this.watch (url, 'centrifugoConnected', connectMsg, 'connect');
         }
@@ -2265,13 +2163,14 @@ export default class sxbet extends Exchange {
         // finish the connect handshake first so the subscribe frame follows the connect reply
         await this.connectSxbetCentrifugo (url);
         const requestId = this.requestId (url);
+        this.registerSxbetWsRequest (requestId, messageHash, channel);
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
         return await this.watch (url, messageHash, subscribeMsg, channel);
     }
 
     override handleMessage (client: any, message: any) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
-        // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
+        // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
         if (typeof message === 'string') {
             const lines = message.split ('\n');
             const linesLength = lines.length;
@@ -2294,6 +2193,37 @@ export default class sxbet extends Exchange {
             this.spawn (this.pong, client, msg);
             return;
         }
+        const requestIdString = this.safeString (msg, 'id');
+        const pendingRequests = this.safeDict (this.options, 'wsPendingRequests', {});
+        const pendingEntry = this.safeDict (pendingRequests, requestIdString);
+        const errorReply = this.safeDict (msg, 'error');
+        if (errorReply !== undefined) {
+            // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
+            // unknown channel) - fail the awaiting future and clear the subscription hash that
+            // watch() registered at send time, so the next call re-sends the command instead
+            // of waiting forever behind a marker that will never be served
+            const error = new ExchangeError (this.id + ' ' + this.json (msg));
+            if (pendingEntry !== undefined) {
+                const failedHash = this.safeString (pendingEntry, 'messageHash');
+                const subscription = this.safeString (pendingEntry, 'subscription');
+                if (subscription === 'connect') {
+                    this.options['wsConnected'] = false;
+                }
+                if ((subscription !== undefined) && (subscription in client.subscriptions)) {
+                    delete client.subscriptions[subscription];
+                }
+                this.options['wsPendingRequests'] = this.omit (pendingRequests, requestIdString);
+                client.reject (error, failedHash);
+            } else {
+                // an error that cannot be correlated to one command fails the whole connection
+                client.reject (error);
+            }
+            return;
+        }
+        if (pendingEntry !== undefined) {
+            // a successful command ack - the tracked request has served its purpose
+            this.options['wsPendingRequests'] = this.omit (pendingRequests, requestIdString);
+        }
         const connectReply = this.safeDict (msg, 'connect');
         if (connectReply !== undefined) {
             // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
@@ -2314,7 +2244,7 @@ export default class sxbet extends Exchange {
         if (data === undefined) {
             return;
         }
-        // rows arrive either as one object or as an array of objects - normalize to a list
+        // rows arrive either shaped like one object or like an array of objects - normalize to a list
         let rows = [];
         if (Array.isArray (data)) {
             rows = data;
@@ -2343,7 +2273,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#watchOrderBook
      * @description streams the order book of an outcome - the v3 channel publishes the entire aggregated book on every update with a monotonic version, so each message replaces the held book
-     * @see https://docs.sx.bet/api-reference/centrifugo-order-book-updates
+     * @see https://docs.sx.bet/api-reference/channel-orderbook-v3
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [limit] the maximum number of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2375,6 +2305,7 @@ export default class sxbet extends Exchange {
             }
         }
         const requestId = this.requestId (url);
+        this.registerSxbetWsRequest (requestId, messageHash, channel);
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch (url, messageHash, subscribeMsg, channel);
         if (isNewSubscription) {
@@ -2465,7 +2396,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#watchTicker
      * @description streams best-odds updates of an outcome; the venue channel is global, entries are filtered down to the requested outcome's market
-     * @see https://docs.sx.bet/api-reference/centrifugo-best-odds
+     * @see https://docs.sx.bet/api-reference/channel-best-odds-v3
      * @param {string} outcome unified outcome or outcome token id
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
@@ -2497,6 +2428,7 @@ export default class sxbet extends Exchange {
             hydrated = true;
         }
         const requestId = this.requestId (url);
+        this.registerSxbetWsRequest (requestId, messageHash, channel);
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch (url, messageHash, subscribeMsg, channel);
         if (hydrated) {
@@ -2550,7 +2482,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#watchTrades
      * @description streams public bets of an outcome; the venue channel is global, entries are filtered down to the requested outcome
-     * @see https://docs.sx.bet/api-reference/centrifugo-trade-updates
+     * @see https://docs.sx.bet/api-reference/channel-recent-trades-v3
      * @param {string} outcome unified outcome or outcome token id
      * @param {int} [since] timestamp in ms of the earliest trade to return
      * @param {int} [limit] the maximum number of trades to return
@@ -2638,7 +2570,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#watchMyTrades
      * @description streams the authenticated wallet's fills over its per-account v3 channel
-     * @see https://docs.sx.bet/api-reference/centrifugo-trade-updates
+     * @see https://docs.sx.bet/api-reference/channel-fills-v3
      * @param {string} [outcome] unified outcome or outcome token id to narrow the stream down to
      * @param {int} [since] timestamp in ms of the earliest trade to return
      * @param {int} [limit] the maximum number of trades to return
@@ -2688,7 +2620,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#watchOrders
      * @description streams updates of the authenticated wallet's orders over its per-account v3 channel
-     * @see https://docs.sx.bet/api-reference/centrifugo-active-order-updates
+     * @see https://docs.sx.bet/api-reference/channel-orders-v3
      * @param {string} [outcome] unified outcome or outcome token id to narrow the stream down to
      * @param {int} [since] timestamp in ms of the earliest order to return
      * @param {int} [limit] the maximum number of orders to return
@@ -2745,7 +2677,7 @@ export default class sxbet extends Exchange {
         if (message === undefined) {
             return undefined;
         }
-        // validation failures arrive as an array of strings, business errors as a single code string
+        // validation failures arrive in string-array form, business errors in single-code-string form
         let messageString = undefined;
         if (Array.isArray (message)) {
             messageString = message.join (', ');
@@ -2767,7 +2699,7 @@ export default class sxbet extends Exchange {
      * @ignore
      * @method
      * @name sxbet#sign
-     * @description builds the request url and attaches the optional API-key header
+     * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
@@ -2778,6 +2710,10 @@ export default class sxbet extends Exchange {
      */
     override sign (path: any, api: any = 'sxbet', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const accessLevel: string = typeof api === 'string' ? 'public' : api[1];
+        if ((accessLevel === 'private') && (this.apiKey === undefined)) {
+            throw new AuthenticationError (this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
+        }
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sxbet'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -2790,7 +2726,14 @@ export default class sxbet extends Exchange {
         if (this.apiKey !== undefined) {
             headers['x-sx-api-key'] = this.apiKey;
         }
-        if (method === 'GET') {
+        // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
+        // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
+        let sendAsQuery = (method === 'GET');
+        if (method === 'DELETE') {
+            const hasOrdersList = ('orders' in query);
+            sendAsQuery = !hasOrdersList;
+        }
+        if (sendAsQuery) {
             const querystring = this.urlencode (query);
             if (querystring !== '') {
                 url += '?' + querystring;
