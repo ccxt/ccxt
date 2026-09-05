@@ -378,13 +378,6 @@ class BaseExchange(SyncExchange):
         self.reloading_markets = False
         return result
 
-    async def load_fees(self, reload=False):
-        if not reload:
-            if self.loaded_fees != Exchange.loaded_fees:
-                return self.loaded_fees
-        self.loaded_fees = self.deep_extend(self.loaded_fees, await self.fetch_fees())
-        return self.loaded_fees
-
     async def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
@@ -399,21 +392,8 @@ class BaseExchange(SyncExchange):
         # and may be changed for consistency later
         return self.currencies
 
-    async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
-
-    async def fetch_full_tickers(self, symbols=None, params={}):
-        return await self.fetch_tickers(symbols, params)
-
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
-
-    async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
 
     def spawn(self, method, *args):
         def callback(asyncio_future):
@@ -674,11 +654,6 @@ class BaseExchange(SyncExchange):
         if client.url in self.clients:
             del self.clients[client.url]
         self.orderbooks[symbol] = self.order_book()  # clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
-
-    def format_scientific_notation_ftx(self, n):
-        if n == 0:
-            return '0e-00'
-        return format(n, 'g')
 
     def decode_proto_msg(self, data):
         try:
