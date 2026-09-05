@@ -1140,7 +1140,7 @@
                 "precision": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
-                "networks":"empty",
+                "networks": "empty",
                 "type": "not provided",
                 "activeMajorCurrencies": "todo"
             },
@@ -1564,8 +1564,16 @@
         "until": "2026-12-31",
         "preferredEventQuery": "trump",
         "preferredEventScopes": [
-            { "tags": [ "BTC" ], "limit": 3 },
-            { "category": "Crypto", "limit": 3 }
+            {
+                "tags": [
+                    "BTC"
+                ],
+                "limit": 3
+            },
+            {
+                "category": "Crypto",
+                "limit": 3
+            }
         ],
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
@@ -1833,7 +1841,7 @@
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
-                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
+                "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
                 "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
             },
             "fetchTickers": {
@@ -1992,9 +2000,7 @@
     },
     "okxus": {
         "skipCSharp": true,
-        "loadMarkets": {
-
-        },
+        "loadMarkets": {},
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2030,7 +2036,10 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures"
+            "createOrder": "Polymarket geo-blocks order placement and CI runs via an EU proxy (403 from /order); verified live locally + the signed payload is covered by the static request fixtures",
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "perps collateral is pUSD only; BTC/ETH are perpetual-contract underlyings, not depositable or withdrawable assets, so their deposit/withdraw flags are false by design"
+            }
         },
         "preferredPredictionOutcome": "DEMOCRATIC_PRESIDENTIAL_NOMINEE_2028_BERNIE_SANDERS_WIN_2028_DEMOCRATIC_PRESIDENTIAL_NOMINATION_879:YES",
         "predictionNote": "liquid book, resolves 2028; C#/Go/Java dict ordering otherwise scans onto placeholder markets (Another team / Person Y) whose CLOB books 404; the harness falls back to a scan if this pin goes stale"
@@ -2466,7 +2475,7 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "precision":"is undefined"
+                "precision": "is undefined"
             },
             "ticker": {
                 "maxIncrease": "listed joke tokens (TEST etc) have abnormal price swings"
