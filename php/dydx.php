@@ -1159,7 +1159,7 @@ class dydx extends Exchange {
         $userAddress = null;
         $subAccountNumber = null;
         list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1561,7 +1561,7 @@ class dydx extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        if (!$isTrigger && ($symbol === null)) {
+        if (($isTrigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         if ($this->markets === null) {
@@ -1580,7 +1580,7 @@ class dydx extends Exchange {
         $goodTillBlockTimeInSeconds = 2592000;
         list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
-        $defaultOrderFlags = ($isTrigger) ? 32 : 64;
+        $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
         $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
@@ -1662,7 +1662,7 @@ class dydx extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
-        if (!$clientOrderIds) {
+        if ($clientOrderIds === null) {
             throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
         }
         $subAccountId = 0;
@@ -2261,7 +2261,7 @@ class dydx extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $methodName = $this->safe_string($params, 'methodName');
         $params = $this->omit($params, 'methodName');
         $userAddress = null;
@@ -2388,9 +2388,9 @@ class dydx extends Exchange {
             $this->load_markets();
         }
         $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
+        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
         $subaccountNumber = null;
-        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'subaccountNumber', 0);
+        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subaccountNumber,
@@ -2496,7 +2496,7 @@ class dydx extends Exchange {
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -2509,7 +2509,7 @@ class dydx extends Exchange {
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //
@@ -2521,10 +2521,10 @@ class dydx extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         $errorCode = $this->safe_string($result, 'code');
-        if (!$errorCode) {
+        if (($errorCode === null) || ($errorCode === '')) {
             $errorCode = $this->safe_string($response, 'code');
         }
-        if ($errorCode) {
+        if (($errorCode !== null) && ($errorCode !== '')) {
             $errorCodeNum = $this->parse_to_numeric($errorCode);
             if ($errorCodeNum > 0) {
                 $feedback = $this->id . ' ' . $this->json($response);

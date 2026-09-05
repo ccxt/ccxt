@@ -359,7 +359,7 @@ def fetch_best_bid_ask(exchange, method, symbol):
     best_bid = None
     best_ask = None
     used_method = None
-    if exchange.has['fetchOrderBook']:
+    if (exchange.has['fetchOrderBook'] is not None) and (exchange.has['fetchOrderBook'] is not False):
         used_method = 'fetchOrderBook'
         orderbook = exchange.fetch_order_book(symbol)
         bids = exchange.safe_list(orderbook, 'bids')
@@ -368,18 +368,18 @@ def fetch_best_bid_ask(exchange, method, symbol):
         best_ask_array = exchange.safe_list(asks, 0)
         best_bid = exchange.safe_number(best_bid_array, 0)
         best_ask = exchange.safe_number(best_ask_array, 0)
-    elif exchange.has['fetchBidsAsks']:
+    elif (exchange.has['fetchBidsAsks'] is not None) and (exchange.has['fetchBidsAsks'] is not False):
         used_method = 'fetchBidsAsks'
         tickers = exchange.fetch_bids_asks([symbol])
         ticker = exchange.safe_dict(tickers, symbol)
         best_bid = exchange.safe_number(ticker, 'bid')
         best_ask = exchange.safe_number(ticker, 'ask')
-    elif exchange.has['fetchTicker']:
+    elif (exchange.has['fetchTicker'] is not None) and (exchange.has['fetchTicker'] is not False):
         used_method = 'fetchTicker'
         ticker = exchange.fetch_ticker(symbol)
         best_bid = exchange.safe_number(ticker, 'bid')
         best_ask = exchange.safe_number(ticker, 'ask')
-    elif exchange.has['fetchTickers']:
+    elif (exchange.has['fetchTickers'] is not None) and (exchange.has['fetchTickers'] is not False):
         used_method = 'fetchTickers'
         tickers = exchange.fetch_tickers([symbol])
         ticker = exchange.safe_dict(tickers, symbol)
@@ -399,7 +399,7 @@ def fetch_order(exchange, symbol, order_id, skipped_properties):
     methods_singular = ['fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder']
     for i in range(0, len(methods_singular)):
         singular_fetch_name = methods_singular[i]
-        if exchange.has[singular_fetch_name]:
+        if (exchange.has[singular_fetch_name] is not None) and (exchange.has[singular_fetch_name] is not False):
             current_order = exchange[singular_fetch_name](original_id, symbol)
             # if there is an id inside the order, it means the order was fetched successfully
             if current_order['id'] == original_id:
@@ -411,7 +411,7 @@ def fetch_order(exchange, symbol, order_id, skipped_properties):
         methods_plural = ['fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders']
         for i in range(0, len(methods_plural)):
             plural_fetch_name = methods_plural[i]
-            if exchange.has[plural_fetch_name]:
+            if (exchange.has[plural_fetch_name] is not None) and (exchange.has[plural_fetch_name] is not False):
                 orders = exchange[plural_fetch_name](symbol, since_time)
                 found = False
                 for j in range(0, len(orders)):
@@ -527,6 +527,20 @@ def concat(a=None, b=None):
         for j in range(0, len(b)):
             result.append(b[j])
         return result
+
+
+def assert_dictionary_response(exchange, method, response, hint=None):
+    # php cannot distinguish an empty dict from an empty list, both are a plain array
+    # there, so an empty array response is shape indeterminate and accepted, observed
+    # as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    is_empty_array_response = False
+    if isinstance(response, list):
+        response_length = len(response)
+        is_empty_array_response = (response_length == 0)
+    hint_text = ''
+    if hint is not None:
+        hint_text = ' ' + hint
+    assert exchange.is_dictionary(response) or is_empty_array_response, exchange.id + ' ' + method + hint_text + ' must return a dict. ' + exchange.json(response)
 
 
 def assert_non_emtpy_array(exchange, skipped_properties, method, entry, hint=None):

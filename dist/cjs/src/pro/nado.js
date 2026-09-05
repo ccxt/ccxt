@@ -888,7 +888,7 @@ class nado extends nado$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        if (trigger) {
+        if (trigger === true) {
             throw new errors.NotSupported(this.id + ' cancelOrdersWs() does not support trigger orders, use cancelOrders() instead');
         }
         params = this.extend({ 'id': this.requestId() }, params);
@@ -940,7 +940,7 @@ class nado extends nado$1["default"] {
             market = this.market(symbol);
         }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        if (trigger) {
+        if (trigger === true) {
             throw new errors.NotSupported(this.id + ' cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead');
         }
         params = this.extend({ 'id': this.requestId() }, params);
@@ -1644,7 +1644,10 @@ class nado extends nado$1["default"] {
                     delete client.subscriptions[subscriptionHash];
                 }
             }
-            delete client.subscriptions[messageHash];
+            const subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
+            if (subscriptionMsg !== undefined) {
+                delete client.subscriptions[messageHash];
+            }
             delete this.orderbooks[symbol];
             const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             client.reject(error, messageHash);
@@ -1848,7 +1851,7 @@ class nado extends nado$1["default"] {
         return true;
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const id = this.safeString(message, 'id');

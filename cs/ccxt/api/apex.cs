@@ -12,192 +12,192 @@ public partial class apex : Exchange
     public apex (object args = null): base(args) {}
 
     /// <summary>Calls the publicGetV3Symbols endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3Symbols (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3Symbols (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3Symbols",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3Symbols",parameters);
     }
 
     /// <summary>Calls the publicGetV3HistoryFunding endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3HistoryFunding (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3HistoryFunding (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3HistoryFunding",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3HistoryFunding",parameters);
     }
 
     /// <summary>Calls the publicGetV3Ticker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3Ticker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3Ticker (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3Ticker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3Ticker",parameters);
     }
 
     /// <summary>Calls the publicGetV3Klines endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3Klines (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3Klines (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3Klines",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3Klines",parameters);
     }
 
     /// <summary>Calls the publicGetV3Trades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3Trades (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3Trades (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3Trades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3Trades",parameters);
     }
 
     /// <summary>Calls the publicGetV3Depth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3Depth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3Depth (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3Depth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3Depth",parameters);
     }
 
     /// <summary>Calls the publicGetV3Time endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3Time (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3Time (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3Time",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3Time",parameters);
     }
 
     /// <summary>Calls the publicGetV3DataAllTickerInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetV3DataAllTickerInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV3DataAllTickerInfo (object parameters = null)
     {
-        return await this.callAsync ("publicGetV3DataAllTickerInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV3DataAllTickerInfo",parameters);
     }
 
     /// <summary>Calls the privateGetV3Account endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3Account (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3Account (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3Account",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3Account",parameters);
     }
 
     /// <summary>Calls the privateGetV3AccountBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3AccountBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3AccountBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3AccountBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3AccountBalance",parameters);
     }
 
     /// <summary>Calls the privateGetV3Fills endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3Fills (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3Fills (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3Fills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3Fills",parameters);
     }
 
     /// <summary>Calls the privateGetV3OrderFills endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3OrderFills (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3OrderFills (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3OrderFills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3OrderFills",parameters);
     }
 
     /// <summary>Calls the privateGetV3Order endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3Order (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3Order (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3Order",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3Order",parameters);
     }
 
     /// <summary>Calls the privateGetV3HistoryOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3HistoryOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3HistoryOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3HistoryOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3HistoryOrders",parameters);
     }
 
     /// <summary>Calls the privateGetV3OrderByClientOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3OrderByClientOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3OrderByClientOrderId (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3OrderByClientOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3OrderByClientOrderId",parameters);
     }
 
     /// <summary>Calls the privateGetV3Funding endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3Funding (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3Funding (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3Funding",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3Funding",parameters);
     }
 
     /// <summary>Calls the privateGetV3HistoricalPnl endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3HistoricalPnl (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3HistoricalPnl (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3HistoricalPnl",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3HistoricalPnl",parameters);
     }
 
     /// <summary>Calls the privateGetV3OpenOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3OpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3OpenOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3OpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3OpenOrders",parameters);
     }
 
     /// <summary>Calls the privateGetV3Transfers endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3Transfers (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3Transfers (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3Transfers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3Transfers",parameters);
     }
 
     /// <summary>Calls the privateGetV3Transfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetV3Transfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV3Transfer (object parameters = null)
     {
-        return await this.callAsync ("privateGetV3Transfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV3Transfer",parameters);
     }
 
     /// <summary>Calls the privatePostV3DeleteOpenOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3DeleteOpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3DeleteOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3DeleteOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3DeleteOpenOrders",parameters);
     }
 
     /// <summary>Calls the privatePostV3DeleteClientOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3DeleteClientOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3DeleteClientOrderId (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3DeleteClientOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3DeleteClientOrderId",parameters);
     }
 
     /// <summary>Calls the privatePostV3DeleteOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3DeleteOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3DeleteOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3DeleteOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3DeleteOrder",parameters);
     }
 
     /// <summary>Calls the privatePostV3Order endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3Order (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3Order (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3Order",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3Order",parameters);
     }
 
     /// <summary>Calls the privatePostV3SetInitialMarginRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3SetInitialMarginRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3SetInitialMarginRate (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3SetInitialMarginRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3SetInitialMarginRate",parameters);
     }
 
     /// <summary>Calls the privatePostV3TransferOut endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3TransferOut (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3TransferOut (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3TransferOut",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3TransferOut",parameters);
     }
 
     /// <summary>Calls the privatePostV3ContractTransferOut endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostV3ContractTransferOut (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV3ContractTransferOut (object parameters = null)
     {
-        return await this.callAsync ("privatePostV3ContractTransferOut",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV3ContractTransferOut",parameters);
     }
 
 }

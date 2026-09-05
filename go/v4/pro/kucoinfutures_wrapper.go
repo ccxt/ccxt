@@ -37,15 +37,9 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.FetchBidsAsks(symbols, params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
@@ -72,10 +66,7 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params = opts.Params
 	res := <-this.Core.Transfer(code, amount, fromAccount, toAccount, params)
 	if ccxt.IsError(res) {
 		return ccxt.TransferEntry{}, ccxt.CreateReturnError(res)
@@ -202,7 +193,7 @@ func (this *Kucoinfutures) EditOrders(orders []ccxt.OrderRequest, options ...ccx
 func (this *Kucoinfutures) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Kucoinfutures) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Kucoinfutures) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Kucoinfutures) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -247,7 +238,7 @@ func (this *Kucoinfutures) FetchDepositAddress(code string, options ...ccxt.Fetc
 func (this *Kucoinfutures) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Kucoinfutures) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Kucoinfutures) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Kucoinfutures) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

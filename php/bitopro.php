@@ -92,7 +92,7 @@ class bitopro extends Exchange {
                 'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
@@ -380,7 +380,7 @@ class bitopro extends Exchange {
             'info' => $rawCurrency,
             'type' => $isFiat ? 'fiat' : 'crypto',
             'name' => null,
-            'active' => $deposit && $withdraw,
+            'active' => (($deposit === true) && ($withdraw === true)),
             'deposit' => $deposit,
             'withdraw' => $withdraw,
             'fee' => $this->safe_number($rawCurrency, 'withdrawFee'),
@@ -434,7 +434,7 @@ class bitopro extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $active = !$this->safe_bool($market, 'maintain');
+        $active = ($this->safe_bool($market, 'maintain') !== true);
         $id = $this->safe_string($market, 'pair');
         if ($id === null) {
             throw new ExchangeError($this->id . ' parseMarket() missing id');
@@ -691,7 +691,7 @@ class bitopro extends Exchange {
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
             $isBuyer = $this->safe_bool($trade, 'isBuyer');
-            if ($isBuyer) {
+            if ($isBuyer === true) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -1746,7 +1746,7 @@ class bitopro extends Exchange {
         return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          *
@@ -1920,7 +1920,7 @@ class bitopro extends Exchange {
                 $headers['X-BITOPRO-PAYLOAD'] = $payload;
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
             } elseif ($method === 'GET' || $method === 'DELETE') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
                 $nonce = $this->milliseconds();
@@ -1935,7 +1935,7 @@ class bitopro extends Exchange {
                 $headers['X-BITOPRO-SIGNATURE'] = $signature;
             }
         } elseif ($api === 'public' && $method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }

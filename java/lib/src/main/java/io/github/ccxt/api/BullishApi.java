@@ -397,9 +397,9 @@ public class BullishApi extends Exchange
      * Calls the privateGetV1AccountsAsset endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV1AccountsAsset (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetV1AccountsAsset (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV1AccountsAsset", optionalArgs);
     }

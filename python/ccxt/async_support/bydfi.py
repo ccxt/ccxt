@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bydfi import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, Int, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class bydfi(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bydfi, self).describe(), {
             'id': 'bydfi',
             'name': 'BYDFi',
@@ -140,7 +139,7 @@ class bydfi(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenInterests': False,
-                'fetchOpenOrder': False,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -402,7 +401,7 @@ class bydfi(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bydfi
 
@@ -526,7 +525,7 @@ class bydfi(Exchange, ImplicitAPI):
             'option': False,
             'active': status == 'NORMAL',
             'contract': True,
-            'linear': not inverse,
+            'linear': inverse is not True,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -626,7 +625,7 @@ class bydfi(Exchange, ImplicitAPI):
                 break
         return result
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -668,7 +667,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -687,7 +686,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -806,7 +805,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -834,7 +833,7 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': interval,
         }
         startTime = since
-        numberOfCandles = limit if limit else maxLimit
+        numberOfCandles = limit if (limit is not None and limit is not None and limit != 0) else maxLimit
         until = None
         until, params = self.handle_option_and_params(params, 'fetchOHLCV', 'until')
         now = self.milliseconds()
@@ -878,7 +877,7 @@ class bydfi(Exchange, ImplicitAPI):
         result = self.parse_ohlcvs(data, market, timeframe, since, limit)
         return result
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     {
         #         "s": "ETH-USDT",
@@ -1029,7 +1028,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1063,7 +1062,7 @@ class bydfi(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingRateHistory]:
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -1111,7 +1110,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: Any, market: Market = None):
+    def parse_funding_rate_history(self, contract: object, market: Market = None):
         #
         #     {
         #         "symbol": "ETH-USDT",
@@ -1265,11 +1264,11 @@ class bydfi(Exchange, ImplicitAPI):
         if hedged:
             params = self.omit(params, 'reduceOnly')
             if side == 'buy':
-                request['positionSide'] = 'SHORT' if reduceOnly else 'LONG'
+                request['positionSide'] = 'SHORT' if (reduceOnly is True) else 'LONG'
             elif side == 'sell':
-                request['positionSide'] = 'LONG' if reduceOnly else 'SHORT'
+                request['positionSide'] = 'LONG' if (reduceOnly is True) else 'SHORT'
         closePosition = self.safe_bool(params, 'closePosition', False)
-        if not closePosition:
+        if closePosition is not True:
             params = self.omit(params, 'closePosition')
             request['quantity'] = self.amount_to_precision(symbol, amount)
         elif (type != 'STOP_MARKET') and (type != 'TAKE_PROFIT_MARKET'):
@@ -1298,7 +1297,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, workingType, workingType)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -1362,7 +1361,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
-    async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def edit_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         edit a list of trade orders
 
@@ -1416,7 +1415,7 @@ class bydfi(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         return self.extend(request, params)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_all_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1474,7 +1473,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1584,7 +1583,7 @@ class bydfi(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 0, {})
         return self.parse_order(order, market)
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
 
@@ -1603,7 +1602,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 500
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -1919,7 +1918,7 @@ class bydfi(Exchange, ImplicitAPI):
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -1964,7 +1963,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_positions(data, symbols)
 
-    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
+    async def fetch_positions_for_symbol(self, symbol: str, params={}) -> list[Position]:
         """
         fetch open positions for a single market
 
@@ -2097,7 +2096,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -2116,7 +2115,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchPositionsHistory', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'fetchPositionHistory', 'contractType', contractType)
         request = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2131,7 +2130,7 @@ class bydfi(Exchange, ImplicitAPI):
         positions = self.parse_positions(data)
         return self.filter_by_since_limit(positions, since, limit)
 
-    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -2273,9 +2272,9 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         contractType = 'FUTURE'
-        contractType, params = self.handle_option_and_params(params, 'fetchMarginMode', 'contractType', contractType)
+        contractType, params = self.handle_option_and_params(params, 'setMarginMode', 'contractType', contractType)
         wallet = 'W001'
-        wallet, params = self.handle_option_and_params(params, 'fetchMarginMode', 'wallet', wallet)
+        wallet, params = self.handle_option_and_params(params, 'setMarginMode', 'wallet', wallet)
         request = {
             'contractType': contractType,
             'symbol': market['id'],
@@ -2455,7 +2454,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         timestamp = self.milliseconds()
         result = {
             'info': response,
@@ -2509,7 +2508,7 @@ class bydfi(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest:
+        if fillResponseFromRequest is True:
             timestamp = self.milliseconds()
             transfer['timestamp'] = timestamp
             transfer['datetime'] = self.iso8601(timestamp)
@@ -2519,7 +2518,7 @@ class bydfi(Exchange, ImplicitAPI):
             transfer['amount'] = amount
         return transfer
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -2538,7 +2537,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2629,7 +2628,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2643,7 +2642,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('deposit', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2657,7 +2656,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    async def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any) -> List[Transaction]:
+    async def fetch_transactions_helper(self, type: object, code: object, since: object, limit: object, params: object) -> list[Transaction]:
         methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')
@@ -2665,7 +2664,7 @@ class bydfi(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate:
+        if paginate is True:
             maxLimit = 50
             params = self.omit(params, 'paginate')
             params = self.extend(params, {'paginationDirection': 'backward'})
@@ -2792,7 +2791,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
         url = self.urls['api'][api]
         endpoint = '/' + path
         query = ''
@@ -2825,7 +2824,7 @@ class bydfi(Exchange, ImplicitAPI):
         url += endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

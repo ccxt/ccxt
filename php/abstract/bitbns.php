@@ -14,7 +14,7 @@ abstract class bitbns extends \ccxt\Exchange {
         return $this->request('order/fetchMarkets', 'www', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function www_get_order_fetchtickers($params = array()) {
         return $this->request('order/fetchTickers', 'www', 'GET', $params, null, null, array("cost" => 1));
@@ -230,7 +230,7 @@ abstract class bitbns extends \ccxt\Exchange {
         return $this->request('order/fetchMarkets', 'www', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function wwwGetOrderFetchTickers($params = array()) {
         return $this->request('order/fetchTickers', 'www', 'GET', $params, null, null, array("cost" => 1));

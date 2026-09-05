@@ -73,7 +73,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
@@ -165,7 +165,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -204,7 +204,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             symbols = this.marketSymbols(symbols, null, false);
             Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
+            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -531,7 +531,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
         }
-        if (Helpers.isTrue(isFullUpdate))
+        if (Helpers.isTrue(Helpers.isEqual(isFullUpdate, true)))
         {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
@@ -567,7 +567,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             return;
         }

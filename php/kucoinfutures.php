@@ -26,6 +26,7 @@ class kucoinfutures extends kucoin {
                 'future' => true,
                 'option' => null,
                 'fetchBidsAsks' => true,
+                'transfer' => true,
             ),
             'options' => array(
                 'fetchMarkets' => array(
@@ -48,7 +49,8 @@ class kucoinfutures extends kucoin {
         $request = array(
             'method' => 'futuresPublicGetAllTickers',
         );
-        return $this->fetch_tickers($symbols, $this->extend($request, $params));
+        $extendedRequest = $this->extend($request, $params);
+        return $this->fetch_tickers($symbols, $extendedRequest);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {

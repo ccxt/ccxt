@@ -34,7 +34,7 @@ class hitbtc extends hitbtc$1["default"] {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'closePosition': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -1001,7 +1001,7 @@ class hitbtc extends hitbtc$1["default"] {
             'id': currencyId,
             'precision': this.safeNumber(entry, 'precision_transfer'),
             'name': this.safeString(entry, 'full_name'),
-            'active': !this.safeBool(entry, 'delisted'),
+            'active': this.safeBool(entry, 'delisted') !== true,
             'deposit': this.safeBool(entry, 'payin_enabled'),
             'withdraw': this.safeBool(entry, 'payout_enabled'),
             'networks': networks,
@@ -1440,7 +1440,7 @@ class hitbtc extends hitbtc$1["default"] {
         const taker = this.safeValue(trade, 'taker');
         let takerOrMaker;
         if (taker !== undefined) {
-            takerOrMaker = taker ? 'taker' : 'maker';
+            takerOrMaker = (taker === true) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -2873,7 +2873,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
-        if (includeFee) {
+        if (includeFee === true) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw(this.extend(request, params));
@@ -3353,7 +3353,7 @@ class hitbtc extends hitbtc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request = {
@@ -3391,7 +3391,7 @@ class hitbtc extends hitbtc$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -3460,7 +3460,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         const market = this.market(symbol);
         const leverage = this.safeString(params, 'leverage');
-        if (market['swap']) {
+        if (market['swap'] === true) {
             if (leverage === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3905,7 +3905,7 @@ class hitbtc extends hitbtc$1["default"] {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if (queryLength) {
+            if ((queryLength !== undefined) && (queryLength !== 0)) {
                 getRequest = '?' + this.urlencode(query);
                 url = url + getRequest;
             }

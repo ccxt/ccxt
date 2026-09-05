@@ -12,7 +12,7 @@ func TestSortBy1() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var arr any = []any{map[string]any{
+	var arr []any = []any{map[string]any{
 		"x": 5,
 	}, map[string]any{
 		"x": 2,
@@ -55,6 +55,50 @@ func TestSortBy1() {
 	}})
 	var emptyArray any = exchange.SortBy([]any{}, "x")
 	AssertDeepEqual(exchange, nil, "sortBy", emptyArray, []any{})
+	// regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+	var arrTwoDigits []any = []any{map[string]any{
+		"x": 10,
+	}, map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 6,
+	}}
+	var sortedTwoDigits any = exchange.SortBy(arrTwoDigits, "x")
+	AssertDeepEqual(exchange, nil, "sortBy", sortedTwoDigits, []any{map[string]any{
+		"x": 1,
+	}, map[string]any{
+		"x": 2,
+	}, map[string]any{
+		"x": 3,
+	}, map[string]any{
+		"x": 4,
+	}, map[string]any{
+		"x": 5,
+	}, map[string]any{
+		"x": 6,
+	}, map[string]any{
+		"x": 7,
+	}, map[string]any{
+		"x": 8,
+	}, map[string]any{
+		"x": 9,
+	}, map[string]any{
+		"x": 10,
+	}})
 }
 func TestSortBy2() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -63,7 +107,7 @@ func TestSortBy2() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// sort ascending by key1, then key2 (key1 values are all distinct here)
-	var arr any = []any{map[string]any{
+	var arr []any = []any{map[string]any{
 		"x": 3,
 		"y": 1,
 	}, map[string]any{
@@ -91,7 +135,7 @@ func TestSortBy2() {
 		"y": 1,
 	}})
 	// sort descending by key1
-	var arr2 any = []any{map[string]any{
+	var arr2 []any = []any{map[string]any{
 		"x": 3,
 		"y": 1,
 	}, map[string]any{
@@ -119,7 +163,7 @@ func TestSortBy2() {
 		"y": 4,
 	}})
 	// when key1 values are equal, sort by key2 ascending
-	var arr3 any = []any{map[string]any{
+	var arr3 []any = []any{map[string]any{
 		"x": 1,
 		"y": 5,
 	}, map[string]any{
@@ -147,7 +191,7 @@ func TestSortBy2() {
 		"y": 9,
 	}})
 	// when key1 values are equal, sort by key2 descending
-	var arr4 any = []any{map[string]any{
+	var arr4 []any = []any{map[string]any{
 		"x": 1,
 		"y": 5,
 	}, map[string]any{
@@ -175,7 +219,7 @@ func TestSortBy2() {
 		"y": 1,
 	}})
 	// mixed: sort by key1 first, then key2 as tiebreaker
-	var arr5 any = []any{map[string]any{
+	var arr5 []any = []any{map[string]any{
 		"x": 2,
 		"y": 3,
 	}, map[string]any{

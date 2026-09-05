@@ -71,3 +71,5 @@ type CancellationRequest = ccxt.CancellationRequest
 type DepositWithdrawFeeNetwork = ccxt.DepositWithdrawFeeNetwork
 type DepositWithdrawFee = ccxt.DepositWithdrawFee
 type DepositWithdrawFees = ccxt.DepositWithdrawFees
+type DepositAddresses = ccxt.DepositAddresses
+type AllGreeks = ccxt.AllGreeks

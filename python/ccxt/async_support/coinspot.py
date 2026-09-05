@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
-from typing import List
+from ccxt.base.types import Balances, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
@@ -17,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class coinspot(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
@@ -288,7 +287,7 @@ class coinspot(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         balances = self.safe_value_2(response, 'balance', 'balances')
         if isinstance(balances, list):
@@ -326,7 +325,11 @@ class coinspot(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         method = self.safe_string(self.options, 'fetchBalance', 'private_post_my_balances')
-        response = await getattr(self, method)(params)
+        response = None
+        if (method == 'private_post_ro_my_balances') or (method == 'privatePostRoMyBalances'):
+            response = await self.privatePostRoMyBalances(params)
+        else:
+            response = await self.privatePostMyBalances(params)
         #
         # read-write api keys
         #
@@ -468,13 +471,13 @@ class coinspot(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            if market['spot']:
+            if market['spot'] is True:
                 symbol = market['symbol']
                 ticker = prices[id]
                 result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -700,8 +703,8 @@ class coinspot(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
         if status == 'error':
@@ -709,7 +712,7 @@ class coinspot(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api

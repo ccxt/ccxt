@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.71'
+__version__ = '4.5.77'
 
 # ----------------------------------------------------------------------------
 
@@ -62,6 +62,7 @@ from ccxt.prediction.hyperliquid import hyperliquid                             
 from ccxt.prediction.kalshi import kalshi                                       # noqa: F401
 from ccxt.prediction.limitless import limitless                                 # noqa: F401
 from ccxt.prediction.myriad import myriad                                       # noqa: F401
+from ccxt.prediction.opinion import opinion                                     # noqa: F401
 from ccxt.prediction.polymarket import polymarket                               # noqa: F401
 
 exchanges = [
@@ -70,5 +71,6 @@ exchanges = [
     'kalshi',
     'limitless',
     'myriad',
+    'opinion',
     'polymarket',
 ]

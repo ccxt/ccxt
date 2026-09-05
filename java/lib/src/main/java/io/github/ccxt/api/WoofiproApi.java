@@ -900,6 +900,17 @@ public class WoofiproApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetClientMarginModes endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientMarginModes (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetClientMarginModes", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivatePostOrderlyKey endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1040,6 +1051,28 @@ public class WoofiproApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientLeverage", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostClientMarginMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientMarginMode (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostClientMarginMode", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPositionMargin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPositionMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPositionMargin", optionalArgs);
     }
 
     /**

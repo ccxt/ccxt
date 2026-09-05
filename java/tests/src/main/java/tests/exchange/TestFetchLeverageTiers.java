@@ -17,13 +17,13 @@ public class TestFetchLeverageTiers extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchLeverageTiers";
-        Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol"))})).join();
+        Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLeverageTiers", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
         // const format = {
         //     'RAY/USDT': [
         //       {},
         //     ],
         // };
-        Assert(exchange.isDictionary(tiers), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(tiers)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
         Object tierKeys = Helpers.objectKeys(tiers);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tierKeys)); i++)

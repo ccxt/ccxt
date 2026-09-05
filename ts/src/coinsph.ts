@@ -193,7 +193,7 @@ export default class coinsph extends Exchange {
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
                         // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
-                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] } as Endpoint<List>,
+                        'openapi/quote/v1/ticker/24hr': { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] } as Endpoint<Dict | List>,
                         // cost 1 if 'symbol' param defined (one market symbol)
                         // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
@@ -662,7 +662,7 @@ export default class coinsph extends Exchange {
             'id': id,
             'name': this.safeString (rawCurrency, 'name'),
             'code': code,
-            'type': isFiat ? 'fiat' : 'crypto',
+            'type': (isFiat === true) ? 'fiat' : 'crypto',
             'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'transferPrecision'))),
             'info': rawCurrency,
             'active': undefined,
@@ -1473,7 +1473,7 @@ export default class coinsph extends Exchange {
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response: Dict = {};
-        if (testOrder) {
+        if (testOrder === true) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
         } else {
             response = await this.privatePostOpenapiV1Order (this.extend (request, params));
@@ -1934,7 +1934,7 @@ export default class coinsph extends Exchange {
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         const options = this.safeValue (this.options, 'withdraw');
         const warning = this.safeBool (options, 'warning', true);
-        if (warning) {
+        if (warning === true) {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString (params, 'network');

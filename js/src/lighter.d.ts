@@ -31,6 +31,7 @@ export default class lighter extends Exchange {
     setSandboxMode(enable: boolean): void;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any[];
     fetchNonce(accountIndex: any, apiKeyIndex: any, params?: {}): Promise<Int>;
+    signAndCreateOrder(method: string, symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#createOrder
@@ -369,6 +370,7 @@ export default class lighter extends Exchange {
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     modifyLeverageAndMarginMode(leverage: int, marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
+    signAndCancelOrder(method: string, id: string, symbol?: Str, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#cancelOrder
@@ -381,6 +383,7 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    signAndCancelAllOrders(method: string, symbol?: Str, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#cancelAllOrders

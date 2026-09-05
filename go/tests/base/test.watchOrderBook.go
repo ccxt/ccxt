@@ -6,53 +6,67 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchOrderBook"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
-			var response any = nil
-			var success any = true
+	ch := make(chan any, 1)
+	go testWatchOrderBookBody(ch, exchange, skippedProperties, symbol)
+	return ch
+}
+func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "watchOrderBook"
+	// `watchOrderBook` only resolves when the exchange pushes an update, and a
+	// pending subscription can not be cancelled from here, so every extra
+	// iteration risks blocking until the test-runner kills the whole exchange.
+	// a validated book is already a pass, so keep sampling only while updates
+	// keep arriving quickly and stop once the book goes quiet.
+	var maxIdleTime int = 5000
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	var idle bool = false
+	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+		var response any = nil
+		var success bool = true
+		var startTime any = exchange.Milliseconds()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								// continue;
-								success = false
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchOrderBook(symbol)))
-					PanicOnError(response)
-					return nil
+						ret_ = func() any {
+							// catch block:
+							if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
+								panic(e)
+							}
+							success = false
+							return nil
+						}()
+					}
 				}()
+				// try block:
 
-			}
-			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-				now = exchange.Milliseconds()
-				TestOrderBook(exchange, skippedProperties, method, response, symbol)
+				response = (UnWrapType(<-exchange.WatchOrderBook(symbol)))
+				PanicOnError(response)
+				return nil
+			}()
+
+		}
+		// refresh the deadline on every path, otherwise a stream of temporary
+		// failures would loop forever
+		now = exchange.Milliseconds()
+		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+			TestOrderBook(exchange, skippedProperties, method, response, symbol)
+			var elapsed any = Subtract(now, startTime)
+			if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
+				// this market updates slower than the remaining test window, so
+				// awaiting another delta would only end in a harness timeout
+				idle = true
 			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }

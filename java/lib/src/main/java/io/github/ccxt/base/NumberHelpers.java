@@ -1,10 +1,10 @@
 package io.github.ccxt.base;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @SuppressWarnings({"unchecked"})
 public class NumberHelpers {
@@ -80,8 +80,11 @@ public class NumberHelpers {
 
         // Tick-size mode
         if (countMode == TICK_SIZE) {
-            String precisionDigitsString = DecimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
-            int newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
+            int newNumPrecisionDigits = tickPrecision(numPrecisionDigits);
+            if (newNumPrecisionDigits < 0) {
+                String precisionDigitsString = DecimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING);
+                newNumPrecisionDigits = PrecisionFromString(precisionDigitsString);
+            }
 
             if (roundingMode == TRUNCATE) {
                 String xStr = NumberToString2(parsedX);
@@ -151,7 +154,7 @@ public class NumberHelpers {
 
         // For -123.4567, chars will hold 01234567 (leading zero for carry)
         int arraySize = (strEnd - strStart) + (hasDot ? 0 : 1);
-        int[] chars = new int[arraySize];
+        byte[] chars = new byte[arraySize];
         chars[0] = ZERO;
 
         int afterDot = arraySize;
@@ -161,15 +164,15 @@ public class NumberHelpers {
         for (int i = 1, j = strStart; j < strEnd; i++, j++) {
             char value = str.charAt(j);
             int c = (int) value;
-            if (c == DOT) {
-                afterDot = i--;
-            } else if ((c < ZERO) || (c > NINE)) {
-                throw new IllegalArgumentException(str + ": invalid number (contains an illegal character '" + value + "')");
-            } else {
-                chars[i] = c;
+            if ((c >= ZERO) && (c <= NINE)) {
+                chars[i] = (byte) c;
                 if ((c != ZERO) && (digitsStart < 0)) {
                     digitsStart = i;
                 }
+            } else if (c == DOT) {
+                afterDot = i--;
+            } else {
+                throw new IllegalArgumentException(str + ": invalid number (contains an illegal character '" + value + "')");
             }
         }
         if (digitsStart < 0) digitsStart = 1;
@@ -181,24 +184,37 @@ public class NumberHelpers {
         boolean allZeros = true;
         boolean signNeeded = isNegative;
 
-        for (int i = chars.length - 1, memo = 0; i >= 0; i--) {
+        // integer cut equivalent to the per-digit test i >= precisionStart + numPrecisionDigits
+        double cutoff = precisionStart + numPrecisionDigits;
+        int cut = Integer.MAX_VALUE;
+        if (cutoff <= 0) {
+            cut = 0;
+        } else if (cutoff <= arraySize) {
+            cut = (int) Math.ceil(cutoff);
+        }
+        int i = arraySize - 1;
+        int memo = 0;
+        int from = (cut < 1) ? 1 : cut;
+        if (from <= i) {
+            // digits at/after the cut all become '0'; only chars[from] can carry out
+            if ((roundingMode == ROUND) && (chars[from] >= FIVE)) memo = 1;
+            Arrays.fill(chars, from, arraySize, (byte) ZERO);
+            i = from - 1;
+        }
+        for (; i >= 0; i--) {
             int c = chars[i];
             if (i != 0) {
                 c += memo;
-                if (i >= (precisionStart + numPrecisionDigits)) {
-                    boolean ceil = (roundingMode == ROUND) && (c >= FIVE) && !((c == FIVE) && isTrue(memo));
-                    c = ceil ? (NINE + 1) : ZERO;
-                }
                 if (c > NINE) {
                     c = ZERO;
                     memo = 1;
                 } else {
                     memo = 0;
                 }
-            } else if (isTrue(memo)) {
+            } else if (memo != 0) {
                 c = ONE; // leading extra digit
             }
-            chars[i] = c;
+            chars[i] = (byte) c;
             if (c != ZERO) {
                 allZeros = false;
                 digitsStart = i;
@@ -228,17 +244,16 @@ public class NumberHelpers {
         boolean isInteger = (nAfterDot + pad) == 0;
 
         int outLen = (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad);
-        int[] outArray = new int[outLen];
+        byte[] outArray = new byte[outLen];
 
         if (signNeeded) outArray[0] = MINUS;
-        for (int i = nSign, j = readStart; i < nBeforeDot; i++, j++) outArray[i] = chars[j];
-        if (!isInteger) outArray[nBeforeDot] = DOT;
-        for (int i = nBeforeDot + 1, j = afterDot; i < padStart; i++, j++) outArray[i] = chars[j];
-        for (int i = padStart; i < padEnd; i++) outArray[i] = ZERO;
-
-        char[] charArray = new char[outArray.length];
-        for (int i = 0; i < outArray.length; i++) charArray[i] = (char) outArray[i];
-        return new String(charArray);
+        System.arraycopy(chars, readStart, outArray, nSign, nBeforeDot - nSign);
+        if (!isInteger) {
+            outArray[nBeforeDot] = DOT;
+            System.arraycopy(chars, afterDot, outArray, nBeforeDot + 1, nAfterDot);
+            Arrays.fill(outArray, padStart, padEnd, (byte) ZERO);
+        }
+        return new String(outArray, StandardCharsets.ISO_8859_1);
     }
 
     public static int precisionFromString(Object value2) {
@@ -247,15 +262,18 @@ public class NumberHelpers {
 
     public static int PrecisionFromString(Object value2) {
         if (value2 == null) return 0;
-        String value = String.valueOf(value2);
+        String value = (value2 instanceof String) ? (String) value2 : String.valueOf(value2);
 
         int ePos = Math.max(value.indexOf('e'), value.indexOf('E'));
         if (ePos >= 0) {
-            // exponent part after e/E
-            String exp = value.substring(ePos + 1).trim();
+            // exponent part after e/E, trimmed in place to avoid a substring copy
+            int start = ePos + 1;
+            int end = value.length();
+            while (start < end && value.charAt(start) <= ' ') start++;
+            while (end > start && value.charAt(end - 1) <= ' ') end--;
             // allow +/-
             try {
-                int exponent = Integer.parseInt(exp);
+                int exponent = Integer.parseInt(value, start, end, 10);
                 return (-exponent);
             } catch (NumberFormatException ignored) {
                 return 0;
@@ -263,10 +281,12 @@ public class NumberHelpers {
         }
 
         // trim trailing zeros after decimal
-        value = stripTrailingZeros(value);
         int dot = value.indexOf('.');
         if (dot < 0) return 0;
-        return value.length() - dot - 1;
+        int i = value.length();
+        while (i > 0 && value.charAt(i - 1) == '0') i--;
+        if (i > 0 && value.charAt(i - 1) == '.') i--;
+        return (i > dot) ? (i - dot - 1) : 0;
     }
 
     public static String TruncateToString(Object num, int precision) {
@@ -274,12 +294,19 @@ public class NumberHelpers {
         if (numStr == null) return null;
 
         if (precision > 0) {
-            // pattern: ([-]*\d+\.\d{precision})(\d)
-            String pattern = "([-]*\\d+\\.\\d{" + precision + "})(\\d)";
-            Pattern p = Pattern.compile(pattern);
-            Matcher m = p.matcher(numStr);
-            if (m.find()) {
-                return m.group(1);
+            // manual scan equivalent to find() on ([-]*\d+\.\d{precision})(\d)
+            int len = numStr.length();
+            for (int i = 0; i + precision + 2 < len; i++) {
+                int j = i;
+                while (j < len && numStr.charAt(j) == '-') j++;
+                int k = j;
+                while (k < len && numStr.charAt(k) >= '0' && numStr.charAt(k) <= '9') k++;
+                if (k == j || k >= len || numStr.charAt(k) != '.') continue;
+                int end = k + 1 + precision;
+                if (end >= len) continue;
+                int d = k + 1;
+                while (d <= end && numStr.charAt(d) >= '0' && numStr.charAt(d) <= '9') d++;
+                if (d > end) return numStr.substring(i, end);
             }
             return numStr;
         }
@@ -298,12 +325,16 @@ public class NumberHelpers {
     public static String NumberToString(Object number) {
         if (number == null) return null;
 
-        if (number instanceof Integer || number instanceof Long) {
-            return String.valueOf(number);
-        }
-
         if (number instanceof String) {
             return (String) number;
+        }
+
+        if (number instanceof Double) {
+            return doubleToPlain((Double) number);
+        }
+
+        if (number instanceof Integer || number instanceof Long) {
+            return String.valueOf(number);
         }
 
         if (number instanceof BigDecimal) {
@@ -313,13 +344,67 @@ public class NumberHelpers {
         }
 
         if (number instanceof Number) {
-            return BigDecimal
-                    .valueOf(((Number) number).doubleValue())
-                    .stripTrailingZeros()
-                    .toPlainString();
+            return doubleToPlain(((Number) number).doubleValue());
         }
 
         return String.valueOf(number);
+    }
+
+    // same bytes as BigDecimal.valueOf(v).stripTrailingZeros().toPlainString(), without BigDecimal
+    private static String doubleToPlain(double v) {
+        if (v == 0.0) return "0";
+        long l = (long) v;
+        if ((double) l == v && l < 9007199254740992L && l > -9007199254740992L) return Long.toString(l);
+        if (Double.isNaN(v) || Double.isInfinite(v)) {
+            return BigDecimal.valueOf(v).stripTrailingZeros().toPlainString();
+        }
+        String s = Double.toString(v);
+        int ePos = s.indexOf('E');
+        if (ePos < 0) {
+            int end = s.length();
+            while (s.charAt(end - 1) == '0') end--;
+            if (s.charAt(end - 1) == '.') end--;
+            return (end == s.length()) ? s : s.substring(0, end);
+        }
+        return expandSci(s, ePos);
+    }
+
+    private static String expandSci(String s, int ePos) {
+        int sign = (s.charAt(0) == '-') ? 1 : 0;
+        int i = ePos + 1;
+        boolean negExp = s.charAt(i) == '-';
+        if (negExp || s.charAt(i) == '+') i++;
+        int exp = 0;
+        int len = s.length();
+        while (i < len) exp = exp * 10 + (s.charAt(i++) - '0');
+        if (negExp) exp = -exp;
+        int digEnd = ePos;
+        while (s.charAt(digEnd - 1) == '0') digEnd--;
+        int nd = digEnd - sign - 1;
+        int pow = exp - nd + 1;
+        int outLen;
+        int intLen = nd + pow;
+        if (pow >= 0) {
+            outLen = sign + nd + pow;
+        } else if (intLen > 0) {
+            outLen = sign + nd + 1;
+        } else {
+            outLen = sign + 2 - pow;
+        }
+        char[] out = new char[outLen];
+        int k = 0;
+        if (sign == 1) out[k++] = '-';
+        if (pow < 0 && intLen <= 0) {
+            out[k++] = '0';
+            out[k++] = '.';
+            for (int z = -intLen; z > 0; z--) out[k++] = '0';
+        }
+        for (int j = 0; j < nd; j++) {
+            if (pow < 0 && intLen > 0 && j == intLen) out[k++] = '.';
+            out[k++] = (j == 0) ? s.charAt(sign) : s.charAt(sign + 1 + j);
+        }
+        for (int z = pow; z > 0; z--) out[k++] = '0';
+        return new String(out);
     }
 
     public static String NumberToString2(Object number) {
@@ -343,6 +428,22 @@ public class NumberHelpers {
     // -----------------------------
     // Helpers
     // -----------------------------
+
+    private static final double[] POW10 = {
+            1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11,
+            1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22
+    };
+
+    // decimal places of the tick's shortest repr; -1 means "fall back to the generic path"
+    private static int tickPrecision(double tick) {
+        if (tick > 1e-15 && tick < 1e15) {
+            for (int n = 0; n < 16; n++) {
+                double m = Math.rint(tick * POW10[n]);
+                if (Math.abs(m) < 1e15 && m / POW10[n] == tick) return n;
+            }
+        }
+        return -1;
+    }
 
     private static boolean isTrue(Object o) {
         if (o == null) return false;
@@ -380,11 +481,11 @@ public class NumberHelpers {
 
     private static String stripTrailingZeros(String s) {
         if (s == null) return null;
-        if (!s.contains(".")) return s;
+        if (s.indexOf('.') < 0) return s;
         // remove trailing zeros and possible trailing dot
         int i = s.length();
         while (i > 0 && s.charAt(i - 1) == '0') i--;
         if (i > 0 && s.charAt(i - 1) == '.') i--;
-        return s.substring(0, i);
+        return (i == s.length()) ? s : s.substring(0, i);
     }
 }

@@ -49,6 +49,7 @@ public class BitstampCore extends BitstampApi
                 put( "createStopLimitOrder", false );
                 put( "createStopMarketOrder", false );
                 put( "createStopOrder", false );
+                put( "editOrder", true );
                 put( "fetchBalance", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRate", false );
@@ -68,8 +69,8 @@ public class BitstampCore extends BitstampApi
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
-                put( "fetchFundingRate", false );
-                put( "fetchFundingRateHistory", false );
+                put( "fetchFundingRate", true );
+                put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", false );
                 put( "fetchGreeks", false );
                 put( "fetchIndexOHLCV", false );
@@ -1196,7 +1197,7 @@ public class BitstampCore extends BitstampApi
                     }
                 }
                 Object isSpot = (Helpers.isEqual(type, "spot"));
-                Object settle = ((Helpers.isTrue(settleId))) ? this.safeCurrencyCode(settleId) : null;
+                Object settle = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(settleId, null)) && Helpers.isTrue(!Helpers.isEqual(settleId, "")))))) ? this.safeCurrencyCode(settleId) : null;
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalSettleId = settleId;
@@ -1373,56 +1374,54 @@ public class BitstampCore extends BitstampApi
             //         },
             //     ]
             //
-            Helpers.addElementToObject(this.options, "_temp_currencies_result", new java.util.HashMap<String, Object>() {{}});
-            Object result = this.parseCurrencies(response);
-            Object finalResult = this.deepExtend(result, Helpers.GetValue(this.options, "_temp_currencies_result"));
-            ((java.util.Map<String,Object>)this.options).remove((String)"_temp_currencies_result");
-            return finalResult;
+            return this.parseCurrencies(response);
         });
 
     }
 
-    public Object parseCurrency(Object rawCurrency)
+    public Object parseCurrencies(Object rawCurrencies)
     {
-        Object market = rawCurrency;
-        Object existing = this.safeDict(this.options, "_temp_currencies_result", new java.util.HashMap<String, Object>() {{}});
-        var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
-        var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
-        var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object description = this.safeString(market, "description");
-        if (Helpers.isTrue(Helpers.isEqual(description, null)))
+        // each market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside this.options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        Object result = new java.util.HashMap<String, Object>() {{}};
+        Object arr = this.toArray(rawCurrencies);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing description")) ;
-        }
-        var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
-        var baseDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
-        var quoteDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(1);
-        Object minimumOrder = this.safeString(market, "minimum_order_value");
-        if (Helpers.isTrue(Helpers.isEqual(minimumOrder, null)))
-        {
-            throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing minimumOrder")) ;
-        }
-        Object parts = Helpers.split(minimumOrder, " ");
-        Object cost = Helpers.GetValue(parts, 0);
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || !Helpers.isTrue((Helpers.inOp(existing, base)))))
-        {
-            Object baseDecimals = this.safeInteger(market, "base_decimals");
-            if (Helpers.isTrue(!Helpers.isEqual(base, null)))
+            Object market = Helpers.GetValue(arr, i);
+            var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
+            var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
+            var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
+            Object base = this.safeCurrencyCode(baseId);
+            Object quote = this.safeCurrencyCode(quoteId);
+            Object description = this.safeString(market, "description");
+            if (Helpers.isTrue(Helpers.isEqual(description, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "_temp_currencies_result"), base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
+                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing description")) ;
+            }
+            var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
+            var baseDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
+            var quoteDescription = ((java.util.List<Object>) baseDescriptionquoteDescriptionVariable).get(1);
+            Object minimumOrder = this.safeString(market, "minimum_order_value");
+            if (Helpers.isTrue(Helpers.isEqual(minimumOrder, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
+            }
+            Object parts = Helpers.split(minimumOrder, " ");
+            Object cost = Helpers.GetValue(parts, 0);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
+            {
+                Object baseDecimals = this.safeInteger(market, "base_decimals");
+                Helpers.addElementToObject(result, base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
+            }
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quote, null))) && !Helpers.isTrue((Helpers.inOp(result, quote)))))
+            {
+                Object counterDecimals = this.safeInteger(market, "counter_decimals");
+                Helpers.addElementToObject(result, quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
             }
         }
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(quote, null))) || !Helpers.isTrue((Helpers.inOp(existing, quote)))))
-        {
-            Object counterDecimals = this.safeInteger(market, "counter_decimals");
-            if (Helpers.isTrue(!Helpers.isEqual(quote, null)))
-            {
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "_temp_currencies_result"), quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
-            }
-        }
-        return this.safeValue(Helpers.GetValue(this.options, "_temp_currencies_result"), quote);
+        return result;
     }
 
     /**
@@ -2659,19 +2658,24 @@ public class BitstampCore extends BitstampApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object method = "privatePostUserTransactions";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
-                method = Helpers.add(method, "Pair");
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                response = (this.privatePostUserTransactionsPair(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
+            }
             Object result = this.filterBy(response, "type", "2");
             return this.parseTrades(result, market, since, limit);
         });
@@ -3110,10 +3114,24 @@ public class BitstampCore extends BitstampApi
         //        "market": "BTC/USD"
         //    }
         //
+        // editOrder
+        //
+        //    {
+        //        "order_id": 1453282316578816,
+        //        "order_type": "0",
+        //        "market": "BTC/USD",
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "datetime": "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id": 1453282316578816,
+        //        "orig_client_order_id": "my-original-order-123",
+        //        "status": "Open"
+        //    }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
-        Object clientOrderId = this.safeString(order, "client_order_id");
-        Object side = this.safeString(order, "type");
+        Object id = this.safeString2(order, "id", "order_id");
+        Object clientOrderId = this.safeString2(order, "client_order_id", "orig_client_order_id");
+        Object side = this.safeString2(order, "type", "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(side, "1"))))) ? "sell" : "buy";
@@ -3470,8 +3488,9 @@ public class BitstampCore extends BitstampApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
             }
             Object name = this.getCurrencyName(code);
-            Object method = Helpers.add(Helpers.add("privatePost", this.capitalize(name)), "Address");
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { parameters })).join();
+            // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+            // through request(), called here directly to avoid dynamic dispatch
+            Object response = (this.request(Helpers.add(name, "_address/"), "private", "POST", parameters)).join();
             Object address = this.safeString(response, "address");
             Object tag = this.safeString2(response, "memo_id", "destination_tag");
             this.checkAddress(address);
@@ -3520,11 +3539,10 @@ public class BitstampCore extends BitstampApi
                 put( "amount", amount );
             }};
             Object currency = null;
-            Object method = null;
+            Object response = null;
             if (!Helpers.isTrue(this.isFiat(code)))
             {
                 Object name = this.getCurrencyName(code);
-                method = Helpers.add(Helpers.add("privatePost", this.capitalize(name)), "Withdrawal");
                 if (Helpers.isTrue(Helpers.isEqual(code, "XRP")))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -3539,14 +3557,16 @@ public class BitstampCore extends BitstampApi
                     }
                 }
                 Helpers.addElementToObject(request, "address", address);
+                // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+                // route through request(), called here directly to avoid dynamic dispatch
+                response = (this.request(Helpers.add(name, "_withdrawal/"), "private", "POST", this.extend(request, parameters))).join();
             } else
             {
-                method = "privatePostWithdrawalOpen";
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "iban", address);
                 Helpers.addElementToObject(request, "account_currency", Helpers.GetValue(currency, "id"));
+                response = (this.privatePostWithdrawalOpen(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -3660,7 +3680,7 @@ public class BitstampCore extends BitstampApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -3681,7 +3701,7 @@ public class BitstampCore extends BitstampApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.urlencode(query);
                     contentType = "application/x-www-form-urlencoded";
@@ -3699,7 +3719,7 @@ public class BitstampCore extends BitstampApi
                     Helpers.addElementToObject(headers, "Content-Type", contentType);
                 }
             }
-            Object authBody = ((Helpers.isTrue(body))) ? body : "";
+            Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);

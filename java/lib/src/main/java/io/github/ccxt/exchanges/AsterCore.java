@@ -68,7 +68,7 @@ public class AsterCore extends AsterApi
                 put( "createMarketSellOrder", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
-                put( "createOrders", false );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createPostOnlyOrder", false );
                 put( "createReduceOnlyOrder", false );
@@ -83,7 +83,7 @@ public class AsterCore extends AsterApi
                 put( "editOrders", false );
                 put( "fetchAccounts", null );
                 put( "fetchBalance", true );
-                put( "fetchBidsAsks", false );
+                put( "fetchBidsAsks", true );
                 put( "fetchBorrowInterest", false );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
@@ -117,7 +117,7 @@ public class AsterCore extends AsterApi
                 put( "fetchIsolatedBorrowRate", "emulated" );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchL3OrderBook", false );
-                put( "fetchLastPrices", false );
+                put( "fetchLastPrices", true );
                 put( "fetchLedger", true );
                 put( "fetchLedgerEntry", false );
                 put( "fetchLeverage", "emulated" );
@@ -1291,7 +1291,7 @@ public class AsterCore extends AsterApi
             {
                 Object market = Helpers.GetValue(fapiRows, i);
                 // tmp skip some markets with base = undefined
-                if (Helpers.isTrue(this.safeString(market, "baseAsset")))
+                if (Helpers.isTrue(!Helpers.isEqual(this.safeString(market, "baseAsset"), null)))
                 {
                     ((java.util.List<Object>)fapiRowsFiltered).add(market);
                 }
@@ -1543,7 +1543,7 @@ public class AsterCore extends AsterApi
             } else
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
                 {
                     response = (this.fapiPublicGetV3Klines(this.extend(request, parameters))).join();
                 } else
@@ -1709,7 +1709,7 @@ public class AsterCore extends AsterApi
             // use historical endpoint for targeted requests
             if (Helpers.isTrue(Helpers.inOp(request, "startTime")))
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     response = (this.fapiPublicGetV3AggTrades(this.extend(request, parameters))).join();
                 } else
@@ -1718,7 +1718,7 @@ public class AsterCore extends AsterApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
                 {
                     response = (this.fapiPublicGetV3Trades(this.extend(request, parameters))).join();
                 } else
@@ -1762,7 +1762,7 @@ public class AsterCore extends AsterApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1843,7 +1843,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "limit", this.findNearestCeiling(new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 10, 20, 50, 100, 500, 1000)), limit));
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPublicGetV3Depth(this.extend(request, parameters))).join();
             } else
@@ -1993,7 +1993,7 @@ public class AsterCore extends AsterApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters))).join();
             } else
@@ -2719,7 +2719,7 @@ public class AsterCore extends AsterApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters))).join();
             } else
@@ -2899,7 +2899,7 @@ public class AsterCore extends AsterApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivateGetV3Order(this.extend(request, parameters))).join();
             } else
@@ -2977,7 +2977,7 @@ public class AsterCore extends AsterApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters))).join();
             } else
@@ -3061,7 +3061,7 @@ public class AsterCore extends AsterApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivateGetV3AllOrders(this.extend(request, parameters))).join();
             } else
@@ -3137,7 +3137,7 @@ public class AsterCore extends AsterApi
             }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                if (Helpers.isTrue(Helpers.GetValue(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol")))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol"), true)))
                 {
                     throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
@@ -3230,7 +3230,7 @@ public class AsterCore extends AsterApi
             Object market = this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivatePostV3Order(request)).join();
             } else
@@ -3310,7 +3310,7 @@ public class AsterCore extends AsterApi
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Object market = this.market(Helpers.GetValue(orderSymbols, 0));
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
@@ -3405,7 +3405,7 @@ public class AsterCore extends AsterApi
         Object stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 uppercaseType = "TRAILING_STOP_MARKET";
                 Helpers.addElementToObject(request, "callbackRate", trailingPercent);
@@ -3462,10 +3462,10 @@ public class AsterCore extends AsterApi
         Helpers.addElementToObject(request, "type", uppercaseType);
         if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "MARKET")))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
-                if (Helpers.isTrue(quoteOrderQty))
+                if (Helpers.isTrue(Helpers.isEqual(quoteOrderQty, true)))
                 {
                     Object quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
                     Object precision = Helpers.GetValue(Helpers.GetValue(market, "precision"), "price");
@@ -3502,7 +3502,7 @@ public class AsterCore extends AsterApi
             triggerPriceIsRequired = true;
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_MARKET"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
         {
-            if (!Helpers.isTrue(closePosition))
+            if (Helpers.isTrue(!Helpers.isEqual(closePosition, true)))
             {
                 quantityIsRequired = true;
             }
@@ -3563,7 +3563,7 @@ public class AsterCore extends AsterApi
             Helpers.addElementToObject(request, "timeInForce", tif);
         }
         Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice")));
-        if (Helpers.isTrue(Helpers.isTrue(this.safeBool(this.options, "builderFee")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(this.options, "builderFee"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
         {
             Helpers.addElementToObject(request, "builder", this.safeString(this.options, "builder"));
             Helpers.addElementToObject(request, "feeRate", this.safeString(this.options, "builderRate"));
@@ -3598,7 +3598,7 @@ public class AsterCore extends AsterApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             } else
@@ -3658,7 +3658,7 @@ public class AsterCore extends AsterApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
             } else
@@ -3710,7 +3710,7 @@ public class AsterCore extends AsterApi
                 Helpers.addElementToObject(request, "orderIdList", ids);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters))).join();
             } else
@@ -4670,7 +4670,7 @@ public class AsterCore extends AsterApi
             Object position = Helpers.GetValue(positions, i);
             Object marketId = this.safeString(position, "symbol");
             Object market = this.safeMarket(marketId, null, null, "contract");
-            Object code = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
+            Object code = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
             Object maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Object isPositionOpen = Helpers.isTrue((!Helpers.isEqual(maintenanceMargin, "0"))) && Helpers.isTrue((!Helpers.isEqual(maintenanceMargin, "0.00000000")));
@@ -5261,7 +5261,7 @@ public class AsterCore extends AsterApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "fapiPublic")) || Helpers.isTrue(Helpers.isEqual(api, "sapiPublic"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));
             }
@@ -5450,12 +5450,12 @@ public class AsterCore extends AsterApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (!Helpers.isTrue(builderFee))
+            if (Helpers.isTrue(!Helpers.isEqual(builderFee, true)))
             {
                 return false;  // skip if builder fee is not enabled
             }
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Helpers.isTrue(approvedBuilderFee))
+            if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;  // skip if builder fee is already approved
             }

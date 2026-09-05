@@ -90,6 +90,7 @@ func (this *HibachiCore) Describe() any {
 			"fetchOrder":                           true,
 			"fetchOrderBook":                       true,
 			"fetchOrders":                          false,
+			"fetchOrdersByStatus":                  true,
 			"fetchOrderTrades":                     false,
 			"fetchPosition":                        false,
 			"fetchPositionMode":                    false,
@@ -334,7 +335,7 @@ func (this *HibachiCore) GetAccountId() any {
 func (this *HibachiCore) ParseMarket(market any) any {
 	var marketId any = this.SafeString(market, "symbol")
 	var numericId any = this.SafeNumber(market, "id")
-	var marketType any = "swap"
+	var marketType string = "swap"
 	var baseId any = this.SafeString(market, "underlyingSymbol")
 	var quoteId any = this.SafeString(market, "settlementSymbol")
 	var base any = this.SafeCurrencyCode(baseId)
@@ -404,54 +405,54 @@ func (this *HibachiCore) ParseMarket(market any) any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *HibachiCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetMarketExchangeInfo(params))
-		PanicOnError(response)
-		// {
-		//     "displayName": "ETH/USDT Perps",
-		//     "id": 1,
-		//     "maintenanceFactorForPositions": "0.030000",
-		//     "marketCloseTimestamp": null,
-		//     "marketOpenTimestamp": null,
-		//     "minNotional": "1",
-		//     "minOrderSize": "0.000000001",
-		//     "orderbookGranularities": [
-		//         "0.01",
-		//         "0.1",
-		//         "1",
-		//         "10"
-		//     ],
-		//     "riskFactorForOrders": "0.066667",
-		//     "riskFactorForPositions": "0.030000",
-		//     "settlementDecimals": 6,
-		//     "settlementSymbol": "USDT",
-		//     "status": "LIVE",
-		//     "stepSize": "0.000000001",
-		//     "symbol": "ETH/USDT-P",
-		//     "tickSize": "0.000001",
-		//     "underlyingDecimals": 9,
-		//     "underlyingSymbol": "ETH"
-		// },
-		var rows any = this.SafeList(response, "futureContracts")
-
-		ch <- this.ParseMarkets(rows)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetMarketExchangeInfo(params))
+	PanicOnError(response)
+	// {
+	//     "displayName": "ETH/USDT Perps",
+	//     "id": 1,
+	//     "maintenanceFactorForPositions": "0.030000",
+	//     "marketCloseTimestamp": null,
+	//     "marketOpenTimestamp": null,
+	//     "minNotional": "1",
+	//     "minOrderSize": "0.000000001",
+	//     "orderbookGranularities": [
+	//         "0.01",
+	//         "0.1",
+	//         "1",
+	//         "10"
+	//     ],
+	//     "riskFactorForOrders": "0.066667",
+	//     "riskFactorForPositions": "0.030000",
+	//     "settlementDecimals": 6,
+	//     "settlementSymbol": "USDT",
+	//     "status": "LIVE",
+	//     "stepSize": "0.000000001",
+	//     "symbol": "ETH/USDT-P",
+	//     "tickSize": "0.000001",
+	//     "underlyingDecimals": 9,
+	//     "underlyingSymbol": "ETH"
+	// },
+	var rows any = this.SafeList(response, "futureContracts")
+
+	ch <- this.ParseMarkets(rows)
+	return nil
 }
 func (this *HibachiCore) HardcodedCurrencies() any {
 	// Hibachi only supports USDT on Arbitrum at this time
 	// We don't have an API endpoint to expose this information yet
-	var result any = map[string]any{}
-	var networks any = map[string]any{}
-	var networkId any = "ARBITRUM"
+	var result map[string]any = map[string]any{}
+	var networks map[string]any = map[string]any{}
+	var networkId string = "ARBITRUM"
 	AddElementToObject(networks, networkId, map[string]any{
 		"id":      networkId,
 		"network": networkId,
@@ -499,7 +500,7 @@ func (this *HibachiCore) HardcodedCurrencies() any {
 	return result
 }
 func (this *HibachiCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	// Hibachi only supports USDT on Arbitrum at this time
@@ -522,40 +523,40 @@ func (this *HibachiCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *HibachiCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		// {
-		//     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
-		//     balance: '3.000000',
-		//     maximalWithdraw: '3.000000',
-		//     numFreeTransfersRemaining: '100',
-		//     positions: [],
-		//     totalOrderNotional: '0.000000',
-		//     totalPositionNotional: '0.000000',
-		//     totalUnrealizedFundingPnl: '0.000000',
-		//     totalUnrealizedPnl: '0.000000',
-		//     totalUnrealizedTradingPnl: '0.000000',
-		//     tradeMakerFeeRate: '0.00000000',
-		//     tradeTakerFeeRate: '0.00020000'
-		// }
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	// {
+	//     assets: [ { quantity: '3.000000', symbol: 'USDT' } ],
+	//     balance: '3.000000',
+	//     maximalWithdraw: '3.000000',
+	//     numFreeTransfersRemaining: '100',
+	//     positions: [],
+	//     totalOrderNotional: '0.000000',
+	//     totalPositionNotional: '0.000000',
+	//     totalUnrealizedFundingPnl: '0.000000',
+	//     totalUnrealizedPnl: '0.000000',
+	//     totalUnrealizedTradingPnl: '0.000000',
+	//     tradeMakerFeeRate: '0.00000000',
+	//     tradeTakerFeeRate: '0.00020000'
+	// }
+	//
+	ch <- this.ParseBalance(response)
+	return nil
 }
 func (this *HibachiCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -678,51 +679,51 @@ func (this *HibachiCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object[]} a list of recent [trade structures]
  */
 func (this *HibachiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes60412 := (<-this.LoadMarkets())
-			PanicOnError(retRes60412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketDataTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "trades": [
-		//         {
-		//             "price": "111091.38352",
-		//             "quantity": "0.0090090093",
-		//             "takerSide": "Buy",
-		//             "timestamp": 1752095479
-		//         },
-		//     ]
-		// }
-		//
-		var trades any = this.SafeList(response, "trades", []any{})
-		var tradesList any = []any{}
-		if IsTrue(!IsEqual(trades, nil)) {
-			tradesList = trades
-		}
-
-		ch <- this.ParseTrades(tradesList, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes60512 := (<-this.LoadMarkets())
+		PanicOnError(retRes60512)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketDataTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "trades": [
+	//         {
+	//             "price": "111091.38352",
+	//             "quantity": "0.0090090093",
+	//             "takerSide": "Buy",
+	//             "timestamp": 1752095479
+	//         },
+	//     ]
+	// }
+	//
+	var trades any = this.SafeList(response, "trades", []any{})
+	var tradesList any = []any{}
+	if IsTrue(!IsEqual(trades, nil)) {
+		tradesList = trades
+	}
+
+	ch <- this.ParseTrades(tradesList, market)
+	return nil
 }
 
 /**
@@ -736,59 +737,59 @@ func (this *HibachiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *HibachiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes64312 := (<-this.LoadMarkets())
-			PanicOnError(retRes64312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-		var rawPromises any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
-
-		promises := (<-promiseAll(rawPromises))
-		PanicOnError(promises)
-		var pricesResponse any = GetValue(promises, 0)
-		// {
-		//     "askPrice": "3514.650296",
-		//     "bidPrice": "3513.596112",
-		//     "fundingRateEstimation": {
-		//         "estimatedFundingRate": "0.000001",
-		//         "nextFundingTimestamp": 1712707200
-		//     },
-		//     "markPrice": "3514.288858",
-		//     "spotPrice": "3514.715000",
-		//     "symbol": "ETH/USDT-P",
-		//     "tradePrice": "2372.746570"
-		// }
-		var statsResponse any = GetValue(promises, 1)
-		// {
-		//     "high24h": "3819.507827",
-		//     "low24h": "3754.474162",
-		//     "symbol": "ETH/USDT-P",
-		//     "volume24h": "23554.858590416"
-		// }
-		var ticker any = map[string]any{
-			"prices": pricesResponse,
-			"stats":  statsResponse,
-		}
-
-		ch <- this.ParseTicker(ticker, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes64412 := (<-this.LoadMarkets())
+		PanicOnError(retRes64412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
+
+	promises := (<-promiseAll(rawPromises))
+	PanicOnError(promises)
+	var pricesResponse any = GetValue(promises, 0)
+	// {
+	//     "askPrice": "3514.650296",
+	//     "bidPrice": "3513.596112",
+	//     "fundingRateEstimation": {
+	//         "estimatedFundingRate": "0.000001",
+	//         "nextFundingTimestamp": 1712707200
+	//     },
+	//     "markPrice": "3514.288858",
+	//     "spotPrice": "3514.715000",
+	//     "symbol": "ETH/USDT-P",
+	//     "tradePrice": "2372.746570"
+	// }
+	var statsResponse any = GetValue(promises, 1)
+	// {
+	//     "high24h": "3819.507827",
+	//     "low24h": "3754.474162",
+	//     "symbol": "ETH/USDT-P",
+	//     "volume24h": "23554.858590416"
+	// }
+	var ticker map[string]any = map[string]any{
+		"prices": pricesResponse,
+		"stats":  statsResponse,
+	}
+
+	ch <- this.ParseTicker(ticker, market)
+	return nil
 }
 func (this *HibachiCore) ParseOrderStatus(status any) any {
 	var uppercaseStatus any = Ternary(IsTrue((IsEqual(status, nil))), nil, ToUpper(status))
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PENDING":           "open",
 		"CHILD_PENDING":     "open",
 		"SCHEDULED_TWAP":    "open",
@@ -828,10 +829,10 @@ func (this *HibachiCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(IsTrue(IsTrue(IsEqual(remainingString, nil)) && IsTrue(!IsEqual(totalQuantity, nil))) && IsTrue(!IsEqual(filled, nil))) {
 		remainingString = Precise.StringSub(totalQuantity, filled)
 	}
-	var timeInForce any = "GTC"
+	var timeInForce string = "GTC"
 	var orderFlags any = this.SafeValue(order, "orderFlags")
-	var postOnly any = false
-	var reduceOnly any = false
+	var postOnly bool = false
+	var reduceOnly bool = false
 	if IsTrue(IsEqual(orderFlags, "POST_ONLY")) {
 		timeInForce = "PO"
 		postOnly = true
@@ -883,36 +884,36 @@ func (this *HibachiCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes77812 := (<-this.LoadMarkets())
-			PanicOnError(retRes77812)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"orderId":   id,
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetTradeOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes77912 := (<-this.LoadMarkets())
+		PanicOnError(retRes77912)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"orderId":   id,
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetTradeOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -924,47 +925,47 @@ func (this *HibachiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *HibachiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes80212 := (<-this.LoadMarkets())
-			PanicOnError(retRes80212)
-		}
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
-		PanicOnError(response)
-		//    {
-		//        "tradeMakerFeeRate": "0.00000000",
-		//        "tradeTakerFeeRate": "0.00020000"
-		//    },
-		var makerFeeRate any = this.SafeNumber(response, "tradeMakerFeeRate")
-		var takerFeeRate any = this.SafeNumber(response, "tradeTakerFeeRate")
-		var result any = map[string]any{}
-		var symbols any = this.Symbols
-		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-			var symbol any = GetValue(symbols, i)
-			AddElementToObject(result, symbol, map[string]any{
-				"info":       response,
-				"symbol":     symbol,
-				"maker":      makerFeeRate,
-				"taker":      takerFeeRate,
-				"percentage": true,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes80312 := (<-this.LoadMarkets())
+		PanicOnError(retRes80312)
+	}
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//    {
+	//        "tradeMakerFeeRate": "0.00000000",
+	//        "tradeTakerFeeRate": "0.00020000"
+	//    },
+	var makerFeeRate any = this.SafeNumber(response, "tradeMakerFeeRate")
+	var takerFeeRate any = this.SafeNumber(response, "tradeTakerFeeRate")
+	var result map[string]any = map[string]any{}
+	var symbols any = this.Symbols
+	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+		var symbol any = GetValue(symbols, i)
+		AddElementToObject(result, symbol, map[string]any{
+			"info":       response,
+			"symbol":     symbol,
+			"maker":      makerFeeRate,
+			"taker":      takerFeeRate,
+			"percentage": true,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
@@ -975,7 +976,7 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
-	var sideInternal any = 0
+	var sideInternal int = 0
 	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = 0
 	} else if IsTrue(IsEqual(side, "buy")) {
@@ -990,37 +991,37 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	var info any = this.SafeDict(market, "info")
 	var underlying any = Add("1e", this.SafeString(info, "underlyingDecimals"))
 	var settlement any = Add("1e", this.SafeString(info, "settlementDecimals"))
-	var one any = "1"
-	var feeRateFactor any = "100000000" // 10^8
-	var priceFactor any = "4294967296"  // 2^32
+	var one string = "1"
+	var feeRateFactor string = "100000000" // 10^8
+	var priceFactor string = "4294967296"  // 2^32
 	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, underlying), one, 0)
 	var feeRateInternal any = Precise.StringDiv(Precise.StringMul(feeRateStr, feeRateFactor), one, 0)
 	// Encoding
-	var nonce16 any = this.IntToBase16(nonce)
-	var noncePadded any = PadStart(nonce16, 16, "0")
-	var encodedNonce any = this.Base16ToBinary(noncePadded)
-	var numericId any = this.IntToBase16(this.SafeInteger(market, "numericId"))
-	var numericIdPadded any = PadStart(numericId, 8, "0")
-	var encodedMarketId any = this.Base16ToBinary(numericIdPadded)
-	var quantity16 any = this.IntToBase16(this.ParseToInt(quantityInternal))
-	var quantityPadded any = PadStart(quantity16, 16, "0")
-	var encodedQuantity any = this.Base16ToBinary(quantityPadded)
-	var sideInternal16 any = this.IntToBase16(sideInternal)
-	var sidePadded any = PadStart(sideInternal16, 8, "0")
-	var encodedSide any = this.Base16ToBinary(sidePadded)
-	var feeRateInternal16 any = this.IntToBase16(this.ParseToInt(feeRateInternal))
-	var feeRatePadded any = PadStart(feeRateInternal16, 16, "0")
-	var encodedFeeRate any = this.Base16ToBinary(feeRatePadded)
-	var encodedPrice any = this.BinaryConcat()
+	var nonce16 string = this.IntToBase16(nonce)
+	var noncePadded string = PadStart(nonce16, 16, "0")
+	var encodedNonce []byte = this.Base16ToBinary(noncePadded)
+	var numericId string = this.IntToBase16(this.SafeInteger(market, "numericId"))
+	var numericIdPadded string = PadStart(numericId, 8, "0")
+	var encodedMarketId []byte = this.Base16ToBinary(numericIdPadded)
+	var quantity16 string = this.IntToBase16(this.ParseToInt(quantityInternal))
+	var quantityPadded string = PadStart(quantity16, 16, "0")
+	var encodedQuantity []byte = this.Base16ToBinary(quantityPadded)
+	var sideInternal16 string = this.IntToBase16(sideInternal)
+	var sidePadded string = PadStart(sideInternal16, 8, "0")
+	var encodedSide []byte = this.Base16ToBinary(sidePadded)
+	var feeRateInternal16 string = this.IntToBase16(this.ParseToInt(feeRateInternal))
+	var feeRatePadded string = PadStart(feeRateInternal16, 16, "0")
+	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
+	var encodedPrice []byte = this.BinaryConcat()
 	if IsTrue(IsEqual(typeVar, "limit")) {
 		var priceStr any = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal any = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
-		var price16 any = this.IntToBase16(this.ParseToInt(priceInternal))
-		var pricePadded any = PadStart(price16, 16, "0")
+		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
+		var pricePadded string = PadStart(price16, 16, "0")
 		// @ts-expect-error
 		encodedPrice = this.Base16ToBinary(pricePadded)
 	}
-	var message any = this.BinaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
+	var message []byte = this.BinaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
 	return message
 }
 func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -1040,19 +1041,19 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 	var takerFeeValue any = Ternary(IsTrue((IsEqual(takerFee, nil))), 0, takerFee)
 	var makerFeeValue any = Ternary(IsTrue((IsEqual(makerFee, nil))), 0, makerFee)
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
-	var sideInternal any = ""
+	var sideInternal string = ""
 	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = "ASK"
 	} else if IsTrue(IsEqual(side, "buy")) {
 		sideInternal = "BID"
 	}
 	var priceInternal any = ""
-	if IsTrue(price) {
+	if IsTrue(IsTrue((!IsEqual(price, nil))) && IsTrue((!IsEqual(price, 0)))) {
 		priceInternal = this.PriceToPrecision(symbol, price)
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature any = this.SignMessage(message, this.PrivateKey)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":         this.SafeString(market, "id"),
 		"nonce":          nonce,
 		"side":           sideInternal,
@@ -1070,7 +1071,7 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 		AddElementToObject(request, "orderFlags", "POST_ONLY")
 	} else if IsTrue(IsEqual(timeInForce, "ioc")) {
 		AddElementToObject(request, "orderFlags", "IOC")
-	} else if IsTrue(reduceOnly) {
+	} else if IsTrue(IsEqual(reduceOnly, true)) {
 		AddElementToObject(request, "orderFlags", "REDUCE_ONLY")
 	}
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -1094,39 +1095,39 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes95312 := (<-this.LoadMarkets())
-			PanicOnError(retRes95312)
-		}
-		var nonce any = this.Nonce()
-		var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
-		AddElementToObject(request, "accountId", this.GetAccountId())
-
-		response := (<-this.PrivatePostTradeOrder(request))
-		PanicOnError(response)
-
-		//
-		// {
-		//     "orderId": "578721673790138368"
-		// }
-		//
-		ch <- this.SafeOrder(map[string]any{
-			"id":     this.SafeString(response, "orderId"),
-			"status": "pending",
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes95412 := (<-this.LoadMarkets())
+		PanicOnError(retRes95412)
+	}
+	var nonce any = this.Nonce()
+	var request any = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
+	AddElementToObject(request, "accountId", this.GetAccountId())
+
+	response := (<-this.PrivatePostTradeOrder(request))
+	PanicOnError(response)
+
+	//
+	// {
+	//     "orderId": "578721673790138368"
+	// }
+	//
+	ch <- this.SafeOrder(map[string]any{
+		"id":     this.SafeString(response, "orderId"),
+		"status": "pending",
+	})
+	return nil
 }
 
 /**
@@ -1139,57 +1140,57 @@ func (this *HibachiCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes98112 := (<-this.LoadMarkets())
-			PanicOnError(retRes98112)
-		}
-		var nonce any = this.Nonce()
-		var requestOrders any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder any = GetValue(orders, i)
-			var symbol any = this.SafeString(rawOrder, "symbol")
-			var typeVar any = this.SafeString(rawOrder, "type")
-			var side any = this.SafeString(rawOrder, "side")
-			var amount any = this.SafeValue(rawOrder, "amount")
-			var price any = this.SafeValue(rawOrder, "price")
-			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-			var orderRequest any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
-			AddElementToObject(orderRequest, "action", "place")
-			AppendToArray(&requestOrders, orderRequest)
-		}
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-			"orders":    requestOrders,
-		}
-
-		response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
-		//
-		var ret any = []any{}
-		var responseOrders any = this.SafeList(response, "orders", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
-			var responseOrder any = GetValue(responseOrders, i)
-			AppendToArray(&ret, this.SafeOrder(map[string]any{
-				"info":   responseOrder,
-				"id":     this.SafeString(responseOrder, "orderId"),
-				"status": "pending",
-			}))
-		}
-
-		ch <- ret
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes98212 := (<-this.LoadMarkets())
+		PanicOnError(retRes98212)
+	}
+	var nonce any = this.Nonce()
+	var requestOrders any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+		var rawOrder any = GetValue(orders, i)
+		var symbol any = this.SafeString(rawOrder, "symbol")
+		var typeVar any = this.SafeString(rawOrder, "type")
+		var side any = this.SafeString(rawOrder, "side")
+		var amount any = this.SafeValue(rawOrder, "amount")
+		var price any = this.SafeValue(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderRequest any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
+		AddElementToObject(orderRequest, "action", "place")
+		AppendToArray(&requestOrders, orderRequest)
+	}
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+		"orders":    requestOrders,
+	}
+
+	response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
+	//
+	var ret any = []any{}
+	var responseOrders any = this.SafeList(response, "orders", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
+		var responseOrder any = GetValue(responseOrders, i)
+		AppendToArray(&ret, this.SafeOrder(map[string]any{
+			"info":   responseOrder,
+			"id":     this.SafeString(responseOrder, "orderId"),
+			"status": "pending",
+		}))
+	}
+
+	ch <- ret
+	return nil
 }
 func (this *HibachiCore) EditOrderRequest(nonce any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	amount := GetArg(optionalArgs, 0, nil)
@@ -1212,7 +1213,7 @@ func (this *HibachiCore) EditOrderRequest(nonce any, id any, symbol any, typeVar
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature any = this.SignMessage(message, this.PrivateKey)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId":         id,
 		"nonce":           nonce,
 		"updatedQuantity": this.AmountToPrecision(symbol, amount),
@@ -1238,40 +1239,40 @@ func (this *HibachiCore) EditOrderRequest(nonce any, id any, symbol any, typeVar
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes106012 := (<-this.LoadMarkets())
-			PanicOnError(retRes106012)
-		}
-		var nonce any = this.Nonce()
-		var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
-		AddElementToObject(request, "accountId", this.GetAccountId())
-
-		retRes10658 := (<-this.PrivatePutTradeOrder(request))
-		PanicOnError(retRes10658)
-
-		// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
-		//
-		// {}
-		//
-		ch <- this.SafeOrder(map[string]any{
-			"id":     id,
-			"status": "pending",
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes106112 := (<-this.LoadMarkets())
+		PanicOnError(retRes106112)
+	}
+	var nonce any = this.Nonce()
+	var request any = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
+	AddElementToObject(request, "accountId", this.GetAccountId())
+
+	retRes10668 := (<-this.PrivatePutTradeOrder(request))
+	PanicOnError(retRes10668)
+
+	// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
+	//
+	// {}
+	//
+	ch <- this.SafeOrder(map[string]any{
+		"id":     id,
+		"status": "pending",
+	})
+	return nil
 }
 
 /**
@@ -1284,64 +1285,64 @@ func (this *HibachiCore) EditOrder(id any, symbol any, typeVar any, side any, op
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) EditOrders(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes108712 := (<-this.LoadMarkets())
-			PanicOnError(retRes108712)
-		}
-		var nonce any = this.Nonce()
-		var requestOrders any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder any = GetValue(orders, i)
-			var id any = this.SafeString(rawOrder, "id")
-			var symbol any = this.SafeString(rawOrder, "symbol")
-			var typeVar any = this.SafeString(rawOrder, "type")
-			var side any = this.SafeString(rawOrder, "side")
-			var amount any = this.SafeValue(rawOrder, "amount")
-			var price any = this.SafeValue(rawOrder, "price")
-			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-			var orderRequest any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
-			AddElementToObject(orderRequest, "action", "modify")
-			AppendToArray(&requestOrders, orderRequest)
-		}
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-			"orders":    requestOrders,
-		}
-
-		response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// { "orders": [ { "orderId": "589636801329628160" } ] }
-		//
-		var ret any = []any{}
-		var responseOrders any = this.SafeList(response, "orders", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
-			var responseOrder any = GetValue(responseOrders, i)
-			AppendToArray(&ret, this.SafeOrder(map[string]any{
-				"info":   responseOrder,
-				"id":     this.SafeString(responseOrder, "orderId"),
-				"status": "pending",
-			}))
-		}
-
-		ch <- ret
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) editOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes108812 := (<-this.LoadMarkets())
+		PanicOnError(retRes108812)
+	}
+	var nonce any = this.Nonce()
+	var requestOrders any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+		var rawOrder any = GetValue(orders, i)
+		var id any = this.SafeString(rawOrder, "id")
+		var symbol any = this.SafeString(rawOrder, "symbol")
+		var typeVar any = this.SafeString(rawOrder, "type")
+		var side any = this.SafeString(rawOrder, "side")
+		var amount any = this.SafeValue(rawOrder, "amount")
+		var price any = this.SafeValue(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderRequest any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
+		AddElementToObject(orderRequest, "action", "modify")
+		AppendToArray(&requestOrders, orderRequest)
+	}
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+		"orders":    requestOrders,
+	}
+
+	response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// { "orders": [ { "orderId": "589636801329628160" } ] }
+	//
+	var ret any = []any{}
+	var responseOrders any = this.SafeList(response, "orders", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
+		var responseOrder any = GetValue(responseOrders, i)
+		AppendToArray(&ret, this.SafeOrder(map[string]any{
+			"info":   responseOrder,
+			"id":     this.SafeString(responseOrder, "orderId"),
+			"status": "pending",
+		}))
+	}
+
+	ch <- ret
+	return nil
 }
 func (this *HibachiCore) CancelOrderRequest(id any) any {
 	var bigid any = this.ConvertToBigInt(id)
-	var idbase16 any = this.IntToBase16(bigid)
-	var idPadded any = PadStart(idbase16, 16, "0")
-	var message any = this.Base16ToBinary(idPadded)
+	var idbase16 string = this.IntToBase16(bigid)
+	var idPadded string = PadStart(idbase16, 16, "0")
+	var message []byte = this.Base16ToBinary(idPadded)
 	var signature any = this.SignMessage(message, this.PrivateKey)
 	return map[string]any{
 		"orderId":   id,
@@ -1360,33 +1361,33 @@ func (this *HibachiCore) CancelOrderRequest(id any) any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var request any = this.CancelOrderRequest(id)
-		AddElementToObject(request, "accountId", this.GetAccountId())
-
-		response := (<-this.PrivateDeleteTradeOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		// At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
-		//
-		// {}
-		//
-		ch <- this.SafeOrder(map[string]any{
-			"info":   response,
-			"id":     id,
-			"status": "canceled",
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request any = this.CancelOrderRequest(id)
+	AddElementToObject(request, "accountId", this.GetAccountId())
+
+	response := (<-this.PrivateDeleteTradeOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	// At this time the response body is empty. A 200 response means the cancel request is accepted and sent to cancel
+	//
+	// {}
+	//
+	ch <- this.SafeOrder(map[string]any{
+		"info":   response,
+		"id":     id,
+		"status": "canceled",
+	})
+	return nil
 }
 
 /**
@@ -1400,46 +1401,46 @@ func (this *HibachiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var orders any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-			var orderRequest any = this.CancelOrderRequest(GetValue(ids, i))
-			AddElementToObject(orderRequest, "action", "cancel")
-			AppendToArray(&orders, orderRequest)
-		}
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-			"orders":    orders,
-		}
-
-		response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// { "orders": [ { "orderId": "589636801329628160" } ] }
-		//
-		var ret any = []any{}
-		var responseOrders any = this.SafeList(response, "orders", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
-			var responseOrder any = GetValue(responseOrders, i)
-			AppendToArray(&ret, this.SafeOrder(map[string]any{
-				"info":   responseOrder,
-				"id":     this.SafeString(responseOrder, "orderId"),
-				"status": "canceled",
-			}))
-		}
-
-		ch <- ret
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var orders any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
+		var orderRequest any = this.CancelOrderRequest(GetValue(ids, i))
+		AddElementToObject(orderRequest, "action", "cancel")
+		AppendToArray(&orders, orderRequest)
+	}
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+		"orders":    orders,
+	}
+
+	response := (<-this.PrivatePostTradeOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// { "orders": [ { "orderId": "589636801329628160" } ] }
+	//
+	var ret any = []any{}
+	var responseOrders any = this.SafeList(response, "orders", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(responseOrders)); i++ {
+		var responseOrder any = GetValue(responseOrders, i)
+		AppendToArray(&ret, this.SafeOrder(map[string]any{
+			"info":   responseOrder,
+			"id":     this.SafeString(responseOrder, "orderId"),
+			"status": "canceled",
+		}))
+	}
+
+	ch <- ret
+	return nil
 }
 
 /**
@@ -1452,73 +1453,73 @@ func (this *HibachiCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes121112 := (<-this.LoadMarkets())
-			PanicOnError(retRes121112)
-		}
-		var nonce any = this.Nonce()
-		var nonce16 any = this.IntToBase16(nonce)
-		var noncePadded any = PadStart(nonce16, 16, "0")
-		var message any = this.Base16ToBinary(noncePadded)
-		var signature any = this.SignMessage(message, this.PrivateKey)
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-			"nonce":     nonce,
-			"signature": signature,
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			AddElementToObject(request, "contractId", this.SafeInteger(market, "numericId"))
-		}
-
-		response := (<-this.PrivateDeleteTradeOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		// At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
-		//
-		// {}
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes121212 := (<-this.LoadMarkets())
+		PanicOnError(retRes121212)
+	}
+	var nonce any = this.Nonce()
+	var nonce16 string = this.IntToBase16(nonce)
+	var noncePadded string = PadStart(nonce16, 16, "0")
+	var message []byte = this.Base16ToBinary(noncePadded)
+	var signature any = this.SignMessage(message, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		AddElementToObject(request, "contractId", this.SafeInteger(market, "numericId"))
+	}
+
+	response := (<-this.PrivateDeleteTradeOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	// At this time the response body is empty. A 200 response means the cancel request is accepted and sent to process
+	//
+	// {}
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 func (this *HibachiCore) EncodeWithdrawMessage(amount any, maxFees any, address any) any {
 	// Converting them to internal representation:
 	// - Quantity: Internal = External * (10^6)
 	// - maxFees: Internal = External * (10^6)
 	// We only have USDT as our currency as this time
-	var USDTAssetId any = 1
-	var USDTFactor any = "1000000"
+	var USDTAssetId int = 1
+	var USDTFactor string = "1000000"
 	var amountStr any = this.NumberToString(amount)
 	var maxFeesStr any = this.NumberToString(maxFees)
-	var one any = "1"
+	var one string = "1"
 	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, USDTFactor), one, 0)
 	var maxFeesInternal any = Precise.StringDiv(Precise.StringMul(maxFeesStr, USDTFactor), one, 0)
 	// Encoding
-	var usdtAsset16 any = this.IntToBase16(USDTAssetId)
-	var usdtAssetPadded any = PadStart(usdtAsset16, 8, "0")
-	var encodedAssetId any = this.Base16ToBinary(usdtAssetPadded)
-	var quantity16 any = this.IntToBase16(this.ParseToInt(quantityInternal))
-	var quantityPadded any = PadStart(quantity16, 16, "0")
-	var encodedQuantity any = this.Base16ToBinary(quantityPadded)
-	var maxFees16 any = this.IntToBase16(this.ParseToInt(maxFeesInternal))
-	var maxFeesPadded any = PadStart(maxFees16, 16, "0")
-	var encodedMaxFees any = this.Base16ToBinary(maxFeesPadded)
-	var encodedAddress any = this.Base16ToBinary(address)
-	var message any = this.BinaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
+	var usdtAsset16 string = this.IntToBase16(USDTAssetId)
+	var usdtAssetPadded string = PadStart(usdtAsset16, 8, "0")
+	var encodedAssetId []byte = this.Base16ToBinary(usdtAssetPadded)
+	var quantity16 string = this.IntToBase16(this.ParseToInt(quantityInternal))
+	var quantityPadded string = PadStart(quantity16, 16, "0")
+	var encodedQuantity []byte = this.Base16ToBinary(quantityPadded)
+	var maxFees16 string = this.IntToBase16(this.ParseToInt(maxFeesInternal))
+	var maxFeesPadded string = PadStart(maxFees16, 16, "0")
+	var encodedMaxFees []byte = this.Base16ToBinary(maxFeesPadded)
+	var encodedAddress []byte = this.Base16ToBinary(address)
+	var message []byte = this.BinaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
 	return message
 }
 
@@ -1535,80 +1536,80 @@ func (this *HibachiCore) EncodeWithdrawMessage(amount any, maxFees any, address 
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HibachiCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var withdrawAddress any = Slice(address, OpNeg(40), nil)
-		// Get the withdraw fees
-
-		exchangeInfo := (<-this.PublicGetMarketExchangeInfo(params))
-		PanicOnError(exchangeInfo)
-		// {
-		//      "feeConfig": {
-		//          "depositFees": "0.004518",
-		//          "tradeMakerFeeRate": "0.00000000",
-		//          "tradeTakerFeeRate": "0.00020000",
-		//          "transferFeeRate": "0.00010000",
-		//          "withdrawalFees": "0.012050"
-		//    },
-		// }
-		var feeConfig any = this.SafeDict(exchangeInfo, "feeConfig")
-		var maxFees any = this.SafeNumber(feeConfig, "withdrawalFees")
-		// Generate the signature
-		var message any = this.EncodeWithdrawMessage(amount, maxFees, withdrawAddress)
-		var signature any = this.SignMessage(message, this.PrivateKey)
-		var request any = map[string]any{
-			"accountId":       this.GetAccountId(),
-			"coin":            "USDT",
-			"network":         "ARBITRUM",
-			"withdrawAddress": withdrawAddress,
-			"selfWithdrawal":  false,
-			"quantity":        this.NumberToString(amount),
-			"maxFees":         this.NumberToString(maxFees),
-			"signature":       signature,
-		}
-
-		retRes13068 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
-		PanicOnError(retRes13068)
-
-		// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
-		//
-		// {}
-		//
-		ch <- map[string]any{
-			"info":        nil,
-			"id":          nil,
-			"txid":        nil,
-			"timestamp":   this.Milliseconds(),
-			"datetime":    nil,
-			"address":     nil,
-			"addressFrom": nil,
-			"addressTo":   withdrawAddress,
-			"tag":         nil,
-			"tagFrom":     nil,
-			"tagTo":       nil,
-			"type":        "withdrawal",
-			"amount":      amount,
-			"currency":    code,
-			"status":      "pending",
-			"fee": map[string]any{
-				"currency": "USDT",
-				"cost":     maxFees,
-			},
-			"network":  "ARBITRUM",
-			"updated":  nil,
-			"comment":  nil,
-			"internal": nil,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var withdrawAddress string = Slice(address, OpNeg(40), nil)
+	// Get the withdraw fees
+
+	exchangeInfo := (<-this.PublicGetMarketExchangeInfo(params))
+	PanicOnError(exchangeInfo)
+	// {
+	//      "feeConfig": {
+	//          "depositFees": "0.004518",
+	//          "tradeMakerFeeRate": "0.00000000",
+	//          "tradeTakerFeeRate": "0.00020000",
+	//          "transferFeeRate": "0.00010000",
+	//          "withdrawalFees": "0.012050"
+	//    },
+	// }
+	var feeConfig any = this.SafeDict(exchangeInfo, "feeConfig")
+	var maxFees any = this.SafeNumber(feeConfig, "withdrawalFees")
+	// Generate the signature
+	var message any = this.EncodeWithdrawMessage(amount, maxFees, withdrawAddress)
+	var signature any = this.SignMessage(message, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"accountId":       this.GetAccountId(),
+		"coin":            "USDT",
+		"network":         "ARBITRUM",
+		"withdrawAddress": withdrawAddress,
+		"selfWithdrawal":  false,
+		"quantity":        this.NumberToString(amount),
+		"maxFees":         this.NumberToString(maxFees),
+		"signature":       signature,
+	}
+
+	retRes13078 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
+	PanicOnError(retRes13078)
+
+	// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
+	//
+	// {}
+	//
+	ch <- map[string]any{
+		"info":        nil,
+		"id":          nil,
+		"txid":        nil,
+		"timestamp":   this.Milliseconds(),
+		"datetime":    nil,
+		"address":     nil,
+		"addressFrom": nil,
+		"addressTo":   withdrawAddress,
+		"tag":         nil,
+		"tagFrom":     nil,
+		"tagTo":       nil,
+		"type":        "withdrawal",
+		"amount":      amount,
+		"currency":    code,
+		"status":      "pending",
+		"fee": map[string]any{
+			"currency": "USDT",
+			"cost":     maxFees,
+		},
+		"network":  "ARBITRUM",
+		"updated":  nil,
+		"comment":  nil,
+		"internal": nil,
+	}
+	return nil
 }
 func (this *HibachiCore) Nonce() any {
 	return this.Milliseconds()
@@ -1620,10 +1621,10 @@ func (this *HibachiCore) SignMessage(message any, privateKey any) any {
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
-		var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+		var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 		var r any = GetValue(signature, "r")
 		var s any = GetValue(signature, "s")
-		var v any = this.IntToBase16(GetValue(signature, "v"))
+		var v string = this.IntToBase16(GetValue(signature, "v"))
 		return Add(Add(PadStart(r, 64, "0"), PadStart(s, 64, "0")), PadStart(v, 2, "0"))
 	}
 }
@@ -1639,73 +1640,73 @@ func (this *HibachiCore) SignMessage(message any, privateKey any) any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HibachiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes136612 := (<-this.LoadMarkets())
-			PanicOnError(retRes136612)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketDataOrderbook(this.Extend(request, params)))
-		PanicOnError(response)
-		var formattedResponse any = map[string]any{}
-		AddElementToObject(formattedResponse, "ask", this.SafeList(this.SafeDict(response, "ask"), "levels"))
-		AddElementToObject(formattedResponse, "bid", this.SafeList(this.SafeDict(response, "bid"), "levels"))
-
-		// {
-		//     "ask": {
-		//         "endPrice": "3512.63",
-		//         "levels": [
-		//             {
-		//                 "price": "3511.93",
-		//                 "quantity": "0.284772482"
-		//             },
-		//             {
-		//                 "price": "3512.28",
-		//                 "quantity": "0.569544964"
-		//             },
-		//             {
-		//                 "price": "3512.63",
-		//                 "quantity": "0.854317446"
-		//             }
-		//         ],
-		//         "startPrice": "3511.93"
-		//     },
-		//     "bid": {
-		//         "endPrice": "3510.87",
-		//         "levels": [
-		//             {
-		//                 "price": "3515.39",
-		//                 "quantity": "2.345153070"
-		//             },
-		//             {
-		//                 "price": "3511.22",
-		//                 "quantity": "0.284772482"
-		//             },
-		//             {
-		//                 "price": "3510.87",
-		//                 "quantity": "0.569544964"
-		//             }
-		//         ],
-		//         "startPrice": "3515.39"
-		//     }
-		// }
-		ch <- this.ParseOrderBook(formattedResponse, symbol, this.Milliseconds(), "bid", "ask", "price", "quantity")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes136712 := (<-this.LoadMarkets())
+		PanicOnError(retRes136712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketDataOrderbook(this.Extend(request, params)))
+	PanicOnError(response)
+	var formattedResponse map[string]any = map[string]any{}
+	AddElementToObject(formattedResponse, "ask", this.SafeList(this.SafeDict(response, "ask"), "levels"))
+	AddElementToObject(formattedResponse, "bid", this.SafeList(this.SafeDict(response, "bid"), "levels"))
+
+	// {
+	//     "ask": {
+	//         "endPrice": "3512.63",
+	//         "levels": [
+	//             {
+	//                 "price": "3511.93",
+	//                 "quantity": "0.284772482"
+	//             },
+	//             {
+	//                 "price": "3512.28",
+	//                 "quantity": "0.569544964"
+	//             },
+	//             {
+	//                 "price": "3512.63",
+	//                 "quantity": "0.854317446"
+	//             }
+	//         ],
+	//         "startPrice": "3511.93"
+	//     },
+	//     "bid": {
+	//         "endPrice": "3510.87",
+	//         "levels": [
+	//             {
+	//                 "price": "3515.39",
+	//                 "quantity": "2.345153070"
+	//             },
+	//             {
+	//                 "price": "3511.22",
+	//                 "quantity": "0.284772482"
+	//             },
+	//             {
+	//                 "price": "3510.87",
+	//                 "quantity": "0.569544964"
+	//             }
+	//         ],
+	//         "startPrice": "3515.39"
+	//     }
+	// }
+	ch <- this.ParseOrderBook(formattedResponse, symbol, this.Milliseconds(), "bid", "ask", "price", "quantity")
+	return nil
 }
 
 /**
@@ -1720,65 +1721,65 @@ func (this *HibachiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HibachiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes143012 := (<-this.LoadMarkets())
-			PanicOnError(retRes143012)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetTradeAccountTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "trades": [
-		//         {
-		//             "askAccountId": 221,
-		//             "askOrderId": 589168494921909200,
-		//             "bidAccountId": 132,
-		//             "bidOrderId": 589168494829895700,
-		//             "fee": "0.000477",
-		//             "id": 199511136,
-		//             "orderType": "MARKET",
-		//             "price": "119257.90000",
-		//             "quantity": "0.0000200000",
-		//             "realizedPnl": "-0.000352",
-		//             "side": "Sell",
-		//             "symbol": "BTC/USDT-P",
-		//             "timestamp": 1752543391
-		//         }
-		//     ]
-		// }
-		//
-		var trades any = this.SafeList(response, "trades")
-		var tradesList any = []any{}
-		if IsTrue(!IsEqual(trades, nil)) {
-			tradesList = trades
-		}
-
-		ch <- this.ParseTrades(tradesList, market, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes143112 := (<-this.LoadMarkets())
+		PanicOnError(retRes143112)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetTradeAccountTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "trades": [
+	//         {
+	//             "askAccountId": 221,
+	//             "askOrderId": 589168494921909200,
+	//             "bidAccountId": 132,
+	//             "bidOrderId": 589168494829895700,
+	//             "fee": "0.000477",
+	//             "id": 199511136,
+	//             "orderType": "MARKET",
+	//             "price": "119257.90000",
+	//             "quantity": "0.0000200000",
+	//             "realizedPnl": "-0.000352",
+	//             "side": "Sell",
+	//             "symbol": "BTC/USDT-P",
+	//             "timestamp": 1752543391
+	//         }
+	//     ]
+	// }
+	//
+	var trades any = this.SafeList(response, "trades")
+	var tradesList any = []any{}
+	if IsTrue(!IsEqual(trades, nil)) {
+		tradesList = trades
+	}
+
+	ch <- this.ParseTrades(tradesList, market, since, limit, params)
+	return nil
 }
 func (this *HibachiCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1811,67 +1812,67 @@ func (this *HibachiCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes150412 := (<-this.LoadMarkets())
-			PanicOnError(retRes150412)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetTradeOrders(this.Extend(request, params)))
-		PanicOnError(response)
-
-		// [
-		//     {
-		//         "accountId": 12452,
-		//         "availableQuantity": "0.0000230769",
-		//         "contractId": 2,
-		//         "creationTime": 1752684501,
-		//         "orderId": "589205486123876352",
-		//         "orderType": "LIMIT",
-		//         "price": "130000.00000",
-		//         "side": "ASK",
-		//         "status": "PLACED",
-		//         "symbol": "BTC/USDT-P",
-		//         "totalQuantity": "0.0000230769"
-		//     },
-		//     {
-		//         "accountId": 12452,
-		//         "availableQuantity": "1.234000000",
-		//         "contractId": 1,
-		//         "creationTime": 1752240682,
-		//         "orderId": "589089141754429441",
-		//         "orderType": "LIMIT",
-		//         "price": "1.234000",
-		//         "side": "BID",
-		//         "status": "PLACED",
-		//         "symbol": "ETH/USDT-P",
-		//         "totalQuantity": "1.234000000"
-		//     }
-		// ]
-		ch <- this.ParseOrders(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes150512 := (<-this.LoadMarkets())
+		PanicOnError(retRes150512)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetTradeOrders(this.Extend(request, params)))
+	PanicOnError(response)
+
+	// [
+	//     {
+	//         "accountId": 12452,
+	//         "availableQuantity": "0.0000230769",
+	//         "contractId": 2,
+	//         "creationTime": 1752684501,
+	//         "orderId": "589205486123876352",
+	//         "orderType": "LIMIT",
+	//         "price": "130000.00000",
+	//         "side": "ASK",
+	//         "status": "PLACED",
+	//         "symbol": "BTC/USDT-P",
+	//         "totalQuantity": "0.0000230769"
+	//     },
+	//     {
+	//         "accountId": 12452,
+	//         "availableQuantity": "1.234000000",
+	//         "contractId": 1,
+	//         "creationTime": 1752240682,
+	//         "orderId": "589089141754429441",
+	//         "orderType": "LIMIT",
+	//         "price": "1.234000",
+	//         "side": "BID",
+	//         "status": "PLACED",
+	//         "symbol": "ETH/USDT-P",
+	//         "totalQuantity": "1.234000000"
+	//     }
+	// ]
+	ch <- this.ParseOrders(response, market, since, limit)
+	return nil
 }
 
 /**
@@ -1890,80 +1891,80 @@ func (this *HibachiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes156212 := (<-this.LoadMarkets())
-			PanicOnError(retRes156212)
-		}
-		var market any = nil
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		if IsTrue(!IsEqual(status, nil)) {
-			AddElementToObject(request, "status", status)
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "startTime", since)
-		}
-		var until any = nil
-		untilparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
-		until = GetValue(untilparamsVariable, 0)
-		params = GetValue(untilparamsVariable, 1)
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "endTime", until)
-		}
-
-		response := (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "hasMore": false,
-		//         "orders": [
-		//             {
-		//                 "accountId": 128,
-		//                 "avgFillPrice": "2900.000000",
-		//                 "closedAt": 1777811627000,
-		//                 "createdAt": 1777811620000,
-		//                 "filledQuantity": "1.200000000",
-		//                 "orderFlags": null,
-		//                 "orderId": "596002791293190100",
-		//                 "orderType": "MARKET",
-		//                 "parentOrderId": null,
-		//                 "price": null,
-		//                 "side": "BID",
-		//                 "sourceType": "regular",
-		//                 "status": "Filled",
-		//                 "symbol": "ETH/USDT-P",
-		//                 "totalQuantity": "1.200000000",
-		//                 "triggerDirection": null,
-		//                 "triggerPrice": null
-		//             }
-		//         ]
-		//     }
-		//
-		var orders any = this.SafeList(response, "orders", []any{})
-		var parsedOrders any = this.ParseOrders(orders, market)
-
-		ch <- this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes156312 := (<-this.LoadMarkets())
+		PanicOnError(retRes156312)
+	}
+	var market any = nil
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	if IsTrue(!IsEqual(status, nil)) {
+		AddElementToObject(request, "status", status)
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "startTime", since)
+	}
+	var until any = nil
+	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
+	until = GetValue(untilparamsVariable, 0)
+	params = GetValue(untilparamsVariable, 1)
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "endTime", until)
+	}
+
+	response := (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "hasMore": false,
+	//         "orders": [
+	//             {
+	//                 "accountId": 128,
+	//                 "avgFillPrice": "2900.000000",
+	//                 "closedAt": 1777811627000,
+	//                 "createdAt": 1777811620000,
+	//                 "filledQuantity": "1.200000000",
+	//                 "orderFlags": null,
+	//                 "orderId": "596002791293190100",
+	//                 "orderType": "MARKET",
+	//                 "parentOrderId": null,
+	//                 "price": null,
+	//                 "side": "BID",
+	//                 "sourceType": "regular",
+	//                 "status": "Filled",
+	//                 "symbol": "ETH/USDT-P",
+	//                 "totalQuantity": "1.200000000",
+	//                 "triggerDirection": null,
+	//                 "triggerPrice": null
+	//             }
+	//         ]
+	//     }
+	//
+	var orders any = this.SafeList(response, "orders", []any{})
+	var parsedOrders any = this.ParseOrders(orders, market)
+
+	ch <- this.FilterBySymbolSinceLimit(parsedOrders, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -1980,28 +1981,28 @@ func (this *HibachiCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		orders := (<-this.FetchOrdersByStatus("filled", symbol, since, limit, params))
-		PanicOnError(orders)
-		var filtered any = this.FilterBy(orders, "status", "closed")
-
-		ch <- this.FilterBySinceLimit(filtered, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	orders := (<-this.FetchOrdersByStatus("filled", symbol, since, limit, params))
+	PanicOnError(orders)
+	var filtered []any = this.FilterBy(orders, "status", "closed")
+
+	ch <- this.FilterBySinceLimit(filtered, since, limit)
+	return nil
 }
 
 /**
@@ -2018,28 +2019,28 @@ func (this *HibachiCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HibachiCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		orders := (<-this.FetchOrdersByStatus(nil, symbol, since, limit, params))
-		PanicOnError(orders)
-		var filtered any = this.FilterBy(orders, "status", "canceled")
-
-		ch <- this.FilterBySinceLimit(filtered, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	orders := (<-this.FetchOrdersByStatus(nil, symbol, since, limit, params))
+	PanicOnError(orders)
+	var filtered []any = this.FilterBy(orders, "status", "canceled")
+
+	ch <- this.FilterBySinceLimit(filtered, since, limit)
+	return nil
 }
 
 /**
@@ -2056,62 +2057,62 @@ func (this *HibachiCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *HibachiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes166712 := (<-this.LoadMarkets())
-			PanicOnError(retRes166712)
-		}
-		var market any = this.Market(symbol)
-		timeframe = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var request any = map[string]any{
-			"symbol":   GetValue(market, "id"),
-			"interval": timeframe,
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "fromMs", since)
-		}
-		var until any = nil
-		untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
-		until = GetValue(untilparamsVariable, 0)
-		params = GetValue(untilparamsVariable, 1)
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "toMs", until)
-		}
-
-		response := (<-this.PublicGetMarketDataKlines(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// [
-		//     {
-		//       "close": "3704.751036",
-		//       "high": "3716.530378",
-		//       "interval": "1h",
-		//       "low": "3699.627883",
-		//       "open": "3716.406894",
-		//       "timestamp": 1712628000,
-		//       "volumeNotional": "1637355.846362"
-		//     }
-		//   ]
-		//
-		var klines any = this.SafeList(response, "klines", []any{})
-
-		ch <- this.ParseOHLCVs(klines, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes166812 := (<-this.LoadMarkets())
+		PanicOnError(retRes166812)
+	}
+	var market any = this.Market(symbol)
+	timeframe = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var request map[string]any = map[string]any{
+		"symbol":   GetValue(market, "id"),
+		"interval": timeframe,
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "fromMs", since)
+	}
+	var until any = nil
+	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	until = GetValue(untilparamsVariable, 0)
+	params = GetValue(untilparamsVariable, 1)
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "toMs", until)
+	}
+
+	response := (<-this.PublicGetMarketDataKlines(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// [
+	//     {
+	//       "close": "3704.751036",
+	//       "high": "3716.530378",
+	//       "interval": "1h",
+	//       "low": "3699.627883",
+	//       "open": "3716.406894",
+	//       "timestamp": 1712628000,
+	//       "volumeNotional": "1637355.846362"
+	//     }
+	//   ]
+	//
+	var klines any = this.SafeList(response, "klines", []any{})
+
+	ch <- this.ParseOHLCVs(klines, market, timeframe, since, limit)
+	return nil
 }
 
 /**
@@ -2124,75 +2125,75 @@ func (this *HibachiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *HibachiCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes171212 := (<-this.LoadMarkets())
-			PanicOnError(retRes171212)
-		}
-		symbols = this.MarketSymbols(symbols)
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "assets": [
-		//       {
-		//         "quantity": "14.130626",
-		//         "symbol": "USDT"
-		//       }
-		//     ],
-		//     "balance": "14.186087",
-		//     "maximalWithdraw": "4.152340",
-		//     "numFreeTransfersRemaining": 96,
-		//     "positions": [
-		//       {
-		//         "direction": "Short",
-		//         "entryNotional": "10.302213",
-		//         "notionalValue": "10.225008",
-		//         "quantity": "0.004310550",
-		//         "symbol": "ETH/USDT-P",
-		//         "unrealizedFundingPnl": "0.000000",
-		//         "unrealizedTradingPnl": "0.077204"
-		//       },
-		//       {
-		//         "direction": "Short",
-		//         "entryNotional": "2.000016",
-		//         "notionalValue": "1.999390",
-		//         "quantity": "0.0000328410",
-		//         "symbol": "BTC/USDT-P",
-		//         "unrealizedFundingPnl": "0.000000",
-		//         "unrealizedTradingPnl": "0.000625"
-		//       },
-		//       {
-		//         "direction": "Short",
-		//         "entryNotional": "2.000015",
-		//         "notionalValue": "2.022384",
-		//         "quantity": "0.01470600",
-		//         "symbol": "SOL/USDT-P",
-		//         "unrealizedFundingPnl": "0.000000",
-		//         "unrealizedTradingPnl": "-0.022369"
-		//       }
-		//     ],
-		//   }
-		//
-		var data any = this.SafeList(response, "positions", []any{})
-
-		ch <- this.ParsePositions(data, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes171312 := (<-this.LoadMarkets())
+		PanicOnError(retRes171312)
+	}
+	symbols = this.MarketSymbols(symbols)
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetTradeAccountInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "assets": [
+	//       {
+	//         "quantity": "14.130626",
+	//         "symbol": "USDT"
+	//       }
+	//     ],
+	//     "balance": "14.186087",
+	//     "maximalWithdraw": "4.152340",
+	//     "numFreeTransfersRemaining": 96,
+	//     "positions": [
+	//       {
+	//         "direction": "Short",
+	//         "entryNotional": "10.302213",
+	//         "notionalValue": "10.225008",
+	//         "quantity": "0.004310550",
+	//         "symbol": "ETH/USDT-P",
+	//         "unrealizedFundingPnl": "0.000000",
+	//         "unrealizedTradingPnl": "0.077204"
+	//       },
+	//       {
+	//         "direction": "Short",
+	//         "entryNotional": "2.000016",
+	//         "notionalValue": "1.999390",
+	//         "quantity": "0.0000328410",
+	//         "symbol": "BTC/USDT-P",
+	//         "unrealizedFundingPnl": "0.000000",
+	//         "unrealizedTradingPnl": "0.000625"
+	//       },
+	//       {
+	//         "direction": "Short",
+	//         "entryNotional": "2.000015",
+	//         "notionalValue": "2.022384",
+	//         "quantity": "0.01470600",
+	//         "symbol": "SOL/USDT-P",
+	//         "unrealizedFundingPnl": "0.000000",
+	//         "unrealizedTradingPnl": "-0.022369"
+	//       }
+	//     ],
+	//   }
+	//
+	var data any = this.SafeList(response, "positions", []any{})
+
+	ch <- this.ParsePositions(data, symbols)
+	return nil
 }
 func (this *HibachiCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -2260,7 +2261,7 @@ func (this *HibachiCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(method, "GET")) {
 		var request any = this.Omit(params, this.ExtractParams(path))
-		var query any = this.Urlencode(request)
+		var query string = this.Urlencode(request)
 		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
@@ -2302,7 +2303,7 @@ func (this *HibachiCore) HandleErrors(httpCode any, reason any, url any, method 
 	return nil
 }
 func (this *HibachiCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"deposit":      "transaction",
 		"withdrawal":   "transaction",
 		"transfer-in":  "transfer",
@@ -2311,7 +2312,7 @@ func (this *HibachiCore) ParseTransactionType(typeVar any) any {
 	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *HibachiCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"pending":   "pending",
 		"claimable": "pending",
 		"completed": "ok",
@@ -2393,121 +2394,121 @@ func (this *HibachiCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *HibachiCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes194612 := (<-this.LoadMarkets())
-			PanicOnError(retRes194612)
-		}
-		var currency any = this.Currency("USDT")
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-		var rawPromises any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
-
-		promises := (<-promiseAll(rawPromises))
-		PanicOnError(promises)
-		var responseCapitalHistory any = GetValue(promises, 0)
-		//
-		// {
-		//     "transactions": [
-		//         {
-		//             "assetId": 1,
-		//             "blockNumber": 358396669,
-		//             "chain": "Arbitrum",
-		//             "etaTsSec": null,
-		//             "id": 358396669,
-		//             "quantity": "0.999500",
-		//             "status": "pending",
-		//             "timestampSec": 1752692872,
-		//             "token": "USDT",
-		//             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
-		//             "transactionType": "deposit"
-		//         },
-		//         {
-		//             "assetId": 1,
-		//             "etaTsSec": null,
-		//             "id": 13116,
-		//             "instantWithdrawalChain": null,
-		//             "instantWithdrawalToken": null,
-		//             "isInstantWithdrawal": false,
-		//             "quantity": "0.040000",
-		//             "status": "completed",
-		//             "timestampSec": 1752542708,
-		//             "transactionHash": "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
-		//             "transactionType": "withdrawal",
-		//             "withdrawalAddress": "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
-		//         },
-		//         {
-		//             "assetId": 1,
-		//             "id": 167,
-		//             "quantity": "10.000000",
-		//             "srcAccountId": 175,
-		//             "srcAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-		//             "status": "completed",
-		//             "timestampSec": 1732224729,
-		//             "transactionType": "transfer-in"
-		//         },
-		//         {
-		//             "assetId": 1,
-		//             "id": 170,
-		//             "quantity": "10.000000",
-		//             "receivingAccountId": 175,
-		//             "receivingAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
-		//             "status": "completed",
-		//             "timestampSec": 1732225631,
-		//             "transactionType": "transfer-out"
-		//         },
-		//     ]
-		// }
-		//
-		var rowsCapitalHistory any = this.SafeList(responseCapitalHistory, "transactions", []any{})
-		var responseTradingHistory any = GetValue(promises, 1)
-		//
-		// {
-		//     "tradingHistory": [
-		//         {
-		//             "eventType": "MARKET",
-		//             "fee": "0.000008",
-		//             "priceOrFundingRate": "119687.82481",
-		//             "quantity": "0.0000003727",
-		//             "realizedPnl": "0.004634",
-		//             "side": "Sell",
-		//             "symbol": "BTC/USDT-P",
-		//             "timestamp": 1752522571
-		//         },
-		//         {
-		//             "eventType": "FundingEvent",
-		//             "fee": "0",
-		//             "priceOrFundingRate": "0.000203",
-		//             "quantity": "0.0000003727",
-		//             "realizedPnl": "-0.000009067899008751979",
-		//             "side": "Long",
-		//             "symbol": "BTC/USDT-P",
-		//             "timestamp": 1752508800
-		//         },
-		//     ]
-		// }
-		//
-		var rowsTradingHistory any = this.SafeList(responseTradingHistory, "tradingHistory", []any{})
-		var rows any = this.ArrayConcat(rowsCapitalHistory, rowsTradingHistory)
-
-		ch <- this.ParseLedger(rows, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes194712 := (<-this.LoadMarkets())
+		PanicOnError(retRes194712)
+	}
+	var currency any = this.Currency("USDT")
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+	var rawPromises []any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
+
+	promises := (<-promiseAll(rawPromises))
+	PanicOnError(promises)
+	var responseCapitalHistory any = GetValue(promises, 0)
+	//
+	// {
+	//     "transactions": [
+	//         {
+	//             "assetId": 1,
+	//             "blockNumber": 358396669,
+	//             "chain": "Arbitrum",
+	//             "etaTsSec": null,
+	//             "id": 358396669,
+	//             "quantity": "0.999500",
+	//             "status": "pending",
+	//             "timestampSec": 1752692872,
+	//             "token": "USDT",
+	//             "transactionHash": "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
+	//             "transactionType": "deposit"
+	//         },
+	//         {
+	//             "assetId": 1,
+	//             "etaTsSec": null,
+	//             "id": 13116,
+	//             "instantWithdrawalChain": null,
+	//             "instantWithdrawalToken": null,
+	//             "isInstantWithdrawal": false,
+	//             "quantity": "0.040000",
+	//             "status": "completed",
+	//             "timestampSec": 1752542708,
+	//             "transactionHash": "0xe89cf90b2408d1a273dc9427654145def102d9449e5e2cfc10690ccffc3d7e28",
+	//             "transactionType": "withdrawal",
+	//             "withdrawalAddress": "0x23625d5fc6a6e32638d908eb4c3a3415e5121f76"
+	//         },
+	//         {
+	//             "assetId": 1,
+	//             "id": 167,
+	//             "quantity": "10.000000",
+	//             "srcAccountId": 175,
+	//             "srcAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+	//             "status": "completed",
+	//             "timestampSec": 1732224729,
+	//             "transactionType": "transfer-in"
+	//         },
+	//         {
+	//             "assetId": 1,
+	//             "id": 170,
+	//             "quantity": "10.000000",
+	//             "receivingAccountId": 175,
+	//             "receivingAddress": "0xc2f77ce029438a3fdfe68ddee25991a9fb985a86",
+	//             "status": "completed",
+	//             "timestampSec": 1732225631,
+	//             "transactionType": "transfer-out"
+	//         },
+	//     ]
+	// }
+	//
+	var rowsCapitalHistory any = this.SafeList(responseCapitalHistory, "transactions", []any{})
+	var responseTradingHistory any = GetValue(promises, 1)
+	//
+	// {
+	//     "tradingHistory": [
+	//         {
+	//             "eventType": "MARKET",
+	//             "fee": "0.000008",
+	//             "priceOrFundingRate": "119687.82481",
+	//             "quantity": "0.0000003727",
+	//             "realizedPnl": "0.004634",
+	//             "side": "Sell",
+	//             "symbol": "BTC/USDT-P",
+	//             "timestamp": 1752522571
+	//         },
+	//         {
+	//             "eventType": "FundingEvent",
+	//             "fee": "0",
+	//             "priceOrFundingRate": "0.000203",
+	//             "quantity": "0.0000003727",
+	//             "realizedPnl": "-0.000009067899008751979",
+	//             "side": "Long",
+	//             "symbol": "BTC/USDT-P",
+	//             "timestamp": 1752508800
+	//         },
+	//     ]
+	// }
+	//
+	var rowsTradingHistory any = this.SafeList(responseTradingHistory, "tradingHistory", []any{})
+	var rows any = this.ArrayConcat(rowsCapitalHistory, rowsTradingHistory)
+
+	ch <- this.ParseLedger(rows, currency, since, limit, params)
+	return nil
 }
 
 /**
@@ -2521,34 +2522,34 @@ func (this *HibachiCore) FetchLedger(optionalArgs ...any) <-chan any {
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *HibachiCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"publicKey": this.SafeString(params, "publicKey"),
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetCapitalDepositInfo(this.Extend(request, params)))
-		PanicOnError(response)
-
-		// {
-		//     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
-		// }
-		ch <- map[string]any{
-			"info":     response,
-			"currency": "USDT",
-			"network":  "ARBITRUM",
-			"address":  this.SafeString(response, "depositAddressEvm"),
-			"tag":      nil,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"publicKey": this.SafeString(params, "publicKey"),
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetCapitalDepositInfo(this.Extend(request, params)))
+	PanicOnError(response)
+
+	// {
+	//     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
+	// }
+	ch <- map[string]any{
+		"info":     response,
+		"currency": "USDT",
+		"network":  "ARBITRUM",
+		"address":  this.SafeString(response, "depositAddressEvm"),
+		"tag":      nil,
+	}
+	return nil
 }
 func (this *HibachiCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
@@ -2595,63 +2596,63 @@ func (this *HibachiCore) ParseTransaction(transaction any, optionalArgs ...any) 
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HibachiCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var currency any = this.SafeCurrency(code)
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-
-		response := (<-this.PrivateGetCapitalHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//     "transactions": [
-		//         {
-		//             "assetId": 1,
-		//             "blockNumber": 0,
-		//             "chain": null,
-		//             "etaTsSec": 1752758789,
-		//             "id": 42688,
-		//             "quantity": "6.130000",
-		//             "status": "completed",
-		//             "timestampSec": 1752758788,
-		//             "token": null,
-		//             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-		//             "transactionType": "deposit"
-		//         },
-		//         {
-		//             "assetId": 1,
-		//             "etaTsSec": null,
-		//             "id": 12993,
-		//             "instantWithdrawalChain": null,
-		//             "instantWithdrawalToken": null,
-		//             "isInstantWithdrawal": false,
-		//             "quantity": "0.111930",
-		//             "status": "completed",
-		//             "timestampSec": 1752387891,
-		//             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-		//             "transactionType": "withdrawal",
-		//             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-		//         },
-		//     ]
-		// }
-		var transactions any = this.SafeList(response, "transactions", []any{})
-
-		ch <- this.ParseTransactions(transactions, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var currency any = this.SafeCurrency(code)
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+
+	response := (<-this.PrivateGetCapitalHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//     "transactions": [
+	//         {
+	//             "assetId": 1,
+	//             "blockNumber": 0,
+	//             "chain": null,
+	//             "etaTsSec": 1752758789,
+	//             "id": 42688,
+	//             "quantity": "6.130000",
+	//             "status": "completed",
+	//             "timestampSec": 1752758788,
+	//             "token": null,
+	//             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+	//             "transactionType": "deposit"
+	//         },
+	//         {
+	//             "assetId": 1,
+	//             "etaTsSec": null,
+	//             "id": 12993,
+	//             "instantWithdrawalChain": null,
+	//             "instantWithdrawalToken": null,
+	//             "isInstantWithdrawal": false,
+	//             "quantity": "0.111930",
+	//             "status": "completed",
+	//             "timestampSec": 1752387891,
+	//             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+	//             "transactionType": "withdrawal",
+	//             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+	//         },
+	//     ]
+	// }
+	var transactions any = this.SafeList(response, "transactions", []any{})
+
+	ch <- this.ParseTransactions(transactions, currency, since, limit, params)
+	return nil
 }
 
 /**
@@ -2666,28 +2667,28 @@ func (this *HibachiCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HibachiCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		transactions := (<-this.FetchDepositsWithdrawals(code, since, nil, params))
-		PanicOnError(transactions)
-		var deposits any = this.FilterBy(transactions, "type", "deposit")
-
-		ch <- this.FilterBySinceLimit(deposits, since, limit, "timestamp")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	transactions := (<-this.FetchDepositsWithdrawals(code, since, nil, params))
+	PanicOnError(transactions)
+	var deposits []any = this.FilterBy(transactions, "type", "deposit")
+
+	ch <- this.FilterBySinceLimit(deposits, since, limit, "timestamp")
+	return nil
 }
 
 /**
@@ -2702,28 +2703,28 @@ func (this *HibachiCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HibachiCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		transactions := (<-this.FetchDepositsWithdrawals(code, since, nil, params))
-		PanicOnError(transactions)
-		var withdrawals any = this.FilterBy(transactions, "type", "withdrawal")
-
-		ch <- this.FilterBySinceLimit(withdrawals, since, limit, "timestamp")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	transactions := (<-this.FetchDepositsWithdrawals(code, since, nil, params))
+	PanicOnError(transactions)
+	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
+
+	ch <- this.FilterBySinceLimit(withdrawals, since, limit, "timestamp")
+	return nil
 }
 func (this *HibachiCore) ParseSettlement(settlement any, optionalArgs ...any) any {
 	//
@@ -2772,70 +2773,70 @@ func (this *HibachiCore) ParseSettlements(settlements any, optionalArgs ...any) 
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
  */
 func (this *HibachiCore) FetchMySettlementHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes22318 := (<-this.LoadMarkets())
-		PanicOnError(retRes22318)
-		var market any = nil
-		var request any = map[string]any{
-			"accountId": this.GetAccountId(),
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "contractId", GetValue(market, "numericId"))
-			symbol = GetValue(market, "symbol")
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "startTime", this.ParseToInt(Divide(since, 1000)))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-		var until any = nil
-		untilparamsVariable := this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
-		until = GetValue(untilparamsVariable, 0)
-		params = GetValue(untilparamsVariable, 1)
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "endTime", this.ParseToInt(Divide(until, 1000)))
-		}
-
-		response := (<-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "settlements": [
-		//             {
-		//                 "direction": "Long",
-		//                 "indexPrice": "81.8781761",
-		//                 "quantity": "0.10000000",
-		//                 "settledAmount": "0.00005994405060281047",
-		//                 "symbol": "SOL/USDT-P",
-		//                 "timestamp": 1783389600,
-		//                 "timestampNsPartial": 0
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "settlements", []any{})
-		var settlements any = this.ParseSettlements(data, market)
-		var sorted any = this.SortBy(settlements, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMySettlementHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes22328 := (<-this.LoadMarkets())
+	PanicOnError(retRes22328)
+	var market any = nil
+	var request map[string]any = map[string]any{
+		"accountId": this.GetAccountId(),
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "contractId", GetValue(market, "numericId"))
+		symbol = GetValue(market, "symbol")
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "startTime", this.ParseToInt(Divide(since, 1000)))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	var until any = nil
+	untilparamsVariable := this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
+	until = GetValue(untilparamsVariable, 0)
+	params = GetValue(untilparamsVariable, 1)
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "endTime", this.ParseToInt(Divide(until, 1000)))
+	}
+
+	response := (<-this.PrivateGetTradeAccountSettlementsHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "settlements": [
+	//             {
+	//                 "direction": "Long",
+	//                 "indexPrice": "81.8781761",
+	//                 "quantity": "0.10000000",
+	//                 "settledAmount": "0.00005994405060281047",
+	//                 "symbol": "SOL/USDT-P",
+	//                 "timestamp": 1783389600,
+	//                 "timestampNsPartial": 0
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "settlements", []any{})
+	var settlements any = this.ParseSettlements(data, market)
+	var sorted []any = this.SortBy(settlements, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -2847,24 +2848,24 @@ func (this *HibachiCore) FetchMySettlementHistory(optionalArgs ...any) <-chan an
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *HibachiCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetExchangeUtcTimestamp(params))
-		PanicOnError(response)
-
-		//
-		//     { "timestampMs":1754077574040 }
-		//
-		ch <- this.SafeInteger(response, "timestampMs")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetExchangeUtcTimestamp(params))
+	PanicOnError(response)
+
+	//
+	//     { "timestampMs":1754077574040 }
+	//
+	ch <- this.SafeInteger(response, "timestampMs")
+	return nil
 }
 
 /**
@@ -2877,41 +2878,41 @@ func (this *HibachiCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *HibachiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes230112 := (<-this.LoadMarkets())
-			PanicOnError(retRes230112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketDataOpenInterest(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//   { "totalQuantity" : "2.3299770166" }
-		//
-		var timestamp any = this.Milliseconds()
-
-		ch <- this.SafeOpenInterest(map[string]any{
-			"symbol":             symbol,
-			"openInterestAmount": this.SafeString(response, "totalQuantity"),
-			"openInterestValue":  nil,
-			"timestamp":          timestamp,
-			"datetime":           this.Iso8601(timestamp),
-			"info":               response,
-		}, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes230212 := (<-this.LoadMarkets())
+		PanicOnError(retRes230212)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketDataOpenInterest(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//   { "totalQuantity" : "2.3299770166" }
+	//
+	var timestamp int64 = this.Milliseconds()
+
+	ch <- this.SafeOpenInterest(map[string]any{
+		"symbol":             symbol,
+		"openInterestAmount": this.SafeString(response, "totalQuantity"),
+		"openInterestValue":  nil,
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               response,
+	}, market)
+	return nil
 }
 
 /**
@@ -2924,66 +2925,66 @@ func (this *HibachiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-ch
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *HibachiCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes233312 := (<-this.LoadMarkets())
-			PanicOnError(retRes233312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketDataPrices(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "askPrice": "3514.650296",
-		//     "bidPrice": "3513.596112",
-		//     "fundingRateEstimation": {
-		//         "estimatedFundingRate": "0.000001",
-		//         "nextFundingTimestamp": 1712707200
-		//     },
-		//     "markPrice": "3514.288858",
-		//     "spotPrice": "3514.715000",
-		//     "symbol": "ETH/USDT-P",
-		//     "tradePrice": "2372.746570"
-		// }
-		//
-		var funding any = this.SafeDict(response, "fundingRateEstimation", map[string]any{})
-		var timestamp any = this.Milliseconds()
-		var nextFundingTimestamp any = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
-
-		ch <- map[string]any{
-			"info":                     funding,
-			"symbol":                   GetValue(market, "symbol"),
-			"markPrice":                nil,
-			"indexPrice":               nil,
-			"interestRate":             this.ParseNumber("0"),
-			"estimatedSettlePrice":     nil,
-			"timestamp":                timestamp,
-			"datetime":                 this.Iso8601(timestamp),
-			"fundingRate":              this.SafeNumber(funding, "estimatedFundingRate"),
-			"fundingTimestamp":         nextFundingTimestamp,
-			"fundingDatetime":          this.Iso8601(nextFundingTimestamp),
-			"nextFundingRate":          nil,
-			"nextFundingTimestamp":     nil,
-			"nextFundingDatetime":      nil,
-			"previousFundingRate":      nil,
-			"previousFundingTimestamp": nil,
-			"previousFundingDatetime":  nil,
-			"interval":                 "8h",
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes233412 := (<-this.LoadMarkets())
+		PanicOnError(retRes233412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketDataPrices(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "askPrice": "3514.650296",
+	//     "bidPrice": "3513.596112",
+	//     "fundingRateEstimation": {
+	//         "estimatedFundingRate": "0.000001",
+	//         "nextFundingTimestamp": 1712707200
+	//     },
+	//     "markPrice": "3514.288858",
+	//     "spotPrice": "3514.715000",
+	//     "symbol": "ETH/USDT-P",
+	//     "tradePrice": "2372.746570"
+	// }
+	//
+	var funding any = this.SafeDict(response, "fundingRateEstimation", map[string]any{})
+	var timestamp int64 = this.Milliseconds()
+	var nextFundingTimestamp any = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
+
+	ch <- map[string]any{
+		"info":                     funding,
+		"symbol":                   GetValue(market, "symbol"),
+		"markPrice":                nil,
+		"indexPrice":               nil,
+		"interestRate":             this.ParseNumber("0"),
+		"estimatedSettlePrice":     nil,
+		"timestamp":                timestamp,
+		"datetime":                 this.Iso8601(timestamp),
+		"fundingRate":              this.SafeNumber(funding, "estimatedFundingRate"),
+		"fundingTimestamp":         nextFundingTimestamp,
+		"fundingDatetime":          this.Iso8601(nextFundingTimestamp),
+		"nextFundingRate":          nil,
+		"nextFundingTimestamp":     nil,
+		"nextFundingDatetime":      nil,
+		"previousFundingRate":      nil,
+		"previousFundingTimestamp": nil,
+		"previousFundingDatetime":  nil,
+		"interval":                 "8h",
+	}
+	return nil
 }
 
 /**
@@ -2998,62 +2999,62 @@ func (this *HibachiCore) FetchFundingRate(symbol any, optionalArgs ...any) <-cha
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *HibachiCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes239212 := (<-this.LoadMarkets())
-			PanicOnError(retRes239212)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketDataFundingRates(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "data": [
-		//         {
-		//             "contractId": 2,
-		//             "fundingTimestamp": 1753488000,
-		//             "fundingRate": "0.000137",
-		//             "indexPrice": "117623.65010"
-		//         }
-		//     ]
-		// }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var rates any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var timestamp any = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
-			AppendToArray(&rates, map[string]any{
-				"info":        entry,
-				"symbol":      symbol,
-				"fundingRate": this.SafeNumber(entry, "fundingRate"),
-				"timestamp":   timestamp,
-				"datetime":    this.Iso8601(timestamp),
-			})
-		}
-		var sorted any = this.SortBy(rates, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HibachiCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes239312 := (<-this.LoadMarkets())
+		PanicOnError(retRes239312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketDataFundingRates(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "data": [
+	//         {
+	//             "contractId": 2,
+	//             "fundingTimestamp": 1753488000,
+	//             "fundingRate": "0.000137",
+	//             "indexPrice": "117623.65010"
+	//         }
+	//     ]
+	// }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var rates any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		var timestamp any = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
+		AppendToArray(&rates, map[string]any{
+			"info":        entry,
+			"symbol":      symbol,
+			"fundingRate": this.SafeNumber(entry, "fundingRate"),
+			"timestamp":   timestamp,
+			"datetime":    this.Iso8601(timestamp),
+		})
+	}
+	var sorted []any = this.SortBy(rates, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	return nil
 }
 
 func (this *HibachiCore) Init(userConfig map[string]any) {

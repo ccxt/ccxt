@@ -562,7 +562,7 @@ class bigone extends Exchange {
         }
         $chainLength = count($chains);
         $type = null;
-        if ($this->safe_bool($rawCurrency, 'is_fiat')) {
+        if ($this->safe_bool($rawCurrency, 'is_fiat') === true) {
             $type = 'fiat';
         } elseif ($chainLength === 0) {
             if ($this->is_leveraged_currency($id)) {
@@ -752,7 +752,7 @@ class bigone extends Exchange {
                 'option' => false,
                 'active' => $this->safe_bool($market, 'enable'),
                 'contract' => true,
-                'linear' => !$inverse,
+                'linear' => ($inverse !== true),
                 'inverse' => $inverse,
                 'contractSize' => $this->safe_number($market, 'multiplier'),
                 'expiry' => null,
@@ -1042,7 +1042,7 @@ class bigone extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -1282,7 +1282,7 @@ class bigone extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             throw new NotSupported($this->id . ' fetchTrades () can only fetch $trades for spot markets');
         }
         $request = array(
@@ -1353,7 +1353,7 @@ class bigone extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract']) {
+        if ($market['contract'] === true) {
             throw new NotSupported($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         $until = $this->safe_integer($params, 'until');
@@ -1508,7 +1508,7 @@ class bigone extends Exchange {
         }
         $immediateOrCancel = $this->safe_bool($order, 'immediate_or_cancel');
         $timeInForce = null;
-        if ($immediateOrCancel) {
+        if ($immediateOrCancel === true) {
             $timeInForce = 'IOC';
         }
         $type = $this->parse_type($this->safe_string($order, 'type'));
@@ -1562,7 +1562,7 @@ class bigone extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1619,7 +1619,7 @@ class bigone extends Exchange {
                 if ($timeInForce === 'IOC') {
                     $request['immediate_or_cancel'] = true;
                 }
-                if ($postOnly) {
+                if ($postOnly === true) {
                     $request['post_only'] = true;
                 }
             }
@@ -1961,7 +1961,7 @@ class bigone extends Exchange {
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $headers = array();
         if ($api === 'public' || $api === 'webExchange' || $api === 'contractPublic') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1976,7 +1976,7 @@ class bigone extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $headers['Authorization'] = 'Bearer ' . $token;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } elseif ($method === 'POST') {
@@ -2294,7 +2294,7 @@ class bigone extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest) {
+        if ($fillResponseFromRequest === true) {
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
             $transfer['amount'] = $amount;

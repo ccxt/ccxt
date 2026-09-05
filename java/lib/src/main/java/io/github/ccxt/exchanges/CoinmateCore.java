@@ -100,6 +100,7 @@ public class CoinmateCore extends CoinmateApi
                 put( "fetchSettlementHistory", false );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
+                put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", true );
                 put( "fetchTradingFees", false );
@@ -307,6 +308,15 @@ public class CoinmateCore extends CoinmateApi
                             put( "cost", 1 );
                         }} );
                         put( "unconfirmedAdaDeposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "daiWithdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "daiDepositAddresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "unconfirmedDaiDeposits", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "solWithdrawal", new java.util.HashMap<String, Object>() {{
@@ -969,7 +979,39 @@ public class CoinmateCore extends CoinmateApi
             {
                 Helpers.addElementToObject(request, "destinationTag", tag);
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object requestParams = this.extend(request, parameters);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "privatePostBitcoinWithdrawal")))
+            {
+                response = (this.privatePostBitcoinWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostLitecoinWithdrawal")))
+            {
+                response = (this.privatePostLitecoinWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostBitcoinCashWithdrawal")))
+            {
+                response = (this.privatePostBitcoinCashWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostEthereumWithdrawal")))
+            {
+                response = (this.privatePostEthereumWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostRippleWithdrawal")))
+            {
+                response = (this.privatePostRippleWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostDashWithdrawal")))
+            {
+                response = (this.privatePostDashWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostDaiWithdrawal")))
+            {
+                response = (this.privatePostDaiWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostAdaWithdrawal")))
+            {
+                response = (this.privatePostAdaWithdrawal(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostSolWithdrawal")))
+            {
+                response = (this.privatePostSolWithdrawal(requestParams)).join();
+            } else
+            {
+                throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not support the "), method), " method")) ;
+            }
             //
             //     {
             //         "error": false,
@@ -982,7 +1024,7 @@ public class CoinmateCore extends CoinmateApi
             Object data = this.safeValue(response, "data");
             Object transaction = this.parseTransaction(data, currency);
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
-            if (Helpers.isTrue(fillResponseFromRequest))
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transaction, "amount", amount);
                 Helpers.addElementToObject(transaction, "currency", code);
@@ -1448,10 +1490,28 @@ public class CoinmateCore extends CoinmateApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                 method = Helpers.add(method, this.capitalize(type));
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object requestParams = this.extend(request, parameters);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "privatePostBuyInstant")))
+            {
+                response = (this.privatePostBuyInstant(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostSellInstant")))
+            {
+                response = (this.privatePostSellInstant(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostBuyLimit")))
+            {
+                response = (this.privatePostBuyLimit(requestParams)).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privatePostSellLimit")))
+            {
+                response = (this.privatePostSellLimit(requestParams)).join();
+            } else
+            {
+                throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
+            }
             Object id = this.safeString(response, "data");
+            final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "info", response );
+                put( "info", finalResponse );
                 put( "id", id );
             }}, market);
         });
@@ -1484,7 +1544,7 @@ public class CoinmateCore extends CoinmateApi
                 put( "orderId", id );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
             }
@@ -1548,7 +1608,7 @@ public class CoinmateCore extends CoinmateApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

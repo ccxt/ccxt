@@ -12,7 +12,7 @@ func (this *BitbnsCore) WwwGetOrderFetchMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("wwwGetOrderFetchMarkets", args...)
 }
 
-// WwwGetOrderFetchTickers returns a channel that yields a JSON array.
+// WwwGetOrderFetchTickers returns a channel that yields a JSON object.
 func (this *BitbnsCore) WwwGetOrderFetchTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("wwwGetOrderFetchTickers", args...)
 }

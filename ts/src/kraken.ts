@@ -44,7 +44,7 @@ export default class kraken extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': false,
+                'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
@@ -593,7 +593,7 @@ export default class kraken extends Exchange {
     override async fetchMarkets (params = {}): Promise<Market[]> {
         const promises: List = [];
         promises.push (this.publicGetAssetPairs (params));
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             promises.push (this.loadTimeDifference ());
         }
         const responses = await Promise.all (promises);
@@ -1131,7 +1131,7 @@ export default class kraken extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                if (market['active']) {
+                if (market['active'] === true) {
                     marketIds.push (market['id']);
                 }
             }
@@ -1378,7 +1378,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}) {
+    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#query-ledgers
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2034,7 +2034,7 @@ export default class kraken extends Exchange {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             side = this.safeString (parts, 0);
-            if (!isUsingCost) {
+            if (isUsingCost !== true) {
                 amount = this.safeString (parts, 1);
             } else {
                 cost = this.safeString (parts, 1);
@@ -2258,7 +2258,7 @@ export default class kraken extends Exchange {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             if (method === 'createOrderWs') {
                 request['reduce_only'] = true; // ws request can't have stringified bool
             } else {
@@ -2286,7 +2286,7 @@ export default class kraken extends Exchange {
         const isMarket = (type === 'market');
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
             request['oflags'] = extendedPostFlags;
         }
@@ -2325,7 +2325,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
         let request: Dict = {
@@ -2340,7 +2340,7 @@ export default class kraken extends Exchange {
         const isMarket = (type === 'market');
         let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['post_only'] = 'true'; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
         if (amount !== undefined) {
@@ -2672,7 +2672,7 @@ export default class kraken extends Exchange {
             //    }
             //
         } catch (e) {
-            if (this.last_http_response) {
+            if ((this.last_http_response !== undefined) && (this.last_http_response !== '')) {
                 if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
                     throw new OrderNotFound (this.id + ' cancelOrder() error ' + this.last_http_response);
                 }
@@ -3294,7 +3294,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
-    async fetchDepositMethods (code: string, params = {}) {
+    async fetchDepositMethods (code: string, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3677,7 +3677,7 @@ export default class kraken extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + this.urlencodeNested (params);
             }
@@ -3735,7 +3735,7 @@ export default class kraken extends Exchange {
                 const message = this.id + ' ' + body;
                 if ('error' in response) {
                     const numErrors = response['error'].length;
-                    if (numErrors) {
+                    if (numErrors > 0) {
                         for (let i = 0; i < response['error'].length; i++) {
                             const error = response['error'][i];
                             this.throwExactlyMatchedException (this.exceptions['exact'], error, message);

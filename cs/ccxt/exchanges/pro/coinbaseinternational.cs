@@ -92,7 +92,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             symbols = this.getActiveSymbols();
         }
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object messageHashes = new List<object>() {};
         if (isTrue(isGreaterThan(symbolsLength, 1)))
         {
@@ -114,9 +114,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
         }
-        object timestamp = ((object)this.nonce()).ToString();
+        string timestamp = ((object)this.nonce()).ToString();
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {name} },
@@ -163,9 +163,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object messageHashes = new List<object>() {};
         object productIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object marketId = this.marketId(getValue((IList<string>)(symbols), i));
+            object marketId = this.marketId(getValue(symbols, i));
             object symbol = this.symbol(marketId);
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
@@ -177,7 +177,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object timestamp = this.numberToString(this.seconds());
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "time", timestamp },
@@ -199,10 +199,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribe("RISK", new List<object>() {symbol}, parameters);
+        return ccxt.BaseExchange.ToFundingRate(await this.subscribe("RISK", new List<object>() {symbol}, parameters));
     }
 
     /**
@@ -214,7 +214,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> WatchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
@@ -231,9 +231,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fundingRate;
-            return result;
+            return ccxt.BaseExchange.ToFundingRates(result);
         }
-        return this.filterByArray(this.fundingRates, "symbol", symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbols));
     }
 
     /**
@@ -246,7 +246,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -257,7 +257,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
-        return await this.subscribe(((string)channel), new List<object>() {symbol}, parameters);
+        return ccxt.BaseExchange.ToTicker(await this.subscribe(((string)channel), new List<object>() {symbol}, parameters));
     }
 
     public virtual object getActiveSymbols()
@@ -268,7 +268,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            if (isTrue(getValue(market, "active")))
+            if (isTrue(isEqual(getValue(market, "active"), true)))
             {
                 ((IList<object>)output).Add(symbol);
             }
@@ -286,7 +286,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -302,9 +302,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual void handleInstrument(WebSocketClient client, object message)
@@ -506,24 +506,27 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(options, timeframe, timeframe);
-        object ohlcv = await this.subscribe(interval, new List<object>() {symbol}, parameters);
+        object interval = this.safeString(options, timeframeVar, timeframeVar);
+        object ohlcv = await this.subscribe(interval, new List<object>() {symbolVar}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -579,10 +582,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -595,8 +598,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -608,9 +612,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object first = this.safeDict(trades, 0);
             object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual object handleTrade(WebSocketClient client, object message)
@@ -688,10 +692,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -704,10 +708,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeMultiple("LEVEL2", symbols, parameters);
+        return ccxt.BaseExchange.ToOrderBookSnapshot(await this.subscribeMultiple("LEVEL2", symbols, parameters));
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -884,7 +888,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             return;
         }

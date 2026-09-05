@@ -35,6 +35,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 put( "future", true );
                 put( "option", null );
                 put( "fetchBidsAsks", true );
+                put( "transfer", true );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
@@ -65,7 +66,8 @@ public class KucoinfuturesCore extends KucoinfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
-            return (this.fetchTickers(symbols, this.extend(request, parameters))).join();
+            Object extendedRequest = this.extend(request, parameters);
+            return (this.fetchTickers(symbols, extendedRequest)).join();
         });
 
     }

@@ -42,7 +42,7 @@ func (this *BitvavoCore) PublicGetMarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-// PublicGetTicker24h returns a channel that yields a JSON array.
+// PublicGetTicker24h returns a channel that yields a JSON object or a JSON array.
 func (this *BitvavoCore) PublicGetTicker24h(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker24h", args...)
 }
@@ -102,7 +102,7 @@ func (this *BitvavoCore) PrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-// PrivateGetBalance returns a channel that yields a JSON object.
+// PrivateGetBalance returns a channel that yields a JSON array.
 func (this *BitvavoCore) PrivateGetBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetBalance", args...)
 }

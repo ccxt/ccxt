@@ -5,6 +5,46 @@ using System.Collections.Concurrent;
 
 public partial class BaseExchange
 {
+
+    private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
+
+    // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
+    // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+    public int calculateWsBackoffDelay(string url)
+    {
+        var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
+        var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
+        var baseDelay = this.safeInteger(backoff, "base", 1000) ?? 1000;
+        var factor = this.safeInteger(backoff, "factor", 2) ?? 2;
+        var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
+        var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
+        var now = this.milliseconds();
+        long attempts = 0;
+        long lastAttempt = 0;
+        if (this.wsBackoffState.ContainsKey(url))
+        {
+            attempts = this.wsBackoffState[url][0];
+            lastAttempt = this.wsBackoffState[url][1];
+        }
+        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+        {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState[url] = new long[] { attempts + 1, now };
+        if (attempts == 0)
+        {
+            return 0; // first dial or recovered, connect immediately
+        }
+        var delay = baseDelay;
+        var capped = Math.Min(attempts, 20); // overflow guard
+        for (long i = 1; i < capped; i++)
+        {
+            delay = delay * factor;
+        }
+        var jitterMillis = now % 1000; // rng-free jitter
+        var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
@@ -54,64 +94,18 @@ public partial class BaseExchange
 
     void rejectFutures(WebSocketClient urlClient, object error)
     {
-        foreach (var KeyValue in urlClient.subscriptions)
+        // futures are keyed by messageHash while subscriptions are keyed by
+        // subscribeHash, the previous per key lookup only matched when the two
+        // strings were equal and left consumers hanging otherwise, mirror the js
+        // Client.reset behavior instead and reject every pending future, see
+        // https://github.com/ccxt/ccxt/issues/23490 and https://github.com/ccxt/ccxt/issues/21565
+        foreach (var KeyValue in urlClient.futures)
         {
-            urlClient.subscriptions.Remove(KeyValue.Key);
-            Future existingFuture = null;
-            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
-            {
-                existingFuture.reject(error);
-            }
+            KeyValue.Value.reject(error);
         }
+        urlClient.futures.Clear();
+        urlClient.subscriptions.Clear();
     }
-
-    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        if (!isTrue((inOp(this.orderbooks, symbol))))
-        {
-            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
-            return;
-        }
-        object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
-        object tries = 0;
-        Exception error = null;
-        try
-        {
-            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
-            while (isLessThan(tries, maxRetries))
-            {
-                var cache = stored.cache;
-                object orderBook = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
-                object index = this.getCacheIndex(orderBook, cache);
-                if (isTrue(isGreaterThanOrEqual(index, 0)))
-                {
-                    stored.reset(orderBook);
-                    this.handleDeltas(stored, arraySlice(cache, index));
-                    // getArrayLength((stored as ccxt.pro.OrderBook).cache) = 0;
-                    stored.cache.Clear();
-                    client.resolve(stored, messageHash);
-                    return;
-                }
-                postFixIncrement(ref tries);
-            }
-            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
-        }
-        catch (Exception e)
-        {
-            error = e;
-        }
-        // a failed synchronization must not recurse into another attempt with the
-        // same broken state - previously the catch invoked loadOrderBook again,
-        // recursing endlessly when the snapshot request kept failing, see
-        // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        // instead, reject the watcher and drop the connection and the cached
-        // orderbook, so the next watchOrderBook() call resubscribes cleanly
-        (client).reject(error, messageHash);
-        this.clients.TryRemove(client.url, out _);
-        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
-    }
-
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)
     {
@@ -198,14 +192,21 @@ public partial class BaseExchange
             return await existingFuture;
         }
         var future = client.future(messageHash);
-        object clientSubscription = null;
-        bool clientSubscriptionExists = (client.subscriptions as ConcurrentDictionary<string, object>).TryGetValue(subscribeHash, out clientSubscription);
-        if (!clientSubscriptionExists)
+        // TryGetValue followed by TryAdd is not atomic and dotnet runs watch calls on
+        // real threads, so two concurrent calls for the same hash could both observe a
+        // missing subscription and both send, duplicating subscribe messages upstream,
+        // see https://github.com/ccxt/ccxt/issues/23490 - claim the hash atomically
+        // like watchMultiple already does and send only when this call won the claim,
+        // js stores null subscribe hashes under a literal undefined key, mirror that
+        var subscriptionClaimKey = subscribeHash ?? "undefined";
+        bool subscriptionClaimed = (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscriptionClaimKey, subscription ?? true);
+        if (!client.startedConnecting)
         {
-            (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
+            // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
         }
         var connected = client.connect(backoffDelay);
-        if (!clientSubscriptionExists)
+        if (subscriptionClaimed)
         {
             await connected;
             if (message != null)
@@ -216,7 +217,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    client.subscriptions.Remove(subscribeHash);
+                    client.subscriptions.Remove(subscriptionClaimKey);
                     future.reject(ex);
                     // future.SetException(ex); check this out
                 }
@@ -251,7 +252,13 @@ public partial class BaseExchange
             }
         }
 
-        var connected = client.connect(0);
+        var backoffDelay2 = 0;
+        if (!client.startedConnecting)
+        {
+            // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay2 = this.calculateWsBackoffDelay(url);
+        }
+        var connected = client.connect(backoffDelay2);
 
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
@@ -274,5 +281,48 @@ public partial class BaseExchange
         }
 
         return await future;
+    }
+}
+
+public partial class Exchange
+{
+    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
+            return;
+        }
+        object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        object tries = 0;
+        Exception error = null;
+        try
+        {
+            var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
+            while (isLessThan(tries, maxRetries))
+            {
+                var cache = stored.cache;
+                object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
+                object index = this.getCacheIndex(orderBook, cache);
+                if (isTrue(isGreaterThanOrEqual(index, 0)))
+                {
+                    stored.reset(orderBook);
+                    this.handleDeltas(stored, arraySlice(cache, index));
+                    stored.cache.Clear();
+                    client.resolve(stored, messageHash);
+                    return;
+                }
+                postFixIncrement(ref tries);
+            }
+            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
+        }
+        catch (Exception e)
+        {
+            error = e;
+        }
+        (client).reject(error, messageHash);
+        this.clients.TryRemove(client.url, out _);
+        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 }

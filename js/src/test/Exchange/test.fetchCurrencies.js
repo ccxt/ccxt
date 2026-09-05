@@ -18,7 +18,7 @@ async function testFetchCurrencies(exchange, skippedProperties) {
     const featuresSpot = exchange.safeDict(features, 'spot', {});
     const fetchCurrencies = exchange.safeDict(featuresSpot, 'fetchCurrencies', {});
     const isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, 'private', false);
-    if (!isFetchCurrenciesPrivate) {
+    if (isFetchCurrenciesPrivate !== true) {
         const values = Object.values(currencies);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
         const currenciesLength = values.length;
@@ -42,9 +42,9 @@ async function testFetchCurrencies(exchange, skippedProperties) {
             const withdraw = exchange.safeBool(currency, 'withdraw');
             const deposit = exchange.safeBool(currency, 'deposit');
             const isMicaCompliant = exchange.safeBool(exchange.options, 'mica', false);
-            const skipUsdtForMica = isMicaCompliant && code === 'USDT';
-            if (exchange.inArray(code, requiredActiveCurrencies) && !skipMajorCurrencyCheck && !skipUsdtForMica) {
-                assert(withdraw && deposit, 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency));
+            const skipUsdtForMica = (isMicaCompliant === true) && (code === 'USDT');
+            if (exchange.inArray(code, requiredActiveCurrencies) && !skipMajorCurrencyCheck && (skipUsdtForMica !== true)) {
+                assert((withdraw === true) && (deposit === true), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency));
             }
         }
         // check at least X% of currencies are active

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official htx API documentation:** [huobiapi.github.io](https://huobiapi.github.io/docs/spot/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/dm/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/coin_margined_swap/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/usdt_swap/v1/en/) · [huobi.com](https://www.huobi.com/en-us/opend/newApiPages/)
 
-> 465 implicit endpoints across 7 access groups.
+> 460 implicit endpoints across 6 access groups.
 
 ## v2Public
 
@@ -186,18 +186,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostCrossMarginOrdersIdRepay` | POST | `cross-margin/orders/{id}/repay` | 1 |
 | `privatePostStableCoinExchange` | POST | `stable-coin/exchange` | 1 |
 | `privatePostSubuserTransfer` | POST | `subuser/transfer` | 10 |
-
-## status
-
-**Base URL**: `https://{hostname}`
-
-| Method | HTTP | Endpoint | Cost |
-| --- | --- | --- | --- |
-| `statusPublicSpotGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicFutureInverseGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicFutureLinearGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicSwapInverseGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicSwapLinearGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
 
 ## spot
 

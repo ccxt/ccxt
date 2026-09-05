@@ -69,9 +69,9 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go, Java and Rust code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java and Rust (crates.io) as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
@@ -273,7 +273,7 @@ Lighter is available as part of CCXT and it works similarly to any other CCXT ex
 
 After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
 
-## Credentials requirements
+### Credentials requirements
 
 Lighter requires the following :
 - `privateKey`: the L1 private key **mandatory**
@@ -294,7 +294,8 @@ Since the signing algorithms and structs are not supported natively in all langu
 
 ### Python/C#/PHP users:
 
-- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
+- If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
 - The path to the binary needs to be provided as `libraryPath`
 - You need to choose the binary according to your OS/architecture
 

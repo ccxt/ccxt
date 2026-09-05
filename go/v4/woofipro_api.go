@@ -407,6 +407,11 @@ func (this *WoofiproCore) V1PrivateGetKline(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetKline", args...)
 }
 
+// V1PrivateGetClientMarginModes returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetClientMarginModes(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetClientMarginModes", args...)
+}
+
 // V1PrivatePostOrderlyKey returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivatePostOrderlyKey(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostOrderlyKey", args...)
@@ -470,6 +475,16 @@ func (this *WoofiproCore) V1PrivatePostNotificationInboxMarkReadAll(args ...any)
 // V1PrivatePostClientLeverage returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivatePostClientLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
+}
+
+// V1PrivatePostClientMarginMode returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostClientMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostClientMarginMode", args...)
+}
+
+// V1PrivatePostPositionMargin returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostPositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPositionMargin", args...)
 }
 
 // V1PrivatePostClientMaintenanceConfig returns a channel that yields a JSON object.

@@ -152,7 +152,7 @@ func (this *BitfinexCore) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-// PublicGetTickerSymbol returns a channel that yields a JSON object.
+// PublicGetTickerSymbol returns a channel that yields a JSON array.
 func (this *BitfinexCore) PublicGetTickerSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerSymbol", args...)
 }

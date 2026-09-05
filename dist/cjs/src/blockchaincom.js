@@ -1250,7 +1250,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1260,7 +1260,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'X-API-Token': this.secret,
             };
             if ((method === 'GET')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

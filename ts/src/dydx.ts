@@ -1167,7 +1167,7 @@ export default class dydx extends Exchange {
         let userAddress: Str = undefined;
         let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
-        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
+        [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'subAccountNumber', '0');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1569,7 +1569,7 @@ export default class dydx extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (!isTrigger && (symbol === undefined)) {
+        if ((isTrigger !== true) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1588,7 +1588,7 @@ export default class dydx extends Exchange {
         let goodTillBlockTimeInSeconds = 2592000;
         [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         let goodTillBlockTime: Num = undefined;
-        const defaultOrderFlags = (isTrigger) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'subAccountId', subAccountId);
@@ -1672,7 +1672,7 @@ export default class dydx extends Exchange {
         }
         const market: Market = this.market (symbol);
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
-        if (!clientOrderIds) {
+        if (clientOrderIds === undefined) {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
@@ -2275,7 +2275,7 @@ export default class dydx extends Exchange {
         return this.parseTransactions (rows, currency, since, limit);
     }
 
-    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         const methodName = this.safeString (params, 'methodName');
         params = this.omit (params, 'methodName');
         let userAddress: Str = undefined;
@@ -2402,9 +2402,9 @@ export default class dydx extends Exchange {
             await this.loadMarkets ();
         }
         let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
+        [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         let subaccountNumber: Int = undefined;
-        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'subaccountNumber', 0);
+        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subaccountNumber,
@@ -2510,7 +2510,7 @@ export default class dydx extends Exchange {
         params = this.keysort (params);
         url += '/' + pathWithParams;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -2523,7 +2523,7 @@ export default class dydx extends Exchange {
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //
@@ -2535,10 +2535,10 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         let errorCode = this.safeString (result, 'code');
-        if (!errorCode) {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString (response, 'code');
         }
-        if (errorCode) {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric (errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json (response);

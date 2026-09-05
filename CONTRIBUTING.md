@@ -216,7 +216,7 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C#, Go and Java). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C#, Go, Java and Rust). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
 At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is TypeScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a TS or a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
@@ -230,6 +230,22 @@ The module entry points are:
 - `./java/lib/src/main/java/io/github/ccxt/` for Java
 
 Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
+
+### Base WS Runtime Changes Require Their Mirrors
+
+The files under `ts/src/base/ws/` (caches, orderbooks, futures, client plumbing) are **not** transpiled - each language carries a hand-written mirror:
+
+| ts source | mirrors |
+|---|---|
+| `ts/src/base/ws/Cache.ts` | `python/ccxt/async_support/base/ws/cache.py`, `php/pro/ArrayCache*.php`, `cs/ccxt/ws/ArrayCache.cs`, `go/v4/exchange_cache.go`, `java/lib/src/main/java/io/github/ccxt/ws/ArrayCache.java` |
+| `ts/src/base/ws/OrderBook.ts` + `OrderBookSide.ts` | `python/ccxt/async_support/base/ws/order_book*.py`, `php/pro/OrderBook*.php` + `Asks/Bids`, `cs/ccxt/ws/OrderBook*.cs`, `go/v4/exchange_ws_orderbook*.go`, `java/lib/src/main/java/io/github/ccxt/ws/*OrderBook*.java` |
+| `ts/src/base/ws/Future.ts` / `Client.ts` | the per-language `Future` / client files (`php/pro/Future.php`, `php/pro/ClientTrait.php`, `cs/ccxt/ws/Future.cs`, ...) |
+
+Two rules:
+
+1. **A PR that changes base WS behavior in ts must change the mirrors in the same PR.** The shared base ws tests (`ts/src/pro/test/base/*.ts`) are regenerated per language on every CI run, so a ts-only behavioral merge ships assertions the other runtimes cannot satisfy and breaks every subsequent PR's build gates. Genuinely non-behavioral ts changes (comments, type annotations, formatting) are exempt - say so in the PR description.
+
+2. **Native (non-transpiled) base WS tests state ts-derived expectations only.** Write expected values by reading the ts source or running the shared js test - never by running the local implementation and recording what it produces. A mirror bug must never certify itself.
 
 ### Transpiled (generated) files
 
@@ -351,6 +367,7 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
+- an empty container is ambiguous in PHP: `{}` and `[]` are both `array()` there, so `isDictionary` returns `true` for an empty array in PHP while every other language can tell them apart and returns `false` — never branch dict-vs-list logic on a possibly-empty container, and don't assert empty containers in shared tests, see https://github.com/ccxt/ccxt/pull/29704 and https://github.com/ccxt/ccxt/pull/29698
 
 #### Sending Market Ids
 
@@ -954,6 +971,17 @@ You can create a static-request test by running this command and pasting the res
 ```shell
 node cli.js binance fetchTrades "BTC/USDT:USDT" --report
 ````
+
+The `output` field holds the expected HTTP body. When that body is itself JSON, store it
+as a JSON object (or array) so the fixture stays valid RFC 8259 and readable:
+
+```json
+"output": { "symbol": "BTC_USDT_PERP", "side": "BUY", "type": "LIMIT", "sz": "1", "px": "84000" }
+```
+
+The request comparator already parses string `output` values as JSON when `outputType` is
+`json`, so an object and a stringified object compare the same. Query-string bodies stay
+plain strings (`"symbol=BTCUSDT&side=BUY"`).
 
 
 **Response-static**

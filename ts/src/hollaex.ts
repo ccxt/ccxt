@@ -55,6 +55,7 @@ export default class hollaex extends Exchange {
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -132,7 +133,7 @@ export default class hollaex extends Exchange {
                         'kit': { 'cost': 1 } as Endpoint<Dict>,
                         'tiers': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker': { 'cost': 1 } as Endpoint<Dict>,
-                        'tickers': { 'cost': 1 } as Endpoint<List>,
+                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbooks': { 'cost': 1 } as Endpoint<Dict>,
                         'trades': { 'cost': 1 } as Endpoint<Dict>,
@@ -1619,7 +1620,7 @@ export default class hollaex extends Exchange {
         //
         const wallet = this.safeValue (response, 'wallet', []);
         const addresses = (network === undefined) ? wallet : this.filterBy (wallet, 'network', network);
-        return this.parseDepositAddresses (addresses, codes) as DepositAddress[];
+        return this.parseDepositAddresses (addresses, codes, false) as DepositAddress[];
     }
 
     /**
@@ -1695,7 +1696,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1855,11 +1856,11 @@ export default class hollaex extends Exchange {
         let status = this.safeValue (transaction, 'status');
         const dismissed = this.safeValue (transaction, 'dismissed');
         const rejected = this.safeValue (transaction, 'rejected');
-        if (status) {
+        if (status === true) {
             status = 'ok';
-        } else if (dismissed) {
+        } else if (dismissed === true) {
             status = 'canceled';
-        } else if (rejected) {
+        } else if (rejected === true) {
             status = 'failed';
         } else {
             status = 'pending';
@@ -1989,7 +1990,7 @@ export default class hollaex extends Exchange {
             'networks': {},
         };
         const allowWithdrawal = this.safeValue (fee, 'allow_withdrawal');
-        if (allowWithdrawal) {
+        if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeValue (fee, 'withdrawal_fees');
@@ -2070,7 +2071,7 @@ export default class hollaex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 path += '?' + this.urlencode (query);
             }
         }
@@ -2087,7 +2088,7 @@ export default class hollaex extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     auth += body;
                 }

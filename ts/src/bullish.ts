@@ -27,7 +27,7 @@ export default class bullish extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': true,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
@@ -192,7 +192,7 @@ export default class bullish extends Exchange {
                         'v1/history/trades': { 'cost': 5 } as Endpoint<List>,
                         'v1/trades/{tradeId}': { 'cost': 5 } as Endpoint<Dict>,
                         'v1/trades/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<List>,
-                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/accounts/asset': { 'cost': 1 } as Endpoint<List>,
                         'v1/accounts/asset/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/users/logout': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/users/hmac/login': { 'cost': 1 } as Endpoint<Dict>,
@@ -550,7 +550,7 @@ export default class bullish extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetV1Markets (params);
@@ -960,7 +960,7 @@ export default class bullish extends Exchange {
         }
         const maxLimit = 100;
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
             params = this.handlePaginationParams ('fetchTrades', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
@@ -1148,7 +1148,7 @@ export default class bullish extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker: Str = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';
@@ -1300,16 +1300,21 @@ export default class bullish extends Exchange {
     override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
         let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
+            throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
+        }
         let errors = 0;
         params = this.omit (params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (errors <= maxRetries) {
             try {
-                if (timeframe && method !== 'fetchFundingRateHistory') {
-                    return await this[method] (symbol, timeframe, since, limit, params);
+                if (method === 'fetchOHLCV') {
+                    return await this.fetchOHLCV (symbol as string, timeframe, since, limit, params);
+                } else if (method === 'fetchFundingRateHistory') {
+                    return await this.fetchFundingRateHistory (symbol, since, limit, params);
                 } else {
-                    return await this[method] (symbol, since, limit, params);
+                    return await this.fetchTrades (symbol as string, since, limit, params);
                 }
             } catch (e) {
                 if (e instanceof RateLimitExceeded) {
@@ -1426,7 +1431,7 @@ export default class bullish extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request: Dict = {
@@ -1488,7 +1493,7 @@ export default class bullish extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             params = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
@@ -1826,7 +1831,7 @@ export default class bullish extends Exchange {
             request['type'] = type.toUpperCase ();
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly) {
+        if (postOnly === true) {
             params = this.omit (params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
@@ -2244,7 +2249,7 @@ export default class bullish extends Exchange {
 
     async loadAccount (params = {}) {
         let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'tradingAccountId');
+        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (params);
             const accounts = this.toArray (response);
@@ -2709,7 +2714,7 @@ export default class bullish extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer (response, currency);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2782,7 +2787,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const currency = this.currency (code);
@@ -3005,7 +3010,7 @@ export default class bullish extends Exchange {
         }
         if (method === 'GET') {
             const query = this.urlencode (request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }

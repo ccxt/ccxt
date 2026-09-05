@@ -326,9 +326,9 @@ export default class myriad extends Exchange {
      * @see https://docs.myriad.markets/builders/myriad-order-book/order-book-api#37dc9e49da8281e7a14cd34e6a716761
      * @param {string} [outcome] unified outcome; when omitted cancels across all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} the raw response with the count of cancelled orders
+     * @returns {object[]} a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `info` carries the cancelled count
      */
-    cancelAllOrders(outcome?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name myriad#cancelOrders

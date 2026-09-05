@@ -93,6 +93,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );
                 put( "fetchMySettlementHistory", false );
+                put( "fetchOHLCV", true );
                 put( "fetchOpenInterest", false );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenInterests", false );
@@ -114,6 +115,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
                 put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -424,6 +426,7 @@ public class IndodaxCore extends IndodaxApi
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object isMaintenance = this.safeInteger(market, "is_maintenance");
+                Object inMaintenance = Helpers.isTrue((!Helpers.isEqual(isMaintenance, null))) && Helpers.isTrue((!Helpers.isEqual(isMaintenance, 0)));
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
@@ -440,7 +443,7 @@ public class IndodaxCore extends IndodaxApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", ((Helpers.isTrue(isMaintenance))) ? false : true );
+                    put( "active", ((Helpers.isTrue(inMaintenance))) ? false : true );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -1070,7 +1073,7 @@ public class IndodaxCore extends IndodaxApi
             Object openOrdersResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object rawOrders = Helpers.GetValue(openOrdersResult, "orders");
             // { success: 1, return: { orders: null }} if no orders
-            if (!Helpers.isTrue(rawOrders))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawOrders, null))) || Helpers.isTrue((Helpers.isEqual(rawOrders, null)))))
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
@@ -1541,7 +1544,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "withdraw_address", address );
                 put( "request_id", String.valueOf(requestId) );
             }};
-            if (Helpers.isTrue(tag))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
             {
                 Helpers.addElementToObject(request, "withdraw_memo", tag);
             }
@@ -1795,7 +1798,7 @@ public class IndodaxCore extends IndodaxApi
             Object query = this.omit(parameters, this.extractParams(path));
             Object requestPath = Helpers.add("/", this.implodeParams(path, parameters));
             url = Helpers.add(url, requestPath);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }

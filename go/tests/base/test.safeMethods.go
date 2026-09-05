@@ -36,7 +36,7 @@ func TestSafeString() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	// safeString
 	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "i"), "1"), "safeString failed for integer")
 	assert(ccxt.IsEqual(exchange.SafeString(inputDict, "f"), "0.123"), "safeString failed for float")
@@ -140,11 +140,11 @@ func TestSafeValue() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	var compareDict map[string]any = map[string]any{
 		"a": 1,
 	}
-	var compareList any = []any{1, 2, 3}
+	var compareList []any = []any{1, 2, 3}
 	// safeValue
 	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "i"), 1))
 	Assert(ccxt.IsEqual(exchange.SafeValue(inputDict, "f"), 0.123))
@@ -183,7 +183,7 @@ func TestSafeDict() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	var compareDict map[string]any = map[string]any{
 		"a": 1,
 	}
@@ -214,7 +214,7 @@ func TestSafeList() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	// safeList
 	Assert(ccxt.IsEqual(exchange.SafeList(inputDict, "dict"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeList(inputList, 1), nil))
@@ -238,8 +238,8 @@ func TestSafeInteger() {
 	}, map[string]any{}, exchange)
 	// safeInteger
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
-	var factor any = 10
+	var inputList []any = []any{"Hi", 2}
+	var factor int = 10
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "i"), 1))
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "f"), 0))
 	Assert(ccxt.IsEqual(exchange.SafeInteger(inputDict, "strNumber"), 3))
@@ -284,7 +284,7 @@ func TestSafeTimestamp() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	// safeTimestamp
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "i"), 1000))
 	Assert(ccxt.IsEqual(exchange.SafeTimestamp(inputDict, "f"), 123))
@@ -308,7 +308,7 @@ func TestSafeFloat() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	// safeFloat
 	// @ts-expect-error
 	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "i"), ccxt.ParseFloat(1)))
@@ -333,6 +333,28 @@ func TestSafeFloat() {
 	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "strNumber"}), ccxt.ParseFloat(3)))
 	// @ts-expect-error
 	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{3, 2, 1}), ccxt.ParseFloat(2)))
+	// safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent"), nil), "safeFloat failed for missing key")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "emptyString"), nil), "safeFloat failed for empty string")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "str"), nil), "safeFloat failed for non-numeric string")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "undefined"), nil), "safeFloat failed for None value")
+	assert(ccxt.IsEqual(exchange.SafeFloat(nil, "i"), nil), "safeFloat failed for undefined container")
+	assert(ccxt.IsEqual(exchange.SafeFloat(nil, "i", 7), 7), "safeFloat failed for undefined container with default")
+	assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 5), nil), "safeFloat failed for out-of-range list index")
+	// safeFloat2 - negative paths
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "nonexistent2"), nil), "safeFloat2 failed for missing keys")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "str"), nil), "safeFloat2 failed for missing then non-numeric")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "emptyString"), nil), "safeFloat2 failed for missing then empty string")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "nonexistent", "nonexistent2", 9), 9), "safeFloat2 failed for missing keys with default")
+	assert(ccxt.IsEqual(exchange.SafeFloat2(nil, "i", "f"), nil), "safeFloat2 failed for undefined container")
+	// safeFloatN - negative paths
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "nonexistent"}), nil), "safeFloatN failed for missing keys")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "emptyString"}), nil), "safeFloatN failed for empty string")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "str"}), nil), "safeFloatN failed for non-numeric string")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "nonexistent"}, 11), 11), "safeFloatN failed for missing keys with default")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(nil, []any{"a", "b", "i"}), nil), "safeFloatN failed for undefined container")
+	assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{5, 6}), nil), "safeFloatN failed for out-of-range list indices")
 }
 func TestSafeNumber() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -341,7 +363,7 @@ func TestSafeNumber() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	// safeNumber
 	Assert(ccxt.IsEqual(exchange.SafeNumber(inputDict, "i"), exchange.ParseNumber(1)))
 	Assert(ccxt.IsEqual(exchange.SafeNumber(inputDict, "f"), exchange.ParseNumber(0.123)))
@@ -376,7 +398,7 @@ func TestSafeBool() {
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
 	var inputDict any = HelperDefaultInputDict()
-	var inputList any = []any{"Hi", 2}
+	var inputList []any = []any{"Hi", 2}
 	// safeBool
 	Assert(ccxt.IsEqual(exchange.SafeBool(inputDict, "bool"), true))
 	Assert(ccxt.IsEqual(exchange.SafeBool(inputList, 1), nil))

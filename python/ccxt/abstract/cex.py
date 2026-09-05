@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_post_get_server_time = publicPostGetServerTime = Entry[_Dict]('get_server_time', 'public', 'POST', {'cost': 1})

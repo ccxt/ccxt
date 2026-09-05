@@ -1231,10 +1231,11 @@ public class HyperliquidCore extends HyperliquidApi
             isUnifiedEnabled = ((java.util.List<Object>) isUnifiedEnabledparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isUnifiedEnabledparametersVariable).get(1);
             Object dex = this.safeString(parameters, "dex");
-            Object isSpot = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue(isUnifiedEnabled))) && Helpers.isTrue((Helpers.isEqual(dex, null)));
+            Object isSpot = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(isUnifiedEnabled, true))))) && Helpers.isTrue((Helpers.isEqual(dex, null)));
+            final Object finalIsSpot = isSpot;
             final Object finalUserAddress = userAddress;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "type", ((Helpers.isTrue((isSpot)))) ? "spotClearinghouseState" : "clearinghouseState" );
+                put( "type", ((Helpers.isTrue((Helpers.isEqual(finalIsSpot, true))))) ? "spotClearinghouseState" : "clearinghouseState" );
                 put( "user", finalUserAddress );
             }};
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
@@ -1283,7 +1284,7 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     Object balance = Helpers.GetValue(balances, i);
                     Object unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
-                    Object code = ((Helpers.isTrue(isSpot))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
+                    Object code = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Object account = this.account();
                     Object total = this.safeString(balance, "total");
                     Object used = this.safeString(balance, "hold");
@@ -1343,7 +1344,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "l2Book" );
-                put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
+                put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -1418,7 +1419,7 @@ public class HyperliquidCore extends HyperliquidApi
                 if (Helpers.isTrue(!Helpers.isEqual(firstSymbol, null)))
                 {
                     Object market = this.market(firstSymbol);
-                    if (Helpers.isTrue(this.safeBool(this.safeDict(market, "info"), "hip3")))
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeBool(this.safeDict(market, "info"), "hip3"), true)))
                     {
                         hip3 = true;
                     }
@@ -1687,7 +1688,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "candleSnapshot" );
                 put( "req", new java.util.HashMap<String, Object>() {{
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
                     put( "interval", HyperliquidCore.this.safeString(HyperliquidCore.this.timeframes, timeframe, timeframe) );
                     put( "startTime", finalSince );
                     put( "endTime", until );
@@ -1839,7 +1840,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object integerPart = Helpers.GetValue(Helpers.split(((String)priceStr), "."), 0);
         Object significantDigits = Helpers.mathMax(5, ((String)integerPart).length());
         Object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
-        Object maxDecimals = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? 8 : 6;
+        Object maxDecimals = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 8 : 6;
         Object subtractedValue = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "amount")));
         return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
@@ -2125,8 +2126,9 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            final Object finalIsSandboxMode = isSandboxMode;
             Object payload = new java.util.HashMap<String, Object>() {{
-                put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                 put( "maxFeeRate", maxFeeRate );
                 put( "builder", builder );
                 put( "nonce", nonce );
@@ -2183,7 +2185,7 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object buildFee = this.safeBool(this.options, "builderFee", true);
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Helpers.isTrue(approvedBuilderFee))
+            if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;  // skip if builder fee is already approved
             }
@@ -2193,7 +2195,7 @@ public class HyperliquidCore extends HyperliquidApi
                 // when the user disables the builder fee (builderFee = false) we still approve and attach the builder,
                 // but with a 0% fee rate, so orders remain attributed to the builder for statistics purposes only and the user is not charged
                 Object maxFeeRate = this.safeString(this.options, "feeRate", "0.01%");
-                if (!Helpers.isTrue(buildFee))
+                if (Helpers.isTrue(!Helpers.isEqual(buildFee, true)))
                 {
                     maxFeeRate = "0%";
                 }
@@ -2305,9 +2307,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object type = this.safeString(parameters, "type", "userSetAbstraction");
             parameters = this.omit(parameters, "type");
+            final Object finalIsSandboxMode = isSandboxMode;
             final Object finalUserAddress = userAddress;
             Object payload = new java.util.HashMap<String, Object>() {{
-                put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                 put( "user", finalUserAddress );
                 put( "abstraction", abstraction );
                 put( "nonce", nonce );
@@ -2363,9 +2366,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object type = this.safeString(parameters, "type", "userDexAbstraction");
             parameters = this.omit(parameters, "type");
+            final Object finalIsSandboxMode = isSandboxMode;
             final Object finalUserAddress = userAddress;
             Object payload = new java.util.HashMap<String, Object>() {{
-                put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                 put( "user", finalUserAddress );
                 put( "enabled", enabled );
                 put( "nonce", nonce );
@@ -2649,7 +2653,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object slippage = this.safeString(parameters, "slippage");
         Object defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
         Object postOnly = this.safeBool(parameters, "postOnly", false);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             defaultTimeInForce = "alo";
         }
@@ -2658,7 +2662,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
         Object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        Object isTrigger = (Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice));
+        Object isTrigger = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
         Object px = null;
         if (Helpers.isTrue(isMarket))
         {
@@ -3319,7 +3323,7 @@ final Object finalClientOrderId = clientOrderId;
             Object slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             Object defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
             Object postOnly = this.safeBool(orderParams, "postOnly", false);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 defaultTimeInForce = "alo";
             }
@@ -3329,7 +3333,7 @@ final Object finalClientOrderId = clientOrderId;
             Object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             Object stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             Object takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
-            Object isTrigger = (Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice));
+            Object isTrigger = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
             Object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly")));
             Object px = this.numberToString(price);
@@ -4181,7 +4185,8 @@ final Object finalClientOrderId = clientOrderId;
         {
             postOnly = (Helpers.isEqual(tif, "ALO"));
         }
-        Object triggerPx = ((Helpers.isTrue(this.safeBool(entry, "isTrigger")))) ? this.safeNumber(entry, "triggerPx") : null;
+        Object isTrigger = (Helpers.isEqual(this.safeBool(entry, "isTrigger"), true));
+        Object triggerPx = ((Helpers.isTrue(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         Object orderTypeRaw = ((String)this.safeStringLower(entry, "orderType", ""));
@@ -4977,8 +4982,9 @@ final Object finalClientOrderId = clientOrderId;
                 }
                 Object strAmountFinal = strAmount; // java req
                 Object toPerp = Helpers.isTrue((Helpers.isEqual(toAccount, "perp"))) || Helpers.isTrue((Helpers.isEqual(toAccount, "swap")));
+                final Object finalIsSandboxMode = isSandboxMode;
                 Object transferPayload = new java.util.HashMap<String, Object>() {{
-                    put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                    put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                     put( "amount", strAmountFinal );
                     put( "toPerp", toPerp );
                     put( "nonce", nonce );
@@ -4997,7 +5003,13 @@ final Object finalClientOrderId = clientOrderId;
                     put( "signature", transferSig );
                 }};
                 Object transferResponse = (this.privatePostExchange(transferRequest)).join();
-                return transferResponse;
+                //
+                // {'response': {'type': 'default'}, 'status': 'ok'}
+                //
+                // the sub-account branches below already hand back the unified structure; the
+                // spot <> swap branch returned the raw acknowledgement, breaking the shape
+                Object currency = this.safeCurrency(code);
+                return this.parseTransfer(transferResponse, currency);
             }
             // transfer between main account and subaccount
             Object isDeposit = false;
@@ -5089,11 +5101,11 @@ final Object finalClientOrderId = clientOrderId;
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", null );
+            put( "currency", HyperliquidCore.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", "ok" );
+            put( "status", HyperliquidCore.this.safeString(transfer, "status", "ok") );
         }};
     }
 
@@ -5154,8 +5166,9 @@ final Object finalClientOrderId = clientOrderId;
             } else
             {
                 Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                final Object finalIsSandboxMode = isSandboxMode;
                 Object payload = new java.util.HashMap<String, Object>() {{
-                    put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                    put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                     put( "destination", address );
                     put( "amount", String.valueOf(amount) );
                     put( "time", nonce );
@@ -6009,7 +6022,7 @@ final Object finalClientOrderId = clientOrderId;
             return null;
         }
         Object hi3TokensByname = this.safeDict(this.options, "hip3TokensByName", new java.util.HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(this.safeDict(hi3TokensByname, coin)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.safeDict(hi3TokensByname, coin), null)))
         {
             Object hip3Dict = this.safeDict(hi3TokensByname, coin);
             Object quote = this.safeString(hip3Dict, "quote", "USDC");
@@ -6029,7 +6042,7 @@ final Object finalClientOrderId = clientOrderId;
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }

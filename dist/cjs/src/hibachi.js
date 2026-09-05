@@ -94,6 +94,7 @@ class hibachi extends hibachi$1["default"] {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrdersByStatus': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -892,7 +893,7 @@ class hibachi extends hibachi$1["default"] {
             sideInternal = 'BID';
         }
         let priceInternal = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision(symbol, price);
         }
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
@@ -917,7 +918,7 @@ class hibachi extends hibachi$1["default"] {
         else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
         }
-        else if (reduceOnly) {
+        else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {

@@ -661,7 +661,34 @@ class latoken extends Exchange {
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'quantity');
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        $rawAsks = $this->safe_list($response, 'ask', array());
+        $rawBids = $this->safe_list($response, 'bid', array());
+        $asks = array();
+        $bids = array();
+        for ($i = 0; $i < count($rawAsks); $i++) {
+            $askEntry = $rawAsks[$i];
+            $askQuantity = $this->safe_string($askEntry, 'quantity');
+            if (Precise::string_gt($askQuantity, '0')) {
+                $asks[] = $askEntry;
+            }
+        }
+        for ($i = 0; $i < count($rawBids); $i++) {
+            $bidEntry = $rawBids[$i];
+            $bidQuantity = $this->safe_string($bidEntry, 'quantity');
+            if (Precise::string_gt($bidQuantity, '0')) {
+                $bids[] = $bidEntry;
+            }
+        }
+        $filtered = array( 'ask' => $asks, 'bid' => $bids );
+        return $this->parse_order_book($filtered, $symbol, null, 'bid', 'ask', 'price', 'quantity');
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -834,7 +861,7 @@ class latoken extends Exchange {
         $makerBuyer = $this->safe_value($trade, 'makerBuyer');
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
-            $side = $makerBuyer ? 'sell' : 'buy';
+            $side = ($makerBuyer === true) ? 'sell' : 'buy';
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';
@@ -843,7 +870,8 @@ class latoken extends Exchange {
             }
         }
         $isBuy = ($side === 'buy');
-        $takerOrMaker = ($makerBuyer && $isBuy) ? 'maker' : 'taker';
+        $isMaker = ($makerBuyer === true) && $isBuy;
+        $takerOrMaker = $isMaker ? 'maker' : 'taker';
         $baseId = $this->safe_string($trade, 'baseCurrency');
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
@@ -939,7 +967,7 @@ class latoken extends Exchange {
         }
     }
 
-    public function fetch_public_trading_fee(string $symbol, $params = array()) {
+    public function fetch_public_trading_fee(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -967,7 +995,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_private_trading_fee(string $symbol, $params = array()) {
+    public function fetch_private_trading_fee(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1210,7 +1238,7 @@ class latoken extends Exchange {
             'currency' => $market['baseId'],
             'quote' => $market['quoteId'],
         );
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $params));
         } else {
             $response = $this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $params));
@@ -1275,13 +1303,13 @@ class latoken extends Exchange {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $params));
             } else {
                 $response = $this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $params));
             }
         } else {
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privateGetAuthStopOrder($this->extend($request, $params));
             } else {
                 $response = $this->privateGetAuthOrder($this->extend($request, $params));
@@ -1333,7 +1361,7 @@ class latoken extends Exchange {
         );
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privateGetAuthStopOrderGetOrderId($this->extend($request, $params));
         } else {
             $response = $this->privateGetAuthOrderGetOrderId($this->extend($request, $params));
@@ -1448,7 +1476,7 @@ class latoken extends Exchange {
         );
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($isTrigger) {
+        if ($isTrigger === true) {
             $response = $this->privatePostAuthStopOrderCancel($this->extend($request, $params));
         } else {
             $response = $this->privatePostAuthOrderCancel($this->extend($request, $params));
@@ -1491,13 +1519,13 @@ class latoken extends Exchange {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $params));
             } else {
                 $response = $this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $params));
             }
         } else {
-            if ($isTrigger) {
+            if ($isTrigger === true) {
                 $response = $this->privatePostAuthStopOrderCancelAll($this->extend($request, $params));
             } else {
                 $response = $this->privatePostAuthOrderCancelAll($this->extend($request, $params));
@@ -1819,7 +1847,7 @@ class latoken extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencodedQuery = $this->urlencode($query);
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
@@ -1842,7 +1870,7 @@ class latoken extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null;
         }
         //

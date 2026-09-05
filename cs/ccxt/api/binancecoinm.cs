@@ -12,5547 +12,5659 @@ public partial class binancecoinm : binance
     public binancecoinm (object args = null): base(args) {}
 
     /// <summary>Calls the sapiGetCopyTradingFuturesUserStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetCopyTradingFuturesUserStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetCopyTradingFuturesUserStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCopyTradingFuturesUserStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetCopyTradingFuturesUserStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetCopyTradingFuturesLeadSymbol endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetCopyTradingFuturesLeadSymbol (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetCopyTradingFuturesLeadSymbol (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCopyTradingFuturesLeadSymbol",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetCopyTradingFuturesLeadSymbol",parameters);
     }
 
     /// <summary>Calls the sapiGetSystemStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSystemStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSystemStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSystemStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSystemStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetAccountSnapshot endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccountSnapshot (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccountSnapshot (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountSnapshot",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccountSnapshot",parameters);
     }
 
     /// <summary>Calls the sapiGetAccountInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccountInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccountInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccountInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAsset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginAsset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAsset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginAsset",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginPair endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginPair (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginPair (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginPair",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginPair",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAllAssets endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginAllAssets (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginAllAssets (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllAssets",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginAllAssets",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAllPairs endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginAllPairs (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginAllPairs (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllPairs",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginAllPairs",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginPriceIndex endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginPriceIndex (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginPriceIndex (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginPriceIndex",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginPriceIndex",parameters);
     }
 
     /// <summary>Calls the sapiGetSpotDelistSchedule endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetSpotDelistSchedule (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetSpotDelistSchedule (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSpotDelistSchedule",parameters);
+        return await this.callAsync<List<object>> ("sapiGetSpotDelistSchedule",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetAssetDividend endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetAssetDividend (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetAssetDividend (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetAssetDividend",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetAssetDividend",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetDribblet endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetDribblet (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetDribblet (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetDribblet",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetDribblet",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetAssetDetail endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetAssetDetail (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetAssetDetail (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetAssetDetail",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetAssetDetail",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetTradeFee endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetTradeFee (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetTradeFee (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetTradeFee",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetTradeFee",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetLedgerTransferCloudMiningQueryByPage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetLedgerTransferCloudMiningQueryByPage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetLedgerTransferCloudMiningQueryByPage (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetLedgerTransferCloudMiningQueryByPage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetLedgerTransferCloudMiningQueryByPage",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetConvertTransferQueryByPage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetConvertTransferQueryByPage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetConvertTransferQueryByPage (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetConvertTransferQueryByPage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetConvertTransferQueryByPage",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetWalletBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetAssetWalletBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetAssetWalletBalance (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetWalletBalance",parameters);
+        return await this.callAsync<List<object>> ("sapiGetAssetWalletBalance",parameters);
     }
 
     /// <summary>Calls the sapiGetAssetCustodyTransferHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAssetCustodyTransferHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAssetCustodyTransferHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAssetCustodyTransferHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAssetCustodyTransferHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginBorrowRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginBorrowRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginBorrowRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginBorrowRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginBorrowRepay",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginLoan (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginLoan",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginRepay",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginInterestHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginInterestHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginInterestHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginInterestHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginInterestHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginForceLiquidationRec endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginForceLiquidationRec (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginForceLiquidationRec (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginForceLiquidationRec",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginForceLiquidationRec",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginOrder",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginOpenOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginAllOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllOrders",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginAllOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginMyTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginMyTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginMyTrades (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginMyTrades",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginMyTrades",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginMaxBorrowable endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginMaxBorrowable (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginMaxBorrowable (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginMaxBorrowable",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginMaxBorrowable",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginMaxTransferable endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginMaxTransferable (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginMaxTransferable (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginMaxTransferable",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginMaxTransferable",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginTradeCoeff endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginTradeCoeff (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginTradeCoeff (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginTradeCoeff",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginTradeCoeff",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginIsolatedTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginIsolatedTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginIsolatedAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginIsolatedAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedPair endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedPair (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginIsolatedPair (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedPair",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginIsolatedPair",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedAllPairs endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedAllPairs (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginIsolatedAllPairs (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedAllPairs",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginIsolatedAllPairs",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedAccountLimit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedAccountLimit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginIsolatedAccountLimit (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedAccountLimit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginIsolatedAccountLimit",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginInterestRateHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginInterestRateHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginInterestRateHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginInterestRateHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginInterestRateHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginOrderList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginOrderList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginOrderList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginOrderList",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAllOrderList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginAllOrderList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginAllOrderList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAllOrderList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginAllOrderList",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginOpenOrderList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginOpenOrderList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginOpenOrderList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginOpenOrderList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginOpenOrderList",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginCrossMarginData endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginCrossMarginData (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginCrossMarginData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginCrossMarginData",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginCrossMarginData",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedMarginData endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedMarginData (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginIsolatedMarginData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedMarginData",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginIsolatedMarginData",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginIsolatedMarginTier endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginIsolatedMarginTier (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginIsolatedMarginTier (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginIsolatedMarginTier",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginIsolatedMarginTier",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginRateLimitOrder endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginRateLimitOrder (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginRateLimitOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginRateLimitOrder",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginRateLimitOrder",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginDribblet endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginDribblet (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginDribblet (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginDribblet",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginDribblet",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginDust endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginDust (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginDust (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginDust",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginDust",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginCrossMarginCollateralRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginCrossMarginCollateralRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginCrossMarginCollateralRatio (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginCrossMarginCollateralRatio",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginCrossMarginCollateralRatio",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginExchangeSmallLiability endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginExchangeSmallLiability (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginExchangeSmallLiability (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginExchangeSmallLiability",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginExchangeSmallLiability",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginExchangeSmallLiabilityHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginExchangeSmallLiabilityHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginExchangeSmallLiabilityHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginExchangeSmallLiabilityHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginExchangeSmallLiabilityHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginNextHourlyInterestRate endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginNextHourlyInterestRate (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginNextHourlyInterestRate (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginNextHourlyInterestRate",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginNextHourlyInterestRate",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginCapitalFlow endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginCapitalFlow (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginCapitalFlow (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginCapitalFlow",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginCapitalFlow",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginDelistSchedule endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginDelistSchedule (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginDelistSchedule (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginDelistSchedule",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginDelistSchedule",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginAvailableInventory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMarginAvailableInventory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMarginAvailableInventory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginAvailableInventory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMarginAvailableInventory",parameters);
     }
 
     /// <summary>Calls the sapiGetMarginLeverageBracket endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetMarginLeverageBracket (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetMarginLeverageBracket (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMarginLeverageBracket",parameters);
+        return await this.callAsync<List<object>> ("sapiGetMarginLeverageBracket",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipLoanableData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanVipLoanableData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanVipLoanableData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipLoanableData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanVipLoanableData",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipCollateralData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanVipCollateralData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanVipCollateralData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipCollateralData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanVipCollateralData",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipRequestData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanVipRequestData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanVipRequestData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipRequestData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanVipRequestData",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipRequestInterestRate endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLoanVipRequestInterestRate (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLoanVipRequestInterestRate (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipRequestInterestRate",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLoanVipRequestInterestRate",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanIncome endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLoanIncome (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLoanIncome (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanIncome",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLoanIncome",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanOngoingOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanOngoingOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanOngoingOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanOngoingOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanOngoingOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanLtvAdjustmentHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanLtvAdjustmentHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanLtvAdjustmentHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanLtvAdjustmentHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanLtvAdjustmentHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanBorrowHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanBorrowHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanBorrowHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanBorrowHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanBorrowHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanRepayHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanRepayHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanRepayHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanLoanableData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanLoanableData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanLoanableData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanLoanableData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanLoanableData",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanCollateralData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanCollateralData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanCollateralData (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanCollateralData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanCollateralData",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanRepayCollateralRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanRepayCollateralRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanRepayCollateralRate (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanRepayCollateralRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanRepayCollateralRate",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanFlexibleOngoingOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanFlexibleOngoingOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanFlexibleOngoingOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanFlexibleOngoingOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanFlexibleOngoingOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanFlexibleBorrowHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanFlexibleBorrowHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanFlexibleBorrowHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanFlexibleBorrowHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanFlexibleBorrowHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanFlexibleRepayHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanFlexibleRepayHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanFlexibleRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanFlexibleRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanFlexibleRepayHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanFlexibleLtvAdjustmentHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanFlexibleLtvAdjustmentHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanFlexibleLtvAdjustmentHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanFlexibleLtvAdjustmentHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanFlexibleLtvAdjustmentHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipOngoingOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanVipOngoingOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanVipOngoingOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipOngoingOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanVipOngoingOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipRepayHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanVipRepayHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanVipRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanVipRepayHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLoanVipCollateralAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLoanVipCollateralAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLoanVipCollateralAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLoanVipCollateralAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLoanVipCollateralAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetFiatOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetFiatOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetFiatOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetFiatOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetFiatOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetFiatPayments endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetFiatPayments (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetFiatPayments (object parameters = null)
     {
-        return await this.callAsync ("sapiGetFiatPayments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetFiatPayments",parameters);
     }
 
     /// <summary>Calls the sapiGetFuturesTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetFuturesTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetFuturesTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetFuturesTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetFuturesHistDataLink endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetFuturesHistDataLink (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetFuturesHistDataLink (object parameters = null)
     {
-        return await this.callAsync ("sapiGetFuturesHistDataLink",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetFuturesHistDataLink",parameters);
     }
 
     /// <summary>Calls the sapiGetRebateTaxQuery endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetRebateTaxQuery (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetRebateTaxQuery (object parameters = null)
     {
-        return await this.callAsync ("sapiGetRebateTaxQuery",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetRebateTaxQuery",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalConfigGetall endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetCapitalConfigGetall (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetCapitalConfigGetall (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalConfigGetall",parameters);
+        return await this.callAsync<List<object>> ("sapiGetCapitalConfigGetall",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalDepositAddress endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetCapitalDepositAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetCapitalDepositAddress (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetCapitalDepositAddress",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalDepositAddressList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetCapitalDepositAddressList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetCapitalDepositAddressList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositAddressList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetCapitalDepositAddressList",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalDepositHisrec endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetCapitalDepositHisrec (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetCapitalDepositHisrec (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositHisrec",parameters);
+        return await this.callAsync<List<object>> ("sapiGetCapitalDepositHisrec",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalDepositSubAddress endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetCapitalDepositSubAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetCapitalDepositSubAddress (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositSubAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetCapitalDepositSubAddress",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalDepositSubHisrec endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetCapitalDepositSubHisrec (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetCapitalDepositSubHisrec (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalDepositSubHisrec",parameters);
+        return await this.callAsync<List<object>> ("sapiGetCapitalDepositSubHisrec",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalWithdrawHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetCapitalWithdrawHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetCapitalWithdrawHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalWithdrawHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetCapitalWithdrawHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalWithdrawAddressList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetCapitalWithdrawAddressList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetCapitalWithdrawAddressList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalWithdrawAddressList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetCapitalWithdrawAddressList",parameters);
     }
 
     /// <summary>Calls the sapiGetCapitalContractConvertibleCoins endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetCapitalContractConvertibleCoins (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetCapitalContractConvertibleCoins (object parameters = null)
     {
-        return await this.callAsync ("sapiGetCapitalContractConvertibleCoins",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetCapitalContractConvertibleCoins",parameters);
     }
 
     /// <summary>Calls the sapiGetConvertTradeFlow endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetConvertTradeFlow (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetConvertTradeFlow (object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertTradeFlow",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetConvertTradeFlow",parameters);
     }
 
     /// <summary>Calls the sapiGetConvertExchangeInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetConvertExchangeInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetConvertExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertExchangeInfo",parameters);
+        return await this.callAsync<List<object>> ("sapiGetConvertExchangeInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetConvertAssetInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetConvertAssetInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetConvertAssetInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertAssetInfo",parameters);
+        return await this.callAsync<List<object>> ("sapiGetConvertAssetInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetConvertOrderStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetConvertOrderStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetConvertOrderStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertOrderStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetConvertOrderStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetConvertLimitQueryOpenOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetConvertLimitQueryOpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetConvertLimitQueryOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetConvertLimitQueryOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetConvertLimitQueryOpenOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetAccountStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccountStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccountStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccountStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetAccountApiTradingStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccountApiTradingStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccountApiTradingStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountApiTradingStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccountApiTradingStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetAccountApiRestrictionsIpRestriction endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccountApiRestrictionsIpRestriction (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccountApiRestrictionsIpRestriction (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountApiRestrictionsIpRestriction",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccountApiRestrictionsIpRestriction",parameters);
     }
 
     /// <summary>Calls the sapiGetBnbBurn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBnbBurn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBnbBurn (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBnbBurn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBnbBurn",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountFuturesAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountFuturesAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountFuturesAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountFuturesAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountFuturesAccountSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountFuturesAccountSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountFuturesAccountSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesAccountSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountFuturesAccountSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountFuturesPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetSubAccountFuturesPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetSubAccountFuturesPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("sapiGetSubAccountFuturesPositionRisk",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountFuturesInternalTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountFuturesInternalTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountFuturesInternalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountFuturesInternalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountFuturesInternalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountList",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountMarginAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountMarginAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountMarginAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountMarginAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountMarginAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountMarginAccountSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountMarginAccountSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountMarginAccountSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountMarginAccountSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountMarginAccountSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountSpotSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountSpotSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountSpotSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountSpotSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountSpotSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountStatus endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetSubAccountStatus (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetSubAccountStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountStatus",parameters);
+        return await this.callAsync<List<object>> ("sapiGetSubAccountStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountSubTransferHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetSubAccountSubTransferHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetSubAccountSubTransferHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountSubTransferHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetSubAccountSubTransferHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountTransferSubUserHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetSubAccountTransferSubUserHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetSubAccountTransferSubUserHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountTransferSubUserHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetSubAccountTransferSubUserHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountUniversalTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountUniversalTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountUniversalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountUniversalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountUniversalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountTransactionStatistics endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountTransactionStatistics (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountTransactionStatistics (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountTransactionStatistics",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountTransactionStatistics",parameters);
     }
 
     /// <summary>Calls the sapiGetSubAccountSubAccountApiIpRestriction endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSubAccountSubAccountApiIpRestriction (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSubAccountSubAccountApiIpRestriction (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSubAccountSubAccountApiIpRestriction",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSubAccountSubAccountApiIpRestriction",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountAsset endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountAsset (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetManagedSubaccountAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountAsset",parameters);
+        return await this.callAsync<List<object>> ("sapiGetManagedSubaccountAsset",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountAccountSnapshot endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountAccountSnapshot (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountAccountSnapshot (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountAccountSnapshot",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountAccountSnapshot",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountQueryTransLogForInvestor endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountQueryTransLogForInvestor (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountQueryTransLogForInvestor (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountQueryTransLogForInvestor",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountQueryTransLogForInvestor",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountQueryTransLogForTradeParent endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountQueryTransLogForTradeParent (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountQueryTransLogForTradeParent (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountQueryTransLogForTradeParent",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountQueryTransLogForTradeParent",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountFetchFutureAsset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountFetchFutureAsset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountFetchFutureAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountFetchFutureAsset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountFetchFutureAsset",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountMarginAsset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountMarginAsset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountMarginAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountMarginAsset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountMarginAsset",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountDepositAddress endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountDepositAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountDepositAddress (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountDepositAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountDepositAddress",parameters);
     }
 
     /// <summary>Calls the sapiGetManagedSubaccountQueryTransLog endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetManagedSubaccountQueryTransLog (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetManagedSubaccountQueryTransLog (object parameters = null)
     {
-        return await this.callAsync ("sapiGetManagedSubaccountQueryTransLog",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetManagedSubaccountQueryTransLog",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingDailyProductList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingDailyProductList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingDailyProductList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyProductList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingDailyProductList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingDailyUserLeftQuota endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingDailyUserLeftQuota (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingDailyUserLeftQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyUserLeftQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingDailyUserLeftQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingDailyUserRedemptionQuota endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingDailyUserRedemptionQuota (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingDailyUserRedemptionQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyUserRedemptionQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingDailyUserRedemptionQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingDailyTokenPosition endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingDailyTokenPosition (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingDailyTokenPosition (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingDailyTokenPosition",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingDailyTokenPosition",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingUnionAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingUnionAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingUnionAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingUnionAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingUnionPurchaseRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingUnionPurchaseRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingUnionPurchaseRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionPurchaseRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingUnionPurchaseRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingUnionRedemptionRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingUnionRedemptionRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingUnionRedemptionRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionRedemptionRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingUnionRedemptionRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingUnionInterestHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingUnionInterestHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingUnionInterestHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingUnionInterestHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingUnionInterestHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingProjectList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingProjectList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingProjectList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingProjectList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingProjectList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingProjectPositionList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingProjectPositionList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingProjectPositionList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingProjectPositionList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingProjectPositionList",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingEthHistoryStakingHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingEthHistoryStakingHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingEthHistoryStakingHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingEthHistoryStakingHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingEthHistoryStakingHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingEthHistoryRedemptionHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingEthHistoryRedemptionHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingEthHistoryRedemptionHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingEthHistoryRedemptionHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingEthHistoryRedemptionHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingEthHistoryRewardsHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingEthHistoryRewardsHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingEthHistoryRewardsHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingEthHistoryRewardsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingEthHistoryRewardsHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingEthQuota endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingEthQuota (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingEthQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingEthQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingEthQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingEthHistoryRateHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingEthHistoryRateHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingEthHistoryRateHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingEthHistoryRateHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingEthHistoryRateHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingWbethHistoryWrapHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingWbethHistoryWrapHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingWbethHistoryWrapHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingWbethHistoryWrapHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingWbethHistoryWrapHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingWbethHistoryUnwrapHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingWbethHistoryUnwrapHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingWbethHistoryUnwrapHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingWbethHistoryUnwrapHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingWbethHistoryUnwrapHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetEthStakingEthHistoryWbethRewardsHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetEthStakingEthHistoryWbethRewardsHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEthStakingEthHistoryWbethRewardsHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetEthStakingEthHistoryWbethRewardsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEthStakingEthHistoryWbethRewardsHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSolStakingSolHistoryStakingHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSolStakingSolHistoryStakingHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSolStakingSolHistoryStakingHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSolStakingSolHistoryStakingHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSolStakingSolHistoryStakingHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSolStakingSolHistoryRedemptionHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSolStakingSolHistoryRedemptionHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSolStakingSolHistoryRedemptionHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSolStakingSolHistoryRedemptionHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSolStakingSolHistoryRedemptionHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSolStakingSolHistoryBnsolRewardsHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSolStakingSolHistoryBnsolRewardsHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSolStakingSolHistoryBnsolRewardsHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSolStakingSolHistoryBnsolRewardsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSolStakingSolHistoryBnsolRewardsHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSolStakingSolHistoryRateHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSolStakingSolHistoryRateHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSolStakingSolHistoryRateHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSolStakingSolHistoryRateHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSolStakingSolHistoryRateHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSolStakingAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSolStakingAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSolStakingAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSolStakingAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSolStakingAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetSolStakingSolQuota endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSolStakingSolQuota (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSolStakingSolQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSolStakingSolQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSolStakingSolQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningPubAlgoList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningPubAlgoList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningPubAlgoList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPubAlgoList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningPubAlgoList",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningPubCoinList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningPubCoinList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningPubCoinList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPubCoinList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningPubCoinList",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningWorkerDetail endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningWorkerDetail (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningWorkerDetail (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningWorkerDetail",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningWorkerDetail",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningWorkerList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningWorkerList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningWorkerList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningWorkerList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningWorkerList",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningPaymentList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningPaymentList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningPaymentList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPaymentList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningPaymentList",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningStatisticsUserStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningStatisticsUserStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningStatisticsUserStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningStatisticsUserStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningStatisticsUserStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningStatisticsUserList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningStatisticsUserList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningStatisticsUserList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningStatisticsUserList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningStatisticsUserList",parameters);
     }
 
     /// <summary>Calls the sapiGetMiningPaymentUid endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetMiningPaymentUid (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetMiningPaymentUid (object parameters = null)
     {
-        return await this.callAsync ("sapiGetMiningPaymentUid",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetMiningPaymentUid",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapPools endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBswapPools (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBswapPools (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapPools",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBswapPools",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapLiquidity endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBswapLiquidity (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBswapLiquidity (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapLiquidity",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBswapLiquidity",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapLiquidityOps endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBswapLiquidityOps (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBswapLiquidityOps (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapLiquidityOps",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBswapLiquidityOps",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapQuote endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBswapQuote (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBswapQuote (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBswapQuote",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapSwap endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBswapSwap (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBswapSwap (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapSwap",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBswapSwap",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapPoolConfigure endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBswapPoolConfigure (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBswapPoolConfigure (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapPoolConfigure",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBswapPoolConfigure",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapAddLiquidityPreview endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBswapAddLiquidityPreview (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBswapAddLiquidityPreview (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapAddLiquidityPreview",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBswapAddLiquidityPreview",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapRemoveLiquidityPreview endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBswapRemoveLiquidityPreview (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBswapRemoveLiquidityPreview (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapRemoveLiquidityPreview",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBswapRemoveLiquidityPreview",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapUnclaimedRewards endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBswapUnclaimedRewards (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBswapUnclaimedRewards (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapUnclaimedRewards",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBswapUnclaimedRewards",parameters);
     }
 
     /// <summary>Calls the sapiGetBswapClaimedHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBswapClaimedHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBswapClaimedHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBswapClaimedHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBswapClaimedHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetBlvtTokenInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBlvtTokenInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBlvtTokenInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtTokenInfo",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBlvtTokenInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetBlvtSubscribeRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBlvtSubscribeRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBlvtSubscribeRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtSubscribeRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBlvtSubscribeRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetBlvtRedeemRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBlvtRedeemRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBlvtRedeemRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtRedeemRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBlvtRedeemRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetBlvtUserLimit endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBlvtUserLimit (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBlvtUserLimit (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBlvtUserLimit",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBlvtUserLimit",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralIfNewUser endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetApiReferralIfNewUser (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetApiReferralIfNewUser (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralIfNewUser",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetApiReferralIfNewUser",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralCustomization endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetApiReferralCustomization (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetApiReferralCustomization (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralCustomization",parameters);
+        return await this.callAsync<List<object>> ("sapiGetApiReferralCustomization",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralUserCustomization endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetApiReferralUserCustomization (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetApiReferralUserCustomization (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralUserCustomization",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetApiReferralUserCustomization",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralRebateRecentRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetApiReferralRebateRecentRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetApiReferralRebateRecentRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralRebateRecentRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetApiReferralRebateRecentRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralRebateHistoricalRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetApiReferralRebateHistoricalRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetApiReferralRebateHistoricalRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralRebateHistoricalRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetApiReferralRebateHistoricalRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralKickbackRecentRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetApiReferralKickbackRecentRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetApiReferralKickbackRecentRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralKickbackRecentRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetApiReferralKickbackRecentRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetApiReferralKickbackHistoricalRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetApiReferralKickbackHistoricalRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetApiReferralKickbackHistoricalRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetApiReferralKickbackHistoricalRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetApiReferralKickbackHistoricalRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountApi endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountApi (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerSubAccountApi (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApi",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerSubAccountApi",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccount endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccount (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerSubAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccount",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerSubAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountApiCommissionFutures endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountApiCommissionFutures (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerSubAccountApiCommissionFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApiCommissionFutures",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerSubAccountApiCommissionFutures",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountApiCommissionCoinFutures endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountApiCommissionCoinFutures (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerSubAccountApiCommissionCoinFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApiCommissionCoinFutures",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerSubAccountApiCommissionCoinFutures",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerTransfer endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerTransfer (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerTransfer",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerTransferFutures endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerTransferFutures (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerTransferFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerTransferFutures",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerTransferFutures",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerRebateRecentRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerRebateRecentRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerRebateRecentRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerRebateRecentRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerRebateRecentRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerRebateHistoricalRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerRebateHistoricalRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerRebateHistoricalRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerRebateHistoricalRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerRebateHistoricalRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountBnbBurnStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountBnbBurnStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerSubAccountBnbBurnStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountBnbBurnStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerSubAccountBnbBurnStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountDepositHist endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountDepositHist (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerSubAccountDepositHist (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountDepositHist",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerSubAccountDepositHist",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountSpotSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountSpotSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerSubAccountSpotSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountSpotSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerSubAccountSpotSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountMarginSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountMarginSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerSubAccountMarginSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountMarginSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerSubAccountMarginSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountFuturesSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountFuturesSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerSubAccountFuturesSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountFuturesSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerSubAccountFuturesSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerRebateFuturesRecentRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerRebateFuturesRecentRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerRebateFuturesRecentRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerRebateFuturesRecentRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerRebateFuturesRecentRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerSubAccountApiIpRestriction endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetBrokerSubAccountApiIpRestriction (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetBrokerSubAccountApiIpRestriction (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerSubAccountApiIpRestriction",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetBrokerSubAccountApiIpRestriction",parameters);
     }
 
     /// <summary>Calls the sapiGetBrokerUniversalTransfer endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetBrokerUniversalTransfer (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetBrokerUniversalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiGetBrokerUniversalTransfer",parameters);
+        return await this.callAsync<List<object>> ("sapiGetBrokerUniversalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiGetAccountApiRestrictions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccountApiRestrictions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccountApiRestrictions (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccountApiRestrictions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccountApiRestrictions",parameters);
     }
 
     /// <summary>Calls the sapiGetC2cOrderMatchListUserOrderHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetC2cOrderMatchListUserOrderHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetC2cOrderMatchListUserOrderHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetC2cOrderMatchListUserOrderHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetC2cOrderMatchListUserOrderHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetNftHistoryTransactions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetNftHistoryTransactions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetNftHistoryTransactions (object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftHistoryTransactions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetNftHistoryTransactions",parameters);
     }
 
     /// <summary>Calls the sapiGetNftHistoryDeposit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetNftHistoryDeposit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetNftHistoryDeposit (object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftHistoryDeposit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetNftHistoryDeposit",parameters);
     }
 
     /// <summary>Calls the sapiGetNftHistoryWithdraw endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetNftHistoryWithdraw (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetNftHistoryWithdraw (object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftHistoryWithdraw",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetNftHistoryWithdraw",parameters);
     }
 
     /// <summary>Calls the sapiGetNftUserGetAsset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetNftUserGetAsset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetNftUserGetAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiGetNftUserGetAsset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetNftUserGetAsset",parameters);
     }
 
     /// <summary>Calls the sapiGetPayTransactions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPayTransactions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPayTransactions (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPayTransactions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPayTransactions",parameters);
     }
 
     /// <summary>Calls the sapiGetGiftcardVerify endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetGiftcardVerify (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetGiftcardVerify (object parameters = null)
     {
-        return await this.callAsync ("sapiGetGiftcardVerify",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetGiftcardVerify",parameters);
     }
 
     /// <summary>Calls the sapiGetGiftcardCryptographyRsaPublicKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetGiftcardCryptographyRsaPublicKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetGiftcardCryptographyRsaPublicKey (object parameters = null)
     {
-        return await this.callAsync ("sapiGetGiftcardCryptographyRsaPublicKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetGiftcardCryptographyRsaPublicKey",parameters);
     }
 
     /// <summary>Calls the sapiGetGiftcardBuyCodeTokenLimit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetGiftcardBuyCodeTokenLimit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetGiftcardBuyCodeTokenLimit (object parameters = null)
     {
-        return await this.callAsync ("sapiGetGiftcardBuyCodeTokenLimit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetGiftcardBuyCodeTokenLimit",parameters);
     }
 
     /// <summary>Calls the sapiGetAlgoSpotOpenOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAlgoSpotOpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAlgoSpotOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoSpotOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAlgoSpotOpenOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetAlgoSpotHistoricalOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAlgoSpotHistoricalOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAlgoSpotHistoricalOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoSpotHistoricalOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAlgoSpotHistoricalOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetAlgoSpotSubOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAlgoSpotSubOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAlgoSpotSubOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoSpotSubOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAlgoSpotSubOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetAlgoFuturesOpenOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAlgoFuturesOpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAlgoFuturesOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoFuturesOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAlgoFuturesOpenOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetAlgoFuturesHistoricalOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAlgoFuturesHistoricalOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAlgoFuturesHistoricalOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoFuturesHistoricalOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAlgoFuturesHistoricalOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetAlgoFuturesSubOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAlgoFuturesSubOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAlgoFuturesSubOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAlgoFuturesSubOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAlgoFuturesSubOrders",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPortfolioAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioCollateralRate endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetPortfolioCollateralRate (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetPortfolioCollateralRate (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioCollateralRate",parameters);
+        return await this.callAsync<List<object>> ("sapiGetPortfolioCollateralRate",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioPmLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPortfolioPmLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioPmLoan (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioPmLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioPmLoan",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioInterestHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetPortfolioInterestHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetPortfolioInterestHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioInterestHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetPortfolioInterestHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioAssetIndexPrice endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetPortfolioAssetIndexPrice (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetPortfolioAssetIndexPrice (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioAssetIndexPrice",parameters);
+        return await this.callAsync<List<object>> ("sapiGetPortfolioAssetIndexPrice",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioRepayFuturesSwitch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPortfolioRepayFuturesSwitch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioRepayFuturesSwitch (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioRepayFuturesSwitch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioRepayFuturesSwitch",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioMarginAssetLeverage endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetPortfolioMarginAssetLeverage (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetPortfolioMarginAssetLeverage (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioMarginAssetLeverage",parameters);
+        return await this.callAsync<List<object>> ("sapiGetPortfolioMarginAssetLeverage",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetPortfolioBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetPortfolioBalance (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioBalance",parameters);
+        return await this.callAsync<List<object>> ("sapiGetPortfolioBalance",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioNegativeBalanceExchangeRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetPortfolioNegativeBalanceExchangeRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetPortfolioNegativeBalanceExchangeRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioNegativeBalanceExchangeRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetPortfolioNegativeBalanceExchangeRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioPmloanHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPortfolioPmloanHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioPmloanHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioPmloanHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioPmloanHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioEarnAssetBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPortfolioEarnAssetBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioEarnAssetBalance (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioEarnAssetBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioEarnAssetBalance",parameters);
     }
 
     /// <summary>Calls the sapiGetPortfolioDeltaMode endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetPortfolioDeltaMode (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioDeltaMode (object parameters = null)
     {
-        return await this.callAsync ("sapiGetPortfolioDeltaMode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioDeltaMode",parameters);
     }
 
     /// <summary>Calls the sapiGetStakingProductList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetStakingProductList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetStakingProductList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingProductList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetStakingProductList",parameters);
     }
 
     /// <summary>Calls the sapiGetStakingPosition endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetStakingPosition (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetStakingPosition (object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingPosition",parameters);
+        return await this.callAsync<List<object>> ("sapiGetStakingPosition",parameters);
     }
 
     /// <summary>Calls the sapiGetStakingStakingRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetStakingStakingRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetStakingStakingRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingStakingRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiGetStakingStakingRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetStakingPersonalLeftQuota endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetStakingPersonalLeftQuota (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetStakingPersonalLeftQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetStakingPersonalLeftQuota",parameters);
+        return await this.callAsync<List<object>> ("sapiGetStakingPersonalLeftQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestTargetAssetList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestTargetAssetList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestTargetAssetList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestTargetAssetList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestTargetAssetList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestTargetAssetRoiList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestTargetAssetRoiList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingAutoInvestTargetAssetRoiList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestTargetAssetRoiList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingAutoInvestTargetAssetRoiList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestAllAsset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestAllAsset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestAllAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestAllAsset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestAllAsset",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestSourceAssetList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestSourceAssetList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestSourceAssetList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestSourceAssetList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestSourceAssetList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestPlanList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestPlanList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestPlanList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestPlanList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestPlanList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestPlanId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestPlanId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestPlanId (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestPlanId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestPlanId",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestHistoryList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestHistoryList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingAutoInvestHistoryList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestHistoryList",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingAutoInvestHistoryList",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestIndexInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestIndexInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestIndexInfo (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestIndexInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestIndexInfo",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestIndexUserSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestIndexUserSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestIndexUserSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestIndexUserSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestIndexUserSummary",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestOneOffStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestOneOffStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetLendingAutoInvestOneOffStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestOneOffStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetLendingAutoInvestOneOffStatus",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestRedeemHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestRedeemHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingAutoInvestRedeemHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestRedeemHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingAutoInvestRedeemHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetLendingAutoInvestRebalanceHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetLendingAutoInvestRebalanceHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetLendingAutoInvestRebalanceHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetLendingAutoInvestRebalanceHistory",parameters);
+        return await this.callAsync<List<object>> ("sapiGetLendingAutoInvestRebalanceHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleList",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnLockedList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnLockedList",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexiblePersonalLeftQuota endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexiblePersonalLeftQuota (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexiblePersonalLeftQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexiblePersonalLeftQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexiblePersonalLeftQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedPersonalLeftQuota endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedPersonalLeftQuota (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnLockedPersonalLeftQuota (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedPersonalLeftQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnLockedPersonalLeftQuota",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleSubscriptionPreview endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleSubscriptionPreview (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleSubscriptionPreview (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleSubscriptionPreview",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleSubscriptionPreview",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedSubscriptionPreview endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedSubscriptionPreview (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetSimpleEarnLockedSubscriptionPreview (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedSubscriptionPreview",parameters);
+        return await this.callAsync<List<object>> ("sapiGetSimpleEarnLockedSubscriptionPreview",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleHistoryRateHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleHistoryRateHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleHistoryRateHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleHistoryRateHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleHistoryRateHistory",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexiblePosition endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexiblePosition (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexiblePosition (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexiblePosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexiblePosition",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedPosition endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedPosition (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnLockedPosition (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedPosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnLockedPosition",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnAccount",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleHistorySubscriptionRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedHistorySubscriptionRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedHistorySubscriptionRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnLockedHistorySubscriptionRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedHistorySubscriptionRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnLockedHistorySubscriptionRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleHistoryRedemptionRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedHistoryRedemptionRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedHistoryRedemptionRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnLockedHistoryRedemptionRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedHistoryRedemptionRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnLockedHistoryRedemptionRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleHistoryRewardsRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleHistoryRewardsRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleHistoryRewardsRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleHistoryRewardsRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleHistoryRewardsRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnLockedHistoryRewardsRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnLockedHistoryRewardsRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnLockedHistoryRewardsRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnLockedHistoryRewardsRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnLockedHistoryRewardsRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetSimpleEarnFlexibleHistoryCollateralRecord endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetSimpleEarnFlexibleHistoryCollateralRecord (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetSimpleEarnFlexibleHistoryCollateralRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiGetSimpleEarnFlexibleHistoryCollateralRecord",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetSimpleEarnFlexibleHistoryCollateralRecord",parameters);
     }
 
     /// <summary>Calls the sapiGetDciProductList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetDciProductList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetDciProductList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetDciProductList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetDciProductList",parameters);
     }
 
     /// <summary>Calls the sapiGetDciProductPositions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetDciProductPositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetDciProductPositions (object parameters = null)
     {
-        return await this.callAsync ("sapiGetDciProductPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetDciProductPositions",parameters);
     }
 
     /// <summary>Calls the sapiGetDciProductAccounts endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetDciProductAccounts (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetDciProductAccounts (object parameters = null)
     {
-        return await this.callAsync ("sapiGetDciProductAccounts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetDciProductAccounts",parameters);
     }
 
     /// <summary>Calls the sapiGetAccumulatorProductList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccumulatorProductList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccumulatorProductList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccumulatorProductList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccumulatorProductList",parameters);
     }
 
     /// <summary>Calls the sapiGetAccumulatorProductPositionList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccumulatorProductPositionList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccumulatorProductPositionList (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccumulatorProductPositionList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccumulatorProductPositionList",parameters);
     }
 
     /// <summary>Calls the sapiGetAccumulatorProductSumHolding endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiGetAccumulatorProductSumHolding (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetAccumulatorProductSumHolding (object parameters = null)
     {
-        return await this.callAsync ("sapiGetAccumulatorProductSumHolding",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetAccumulatorProductSumHolding",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketExchangeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketExchangeInfo",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketTokenizedAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketTokenizedAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketTokenizedAssets",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketQuote",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetEquityOrderOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("sapiGetEquityOrderOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityOrderDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderDetail",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTradeHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTradeHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTradeHistory",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTokenizedConvertStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedConvertStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedConvertStatus",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTokenizedHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedHistory",parameters);
     }
 
     /// <summary>Calls the sapiPostAssetDust endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAssetDust (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAssetDust (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetDust",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAssetDust",parameters);
     }
 
     /// <summary>Calls the sapiPostAssetDustBtc endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAssetDustBtc (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAssetDustBtc (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetDustBtc",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAssetDustBtc",parameters);
     }
 
     /// <summary>Calls the sapiPostAssetTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAssetTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAssetTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAssetTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostAssetGetFundingAsset endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiPostAssetGetFundingAsset (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiPostAssetGetFundingAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetGetFundingAsset",parameters);
+        return await this.callAsync<List<object>> ("sapiPostAssetGetFundingAsset",parameters);
     }
 
     /// <summary>Calls the sapiPostAssetConvertTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAssetConvertTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAssetConvertTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAssetConvertTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAssetConvertTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostAccountDisableFastWithdrawSwitch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAccountDisableFastWithdrawSwitch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAccountDisableFastWithdrawSwitch (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAccountDisableFastWithdrawSwitch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAccountDisableFastWithdrawSwitch",parameters);
     }
 
     /// <summary>Calls the sapiPostAccountEnableFastWithdrawSwitch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAccountEnableFastWithdrawSwitch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAccountEnableFastWithdrawSwitch (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAccountEnableFastWithdrawSwitch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAccountEnableFastWithdrawSwitch",parameters);
     }
 
     /// <summary>Calls the sapiPostCapitalWithdrawApply endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostCapitalWithdrawApply (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostCapitalWithdrawApply (object parameters = null)
     {
-        return await this.callAsync ("sapiPostCapitalWithdrawApply",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostCapitalWithdrawApply",parameters);
     }
 
     /// <summary>Calls the sapiPostCapitalContractConvertibleCoins endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostCapitalContractConvertibleCoins (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostCapitalContractConvertibleCoins (object parameters = null)
     {
-        return await this.callAsync ("sapiPostCapitalContractConvertibleCoins",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostCapitalContractConvertibleCoins",parameters);
     }
 
     /// <summary>Calls the sapiPostCapitalDepositCreditApply endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostCapitalDepositCreditApply (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostCapitalDepositCreditApply (object parameters = null)
     {
-        return await this.callAsync ("sapiPostCapitalDepositCreditApply",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostCapitalDepositCreditApply",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginBorrowRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginBorrowRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginBorrowRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginBorrowRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginBorrowRepay",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginLoan (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginLoan",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginRepay",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginOrder",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginOrderOco endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginOrderOco (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginOrderOco (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginOrderOco",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginOrderOco",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginDust endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginDust (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginDust (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginDust",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginDust",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginExchangeSmallLiability endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginExchangeSmallLiability (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginExchangeSmallLiability (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginExchangeSmallLiability",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginExchangeSmallLiability",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginIsolatedTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginIsolatedTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginIsolatedTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginIsolatedTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginIsolatedTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginIsolatedAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginIsolatedAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginIsolatedAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginIsolatedAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginIsolatedAccount",parameters);
     }
 
     /// <summary>Calls the sapiPostMarginMaxLeverage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMarginMaxLeverage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMarginMaxLeverage (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMarginMaxLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMarginMaxLeverage",parameters);
     }
 
     /// <summary>Calls the sapiPostBnbBurn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBnbBurn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBnbBurn (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBnbBurn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBnbBurn",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountVirtualSubAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountVirtualSubAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountVirtualSubAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountVirtualSubAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountVirtualSubAccount",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountMarginTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountMarginTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountMarginTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountMarginTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountMarginTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountMarginEnable endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountMarginEnable (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountMarginEnable (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountMarginEnable",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountMarginEnable",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountFuturesEnable endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountFuturesEnable (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountFuturesEnable (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountFuturesEnable",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountFuturesEnable",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountFuturesTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountFuturesTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountFuturesTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountFuturesTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountFuturesTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountFuturesInternalTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountFuturesInternalTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountFuturesInternalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountFuturesInternalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountFuturesInternalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountTransferSubToSub endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountTransferSubToSub (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountTransferSubToSub (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountTransferSubToSub",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountTransferSubToSub",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountTransferSubToMaster endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountTransferSubToMaster (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountTransferSubToMaster (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountTransferSubToMaster",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountTransferSubToMaster",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountUniversalTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountUniversalTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountUniversalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountUniversalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountUniversalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostSubAccountOptionsEnable endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSubAccountOptionsEnable (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSubAccountOptionsEnable (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSubAccountOptionsEnable",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSubAccountOptionsEnable",parameters);
     }
 
     /// <summary>Calls the sapiPostManagedSubaccountDeposit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostManagedSubaccountDeposit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostManagedSubaccountDeposit (object parameters = null)
     {
-        return await this.callAsync ("sapiPostManagedSubaccountDeposit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostManagedSubaccountDeposit",parameters);
     }
 
     /// <summary>Calls the sapiPostManagedSubaccountWithdraw endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostManagedSubaccountWithdraw (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostManagedSubaccountWithdraw (object parameters = null)
     {
-        return await this.callAsync ("sapiPostManagedSubaccountWithdraw",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostManagedSubaccountWithdraw",parameters);
     }
 
     /// <summary>Calls the sapiPostUserDataStream endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostUserDataStream (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostUserDataStream (object parameters = null)
     {
-        return await this.callAsync ("sapiPostUserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostUserDataStream",parameters);
     }
 
     /// <summary>Calls the sapiPostUserDataStreamIsolated endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostUserDataStreamIsolated (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostUserDataStreamIsolated (object parameters = null)
     {
-        return await this.callAsync ("sapiPostUserDataStreamIsolated",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostUserDataStreamIsolated",parameters);
     }
 
     /// <summary>Calls the sapiPostUserListenToken endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostUserListenToken (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostUserListenToken (object parameters = null)
     {
-        return await this.callAsync ("sapiPostUserListenToken",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostUserListenToken",parameters);
     }
 
     /// <summary>Calls the sapiPostFuturesTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostFuturesTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostFuturesTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostFuturesTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostFuturesTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingCustomizedFixedPurchase endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingCustomizedFixedPurchase (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingCustomizedFixedPurchase (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingCustomizedFixedPurchase",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingCustomizedFixedPurchase",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingDailyPurchase endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingDailyPurchase (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingDailyPurchase (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingDailyPurchase",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingDailyPurchase",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingDailyRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingDailyRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingDailyRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingDailyRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingDailyRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostBswapLiquidityAdd endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBswapLiquidityAdd (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBswapLiquidityAdd (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapLiquidityAdd",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBswapLiquidityAdd",parameters);
     }
 
     /// <summary>Calls the sapiPostBswapLiquidityRemove endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBswapLiquidityRemove (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBswapLiquidityRemove (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapLiquidityRemove",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBswapLiquidityRemove",parameters);
     }
 
     /// <summary>Calls the sapiPostBswapSwap endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBswapSwap (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBswapSwap (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapSwap",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBswapSwap",parameters);
     }
 
     /// <summary>Calls the sapiPostBswapClaimRewards endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBswapClaimRewards (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBswapClaimRewards (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBswapClaimRewards",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBswapClaimRewards",parameters);
     }
 
     /// <summary>Calls the sapiPostBlvtSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBlvtSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBlvtSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBlvtSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBlvtSubscribe",parameters);
     }
 
     /// <summary>Calls the sapiPostBlvtRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBlvtRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBlvtRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBlvtRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBlvtRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostApiReferralCustomization endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostApiReferralCustomization (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostApiReferralCustomization (object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralCustomization",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostApiReferralCustomization",parameters);
     }
 
     /// <summary>Calls the sapiPostApiReferralUserCustomization endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostApiReferralUserCustomization (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostApiReferralUserCustomization (object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralUserCustomization",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostApiReferralUserCustomization",parameters);
     }
 
     /// <summary>Calls the sapiPostApiReferralRebateHistoricalRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiPostApiReferralRebateHistoricalRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiPostApiReferralRebateHistoricalRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralRebateHistoricalRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiPostApiReferralRebateHistoricalRecord",parameters);
     }
 
     /// <summary>Calls the sapiPostApiReferralKickbackHistoricalRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiPostApiReferralKickbackHistoricalRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiPostApiReferralKickbackHistoricalRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiPostApiReferralKickbackHistoricalRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiPostApiReferralKickbackHistoricalRecord",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccount",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountMargin endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountMargin (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountMargin (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountMargin",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountFutures endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountFutures (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountFutures",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountFutures",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApi endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApi (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApi (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApi",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApi",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiPermission endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiPermission (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiPermission (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiPermission",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiPermission",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiCommission endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiCommission (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiCommission (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiCommission",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiCommission",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiCommissionFutures endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiCommissionFutures (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiCommissionFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiCommissionFutures",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiCommissionFutures",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiCommissionCoinFutures endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiCommissionCoinFutures (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiCommissionCoinFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiCommissionCoinFutures",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiCommissionCoinFutures",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerTransferFutures endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerTransferFutures (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerTransferFutures (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerTransferFutures",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerTransferFutures",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerRebateHistoricalRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiPostBrokerRebateHistoricalRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiPostBrokerRebateHistoricalRecord (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerRebateHistoricalRecord",parameters);
+        return await this.callAsync<List<object>> ("sapiPostBrokerRebateHistoricalRecord",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountBnbBurnSpot endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountBnbBurnSpot (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountBnbBurnSpot (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountBnbBurnSpot",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountBnbBurnSpot",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountBnbBurnMarginInterest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountBnbBurnMarginInterest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountBnbBurnMarginInterest (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountBnbBurnMarginInterest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountBnbBurnMarginInterest",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountBlvt endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountBlvt (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountBlvt (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountBlvt",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountBlvt",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiIpRestriction endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiIpRestriction (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiIpRestriction (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiIpRestriction",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiIpRestriction",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiIpRestrictionIpList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiIpRestrictionIpList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiIpRestrictionIpList (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiIpRestrictionIpList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiIpRestrictionIpList",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerUniversalTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerUniversalTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerUniversalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerUniversalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerUniversalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiPermissionUniversalTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiPermissionUniversalTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiPermissionUniversalTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiPermissionUniversalTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiPermissionUniversalTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostBrokerSubAccountApiPermissionVanillaOptions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostBrokerSubAccountApiPermissionVanillaOptions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostBrokerSubAccountApiPermissionVanillaOptions (object parameters = null)
     {
-        return await this.callAsync ("sapiPostBrokerSubAccountApiPermissionVanillaOptions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostBrokerSubAccountApiPermissionVanillaOptions",parameters);
     }
 
     /// <summary>Calls the sapiPostGiftcardCreateCode endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostGiftcardCreateCode (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostGiftcardCreateCode (object parameters = null)
     {
-        return await this.callAsync ("sapiPostGiftcardCreateCode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostGiftcardCreateCode",parameters);
     }
 
     /// <summary>Calls the sapiPostGiftcardRedeemCode endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostGiftcardRedeemCode (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostGiftcardRedeemCode (object parameters = null)
     {
-        return await this.callAsync ("sapiPostGiftcardRedeemCode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostGiftcardRedeemCode",parameters);
     }
 
     /// <summary>Calls the sapiPostGiftcardBuyCode endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostGiftcardBuyCode (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostGiftcardBuyCode (object parameters = null)
     {
-        return await this.callAsync ("sapiPostGiftcardBuyCode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostGiftcardBuyCode",parameters);
     }
 
     /// <summary>Calls the sapiPostAlgoSpotNewOrderTwap endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAlgoSpotNewOrderTwap (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAlgoSpotNewOrderTwap (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAlgoSpotNewOrderTwap",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAlgoSpotNewOrderTwap",parameters);
     }
 
     /// <summary>Calls the sapiPostAlgoFuturesNewOrderVp endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAlgoFuturesNewOrderVp (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAlgoFuturesNewOrderVp (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAlgoFuturesNewOrderVp",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAlgoFuturesNewOrderVp",parameters);
     }
 
     /// <summary>Calls the sapiPostAlgoFuturesNewOrderTwap endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAlgoFuturesNewOrderTwap (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAlgoFuturesNewOrderTwap (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAlgoFuturesNewOrderTwap",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAlgoFuturesNewOrderTwap",parameters);
     }
 
     /// <summary>Calls the sapiPostStakingPurchase endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostStakingPurchase (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostStakingPurchase (object parameters = null)
     {
-        return await this.callAsync ("sapiPostStakingPurchase",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostStakingPurchase",parameters);
     }
 
     /// <summary>Calls the sapiPostStakingRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostStakingRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostStakingRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostStakingRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostStakingRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostStakingSetAutoStaking endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostStakingSetAutoStaking (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostStakingSetAutoStaking (object parameters = null)
     {
-        return await this.callAsync ("sapiPostStakingSetAutoStaking",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostStakingSetAutoStaking",parameters);
     }
 
     /// <summary>Calls the sapiPostEthStakingEthStake endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostEthStakingEthStake (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEthStakingEthStake (object parameters = null)
     {
-        return await this.callAsync ("sapiPostEthStakingEthStake",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEthStakingEthStake",parameters);
     }
 
     /// <summary>Calls the sapiPostEthStakingEthRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostEthStakingEthRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEthStakingEthRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostEthStakingEthRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEthStakingEthRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostEthStakingWbethWrap endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostEthStakingWbethWrap (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEthStakingWbethWrap (object parameters = null)
     {
-        return await this.callAsync ("sapiPostEthStakingWbethWrap",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEthStakingWbethWrap",parameters);
     }
 
     /// <summary>Calls the sapiPostSolStakingSolStake endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSolStakingSolStake (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSolStakingSolStake (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSolStakingSolStake",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSolStakingSolStake",parameters);
     }
 
     /// <summary>Calls the sapiPostSolStakingSolRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSolStakingSolRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSolStakingSolRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSolStakingSolRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSolStakingSolRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostMiningHashTransferConfig endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMiningHashTransferConfig (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMiningHashTransferConfig (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMiningHashTransferConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMiningHashTransferConfig",parameters);
     }
 
     /// <summary>Calls the sapiPostMiningHashTransferConfigCancel endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostMiningHashTransferConfigCancel (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostMiningHashTransferConfigCancel (object parameters = null)
     {
-        return await this.callAsync ("sapiPostMiningHashTransferConfigCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostMiningHashTransferConfigCancel",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioRepay",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanVipRenew endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanVipRenew (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanVipRenew (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanVipRenew",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanVipRenew",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanVipBorrow endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanVipBorrow (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanVipBorrow (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanVipBorrow",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanVipBorrow",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanBorrow endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanBorrow (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanBorrow (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanBorrow",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanBorrow",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanRepay",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanAdjustLtv endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanAdjustLtv (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanAdjustLtv (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanAdjustLtv",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanAdjustLtv",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanCustomizeMarginCall endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanCustomizeMarginCall (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanCustomizeMarginCall (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanCustomizeMarginCall",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanCustomizeMarginCall",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanFlexibleRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanFlexibleRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanFlexibleRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanFlexibleRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanFlexibleRepay",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanFlexibleAdjustLtv endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanFlexibleAdjustLtv (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanFlexibleAdjustLtv (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanFlexibleAdjustLtv",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanFlexibleAdjustLtv",parameters);
     }
 
     /// <summary>Calls the sapiPostLoanVipRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLoanVipRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLoanVipRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLoanVipRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLoanVipRepay",parameters);
     }
 
     /// <summary>Calls the sapiPostConvertGetQuote endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostConvertGetQuote (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostConvertGetQuote (object parameters = null)
     {
-        return await this.callAsync ("sapiPostConvertGetQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostConvertGetQuote",parameters);
     }
 
     /// <summary>Calls the sapiPostConvertAcceptQuote endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostConvertAcceptQuote (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostConvertAcceptQuote (object parameters = null)
     {
-        return await this.callAsync ("sapiPostConvertAcceptQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostConvertAcceptQuote",parameters);
     }
 
     /// <summary>Calls the sapiPostConvertLimitPlaceOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostConvertLimitPlaceOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostConvertLimitPlaceOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiPostConvertLimitPlaceOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostConvertLimitPlaceOrder",parameters);
     }
 
     /// <summary>Calls the sapiPostConvertLimitCancelOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostConvertLimitCancelOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostConvertLimitCancelOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiPostConvertLimitCancelOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostConvertLimitCancelOrder",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioAutoCollection endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioAutoCollection (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioAutoCollection (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioAutoCollection",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioAutoCollection",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioAssetCollection endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioAssetCollection (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioAssetCollection (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioAssetCollection",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioAssetCollection",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioBnbTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioBnbTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioBnbTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioBnbTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioBnbTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioRepayFuturesSwitch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioRepayFuturesSwitch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioRepayFuturesSwitch (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioRepayFuturesSwitch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioRepayFuturesSwitch",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioRepayFuturesNegativeBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioRepayFuturesNegativeBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioRepayFuturesNegativeBalance (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioRepayFuturesNegativeBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioRepayFuturesNegativeBalance",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioMint endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioMint (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioMint (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioMint",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioMint",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioEarnAssetTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioEarnAssetTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioEarnAssetTransfer (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioEarnAssetTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioEarnAssetTransfer",parameters);
     }
 
     /// <summary>Calls the sapiPostPortfolioDeltaMode endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostPortfolioDeltaMode (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioDeltaMode (object parameters = null)
     {
-        return await this.callAsync ("sapiPostPortfolioDeltaMode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioDeltaMode",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingAutoInvestPlanAdd endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingAutoInvestPlanAdd",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingAutoInvestPlanAdd",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingAutoInvestPlanEdit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingAutoInvestPlanEdit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingAutoInvestPlanEdit (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingAutoInvestPlanEdit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingAutoInvestPlanEdit",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingAutoInvestPlanEditStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingAutoInvestPlanEditStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingAutoInvestPlanEditStatus (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingAutoInvestPlanEditStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingAutoInvestPlanEditStatus",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingAutoInvestOneOff endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingAutoInvestOneOff (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingAutoInvestOneOff (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingAutoInvestOneOff",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingAutoInvestOneOff",parameters);
     }
 
     /// <summary>Calls the sapiPostLendingAutoInvestRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostLendingAutoInvestRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostLendingAutoInvestRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostLendingAutoInvestRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostLendingAutoInvestRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnFlexibleSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnFlexibleSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnFlexibleSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnFlexibleSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnFlexibleSubscribe",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnLockedSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnLockedSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnLockedSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnLockedSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnLockedSubscribe",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnFlexibleRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnFlexibleRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnFlexibleRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnFlexibleRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnFlexibleRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnLockedRedeem endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnLockedRedeem (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnLockedRedeem (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnLockedRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnLockedRedeem",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnFlexibleSetAutoSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnFlexibleSetAutoSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnFlexibleSetAutoSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnFlexibleSetAutoSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnFlexibleSetAutoSubscribe",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnLockedSetAutoSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnLockedSetAutoSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnLockedSetAutoSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnLockedSetAutoSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnLockedSetAutoSubscribe",parameters);
     }
 
     /// <summary>Calls the sapiPostSimpleEarnLockedSetRedeemOption endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostSimpleEarnLockedSetRedeemOption (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostSimpleEarnLockedSetRedeemOption (object parameters = null)
     {
-        return await this.callAsync ("sapiPostSimpleEarnLockedSetRedeemOption",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostSimpleEarnLockedSetRedeemOption",parameters);
     }
 
     /// <summary>Calls the sapiPostDciProductSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostDciProductSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostDciProductSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostDciProductSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostDciProductSubscribe",parameters);
     }
 
     /// <summary>Calls the sapiPostDciProductAutoCompoundEdit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostDciProductAutoCompoundEdit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostDciProductAutoCompoundEdit (object parameters = null)
     {
-        return await this.callAsync ("sapiPostDciProductAutoCompoundEdit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostDciProductAutoCompoundEdit",parameters);
     }
 
     /// <summary>Calls the sapiPostAccumulatorProductSubscribe endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPostAccumulatorProductSubscribe (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostAccumulatorProductSubscribe (object parameters = null)
     {
-        return await this.callAsync ("sapiPostAccumulatorProductSubscribe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostAccumulatorProductSubscribe",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderPlace endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderPlace (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderPlace",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancel",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderCancelAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancelAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancelAll",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityTokenizedMint endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedMint (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedMint",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityTokenizedRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedRedeem",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityAccountDisclaimer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityAccountDisclaimer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityAccountDisclaimer",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityListenKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityListenKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityListenKey",parameters);
     }
 
     /// <summary>Calls the sapiPutUserDataStream endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPutUserDataStream (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPutUserDataStream (object parameters = null)
     {
-        return await this.callAsync ("sapiPutUserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPutUserDataStream",parameters);
     }
 
     /// <summary>Calls the sapiPutUserDataStreamIsolated endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiPutUserDataStreamIsolated (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPutUserDataStreamIsolated (object parameters = null)
     {
-        return await this.callAsync ("sapiPutUserDataStreamIsolated",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiPutUserDataStreamIsolated",parameters);
     }
 
     /// <summary>Calls the sapiDeleteMarginOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiDeleteMarginOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiDeleteMarginOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("sapiDeleteMarginOpenOrders",parameters);
     }
 
     /// <summary>Calls the sapiDeleteMarginOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteMarginOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteMarginOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteMarginOrder",parameters);
     }
 
     /// <summary>Calls the sapiDeleteMarginOrderList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteMarginOrderList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteMarginOrderList (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteMarginOrderList",parameters);
     }
 
     /// <summary>Calls the sapiDeleteMarginIsolatedAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteMarginIsolatedAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteMarginIsolatedAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteMarginIsolatedAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteMarginIsolatedAccount",parameters);
     }
 
     /// <summary>Calls the sapiDeleteUserDataStream endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteUserDataStream (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteUserDataStream (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteUserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteUserDataStream",parameters);
     }
 
     /// <summary>Calls the sapiDeleteUserDataStreamIsolated endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteUserDataStreamIsolated (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteUserDataStreamIsolated (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteUserDataStreamIsolated",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteUserDataStreamIsolated",parameters);
     }
 
     /// <summary>Calls the sapiDeleteBrokerSubAccountApi endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteBrokerSubAccountApi (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteBrokerSubAccountApi (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteBrokerSubAccountApi",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteBrokerSubAccountApi",parameters);
     }
 
     /// <summary>Calls the sapiDeleteBrokerSubAccountApiIpRestrictionIpList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteBrokerSubAccountApiIpRestrictionIpList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteBrokerSubAccountApiIpRestrictionIpList (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteBrokerSubAccountApiIpRestrictionIpList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteBrokerSubAccountApiIpRestrictionIpList",parameters);
     }
 
     /// <summary>Calls the sapiDeleteAlgoSpotOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteAlgoSpotOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteAlgoSpotOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteAlgoSpotOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteAlgoSpotOrder",parameters);
     }
 
     /// <summary>Calls the sapiDeleteAlgoFuturesOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteAlgoFuturesOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteAlgoFuturesOrder (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteAlgoFuturesOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteAlgoFuturesOrder",parameters);
     }
 
     /// <summary>Calls the sapiDeleteSubAccountSubAccountApiIpRestrictionIpList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (object parameters = null)
     {
-        return await this.callAsync ("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList",parameters);
     }
 
     /// <summary>Calls the sapiV2GetEthStakingAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetEthStakingAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetEthStakingAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetEthStakingAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetEthStakingAccount",parameters);
     }
 
     /// <summary>Calls the sapiV2GetSubAccountFuturesAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetSubAccountFuturesAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetSubAccountFuturesAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetSubAccountFuturesAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetSubAccountFuturesAccount",parameters);
     }
 
     /// <summary>Calls the sapiV2GetSubAccountFuturesAccountSummary endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetSubAccountFuturesAccountSummary (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetSubAccountFuturesAccountSummary (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetSubAccountFuturesAccountSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetSubAccountFuturesAccountSummary",parameters);
     }
 
     /// <summary>Calls the sapiV2GetSubAccountFuturesPositionRisk endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetSubAccountFuturesPositionRisk (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetSubAccountFuturesPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetSubAccountFuturesPositionRisk",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetSubAccountFuturesPositionRisk",parameters);
     }
 
     /// <summary>Calls the sapiV2GetLoanFlexibleOngoingOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetLoanFlexibleOngoingOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetLoanFlexibleOngoingOrders (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetLoanFlexibleOngoingOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetLoanFlexibleOngoingOrders",parameters);
     }
 
     /// <summary>Calls the sapiV2GetLoanFlexibleBorrowHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetLoanFlexibleBorrowHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetLoanFlexibleBorrowHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetLoanFlexibleBorrowHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetLoanFlexibleBorrowHistory",parameters);
     }
 
     /// <summary>Calls the sapiV2GetLoanFlexibleRepayHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetLoanFlexibleRepayHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetLoanFlexibleRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetLoanFlexibleRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetLoanFlexibleRepayHistory",parameters);
     }
 
     /// <summary>Calls the sapiV2GetLoanFlexibleLtvAdjustmentHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetLoanFlexibleLtvAdjustmentHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetLoanFlexibleLtvAdjustmentHistory (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetLoanFlexibleLtvAdjustmentHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetLoanFlexibleLtvAdjustmentHistory",parameters);
     }
 
     /// <summary>Calls the sapiV2GetLoanFlexibleLoanableData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetLoanFlexibleLoanableData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetLoanFlexibleLoanableData (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetLoanFlexibleLoanableData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetLoanFlexibleLoanableData",parameters);
     }
 
     /// <summary>Calls the sapiV2GetLoanFlexibleCollateralData endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetLoanFlexibleCollateralData (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetLoanFlexibleCollateralData (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetLoanFlexibleCollateralData",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetLoanFlexibleCollateralData",parameters);
     }
 
     /// <summary>Calls the sapiV2GetPortfolioAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2GetPortfolioAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2GetPortfolioAccount (object parameters = null)
     {
-        return await this.callAsync ("sapiV2GetPortfolioAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2GetPortfolioAccount",parameters);
     }
 
     /// <summary>Calls the sapiV2PostEthStakingEthStake endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2PostEthStakingEthStake (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2PostEthStakingEthStake (object parameters = null)
     {
-        return await this.callAsync ("sapiV2PostEthStakingEthStake",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2PostEthStakingEthStake",parameters);
     }
 
     /// <summary>Calls the sapiV2PostSubAccountSubAccountApiIpRestriction endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2PostSubAccountSubAccountApiIpRestriction (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2PostSubAccountSubAccountApiIpRestriction (object parameters = null)
     {
-        return await this.callAsync ("sapiV2PostSubAccountSubAccountApiIpRestriction",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2PostSubAccountSubAccountApiIpRestriction",parameters);
     }
 
     /// <summary>Calls the sapiV2PostLoanFlexibleBorrow endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2PostLoanFlexibleBorrow (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2PostLoanFlexibleBorrow (object parameters = null)
     {
-        return await this.callAsync ("sapiV2PostLoanFlexibleBorrow",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2PostLoanFlexibleBorrow",parameters);
     }
 
     /// <summary>Calls the sapiV2PostLoanFlexibleRepay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2PostLoanFlexibleRepay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2PostLoanFlexibleRepay (object parameters = null)
     {
-        return await this.callAsync ("sapiV2PostLoanFlexibleRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2PostLoanFlexibleRepay",parameters);
     }
 
     /// <summary>Calls the sapiV2PostLoanFlexibleAdjustLtv endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV2PostLoanFlexibleAdjustLtv (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV2PostLoanFlexibleAdjustLtv (object parameters = null)
     {
-        return await this.callAsync ("sapiV2PostLoanFlexibleAdjustLtv",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV2PostLoanFlexibleAdjustLtv",parameters);
     }
 
     /// <summary>Calls the sapiV3GetSubAccountAssets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV3GetSubAccountAssets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV3GetSubAccountAssets (object parameters = null)
     {
-        return await this.callAsync ("sapiV3GetSubAccountAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV3GetSubAccountAssets",parameters);
     }
 
     /// <summary>Calls the sapiV3PostAssetGetUserAsset endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> sapiV3PostAssetGetUserAsset (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiV3PostAssetGetUserAsset (object parameters = null)
     {
-        return await this.callAsync ("sapiV3PostAssetGetUserAsset",parameters);
+        return await this.callAsync<List<object>> ("sapiV3PostAssetGetUserAsset",parameters);
     }
 
     /// <summary>Calls the sapiV4GetSubAccountAssets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> sapiV4GetSubAccountAssets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiV4GetSubAccountAssets (object parameters = null)
     {
-        return await this.callAsync ("sapiV4GetSubAccountAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("sapiV4GetSubAccountAssets",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetPing endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPublicGetPing (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPublicGetPing (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetPing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPublicGetPing",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetTime endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPublicGetTime (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPublicGetTime (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTime",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPublicGetTime",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetExchangeInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPublicGetExchangeInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPublicGetExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetExchangeInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPublicGetExchangeInfo",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetDepth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPublicGetDepth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPublicGetDepth (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetDepth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPublicGetDepth",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetTrades (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTrades",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetTrades",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetHistoricalTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetHistoricalTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetHistoricalTrades (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetHistoricalTrades",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetAggTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetAggTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetAggTrades (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetAggTrades",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetAggTrades",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetPremiumIndex endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetPremiumIndex (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetPremiumIndex (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetPremiumIndex",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetPremiumIndex",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetFundingRate endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetFundingRate (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetFundingRate (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetFundingRate",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetFundingRate",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetKlines (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetKlines",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetKlines",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetContinuousKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetContinuousKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetContinuousKlines (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetContinuousKlines",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetContinuousKlines",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetIndexPriceKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetIndexPriceKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetIndexPriceKlines (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetIndexPriceKlines",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetIndexPriceKlines",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetMarkPriceKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetMarkPriceKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetMarkPriceKlines (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetMarkPriceKlines",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetMarkPriceKlines",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetPremiumIndexKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetPremiumIndexKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetPremiumIndexKlines (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetPremiumIndexKlines",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetPremiumIndexKlines",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetTicker24hr endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> dapiPublicGetTicker24hr (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTicker24hr",parameters);
+        return await this.callAsync<object> ("dapiPublicGetTicker24hr",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTickerPrice",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetTickerBookTicker endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetTickerBookTicker (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetTickerBookTicker (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetTickerBookTicker",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetTickerBookTicker",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetConstituents endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPublicGetConstituents (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPublicGetConstituents (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetConstituents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPublicGetConstituents",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetOpenInterest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPublicGetOpenInterest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPublicGetOpenInterest (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetOpenInterest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPublicGetOpenInterest",parameters);
     }
 
     /// <summary>Calls the dapiPublicGetFundingInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPublicGetFundingInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPublicGetFundingInfo (object parameters = null)
     {
-        return await this.callAsync ("dapiPublicGetFundingInfo",parameters);
+        return await this.callAsync<List<object>> ("dapiPublicGetFundingInfo",parameters);
     }
 
     /// <summary>Calls the dapiDataGetDeliveryPrice endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetDeliveryPrice (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetDeliveryPrice (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetDeliveryPrice",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetDeliveryPrice",parameters);
     }
 
     /// <summary>Calls the dapiDataGetOpenInterestHist endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetOpenInterestHist (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetOpenInterestHist (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetOpenInterestHist",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetOpenInterestHist",parameters);
     }
 
     /// <summary>Calls the dapiDataGetTopLongShortAccountRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetTopLongShortAccountRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetTopLongShortAccountRatio (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetTopLongShortAccountRatio",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetTopLongShortAccountRatio",parameters);
     }
 
     /// <summary>Calls the dapiDataGetTopLongShortPositionRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetTopLongShortPositionRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetTopLongShortPositionRatio (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetTopLongShortPositionRatio",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetTopLongShortPositionRatio",parameters);
     }
 
     /// <summary>Calls the dapiDataGetGlobalLongShortAccountRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetGlobalLongShortAccountRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetGlobalLongShortAccountRatio (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetGlobalLongShortAccountRatio",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetGlobalLongShortAccountRatio",parameters);
     }
 
     /// <summary>Calls the dapiDataGetTakerBuySellVol endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetTakerBuySellVol (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetTakerBuySellVol (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetTakerBuySellVol",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetTakerBuySellVol",parameters);
     }
 
     /// <summary>Calls the dapiDataGetBasis endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiDataGetBasis (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiDataGetBasis (object parameters = null)
     {
-        return await this.callAsync ("dapiDataGetBasis",parameters);
+        return await this.callAsync<List<object>> ("dapiDataGetBasis",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetPositionSideDual",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOrderAmendment endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetOrderAmendment (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetOrderAmendment (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOrderAmendment",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetOrderAmendment",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOpenOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetOpenOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOpenOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetOpenOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetOpenOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOpenAlgoOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetOpenAlgoOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetOpenAlgoOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOpenAlgoOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetOpenAlgoOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetAllOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetAllOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetAllOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetBalance (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetBalance",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetBalance",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetAccount (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetAccount",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetPositionMarginHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetPositionMarginHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetPositionMarginHistory (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPositionMarginHistory",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetPositionMarginHistory",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetPositionRisk",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetUserTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetUserTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetUserTrades (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetUserTrades",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetUserTrades",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetIncome endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetIncome (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetIncome (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetIncome",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetIncome",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetLeverageBracket endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetLeverageBracket (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetLeverageBracket (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetLeverageBracket",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetLeverageBracket",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetForceOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetForceOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetForceOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetForceOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetForceOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetAdlQuantile endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateGetAdlQuantile (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetAdlQuantile (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetAdlQuantile",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateGetAdlQuantile",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetCommissionRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetCommissionRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetCommissionRate (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetCommissionRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetCommissionRate",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetIncomeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetIncomeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetIncomeAsyn (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetIncomeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetIncomeAsyn",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetIncomeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetIncomeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetIncomeAsynId (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetIncomeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetIncomeAsynId",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetTradeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetTradeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetTradeAsyn (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetTradeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetTradeAsyn",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetTradeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetTradeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetTradeAsynId (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetTradeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetTradeAsynId",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOrderAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetOrderAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetOrderAsyn (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOrderAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetOrderAsyn",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetOrderAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetOrderAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetOrderAsynId (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetOrderAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetOrderAsynId",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetPmExchangeInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetPmExchangeInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetPmExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPmExchangeInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetPmExchangeInfo",parameters);
     }
 
     /// <summary>Calls the dapiPrivateGetPmAccountInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateGetPmAccountInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetPmAccountInfo (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateGetPmAccountInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetPmAccountInfo",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostPositionSideDual",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostAlgoOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostAlgoOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostAlgoOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostAlgoOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostAlgoOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivatePostBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivatePostBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivatePostBatchOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostCountdownCancelAll endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostCountdownCancelAll (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostCountdownCancelAll (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostCountdownCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostCountdownCancelAll",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostLeverage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostLeverage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostLeverage (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostLeverage",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostMarginType endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostMarginType (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostMarginType (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostMarginType",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostMarginType",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostPositionMargin endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostPositionMargin (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostPositionMargin (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostPositionMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostPositionMargin",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePostListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePostListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePostListenKey (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePostListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePostListenKey",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePutListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePutListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePutListenKey (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePutListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePutListenKey",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePutOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivatePutOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivatePutOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePutOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivatePutOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivatePutBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivatePutBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivatePutBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivatePutBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivatePutBatchOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateDeleteOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateDeleteOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateDeleteOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivateDeleteAlgoOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateDeleteAlgoOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateDeleteAlgoOrder (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteAlgoOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteAlgoOrder",parameters);
     }
 
     /// <summary>Calls the dapiPrivateDeleteAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateDeleteAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateDeleteAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateDeleteAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateDeleteBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateDeleteBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateDeleteBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateDeleteBatchOrders",parameters);
     }
 
     /// <summary>Calls the dapiPrivateDeleteListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> dapiPrivateDeleteListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateDeleteListenKey (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateDeleteListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteListenKey",parameters);
     }
 
     /// <summary>Calls the dapiPrivateV2GetLeverageBracket endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> dapiPrivateV2GetLeverageBracket (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateV2GetLeverageBracket (object parameters = null)
     {
-        return await this.callAsync ("dapiPrivateV2GetLeverageBracket",parameters);
+        return await this.callAsync<List<object>> ("dapiPrivateV2GetLeverageBracket",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetPing endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetPing (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetPing (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetPing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetPing",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTime endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetTime (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetTime (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTime",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetTime",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetExchangeInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetExchangeInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetExchangeInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetExchangeInfo",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetDepth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetDepth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetDepth (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetDepth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetDepth",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetRpiDepth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetRpiDepth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetRpiDepth (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetRpiDepth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetRpiDepth",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetTrades (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTrades",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetTrades",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetHistoricalTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetHistoricalTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetHistoricalTrades (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetHistoricalTrades",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetAggTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetAggTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetAggTrades (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetAggTrades",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetAggTrades",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetKlines (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetKlines",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetKlines",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetContinuousKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetContinuousKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetContinuousKlines (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetContinuousKlines",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetContinuousKlines",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetMarkPriceKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetMarkPriceKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetMarkPriceKlines (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetMarkPriceKlines",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetMarkPriceKlines",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetIndexPriceKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetIndexPriceKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetIndexPriceKlines (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetIndexPriceKlines",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetIndexPriceKlines",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetPremiumIndexKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetPremiumIndexKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetPremiumIndexKlines (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetPremiumIndexKlines",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetPremiumIndexKlines",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetFundingRate endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetFundingRate (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetFundingRate (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetFundingRate",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetFundingRate",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetFundingInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetFundingInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetFundingInfo (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetFundingInfo",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetFundingInfo",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetPremiumIndex endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetPremiumIndex (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetPremiumIndex (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetPremiumIndex",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetPremiumIndex",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTicker24hr endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> fapiPublicGetTicker24hr (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTicker24hr",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTicker24hr",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> fapiPublicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTickerBookTicker endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> fapiPublicGetTickerBookTicker (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTickerBookTicker",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerBookTicker",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetOpenInterest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetOpenInterest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetOpenInterest (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetOpenInterest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetOpenInterest",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetIndexInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetIndexInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetIndexInfo (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetIndexInfo",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetIndexInfo",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetAssetIndex endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetAssetIndex (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetAssetIndex (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetAssetIndex",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetAssetIndex",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetConstituents endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetConstituents (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetConstituents (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetConstituents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetConstituents",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetApiTradingStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetApiTradingStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetApiTradingStatus (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetApiTradingStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetApiTradingStatus",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetLvtKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetLvtKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetLvtKlines (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetLvtKlines",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetLvtKlines",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetConvertExchangeInfo endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetConvertExchangeInfo (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetConvertExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetConvertExchangeInfo",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetConvertExchangeInfo",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetInsuranceBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPublicGetInsuranceBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPublicGetInsuranceBalance (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetInsuranceBalance",parameters);
+        return await this.callAsync<List<object>> ("fapiPublicGetInsuranceBalance",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetSymbolAdlRisk endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetSymbolAdlRisk (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetSymbolAdlRisk (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetSymbolAdlRisk",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetSymbolAdlRisk",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTradingSchedule endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPublicGetTradingSchedule (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPublicGetTradingSchedule (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicGetTradingSchedule",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetTradingSchedule",parameters);
     }
 
     /// <summary>Calls the fapiDataGetDeliveryPrice endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetDeliveryPrice (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetDeliveryPrice (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetDeliveryPrice",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetDeliveryPrice",parameters);
     }
 
     /// <summary>Calls the fapiDataGetOpenInterestHist endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetOpenInterestHist (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetOpenInterestHist (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetOpenInterestHist",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetOpenInterestHist",parameters);
     }
 
     /// <summary>Calls the fapiDataGetTopLongShortAccountRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetTopLongShortAccountRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetTopLongShortAccountRatio (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetTopLongShortAccountRatio",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetTopLongShortAccountRatio",parameters);
     }
 
     /// <summary>Calls the fapiDataGetTopLongShortPositionRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetTopLongShortPositionRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetTopLongShortPositionRatio (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetTopLongShortPositionRatio",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetTopLongShortPositionRatio",parameters);
     }
 
     /// <summary>Calls the fapiDataGetGlobalLongShortAccountRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetGlobalLongShortAccountRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetGlobalLongShortAccountRatio (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetGlobalLongShortAccountRatio",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetGlobalLongShortAccountRatio",parameters);
     }
 
     /// <summary>Calls the fapiDataGetTakerlongshortRatio endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetTakerlongshortRatio (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetTakerlongshortRatio (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetTakerlongshortRatio",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetTakerlongshortRatio",parameters);
     }
 
     /// <summary>Calls the fapiDataGetBasis endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiDataGetBasis (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiDataGetBasis (object parameters = null)
     {
-        return await this.callAsync ("fapiDataGetBasis",parameters);
+        return await this.callAsync<List<object>> ("fapiDataGetBasis",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetForceOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetForceOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetForceOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetForceOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetForceOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetAllOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAllOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetAllOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOpenOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetOpenOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOpenOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetOpenOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetOpenOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetAccount (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetAccount",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetBalance (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetBalance",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetBalance",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetLeverageBracket endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetLeverageBracket (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetLeverageBracket (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetLeverageBracket",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetLeverageBracket",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetPositionMarginHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetPositionMarginHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetPositionMarginHistory (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPositionMarginHistory",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetPositionMarginHistory",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetPositionRisk",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetPositionSideDual",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetUserTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetUserTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetUserTrades (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetUserTrades",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetUserTrades",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetIncome endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetIncome (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetIncome (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetIncome",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetIncome",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetCommissionRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetCommissionRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetCommissionRate (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetCommissionRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetCommissionRate",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetRateLimitOrder endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetRateLimitOrder (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetRateLimitOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetRateLimitOrder",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetRateLimitOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiTradingStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetApiTradingStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetApiTradingStatus (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiTradingStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetApiTradingStatus",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetMultiAssetsMargin endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetMultiAssetsMargin (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetMultiAssetsMargin (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetMultiAssetsMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetMultiAssetsMargin",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralIfNewUser endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralIfNewUser (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetApiReferralIfNewUser (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralIfNewUser",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetApiReferralIfNewUser",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralCustomization endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralCustomization (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetApiReferralCustomization (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralCustomization",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetApiReferralCustomization",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralUserCustomization endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralUserCustomization (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetApiReferralUserCustomization (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralUserCustomization",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetApiReferralUserCustomization",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralTraderNum endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralTraderNum (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetApiReferralTraderNum (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralTraderNum",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetApiReferralTraderNum",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralOverview endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralOverview (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetApiReferralOverview (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralOverview",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetApiReferralOverview",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralTradeVol endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralTradeVol (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetApiReferralTradeVol (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralTradeVol",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetApiReferralTradeVol",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralRebateVol endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralRebateVol (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetApiReferralRebateVol (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralRebateVol",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetApiReferralRebateVol",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetApiReferralTraderSummary endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetApiReferralTraderSummary (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetApiReferralTraderSummary (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetApiReferralTraderSummary",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetApiReferralTraderSummary",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetAdlQuantile endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetAdlQuantile (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetAdlQuantile (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAdlQuantile",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetAdlQuantile",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetPmAccountInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetPmAccountInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetPmAccountInfo (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetPmAccountInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetPmAccountInfo",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOrderAmendment endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetOrderAmendment (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetOrderAmendment (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOrderAmendment",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetOrderAmendment",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetIncomeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetIncomeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetIncomeAsyn (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetIncomeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetIncomeAsyn",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetIncomeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetIncomeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetIncomeAsynId (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetIncomeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetIncomeAsynId",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOrderAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetOrderAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetOrderAsyn (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOrderAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetOrderAsyn",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOrderAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetOrderAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetOrderAsynId (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOrderAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetOrderAsynId",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetTradeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetTradeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetTradeAsyn (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetTradeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetTradeAsyn",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetTradeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetTradeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetTradeAsynId (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetTradeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetTradeAsynId",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetFeeBurn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetFeeBurn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetFeeBurn (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetFeeBurn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetFeeBurn",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetSymbolConfig endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetSymbolConfig (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetSymbolConfig (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetSymbolConfig",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetSymbolConfig",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetAccountConfig endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetAccountConfig (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetAccountConfig (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAccountConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetAccountConfig",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetConvertOrderStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetConvertOrderStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetConvertOrderStatus (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetConvertOrderStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetConvertOrderStatus",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetAlgoOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetAlgoOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetAlgoOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAlgoOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetAlgoOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetOpenAlgoOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetOpenAlgoOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetOpenAlgoOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetOpenAlgoOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetOpenAlgoOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetAllAlgoOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateGetAllAlgoOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateGetAllAlgoOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetAllAlgoOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateGetAllAlgoOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateGetStockContract endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateGetStockContract (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetStockContract (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateGetStockContract",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetStockContract",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivatePostBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivatePostBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivatePostBatchOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostPositionSideDual",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostPositionMargin endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostPositionMargin (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostPositionMargin (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostPositionMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostPositionMargin",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostMarginType endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostMarginType (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostMarginType (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostMarginType",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostMarginType",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostOrderTest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostOrderTest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostOrderTest (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostOrderTest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostOrderTest",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostLeverage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostLeverage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostLeverage (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostLeverage",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostListenKey (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostListenKey",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostCountdownCancelAll endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostCountdownCancelAll (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostCountdownCancelAll (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostCountdownCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostCountdownCancelAll",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostMultiAssetsMargin endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostMultiAssetsMargin (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostMultiAssetsMargin (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostMultiAssetsMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostMultiAssetsMargin",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostApiReferralCustomization endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostApiReferralCustomization (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostApiReferralCustomization (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostApiReferralCustomization",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostApiReferralCustomization",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostApiReferralUserCustomization endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostApiReferralUserCustomization (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostApiReferralUserCustomization (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostApiReferralUserCustomization",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostApiReferralUserCustomization",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostFeeBurn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostFeeBurn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostFeeBurn (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostFeeBurn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostFeeBurn",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostConvertGetQuote endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostConvertGetQuote (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostConvertGetQuote (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostConvertGetQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostConvertGetQuote",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostConvertAcceptQuote endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostConvertAcceptQuote (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostConvertAcceptQuote (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostConvertAcceptQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostConvertAcceptQuote",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePostAlgoOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePostAlgoOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostAlgoOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePostAlgoOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostAlgoOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePutListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePutListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePutListenKey (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePutListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePutListenKey",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePutOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivatePutOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePutOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePutOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePutOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivatePutBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivatePutBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivatePutBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivatePutBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivatePutBatchOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateDeleteBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateDeleteBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateDeleteBatchOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateDeleteOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateDeleteOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateDeleteOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateDeleteAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateDeleteAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateDeleteAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateDeleteListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateDeleteListenKey (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateDeleteListenKey",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteAlgoOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateDeleteAlgoOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateDeleteAlgoOrder (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteAlgoOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateDeleteAlgoOrder",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteAlgoOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateDeleteAlgoOpenOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateDeleteAlgoOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateDeleteAlgoOpenOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateDeleteAlgoOpenOrders",parameters);
     }
 
     /// <summary>Calls the fapiPublicV2GetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> fapiPublicV2GetTickerPrice (object parameters = null)
     {
-        return await this.callAsync ("fapiPublicV2GetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicV2GetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV2GetAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateV2GetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateV2GetAccount (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV2GetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateV2GetAccount",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV2GetBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateV2GetBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateV2GetBalance (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV2GetBalance",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateV2GetBalance",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV2GetPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateV2GetPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateV2GetPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV2GetPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateV2GetPositionRisk",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV3GetAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> fapiPrivateV3GetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateV3GetAccount (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV3GetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateV3GetAccount",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV3GetBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateV3GetBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateV3GetBalance (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV3GetBalance",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateV3GetBalance",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV3GetPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> fapiPrivateV3GetPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateV3GetPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("fapiPrivateV3GetPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("fapiPrivateV3GetPositionRisk",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetPing endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPublicGetPing (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPublicGetPing (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetPing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetPing",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetTime endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPublicGetTime (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPublicGetTime (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetTime",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetTime",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetExchangeInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPublicGetExchangeInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPublicGetExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetExchangeInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetExchangeInfo",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetIndex endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPublicGetIndex (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPublicGetIndex (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetIndex",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetIndex",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetTicker endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPublicGetTicker (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetTicker (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetTicker",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetTicker",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetMark endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPublicGetMark (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetMark (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetMark",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetMark",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetDepth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPublicGetDepth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPublicGetDepth (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetDepth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetDepth",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPublicGetKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetKlines (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetKlines",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetKlines",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPublicGetTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetTrades (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetTrades",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetTrades",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetHistoricalTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPublicGetHistoricalTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetHistoricalTrades (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetHistoricalTrades",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetExerciseHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPublicGetExerciseHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetExerciseHistory (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetExerciseHistory",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetExerciseHistory",parameters);
     }
 
     /// <summary>Calls the eapiPublicGetOpenInterest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPublicGetOpenInterest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPublicGetOpenInterest (object parameters = null)
     {
-        return await this.callAsync ("eapiPublicGetOpenInterest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetOpenInterest",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetAccount (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetAccount",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetPosition endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetPosition (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetPosition (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetPosition",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetPosition",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetOpenOrders",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetHistoryOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetHistoryOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetHistoryOrders (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetHistoryOrders",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetHistoryOrders",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetUserTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetUserTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetUserTrades (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetUserTrades",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetUserTrades",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetExerciseRecord endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetExerciseRecord (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetExerciseRecord (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetExerciseRecord",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetExerciseRecord",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetBill endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetBill (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetBill (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetBill",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetBill",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetIncomeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetIncomeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetIncomeAsyn (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetIncomeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetIncomeAsyn",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetIncomeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetIncomeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetIncomeAsynId (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetIncomeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetIncomeAsynId",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetMarginAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetMarginAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetMarginAccount (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetMarginAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetMarginAccount",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetMmp endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetMmp (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetMmp (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetMmp",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetMmp",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetCountdownCancelAll endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetCountdownCancelAll (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetCountdownCancelAll (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetCountdownCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetCountdownCancelAll",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetOrder (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetOrder",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetBlockOrderOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetBlockOrderOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetBlockOrderOrders (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetBlockOrderOrders",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetBlockOrderOrders",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetBlockOrderExecute endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetBlockOrderExecute (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetBlockOrderExecute (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetBlockOrderExecute",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetBlockOrderExecute",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetBlockUserTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetBlockUserTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetBlockUserTrades (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetBlockUserTrades",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetBlockUserTrades",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetBlockTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateGetBlockTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateGetBlockTrades (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateGetBlockTrades",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetComission endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateGetComission (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateGetComission (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateGetComission",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateGetComission",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostOrder (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostOrder",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivatePostBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivatePostBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivatePostBatchOrders",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostListenKey (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostListenKey",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostMmpSet endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostMmpSet (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostMmpSet (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostMmpSet",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostMmpSet",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostMmpReset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostMmpReset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostMmpReset (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostMmpReset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostMmpReset",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostCountdownCancelAll endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostCountdownCancelAll (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostCountdownCancelAll (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostCountdownCancelAll",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostCountdownCancelAll",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostCountdownCancelAllHeartBeat endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostCountdownCancelAllHeartBeat (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostCountdownCancelAllHeartBeat (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostCountdownCancelAllHeartBeat",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostCountdownCancelAllHeartBeat",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostBlockOrderCreate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostBlockOrderCreate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostBlockOrderCreate (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostBlockOrderCreate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostBlockOrderCreate",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePostBlockOrderExecute endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePostBlockOrderExecute (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostBlockOrderExecute (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePostBlockOrderExecute",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostBlockOrderExecute",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePutListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePutListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePutListenKey (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePutListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePutListenKey",parameters);
     }
 
     /// <summary>Calls the eapiPrivatePutBlockOrderCreate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivatePutBlockOrderCreate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePutBlockOrderCreate (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivatePutBlockOrderCreate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePutBlockOrderCreate",parameters);
     }
 
     /// <summary>Calls the eapiPrivateDeleteOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateDeleteOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateDeleteOrder (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateDeleteOrder",parameters);
     }
 
     /// <summary>Calls the eapiPrivateDeleteBatchOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateDeleteBatchOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateDeleteBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteBatchOrders",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateDeleteBatchOrders",parameters);
     }
 
     /// <summary>Calls the eapiPrivateDeleteAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> eapiPrivateDeleteAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPrivateDeleteAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("eapiPrivateDeleteAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the eapiPrivateDeleteAllOpenOrdersByUnderlying endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateDeleteAllOpenOrdersByUnderlying (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateDeleteAllOpenOrdersByUnderlying (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteAllOpenOrdersByUnderlying",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateDeleteAllOpenOrdersByUnderlying",parameters);
     }
 
     /// <summary>Calls the eapiPrivateDeleteListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateDeleteListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateDeleteListenKey (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateDeleteListenKey",parameters);
     }
 
     /// <summary>Calls the eapiPrivateDeleteBlockOrderCreate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> eapiPrivateDeleteBlockOrderCreate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivateDeleteBlockOrderCreate (object parameters = null)
     {
-        return await this.callAsync ("eapiPrivateDeleteBlockOrderCreate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivateDeleteBlockOrderCreate",parameters);
     }
 
     /// <summary>Calls the publicGetPing endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetPing (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPing (object parameters = null)
     {
-        return await this.callAsync ("publicGetPing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPing",parameters);
     }
 
     /// <summary>Calls the publicGetTime endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetTime (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTime (object parameters = null)
     {
-        return await this.callAsync ("publicGetTime",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTime",parameters);
     }
 
     /// <summary>Calls the publicGetDepth endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetDepth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetDepth (object parameters = null)
     {
-        return await this.callAsync ("publicGetDepth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetDepth",parameters);
     }
 
     /// <summary>Calls the publicGetTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetTrades",parameters);
+        return await this.callAsync<List<object>> ("publicGetTrades",parameters);
     }
 
     /// <summary>Calls the publicGetAggTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetAggTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetAggTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetAggTrades",parameters);
+        return await this.callAsync<List<object>> ("publicGetAggTrades",parameters);
     }
 
     /// <summary>Calls the publicGetHistoricalTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetHistoricalTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetHistoricalTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetHistoricalTrades",parameters);
+        return await this.callAsync<List<object>> ("publicGetHistoricalTrades",parameters);
     }
 
     /// <summary>Calls the publicGetKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetKlines (object parameters = null)
     {
-        return await this.callAsync ("publicGetKlines",parameters);
+        return await this.callAsync<List<object>> ("publicGetKlines",parameters);
     }
 
     /// <summary>Calls the publicGetUiKlines endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetUiKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetUiKlines (object parameters = null)
     {
-        return await this.callAsync ("publicGetUiKlines",parameters);
+        return await this.callAsync<List<object>> ("publicGetUiKlines",parameters);
     }
 
     /// <summary>Calls the publicGetTicker24hr endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> publicGetTicker24hr (object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker24hr",parameters);
+        return await this.callAsync<object> ("publicGetTicker24hr",parameters);
     }
 
     /// <summary>Calls the publicGetTicker endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetTicker (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetTicker",parameters);
+        return await this.callAsync<List<object>> ("publicGetTicker",parameters);
     }
 
     /// <summary>Calls the publicGetTickerTradingDay endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetTickerTradingDay (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTickerTradingDay (object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerTradingDay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTickerTradingDay",parameters);
     }
 
     /// <summary>Calls the publicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
     public async Task<object> publicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("publicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the publicGetTickerBookTicker endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> publicGetTickerBookTicker (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetTickerBookTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerBookTicker",parameters);
+        return await this.callAsync<List<object>> ("publicGetTickerBookTicker",parameters);
     }
 
     /// <summary>Calls the publicGetExchangeInfo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetExchangeInfo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetExchangeInfo (object parameters = null)
     {
-        return await this.callAsync ("publicGetExchangeInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetExchangeInfo",parameters);
     }
 
     /// <summary>Calls the publicGetAvgPrice endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicGetAvgPrice (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetAvgPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetAvgPrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetAvgPrice",parameters);
     }
 
     /// <summary>Calls the publicPutUserDataStream endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicPutUserDataStream (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicPutUserDataStream (object parameters = null)
     {
-        return await this.callAsync ("publicPutUserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPutUserDataStream",parameters);
     }
 
     /// <summary>Calls the publicPostUserDataStream endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicPostUserDataStream (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicPostUserDataStream (object parameters = null)
     {
-        return await this.callAsync ("publicPostUserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostUserDataStream",parameters);
     }
 
     /// <summary>Calls the publicDeleteUserDataStream endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> publicDeleteUserDataStream (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicDeleteUserDataStream (object parameters = null)
     {
-        return await this.callAsync ("publicDeleteUserDataStream",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicDeleteUserDataStream",parameters);
     }
 
     /// <summary>Calls the privateGetAllOrderList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetAllOrderList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAllOrderList (object parameters = null)
     {
-        return await this.callAsync ("privateGetAllOrderList",parameters);
+        return await this.callAsync<List<object>> ("privateGetAllOrderList",parameters);
     }
 
     /// <summary>Calls the privateGetOpenOrderList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetOpenOrderList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetOpenOrderList (object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenOrderList",parameters);
+        return await this.callAsync<List<object>> ("privateGetOpenOrderList",parameters);
     }
 
     /// <summary>Calls the privateGetOrderList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetOrderList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetOrderList (object parameters = null)
     {
-        return await this.callAsync ("privateGetOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetOrderList",parameters);
     }
 
     /// <summary>Calls the privateGetOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetOrder",parameters);
     }
 
     /// <summary>Calls the privateGetOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("privateGetOpenOrders",parameters);
     }
 
     /// <summary>Calls the privateGetAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAllOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetAllOrders",parameters);
+        return await this.callAsync<List<object>> ("privateGetAllOrders",parameters);
     }
 
     /// <summary>Calls the privateGetAccount endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccount (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccount",parameters);
     }
 
     /// <summary>Calls the privateGetMyTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetMyTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetMyTrades (object parameters = null)
     {
-        return await this.callAsync ("privateGetMyTrades",parameters);
+        return await this.callAsync<List<object>> ("privateGetMyTrades",parameters);
     }
 
     /// <summary>Calls the privateGetRateLimitOrder endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetRateLimitOrder (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetRateLimitOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetRateLimitOrder",parameters);
+        return await this.callAsync<List<object>> ("privateGetRateLimitOrder",parameters);
     }
 
     /// <summary>Calls the privateGetMyPreventedMatches endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetMyPreventedMatches (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetMyPreventedMatches (object parameters = null)
     {
-        return await this.callAsync ("privateGetMyPreventedMatches",parameters);
+        return await this.callAsync<List<object>> ("privateGetMyPreventedMatches",parameters);
     }
 
     /// <summary>Calls the privateGetMyAllocations endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateGetMyAllocations (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetMyAllocations (object parameters = null)
     {
-        return await this.callAsync ("privateGetMyAllocations",parameters);
+        return await this.callAsync<List<object>> ("privateGetMyAllocations",parameters);
     }
 
     /// <summary>Calls the privateGetAccountCommission endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateGetAccountCommission (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountCommission (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountCommission",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountCommission",parameters);
     }
 
     /// <summary>Calls the privatePostOrderOco endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderOco (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderOco (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderOco",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderOco",parameters);
     }
 
     /// <summary>Calls the privatePostOrderListOco endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderListOco (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderListOco (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderListOco",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderListOco",parameters);
     }
 
     /// <summary>Calls the privatePostOrderListOto endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderListOto (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderListOto (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderListOto",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderListOto",parameters);
     }
 
     /// <summary>Calls the privatePostOrderListOtoco endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderListOtoco (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderListOtoco (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderListOtoco",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderListOtoco",parameters);
     }
 
     /// <summary>Calls the privatePostOrderListOpo endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderListOpo (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderListOpo (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderListOpo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderListOpo",parameters);
     }
 
     /// <summary>Calls the privatePostOrderListOpoco endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderListOpoco (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderListOpoco (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderListOpoco",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderListOpoco",parameters);
     }
 
     /// <summary>Calls the privatePostSorOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostSorOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSorOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostSorOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSorOrder",parameters);
     }
 
     /// <summary>Calls the privatePostSorOrderTest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostSorOrderTest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSorOrderTest (object parameters = null)
     {
-        return await this.callAsync ("privatePostSorOrderTest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSorOrderTest",parameters);
     }
 
     /// <summary>Calls the privatePostOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrder",parameters);
     }
 
     /// <summary>Calls the privatePostOrderCancelReplace endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderCancelReplace (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderCancelReplace (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderCancelReplace",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderCancelReplace",parameters);
     }
 
     /// <summary>Calls the privatePostOrderTest endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privatePostOrderTest (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostOrderTest (object parameters = null)
     {
-        return await this.callAsync ("privatePostOrderTest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostOrderTest",parameters);
     }
 
     /// <summary>Calls the privateDeleteOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> privateDeleteOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateDeleteOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("privateDeleteOpenOrders",parameters);
     }
 
     /// <summary>Calls the privateDeleteOrderList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateDeleteOrderList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteOrderList (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteOrderList",parameters);
     }
 
     /// <summary>Calls the privateDeleteOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> privateDeleteOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateDeleteOrder (object parameters = null)
     {
-        return await this.callAsync ("privateDeleteOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateDeleteOrder",parameters);
     }
 
     /// <summary>Calls the papiGetPing endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetPing (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetPing (object parameters = null)
     {
-        return await this.callAsync ("papiGetPing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetPing",parameters);
     }
 
     /// <summary>Calls the papiGetUmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmOrder",parameters);
     }
 
     /// <summary>Calls the papiGetUmOpenOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmOpenOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmOpenOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmOpenOrder",parameters);
     }
 
     /// <summary>Calls the papiGetUmOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiGetUmAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmAllOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmAllOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmAllOrders",parameters);
     }
 
     /// <summary>Calls the papiGetCmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmOrder",parameters);
     }
 
     /// <summary>Calls the papiGetCmOpenOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmOpenOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmOpenOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmOpenOrder",parameters);
     }
 
     /// <summary>Calls the papiGetCmOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiGetCmAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmAllOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmAllOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmAllOrders",parameters);
     }
 
     /// <summary>Calls the papiGetUmConditionalOpenOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmConditionalOpenOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmConditionalOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmConditionalOpenOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmConditionalOpenOrder",parameters);
     }
 
     /// <summary>Calls the papiGetUmConditionalOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmConditionalOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmConditionalOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmConditionalOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmConditionalOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiGetUmConditionalOrderHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmConditionalOrderHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmConditionalOrderHistory (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmConditionalOrderHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmConditionalOrderHistory",parameters);
     }
 
     /// <summary>Calls the papiGetUmConditionalAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmConditionalAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmConditionalAllOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmConditionalAllOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmConditionalAllOrders",parameters);
     }
 
     /// <summary>Calls the papiGetCmConditionalOpenOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmConditionalOpenOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmConditionalOpenOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmConditionalOpenOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmConditionalOpenOrder",parameters);
     }
 
     /// <summary>Calls the papiGetCmConditionalOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmConditionalOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmConditionalOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmConditionalOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmConditionalOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiGetCmConditionalOrderHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmConditionalOrderHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmConditionalOrderHistory (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmConditionalOrderHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmConditionalOrderHistory",parameters);
     }
 
     /// <summary>Calls the papiGetCmConditionalAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmConditionalAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmConditionalAllOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmConditionalAllOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmConditionalAllOrders",parameters);
     }
 
     /// <summary>Calls the papiGetMarginOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginOrder",parameters);
     }
 
     /// <summary>Calls the papiGetMarginOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetMarginOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetMarginOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetMarginOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiGetMarginAllOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetMarginAllOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetMarginAllOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginAllOrders",parameters);
+        return await this.callAsync<List<object>> ("papiGetMarginAllOrders",parameters);
     }
 
     /// <summary>Calls the papiGetMarginOrderList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginOrderList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginOrderList (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginOrderList",parameters);
     }
 
     /// <summary>Calls the papiGetMarginAllOrderList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetMarginAllOrderList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetMarginAllOrderList (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginAllOrderList",parameters);
+        return await this.callAsync<List<object>> ("papiGetMarginAllOrderList",parameters);
     }
 
     /// <summary>Calls the papiGetMarginOpenOrderList endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetMarginOpenOrderList (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetMarginOpenOrderList (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginOpenOrderList",parameters);
+        return await this.callAsync<List<object>> ("papiGetMarginOpenOrderList",parameters);
     }
 
     /// <summary>Calls the papiGetMarginMyTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetMarginMyTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetMarginMyTrades (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginMyTrades",parameters);
+        return await this.callAsync<List<object>> ("papiGetMarginMyTrades",parameters);
     }
 
     /// <summary>Calls the papiGetBalance endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetBalance (object parameters = null)
     {
-        return await this.callAsync ("papiGetBalance",parameters);
+        return await this.callAsync<List<object>> ("papiGetBalance",parameters);
     }
 
     /// <summary>Calls the papiGetAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetAccount (object parameters = null)
     {
-        return await this.callAsync ("papiGetAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetAccount",parameters);
     }
 
     /// <summary>Calls the papiGetMarginMaxBorrowable endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginMaxBorrowable (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginMaxBorrowable (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginMaxBorrowable",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginMaxBorrowable",parameters);
     }
 
     /// <summary>Calls the papiGetMarginMaxWithdraw endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginMaxWithdraw (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginMaxWithdraw (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginMaxWithdraw",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginMaxWithdraw",parameters);
     }
 
     /// <summary>Calls the papiGetUmPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmPositionRisk",parameters);
     }
 
     /// <summary>Calls the papiGetCmPositionRisk endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmPositionRisk (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmPositionRisk",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmPositionRisk",parameters);
     }
 
     /// <summary>Calls the papiGetUmPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmPositionSideDual",parameters);
     }
 
     /// <summary>Calls the papiGetCmPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmPositionSideDual",parameters);
     }
 
     /// <summary>Calls the papiGetUmUserTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmUserTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmUserTrades (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmUserTrades",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmUserTrades",parameters);
     }
 
     /// <summary>Calls the papiGetCmUserTrades endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmUserTrades (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmUserTrades (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmUserTrades",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmUserTrades",parameters);
     }
 
     /// <summary>Calls the papiGetUmLeverageBracket endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmLeverageBracket (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmLeverageBracket (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmLeverageBracket",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmLeverageBracket",parameters);
     }
 
     /// <summary>Calls the papiGetCmLeverageBracket endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmLeverageBracket (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmLeverageBracket (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmLeverageBracket",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmLeverageBracket",parameters);
     }
 
     /// <summary>Calls the papiGetMarginForceOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginForceOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginForceOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginForceOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginForceOrders",parameters);
     }
 
     /// <summary>Calls the papiGetUmForceOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmForceOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmForceOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmForceOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmForceOrders",parameters);
     }
 
     /// <summary>Calls the papiGetCmForceOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmForceOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmForceOrders (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmForceOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmForceOrders",parameters);
     }
 
     /// <summary>Calls the papiGetUmApiTradingStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmApiTradingStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmApiTradingStatus (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmApiTradingStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmApiTradingStatus",parameters);
     }
 
     /// <summary>Calls the papiGetUmCommissionRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmCommissionRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmCommissionRate (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmCommissionRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmCommissionRate",parameters);
     }
 
     /// <summary>Calls the papiGetCmCommissionRate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmCommissionRate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmCommissionRate (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmCommissionRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmCommissionRate",parameters);
     }
 
     /// <summary>Calls the papiGetMarginMarginLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginMarginLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginMarginLoan (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginMarginLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginMarginLoan",parameters);
     }
 
     /// <summary>Calls the papiGetMarginRepayLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginRepayLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginRepayLoan (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginRepayLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginRepayLoan",parameters);
     }
 
     /// <summary>Calls the papiGetMarginMarginInterestHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetMarginMarginInterestHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetMarginMarginInterestHistory (object parameters = null)
     {
-        return await this.callAsync ("papiGetMarginMarginInterestHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetMarginMarginInterestHistory",parameters);
     }
 
     /// <summary>Calls the papiGetPortfolioInterestHistory endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetPortfolioInterestHistory (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetPortfolioInterestHistory (object parameters = null)
     {
-        return await this.callAsync ("papiGetPortfolioInterestHistory",parameters);
+        return await this.callAsync<List<object>> ("papiGetPortfolioInterestHistory",parameters);
     }
 
     /// <summary>Calls the papiGetUmIncome endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmIncome (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmIncome (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmIncome",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmIncome",parameters);
     }
 
     /// <summary>Calls the papiGetCmIncome endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmIncome (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmIncome (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmIncome",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmIncome",parameters);
     }
 
     /// <summary>Calls the papiGetUmAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmAccount (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmAccount",parameters);
     }
 
     /// <summary>Calls the papiGetCmAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmAccount (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmAccount",parameters);
     }
 
     /// <summary>Calls the papiGetRepayFuturesSwitch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetRepayFuturesSwitch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetRepayFuturesSwitch (object parameters = null)
     {
-        return await this.callAsync ("papiGetRepayFuturesSwitch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetRepayFuturesSwitch",parameters);
     }
 
     /// <summary>Calls the papiGetUmAdlQuantile endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmAdlQuantile (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmAdlQuantile (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmAdlQuantile",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmAdlQuantile",parameters);
     }
 
     /// <summary>Calls the papiGetCmAdlQuantile endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmAdlQuantile (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmAdlQuantile (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmAdlQuantile",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmAdlQuantile",parameters);
     }
 
     /// <summary>Calls the papiGetUmTradeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmTradeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmTradeAsyn (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmTradeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmTradeAsyn",parameters);
     }
 
     /// <summary>Calls the papiGetUmTradeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmTradeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmTradeAsynId (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmTradeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmTradeAsynId",parameters);
     }
 
     /// <summary>Calls the papiGetUmOrderAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmOrderAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmOrderAsyn (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmOrderAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmOrderAsyn",parameters);
     }
 
     /// <summary>Calls the papiGetUmOrderAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmOrderAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmOrderAsynId (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmOrderAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmOrderAsynId",parameters);
     }
 
     /// <summary>Calls the papiGetUmIncomeAsyn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmIncomeAsyn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmIncomeAsyn (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmIncomeAsyn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmIncomeAsyn",parameters);
     }
 
     /// <summary>Calls the papiGetUmIncomeAsynId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmIncomeAsynId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmIncomeAsynId (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmIncomeAsynId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmIncomeAsynId",parameters);
     }
 
     /// <summary>Calls the papiGetUmOrderAmendment endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmOrderAmendment (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmOrderAmendment (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmOrderAmendment",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmOrderAmendment",parameters);
     }
 
     /// <summary>Calls the papiGetCmOrderAmendment endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetCmOrderAmendment (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetCmOrderAmendment (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmOrderAmendment",parameters);
+        return await this.callAsync<List<object>> ("papiGetCmOrderAmendment",parameters);
     }
 
     /// <summary>Calls the papiGetUmFeeBurn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmFeeBurn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmFeeBurn (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmFeeBurn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmFeeBurn",parameters);
     }
 
     /// <summary>Calls the papiGetUmAccountConfig endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetUmAccountConfig (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmAccountConfig (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmAccountConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmAccountConfig",parameters);
     }
 
     /// <summary>Calls the papiGetUmSymbolConfig endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetUmSymbolConfig (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmSymbolConfig (object parameters = null)
     {
-        return await this.callAsync ("papiGetUmSymbolConfig",parameters);
+        return await this.callAsync<List<object>> ("papiGetUmSymbolConfig",parameters);
     }
 
     /// <summary>Calls the papiGetCmAccountConfig endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmAccountConfig (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmAccountConfig (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmAccountConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmAccountConfig",parameters);
     }
 
     /// <summary>Calls the papiGetCmSymbolConfig endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiGetCmSymbolConfig (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetCmSymbolConfig (object parameters = null)
     {
-        return await this.callAsync ("papiGetCmSymbolConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiGetCmSymbolConfig",parameters);
     }
 
     /// <summary>Calls the papiGetRateLimitOrder endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiGetRateLimitOrder (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetRateLimitOrder (object parameters = null)
     {
-        return await this.callAsync ("papiGetRateLimitOrder",parameters);
+        return await this.callAsync<List<object>> ("papiGetRateLimitOrder",parameters);
     }
 
     /// <summary>Calls the papiPostUmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostUmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPostUmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmOrder",parameters);
     }
 
     /// <summary>Calls the papiPostUmConditionalOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostUmConditionalOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmConditionalOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPostUmConditionalOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmConditionalOrder",parameters);
     }
 
     /// <summary>Calls the papiPostCmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostCmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostCmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPostCmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostCmOrder",parameters);
     }
 
     /// <summary>Calls the papiPostCmConditionalOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostCmConditionalOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostCmConditionalOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPostCmConditionalOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostCmConditionalOrder",parameters);
     }
 
     /// <summary>Calls the papiPostMarginOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostMarginOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostMarginOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPostMarginOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostMarginOrder",parameters);
     }
 
     /// <summary>Calls the papiPostMarginLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostMarginLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostMarginLoan (object parameters = null)
     {
-        return await this.callAsync ("papiPostMarginLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostMarginLoan",parameters);
     }
 
     /// <summary>Calls the papiPostRepayLoan endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostRepayLoan (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostRepayLoan (object parameters = null)
     {
-        return await this.callAsync ("papiPostRepayLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostRepayLoan",parameters);
     }
 
     /// <summary>Calls the papiPostMarginOrderOco endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostMarginOrderOco (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostMarginOrderOco (object parameters = null)
     {
-        return await this.callAsync ("papiPostMarginOrderOco",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostMarginOrderOco",parameters);
     }
 
     /// <summary>Calls the papiPostUmLeverage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostUmLeverage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmLeverage (object parameters = null)
     {
-        return await this.callAsync ("papiPostUmLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmLeverage",parameters);
     }
 
     /// <summary>Calls the papiPostCmLeverage endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostCmLeverage (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostCmLeverage (object parameters = null)
     {
-        return await this.callAsync ("papiPostCmLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostCmLeverage",parameters);
     }
 
     /// <summary>Calls the papiPostUmPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostUmPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("papiPostUmPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmPositionSideDual",parameters);
     }
 
     /// <summary>Calls the papiPostCmPositionSideDual endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostCmPositionSideDual (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostCmPositionSideDual (object parameters = null)
     {
-        return await this.callAsync ("papiPostCmPositionSideDual",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostCmPositionSideDual",parameters);
     }
 
     /// <summary>Calls the papiPostAutoCollection endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostAutoCollection (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostAutoCollection (object parameters = null)
     {
-        return await this.callAsync ("papiPostAutoCollection",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostAutoCollection",parameters);
     }
 
     /// <summary>Calls the papiPostBnbTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostBnbTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostBnbTransfer (object parameters = null)
     {
-        return await this.callAsync ("papiPostBnbTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostBnbTransfer",parameters);
     }
 
     /// <summary>Calls the papiPostRepayFuturesSwitch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostRepayFuturesSwitch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostRepayFuturesSwitch (object parameters = null)
     {
-        return await this.callAsync ("papiPostRepayFuturesSwitch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostRepayFuturesSwitch",parameters);
     }
 
     /// <summary>Calls the papiPostRepayFuturesNegativeBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostRepayFuturesNegativeBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostRepayFuturesNegativeBalance (object parameters = null)
     {
-        return await this.callAsync ("papiPostRepayFuturesNegativeBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostRepayFuturesNegativeBalance",parameters);
     }
 
     /// <summary>Calls the papiPostListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostListenKey (object parameters = null)
     {
-        return await this.callAsync ("papiPostListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostListenKey",parameters);
     }
 
     /// <summary>Calls the papiPostAssetCollection endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostAssetCollection (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostAssetCollection (object parameters = null)
     {
-        return await this.callAsync ("papiPostAssetCollection",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostAssetCollection",parameters);
     }
 
     /// <summary>Calls the papiPostMarginRepayDebt endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostMarginRepayDebt (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostMarginRepayDebt (object parameters = null)
     {
-        return await this.callAsync ("papiPostMarginRepayDebt",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostMarginRepayDebt",parameters);
     }
 
     /// <summary>Calls the papiPostUmFeeBurn endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostUmFeeBurn (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmFeeBurn (object parameters = null)
     {
-        return await this.callAsync ("papiPostUmFeeBurn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmFeeBurn",parameters);
     }
 
     /// <summary>Calls the papiPostUmStockContract endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPostUmStockContract (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmStockContract (object parameters = null)
     {
-        return await this.callAsync ("papiPostUmStockContract",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmStockContract",parameters);
     }
 
     /// <summary>Calls the papiPutListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPutListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPutListenKey (object parameters = null)
     {
-        return await this.callAsync ("papiPutListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPutListenKey",parameters);
     }
 
     /// <summary>Calls the papiPutUmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPutUmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPutUmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPutUmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPutUmOrder",parameters);
     }
 
     /// <summary>Calls the papiPutCmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiPutCmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPutCmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiPutCmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiPutCmOrder",parameters);
     }
 
     /// <summary>Calls the papiDeleteUmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteUmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteUmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteUmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteUmOrder",parameters);
     }
 
     /// <summary>Calls the papiDeleteUmConditionalOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteUmConditionalOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteUmConditionalOrder (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteUmConditionalOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteUmConditionalOrder",parameters);
     }
 
     /// <summary>Calls the papiDeleteUmAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiDeleteUmAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiDeleteUmAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteUmAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiDeleteUmAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiDeleteUmConditionalAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiDeleteUmConditionalAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiDeleteUmConditionalAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteUmConditionalAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiDeleteUmConditionalAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiDeleteCmOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteCmOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteCmOrder (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteCmOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteCmOrder",parameters);
     }
 
     /// <summary>Calls the papiDeleteCmConditionalOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteCmConditionalOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteCmConditionalOrder (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteCmConditionalOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteCmConditionalOrder",parameters);
     }
 
     /// <summary>Calls the papiDeleteCmAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiDeleteCmAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiDeleteCmAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteCmAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiDeleteCmAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiDeleteCmConditionalAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiDeleteCmConditionalAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiDeleteCmConditionalAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteCmConditionalAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiDeleteCmConditionalAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiDeleteMarginOrder endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteMarginOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteMarginOrder (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteMarginOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteMarginOrder",parameters);
     }
 
     /// <summary>Calls the papiDeleteMarginAllOpenOrders endpoint.</summary>
-    /// <returns>a JSON array (runtime type: List<object>)</returns>
-    public async Task<object> papiDeleteMarginAllOpenOrders (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiDeleteMarginAllOpenOrders (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteMarginAllOpenOrders",parameters);
+        return await this.callAsync<List<object>> ("papiDeleteMarginAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiDeleteMarginOrderList endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteMarginOrderList (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteMarginOrderList (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteMarginOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteMarginOrderList",parameters);
     }
 
     /// <summary>Calls the papiDeleteListenKey endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiDeleteListenKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteListenKey (object parameters = null)
     {
-        return await this.callAsync ("papiDeleteListenKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteListenKey",parameters);
     }
 
     /// <summary>Calls the papiV2GetUmAccount endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> papiV2GetUmAccount (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiV2GetUmAccount (object parameters = null)
     {
-        return await this.callAsync ("papiV2GetUmAccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("papiV2GetUmAccount",parameters);
     }
 
 }

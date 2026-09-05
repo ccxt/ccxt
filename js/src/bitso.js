@@ -1766,7 +1766,7 @@ export default class bitso extends Exchange {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber(entry, 'fee'),
-                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                            'percentage': (this.safeValue(entry, 'is_fixed') !== true),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1940,7 +1940,7 @@ export default class bitso extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -1952,7 +1952,7 @@ export default class bitso extends Exchange {
             const content = [nonce, method, endpoint];
             let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     body = this.json(query);
                     request += body;
                 }
@@ -1983,7 +1983,7 @@ export default class bitso extends Exchange {
                     success = false;
                 }
             }
-            if (!success) {
+            if (success !== true) {
                 const feedback = this.id + ' ' + this.json(response);
                 const error = this.safeValue(response, 'error');
                 if (error === undefined) {

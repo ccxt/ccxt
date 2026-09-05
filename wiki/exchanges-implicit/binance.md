@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official binance API documentation:** [developers.binance.com](https://developers.binance.com/en)
 
-> 792 implicit endpoints across 20 access groups.
+> 808 implicit endpoints across 20 access groups.
 
 ## sapi
 
@@ -324,6 +324,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiGetAccumulatorProductList` | GET | `accumulator/product/list` | 0.1 |
 | `sapiGetAccumulatorProductPositionList` | GET | `accumulator/product/position/list` | 0.1 |
 | `sapiGetAccumulatorProductSumHolding` | GET | `accumulator/product/sum-holding` | 0.1 |
+| `sapiGetEquityMarketExchangeInfo` | GET | `equity/market/exchangeInfo` | 0.1 |
+| `sapiGetEquityMarketTokenizedAssets` | GET | `equity/market/tokenized-assets` | 0.1 |
+| `sapiGetEquityMarketQuote` | GET | `equity/market/quote` | 0.1 |
+| `sapiGetEquityOrderOpenOrders` | GET | `equity/order/open-orders` | 0.1 |
+| `sapiGetEquityOrderHistory` | GET | `equity/order/history` | 0.1 |
+| `sapiGetEquityOrderDetail` | GET | `equity/order/detail` | 0.1 |
+| `sapiGetEquityTradeHistory` | GET | `equity/trade/history` | 0.1 |
+| `sapiGetEquityTokenizedConvertStatus` | GET | `equity/tokenized/convert-status` | 0.1 |
+| `sapiGetEquityTokenizedHistory` | GET | `equity/tokenized/history` | 0.1 |
 | `sapiPostAssetDust` | POST | `asset/dust` | 0.06667 |
 | `sapiPostAssetDustBtc` | POST | `asset/dust-btc` | 0.1 |
 | `sapiPostAssetTransfer` | POST | `asset/transfer` | 6.0003 |
@@ -448,6 +457,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `sapiPostDciProductSubscribe` | POST | `dci/product/subscribe` | 0.1 |
 | `sapiPostDciProductAutoCompoundEdit` | POST | `dci/product/auto_compound/edit` | 0.1 |
 | `sapiPostAccumulatorProductSubscribe` | POST | `accumulator/product/subscribe` | 0.1 |
+| `sapiPostEquityOrderPlace` | POST | `equity/order/place` | 0.1 |
+| `sapiPostEquityOrderCancel` | POST | `equity/order/cancel` | 0.1 |
+| `sapiPostEquityOrderCancelAll` | POST | `equity/order/cancel-all` | 0.1 |
+| `sapiPostEquityTokenizedMint` | POST | `equity/tokenized/mint` | 0.1 |
+| `sapiPostEquityTokenizedRedeem` | POST | `equity/tokenized/redeem` | 0.1 |
+| `sapiPostEquityAccountDisclaimer` | POST | `equity/account/disclaimer` | 0.1 |
+| `sapiPostEquityListenKey` | POST | `equity/listenKey` | 0.1 |
 | `sapiPutUserDataStream` | PUT | `userDataStream` | 0.1 |
 | `sapiPutUserDataStreamIsolated` | PUT | `userDataStream/isolated` | 0.1 |
 | `sapiDeleteMarginOpenOrders` | DELETE | `margin/openOrders` | 0.1 |
@@ -624,7 +640,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `fapiPublicGetPremiumIndex` | GET | `premiumIndex` | 1 |
 | `fapiPublicGetTicker24hr` | GET | `ticker/24hr` | 1 |
 | `fapiPublicGetTickerPrice` | GET | `ticker/price` | 1 |
-| `fapiPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 1 |
+| `fapiPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 2 |
 | `fapiPublicGetOpenInterest` | GET | `openInterest` | 1 |
 | `fapiPublicGetIndexInfo` | GET | `indexInfo` | 1 |
 | `fapiPublicGetAssetIndex` | GET | `assetIndex` | 1 |

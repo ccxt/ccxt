@@ -8,6 +8,48 @@ import (
 	"sync"
 )
 
+func numericSortValue(v any) (float64, bool) {
+	switch t := v.(type) {
+	case int:
+		return float64(t), true
+	case int8:
+		return float64(t), true
+	case int16:
+		return float64(t), true
+	case int32:
+		return float64(t), true
+	case int64:
+		return float64(t), true
+	case uint:
+		return float64(t), true
+	case uint8:
+		return float64(t), true
+	case uint16:
+		return float64(t), true
+	case uint32:
+		return float64(t), true
+	case uint64:
+		return float64(t), true
+	case float32:
+		return float64(t), true
+	case float64:
+		return t, true
+	}
+	return 0, false
+}
+
+// numeric values must sort numerically: the previous fmt.Sprintf comparison ordered
+// int64 tiers as 1, 10, 2, ... which scrambled leverage tier ladders and any other
+// sortBy over a numeric field once it crossed a digit-count boundary
+func compareSortValues(a any, b any) bool {
+	aF, aOk := numericSortValue(a)
+	bF, bOk := numericSortValue(b)
+	if aOk && bOk {
+		return aF < bF
+	}
+	return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+}
+
 func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	var desc bool
 	var defaultValue any = "a"
@@ -20,7 +62,7 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		sort.Slice(list, func(i, j int) bool {
 			a := list[i].(map[string]any)[str]
 			b := list[j].(map[string]any)[str]
-			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+			return compareSortValues(a, b)
 		})
 		if desc {
 			for i := len(list)/2 - 1; i >= 0; i-- {
@@ -43,24 +85,7 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 			} else {
 				b = defaultValue
 			}
-			// return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
-			switch aVal := a.(type) {
-			case int:
-				if bVal, ok := b.(int); ok {
-					return aVal < bVal
-				}
-			case float64:
-				if bVal, ok := b.(float64); ok {
-					return aVal < bVal
-				}
-			case string:
-				if bVal, ok := b.(string); ok {
-					return aVal < bVal
-				}
-			}
-
-			// Fallback to string comparison
-			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+			return compareSortValues(a, b)
 		})
 		if desc {
 			// for i := len(list)/2 - 1; i >= 0; i-- {
@@ -90,10 +115,10 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 			a2 := list[i].(map[string]any)[key2Str]
 			b1 := list[j].(map[string]any)[str]
 			b2 := list[j].(map[string]any)[key2Str]
-			if a1 == b1 {
-				return fmt.Sprintf("%v", a2) < fmt.Sprintf("%v", b2)
+			if !compareSortValues(a1, b1) && !compareSortValues(b1, a1) {
+				return compareSortValues(a2, b2)
 			}
-			return fmt.Sprintf("%v", a1) < fmt.Sprintf("%v", b1)
+			return compareSortValues(a1, b1)
 		})
 		if desc {
 			for i := len(list)/2 - 1; i >= 0; i-- {

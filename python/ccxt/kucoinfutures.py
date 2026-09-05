@@ -5,13 +5,13 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Any, Strings, TransferEntry
+from ccxt.base.types import Strings, TransferEntry
 from ccxt.base.errors import BadRequest
 
 
 class kucoinfutures(kucoin, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -28,6 +28,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'fetchBidsAsks': True,
+                'transfer': True,
             },
             'options': {
                 'fetchMarkets': {
@@ -49,7 +50,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         request = {
             'method': 'futuresPublicGetAllTickers',
         }
-        return self.fetch_tickers(symbols, self.extend(request, params))
+        extendedRequest = self.extend(request, params)
+        return self.fetch_tickers(symbols, extendedRequest)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
@@ -118,7 +120,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_type(self, transferType: Any):
+    def parse_transfer_type(self, transferType: object):
         transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',

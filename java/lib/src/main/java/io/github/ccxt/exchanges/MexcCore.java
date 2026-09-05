@@ -40,7 +40,7 @@ public class MexcCore extends MexcApi
                 put( "borrowMargin", false );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
-                put( "cancelOrders", null );
+                put( "cancelOrders", true );
                 put( "closeAllPositions", true );
                 put( "closePosition", false );
                 put( "createDepositAddress", true );
@@ -140,7 +140,7 @@ public class MexcCore extends MexcApi
                 put( "setMarginMode", true );
                 put( "setPositionMode", true );
                 put( "signIn", null );
-                put( "transfer", null );
+                put( "transfer", true );
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
@@ -1379,14 +1379,15 @@ public class MexcCore extends MexcApi
                 //
                 Object keys = Helpers.objectKeys(response);
                 Object length = Helpers.getArrayLength(keys);
-                status = ((Helpers.isTrue(length))) ? this.json(response) : "ok";
+                status = ((Helpers.isTrue((Helpers.isGreaterThan(length, 0))))) ? this.json(response) : "ok";
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 response = (this.contractPublicGetPing(query)).join();
                 //
                 //     {"success":true,"code":"0","data":"1648124374985"}
                 //
-                status = ((Helpers.isTrue(this.safeValue(response, "success")))) ? "ok" : this.json(response);
+                Object success = (Helpers.isEqual(this.safeBool(response, "success"), true));
+                status = ((Helpers.isTrue(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
             final Object finalStatus = status;
@@ -1577,7 +1578,7 @@ public class MexcCore extends MexcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1662,7 +1663,7 @@ public class MexcCore extends MexcApi
                 Object status = this.safeString(market, "status");
                 Object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
                 Object active = false;
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "1"))) && Helpers.isTrue((isSpotTradingAllowed))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "1"))) && Helpers.isTrue((Helpers.isEqual(isSpotTradingAllowed, true)))))
                 {
                     active = true;
                 }
@@ -1897,7 +1898,7 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object orderbook = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object response = (this.spotPublicGetDepth(this.extend(request, parameters))).join();
                 //
@@ -1916,7 +1917,7 @@ public class MexcCore extends MexcApi
                 Object spotTimestamp = this.safeInteger(response, "timestamp");
                 orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object response = (this.contractPublicGetDepthSymbol(this.extend(request, parameters))).join();
                 //
@@ -1998,7 +1999,7 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object until = this.safeInteger2(parameters, "endTime", "until");
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2033,7 +2034,7 @@ public class MexcCore extends MexcApi
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() not support this method")) ;
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object response = (this.contractPublicGetDealsSymbol(this.extend(request, parameters))).join();
                 //
@@ -2163,7 +2164,8 @@ public class MexcCore extends MexcApi
                     put( "cost", MexcCore.this.safeString(trade, "fee") );
                     put( "currency", MexcCore.this.safeCurrencyCode(MexcCore.this.safeString(trade, "feeCurrency")) );
                 }};
-                takerOrMaker = ((Helpers.isTrue(this.safeValue(trade, "taker")))) ? "taker" : "maker";
+                Object isTaker = (Helpers.isEqual(this.safeBool(trade, "taker"), true));
+                takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
             } else
             {
                 timestamp = this.safeInteger2(trade, "time", "T");
@@ -2174,15 +2176,15 @@ public class MexcCore extends MexcApi
                 Object buyerMaker = this.safeValue2(trade, "isBuyerMaker", "m");
                 if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
                 {
-                    takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+                    takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? "maker" : "taker";
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
                 {
-                    side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+                    side = ((Helpers.isTrue((Helpers.isEqual(isBuyer, true))))) ? "buy" : "sell";
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
                 {
-                    side = ((Helpers.isTrue(buyerMaker))) ? "sell" : "buy";
+                    side = ((Helpers.isTrue((Helpers.isEqual(buyerMaker, true))))) ? "sell" : "buy";
                     takerOrMaker = "taker";
                 }
                 Object feeAsset = this.safeString(trade, "commissionAsset");
@@ -2258,7 +2260,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object maxLimit = ((Helpers.isTrue((Helpers.GetValue(market, "spot"))))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+            Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2281,10 +2283,10 @@ public class MexcCore extends MexcApi
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isEqual(since, null)))))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
-                Object usedLimit = ((Helpers.isTrue(limit))) ? limit : maxLimit;
+                Object usedLimit = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(!Helpers.isEqual(limit, null))) && Helpers.isTrue(!Helpers.isEqual(limit, 0)))))) ? limit : maxLimit;
                 start = Helpers.subtract(until, (Helpers.multiply(usedLimit, duration)));
             }
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(start, null)))
                 {
@@ -2321,7 +2323,7 @@ public class MexcCore extends MexcApi
                 //     ]
                 //
                 candles = this.toArray(response);
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
@@ -2551,7 +2553,7 @@ public class MexcCore extends MexcApi
         Object prevClose = null;
         Object isSwap = this.safeValue(market, "swap");
         // if swap
-        if (Helpers.isTrue(Helpers.isTrue(isSwap) || Helpers.isTrue((Helpers.inOp(ticker, "timestamp")))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue((Helpers.inOp(ticker, "timestamp")))))
         {
             //
             //     {
@@ -2738,7 +2740,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2771,7 +2773,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2825,7 +2827,7 @@ public class MexcCore extends MexcApi
             var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 return (this.createSpotOrder(market, type, side, amount, price, marginMode, query)).join();
             } else
@@ -2896,7 +2898,7 @@ public class MexcCore extends MexcApi
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "LIMIT_MAKER"), parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
             Helpers.addElementToObject(request, "type", "LIMIT_MAKER");
         }
@@ -2947,7 +2949,7 @@ public class MexcCore extends MexcApi
             parameters = this.omit(parameters, "test");
             Object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
             Object response = null;
-            if (Helpers.isTrue(test))
+            if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
                 response = (this.spotPrivatePostOrderTest(request)).join();
             } else
@@ -3055,7 +3057,7 @@ public class MexcCore extends MexcApi
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, 2), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 type = 2;
             } else if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -3099,9 +3101,9 @@ public class MexcCore extends MexcApi
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             Object hedged = this.safeBool(parameters, "hedged", false);
             Object sideInteger = null;
-            if (Helpers.isTrue(hedged))
+            if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
-                if (Helpers.isTrue(reduceOnly))
+                if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                 {
                     parameters = this.omit(parameters, "reduceOnly"); // hedged mode does not accept this parameter
                     sideInteger = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? 4 : 2; // close short, close long
@@ -3112,7 +3114,7 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(request, "positionMode", 1);
             } else
             {
-                if (Helpers.isTrue(reduceOnly))
+                if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                 {
                     sideInteger = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? 2 : 4;
                     parameters = this.omit(parameters, "reduceOnly");
@@ -3130,7 +3132,7 @@ public class MexcCore extends MexcApi
             Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged")));
             Object response = null;
-            if (Helpers.isTrue(triggerPrice))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
             {
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 Helpers.addElementToObject(request, "triggerType", this.safeInteger(parameters, "triggerType", 1));
@@ -3186,7 +3188,7 @@ public class MexcCore extends MexcApi
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object marketId = this.safeString(rawOrder, "symbol");
                 Object market = this.market(marketId);
-                if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " createOrders() is only supported for spot markets")) ;
                 }
@@ -3273,7 +3275,7 @@ public class MexcCore extends MexcApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object data = new java.util.HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object clientOrderId = this.safeString(parameters, "clientOrderId");
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -3298,7 +3300,7 @@ public class MexcCore extends MexcApi
                 {
                     data = (this.spotPrivateGetOrder(this.extend(request, query))).join();
                 }
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "order_id", id);
                 Object response = (this.contractPrivateGetOrderGetOrderId(this.extend(request, parameters))).join();
@@ -4437,7 +4439,11 @@ public class MexcCore extends MexcApi
                 //         ]
                 //     }
                 //
-                return this.safeValue(response, "data");
+                // wrap the swap asset list so this helper always returns an account
+                // dict with a `balances` array — fetchAccounts reads response['balances']
+                return new java.util.HashMap<String, Object>() {{
+                    put( "balances", MexcCore.this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
+                }};
             }
             return null;
         });
@@ -4507,7 +4513,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchTradingFee() supports spot markets only")) ;
             }
@@ -4620,24 +4626,20 @@ public class MexcCore extends MexcApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallet)); i++)
             {
                 Object entry = Helpers.GetValue(wallet, i);
-                Object marketId = this.safeString(entry, "symbol");
-                Object symbol = this.safeSymbol(marketId);
                 Object base = this.safeValue(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeValue(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
                 Object baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
                 Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
-                Object subResult = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
-                    Helpers.addElementToObject(subResult, baseCode, this.parseBalanceHelper(base));
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(quoteCode, null)))
                 {
-                    Helpers.addElementToObject(subResult, quoteCode, this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
             }
-            return result;
+            return this.safeBalance(result);
         } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallet)); i++)
@@ -4715,7 +4717,7 @@ public class MexcCore extends MexcApi
             Object isMargin = this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("margin", "marginMode")));
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((isMargin))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(isMargin, true)))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
                 Object parsedSymbols = null;
                 Object symbol = this.safeString(parameters, "symbol");
@@ -6695,7 +6697,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             Object intern = this.safeBool(parameters, "internal", false);
-            if (Helpers.isTrue(intern))
+            if (Helpers.isTrue(Helpers.isEqual(intern, true)))
             {
                 parameters = this.omit(parameters, "internal");
                 Object requestForInternal = new java.util.HashMap<String, Object>() {{
@@ -7270,7 +7272,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
@@ -7353,7 +7355,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 }
             }
             Object paramsEncoded = "";
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(urlParams))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(urlParams)), 0)))
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = Helpers.add(url, Helpers.add("?", paramsEncoded));
@@ -7379,7 +7381,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             parameters = this.omit(parameters, this.extractParams(path));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
                 }
@@ -7401,7 +7403,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 } else
                 {
                     parameters = this.keysort(parameters);
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
                         auth = Helpers.add(auth, this.urlencode(parameters));
                         url = Helpers.add(url, Helpers.add("?", auth));

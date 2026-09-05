@@ -1054,7 +1054,7 @@ class btcturk extends btcturk$1["default"] {
         }
         let url = this.urls['api'][api] + '/' + path;
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

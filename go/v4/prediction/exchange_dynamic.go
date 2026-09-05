@@ -27,6 +27,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		myriadItf := NewMyriadCore()
 		myriadItf.Init(exchangeArgs)
 		return myriadItf, true
+	case "opinion":
+		opinionItf := NewOpinionCore()
+		opinionItf.Init(exchangeArgs)
+		return opinionItf, true
 	case "polymarket":
 		polymarketItf := NewPolymarketCore()
 		polymarketItf.Init(exchangeArgs)

@@ -262,7 +262,7 @@ export default class binance extends Exchange {
                 collected.push(pageTopics[i]);
             }
             const hasMore = this.safeBool(response, 'hasMore', false);
-            if (!hasMore || (pageTopicsLength < reqLimit)) {
+            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum(offset, pageTopicsLength);
@@ -340,7 +340,7 @@ export default class binance extends Exchange {
      */
     async fetchEvents(params = {}) {
         const allowUnscopedFetchEvents = this.safeBool(this.options, 'allowUnscopedFetchEvents', false);
-        if (!allowUnscopedFetchEvents) {
+        if (allowUnscopedFetchEvents !== true) {
             this.requireEventQuery(params);
         }
         const queries = this.parseSearchQueries(params);
@@ -365,7 +365,7 @@ export default class binance extends Exchange {
         const eventId = this.safeString(params, 'eventId');
         const l1Category = this.safeString(params, 'l1Category');
         const l2Category = this.safeString(params, 'l2Category');
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         let rawTopics = [];
@@ -1852,10 +1852,18 @@ export default class binance extends Exchange {
         const outcomeSymbol = this.safeString(outcomeObj, 'outcome', outcome);
         const failedOrders = this.safeList(response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
-        for (let i = 0; i < failedOrdersLength; i++) {
-            const failedOrder = failedOrders[i];
-            const error = this.safeString(failedOrder, 'reason');
-            throw new OrderNotFound(this.id + ' cancelOrders() failed for ' + this.safeString(failedOrder, 'orderId') + ': ' + error);
+        if (failedOrdersLength > 0) {
+            let failedDetails = '';
+            for (let i = 0; i < failedOrdersLength; i++) {
+                const failedOrder = failedOrders[i];
+                const failedOrderId = this.safeString(failedOrder, 'orderId');
+                const failedReason = this.safeString(failedOrder, 'reason');
+                if (i > 0) {
+                    failedDetails = failedDetails + ', ';
+                }
+                failedDetails = failedDetails + failedOrderId + ': ' + failedReason;
+            }
+            throw new OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails);
         }
         const orders = [];
         const canceledOrdersLength = canceledOrders.length;

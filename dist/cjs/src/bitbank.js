@@ -74,6 +74,7 @@ class bitbank extends bitbank$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
@@ -1066,7 +1067,7 @@ class bitbank extends bitbank$1["default"] {
         let url = this.implodeHostname(this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams(path, params);
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1095,7 +1096,7 @@ class bitbank extends bitbank$1["default"] {
             }
             else {
                 auth += '/' + this.version + '/' + path;
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     query = this.urlencode(query);
                     url += '?' + query;
                     auth += '?' + query;
@@ -1122,7 +1123,7 @@ class bitbank extends bitbank$1["default"] {
         }
         const success = this.safeInteger(response, 'success');
         const data = this.safeValue(response, 'data');
-        if (!success || !data) {
+        if ((success === undefined || success === null || success === 0) || (data === undefined)) {
             const errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',

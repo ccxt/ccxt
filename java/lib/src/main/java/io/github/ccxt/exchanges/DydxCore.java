@@ -1401,7 +1401,7 @@ public class DydxCore extends DydxApi
             var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1898,7 +1898,7 @@ public class DydxCore extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
-            if (Helpers.isTrue(!Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
@@ -1923,7 +1923,7 @@ public class DydxCore extends DydxApi
             goodTillBlockTimeInSeconds = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
-            Object defaultOrderFlags = ((Helpers.isTrue((isTrigger)))) ? 32 : 64;
+            Object defaultOrderFlags = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 32 : 64;
             Object orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
             var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
@@ -2029,7 +2029,7 @@ public class DydxCore extends DydxApi
             }
             Object market = this.market(symbol);
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
-            if (!Helpers.isTrue(clientOrderIds))
+            if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrders only support clientOrderIds.")) ;
             }
@@ -2046,8 +2046,9 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds", "goodTillBlock", "subaccountId")));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
+            final Object finalClientOrderIds = clientOrderIds;
             Object cancelOrders = new java.util.HashMap<String, Object>() {{
-                put( "clientIds", clientOrderIds );
+                put( "clientIds", finalClientOrderIds );
                 put( "clobPairId", Helpers.GetValue(Helpers.GetValue(market, "info"), "clobPairId") );
             }};
             final Object finalSubAccountId = subAccountId;
@@ -2940,11 +2941,11 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchAccounts", parameters);
+            var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object subaccountNumber = null;
-            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchAccounts", "subaccountNumber", 0);
+            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
             subaccountNumber = ((java.util.List<Object>) subaccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountNumberparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -3069,7 +3070,7 @@ public class DydxCore extends DydxApi
         url = Helpers.add(url, Helpers.add("/", pathWithParams));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -3094,7 +3095,7 @@ public class DydxCore extends DydxApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(response, null))) || Helpers.isTrue((Helpers.isEqual(response, null)))))
         {
             return null;  // fallback to default error handler
         }
@@ -3107,11 +3108,11 @@ public class DydxCore extends DydxApi
         //
         Object result = this.safeDict(response, "result");
         Object errorCode = this.safeString(result, "code");
-        if (!Helpers.isTrue(errorCode))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(errorCode, null))) || Helpers.isTrue((Helpers.isEqual(errorCode, "")))))
         {
             errorCode = this.safeString(response, "code");
         }
-        if (Helpers.isTrue(errorCode))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errorCode, null))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "")))))
         {
             Object errorCodeNum = this.parseToNumeric(errorCode);
             if (Helpers.isTrue(Helpers.isGreaterThan(errorCodeNum, 0)))

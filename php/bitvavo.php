@@ -919,7 +919,7 @@ class bitvavo extends Exchange {
         $taker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
-            $takerOrMaker = $taker ? 'taker' : 'maker';
+            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
@@ -2689,7 +2689,7 @@ class bitvavo extends Exchange {
         $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $getOrDelete = ($method === 'GET') || ($method === 'DELETE');
         if ($getOrDelete) {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2697,7 +2697,7 @@ class bitvavo extends Exchange {
             $this->check_required_credentials();
             $payload = '';
             if (!$getOrDelete) {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

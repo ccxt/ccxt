@@ -1087,9 +1087,16 @@ export default class delta extends Exchange {
         //
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.001);
         const marketId = this.safeString(ticker, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString(ticker, 'close');
         const quotes = this.safeDict(ticker, 'quotes', {});
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        const turnoverSymbol = this.safeStringUpper(ticker, 'turnover_symbol');
+        const quoteId = this.safeStringUpper(market, 'quoteId');
+        const baseDenominated = (turnoverSymbol !== undefined) && (quoteId !== undefined) && (turnoverSymbol !== quoteId);
+        const quoteVolume = baseDenominated ? this.safeNumber(ticker, 'turnover_usd') : this.safeNumber(ticker, 'turnover');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1109,7 +1116,7 @@ export default class delta extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
-            'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeNumber(ticker, 'mark_price'),
             'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
@@ -1635,7 +1642,7 @@ export default class delta extends Exchange {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe(timeframe);
-        limit = limit ? limit : 2000; // max 2000
+        limit = (limit !== undefined && limit !== null && limit !== 0) ? limit : 2000; // max 2000
         let until = this.safeIntegerProduct(params, 'until', 0.001);
         const untilIsDefined = (until !== undefined);
         if (untilIsDefined) {
@@ -2030,7 +2037,7 @@ export default class delta extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
             params = this.omit(params, 'reduceOnly');
         }
@@ -2650,7 +2657,7 @@ export default class delta extends Exchange {
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request = {
@@ -2951,7 +2958,7 @@ export default class delta extends Exchange {
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -4109,7 +4116,7 @@ export default class delta extends Exchange {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -4122,7 +4129,7 @@ export default class delta extends Exchange {
             };
             let auth = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     const queryString = '?' + this.urlencode(query);
                     auth += queryString;
                     url += queryString;

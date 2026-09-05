@@ -23,7 +23,7 @@
                     "buy",
                     10
                 ],
-                "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+                "output": { "type": "market", "side": "buy", "quantity": "10", "symbol": "TRXUSDT" }
             },
             {
                 "description": "Spot market sell",
@@ -35,7 +35,7 @@
                     "sell",
                     10
                 ],
-                "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+                "output": { "type": "market", "side": "sell", "quantity": "10", "symbol": "TRXUSDT" }
             },
             {
                 "description": "Spot limit buy",
@@ -48,7 +48,7 @@
                     10,
                     0.05
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
+                "output": { "type": "limit", "side": "buy", "quantity": "10", "symbol": "TRXUSDT", "price": "0.05" }
             },
             {
                 "description": "Swap market buy",
@@ -60,7 +60,7 @@
                     "buy",
                     10
                 ],
-                "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+                "output": { "type": "market", "side": "buy", "quantity": "10", "symbol": "TRXUSDT_PERP", "margin_mode": "cross" }
             },
             {
                 "description": "Swap market sell",
@@ -72,7 +72,7 @@
                     "sell",
                     10
                 ],
-                "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+                "output": { "type": "market", "side": "sell", "quantity": "10", "symbol": "TRXUSDT_PERP", "margin_mode": "cross" }
             },
             {
                 "description": "Swap limit buy",
@@ -85,7 +85,7 @@
                     10,
                     0.05
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\",\"price\":\"0.05\"}"
+                "output": { "type": "limit", "side": "buy", "quantity": "10", "symbol": "TRXUSDT_PERP", "margin_mode": "cross", "price": "0.05" }
             },
             {
                 "description": "Spot margin limit buy",
@@ -101,7 +101,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
+                "output": { "type": "limit", "side": "buy", "quantity": "10", "symbol": "TRXUSDT", "price": "0.05" }
             }
         ],
         "cancelOrder": [
@@ -113,7 +113,7 @@
                     "8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS",
                     "TRX/USDT"
                 ],
-                "output": "{\"client_order_id\":\"8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS\"}"
+                "output": { "client_order_id": "8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS" }
             },
             {
                 "description": "Cancel swap order",
@@ -123,7 +123,7 @@
                     "47a240fa3cfb4949b4abf349c1ad079e",
                     "TRX/USDT:USDT"
                 ],
-                "output": "{\"client_order_id\":\"47a240fa3cfb4949b4abf349c1ad079e\"}"
+                "output": { "client_order_id": "47a240fa3cfb4949b4abf349c1ad079e" }
             },
             {
                 "description": "Cancel spot-margin order",
@@ -136,7 +136,7 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "output": "{\"client_order_id\":\"ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn\"}"
+                "output": { "client_order_id": "ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn" }
             }
         ],
         "editOrder": [
@@ -152,7 +152,7 @@
                     10,
                     0.05
                 ],
-                "output": "{\"client_order_id\":\"8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS\",\"quantity\":\"10\",\"price\":\"0.05\"}"
+                "output": { "client_order_id": "8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS", "quantity": "10", "price": "0.05" }
             },
             {
                 "description": "editOrder - swap",
@@ -166,7 +166,7 @@
                     10,
                     0.05
                 ],
-                "output": "{\"client_order_id\":\"47a240fa3cfb4949b4abf349c1ad079e\",\"quantity\":\"10\",\"price\":\"0.05\"}"
+                "output": { "client_order_id": "47a240fa3cfb4949b4abf349c1ad079e", "quantity": "10", "price": "0.05" }
             },
             {
                 "description": "editOrder - margin",
@@ -183,7 +183,7 @@
                         "marginMode": "isolated"
                     }
                 ],
-                "output": "{\"client_order_id\":\"ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn\",\"quantity\":\"10\",\"price\":\"0.05\"}"
+                "output": { "client_order_id": "ZKO-jmnZ_VVSrZRP4XlqTnt-A33m5HOn", "quantity": "10", "price": "0.05" }
             }
         ],
         "fetchOrder": [
@@ -337,7 +337,7 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT_PERP\"}"
+                "output": { "symbol": "LTCUSDT_PERP" }
             },
             {
                 "description": "Cancel spot orders",
@@ -346,7 +346,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\"}"
+                "output": { "symbol": "LTCUSDT" }
             },
             {
                 "description": "Cancel margin orders",
@@ -358,7 +358,7 @@
                         "margin": true
                     }
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchBalance": [
@@ -586,7 +586,7 @@
                         "leverage": 5
                     }
                 ],
-                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"10\",\"leverage\":5}"
+                "output": { "symbol": "TRXUSDT_PERP", "margin_balance": "10", "leverage": 5 }
             },
             {
                 "description": "Add margin to spot-margin pair",
@@ -596,7 +596,7 @@
                     "TRX/USDT",
                     5
                 ],
-                "output": "{\"symbol\":\"TRXUSDT\",\"margin_balance\":\"5\"}"
+                "output": { "symbol": "TRXUSDT", "margin_balance": "5" }
             }
         ],
         "reduceMargin": [
@@ -611,7 +611,7 @@
                         "leverage": 5
                     }
                 ],
-                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_balance\":\"0\",\"leverage\":5}"
+                "output": { "symbol": "TRXUSDT_PERP", "margin_balance": "0", "leverage": 5 }
             },
             {
                 "description": "Remove margin from the spot-margin pair",
@@ -621,7 +621,7 @@
                     "TRX/USDT",
                     0
                 ],
-                "output": "{\"symbol\":\"TRXUSDT\",\"margin_balance\":\"0\"}"
+                "output": { "symbol": "TRXUSDT", "margin_balance": "0" }
             }
         ],
         "fetchLeverage": [
@@ -661,7 +661,7 @@
                 "input": [
                     "TRX/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+                "output": { "symbol": "TRXUSDT_PERP", "margin_mode": "cross" }
             }
         ],
         "fetchMarginModes": [

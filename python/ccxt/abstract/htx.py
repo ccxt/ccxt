@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     v2public_get_reference_currencies = v2PublicGetReferenceCurrencies = Entry[_Dict]('reference/currencies', 'v2Public', 'GET', {'cost': 1})
@@ -106,11 +105,6 @@ class ImplicitAPI:
     private_post_cross_margin_orders_id_repay = privatePostCrossMarginOrdersIdRepay = Entry[_Dict]('cross-margin/orders/{id}/repay', 'private', 'POST', {'cost': 1})
     private_post_stable_coin_exchange = privatePostStableCoinExchange = Entry[_Dict]('stable-coin/exchange', 'private', 'POST', {'cost': 1})
     private_post_subuser_transfer = privatePostSubuserTransfer = Entry[_Dict]('subuser/transfer', 'private', 'POST', {'cost': 10})
-    status_public_spot_get_api_v2_summary_json = statusPublicSpotGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'spot'], 'GET', {'cost': 1})
-    status_public_future_inverse_get_api_v2_summary_json = statusPublicFutureInverseGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'future', 'inverse'], 'GET', {'cost': 1})
-    status_public_future_linear_get_api_v2_summary_json = statusPublicFutureLinearGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'future', 'linear'], 'GET', {'cost': 1})
-    status_public_swap_inverse_get_api_v2_summary_json = statusPublicSwapInverseGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'swap', 'inverse'], 'GET', {'cost': 1})
-    status_public_swap_linear_get_api_v2_summary_json = statusPublicSwapLinearGetApiV2SummaryJson = Entry[_Dict]('api/v2/summary.json', ['status', 'public', 'swap', 'linear'], 'GET', {'cost': 1})
     spot_public_get_v2_market_status = spotPublicGetV2MarketStatus = Entry[_Dict]('v2/market-status', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_v1_common_symbols = spotPublicGetV1CommonSymbols = Entry[_Dict]('v1/common/symbols', ['spot', 'public'], 'GET', {'cost': 1})
     spot_public_get_v1_common_currencys = spotPublicGetV1CommonCurrencys = Entry[_Dict]('v1/common/currencys', ['spot', 'public'], 'GET', {'cost': 1})

@@ -376,7 +376,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
-            if (Helpers.isTrue(isMaker))
+            if (Helpers.isTrue(Helpers.isEqual(isMaker, true)))
             {
                 takerOrMaker = "maker";
             } else
@@ -451,9 +451,13 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //         "low24hr": "1179321"
         //     }
         //
-        Object marketId = this.safeString(message, "pair");
+        Object marketId = this.safeStringLower(message, "pair");
+        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+        {
+            return;  // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        Object market = this.safeMarket(((Helpers.isTrue(!Helpers.isEqual(marketId, null)))) ? ((String)marketId).toLowerCase() : null, null, "_");
+        Object market = this.safeMarket(marketId, null, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);

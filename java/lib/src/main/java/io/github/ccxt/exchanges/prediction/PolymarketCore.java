@@ -619,7 +619,7 @@ public class PolymarketCore extends PolymarketApi
                 }
                 Object parsedEvent = this.parseEvent(rawEvent);
                 Object eventSlug = this.safeString(rawEvent, "slug");
-                if (Helpers.isTrue(eventSlug))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventSlug, null))) && Helpers.isTrue((!Helpers.isEqual(eventSlug, "")))))
                 {
                     Object eventKey = this.shortenSlug(eventSlug);
                     Helpers.addElementToObject(eventsDict, eventKey, parsedEvent);
@@ -751,7 +751,7 @@ public class PolymarketCore extends PolymarketApi
                 {
                     Object rawEvent = Helpers.GetValue(allEvents, ei);
                     Object eventId = this.safeString(rawEvent, "id");
-                    if (Helpers.isTrue(Helpers.isTrue(eventId) && !Helpers.isTrue((Helpers.inOp(seen, eventId)))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(eventId, null)) && Helpers.isTrue(!Helpers.isEqual(eventId, "")))) && !Helpers.isTrue((Helpers.inOp(seen, eventId)))))
                     {
                         Helpers.addElementToObject(seen, eventId, true);
                         ((java.util.List<Object>)rawEvents).add(rawEvent);
@@ -1040,7 +1040,7 @@ public class PolymarketCore extends PolymarketApi
             Object active = this.safeBool(market, "active", false);
             Object closed = this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            Object marketResolved = Helpers.isTrue(closed) || Helpers.isTrue((Helpers.isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
+            Object marketResolved = Helpers.isTrue((Helpers.isEqual(closed, true))) || Helpers.isTrue((Helpers.isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
             Object resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             Object tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
@@ -1071,15 +1071,15 @@ public class PolymarketCore extends PolymarketApi
             {
                 parsedPricesLength = Helpers.getArrayLength((java.util.List<Object>)(parsedPrices));
             }
-            if (Helpers.isTrue(Helpers.isTrue(parsedOutcomes) && Helpers.isTrue((!Helpers.isEqual(parsedOutcomesLength, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsedOutcomes, null))) && Helpers.isTrue((!Helpers.isEqual(parsedOutcomesLength, null)))))
             {
                 outcomeLabels = (java.util.List<Object>)(parsedOutcomes);
             }
-            if (Helpers.isTrue(Helpers.isTrue(parsedTokenIds) && Helpers.isTrue((!Helpers.isEqual(parsedTokenIdsLength, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsedTokenIds, null))) && Helpers.isTrue((!Helpers.isEqual(parsedTokenIdsLength, null)))))
             {
                 clobTokenIds = (java.util.List<Object>)(parsedTokenIds);
             }
-            if (Helpers.isTrue(Helpers.isTrue(parsedPrices) && Helpers.isTrue((!Helpers.isEqual(parsedPricesLength, null)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsedPrices, null))) && Helpers.isTrue((!Helpers.isEqual(parsedPricesLength, null)))))
             {
                 outcomePrices = parsedPrices;
             }
@@ -1098,7 +1098,7 @@ public class PolymarketCore extends PolymarketApi
                 Object outcomeLabel = Helpers.GetValue(outcomeLabels, oi);
                 Object clobTokenId = Helpers.GetValue(clobTokenIds, oi);
                 Object outcomePrice = this.safeNumber(outcomePrices, oi);
-                if (!Helpers.isTrue(clobTokenId))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(clobTokenId, null))) || Helpers.isTrue((Helpers.isEqual(clobTokenId, "")))))
                 {
                     continue;
                 }
@@ -1126,16 +1126,17 @@ public class PolymarketCore extends PolymarketApi
                 // inner class, which cannot capture a reassigned local
                 Object winner = winnerRaw;
                 Object settleFraction = settleFractionRaw;
-final Object finalOutcomePrice = outcomePrice;
+final Object finalClobTokenId = clobTokenId;
+                final Object finalOutcomePrice = outcomePrice;
                 final Object finalActive = active;
                 final Object finalClosed = closed;
                                 ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
                     put( "outcome", outcomeHandle );
-                    put( "outcomeId", clobTokenId );
+                    put( "outcomeId", finalClobTokenId );
                     put( "market", marketSymbol );
                     put( "label", outcomeLabel );
                     put( "price", finalOutcomePrice );
-                    put( "active", Helpers.isTrue(finalActive) && !Helpers.isTrue(finalClosed) );
+                    put( "active", Helpers.isTrue((Helpers.isEqual(finalActive, true))) && Helpers.isTrue((!Helpers.isEqual(finalClosed, true))) );
                     put( "winner", winner );
                     put( "settleFraction", settleFraction );
                     put( "precision", new java.util.HashMap<String, Object>() {{
@@ -1169,14 +1170,14 @@ final Object finalOutcomePrice = outcomePrice;
                 put( "future", false );
                 put( "option", false );
                 put( "prediction", true );
-                put( "active", Helpers.isTrue(active) && !Helpers.isTrue(closed) );
+                put( "active", Helpers.isTrue((Helpers.isEqual(active, true))) && Helpers.isTrue((!Helpers.isEqual(closed, true))) );
                 put( "resolved", marketResolved );
                 put( "resolvedOutcome", marketResolvedOutcome );
                 put( "contract", false );
                 put( "linear", null );
                 put( "inverse", null );
                 put( "contractSize", null );
-                put( "expiry", ((Helpers.isTrue(endDate))) ? PolymarketCore.this.parse8601(endDate) : null );
+                put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(endDate, null)) && Helpers.isTrue(!Helpers.isEqual(endDate, "")))))) ? PolymarketCore.this.parse8601(endDate) : null );
                 put( "expiryDatetime", endDate );
                 put( "strike", null );
                 put( "optionType", null );
@@ -2762,7 +2763,7 @@ final Object finalOutcomePrice = outcomePrice;
             {
                 Object builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 Object feeRate = 0;
-                if (Helpers.isTrue(builderFeeEnabled))
+                if (Helpers.isTrue(Helpers.isEqual(builderFeeEnabled, true)))
                 {
                     feeRate = this.safeInteger(this.options, "feeRate", 0);
                 }
@@ -2799,7 +2800,7 @@ final Object finalOutcomePrice = outcomePrice;
         }};
         Object exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         Object negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
-        Object exchangeAddress = ((Helpers.isTrue(negRisk))) ? negRiskExchangeV2 : exchangeV2;
+        Object exchangeAddress = ((Helpers.isTrue((Helpers.isEqual(negRisk, true))))) ? negRiskExchangeV2 : exchangeV2;
         Object domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
         Object signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         Object owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
@@ -3240,11 +3241,11 @@ final Object finalOutcomePrice = outcomePrice;
                 rawEvents = (this.fetchRawEventsList(rest)).join();
             }
             // Parse and merge into class-level caches
-            if (!Helpers.isTrue(this.events))
+            if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
             {
                 this.events = new java.util.HashMap<String, Object>() {{}};
             }
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
@@ -3425,7 +3426,7 @@ final Object finalOutcomePrice = outcomePrice;
         Object active = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawActive, null)))
         {
-            active = Helpers.isTrue(rawActive) && !Helpers.isTrue(closed);
+            active = Helpers.isTrue((Helpers.isEqual(rawActive, true))) && Helpers.isTrue((!Helpers.isEqual(closed, true)));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -3442,11 +3443,12 @@ final Object finalOutcomePrice = outcomePrice;
                 ((java.util.List<Object>)parsedTags).add(tagLabel);
             }
         }
+        final Object finalSlug = slug;
         final Object finalActive = active;
         return this.extend(new java.util.HashMap<String, Object>() {{
             put( "id", PolymarketCore.this.safeString(rawEvent, "id") );
-            put( "slug", slug );
-            put( "event", ((Helpers.isTrue(slug))) ? PolymarketCore.this.shortenSlug(slug) : null );
+            put( "slug", finalSlug );
+            put( "event", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalSlug, null)) && Helpers.isTrue(!Helpers.isEqual(finalSlug, "")))))) ? PolymarketCore.this.shortenSlug(finalSlug) : null );
             put( "title", PolymarketCore.this.safeString(rawEvent, "title") );
             put( "tags", parsedTags );
             put( "markets", marketsList );
@@ -3490,7 +3492,7 @@ final Object finalOutcomePrice = outcomePrice;
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (!Helpers.isTrue(response))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;
         }
@@ -3559,7 +3561,7 @@ final Object finalOutcomePrice = outcomePrice;
                 }
             }
             Object querystring = ((Helpers.isTrue(hasArrayParam))) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
-            if (Helpers.isTrue(querystring))
+            if (Helpers.isTrue(!Helpers.isEqual(querystring, "")))
             {
                 url = Helpers.add(url, Helpers.add("?", querystring));
             }
@@ -3890,7 +3892,7 @@ final Object finalOutcomePrice = outcomePrice;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            if (Helpers.isTrue(!Helpers.isTrue(eventVar) || Helpers.isTrue(!(eventVar instanceof java.util.Map))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventVar, null))) || Helpers.isTrue((Helpers.isEqual(eventVar, null)))) || Helpers.isTrue((!(eventVar instanceof java.util.Map)))))
             {
                 continue;
             }
@@ -4025,7 +4027,7 @@ final Object finalOutcome = outcome;
             put( "cost", null );
             put( "fee", null );
         }}, market);
-        if (!Helpers.isTrue(this.trades))
+        if (Helpers.isTrue(Helpers.isEqual(this.trades, null)))
         {
             this.trades = new java.util.HashMap<String, Object>() {{}};
         }
@@ -4359,7 +4361,7 @@ final Object finalOutcome = outcome;
 
     public Object tokenIdToSymbol(Object tokenId)
     {
-        if (!Helpers.isTrue(tokenId))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) || Helpers.isTrue((Helpers.isEqual(tokenId, "")))))
         {
             return null;
         }

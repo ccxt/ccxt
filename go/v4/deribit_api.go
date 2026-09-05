@@ -137,7 +137,7 @@ func (this *DeribitCore) PublicGetGetInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstrument", args...)
 }
 
-// PublicGetGetInstruments returns a channel that yields a JSON array.
+// PublicGetGetInstruments returns a channel that yields a JSON object.
 func (this *DeribitCore) PublicGetGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstruments", args...)
 }

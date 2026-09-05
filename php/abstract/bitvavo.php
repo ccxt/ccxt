@@ -50,7 +50,7 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('{market}/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function public_get_ticker_24h($params = array()) {
         return $this->request('ticker/24h', 'public', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
@@ -122,7 +122,7 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_balance($params = array()) {
         return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -296,7 +296,7 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('{market}/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function publicGetTicker24h($params = array()) {
         return $this->request('ticker/24h', 'public', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
@@ -368,7 +368,7 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetBalance($params = array()) {
         return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 5));

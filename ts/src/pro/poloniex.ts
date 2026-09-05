@@ -489,7 +489,7 @@ export default class poloniex extends poloniexRest {
         }
         const watchOrderBookOptions = this.safeValue (this.options, 'watchOrderBook');
         let name = this.safeString (watchOrderBookOptions, 'name', 'book_lv2');
-        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
+        [ name, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'name', name);
         const orderbook = await this.subscribe (name, name, false, [ symbol ], params);
         return orderbook.limit ();
     }
@@ -1248,7 +1248,7 @@ export default class poloniex extends poloniexRest {
     }
 
     override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const type = this.safeString (message, 'channel');
@@ -1367,7 +1367,7 @@ export default class poloniex extends poloniexRest {
         const data = this.safeValue (message, 'data');
         const success = this.safeValue (data, 'success');
         const messageHash = 'authenticated';
-        if (success) {
+        if (success === true) {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));

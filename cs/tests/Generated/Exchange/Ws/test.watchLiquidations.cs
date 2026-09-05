@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchLiquidations(Exchange exchange, object skippedProperties, object symbol)
     {
         // log (symbol.green, 'watching trades...')
-        object method = "watchLiquidations";
+        string method = "watchLiquidations";
         // we have to skip some exchanges here due to the frequency of trading
         object skippedExchanges = new List<object>() {};
         if (isTrue(exchange.inArray(exchange.id, skippedExchanges)))
@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
             Console.WriteLine(m1);
             return false;
         }
-        if (!isTrue(getValue(exchange.has, method)))
+        if (isTrue(isTrue(isEqual(getValue(exchange.has, method), null)) || isTrue(isEqual(getValue(exchange.has, method), false))))
         {
             object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
             Console.WriteLine(m2);
@@ -35,7 +35,7 @@ public partial class testMainClass : BaseTest
             {
                 response = await ((Task<object>)callDynamically(exchange, method, new object[] { symbol }));
                 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-                object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+                bool isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
                 assert(isArray, "response must be an array");
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);

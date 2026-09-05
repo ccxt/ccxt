@@ -18,7 +18,7 @@ public class TestFetchMarkets extends BaseTest {
 
         Object method = "fetchMarkets";
         Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();
-        Assert(exchange.isDictionary(markets), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a dict. "), exchange.json(markets)));
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
         Object marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)

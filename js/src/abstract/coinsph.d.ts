@@ -4,7 +4,7 @@ interface Exchange {
     publicGetOpenapiV1Ping(params?: {}): Promise<Dict>;
     publicGetOpenapiV1Time(params?: {}): Promise<Dict>;
     publicGetOpenapiV1UserIp(params?: {}): Promise<Dict>;
-    publicGetOpenapiQuoteV1Ticker24hr(params?: {}): Promise<List>;
+    publicGetOpenapiQuoteV1Ticker24hr(params?: {}): Promise<Dict | List>;
     publicGetOpenapiQuoteV1TickerPrice(params?: {}): Promise<Dict>;
     publicGetOpenapiQuoteV1TickerBookTicker(params?: {}): Promise<List>;
     publicGetOpenapiV1ExchangeInfo(params?: {}): Promise<Dict>;

@@ -90,7 +90,7 @@ class grvt extends \ccxt\async\grvt {
         //     prev_sequence_number => "0",
         //  }
         //
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $methods = array(
@@ -119,16 +119,18 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function subscribe_multiple(array $messageHashes, array $request, array $rawHashes, $publicOrPrivate = true): PromiseInterface {
-        return Async\async(function () use ($messageHashes, $request, $rawHashes, $publicOrPrivate) {
-            $payload = array(
-                'jsonrpc' => '2.0',
-                'method' => 'subscribe',
-                'params' => $request,
-                'id' => $this->request_id(),
-            );
-            $apiPart = $publicOrPrivate ? 'publicMarket' : 'privateTrading';
-            return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
-        })();
+        return Async\async(self::do_subscribe_multiple(...))($messageHashes, $request, $rawHashes, $publicOrPrivate);
+    }
+
+    private function do_subscribe_multiple(array $messageHashes, array $request, array $rawHashes, $publicOrPrivate = true) {
+        $payload = array(
+            'jsonrpc' => '2.0',
+            'method' => 'subscribe',
+            'params' => $request,
+            'id' => $this->request_id(),
+        );
+        $apiPart = $publicOrPrivate ? 'publicMarket' : 'privateTrading';
+        return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
     }
 
     public function request_id() {
@@ -140,68 +142,72 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbol = $this->symbol($symbol);
-            $tickers = Async\await($this->watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' ))));
-            return $tickers[$symbol];
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $tickers = Async\await($this->watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' ))));
+        return $tickers[$symbol];
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#mini-$ticker-snap-feed-selector
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
-            }
-            $channel = null;
-            list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
-            $interval = 500;
-            list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', $interval);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $rawHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-                $rawHashes[] = $marketId . '@' . (string) $interval;
-                $messageHashes[] = 'ticker::' . $market['symbol'];
-            }
-            $request = array(
-                'stream' => $channel,
-                'selectors' => $rawHashes,
-            );
-            $ticker = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
-            if ($this->newUpdates) {
-                $tickers = array();
-                $tickers[$ticker['symbol']] = $ticker;
-                return $tickers;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#mini-$ticker-snap-feed-selector
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
+        }
+        $channel = null;
+        list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
+        $interval = 500;
+        list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', $interval);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $rawHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $rawHashes[] = $marketId . '@' . (string) $interval;
+            $messageHashes[] = 'ticker::' . $market['symbol'];
+        }
+        $request = array(
+            'stream' => $channel,
+            'selectors' => $rawHashes,
+        );
+        $ticker = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
+        if ($this->newUpdates) {
+            $tickers = array();
+            $tickers[$ticker['symbol']] = $ticker;
+            return $tickers;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
     public function handle_ticker(Client $client, mixed $message) {
@@ -313,45 +319,47 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#trade_1
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->limit] 50, 200, 500, 1000 (default 50)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $rawHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-                $limitRaw = $this->safe_integer($params, 'limit', 50); // 50, 200, 500, 1000
-                $rawHashes[] = $marketId . '@' . (string) $limitRaw;
-                $messageHashes[] = 'trade::' . $market['symbol'];
-            }
-            $request = array(
-                'stream' => 'v1.trade',
-                'selectors' => $rawHashes,
-            );
-            $trades = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#trade_1
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->limit] 50, 200, 500, 1000 (default 50)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $rawHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $limitRaw = $this->safe_integer($params, 'limit', 50); // 50, 200, 500, 1000
+            $rawHashes[] = $marketId . '@' . (string) $limitRaw;
+            $messageHashes[] = 'trade::' . $market['symbol'];
+        }
+        $request = array(
+            'stream' => 'v1.trade',
+            'selectors' => $rawHashes,
+        );
+        $trades = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, mixed $message) {
@@ -399,68 +407,72 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#candlestick_1
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbol = $this->symbol($symbol);
-            $params['callerMethodName'] = 'watchOHLCV';
-            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $result[$symbol][$timeframe];
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#candlestick_1
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        $params['callerMethodName'] = 'watchOHLCV';
+        $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $result[$symbol][$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#candlestick_1
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $rawHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $symbolString = $this->safe_string($data, 0);
-                $market = $this->market($symbolString);
-                $marketId = $market['id'];
-                $unfiedTimeframe = $this->safe_string($data, 1, '1');
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-                $rawHashes[] = $marketId . '@' . $timeframeId . '-TRADE';
-                $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
-            }
-            $request = array(
-                'stream' => 'v1.candle',
-                'selectors' => $rawHashes,
-            );
-            list($symbol, $timeframe, $stored) = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        })();
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#candlestick_1
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $rawHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $data = $symbolsAndTimeframes[$i];
+            $symbolString = $this->safe_string($data, 0);
+            $market = $this->market($symbolString);
+            $marketId = $market['id'];
+            $unfiedTimeframe = $this->safe_string($data, 1, '1');
+            $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $rawHashes[] = $marketId . '@' . $timeframeId . '-TRADE';
+            $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
+        }
+        $request = array(
+            'stream' => 'v1.candle',
+            'selectors' => $rawHashes,
+        );
+        list($symbol, $timeframe, $stored) = Async\await($this->subscribe_multiple($messageHashes, $this->extend($params, $request), $rawHashes));
+        if ($this->newUpdates) {
+            $limit = $stored->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
     public function handle_ohlcv(Client $client, mixed $message) {
@@ -512,72 +524,76 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#orderbook-snap
-             * @see https://api-docs.grvt.io/market_data_streams/#orderbook-delta
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbol = $this->symbol($symbol);
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#orderbook-snap
+         * @see https://api-docs.grvt.io/market_data_streams/#orderbook-delta
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbol = $this->symbol($symbol);
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.grvt.io/market_data_streams/#$orderbook-snap
-             * @see https://api-docs.grvt.io/market_data_streams/#$orderbook-delta
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $channel = null;
-            list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'channel', 'v1.book.d');
-            $isSnapshot = $channel === 'v1.book.s';
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-            }
-            if ($limit === null) {
-                list($limit, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'limit', 100);
-            }
-            $interval = 500;
-            list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
-            $symbols = $this->market_symbols($symbols);
-            $extraPart = $isSnapshot ? (string) ($interval . '-' . (string) $limit) : (string) $interval;
-            $rawHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-                $rawHashes[] = $marketId . '@' . $extraPart;
-                $messageHashes[] = 'orderbook::' . $market['symbol'];
-            }
-            $request = array(
-                'stream' => $channel,
-                'selectors' => $rawHashes,
-            );
-            $orderbook = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $rawHashes));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.grvt.io/market_data_streams/#$orderbook-snap
+         * @see https://api-docs.grvt.io/market_data_streams/#$orderbook-delta
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $channel = null;
+        list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'channel', 'v1.book.d');
+        $isSnapshot = $channel === 'v1.book.s';
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        if ($limit === null) {
+            list($limit, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'limit', 100);
+        }
+        $interval = 500;
+        list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', $interval);
+        $symbols = $this->market_symbols($symbols);
+        $extraPart = $isSnapshot ? (string) ($interval . '-' . (string) $limit) : (string) $interval;
+        $rawHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $rawHashes[] = $marketId . '@' . $extraPart;
+            $messageHashes[] = 'orderbook::' . $market['symbol'];
+        }
+        $request = array(
+            'stream' => $channel,
+            'selectors' => $rawHashes,
+        );
+        $orderbook = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $rawHashes));
+        return $orderbook->limit();
     }
 
     public function handle_order_book(Client $client, mixed $message) {
@@ -648,72 +664,76 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function authenticate($params = array()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            Async\await($this->sign_in());
-            $wsOptions = $this->safe_dict($this->options, 'ws', array());
-            $authenticated = $this->safe_string($wsOptions, 'token');
-            if ($authenticated === null) {
-                $accountId = $this->safe_string($this->options, 'AuthAccountId');
-                $cookieValue = $this->safe_string($this->options, 'AuthCookieValue');
-                if ($cookieValue === null || $accountId === null) {
-                    throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() method.');
-                }
-                $defaultOptions = array(
-                    'ws' => array(
-                        'options' => array(
-                            'headers' => array(
-                                'Cookie' => $cookieValue,
-                                'X-Grvt-Account-Id' => $accountId,
-                            ),
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $this->check_required_credentials();
+        Async\await($this->sign_in());
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $authenticated = $this->safe_string($wsOptions, 'token');
+        if ($authenticated === null) {
+            $accountId = $this->safe_string($this->options, 'AuthAccountId');
+            $cookieValue = $this->safe_string($this->options, 'AuthCookieValue');
+            if ($cookieValue === null || $accountId === null) {
+                throw new AuthenticationError($this->id . ' : at first, you need to authenticate with exchange using signIn() method.');
+            }
+            $defaultOptions = array(
+                'ws' => array(
+                    'options' => array(
+                        'headers' => array(
+                            'Cookie' => $cookieValue,
+                            'X-Grvt-Account-Id' => $accountId,
                         ),
                     ),
-                );
-                $this->extend_exchange_options($defaultOptions);
-                $this->client($this->urls['api']['ws']['privateTrading']);
-            }
-        })();
+                ),
+            );
+            $this->extend_exchange_options($defaultOptions);
+            $this->client($this->urls['api']['ws']['privateTrading']);
+        }
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://api-docs.grvt.io/trading_streams/#fill
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->authenticate());
-            $subAccountId = $this->getSubAccountId($params);
-            $messageHashes = array();
-            $rawHashes = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $rawHashes[] = $subAccountId . '-' . $market['id'];
-                $messageHashes[] = 'myTrades::' . $market['symbol'];
-            } else {
-                $messageHashes[] = 'myTrades';
-                $rawHashes[] = $subAccountId;
-            }
-            $request = array(
-                'stream' => 'v1.fill',
-                'selectors' => $rawHashes,
-            );
-            $trades = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $messageHashes, false));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://api-docs.grvt.io/trading_streams/#fill
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unifiedMargin] use unified margin account
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $subAccountId = $this->getSubAccountId($params);
+        $messageHashes = array();
+        $rawHashes = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $rawHashes[] = $subAccountId . '-' . $market['id'];
+            $messageHashes[] = 'myTrades::' . $market['symbol'];
+        } else {
+            $messageHashes[] = 'myTrades';
+            $rawHashes[] = $subAccountId;
+        }
+        $request = array(
+            'stream' => 'v1.fill',
+            'selectors' => $rawHashes,
+        );
+        $trades = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $messageHashes, false));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_my_trade(Client $client, mixed $message) {
@@ -768,47 +788,49 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://api-docs.grvt.io/trading_streams/#positions
-             *
-             * watch all open positions
-             * @param {string[]} [$symbols] list of unified $market $symbols
-             * @param {int} [$since] the earliest time in ms to fetch positions for
-             * @param {int} [$limit] the maximum number of positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            Async\await($this->authenticate());
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://api-docs.grvt.io/trading_streams/#positions
+         *
+         * watch all open positions
+         * @param {string[]} [$symbols] list of unified $market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch positions for
+         * @param {int} [$limit] the maximum number of positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        Async\await($this->authenticate());
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $subAccountId = $this->getSubAccountId($params);
+        $symbols = $this->market_symbols($symbols);
+        $rawHashes = array();
+        $messageHashes = array();
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $rawHashes[] = $subAccountId . '-' . $market['id'];
+                $messageHashes[] = 'positions::' . $market['symbol'];
             }
-            $subAccountId = $this->getSubAccountId($params);
-            $symbols = $this->market_symbols($symbols);
-            $rawHashes = array();
-            $messageHashes = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $market = $this->market($symbol);
-                    $rawHashes[] = $subAccountId . '-' . $market['id'];
-                    $messageHashes[] = 'positions::' . $market['symbol'];
-                }
-            } else {
-                $messageHashes[] = 'positions';
-                $rawHashes[] = $subAccountId;
-            }
-            $request = array(
-                'stream' => 'v1.position',
-                'selectors' => $rawHashes,
-            );
-            $newPositions = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $rawHashes, false));
-            if ($this->newUpdates) {
-                return $newPositions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        } else {
+            $messageHashes[] = 'positions';
+            $rawHashes[] = $subAccountId;
+        }
+        $request = array(
+            'stream' => 'v1.position',
+            'selectors' => $rawHashes,
+        );
+        $newPositions = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $rawHashes, false));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
     public function handle_position(mixed $client, mixed $message) {
@@ -859,43 +881,45 @@ class grvt extends \ccxt\async\grvt {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://api-docs.grvt.io/trading_streams/#order_1-feed-selector
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->authenticate());
-            $subAccountId = $this->getSubAccountId($params);
-            $messageHashes = array();
-            $rawHashes = array();
-            if ($symbol === null) {
-                $messageHashes[] = 'orders';
-                $rawHashes[] = $subAccountId;
-            } else {
-                $market = $this->market($symbol);
-                $messageHashes[] = 'order::' . $market['symbol'];
-                $rawHashes[] = $subAccountId . '-' . $market['id'];
-            }
-            $request = array(
-                'stream' => 'v1.order',
-                'selectors' => $rawHashes,
-            );
-            $orders = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $rawHashes, false));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://api-docs.grvt.io/trading_streams/#order_1-feed-selector
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->authenticate());
+        $subAccountId = $this->getSubAccountId($params);
+        $messageHashes = array();
+        $rawHashes = array();
+        if ($symbol === null) {
+            $messageHashes[] = 'orders';
+            $rawHashes[] = $subAccountId;
+        } else {
+            $market = $this->market($symbol);
+            $messageHashes[] = 'order::' . $market['symbol'];
+            $rawHashes[] = $subAccountId . '-' . $market['id'];
+        }
+        $request = array(
+            'stream' => 'v1.order',
+            'selectors' => $rawHashes,
+        );
+        $orders = Async\await($this->subscribe_multiple($messageHashes, $this->extend($request, $params), $rawHashes, false));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
     public function handle_order(Client $client, mixed $message) {

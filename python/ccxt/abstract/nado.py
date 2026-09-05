@@ -1,8 +1,7 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     gateway_public_get_symbols = gatewayPublicGetSymbols = Entry[_List]('symbols', ['gateway', 'public'], 'GET', {'cost': 2})
@@ -14,7 +13,7 @@ class ImplicitAPI:
     gatewayv2_public_get_pairs = gatewayV2PublicGetPairs = Entry[_List]('pairs', ['gatewayV2', 'public'], 'GET', {'cost': 1})
     gatewayv2_public_get_orderbook = gatewayV2PublicGetOrderbook = Entry[_Dict]('orderbook', ['gatewayV2', 'public'], 'GET', {'cost': 1})
     archive_post = archivePost = Entry[_Dict]('', 'archive', 'POST', {'cost': 1})
-    archivev2_public_get_tickers = archiveV2PublicGetTickers = Entry[_List]('tickers', ['archiveV2', 'public'], 'GET', {'cost': 1})
+    archivev2_public_get_tickers = archiveV2PublicGetTickers = Entry[_Dict]('tickers', ['archiveV2', 'public'], 'GET', {'cost': 1})
     archivev2_public_get_contracts = archiveV2PublicGetContracts = Entry[_Dict]('contracts', ['archiveV2', 'public'], 'GET', {'cost': 1})
     archivev2_public_get_trades = archiveV2PublicGetTrades = Entry[_List]('trades', ['archiveV2', 'public'], 'GET', {'cost': 1})
     trigger_private_post_execute = triggerPrivatePostExecute = Entry[_Dict]('execute', ['trigger', 'private'], 'POST', {'cost': 1})

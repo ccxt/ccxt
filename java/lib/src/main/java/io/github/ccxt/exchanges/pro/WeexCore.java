@@ -39,8 +39,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 put( "unWatchMyTrades", true );
                 put( "unWatchOHLCV", true );
                 put( "unWatchOHLCVForSymbols", true );
-                put( "unWatchOrderBook", false );
-                put( "unWatchOrderBookForSymbols", false );
+                put( "unWatchOrderBook", true );
+                put( "unWatchOrderBookForSymbols", true );
                 put( "unWatchOrders", true );
                 put( "unWatchPositions", true );
                 put( "unWatchTicker", true );
@@ -110,7 +110,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object id = this.requestId();
             Object method = "SUBSCRIBE";
             Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            if (Helpers.isTrue(unsubscribe))
+            if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 method = "UNSUBSCRIBE";
             }
@@ -143,7 +143,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             this.authenticate(url);
             Object method = "SUBSCRIBE";
             Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-            if (Helpers.isTrue(unsubscribe))
+            if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 method = "UNSUBSCRIBE";
             }
@@ -738,7 +738,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object firstMarket = this.market(firstSymbol);
             Object isContract = Helpers.GetValue(firstMarket, "contract");
             Object priceType = "LAST_PRICE";
-            if (Helpers.isTrue(isContract))
+            if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
             {
                 var priceTypeparametersVariable = this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
                 priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
@@ -829,7 +829,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object firstMarket = this.market(firstSymbol);
             Object isContract = Helpers.GetValue(firstMarket, "contract");
             Object priceType = "LAST_PRICE";
-            if (Helpers.isTrue(isContract))
+            if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
             {
                 var priceTypeparametersVariable = this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
                 priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
@@ -1192,7 +1192,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks is supported for spot markets only")) ;
             }
@@ -1241,7 +1241,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
-            if (Helpers.isTrue(Helpers.GetValue(firstMarket, "contract")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchBidsAsks is supported for spot markets only")) ;
             }
@@ -1484,7 +1484,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object messageHash = "myTrades";
         Object symbolKeys = Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
-        if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             messageHash = "myContractTrades";
         }
@@ -1736,7 +1736,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object messageHash = "orders";
         Object symbolKeys = Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
-        if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             messageHash = "contractOrders";
         }
@@ -1950,7 +1950,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object options = this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
@@ -1968,7 +1968,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         Object options = this.safeDict(this.options, "watchBalance");
         Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        if (Helpers.isTrue(fetchBalanceSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -2139,7 +2139,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             this.setPositionsCache(client, parameters);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(fetchPositionsSnapshot) && Helpers.isTrue(awaitPositionsSnapshot)) && Helpers.isTrue(Helpers.isEqual(this.positions, null))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchPositionsSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitPositionsSnapshot, true)))) && Helpers.isTrue((Helpers.isEqual(this.positions, null)))))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -2158,7 +2158,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (Helpers.isTrue(fetchPositionsSnapshot))
+        if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
             Object messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
@@ -2353,7 +2353,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
-        if (Helpers.isTrue(unsubscribe))
+        if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
         {
             Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
             Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2379,7 +2379,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Object result = this.safeBool(message, "result", true);
-        if (!Helpers.isTrue(result))
+        if (Helpers.isTrue(!Helpers.isEqual(result, true)))
         {
             Object msg = this.safeString(message, "msg", "");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));

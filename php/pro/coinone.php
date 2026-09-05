@@ -52,35 +52,37 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.coinone.co.kr/reference/public-websocket-$orderbook
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'orderbook:' . $market['symbol'];
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'request_type' => 'SUBSCRIBE',
-                'channel' => 'ORDERBOOK',
-                'topic' => array(
-                    'quote_currency' => $market['quote'],
-                    'target_currency' => $market['base'],
-                ),
-            );
-            $message = $this->extend($request, $params);
-            $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.coinone.co.kr/reference/public-websocket-$orderbook
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'orderbook:' . $market['symbol'];
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'request_type' => 'SUBSCRIBE',
+            'channel' => 'ORDERBOOK',
+            'topic' => array(
+                'quote_currency' => $market['quote'],
+                'target_currency' => $market['base'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        return $orderbook->limit();
     }
 
     public function handle_order_book(mixed $client, mixed $message) {
@@ -139,33 +141,35 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'ticker:' . $market['symbol'];
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'request_type' => 'SUBSCRIBE',
-                'channel' => 'TICKER',
-                'topic' => array(
-                    'quote_currency' => $market['quote'],
-                    'target_currency' => $market['base'],
-                ),
-            );
-            $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://docs.coinone.co.kr/reference/public-websocket-ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'ticker:' . $market['symbol'];
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'request_type' => 'SUBSCRIBE',
+            'channel' => 'TICKER',
+            'topic' => array(
+                'quote_currency' => $market['quote'],
+                'target_currency' => $market['base'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
     public function handle_ticker(Client $client, mixed $message) {
@@ -264,39 +268,41 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a $market
-             *
-             * @see https://docs.coinone.co.kr/reference/public-websocket-trade
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $messageHash = 'trade:' . $market['symbol'];
-            $url = $this->urls['api']['ws'];
-            $request = array(
-                'request_type' => 'SUBSCRIBE',
-                'channel' => 'TRADE',
-                'topic' => array(
-                    'quote_currency' => $market['quote'],
-                    'target_currency' => $market['base'],
-                ),
-            );
-            $message = $this->extend($request, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($market['symbol'], $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made in a $market
+         *
+         * @see https://docs.coinone.co.kr/reference/public-websocket-trade
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $messageHash = 'trade:' . $market['symbol'];
+        $url = $this->urls['api']['ws'];
+        $request = array(
+            'request_type' => 'SUBSCRIBE',
+            'channel' => 'TRADE',
+            'topic' => array(
+                'quote_currency' => $market['quote'],
+                'target_currency' => $market['base'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, mixed $message) {
@@ -351,7 +357,7 @@ class coinone extends \ccxt\async\coinone {
         $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
-            $side = $isSellerMaker ? 'sell' : 'buy';
+            $side = ($isSellerMaker === true) ? 'sell' : 'buy';
         }
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
@@ -388,7 +394,7 @@ class coinone extends \ccxt\async\coinone {
     }
 
     public function handle_message(Client $client, mixed $message) {
-        if ($this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $type = $this->safe_string($message, 'response_type');

@@ -5,7 +5,7 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict, List } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
@@ -13,10 +13,11 @@ interface Exchange {
     publicGetInstruments (params?: {}): Promise<Dict>;
     publicGetOrderbook (params?: {}): Promise<Dict>;
     publicGetTickers (params?: {}): Promise<Dict>;
+    publicGetTickersSymbol (params?: {}): Promise<Dict>;
     publicGetHistory (params?: {}): Promise<Dict>;
     publicGetHistoricalfundingrates (params?: {}): Promise<Dict>;
     privateGetFeeschedulesVolumes (params?: {}): Promise<Dict>;
-    privateGetOpenpositions (params?: {}): Promise<List>;
+    privateGetOpenpositions (params?: {}): Promise<Dict>;
     privateGetNotifications (params?: {}): Promise<Dict>;
     privateGetAccounts (params?: {}): Promise<Dict>;
     privateGetOpenorders (params?: {}): Promise<Dict>;

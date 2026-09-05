@@ -1,15 +1,14 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_activate2fa = publicGetActivate2FA = Entry[_Dict]('Activate2FA', 'public', 'GET', {'cost': 1})
     public_get_authenticate2fa = publicGetAuthenticate2FA = Entry[_Dict]('Authenticate2FA', 'public', 'GET', {'cost': 1})
     public_get_authenticateuser = publicGetAuthenticateUser = Entry[_Dict]('AuthenticateUser', 'public', 'GET', {'cost': 1})
     public_get_enablexp2fa = publicGetEnableXP2FA = Entry[_Dict]('EnableXP2FA', 'public', 'GET', {'cost': 1})
-    public_get_getl2snapshot = publicGetGetL2Snapshot = Entry[_Dict]('GetL2Snapshot', 'public', 'GET', {'cost': 1})
+    public_get_getl2snapshot = publicGetGetL2Snapshot = Entry[_List]('GetL2Snapshot', 'public', 'GET', {'cost': 1})
     public_get_getlevel1 = publicGetGetLevel1 = Entry[_Dict]('GetLevel1', 'public', 'GET', {'cost': 1})
     public_get_getvalidate2farequiredendpoints = publicGetGetValidate2FARequiredEndpoints = Entry[_List]('GetValidate2FARequiredEndpoints', 'public', 'GET', {'cost': 1})
     public_get_logout = publicGetLogOut = Entry[_Dict]('LogOut', 'public', 'GET', {'cost': 1})

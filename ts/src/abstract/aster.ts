@@ -30,13 +30,13 @@ interface Exchange {
     fapiPublicGetV1MarkPriceKlines (params?: {}): Promise<List>;
     fapiPublicGetV3MarkPriceKlines (params?: {}): Promise<List>;
     fapiPublicGetV1PremiumIndex (params?: {}): Promise<Dict>;
-    fapiPublicGetV3PremiumIndex (params?: {}): Promise<Dict>;
+    fapiPublicGetV3PremiumIndex (params?: {}): Promise<Dict | List>;
     fapiPublicGetV1FundingRate (params?: {}): Promise<List>;
     fapiPublicGetV3FundingRate (params?: {}): Promise<List>;
     fapiPublicGetV1FundingInfo (params?: {}): Promise<List>;
     fapiPublicGetV3FundingInfo (params?: {}): Promise<List>;
     fapiPublicGetV1Ticker24hr (params?: {}): Promise<List>;
-    fapiPublicGetV3Ticker24hr (params?: {}): Promise<List>;
+    fapiPublicGetV3Ticker24hr (params?: {}): Promise<Dict | List>;
     fapiPublicGetV1TickerPrice (params?: {}): Promise<List>;
     fapiPublicGetV3TickerPrice (params?: {}): Promise<List>;
     fapiPublicGetV1TickerBookTicker (params?: {}): Promise<List>;
@@ -57,7 +57,7 @@ interface Exchange {
     fapiPrivateGetV1AllOrders (params?: {}): Promise<List>;
     fapiPrivateGetV3AllOrders (params?: {}): Promise<List>;
     fapiPrivateGetV2Balance (params?: {}): Promise<List>;
-    fapiPrivateGetV3Balance (params?: {}): Promise<Dict>;
+    fapiPrivateGetV3Balance (params?: {}): Promise<List>;
     fapiPrivateGetV3Account (params?: {}): Promise<Dict>;
     fapiPrivateGetV1PositionMarginHistory (params?: {}): Promise<List>;
     fapiPrivateGetV3PositionMarginHistory (params?: {}): Promise<List>;
@@ -140,7 +140,7 @@ interface Exchange {
     sapiPublicGetV3HistoricalTrades (params?: {}): Promise<List>;
     sapiPublicGetV3AggTrades (params?: {}): Promise<List>;
     sapiPublicGetV3Klines (params?: {}): Promise<List>;
-    sapiPublicGetV3Ticker24hr (params?: {}): Promise<List>;
+    sapiPublicGetV3Ticker24hr (params?: {}): Promise<Dict | List>;
     sapiPublicGetV3TickerPrice (params?: {}): Promise<List>;
     sapiPublicGetV3TickerBookTicker (params?: {}): Promise<List>;
     sapiPublicGetV3AsterWithdrawEstimateFee (params?: {}): Promise<Dict>;

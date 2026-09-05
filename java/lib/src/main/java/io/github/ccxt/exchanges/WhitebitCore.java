@@ -40,7 +40,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "createConvertTrade", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createPostOnlyOrder", true );
@@ -51,6 +51,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "editOrder", true );
                 put( "fetchAccounts", true );
                 put( "fetchBalance", true );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchClosedOrders", true );
@@ -681,7 +682,7 @@ public class WhitebitCore extends WhitebitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "adjustForTimeDifference")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.options, "adjustForTimeDifference"), true)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -729,11 +730,10 @@ public class WhitebitCore extends WhitebitApi
         Object settle = null;
         Object settleId = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object swap = Helpers.isEqual(typeId, "futures");
-        Object margin = Helpers.isTrue(isCollateral) && !Helpers.isTrue(swap);
+        Object swap = Helpers.isTrue((Helpers.isEqual(typeId, "futures"))) || Helpers.isTrue((Helpers.isEqual(typeId, "tradfiFutures")));
+        Object margin = Helpers.isTrue((Helpers.isEqual(isCollateral, true))) && !Helpers.isTrue(swap);
         Object contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        Object contractSize = amountPrecision;
         Object linear = null;
         Object inverse = null;
         if (Helpers.isTrue(swap))
@@ -784,7 +784,7 @@ public class WhitebitCore extends WhitebitApi
             put( "inverse", finalInverse );
             put( "taker", WhitebitCore.this.parseNumber(taker) );
             put( "maker", WhitebitCore.this.parseNumber(maker) );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : contractSize );
+            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : WhitebitCore.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1366,13 +1366,14 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = Helpers.GetValue(markets, marketId);
-                if (Helpers.isTrue(!Helpers.isTrue(market) || !Helpers.isTrue(Helpers.GetValue(market, "symbol"))))
+                Object marketSymbol = this.safeString(market, "symbol");
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(market, null))) || Helpers.isTrue((Helpers.isEqual(market, null)))) || Helpers.isTrue((Helpers.isEqual(marketSymbol, null)))) || Helpers.isTrue((Helpers.isEqual(marketSymbol, "")))))
                 {
                     continue;
                 }
                 Object symbol = Helpers.GetValue(market, "symbol");
                 // Filter by symbols if specified
-                if (Helpers.isTrue(symbols))
+                if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     Object symbolFound = false;
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(symbols)); j++)
@@ -1394,16 +1395,17 @@ public class WhitebitCore extends WhitebitApi
                 Object priceLimits = this.safeDict(limits, "price");
                 Object costLimits = this.safeDict(limits, "cost");
                 // Validate that all required limits exist and are valid numbers
-                Object hasAmountLimits = Helpers.isTrue(Helpers.isTrue(amountLimits) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "max"), null));
-                Object hasPriceLimits = Helpers.isTrue(Helpers.isTrue(priceLimits) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "max"), null));
-                Object hasCostLimits = Helpers.isTrue(Helpers.isTrue(costLimits) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "max"), null));
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(hasAmountLimits) && Helpers.isTrue(hasPriceLimits)) && Helpers.isTrue(hasCostLimits)))
+                Object hasAmountLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountLimits, null))) && Helpers.isTrue((!Helpers.isEqual(amountLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(amountLimits, "max"), null));
+                Object hasPriceLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(priceLimits, null))) && Helpers.isTrue((!Helpers.isEqual(priceLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(priceLimits, "max"), null));
+                Object hasCostLimits = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(costLimits, null))) && Helpers.isTrue((!Helpers.isEqual(costLimits, null)))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "min"), null))) && Helpers.isTrue(!Helpers.isEqual(this.safeNumber(costLimits, "max"), null));
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hasAmountLimits, true))) && Helpers.isTrue((Helpers.isEqual(hasPriceLimits, true)))) && Helpers.isTrue((Helpers.isEqual(hasCostLimits, true)))))
                 {
+                    final Object finalMarket = market;
                     final Object finalAmountLimits = amountLimits;
                     final Object finalPriceLimits = priceLimits;
                     final Object finalCostLimits = costLimits;
                     Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
-        put( "info", market );
+        put( "info", finalMarket );
         put( "limits", new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
                 put( "min", WhitebitCore.this.safeNumber(finalAmountLimits, "min") );
@@ -1513,7 +1515,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object code = Helpers.GetValue(currencyKeys, i);
                 Object currency = Helpers.GetValue(currenciesData, code);
-                if (!Helpers.isTrue(currency))
+                if (Helpers.isTrue(Helpers.isEqual(currency, null)))
                 {
                     continue;
                 }
@@ -1528,7 +1530,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     Object feeKey = Helpers.GetValue(feeKeys, j);
                     Object fee = this.safeDict(feesData, feeKey);
-                    if (Helpers.isTrue(Helpers.isTrue(fee) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(fee, "ticker"), code))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(fee, null)) && Helpers.isTrue(!Helpers.isEqual(fee, null)))) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(fee, "ticker"), code))))
                     {
                         feeData = fee;
                         break;
@@ -1547,48 +1549,51 @@ public class WhitebitCore extends WhitebitApi
                     }} );
                 }};
                 // Add fee information if available
-                if (Helpers.isTrue(feeData))
+                if (Helpers.isTrue(!Helpers.isEqual(feeData, null)))
                 {
                     Object depositFee = Helpers.GetValue(feeData, "deposit");
                     Object withdrawFee = Helpers.GetValue(feeData, "withdraw");
-                    if (Helpers.isTrue(depositFee))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(depositFee, null))) && Helpers.isTrue((!Helpers.isEqual(depositFee, null)))))
                     {
+                        final Object finalDepositFee = depositFee;
                         Object depositFeeData = new java.util.HashMap<String, Object>() {{
-                            put( "fixed", WhitebitCore.this.safeNumber(depositFee, "fixed") );
+                            put( "fixed", WhitebitCore.this.safeNumber(finalDepositFee, "fixed") );
                         }};
-                        if (Helpers.isTrue(Helpers.GetValue(depositFee, "flex")))
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(depositFee, "flex"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(depositFee, "flex"), null)))))
                         {
                             Helpers.addElementToObject(depositFeeData, "flex", new java.util.HashMap<String, Object>() {{
-        put( "min", WhitebitCore.this.safeNumber(Helpers.GetValue(depositFee, "flex"), "min_fee") );
-        put( "max", WhitebitCore.this.safeNumber(Helpers.GetValue(depositFee, "flex"), "max_fee") );
-        put( "percent", WhitebitCore.this.safeNumber(Helpers.GetValue(depositFee, "flex"), "percent") );
+        put( "min", WhitebitCore.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "min_fee") );
+        put( "max", WhitebitCore.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "max_fee") );
+        put( "percent", WhitebitCore.this.safeNumber(Helpers.GetValue(finalDepositFee, "flex"), "percent") );
     }});
                         }
                         Helpers.addElementToObject(Helpers.GetValue(limits, "deposit"), "fee", depositFeeData);
                     }
-                    if (Helpers.isTrue(withdrawFee))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(withdrawFee, null))) && Helpers.isTrue((!Helpers.isEqual(withdrawFee, null)))))
                     {
+                        final Object finalWithdrawFee = withdrawFee;
                         Object withdrawFeeData = new java.util.HashMap<String, Object>() {{
-                            put( "fixed", WhitebitCore.this.safeNumber(withdrawFee, "fixed") );
+                            put( "fixed", WhitebitCore.this.safeNumber(finalWithdrawFee, "fixed") );
                         }};
-                        if (Helpers.isTrue(Helpers.GetValue(withdrawFee, "flex")))
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(withdrawFee, "flex"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(withdrawFee, "flex"), null)))))
                         {
                             Helpers.addElementToObject(withdrawFeeData, "flex", new java.util.HashMap<String, Object>() {{
-        put( "min", WhitebitCore.this.safeNumber(Helpers.GetValue(withdrawFee, "flex"), "min_fee") );
-        put( "max", WhitebitCore.this.safeNumber(Helpers.GetValue(withdrawFee, "flex"), "max_fee") );
-        put( "percent", WhitebitCore.this.safeNumber(Helpers.GetValue(withdrawFee, "flex"), "percent") );
+        put( "min", WhitebitCore.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "min_fee") );
+        put( "max", WhitebitCore.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "max_fee") );
+        put( "percent", WhitebitCore.this.safeNumber(Helpers.GetValue(finalWithdrawFee, "flex"), "percent") );
     }});
                         }
                         Helpers.addElementToObject(Helpers.GetValue(limits, "withdraw"), "fee", withdrawFeeData);
                     }
                 }
                 // Add network-specific limits if available
-                if (Helpers.isTrue(Helpers.GetValue(currency, "networks")))
+                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(currency, "networks"), null)))
                 {
                     Helpers.addElementToObject(limits, "networks", Helpers.GetValue(currency, "networks"));
                 }
+                final Object finalCurrency = currency;
                 Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
-        put( "info", currency );
+        put( "info", finalCurrency );
         put( "limits", limits );
     }});
             }
@@ -1790,6 +1795,7 @@ public class WhitebitCore extends WhitebitApi
             // Extract control parameters from params
             Object checkActive = this.safeBool(parameters, "checkActive", true);
             Object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("checkActive", "checkExecuted")));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -1800,7 +1806,7 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
             // Try active orders first (if enabled)
-            if (Helpers.isTrue(checkActive))
+            if (Helpers.isTrue(Helpers.isEqual(checkActive, true)))
             {
                 try
                 {
@@ -1827,7 +1833,7 @@ public class WhitebitCore extends WhitebitApi
                 }
             }
             // Try executed orders (if enabled)
-            if (Helpers.isTrue(checkExecuted))
+            if (Helpers.isTrue(Helpers.isEqual(checkExecuted, true)))
             {
                 try
                 {
@@ -1892,7 +1898,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object market = this.market(symbol);
-                    if (!Helpers.isTrue((Helpers.GetValue(market, "contract"))))
+                    if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                     {
                         onlyContractSymbols = false;
                         break;
@@ -2914,10 +2920,6 @@ public class WhitebitCore extends WhitebitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
-            {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-            }
             if (Helpers.isTrue(isBiggerThanZero))
             {
                 Helpers.addElementToObject(request, "timeout", this.numberToString(Helpers.divide(timeout, 1000)));
@@ -3508,22 +3510,31 @@ public class WhitebitCore extends WhitebitApi
             // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
             Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
-            //     [
-            //         {
-            //             "id": 123456789,                    // Transaction ID
-            //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
-            //             "ticker": "BTC",                    // Currency ticker
-            //             "amount": "0.001",                  // Transaction amount
-            //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-            //             "memo": "",                         // Memo/tag (if required)
-            //             "network": "BTC",                   // Network name
-            //             "fee": "0.0005",                    // Transaction fee
-            //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
-            //             "timestamp": 1641051917,            // Transaction timestamp
-            //             "txid": "abc123def456..."           // Transaction hash
-            //         },
-            //         { ... }                                 // More transactions (deposits and withdrawals)
-            //     ]
+            //     {
+            //         "records": [
+            //             {
+            //                 "address": "TDepositAddressExample1111111111111",
+            //                 "uniqueId": null,
+            //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+            //                 "createdAt": 1786182572,
+            //                 "currency": "Tether US",
+            //                 "ticker": "USDT",
+            //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+            //                 "amount": "20.723117",
+            //                 "description": null,
+            //                 "memo": null,
+            //                 "fee": "0",
+            //                 "status": 3,
+            //                 "network": "TRC20",
+            //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+            //                 "details": { "partial": null },
+            //                 "centralized": false
+            //             }
+            //         ],
+            //         "total": 1,
+            //         "limit": 100,
+            //         "offset": 0
+            //     }
             //
             Object records = this.safeList(response, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(records, currency, since, limit);
@@ -3710,37 +3721,38 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            // Fetch sub-accounts
+            Object response = (this.v4PrivatePostSubAccountList(parameters)).join();
             //
-            //     [
-            //         {
-            //             "id": "12345",
-            //             "name": "SubAccount1",
-            //             "status": "active",
-            //             "permissions": ["trade", "withdraw"]
-            //         }
-            //     ]
+            //     {
+            //         "offset": 0,
+            //         "limit": 100,
+            //         "data": [
+            //             {
+            //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+            //                 "alias": "trading_bot",
+            //                 "userId": "u-12345",
+            //                 "email": "s***@example.com",
+            //                 "status": "active",
+            //                 "color": "#FF5733",
+            //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+            //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+            //             }
+            //         ]
+            //     }
             //
-            Object subAccounts = (this.v4PrivatePostSubAccountList(parameters)).join();
-            if (Helpers.isTrue(Helpers.isTrue(subAccounts) && Helpers.isTrue(Helpers.isArray(subAccounts))))
+            Object subAccounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
-                {
-                    Object subAccount = this.safeValue(subAccounts, i);
-                    Object accountId = this.safeString(subAccount, "id");
-                    Object accountName = this.safeString(subAccount, "name");
-                    if (Helpers.isTrue(accountId))
-                    {
-    final Object finalAccountName = accountName;
-                                            ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
-                            put( "id", accountId );
-                            put( "type", "subaccount" );
-                            put( "name", Helpers.isTrue(finalAccountName) || Helpers.isTrue(Helpers.add("SubAccount ", accountId)) );
-                            put( "code", null );
-                            put( "info", subAccount );
-                        }});
-                    }
-                }
+                Object subAccount = this.safeDict(subAccounts, i, new java.util.HashMap<String, Object>() {{}});
+                Object accountId = this.safeString(subAccount, "id");
+                Object accountName = this.safeString(subAccount, "alias");
+                ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
+                    put( "id", accountId );
+                    put( "type", "subaccount" );
+                    put( "name", accountName );
+                    put( "code", null );
+                    put( "info", subAccount );
+                }});
             }
             return accounts;
         });
@@ -4466,12 +4478,12 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", since);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v4PrivatePostCollateralAccountFundingHistory(request)).join();
+            Object response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "records": [
@@ -5222,7 +5234,7 @@ public class WhitebitCore extends WhitebitApi
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -5309,7 +5321,7 @@ public class WhitebitCore extends WhitebitApi
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             Object success = this.safeBool(response, "success", true);
-            if (!Helpers.isTrue(success))
+            if (Helpers.isTrue(!Helpers.isEqual(success, true)))
             {
                 Object errMsg = this.safeDict(response, "message", new java.util.HashMap<String, Object>() {{}});
                 Object errKeys = Helpers.objectKeys(errMsg);

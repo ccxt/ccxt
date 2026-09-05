@@ -40,6 +40,7 @@ var blofin = require('./src/blofin.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
+var btse = require('./src/btse.js');
 var bullish = require('./src/bullish.js');
 var bybit = require('./src/bybit.js');
 var bybiteu = require('./src/bybiteu.js');
@@ -62,7 +63,6 @@ var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
 var dydx = require('./src/dydx.js');
-var exmo = require('./src/exmo.js');
 var extended = require('./src/extended.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -102,6 +102,7 @@ var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
+var revolutx = require('./src/revolutx.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var toobit = require('./src/toobit.js');
 var upbit = require('./src/upbit.js');
@@ -149,7 +150,6 @@ var deepcoin$1 = require('./src/pro/deepcoin.js');
 var deribit$1 = require('./src/pro/deribit.js');
 var derive$1 = require('./src/pro/derive.js');
 var dydx$1 = require('./src/pro/dydx.js');
-var exmo$1 = require('./src/pro/exmo.js');
 var extended$1 = require('./src/pro/extended.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateeu$1 = require('./src/pro/gateeu.js');
@@ -194,11 +194,12 @@ var hyperliquid$2 = require('./src/prediction/hyperliquid.js');
 var kalshi = require('./src/prediction/kalshi.js');
 var limitless = require('./src/prediction/limitless.js');
 var myriad = require('./src/prediction/myriad.js');
+var opinion = require('./src/prediction/opinion.js');
 var polymarket = require('./src/prediction/polymarket.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.71';
+const version = '4.5.77';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -231,6 +232,7 @@ const exchanges = {
     'btcbox': btcbox["default"],
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
+    'btse': btse["default"],
     'bullish': bullish["default"],
     'bybit': bybit["default"],
     'bybiteu': bybiteu["default"],
@@ -253,7 +255,6 @@ const exchanges = {
     'derive': derive["default"],
     'digifinex': digifinex["default"],
     'dydx': dydx["default"],
-    'exmo': exmo["default"],
     'extended': extended["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -293,6 +294,7 @@ const exchanges = {
     'paymium': paymium["default"],
     'phemex': phemex["default"],
     'poloniex': poloniex["default"],
+    'revolutx': revolutx["default"],
     'tokocrypto': tokocrypto["default"],
     'toobit': toobit["default"],
     'upbit': upbit["default"],
@@ -342,7 +344,6 @@ const pro = {
     'deribit': deribit$1["default"],
     'derive': derive$1["default"],
     'dydx': dydx$1["default"],
-    'exmo': exmo$1["default"],
     'extended': extended$1["default"],
     'gate': gate$1["default"],
     'gateeu': gateeu$1["default"],
@@ -392,6 +393,7 @@ const prediction = {
     'kalshi': kalshi["default"],
     'limitless': limitless["default"],
     'myriad': myriad["default"],
+    'opinion': opinion["default"],
     'polymarket': polymarket["default"],
 };
 prediction.exchanges = Object.keys(prediction);
@@ -480,6 +482,7 @@ exports.blofin = blofin["default"];
 exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
+exports.btse = btse["default"];
 exports.bullish = bullish["default"];
 exports.bybit = bybit["default"];
 exports.bybiteu = bybiteu["default"];
@@ -502,7 +505,6 @@ exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
 exports.dydx = dydx["default"];
-exports.exmo = exmo["default"];
 exports.extended = extended["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
@@ -542,6 +544,7 @@ exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];
 exports.poloniex = poloniex["default"];
+exports.revolutx = revolutx["default"];
 exports.tokocrypto = tokocrypto["default"];
 exports.toobit = toobit["default"];
 exports.upbit = upbit["default"];

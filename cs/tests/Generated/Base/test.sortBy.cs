@@ -56,6 +56,50 @@ public partial class BaseTest
         }});
             object emptyArray = exchange.sortBy(new List<object>() {}, "x");
             AssertDeepEqual(exchange, null, "sortBy", emptyArray, new List<object>() {});
+            // regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+            object arrTwoDigits = new List<object>() {new Dictionary<string, object>() {
+            { "x", 10 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 7 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 9 },
+        }, new Dictionary<string, object>() {
+            { "x", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 8 },
+        }, new Dictionary<string, object>() {
+            { "x", 4 },
+        }, new Dictionary<string, object>() {
+            { "x", 6 },
+        }};
+            object sortedTwoDigits = exchange.sortBy(arrTwoDigits, "x");
+            AssertDeepEqual(exchange, null, "sortBy", sortedTwoDigits, new List<object>() {new Dictionary<string, object>() {
+            { "x", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 4 },
+        }, new Dictionary<string, object>() {
+            { "x", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 6 },
+        }, new Dictionary<string, object>() {
+            { "x", 7 },
+        }, new Dictionary<string, object>() {
+            { "x", 8 },
+        }, new Dictionary<string, object>() {
+            { "x", 9 },
+        }, new Dictionary<string, object>() {
+            { "x", 10 },
+        }});
         }
         public void testSortBy2()
         {

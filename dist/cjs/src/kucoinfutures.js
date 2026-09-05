@@ -29,6 +29,7 @@ class kucoinfutures extends kucoin["default"] {
                 'future': true,
                 'option': undefined,
                 'fetchBidsAsks': true,
+                'transfer': true,
             },
             'options': {
                 'fetchMarkets': {
@@ -52,7 +53,8 @@ class kucoinfutures extends kucoin["default"] {
         const request = {
             'method': 'futuresPublicGetAllTickers',
         };
-        return await this.fetchTickers(symbols, this.extend(request, params));
+        const extendedRequest = this.extend(request, params);
+        return await this.fetchTickers(symbols, extendedRequest);
     }
     /**
      * @method

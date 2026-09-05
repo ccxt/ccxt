@@ -76,6 +76,7 @@ public class BtcboxCore extends BtcboxApi
                 put( "fetchMarginMode", false );
                 put( "fetchMarginModes", false );
                 put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMarkPrices", false );
                 put( "fetchMyLiquidations", false );
@@ -997,7 +998,7 @@ public class BtcboxCore extends BtcboxApi
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/"), this.version), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

@@ -674,12 +674,12 @@ public class BitmexCore extends BitmexApi
             Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
             Object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
             Object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
-            Object active = (Helpers.isTrue(isDepositEnabled) && Helpers.isTrue(isWithdrawEnabled));
-            if (Helpers.isTrue(isDepositEnabled))
+            Object active = (Helpers.isTrue((Helpers.isEqual(isDepositEnabled, true))) && Helpers.isTrue((Helpers.isEqual(isWithdrawEnabled, true))));
+            if (Helpers.isTrue(Helpers.isEqual(isDepositEnabled, true)))
             {
                 depositEnabled = true;
             }
-            if (Helpers.isTrue(isWithdrawEnabled))
+            if (Helpers.isTrue(Helpers.isEqual(isWithdrawEnabled, true)))
             {
                 withdrawEnabled = true;
             }
@@ -687,13 +687,14 @@ public class BitmexCore extends BitmexApi
             {
                 final Object finalNetwork = network;
                 final Object finalIsDepositEnabled = isDepositEnabled;
+                final Object finalIsWithdrawEnabled = isWithdrawEnabled;
                 Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetwork );
     put( "active", active );
     put( "deposit", finalIsDepositEnabled );
-    put( "withdraw", isWithdrawEnabled );
+    put( "withdraw", finalIsWithdrawEnabled );
     put( "fee", withdrawalFee );
     put( "precision", null );
     put( "limits", new java.util.HashMap<String, Object>() {{
@@ -710,7 +711,7 @@ public class BitmexCore extends BitmexApi
             }
         }
         Object currencyEnabled = this.safeValue(currency, "enabled");
-        Object currencyActive = Helpers.isTrue(currencyEnabled) || Helpers.isTrue((Helpers.isTrue(depositEnabled) || Helpers.isTrue(withdrawEnabled)));
+        Object currencyActive = Helpers.isTrue((Helpers.isEqual(currencyEnabled, true))) || Helpers.isTrue((Helpers.isTrue(depositEnabled) || Helpers.isTrue(withdrawEnabled)));
         Object minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
         Object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
         Object maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
@@ -777,7 +778,7 @@ public class BitmexCore extends BitmexApi
         symbol = this.safeSymbol(symbol);
         Object market = this.market(symbol);
         Object oldPrecision = this.safeValue(this.options, "oldPrecision");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "spot")) && !Helpers.isTrue(oldPrecision)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((!Helpers.isEqual(oldPrecision, true)))))
         {
             amount = this.convertFromRealAmount(Helpers.GetValue(market, "base"), amount);
         }
@@ -787,7 +788,7 @@ public class BitmexCore extends BitmexApi
     public Object convertFromRawQuantity(Object symbol, Object rawQuantity, Object... optionalArgs)
     {
         Object currencySide = Helpers.getArg(optionalArgs, 0, "base");
-        if (Helpers.isTrue(this.safeValue(this.options, "oldPrecision")))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.options, "oldPrecision"), true)))
         {
             return this.parseNumber(rawQuantity);
         }
@@ -798,7 +799,7 @@ public class BitmexCore extends BitmexApi
             return this.parseNumber(rawQuantity);
         }
         Object market = this.market(symbol);
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
@@ -1053,7 +1054,7 @@ public class BitmexCore extends BitmexApi
         Object contractSize = null;
         Object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         Object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        Object linear = ((Helpers.isTrue(contract))) ? (!Helpers.isTrue(isInverse) && !Helpers.isTrue(isQuanto)) : null;
+        Object linear = ((Helpers.isTrue(contract))) ? (Helpers.isTrue((!Helpers.isEqual(isInverse, true))) && Helpers.isTrue((!Helpers.isEqual(isQuanto, true)))) : null;
         Object status = this.safeString(market, "state");
         Object active = Helpers.isEqual(status, "Open"); // Open, Settled, Unlisted
         Object expiry = null;
@@ -1065,7 +1066,7 @@ public class BitmexCore extends BitmexApi
         } else if (Helpers.isTrue(contract))
         {
             symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-            if (Helpers.isTrue(linear))
+            if (Helpers.isTrue(Helpers.isEqual(linear, true)))
             {
                 Object multiplierString = this.safeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier");
                 contractSize = Precise.stringAbs(Precise.stringDiv("1", multiplierString));
@@ -2429,7 +2430,7 @@ public class BitmexCore extends BitmexApi
             isInverse = (Helpers.isEqual(defaultSubType, "inverse"));
         } else
         {
-            isInverse = Helpers.isEqual(this.safeBool(market, "inverse", false), true);
+            isInverse = this.safeBool(market, "inverse", false);
         }
         if (Helpers.isTrue(isInverse))
         {
@@ -2613,7 +2614,7 @@ public class BitmexCore extends BitmexApi
             Object reduceOnly = this.safeValue(parameters, "reduceOnly");
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isTrue(Helpers.GetValue(market, "swap")))) && Helpers.isTrue((!Helpers.isTrue(Helpers.GetValue(market, "future"))))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
                 {
                     throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
                 }
@@ -2736,7 +2737,7 @@ public class BitmexCore extends BitmexApi
                 Object triggerAbove = (Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))) || Helpers.isTrue((Helpers.isEqual(triggerDirection, "above"))));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "limit"))) || Helpers.isTrue((Helpers.isEqual(type, "market")))))
                 {
-                    this.checkRequiredArgument("createOrder", triggerDirection, "triggerDirection", new java.util.ArrayList<Object>(java.util.Arrays.asList("above", "below")));
+                    this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new java.util.ArrayList<Object>(java.util.Arrays.asList("above", "below")));
                 }
                 Object orderType = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -3408,7 +3409,7 @@ public class BitmexCore extends BitmexApi
                 Object marketId = this.safeString(item, "symbol");
                 Object market = this.safeMarket(marketId);
                 Object swap = this.safeBool(market, "swap", false);
-                if (Helpers.isTrue(swap))
+                if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                 {
                     ((java.util.List<Object>)filteredResponse).add(item);
                 }
@@ -4505,7 +4506,7 @@ public class BitmexCore extends BitmexApi
         Object query = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 query = Helpers.add(query, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -4542,7 +4543,7 @@ public class BitmexCore extends BitmexApi
             Helpers.addElementToObject(headers, "api-expires", stringExpires);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     body = this.json(parameters);
                     auth = Helpers.add(auth, body);

@@ -564,7 +564,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
             Object messageHash = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), this.numberToString(limit));
             } else
@@ -573,7 +573,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"), false, true);
             Object method = "handleOrderBookSubscription";
-            if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 parameters = this.extend(parameters);
                 Helpers.addElementToObject(parameters, "data_type", "incremental");
@@ -612,14 +612,14 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object depth = this.safeInteger(options, "depth", 150);
             Object subMessageHash = null;
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 subMessageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), this.numberToString(depth));
             } else
             {
                 subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".depth.size_"), this.numberToString(depth)), ".high_freq");
             }
-            if (!Helpers.isTrue((Helpers.GetValue(market, "spot"))))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(parameters, "data_type", "incremental");
             }
@@ -884,20 +884,20 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prevSeqNum, null))) && Helpers.isTrue(Helpers.isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))))
         {
             Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            if (Helpers.isTrue(checksum))
+            if (Helpers.isTrue(Helpers.isEqual(checksum, true)))
             {
                 throw new ChecksumError((String)Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        Object spotConditon = Helpers.isTrue(Helpers.GetValue(market, "spot")) && Helpers.isTrue((Helpers.isEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce"))));
-        Object nonSpotCondition = Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(version, null)))) && Helpers.isTrue((Helpers.isEqual(Helpers.subtract(version, 1), Helpers.GetValue(orderbook, "nonce"))));
-        if (Helpers.isTrue(Helpers.isTrue(spotConditon) || Helpers.isTrue(nonSpotCondition)))
+        Object spotConditon = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((Helpers.isEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce"))));
+        Object nonSpotCondition = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(version, null)))) && Helpers.isTrue((Helpers.isEqual(Helpers.subtract(version, 1), Helpers.GetValue(orderbook, "nonce"))));
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(spotConditon, true))) || Helpers.isTrue((Helpers.isEqual(nonSpotCondition, true)))))
         {
             Object asks = this.safeValue(tick, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object bids = this.safeValue(tick, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
-            Helpers.addElementToObject(orderbook, "nonce", ((Helpers.isTrue(spotConditon))) ? seqNum : version);
+            Helpers.addElementToObject(orderbook, "nonce", ((Helpers.isTrue((Helpers.isEqual(spotConditon, true))))) ? seqNum : version);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
@@ -992,7 +992,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
-        if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
         }
@@ -1036,7 +1036,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 type = Helpers.GetValue(market, "type");
-                subType = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? "linear" : "inverse";
+                subType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? "linear" : "inverse";
                 marketId = Helpers.GetValue(market, "lowercaseId");
             } else
             {
@@ -1204,7 +1204,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 symbol = Helpers.GetValue(market, "symbol");
                 type = Helpers.GetValue(market, "type");
                 suffix = Helpers.GetValue(market, "lowercaseId");
-                subType = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? "linear" : "inverse";
+                subType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? "linear" : "inverse";
             } else
             {
                 type = this.safeString(this.options, "defaultType", "spot");
@@ -1795,7 +1795,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(aggressor, null)))
         {
-            takerOrMaker = ((Helpers.isTrue(aggressor))) ? "taker" : "maker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(aggressor, true))))) ? "taker" : "maker";
         }
         final Object finalType = type;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1855,7 +1855,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 type = Helpers.GetValue(market, "type");
-                subType = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? "linear" : "inverse";
+                subType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? "linear" : "inverse";
             } else
             {
                 var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
@@ -2123,7 +2123,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 messageHash = prefix;
                 if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
                 {
-                    if (Helpers.isTrue(isUnifiedAccount))
+                    if (Helpers.isTrue(Helpers.isEqual(isUnifiedAccount, true)))
                     {
                         // usdt contracts account
                         prefix = "accounts_unify";
@@ -2395,7 +2395,6 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 messageHash = Helpers.add(messageHash, Helpers.add(".", ((String)currencyId).toLowerCase()));
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
-            Object type = this.safeString(subscription, "type");
             Object subType = this.safeString(subscription, "subType");
             if (Helpers.isTrue(Helpers.isEqual(topic, "accounts_unify")))
             {
@@ -2429,33 +2428,17 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 Object margin = this.safeString(subscription, "margin");
                 if (Helpers.isTrue(Helpers.isEqual(margin, "cross")))
                 {
-                    Object fieldName = ((Helpers.isTrue((Helpers.isEqual(type, "future"))))) ? "futures_contract_detail" : "contract_detail";
-                    Object balances = this.safeValue(first, fieldName, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Object balancesLength = Helpers.getArrayLength(balances);
-                    if (Helpers.isTrue(Helpers.isGreaterThan(balancesLength, 0)))
+                    // the cross account is one shared margin balance, keyed by the settle currency
+                    Object currencyId = this.safeString2(first, "margin_asset", "margin_account");
+                    Object code = this.safeCurrencyCode(currencyId);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
-                        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
-                        {
-                            Object balance = Helpers.GetValue(balances, i);
-                            Object marketId = this.safeString2(balance, "contract_code", "margin_account");
-                            Object market = this.safeMarket(marketId);
-                            Object currencyId = this.safeString(balance, "margin_asset");
-                            Object currency = this.safeCurrency(currencyId);
-                            Object code = this.safeString(market, "settle", Helpers.GetValue(currency, "code"));
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the market was delisted
-                            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
-                            {
-                                Object account = this.account();
-                                Helpers.addElementToObject(account, "free", this.safeString2(balance, "margin_balance", "margin_available"));
-                                Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
-                                Object accountsByCode = new java.util.HashMap<String, Object>() {{}};
-                                Helpers.addElementToObject(accountsByCode, code, account);
-                                Object symbol = Helpers.GetValue(market, "symbol");
-                                Helpers.addElementToObject(this.balance, symbol, this.safeBalance(accountsByCode));
-                            }
-                        }
+                        Object account = this.account();
+                        Helpers.addElementToObject(account, "free", this.safeString2(first, "withdraw_available", "margin_available"));
+                        Helpers.addElementToObject(account, "used", this.safeString(first, "margin_frozen"));
+                        Helpers.addElementToObject(account, "total", this.safeString(first, "margin_balance"));
+                        Helpers.addElementToObject(this.balance, code, account);
+                        this.balance = this.safeBalance(this.balance);
                     }
                 } else
                 {
@@ -2898,7 +2881,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(this.handleErrorMessage(client, message)))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -3222,7 +3205,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(aggressor, null)))
         {
-            takerOrMaker = ((Helpers.isTrue(aggressor))) ? "taker" : "maker";
+            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(aggressor, true))))) ? "taker" : "maker";
         } else
         {
             takerOrMaker = this.safeStringLower(trade, "role");

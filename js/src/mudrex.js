@@ -212,7 +212,7 @@ export default class mudrex extends Exchange {
                 return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders };
             }
         }
-        if (Object.keys(query).length) {
+        if (Object.keys(query).length > 0) {
             url += '?' + this.urlencode(query);
         }
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
@@ -222,7 +222,7 @@ export default class mudrex extends Exchange {
             return undefined;
         }
         const success = this.safeBool(response, 'success', true);
-        if (!success) {
+        if (success !== true) {
             const errors = this.safeList(response, 'errors', []);
             const first = this.safeDict(errors, 0, {});
             const text = this.safeString(first, 'text', this.json(response));
@@ -458,28 +458,33 @@ export default class mudrex extends Exchange {
             let items = [];
             if (typeof data === 'object' && !Array.isArray(data)) {
                 items = this.safeList(data, 'items', []);
-                if (!items.length) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                let itemsLength = items.length;
+                if ((itemsLength === undefined) || (itemsLength === 0)) {
                     items = this.safeList(data, 'results', []);
+                    itemsLength = items.length;
                 }
-                if (!items.length && ('symbol' in data)) {
+                if ((itemsLength === 0) && ('symbol' in data)) {
                     items = [data];
                 }
             }
             else {
                 items = this.toArray(data);
             }
-            if (!items.length) {
+            const numItems = items.length;
+            if ((numItems === undefined) || (numItems === 0)) {
                 paging = false;
                 break;
             }
-            for (let i = 0; i < items.length; i++) {
+            for (let i = 0; i < numItems; i++) {
                 aggregated.push(items[i]);
             }
-            if (items.length < pageLimit) {
+            if (numItems < pageLimit) {
                 paging = false;
             }
             else {
-                offset += pageLimit;
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum(offset, pageLimit);
             }
         }
         const result = [];

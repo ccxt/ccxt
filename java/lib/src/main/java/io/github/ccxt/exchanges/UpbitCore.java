@@ -464,16 +464,16 @@ public class UpbitCore extends UpbitApi
             Object walletLocked = this.safeValue(memberInfo, "wallet_locked");
             Object locked = this.safeValue(memberInfo, "locked");
             Object active = true;
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(canWithdraw, null))) && !Helpers.isTrue(canWithdraw)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(canWithdraw, null))) && Helpers.isTrue((!Helpers.isEqual(canWithdraw, true)))))
             {
                 active = false;
             } else if (Helpers.isTrue(!Helpers.isEqual(walletState, "working")))
             {
                 active = false;
-            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(walletLocked, null))) && Helpers.isTrue(walletLocked)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(walletLocked, null))) && Helpers.isTrue((Helpers.isEqual(walletLocked, true)))))
             {
                 active = false;
-            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(locked, null))) && Helpers.isTrue(locked)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(locked, null))) && Helpers.isTrue((Helpers.isEqual(locked, true)))))
             {
                 active = false;
             }
@@ -970,7 +970,7 @@ public class UpbitCore extends UpbitApi
             put( "last", last );
             put( "previousClose", UpbitCore.this.safeString(ticker, "prev_closing_price") );
             put( "change", UpbitCore.this.safeString(ticker, "signed_change_price") );
-            put( "percentage", UpbitCore.this.safeString(ticker, "signed_change_rate") );
+            put( "percentage", Precise.stringMul(UpbitCore.this.safeString(ticker, "signed_change_rate"), "100") );
             put( "average", null );
             put( "baseVolume", UpbitCore.this.safeString(ticker, "acc_trade_volume_24h") );
             put( "quoteVolume", UpbitCore.this.safeString(ticker, "acc_trade_price_24h") );
@@ -983,9 +983,12 @@ public class UpbitCore extends UpbitApi
      * @name upbit#fetchTickers
      * @see https://docs.upbit.com/kr/reference/list-tickers
      * @see https://global-docs.upbit.com/reference/list-tickers
+     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+     * @see https://global-docs.upbit.com/reference/tickers_by_quote
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
@@ -1000,17 +1003,51 @@ public class UpbitCore extends UpbitApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object ids = ((Helpers.isTrue((!Helpers.isEqual(symbols, null))))) ? this.marketIds(symbols) : this.ids;
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object queries = this.idsQueryStrings(ids, 6400); // seems upbit server limitations
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
+            Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
-                Object idsQuery = Helpers.GetValue(queries, i);
-                ((java.util.List<Object>)promises).add(this.publicGetTicker(new java.util.HashMap<String, Object>() {{
-                    put( "markets", idsQuery );
-                }}));
+                // ticker/all returns every market of the requested quote currencies with a single request
+                Object quoteIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object marketSymbols = this.symbols;
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketSymbols)); i++)
+                {
+                    Object market = this.market(Helpers.GetValue(marketSymbols, i));
+                    Object quoteId = Helpers.GetValue(market, "quoteId");
+                    if (!Helpers.isTrue(this.inArray(quoteId, quoteIds)))
+                    {
+                        ((java.util.List<Object>)quoteIds).add(quoteId);
+                    }
+                }
+                Object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
+                Object quoteCurrencies = "";
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sortedQuoteIds)); i++)
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(quoteCurrencies, "")))
+                    {
+                        quoteCurrencies = Helpers.add(quoteCurrencies, ",");
+                    }
+                    quoteCurrencies = Helpers.add(quoteCurrencies, Helpers.GetValue(sortedQuoteIds, i));
+                }
+                final Object finalQuoteCurrencies = quoteCurrencies;
+                Object request = new java.util.HashMap<String, Object>() {{
+                    put( "quote_currencies", finalQuoteCurrencies );
+                }};
+                tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
+            } else
+            {
+                Object ids = this.marketIds(symbols);
+                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
+                {
+                    Object idsQuery = Helpers.GetValue(queries, i);
+                    ((java.util.List<Object>)promises).add(this.publicGetTicker(this.extend(new java.util.HashMap<String, Object>() {{
+                        put( "markets", idsQuery );
+                    }}, parameters)));
+                }
+                Object responses = (Helpers.promiseAll(promises)).join();
+                tickers = this.arraysConcat(responses);
             }
-            Object responses = (Helpers.promiseAll(promises)).join();
             //
             //     [ {                market: "BTC-ETH",
             //                    "trade_date": "20181122",
@@ -1039,8 +1076,7 @@ public class UpbitCore extends UpbitApi
             //           "lowest_52_week_date": "2017-12-08",
             //                     "timestamp":  1542883543813  } ]
             //
-            Object concated = this.arraysConcat(responses);
-            return this.parseTickers(concated, symbols);
+            return this.parseTickers(tickers, symbols);
         });
 
     }
@@ -1480,7 +1516,7 @@ public class UpbitCore extends UpbitApi
         if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
         {
             quoteAmount = this.costToPrecision(symbol, cost);
-        } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+        } else if (Helpers.isTrue(Helpers.isEqual(createMarketBuyOrderRequiresPrice, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) || Helpers.isTrue(Helpers.isEqual(amount, null))))
             {
@@ -1639,7 +1675,7 @@ public class UpbitCore extends UpbitApi
             }
             Object response = null;
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test")));
-            if (Helpers.isTrue(test))
+            if (Helpers.isTrue(Helpers.isEqual(test, true)))
             {
                 response = (this.privatePostOrdersTest(this.extend(request, parameters))).join();
             } else
@@ -2283,11 +2319,11 @@ public class UpbitCore extends UpbitApi
         //      }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "uuid");
-        Object side = this.safeString(order, "side");
+        Object side = this.safeStringLower(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
-        } else
+        } else if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
         {
             side = "sell";
         }
@@ -2718,7 +2754,7 @@ public class UpbitCore extends UpbitApi
             //         }
             //     ]
             //
-            return this.parseDepositAddresses(response, codes);
+            return this.parseDepositAddresses(response, codes, false);
         });
 
     }
@@ -2941,7 +2977,7 @@ public class UpbitCore extends UpbitApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -2962,7 +2998,7 @@ public class UpbitCore extends UpbitApi
                 body = this.json(parameters);
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             }
-            if (Helpers.isTrue(hasQuery))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hasQuery, null))) && Helpers.isTrue((!Helpers.isEqual(hasQuery, 0)))))
             {
                 auth = this.rawencode(query);
             }
