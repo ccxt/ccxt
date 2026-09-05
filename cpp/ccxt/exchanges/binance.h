@@ -18418,7 +18418,7 @@ public:
         if (which == "fetchTickers") return awaitValue(this->fetchTickers(::getValue(args, 0), ::getValue(args, 1)));
         if (which == "fetchMarkPrice") return awaitValue(this->fetchMarkPrice(::getValue(args, 0), ::getValue(args, 1)));
         if (which == "fetchMarkPrices") return awaitValue(this->fetchMarkPrices(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "fetchOHLCV") return awaitValue(this->fetchOHLCV(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "fetchOHLCV") return awaitValue(this->fetchOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
         if (which == "fetchTrades") return awaitValue(this->fetchTrades(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "editSpotOrder") return awaitValue(this->editSpotOrder(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5), ::getValue(args, 6)));
         if (which == "editContractOrder") return awaitValue(this->editContractOrder(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5), ::getValue(args, 6)));
@@ -18472,7 +18472,7 @@ public:
         if (which == "fetchMySettlementHistory") return awaitValue(this->fetchMySettlementHistory(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "fetchLedgerEntry") return awaitValue(this->fetchLedgerEntry(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
         if (which == "fetchLedger") return awaitValue(this->fetchLedger(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
-        if (which == "request") return awaitValue(this->request(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "request") return awaitValue(this->request(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5), ::getValue(args, 6)));
         if (which == "modifyMarginHelper") return awaitValue(this->modifyMarginHelper(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "reduceMargin") return awaitValue(this->reduceMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
         if (which == "addMargin") return awaitValue(this->addMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
@@ -18488,7 +18488,7 @@ public:
         if (which == "repayIsolatedMargin") return awaitValue(this->repayIsolatedMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "borrowCrossMargin") return awaitValue(this->borrowCrossMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
         if (which == "borrowIsolatedMargin") return awaitValue(this->borrowIsolatedMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
-        if (which == "fetchOpenInterestHistory") return awaitValue(this->fetchOpenInterestHistory(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "fetchOpenInterestHistory") return awaitValue(this->fetchOpenInterestHistory(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
         if (which == "fetchOpenInterest") return awaitValue(this->fetchOpenInterest(::getValue(args, 0), ::getValue(args, 1)));
         if (which == "fetchMyLiquidations") return awaitValue(this->fetchMyLiquidations(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "fetchGreeks") return awaitValue(this->fetchGreeks(::getValue(args, 0), ::getValue(args, 1)));
@@ -18541,13 +18541,13 @@ public:
         if (which == "fetchBorrowRate") return awaitValue(this->fetchBorrowRate(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
         if (which == "borrowMargin") return awaitValue(this->borrowMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "repayMargin") return awaitValue(this->repayMargin(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
-        if (which == "fetchSpotOHLCV") return awaitValue(this->fetchSpotOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "fetchContractOHLCV") return awaitValue(this->fetchContractOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "fetchOHLCVWs") return awaitValue(this->fetchOHLCVWs(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "watchOHLCV") return awaitValue(this->watchOHLCV(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "fetchSpotOHLCV") return awaitValue(this->fetchSpotOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
+        if (which == "fetchContractOHLCV") return awaitValue(this->fetchContractOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
+        if (which == "fetchOHLCVWs") return awaitValue(this->fetchOHLCVWs(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
+        if (which == "watchOHLCV") return awaitValue(this->watchOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
         if (which == "fetchWebEndpoint") return awaitValue(this->fetchWebEndpoint(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
         if (which == "loadTradingLimits") return awaitValue(this->loadTradingLimits(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-        if (which == "fetch2") return awaitValue(this->fetch2(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "fetch2") return awaitValue(this->fetch2(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5), ::getValue(args, 6)));
         if (which == "loadAccounts") return awaitValue(this->loadAccounts(::getValue(args, 0), ::getValue(args, 1)));
         if (which == "fetchBalanceWs") return awaitValue(this->fetchBalanceWs(::getValue(args, 0)));
         if (which == "watchBalance") return awaitValue(this->watchBalance(::getValue(args, 0)));
@@ -18583,9 +18583,9 @@ public:
         if (which == "createSubAccount") return awaitValue(this->createSubAccount(::getValue(args, 0), ::getValue(args, 1)));
         if (which == "fetchTradingFeesWs") return awaitValue(this->fetchTradingFeesWs(::getValue(args, 0)));
         if (which == "fetchFundingInterval") return awaitValue(this->fetchFundingInterval(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "fetchMarkOHLCV") return awaitValue(this->fetchMarkOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "fetchIndexOHLCV") return awaitValue(this->fetchIndexOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-        if (which == "fetchPremiumIndexOHLCV") return awaitValue(this->fetchPremiumIndexOHLCV(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "fetchMarkOHLCV") return awaitValue(this->fetchMarkOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
+        if (which == "fetchIndexOHLCV") return awaitValue(this->fetchIndexOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
+        if (which == "fetchPremiumIndexOHLCV") return awaitValue(this->fetchPremiumIndexOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
         if (which == "fetchTransactions") return awaitValue(this->fetchTransactions(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3)));
         if (which == "fetchPaginatedCallDynamic") return awaitValue(this->fetchPaginatedCallDynamic(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5), ::getValue(args, 6)));
         if (which == "safeDeterministicCall") return awaitValue(this->safeDeterministicCall(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
@@ -18594,7 +18594,7 @@ public:
         if (which == "fetchPaginatedCallIncremental") return awaitValue(this->fetchPaginatedCallIncremental(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5), ::getValue(args, 6)));
         if (which == "loadMarketsAndSignIn") return awaitValue(this->loadMarketsAndSignIn());
         if (which == "fetchTransfer") return awaitValue(this->fetchTransfer(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-        if (which == "unWatchOHLCV") return awaitValue(this->unWatchOHLCV(::getValue(args, 0), ::getValue(args, 1)));
+        if (which == "unWatchOHLCV") return awaitValue(this->unWatchOHLCV(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
         if (which == "withdrawWs") return awaitValue(this->withdrawWs(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));
         if (which == "unWatchMyTrades") return awaitValue(this->unWatchMyTrades(::getValue(args, 0), ::getValue(args, 1)));
         if (which == "fetchOrdersByStatusWs") return awaitValue(this->fetchOrdersByStatusWs(::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2), ::getValue(args, 3), ::getValue(args, 4)));

@@ -103,3 +103,4 @@ mcp/mcpb/staging/
 rust/tests.bin
 
 cpp/build/
+cpp/build-asan/
