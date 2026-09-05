@@ -1080,20 +1080,24 @@ public class BaseExchange {
         return SafeMethods.SafeStringN(obj, keys, defaultValue);
     }
 
-    // SafeInteger / SafeIntegerN  (SafeMethods returns Long)
-    public Object safeInteger(Object obj, Object key, Object... defaultValue) {
+    // SafeInteger / SafeIntegerN / safeIntegerProduct: SafeMethods returns a boxed
+    // Long or null on every path (found value and default both go through
+    // toLongQuiet), so the forwarders are declared Long. Boxed, never `long`: an
+    // absent key yields null. safeIntegerProduct2/N and safeTimestamp* hand a
+    // non-numeric default back untouched, so they stay Object.
+    public Long safeInteger(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.SafeInteger(obj, key, defaultValue);
     }
 
-    public Object safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public Long safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.SafeInteger2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeIntegerN(Object obj, Object keys, Object... defaultValue) {
+    public Long safeIntegerN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
     }
 
-    public Object safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
+    public Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
         return SafeMethods.safeIntegerProduct(obj, key, multiplier, defaultValue);
     }
 
