@@ -1186,6 +1186,9 @@ class BaseExchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False, default=0):
+        if not isinstance(array, (list, tuple)):
+            # a one-shot iterable would be consumed by a failed fast path, leaving nothing for the fallback to re-sort
+            array = list(array)
         try:
             # fast path: operator.itemgetter skips the python-level key callback entirely, saving one function call per element
             # a None at the key raises TypeError during sorting (None is not comparable) and falls back to the default substitution below
@@ -1198,6 +1201,9 @@ class BaseExchange(object):
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
+        if not isinstance(array, (list, tuple)):
+            # a one-shot iterable would be consumed by a failed fast path, leaving nothing for the fallback to re-sort
+            array = list(array)
         try:
             # fast path: operator.itemgetter skips the python-level key callback entirely, saving one function call per element
             # a None in either key raises TypeError during sorting (None is not comparable) and falls back to the '' substitution below

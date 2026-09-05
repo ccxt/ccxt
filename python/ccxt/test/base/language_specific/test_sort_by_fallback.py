@@ -44,6 +44,12 @@ def test_sort_by_fallback():
         raise AssertionError('expected TypeError')
     except TypeError:
         pass
+    # one-shot iterable where the fast path raises and the fallback succeeds: the input must be materialised
+    # before the first sorted() call, otherwise the retry sees an exhausted iterator and returns [] silently
+    assert sort_by(iter([{'x': None}, {'x': 5}, {'x': 0}]), 'x') == [{'x': None}, {'x': 0}, {'x': 5}]
+    assert sort_by((d for d in [{'x': None}, {'x': 5}]), 'x', False, 10) == [{'x': 5}, {'x': None}]
+    # re-iterable non-list inputs go through untouched
+    assert sort_by(({'x': None}, {'x': 5}, {'x': 0}), 'x') == [{'x': None}, {'x': 0}, {'x': 5}]
 
 
 def test_sort_by_2_fallback():
@@ -66,6 +72,15 @@ def test_sort_by_2_fallback():
     # None timestamp against int timestamps stays incomparable even after the '' substitution (pre-existing semantics)
     try:
         sort_by_2([{'timestamp': None, 'id': '1'}, {'timestamp': 5, 'id': '2'}], 'timestamp', 'id')
+        raise AssertionError('expected TypeError')
+    except TypeError:
+        pass
+    # one-shot iterable where the fast path raises and the fallback succeeds (same retry contract as sort_by)
+    assert sort_by_2(iter([{'sym': 'b', 'id': '1'}, {'sym': None, 'id': '2'}, {'sym': 'a', 'id': '3'}]), 'sym', 'id') == [{'sym': None, 'id': '2'}, {'sym': 'a', 'id': '3'}, {'sym': 'b', 'id': '1'}]
+    assert sort_by_2((d for d in [{'x': 1, 'y': 'b'}, {'x': 1, 'y': None}, {'x': 1, 'y': 'a'}]), 'x', 'y') == [{'x': 1, 'y': None}, {'x': 1, 'y': 'a'}, {'x': 1, 'y': 'b'}]
+    # a one-shot iterable that still fails in the fallback raises loudly instead of returning []
+    try:
+        sort_by_2(iter([{'x': None, 'y': 1}, {'x': 2, 'y': 2}]), 'x', 'y')
         raise AssertionError('expected TypeError')
     except TypeError:
         pass
