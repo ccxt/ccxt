@@ -47,10 +47,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 # -----------------------------------------------------------------------------
 
 
-# lighter
 import os
-
-# import ctypes
 
 # -----------------------------------------------------------------------------
 
@@ -68,11 +65,8 @@ import calendar
 import collections
 import datetime
 from email.utils import parsedate
-# import functools
-import gzip
 import hashlib
 import hmac
-import io
 import tempfile
 
 import json
@@ -96,12 +90,9 @@ import re
 from requests import Session
 from requests.utils import default_user_agent
 from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
-# import socket
 from ssl import SSLError
-# import sys
 import time
 import uuid
-import zlib
 from decimal import Decimal
 import urllib.parse as _urlencode
 from typing import Any
@@ -386,11 +377,6 @@ class BaseExchange(object):
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
 
-        # version = '.'.join(map(str, sys.version_info[:3]))
-        # self.userAgent = {
-        #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
-        # }
-
         self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
@@ -516,16 +502,6 @@ class BaseExchange(object):
 
     def get_fetch_cache(self):
         return self.fetchHistoryCache
-
-    @staticmethod
-    def gzip_deflate(response, text):
-        encoding = response.info().get('Content-Encoding')
-        if encoding in ('gzip', 'x-gzip', 'deflate'):
-            if encoding == 'deflate':
-                return zlib.decompress(text, -zlib.MAX_WBITS)
-            else:
-                return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
-        return text
 
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
@@ -714,15 +690,6 @@ class BaseExchange(object):
         # https://github.com/ccxt/ccxt/issues/5302
         content_type = headers.get('Content-Type', '')
         return content_type.startswith('application/json') or content_type.startswith('text/')
-
-    @staticmethod
-    def key_exists(dictionary, key):
-        try:
-            value = dictionary[key]
-            return value is not None and value != ''
-        except Exception:
-            # catch any exception, not only (KeyError, IndexError, TypeError):
-            return False
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -1031,12 +998,6 @@ class BaseExchange(object):
                     if value is not None and value != '':
                         return value
         return None
-
-    @staticmethod
-    def safe_either(method, dictionary, key1, key2, default_value=None):
-        """A helper-wrapper for the safe_value_2() family."""
-        value = method(dictionary, key1)
-        return value if value is not None else method(dictionary, key2, default_value)
 
     @staticmethod
     def truncate(num, precision=0):
@@ -1353,11 +1314,6 @@ class BaseExchange(object):
             return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{milliseconds:03d}Z"
         except (TypeError, OverflowError, OSError, ValueError):
             return None
-
-    @staticmethod
-    def dmy(timestamp, infix='-'):
-        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
-        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
 
     @staticmethod
     def ymd(timestamp, infix='-', fullYear=True):
@@ -1978,13 +1934,6 @@ class BaseExchange(object):
     def check_required_dependencies(self):
         pass
 
-    def privateKeyToAddress(self, privateKey):
-        private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
-        public_key_bytes = Exchange.secp256k1_uncompressed_public_key(private_key_bytes)
-        from ccxt.static_dependencies import keccak
-        public_key_hash = keccak.SHA3(public_key_bytes)
-        return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
-
     @staticmethod
     def remove0x_prefix(value):
         if value[:2] == '0x':
@@ -2007,10 +1956,6 @@ class BaseExchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
-
-    @staticmethod
-    def number_to_le(n, size):
-        return int(n).to_bytes(size, 'little')
 
     @staticmethod
     def number_to_be(n, size):
@@ -2104,14 +2049,6 @@ class BaseExchange(object):
 
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
-
-    # def delete_key_from_dictionary(self, dictionary, key):
-    #     newDictionary = self.clone(dictionary)
-    #     del newDictionary[key]
-    #     return newDictionary
-
-    # def set_object_property(obj, prop, value):
-    #     obj[prop] = value
 
     def convert_to_big_int(self, value):
         return int(value, 16) if isinstance(value, str) and value.startswith('0x') else int(value) if isinstance(value, str) else value
@@ -2386,9 +2323,6 @@ class BaseExchange(object):
 
     def unlock_id(self):
         return None
-
-    def is_lighter_library_path_required(self):
-        return True
 
     def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
         return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
