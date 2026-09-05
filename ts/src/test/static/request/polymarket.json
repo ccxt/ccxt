@@ -1,8 +1,20 @@
 {
     "exchange": "polymarket",
-    "skipKeys": [],
+    "skipKeys": [
+        "sig",
+        "salt",
+        "ts",
+        "time"
+    ],
     "outputType": "json",
-    "options": {},
+    "options": {
+        "proxyCredentials": {
+            "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+            "privateKey": "0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+            "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw",
+            "expires": 9999999999999
+        }
+    },
     "methods": {
         "fetchTime": [
             {
@@ -273,6 +285,1049 @@
                     "SP500/USD:PUSD"
                 ],
                 "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create a gtc limit buy order",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    79000
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "79000"
+                            }
+                        ]
+                    },
+                    "sig": "0x8207e075dcec61dbffc3c9c7a60058a65b2563c1831d887b7b6f2192a7a53bcf04010d5feb077b8506d73005d764bc34f2d2c72fce4d6b531905217ea71d90d11b",
+                    "salt": 69512974,
+                    "ts": 1788564986947
+                }
+            },
+            {
+                "description": "create a post-only limit sell order",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": false,
+                                "po": true,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "81000"
+                            }
+                        ]
+                    },
+                    "sig": "0x089321e61280daa7dafb19b6d38332caafd0b719a3e62749f905d8040a718ae86f583640a7d3646955ac486bc4bb8ab197b0727e209e099e16031b9f872145b01c",
+                    "salt": 914179223,
+                    "ts": 1788564986968
+                }
+            },
+            {
+                "description": "create a reduce-only limit sell order",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": false,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "81000",
+                                "ro": true
+                            }
+                        ]
+                    },
+                    "sig": "0x2fd363bd814d2878e29b46de9e70b1035e863f31241013e4c9100ddb8234a8da18396f75498b6a2ce158afeffff27c08baa1c5aaef2afb918839d0469db62ee81b",
+                    "salt": 307070510,
+                    "ts": 1788564986971
+                }
+            },
+            {
+                "description": "create a limit order with a client order id",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    79000,
+                    {
+                        "clientOrderId": "aabbccdd00112233445566778899aabb"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "79000",
+                                "c": "aabbccdd00112233445566778899aabb"
+                            }
+                        ]
+                    },
+                    "sig": "0xd6789dfb0f88ceff8e8d2db9ed552699a3316c76a79fc483ba50ef1a03aa52402147b6fe9cd1e23b3cd6750a5e831fb51404af53b7704da4b63893b43971bd7e1c",
+                    "salt": 460704860,
+                    "ts": 1788564986973
+                }
+            },
+            {
+                "description": "create an immediate-or-cancel limit order",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    79000,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "ioc",
+                                "p": "79000"
+                            }
+                        ]
+                    },
+                    "sig": "0xf60529f27052205ca6488958ab189cae822f619a2f0cb218655d34a5282e9f8a397238b32e75b55c042264af20cab00745d8b78f708b208efb6cd7096e1bade41c",
+                    "salt": 425409075,
+                    "ts": 1788564986976
+                }
+            },
+            {
+                "description": "create a market sell order, priceless immediate-or-cancel",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": false,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "ioc"
+                            }
+                        ]
+                    },
+                    "sig": "0xf36bb14c0a7daef9a949772b40475aef7797dcfd57c9e18af912ad16f72a4afb1c1e2d0873d1fb87607359127dcdd318caa81d5bcfaf7eb012d7d948b8efa4481b",
+                    "salt": 313360914,
+                    "ts": 1788564986978
+                }
+            },
+            {
+                "description": "create a market buy order with a protective price bound",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "market",
+                    "buy",
+                    0.001,
+                    80000
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "ioc",
+                                "p": "80000"
+                            }
+                        ]
+                    },
+                    "sig": "0x496c361fca412a8ad2c3bb542f1cadcda5b0c3a5aa8cc57f431b912349ff65511286c3e4d48077083f454f335d4befe2cd14e80b4ed1142727603f10c1d2b87c1b",
+                    "salt": 496866303,
+                    "ts": 1788564986980
+                }
+            },
+            {
+                "description": "create a fill-or-kill market order",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "market",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "timeInForce": "FOK"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "fok"
+                            }
+                        ]
+                    },
+                    "sig": "0xeddfc745b187ab9a63c121f4e3828fabb77ba6c9e558c79dce36e5d3e2649afa70ef793598e5423c046aa2b8dce766d2210e2b23e0cafc4e4dad3a9212e43e831b",
+                    "salt": 182098971,
+                    "ts": 1788564986982
+                }
+            },
+            {
+                "description": "create a post-only order through the PO time in force spelling",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": false,
+                                "po": true,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "81000"
+                            }
+                        ]
+                    },
+                    "sig": "0x5d9646c800e6461a327aa7534733cc0b48b7214ed056d12a5940922c4321f45823abc4f874c7de4a3df5e1c4907cdb00f8229a014081ee8f4ee5638b974484821c",
+                    "salt": 289211861,
+                    "ts": 1788564987034
+                }
+            },
+            {
+                "description": "create a post-only order with an explicit gtc time in force",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "sell",
+                    0.001,
+                    81000,
+                    {
+                        "postOnly": true,
+                        "timeInForce": "GTC"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": false,
+                                "po": true,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "81000"
+                            }
+                        ]
+                    },
+                    "sig": "0x39a27586f974a8a11e96c951a2abb364d6f6014529c69b55d30a5cbd872c91577e7d9323a902e107844251a09f0008826a34cde33ed3685db56050a019df82431b",
+                    "salt": 171189318,
+                    "ts": 1788564987036
+                }
+            },
+            {
+                "description": "create an order with a command expiry in the envelope",
+                "method": "createOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    79000,
+                    {
+                        "exp": 1788546570789
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "79000"
+                            }
+                        ]
+                    },
+                    "sig": "0xa7c586d4e12d0cf1a74a77bc9bae7cc29ff474db025e0592cb3fd15f06cce1e26dc103ae4b79ced48d64d093c62cca5b114226dacfc563101896304109bc4b4d1c",
+                    "salt": 877282580,
+                    "ts": 1788564987038
+                }
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "create two orders in one signed batch",
+                "method": "createOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USD:PUSD",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 79000,
+                            "params": {}
+                        },
+                        {
+                            "symbol": "SP500/USD:PUSD",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 0.01,
+                            "price": 7900,
+                            "params": {}
+                        }
+                    ]
+                ],
+                "output": {
+                    "op": {
+                        "type": "createOrders",
+                        "args": [
+                            {
+                                "iid": 6,
+                                "buy": true,
+                                "po": false,
+                                "qty": "0.001",
+                                "tif": "gtc",
+                                "p": "79000"
+                            },
+                            {
+                                "iid": 1,
+                                "buy": false,
+                                "po": false,
+                                "qty": "0.01",
+                                "tif": "gtc",
+                                "p": "7900"
+                            }
+                        ]
+                    },
+                    "sig": "0xc2e2727018df084c4af7c95bb58bcad8c876422d82038511f4b421fa9e3bb98d75dd96a954422fd6d6530a90c8927bd59445c9a61d4535aa0a617a779beb73c81b",
+                    "salt": 687290658,
+                    "ts": 1788564986985
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel one order by the exchange order id",
+                "method": "cancelOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "1234567890",
+                    "BTC/USD:PUSD"
+                ],
+                "output": {
+                    "op": {
+                        "type": "cancelOrders",
+                        "args": [
+                            1234567890
+                        ]
+                    },
+                    "sig": "0x3197c51ec4e9e7b1fe922d2df2597cbe71660b9a1707c469da75b47702743f600eb9fbed82d75727bd55f0739875c1e8e9ff689853d05b6c4e6fdc58549409ff1b",
+                    "salt": 42085039,
+                    "ts": 1788564986987
+                }
+            },
+            {
+                "description": "cancel one order by the client order id",
+                "method": "cancelOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders-coid",
+                "input": [
+                    "0",
+                    "BTC/USD:PUSD",
+                    {
+                        "clientOrderId": [
+                            "aabbccdd00112233445566778899aabb"
+                        ]
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "cancelOrdersCOID",
+                        "args": [
+                            "aabbccdd00112233445566778899aabb"
+                        ]
+                    },
+                    "sig": "0xf1fab5b1f27eca77cdfe0d73a9dbd24f3ef78afc88d43965cb7baf8f46f9f141785148d1986b3fb118598898ffd297ff4385eb2634da4ede434e73c23da95e6d1c",
+                    "salt": 459897921,
+                    "ts": 1788564986990
+                }
+            },
+            {
+                "description": "cancel one order by the client order id passed like a plain string",
+                "method": "cancelOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders-coid",
+                "input": [
+                    "0",
+                    "BTC/USD:PUSD",
+                    {
+                        "clientOrderId": "aabbccdd00112233445566778899aabb"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "cancelOrdersCOID",
+                        "args": [
+                            "aabbccdd00112233445566778899aabb"
+                        ]
+                    },
+                    "sig": "0xbcc4e44a98cb01c8958952b192b2dd428958efdd2723783631a31fc1d9661af0235542e78172bbeac322a73bc4f81b7c7e47ffb61e20ef447d5b1bbd86b1ecd41b",
+                    "salt": 574813732,
+                    "ts": 1788564987039
+                }
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel two orders in one signed batch",
+                "method": "cancelOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    [
+                        "1234567890",
+                        "1234567891"
+                    ],
+                    "BTC/USD:PUSD"
+                ],
+                "output": {
+                    "op": {
+                        "type": "cancelOrders",
+                        "args": [
+                            1234567890,
+                            1234567891
+                        ]
+                    },
+                    "sig": "0xc2114fa2bbab1610e960ce23bf98f07d2e92e73480dd0103e630b2c9ff4271b76a7ae3028b97c5bccbb4baf3cc3ea1027063920303fdd23749327fc21d7c2a6e1b",
+                    "salt": 906986354,
+                    "ts": 1788564986992
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel every open order of the account",
+                "method": "cancelAllOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders/all",
+                "input": [],
+                "output": {
+                    "op": {
+                        "type": "cancelAll",
+                        "args": {}
+                    },
+                    "sig": "0x8d649f306c54e31c4daf1c4172ccb3f1df09669e44dc8829de2949dff82f05114cc7f3a8af0aaf61aa45767b7ffc11e4b4d9ff2298a3bba3bde885f1e4d1f86c1b",
+                    "salt": 172822842,
+                    "ts": 1788564986994
+                }
+            },
+            {
+                "description": "cancel every open order of one market",
+                "method": "cancelAllOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders/all",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "output": {
+                    "op": {
+                        "type": "cancelAll",
+                        "args": {
+                            "iid": 6
+                        }
+                    },
+                    "sig": "0x65d041e507c818e6ce172cbeb2b6954530ebe9162d5de2096feed12ff62bb5e7271f102bee9dd05ccac054c877da8f55c7b94f66277dbef97ae1d030e65e83bd1b",
+                    "salt": 118516019,
+                    "ts": 1788564986995
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "modify the price and the total quantity of a resting order",
+                "method": "editOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/orders",
+                "input": [
+                    "1234567890",
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.002,
+                    78000
+                ],
+                "output": {
+                    "op": {
+                        "type": "modifyOrders",
+                        "args": [
+                            {
+                                "oid": 1234567890,
+                                "p": "78000",
+                                "qty": "0.002"
+                            }
+                        ]
+                    },
+                    "sig": "0x9c139a96fc6f2f902a9642f7492ce190487fa03205fce62b9948e392c5c8d44e2969c24cae4d0196eecd8090860d5a886a3c53b14f0ad633f589b7ccf8ebdecb1b",
+                    "salt": 763040363,
+                    "ts": 1788564986997
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set the leverage, cross margin by default",
+                "method": "setLeverage",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/leverage",
+                "input": [
+                    5,
+                    "BTC/USD:PUSD"
+                ],
+                "output": {
+                    "op": {
+                        "type": "updateLeverage",
+                        "args": {
+                            "cross": true,
+                            "iid": 6,
+                            "lev": 5
+                        }
+                    },
+                    "sig": "0x0ca8b89addf842ea6e3c76fe66071c2652bc4148776fd8f489a05aefd70609d1761f86b0394bb9c7e72127d347fbd1d140eef0b956fd833299d64a3a0b59eb8e1c",
+                    "salt": 404500718,
+                    "ts": 1788564986999
+                }
+            },
+            {
+                "description": "set the leverage together with the isolated margin mode",
+                "method": "setLeverage",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/leverage",
+                "input": [
+                    5,
+                    "BTC/USD:PUSD",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "updateLeverage",
+                        "args": {
+                            "cross": false,
+                            "iid": 6,
+                            "lev": 5
+                        }
+                    },
+                    "sig": "0x3a2f13af68ac3cb78e3fa3b4b8fdb43327b1c67259238ea2b0c927c2a5e1c20b225a8c7f90f7a802a38b1de60801f65a5fea343b74ff426ad675976d8a6dbfec1b",
+                    "salt": 802938784,
+                    "ts": 1788564987001
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "switch the margin mode, the venue updates the mode and the leverage together",
+                "method": "setMarginMode",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/leverage",
+                "input": [
+                    "isolated",
+                    "BTC/USD:PUSD",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "updateLeverage",
+                        "args": {
+                            "cross": false,
+                            "iid": 6,
+                            "lev": 5
+                        }
+                    },
+                    "sig": "0x9ede2d601ae4dfc97219392f0e1c06d2068d81335c085371f98f26641a3150386f0bb27e86d0462f413542c4c4ad0df4046a9fdc3eee3e4c23dd8325c6a264d51b",
+                    "salt": 637555370,
+                    "ts": 1788564987002
+                }
+            },
+            {
+                "description": "switch to the cross margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/leverage",
+                "input": [
+                    "cross",
+                    "BTC/USD:PUSD",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "output": {
+                    "op": {
+                        "type": "updateLeverage",
+                        "args": {
+                            "cross": true,
+                            "iid": 6,
+                            "lev": 5
+                        }
+                    },
+                    "sig": "0x659aec72693e700ecc4e8c07204140c0128f86a54fd4b6d66b404a01088c4c233caf78a573cc15bae1429685a5f8d42f08e2a250836738ba118d06d9d324de861c",
+                    "salt": 57209836,
+                    "ts": 1788564987047
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add isolated margin to a position",
+                "method": "addMargin",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/margin",
+                "input": [
+                    "BTC/USD:PUSD",
+                    5
+                ],
+                "output": {
+                    "op": {
+                        "type": "updateMargin",
+                        "args": {
+                            "amt": "5",
+                            "iid": 6
+                        }
+                    },
+                    "sig": "0x0d817a70cb020e0b8a3cb8458b3d7477a8c6e2b6f906e947c2698adb83e640a2295516a7f8837a38becc925ffa09aa9d703a9c92b69e6af5d9e479781fc575ad1b",
+                    "salt": 523709061,
+                    "ts": 1788564987004
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "remove isolated margin from a position",
+                "method": "reduceMargin",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/margin",
+                "input": [
+                    "BTC/USD:PUSD",
+                    2
+                ],
+                "output": {
+                    "op": {
+                        "type": "updateMargin",
+                        "args": {
+                            "amt": "-2",
+                            "iid": 6
+                        }
+                    },
+                    "sig": "0x927784424038be3799ff920cde1d87666bd63939b695312b6da1004a5b13469947f8fe94343fd0fae6fefee5d7324561a7ffa025dcc698222a357713a4f3eb121b",
+                    "salt": 194535349,
+                    "ts": 1788564987006
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw collateral, signed by the wallet key, never tested live",
+                "method": "withdraw",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/withdraw",
+                "input": [
+                    "PUSD",
+                    10,
+                    "0x4444444444444444444444444444444444444444"
+                ],
+                "output": {
+                    "op": {
+                        "type": "withdraw",
+                        "args": {
+                            "account": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf",
+                            "token": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+                            "amount": "10000000",
+                            "to": "0x4444444444444444444444444444444444444444"
+                        }
+                    },
+                    "salt": 480642588,
+                    "sig": "0x7c8d45c7757bd107bd9b613c65f66b3663b55ca4ad845c3fee12a3c13e951b562198b87425a2a2ea55c4617814850956a1e546c94f0e3a4a91f81d2cb362ee501c",
+                    "ts": 1788564987
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch the account margin summary",
+                "method": "fetchBalance",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/portfolio",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch the open positions",
+                "method": "fetchPositions",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/portfolio",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders of every market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/open-orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch open orders of one market",
+                "method": "fetchOpenOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/open-orders?instrument_id=6",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch the latest order snapshots",
+                "method": "fetchOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/orders",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch order snapshots with since",
+                "method": "fetchOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/orders?instrument_id=6&start_timestamp=1788500000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    1788500000000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch order snapshots with until alone",
+                "method": "fetchOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/orders?instrument_id=6&end_timestamp=1788540000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch the order snapshot of one client order id",
+                "method": "fetchOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/orders?client_order_id=aabbccdd00112233445566778899aabb",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "clientOrderId": "aabbccdd00112233445566778899aabb"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch order snapshots with since and until",
+                "method": "fetchOrders",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/orders?instrument_id=6&start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch one order by id",
+                "method": "fetchOrder",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/orders?order_id=1234567890",
+                "input": [
+                    "1234567890"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch the fills of the account",
+                "method": "fetchMyTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/fills",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch fills with since and until",
+                "method": "fetchMyTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/fills?start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch the next fills page with the cursor",
+                "method": "fetchMyTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/fills?cursor=opaque-cursor-token",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "cursor": "opaque-cursor-token"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch fills with until alone",
+                "method": "fetchMyTrades",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/fills?end_timestamp=1788540000000",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch the funding payments of the account",
+                "method": "fetchFundingHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/funding",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch funding payments of one market with since and until",
+                "method": "fetchFundingHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/funding?instrument_id=6&start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    "BTC/USD:PUSD",
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding payments with until alone",
+                "method": "fetchFundingHistory",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/funding?end_timestamp=1788540000000",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch the deposit history with since and until",
+                "method": "fetchDeposits",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/deposits?start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    null,
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch the deposit history with until alone",
+                "method": "fetchDeposits",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/deposits?end_timestamp=1788540000000",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch the withdrawal history with until",
+                "method": "fetchWithdrawals",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/withdrawals?end_timestamp=1788540000000",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch the withdrawal history with since and until",
+                "method": "fetchWithdrawals",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/withdrawals?start_timestamp=1788500000000&end_timestamp=1788540000000",
+                "input": [
+                    null,
+                    1788500000000,
+                    null,
+                    {
+                        "until": 1788540000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch the configured leverage and margin mode",
+                "method": "fetchLeverage",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/config?instrument_id=6",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch the configured margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api.perpetuals.polymarket.com/v1/account/config?instrument_id=6",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "arm the dead man switch, the deadline is masked as volatile",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.perpetuals.polymarket.com/v1/trade/auto-cancel",
+                "input": [
+                    60000
+                ],
+                "output": {
+                    "op": {
+                        "type": "autoCancel",
+                        "args": {
+                            "time": 1788565047033
+                        }
+                    },
+                    "sig": "0xd7209df455cd9a0c0c2a91648bd55f0c4bb15095f75440cf050911e3018954262af32fb0d1f7ff5f349aebd8d94fdc70ed3b5e18ec5b00c6d9f93410e5167c841c",
+                    "salt": 35810376,
+                    "ts": 1788564987033
+                }
             }
         ]
     }

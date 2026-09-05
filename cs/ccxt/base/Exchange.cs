@@ -1318,9 +1318,11 @@ public partial class BaseExchange
     {
         var length = Convert.ToInt32(length2);
         var bytes = new byte[length];
-        var rng = new Random();
-        rng.NextBytes(bytes);
-        return Convert.ToBase64String(bytes);
+        using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(bytes);
+        }
+        return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
     }
 
     public void extendExchangeOptions(object options2)

@@ -1674,7 +1674,7 @@ class BaseExchange(object):
 
     @staticmethod
     def random_bytes(length):
-        return format(random.getrandbits(length * 8), 'x')
+        return os.urandom(length).hex()
 
     # curve group orders, needed for canonical (low-s) signatures and for
     # computing the recovery id without any hand-rolled elliptic curve math

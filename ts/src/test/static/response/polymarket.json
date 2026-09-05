@@ -96,7 +96,7 @@
                         "id": "pUSD",
                         "numericId": null,
                         "code": "PUSD",
-                        "precision": 1e-06,
+                        "precision": 0.000001,
                         "type": "crypto",
                         "name": "pUSD",
                         "active": null,
@@ -257,7 +257,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 1e-05,
+                            "amount": 0.00001,
                             "price": 0.1
                         },
                         "limits": {
@@ -364,7 +364,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 1e-05,
+                            "amount": 0.00001,
                             "price": 0.1
                         },
                         "limits": {
@@ -927,7 +927,7 @@
                         "estimatedSettlePrice": null,
                         "timestamp": 1788546972857,
                         "datetime": "2026-09-04T18:36:12.857Z",
-                        "fundingRate": 6.25e-06,
+                        "fundingRate": 0.00000625,
                         "fundingTimestamp": null,
                         "fundingDatetime": null,
                         "nextFundingRate": null,
@@ -1038,7 +1038,7 @@
                     "estimatedSettlePrice": null,
                     "timestamp": 1788546972857,
                     "datetime": "2026-09-04T18:36:12.857Z",
-                    "fundingRate": 1.25e-05,
+                    "fundingRate": 0.0000125,
                     "fundingTimestamp": null,
                     "fundingDatetime": null,
                     "nextFundingRate": null,
@@ -1078,7 +1078,7 @@
                             "timestamp": 1788541200037
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 6.25e-06,
+                        "fundingRate": 0.00000625,
                         "timestamp": 1788541200037,
                         "datetime": "2026-09-04T17:00:00.037Z"
                     },
@@ -1088,7 +1088,7 @@
                             "timestamp": 1788544800063
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 6.25e-06,
+                        "fundingRate": 0.00000625,
                         "timestamp": 1788544800063,
                         "datetime": "2026-09-04T18:00:00.063Z"
                     }
@@ -1506,6 +1506,1678 @@
                     }
                 }
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "parse the margin summary into a balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "positions": [
+                        {
+                            "instrument_id": 6,
+                            "symbol": "BTC-USD",
+                            "size": "0.001",
+                            "entry_price": "79650.0",
+                            "leverage": 10,
+                            "cross": true,
+                            "initial_margin": "7.97",
+                            "maintenance_margin": "3.99",
+                            "position_value": "79.65",
+                            "liquidation_price": "72000.0",
+                            "unrealized_pnl": "-0.10",
+                            "return_on_equity": "-0.0125",
+                            "cumulative_funding": "0.01"
+                        },
+                        {
+                            "instrument_id": 1,
+                            "symbol": "SP500-USD",
+                            "size": "-0.01",
+                            "entry_price": "7700.0",
+                            "leverage": 5,
+                            "cross": false,
+                            "initial_margin": "15.40",
+                            "maintenance_margin": "1.93",
+                            "position_value": "77.00",
+                            "liquidation_price": "0",
+                            "unrealized_pnl": "0.25",
+                            "return_on_equity": "0.0162",
+                            "cumulative_funding": "-0.02"
+                        }
+                    ],
+                    "margin": {
+                        "total_account_value": "100.00",
+                        "available_order_margin": "70.00",
+                        "total_initial_margin": "23.37",
+                        "total_maintenance_margin": "5.92",
+                        "total_position_value": "156.65"
+                    },
+                    "withdrawable": "70.00",
+                    "in_liquidation": false,
+                    "timestamp": 1788546565789
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positions": [
+                            {
+                                "instrument_id": 6,
+                                "symbol": "BTC-USD",
+                                "size": "0.001",
+                                "entry_price": "79650.0",
+                                "leverage": 10,
+                                "cross": true,
+                                "initial_margin": "7.97",
+                                "maintenance_margin": "3.99",
+                                "position_value": "79.65",
+                                "liquidation_price": "72000.0",
+                                "unrealized_pnl": "-0.10",
+                                "return_on_equity": "-0.0125",
+                                "cumulative_funding": "0.01"
+                            },
+                            {
+                                "instrument_id": 1,
+                                "symbol": "SP500-USD",
+                                "size": "-0.01",
+                                "entry_price": "7700.0",
+                                "leverage": 5,
+                                "cross": false,
+                                "initial_margin": "15.40",
+                                "maintenance_margin": "1.93",
+                                "position_value": "77.00",
+                                "liquidation_price": "0",
+                                "unrealized_pnl": "0.25",
+                                "return_on_equity": "0.0162",
+                                "cumulative_funding": "-0.02"
+                            }
+                        ],
+                        "margin": {
+                            "total_account_value": "100.00",
+                            "available_order_margin": "70.00",
+                            "total_initial_margin": "23.37",
+                            "total_maintenance_margin": "5.92",
+                            "total_position_value": "156.65"
+                        },
+                        "withdrawable": "70.00",
+                        "in_liquidation": false,
+                        "timestamp": 1788546565789
+                    },
+                    "timestamp": 1788546565789,
+                    "datetime": "2026-09-04T18:29:25.789Z",
+                    "PUSD": {
+                        "free": 70,
+                        "used": 23.37,
+                        "total": 100
+                    },
+                    "free": {
+                        "PUSD": 70
+                    },
+                    "used": {
+                        "PUSD": 23.37
+                    },
+                    "total": {
+                        "PUSD": 100
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "parse a cross long and an isolated short position",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "positions": [
+                        {
+                            "instrument_id": 6,
+                            "symbol": "BTC-USD",
+                            "size": "0.001",
+                            "entry_price": "79650.0",
+                            "leverage": 10,
+                            "cross": true,
+                            "initial_margin": "7.97",
+                            "maintenance_margin": "3.99",
+                            "position_value": "79.65",
+                            "liquidation_price": "72000.0",
+                            "unrealized_pnl": "-0.10",
+                            "return_on_equity": "-0.0125",
+                            "cumulative_funding": "0.01"
+                        },
+                        {
+                            "instrument_id": 1,
+                            "symbol": "SP500-USD",
+                            "size": "-0.01",
+                            "entry_price": "7700.0",
+                            "leverage": 5,
+                            "cross": false,
+                            "initial_margin": "15.40",
+                            "maintenance_margin": "1.93",
+                            "position_value": "77.00",
+                            "liquidation_price": "0",
+                            "unrealized_pnl": "0.25",
+                            "return_on_equity": "0.0162",
+                            "cumulative_funding": "-0.02"
+                        }
+                    ],
+                    "margin": {
+                        "total_account_value": "100.00",
+                        "available_order_margin": "70.00",
+                        "total_initial_margin": "23.37",
+                        "total_maintenance_margin": "5.92",
+                        "total_position_value": "156.65"
+                    },
+                    "withdrawable": "70.00",
+                    "in_liquidation": false,
+                    "timestamp": 1788546565789
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instrument_id": 6,
+                            "symbol": "BTC-USD",
+                            "size": "0.001",
+                            "entry_price": "79650.0",
+                            "leverage": 10,
+                            "cross": true,
+                            "initial_margin": "7.97",
+                            "maintenance_margin": "3.99",
+                            "position_value": "79.65",
+                            "liquidation_price": "72000.0",
+                            "unrealized_pnl": "-0.10",
+                            "return_on_equity": "-0.0125",
+                            "cumulative_funding": "0.01",
+                            "timestamp": 1788546565789
+                        },
+                        "id": null,
+                        "symbol": "BTC/USD:PUSD",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 7.97,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 3.99,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 79650,
+                        "notional": 79.65,
+                        "leverage": 10,
+                        "unrealizedPnl": -0.1,
+                        "realizedPnl": null,
+                        "contracts": 0.001,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": 72000,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": 7.97,
+                        "marginMode": "cross",
+                        "side": "long",
+                        "percentage": -1.25,
+                        "hedged": false,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    },
+                    {
+                        "info": {
+                            "instrument_id": 1,
+                            "symbol": "SP500-USD",
+                            "size": "-0.01",
+                            "entry_price": "7700.0",
+                            "leverage": 5,
+                            "cross": false,
+                            "initial_margin": "15.40",
+                            "maintenance_margin": "1.93",
+                            "position_value": "77.00",
+                            "liquidation_price": "0",
+                            "unrealized_pnl": "0.25",
+                            "return_on_equity": "0.0162",
+                            "cumulative_funding": "-0.02",
+                            "timestamp": 1788546565789
+                        },
+                        "id": null,
+                        "symbol": "SP500/USD:PUSD",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 15.4,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 1.93,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 7700,
+                        "notional": 77,
+                        "leverage": 5,
+                        "unrealizedPnl": 0.25,
+                        "realizedPnl": null,
+                        "contracts": 0.01,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": 15.4,
+                        "marginMode": "isolated",
+                        "side": "short",
+                        "percentage": 1.62,
+                        "hedged": false,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "parse open orders including a position-scoped stop loss",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "order_id": 1234567890,
+                        "instrument_id": 6,
+                        "buy": true,
+                        "price": "79000.0",
+                        "quantity": "0.001",
+                        "tif": "gtc",
+                        "post_only": false,
+                        "ro": false,
+                        "resting_quantity": "0.001",
+                        "filled_quantity": "0",
+                        "status": "open",
+                        "created_timestamp": 1788546565789,
+                        "updated_timestamp": 1788546565789,
+                        "client_order_id": "aabbccdd00112233445566778899aabb"
+                    },
+                    {
+                        "order_id": 1234567892,
+                        "instrument_id": 6,
+                        "buy": false,
+                        "price": "0",
+                        "quantity": "0",
+                        "tif": "ioc",
+                        "post_only": false,
+                        "ro": true,
+                        "resting_quantity": "0",
+                        "filled_quantity": "0",
+                        "status": "untriggered",
+                        "created_timestamp": 1788546580789,
+                        "updated_timestamp": 1788546580789,
+                        "tpsl": {
+                            "kind": "sl",
+                            "scope": "position",
+                            "trp": "75000.0",
+                            "armed_qty": "0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_id": 1234567890,
+                            "instrument_id": 6,
+                            "buy": true,
+                            "price": "79000.0",
+                            "quantity": "0.001",
+                            "tif": "gtc",
+                            "post_only": false,
+                            "ro": false,
+                            "resting_quantity": "0.001",
+                            "filled_quantity": "0",
+                            "status": "open",
+                            "created_timestamp": 1788546565789,
+                            "updated_timestamp": 1788546565789,
+                            "client_order_id": "aabbccdd00112233445566778899aabb"
+                        },
+                        "id": "1234567890",
+                        "clientOrderId": "aabbccdd00112233445566778899aabb",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546565789,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 79000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "order_id": 1234567892,
+                            "instrument_id": 6,
+                            "buy": false,
+                            "price": "0",
+                            "quantity": "0",
+                            "tif": "ioc",
+                            "post_only": false,
+                            "ro": true,
+                            "resting_quantity": "0",
+                            "filled_quantity": "0",
+                            "status": "untriggered",
+                            "created_timestamp": 1788546580789,
+                            "updated_timestamp": 1788546580789,
+                            "tpsl": {
+                                "kind": "sl",
+                                "scope": "position",
+                                "trp": "75000.0",
+                                "armed_qty": "0"
+                            }
+                        },
+                        "id": "1234567892",
+                        "clientOrderId": null,
+                        "timestamp": 1788546580789,
+                        "datetime": "2026-09-04T18:29:40.789Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546580789,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": true,
+                        "side": "sell",
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": 75000,
+                        "takeProfitPrice": null,
+                        "amount": 0,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "parse order snapshots",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "order_id": 1234567890,
+                        "instrument_id": 6,
+                        "buy": true,
+                        "price": "79000.0",
+                        "quantity": "0.001",
+                        "tif": "gtc",
+                        "post_only": false,
+                        "ro": false,
+                        "resting_quantity": "0.001",
+                        "filled_quantity": "0",
+                        "status": "open",
+                        "created_timestamp": 1788546565789,
+                        "updated_timestamp": 1788546565789,
+                        "client_order_id": "aabbccdd00112233445566778899aabb"
+                    },
+                    {
+                        "order_id": 1234567891,
+                        "instrument_id": 6,
+                        "buy": false,
+                        "price": "80100.0",
+                        "quantity": "0.002",
+                        "tif": "ioc",
+                        "post_only": false,
+                        "ro": true,
+                        "resting_quantity": "0",
+                        "filled_quantity": "0.002",
+                        "status": "filled",
+                        "created_timestamp": 1788546570789,
+                        "updated_timestamp": 1788546571789
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_id": 1234567890,
+                            "instrument_id": 6,
+                            "buy": true,
+                            "price": "79000.0",
+                            "quantity": "0.001",
+                            "tif": "gtc",
+                            "post_only": false,
+                            "ro": false,
+                            "resting_quantity": "0.001",
+                            "filled_quantity": "0",
+                            "status": "open",
+                            "created_timestamp": 1788546565789,
+                            "updated_timestamp": 1788546565789,
+                            "client_order_id": "aabbccdd00112233445566778899aabb"
+                        },
+                        "id": "1234567890",
+                        "clientOrderId": "aabbccdd00112233445566778899aabb",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546565789,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 79000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "order_id": 1234567891,
+                            "instrument_id": 6,
+                            "buy": false,
+                            "price": "80100.0",
+                            "quantity": "0.002",
+                            "tif": "ioc",
+                            "post_only": false,
+                            "ro": true,
+                            "resting_quantity": "0",
+                            "filled_quantity": "0.002",
+                            "status": "filled",
+                            "created_timestamp": 1788546570789,
+                            "updated_timestamp": 1788546571789
+                        },
+                        "id": "1234567891",
+                        "clientOrderId": null,
+                        "timestamp": 1788546570789,
+                        "datetime": "2026-09-04T18:29:30.789Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546571789,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": true,
+                        "side": "sell",
+                        "price": 80100,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.002,
+                        "cost": 160.2,
+                        "average": null,
+                        "filled": 0.002,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "parse one order, the requested row is deliberately not the first in case the venue ever ignores the filter",
+                "method": "fetchOrder",
+                "input": [
+                    "1234567890"
+                ],
+                "httpResponse": [
+                    {
+                        "order_id": 999999999,
+                        "instrument_id": 1,
+                        "buy": false,
+                        "price": "7900.0",
+                        "quantity": "0.01",
+                        "tif": "gtc",
+                        "post_only": false,
+                        "ro": false,
+                        "resting_quantity": "0.01",
+                        "filled_quantity": "0",
+                        "status": "open",
+                        "created_timestamp": 1788546560789,
+                        "updated_timestamp": 1788546560789
+                    },
+                    {
+                        "order_id": 1234567890,
+                        "instrument_id": 6,
+                        "buy": true,
+                        "price": "79000.0",
+                        "quantity": "0.001",
+                        "tif": "gtc",
+                        "post_only": false,
+                        "ro": false,
+                        "resting_quantity": "0.001",
+                        "filled_quantity": "0",
+                        "status": "open",
+                        "created_timestamp": 1788546565789,
+                        "updated_timestamp": 1788546565789,
+                        "client_order_id": "aabbccdd00112233445566778899aabb"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "order_id": 1234567890,
+                        "instrument_id": 6,
+                        "buy": true,
+                        "price": "79000.0",
+                        "quantity": "0.001",
+                        "tif": "gtc",
+                        "post_only": false,
+                        "ro": false,
+                        "resting_quantity": "0.001",
+                        "filled_quantity": "0",
+                        "status": "open",
+                        "created_timestamp": 1788546565789,
+                        "updated_timestamp": 1788546565789,
+                        "client_order_id": "aabbccdd00112233445566778899aabb"
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": "aabbccdd00112233445566778899aabb",
+                    "timestamp": 1788546565789,
+                    "datetime": "2026-09-04T18:29:25.789Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1788546565789,
+                    "symbol": "BTC/USD:PUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 79000,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "parse a taker and a maker fill with fees",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "trade_id": 3738280849593744,
+                            "order_id": 1234567891,
+                            "instrument_id": 6,
+                            "side": "short",
+                            "price": "80100.0",
+                            "quantity": "0.002",
+                            "taker": true,
+                            "fee": "0.064",
+                            "fee_asset": "pUSD",
+                            "previous_size": "0.003",
+                            "previous_entry_price": "79650.0",
+                            "pnl": "0.9",
+                            "liquidation": false,
+                            "adl": false,
+                            "timestamp": 1788546571789,
+                            "hash": "0x"
+                        },
+                        {
+                            "trade_id": 3738280849593745,
+                            "order_id": 1234567890,
+                            "instrument_id": 6,
+                            "side": "long",
+                            "price": "79000.0",
+                            "quantity": "0.001",
+                            "taker": false,
+                            "fee": "0.0098",
+                            "fee_asset": "pUSD",
+                            "previous_size": "0.002",
+                            "previous_entry_price": "79650.0",
+                            "pnl": "0",
+                            "liquidation": false,
+                            "adl": false,
+                            "timestamp": 1788546575789,
+                            "hash": "0x7a4b1d2e9f0c3856a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718"
+                        }
+                    ],
+                    "more": false
+                },
+                "parsedResponse": [
+                    {
+                        "id": "3738280849593744",
+                        "info": {
+                            "trade_id": 3738280849593744,
+                            "order_id": 1234567891,
+                            "instrument_id": 6,
+                            "side": "short",
+                            "price": "80100.0",
+                            "quantity": "0.002",
+                            "taker": true,
+                            "fee": "0.064",
+                            "fee_asset": "pUSD",
+                            "previous_size": "0.003",
+                            "previous_entry_price": "79650.0",
+                            "pnl": "0.9",
+                            "liquidation": false,
+                            "adl": false,
+                            "timestamp": 1788546571789,
+                            "hash": "0x"
+                        },
+                        "timestamp": 1788546571789,
+                        "datetime": "2026-09-04T18:29:31.789Z",
+                        "symbol": "BTC/USD:PUSD",
+                        "order": "1234567891",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 80100,
+                        "amount": 0.002,
+                        "cost": 160.2,
+                        "fee": {
+                            "currency": "PUSD",
+                            "cost": 0.064
+                        },
+                        "fees": [
+                            {
+                                "currency": "PUSD",
+                                "cost": 0.064
+                            }
+                        ]
+                    },
+                    {
+                        "id": "3738280849593745",
+                        "info": {
+                            "trade_id": 3738280849593745,
+                            "order_id": 1234567890,
+                            "instrument_id": 6,
+                            "side": "long",
+                            "price": "79000.0",
+                            "quantity": "0.001",
+                            "taker": false,
+                            "fee": "0.0098",
+                            "fee_asset": "pUSD",
+                            "previous_size": "0.002",
+                            "previous_entry_price": "79650.0",
+                            "pnl": "0",
+                            "liquidation": false,
+                            "adl": false,
+                            "timestamp": 1788546575789,
+                            "hash": "0x7a4b1d2e9f0c3856a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718"
+                        },
+                        "timestamp": 1788546575789,
+                        "datetime": "2026-09-04T18:29:35.789Z",
+                        "symbol": "BTC/USD:PUSD",
+                        "order": "1234567890",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "maker",
+                        "price": 79000,
+                        "amount": 0.001,
+                        "cost": 79,
+                        "fee": {
+                            "currency": "PUSD",
+                            "cost": 0.0098
+                        },
+                        "fees": [
+                            {
+                                "currency": "PUSD",
+                                "cost": 0.0098
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "parse a funding payment",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": 123,
+                            "instrument_id": 6,
+                            "size": "0.001",
+                            "funding_rate": "0.0000125",
+                            "funding_asset": "pUSD",
+                            "funding": "-0.01",
+                            "timestamp": 1788546565789
+                        }
+                    ],
+                    "more": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 123,
+                            "instrument_id": 6,
+                            "size": "0.001",
+                            "funding_rate": "0.0000125",
+                            "funding_asset": "pUSD",
+                            "funding": "-0.01",
+                            "timestamp": 1788546565789
+                        },
+                        "symbol": "BTC/USD:PUSD",
+                        "code": "PUSD",
+                        "timestamp": 1788546565789,
+                        "datetime": "2026-09-04T18:29:25.789Z",
+                        "id": "123",
+                        "amount": -0.01
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "parse a confirmed deposit",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "hash": "0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838",
+                            "asset": "pUSD",
+                            "amount": "100",
+                            "from": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+                            "to": "0xDCa4af75705dbB50f62437045afF9921947917d2",
+                            "status": "confirmed",
+                            "confirmations": 12,
+                            "required_confirmations": 12,
+                            "created_timestamp": 1788500000789,
+                            "confirmed_timestamp": 1788500060789
+                        }
+                    ],
+                    "more": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "hash": "0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838",
+                            "asset": "pUSD",
+                            "amount": "100",
+                            "from": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+                            "to": "0xDCa4af75705dbB50f62437045afF9921947917d2",
+                            "status": "confirmed",
+                            "confirmations": 12,
+                            "required_confirmations": 12,
+                            "created_timestamp": 1788500000789,
+                            "confirmed_timestamp": 1788500060789
+                        },
+                        "id": null,
+                        "txid": "0xb5c8bd9430b6cc87a0e2fe110ece6bf527fa4f170a4bc8cd032f768fc5219838",
+                        "timestamp": 1788500000789,
+                        "datetime": "2026-09-04T05:33:20.789Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": "0xDCa4af75705dbB50f62437045afF9921947917d2",
+                        "addressFrom": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 100,
+                        "currency": "PUSD",
+                        "status": "ok",
+                        "updated": 1788500060789,
+                        "comment": null,
+                        "internal": false,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "parse a pending withdrawal, the unmined hash collapses to null",
+                "method": "fetchWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "withdraw_id": 321,
+                            "asset": "pUSD",
+                            "amount": "50",
+                            "to": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+                            "fee": "0",
+                            "status": "pending",
+                            "hash": "0x",
+                            "confirmations": 0,
+                            "required_confirmations": 12,
+                            "created_timestamp": 1788540000789
+                        }
+                    ],
+                    "more": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "withdraw_id": 321,
+                            "asset": "pUSD",
+                            "amount": "50",
+                            "to": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+                            "fee": "0",
+                            "status": "pending",
+                            "hash": "0x",
+                            "confirmations": 0,
+                            "required_confirmations": 12,
+                            "created_timestamp": 1788540000789
+                        },
+                        "id": "321",
+                        "txid": null,
+                        "timestamp": 1788540000789,
+                        "datetime": "2026-09-04T16:40:00.789Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "withdrawal",
+                        "amount": 50,
+                        "currency": "PUSD",
+                        "status": "pending",
+                        "updated": null,
+                        "comment": null,
+                        "internal": false,
+                        "fee": {
+                            "cost": 0,
+                            "currency": "PUSD"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "parse the leverage configuration, the requested row is deliberately not the first",
+                "method": "fetchLeverage",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "instrument_id": 1,
+                        "leverage": 5,
+                        "cross": true
+                    },
+                    {
+                        "instrument_id": 6,
+                        "leverage": 10,
+                        "cross": true
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "instrument_id": 6,
+                        "leverage": 10,
+                        "cross": true
+                    },
+                    "symbol": "BTC/USD:PUSD",
+                    "marginMode": "cross",
+                    "longLeverage": 10,
+                    "shortLeverage": 10
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "parse the isolated margin mode, the requested row is deliberately not the first",
+                "method": "fetchMarginMode",
+                "input": [
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "instrument_id": 1,
+                        "leverage": 5,
+                        "cross": true
+                    },
+                    {
+                        "instrument_id": 6,
+                        "leverage": 10,
+                        "cross": false
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "instrument_id": 6,
+                        "leverage": 10,
+                        "cross": false
+                    },
+                    "symbol": "BTC/USD:PUSD",
+                    "marginMode": "isolated"
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "parse the accepted order acknowledgement",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    79000
+                ],
+                "httpResponse": [
+                    {
+                        "status": "ok",
+                        "oid": 1234567890
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "oid": 1234567890
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USD:PUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 79000,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "parse the accepted acknowledgement with the echoed client order id",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    79000,
+                    {
+                        "clientOrderId": "aabbccdd00112233445566778899aabb"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "status": "ok",
+                        "oid": 1234567890,
+                        "coid": "aabbccdd00112233445566778899aabb"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "oid": 1234567890,
+                        "coid": "aabbccdd00112233445566778899aabb"
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": "aabbccdd00112233445566778899aabb",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USD:PUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 79000,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.001,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "parse the cancel acknowledgement",
+                "method": "cancelOrder",
+                "input": [
+                    "1234567890",
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "status": "ok",
+                        "oid": 1234567890,
+                        "ts": 1788546590789
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok",
+                        "oid": 1234567890,
+                        "ts": 1788546590789
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1788546590789,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "parse a rejected cancel acknowledgement",
+                "method": "cancelOrder",
+                "input": [
+                    "1234567890",
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "status": "err",
+                        "oid": 1234567890,
+                        "error": "order_not_in_orderbook",
+                        "ts": 1788546590789
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "status": "err",
+                        "oid": 1234567890,
+                        "error": "order_not_in_orderbook",
+                        "ts": 1788546590789
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1788546590789,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "rejected",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "parse the modify acknowledgement, the short-name order row",
+                "method": "editOrder",
+                "input": [
+                    "1234567890",
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.002,
+                    78000
+                ],
+                "httpResponse": [
+                    {
+                        "status": "ok",
+                        "order": {
+                            "oid": 1234567890,
+                            "iid": 6,
+                            "buy": true,
+                            "p": "78000.0",
+                            "qty": "0.002",
+                            "tif": "gtc",
+                            "po": false,
+                            "ro": false,
+                            "rest": "0.002",
+                            "fill": "0",
+                            "cts": 1788546565789,
+                            "uts": 1788546600789,
+                            "status": "open"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "oid": 1234567890,
+                        "iid": 6,
+                        "buy": true,
+                        "p": "78000.0",
+                        "qty": "0.002",
+                        "tif": "gtc",
+                        "po": false,
+                        "ro": false,
+                        "rest": "0.002",
+                        "fill": "0",
+                        "cts": 1788546565789,
+                        "uts": 1788546600789,
+                        "status": "open"
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": null,
+                    "timestamp": 1788546565789,
+                    "datetime": "2026-09-04T18:29:25.789Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1788546600789,
+                    "symbol": "BTC/USD:PUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 78000,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.002,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "parse a rejected modify acknowledgement",
+                "method": "editOrder",
+                "input": [
+                    "1234567890",
+                    "BTC/USD:PUSD",
+                    "limit",
+                    "buy",
+                    0.002,
+                    78000
+                ],
+                "httpResponse": [
+                    {
+                        "status": "err",
+                        "oid": 1234567890,
+                        "error": "order_not_modifiable"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "status": "err",
+                        "oid": 1234567890,
+                        "error": "order_not_modifiable"
+                    },
+                    "id": "1234567890",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USD:PUSD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "rejected",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "parse the leverage acknowledgement",
+                "method": "setLeverage",
+                "input": [
+                    5,
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "instrument_id": 6,
+                    "leverage": 5,
+                    "cross": true
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "instrument_id": 6,
+                    "leverage": 5,
+                    "cross": true
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "parse the margin acknowledgement",
+                "method": "addMargin",
+                "input": [
+                    "BTC/USD:PUSD",
+                    5
+                ],
+                "httpResponse": {
+                    "status": "ok"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok"
+                    },
+                    "symbol": "BTC/USD:PUSD",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 5,
+                    "total": null,
+                    "code": "PUSD",
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "parse the withdraw acknowledgement, never tested live",
+                "method": "withdraw",
+                "input": [
+                    "PUSD",
+                    10,
+                    "0x4444444444444444444444444444444444444444"
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "withdraw_id": 322
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdraw_id": 322
+                    },
+                    "id": "322",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": null,
+                    "currency": "PUSD",
+                    "status": "pending",
+                    "updated": null,
+                    "comment": null,
+                    "internal": false,
+                    "fee": null
+                }
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "parse a partially accepted batch, the rejected element keeps a rejected status without throwing",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USD:PUSD",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.001,
+                            "price": 79000,
+                            "params": {}
+                        },
+                        {
+                            "symbol": "BTC/USD:PUSD",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 0.001,
+                            "price": 81000,
+                            "params": {}
+                        }
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "status": "ok",
+                        "oid": 1234567890
+                    },
+                    {
+                        "status": "err",
+                        "error": "insufficient_margin"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "status": "ok",
+                            "oid": 1234567890
+                        },
+                        "id": "1234567890",
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 79000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "status": "err",
+                            "error": "insufficient_margin"
+                        },
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USD:PUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "sell",
+                        "price": 81000,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "rejected",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "parse a partially accepted cancel batch",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "1234567890",
+                        "1234567891"
+                    ],
+                    "BTC/USD:PUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "status": "ok",
+                        "oid": 1234567890,
+                        "ts": 1788546590789
+                    },
+                    {
+                        "status": "err",
+                        "oid": 1234567891,
+                        "error": "order_not_found",
+                        "ts": 1788546590789
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "status": "ok",
+                            "oid": 1234567890,
+                            "ts": 1788546590789
+                        },
+                        "id": "1234567890",
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546590789,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "status": "err",
+                            "oid": 1234567891,
+                            "error": "order_not_found",
+                            "ts": 1788546590789
+                        },
+                        "id": "1234567891",
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1788546590789,
+                        "symbol": null,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": "rejected",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "parse the cancel all acknowledgement, the venue answers a bare object",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                    "status": "ok"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "status": "ok"
+                        },
+                        "fees": [],
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "parse the margin removal acknowledgement",
+                "method": "reduceMargin",
+                "input": [
+                    "BTC/USD:PUSD",
+                    2
+                ],
+                "httpResponse": {
+                    "status": "ok"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "ok"
+                    },
+                    "symbol": "BTC/USD:PUSD",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": -2,
+                    "total": null,
+                    "code": "PUSD",
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
         ]
+    },
+    "options": {
+        "proxyCredentials": {
+            "proxy": "0x74844b4c330Fb0E97914a377b4650ac2E5bc8f89",
+            "privateKey": "0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+            "secret": "ZmFrZS1wcm94eS1zZWNyZXQtZm9yLXN0YXRpYy10ZXN0cw",
+            "expires": 9999999999999
+        }
     }
 }

@@ -28,6 +28,32 @@ interface Exchange {
     publicGetInfoFees (params?: {}): Promise<Dict>;
     publicGetInfoLimitTiers (params?: {}): Promise<List>;
     publicGetInfoInvite (params?: {}): Promise<Dict>;
+    privateGetAccountCredentials (params?: {}): Promise<Dict>;
+    privateGetAccountOrders (params?: {}): Promise<List>;
+    privateGetAccountOpenOrders (params?: {}): Promise<List>;
+    privateGetAccountBalances (params?: {}): Promise<List>;
+    privateGetAccountPortfolio (params?: {}): Promise<Dict>;
+    privateGetAccountFills (params?: {}): Promise<Dict>;
+    privateGetAccountEquity (params?: {}): Promise<Dict>;
+    privateGetAccountPnl (params?: {}): Promise<Dict>;
+    privateGetAccountFunding (params?: {}): Promise<Dict>;
+    privateGetAccountDeposits (params?: {}): Promise<Dict>;
+    privateGetAccountWithdrawals (params?: {}): Promise<Dict>;
+    privateGetAccountConfig (params?: {}): Promise<List>;
+    privateGetAccountLimits (params?: {}): Promise<Dict>;
+    privateGetAccountAutoCancel (params?: {}): Promise<Dict>;
+    tradePostTradeOrders (params?: {}): Promise<List>;
+    tradePostAccountProxy (params?: {}): Promise<Dict>;
+    tradePostAccountWithdraw (params?: {}): Promise<Dict>;
+    tradePatchTradeOrders (params?: {}): Promise<List>;
+    tradePatchTradeOrdersCoid (params?: {}): Promise<List>;
+    tradePatchTradeLeverage (params?: {}): Promise<Dict>;
+    tradePatchTradeMargin (params?: {}): Promise<Dict>;
+    tradePatchTradeAutoCancel (params?: {}): Promise<Dict>;
+    tradeDeleteTradeOrders (params?: {}): Promise<List>;
+    tradeDeleteTradeOrdersCoid (params?: {}): Promise<List>;
+    tradeDeleteTradeOrdersAll (params?: {}): Promise<List>;
+    tradeDeleteAccountProxy (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 
