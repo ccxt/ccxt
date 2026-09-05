@@ -96,11 +96,11 @@ type ArrayCache struct {
 	nestedNewUpdates bool                      `json:"-"`
 	// newUpdatesBySymbol holds the resolved count per key (mirrors Cache.ts).
 	// Distinct ids/sides live in seenUpdatesBySymbol; getLimit never reads a Set.
-	newUpdatesBySymbol       map[string]int  `json:"-"`
-	seenUpdatesBySymbol      map[string]*Set `json:"-"`
+	newUpdatesBySymbol  map[string]int  `json:"-"`
+	seenUpdatesBySymbol map[string]*Set `json:"-"`
 	// the same, but cleared only by the GLOBAL GetLimit scope - the two poll
 	// scopes are independent, so each needs its own memory of what it has seen
-	seenUpdatesAll map[string]*Set `json:"-"`
+	seenUpdatesAll           map[string]*Set `json:"-"`
 	clearUpdatesBySymbol     map[string]bool `json:"-"`
 	nestedNewUpdatesBySymbol bool            `json:"-"`
 	keyField                 string          `json:"-"`
@@ -287,33 +287,6 @@ func (c *ArrayCache) Append(item any) {
 	c.trackAppendLocked(symbol, id)
 }
 
-// func areArraysEqual(a any, b any) bool {
-// 	arrA, okA := a.([]any)
-// 	arrB, okB := b.([]any)
-// 	if !okA || !okB {
-// 		return false
-// 	}
-// 	if len(arrA) != len(arrB) {
-// 		return false
-// 	}
-// 	for i := range arrA {
-// 		// elems can be ints, or map[string]any etc
-// 		if !IsEqual(arrA[i], arrB[i]) {
-// 			return false
-// 		}
-// 		// if arrA[i] != arrB[i] {
-// 		// 	return false
-// 		// }
-// 	}
-// 	return true
-// }
-
-// Clear resets the nesting index along with the array. The keyed subclasses find
-// existing rows through the hashmap, so a clear () that only truncates c.Data
-// leaves the hashmap claiming rows that are gone - the next append then merges
-// into an orphaned reference and the row is silently lost. The update counters
-// have to go too, or GetLimit keeps reporting updates for rows that no longer
-// exist.
 func (c *ArrayCache) Clear() {
 	c.BaseCache.Clear()
 	c.Mu.Lock()

@@ -21,24 +21,8 @@ import javax.crypto.spec.SecretKeySpec;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// import org.bouncycastle.asn1.sec.SECNamedCurves;
-// import org.bouncycastle.asn1.x9.X9ECParameters;
-// import org.bouncycastle.crypto.digests.SHA256Digest;
-// import org.bouncycastle.crypto.params.ECDomainParameters;
-// import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
-// import org.bouncycastle.crypto.signers.ECDSASigner;
-// import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
-// import org.bouncycastle.math.ec.ECAlgorithms;
-// import org.bouncycastle.math.ec.ECPoint;
-// import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve;
-// import org.bouncycastle.util.BigIntegers;
-
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.asn1.x9.X9IntegerConverter;
@@ -60,13 +44,6 @@ import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 public final class Crypto {
 
     private Crypto() {}
-
-    // Ensure BC provider once
-    static {
-        // if (Security.getProvider("BC") == null) {
-        //     Security.addProvider(new BouncyCastleProvider());
-        // }
-    }
 
     // ---------- algorithm-name helpers ----------
     public static String sha1()     { return "sha1"; }
@@ -91,10 +68,6 @@ public final class Crypto {
 
     public static String BinaryToBase64(byte[] buff) {
         return Base64.getEncoder().encodeToString(buff);
-    }
-
-    public static byte[] Base64ToBinary(Object s) {
-        return Base64.getDecoder().decode(toString(s));
     }
 
     public static String Base64ToBase64Url(String base64, boolean stripPadding) {
@@ -199,29 +172,10 @@ public final class Crypto {
         }
     }
 
-    private static byte[] shaDigest(String algo, String data) {
-        try {
-            MessageDigest md = MessageDigest.getInstance(algo);
-            return md.digest(toUtf8(data));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static byte[] md5Digest(String data) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            return md.digest(toUtf8(data));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private static byte[] keccakDigest(byte[] data) {
         Keccak.Digest256 k = new Keccak.Digest256();
         k.update(data, 0, data.length);
         return k.digest();
-        // throw new UnsupportedOperationException("Keccak not implemented");
     }
 
     // ====================================================
@@ -258,7 +212,7 @@ public final class Crypto {
 
         if (isRsa) {
             // RSxxx with private key PEM
-            byte[] sig = rsaSign(token, toString(secret), algorithm);
+            byte[] sig = rsaSign(token, toString(secret), algorithm, "pkcs1");
             signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
         } else if ("ES".equals(algoType)) {
             // ES256: sign over P-256 -> r||s then base64url
@@ -270,9 +224,6 @@ public final class Crypto {
             signatureB64Url = Base64ToBase64Url(base64Sig, true);
         } else {
             // HMAC HS256/384/512
-            String bin = toString(Hmac(token, secret, algorithm, "binary"));
-            // Hmac(...,"binary") above returns byte[] in C#, here we returned hex/base64.
-            // So call Hmac again but fetch raw bytes:
             byte[] sig = hmacRaw(alg, token, secret);
             signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
         }
@@ -292,34 +243,6 @@ public final class Crypto {
     }
 
     // ====================================================
-    // Raw sign helpers
-    // ====================================================
-
-    public static byte[] SignSHA256Bytes(String data) { return shaDigest("SHA-256", data); }
-    public static byte[] SignSHA256(String data)      { return shaDigest("SHA-256", data); }
-    public static byte[] SignSHA1(String data)        { return shaDigest("SHA-1",   data); }
-    public static byte[] SignSHA384(String data)      { return shaDigest("SHA-384", data); }
-    public static byte[] SignSHA512(String data)      { return shaDigest("SHA-512", data); }
-    public static byte[] SignMD5(String data)         { return md5Digest(data); }
-
-    public static byte[] SignKeccak(Object data) {
-        byte[] msg = (data instanceof String) ? toUtf8(data) : (byte[]) data;
-        return keccakDigest(msg);
-    }
-
-    public static byte[] SignHMACSHA256(String data, byte[] secret) { return hmac("HmacSHA256", toUtf8(data), secret); }
-    public static byte[] SignHMACSHA256(byte[] data, byte[] secret) { return hmac("HmacSHA256", data, secret); }
-
-    public static byte[] SignHMACSHA384(String data, byte[] secret) { return hmac("HmacSHA384", toUtf8(data), secret); }
-    public static byte[] SignHMACSHA384(byte[] data, byte[] secret) { return hmac("HmacSHA384", data, secret); }
-
-    public static byte[] SignHMACSHA512(String data, byte[] secret) { return hmac("HmacSHA512", toUtf8(data), secret); }
-    public static byte[] SignHMACSHA512(byte[] data, byte[] secret) { return hmac("HmacSHA512", data, secret); }
-
-    public static byte[] SignHMACMD5(String data, byte[] secret)    { return hmac("HmacMD5",    toUtf8(data), secret); }
-    public static byte[] SignHMACMD5(byte[] data, byte[] secret)    { return hmac("HmacMD5",    data, secret); }
-
-    // ====================================================
     // RSA (PKCS#1 v1.5) signing with PEM private key
     // ====================================================
 
@@ -330,10 +253,6 @@ public final class Crypto {
     public static String Rsa(Object data, Object publicKeyPem, Object hash, Object padding) {
         byte[] sig = rsaSign(toString(data), toString(publicKeyPem), (hash == null ? "md5" : toString(hash)), (padding == null ? "pkcs1" : toString(padding)));
         return BinaryToBase64(sig);
-    }
-
-    private static byte[] rsaSign(String data, String pemPrivateKey, String hashAlgo) {
-        return rsaSign(data, pemPrivateKey, hashAlgo, "pkcs1");
     }
 
     private static byte[] rsaSign(String data, String pemPrivateKey, String hashAlgo, String padding) {
@@ -589,18 +508,7 @@ public final class Crypto {
     /** keccak256(X || Y)[12..32] as 40 lowercase hex chars, no 0x — mirrors web3j Keys.getAddress. */
     public static String secp256k1EthAddress(BigInteger privKey) {
         byte[] hash = keccakDigest(secp256k1PublicKeyBytes(privKey));
-        return bytesToHex(java.util.Arrays.copyOfRange(hash, 12, hash.length));
-    }
-
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexArray = "0123456789abcdef".toCharArray();
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
+        return binaryToHex(java.util.Arrays.copyOfRange(hash, 12, hash.length));
     }
 
 
@@ -634,26 +542,6 @@ public final class Crypto {
         throw new IllegalArgumentException("Unsupported secret type: " + (v == null ? "null" : v.getClass().getName()));
     }
 
-    private static KeyPair ecKeyPairFromRaw(String curveStdName, byte[] privBytes) throws Exception {
-        // var params = ECNamedCurveTable.getParameterSpec(curveStdName);
-        // KeyFactory kf = KeyFactory.getInstance("EC", "BC");
-        // ECParameterSpec jSpec = new ECParameterSpec(
-        //         params.getCurve(), params.getG(), params.getN(), params.getH(), params.getSeed()
-        // );
-        // ECPrivateKeySpec privSpec = new ECPrivateKeySpec(new java.math.BigInteger(1, privBytes), jSpec);
-        // PrivateKey priv = kf.generatePrivate(privSpec);
-
-        // // Derive public key Q = d*G
-        // ECPoint Q = params.getG().multiply(new java.math.BigInteger(1, privBytes)).normalize();
-        // ECPublicKeySpec pubSpec = new ECPublicKeySpec(
-        //         new java.security.spec.ECPoint(Q.getAffineXCoord().toBigInteger(), Q.getAffineYCoord().toBigInteger()),
-        //         jSpec
-        // );
-        // PublicKey pub = kf.generatePublic(pubSpec);
-        // return new KeyPair(pub, priv);
-        throw new UnsupportedOperationException("ECDSA key pair generation not implemented");
-    }
-
     private static String leftPadHex(String s, int len) {
         if (s.length() >= len) return s;
         StringBuilder sb = new StringBuilder(len);
@@ -671,10 +559,6 @@ public final class Crypto {
                                  + Character.digit(hex.charAt(i+1), 16));
         }
         return data;
-    }
-
-    public static String ByteArrayToString(byte[] ba) {
-        return binaryToHex(ba).toUpperCase(Locale.ROOT);
     }
 
     // ====================================================
@@ -789,19 +673,7 @@ public final class Crypto {
         }
     }
 
-    public static String ToHex(byte[] value, boolean prefix) {
-        return (prefix ? "0x" : "") + binaryToHex(value);
-    }
-
-    // ====================================================
-    // Stubs / unimplemented
-    // ====================================================
-
     // ----------------- convenience instance-like wrappers -----------------
-
-    public static String hmac(Object request2, Object secret2, Object algorithm2, String digest, boolean dummy) {
-        return Hmac(request2, secret2, algorithm2, digest);
-    }
 
     public static Object hash(Object request2, Object algorithm2, Object digest2) {
         return Hash(request2, algorithm2, digest2);
@@ -949,7 +821,7 @@ public final class Crypto {
         BigInteger priv = toPrivateKeyBigInt(privateKey);
         String lower = secp256k1EthAddress(priv);
         // EIP-55: uppercase hex digit i when nibble i of keccak256(lowercase address) >= 8
-        String hash = bytesToHex(keccakDigest(lower.getBytes(StandardCharsets.US_ASCII)));
+        String hash = binaryToHex(keccakDigest(lower.getBytes(StandardCharsets.US_ASCII)));
         StringBuilder sb = new StringBuilder("0x");
         for (int i = 0; i < lower.length(); i++) {
             char c = lower.charAt(i);

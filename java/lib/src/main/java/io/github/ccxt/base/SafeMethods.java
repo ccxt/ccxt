@@ -22,29 +22,6 @@ public final class SafeMethods {
         return (v == null) ? null : String.valueOf(v);
     }
 
-    private static boolean listHasIndex(List<?> l, int i) {
-        return i >= 0 && i < l.size();
-    }
-
-    // ----------------------------
-
-    /**
-     * Attempts to coerce any Map-like object into by stringifying keys.
-     * Throws IllegalStateException if the input is not a Map.
-     */
-    public static Map<String, Object> ConvertToDictionaryOfStringObject(Object potentialDictionary) {
-        if (potentialDictionary instanceof Map<?, ?> m) {
-            Map<String, Object> result = new LinkedHashMap<>();
-            for (Map.Entry<?, ?> e : m.entrySet()) {
-                result.put(String.valueOf(e.getKey()), e.getValue());
-            }
-            return result;
-        }
-        throw new IllegalStateException("The provided object is not a dictionary.");
-    }
-
-    // ----------------------------
-
     public static Object SafeNumberN(Object obj, Object keys, Object... defaultValue) {
         return SafeFloatN(obj, keys, defaultValue);
     }
