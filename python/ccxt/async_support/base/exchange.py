@@ -12,7 +12,6 @@ import socket
 import certifi
 import aiohttp
 import ssl
-import sys
 import yarl
 import math
 from ccxt.base.types import Int, Str, Num, Strings
@@ -100,13 +99,12 @@ class BaseExchange(SyncExchange):
         if self.session is not None or self.socks_proxy_sessions is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are using the exchange instance with async coroutines, add `await exchange.close()` to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
 
-    if sys.version_info >= (3, 5):
-        async def __aenter__(self):
-            self.open()
-            return self
+    async def __aenter__(self):
+        self.open()
+        return self
 
-        async def __aexit__(self, exc_type, exc, tb):
-            await self.close()
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.close()
 
     def open(self, lazy=False):
         # a request orphaned by a failing gathered sibling can resume after close() and
@@ -115,10 +113,7 @@ class BaseExchange(SyncExchange):
             raise ExchangeClosedByUser(self.id + ' instance was closed by the user')
         self.closed_by_user = False
         if self.asyncio_loop is None:
-            if sys.version_info >= (3, 7):
-                self.asyncio_loop = asyncio.get_running_loop()
-            else:
-                self.asyncio_loop = asyncio.get_event_loop()
+            self.asyncio_loop = asyncio.get_running_loop()
             self.throttler.loop = self.asyncio_loop
 
         if self.ssl_context is None:
