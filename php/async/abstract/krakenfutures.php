@@ -34,6 +34,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_tickers_symbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_history($params = array()) {
         return $this->request('history', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -264,6 +270,12 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
      */
     public function publicGetTickers($params = array()) {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetTickersSymbol($params = array()) {
+        return $this->request('tickers/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
