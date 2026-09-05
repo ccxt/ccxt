@@ -27,6 +27,8 @@ find_package (OpenSSL REQUIRED)
 add_library (ccxt STATIC
     ccxt/base/helpers.cpp
     ccxt/base/ExchangeBase.cpp
+    ccxt/base/Crypto.cpp
+    ccxt/base/Number.cpp
 )
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::Crypto)
@@ -39,6 +41,17 @@ target_link_libraries (ccxt-value-tests PRIVATE ccxt)
 add_executable (ccxt-tests tests/main.cpp)
 target_link_libraries (ccxt-tests PRIVATE ccxt)
 
+# The generated binance is an 18k-line single translation unit on top of a 4k-line
+# implicit-API header, so it gets its own target: it is by far the slowest thing to
+# compile and keeping it separate means a base-test edit does not pay for it.
+add_executable (ccxt-smoke-binance tests/smoke_binance.cpp)
+target_link_libraries (ccxt-smoke-binance PRIVATE ccxt)
+
+add_executable (ccxt-static-binance tests/static_binance.cpp)
+target_link_libraries (ccxt-static-binance PRIVATE ccxt)
+
 enable_testing ()
 add_test (NAME value-model COMMAND ccxt-value-tests)
 add_test (NAME base-tests COMMAND ccxt-tests --baseTests)
+add_test (NAME smoke-binance COMMAND ccxt-smoke-binance)
+add_test (NAME static-request-binance COMMAND ccxt-static-binance --requestTests)

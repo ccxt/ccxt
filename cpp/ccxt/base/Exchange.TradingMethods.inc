@@ -792,7 +792,7 @@
                 {
                     if (isTrue(isEqual((add(i, 1)), fetchSnapshotMaxRetries)))
                     {
-                        throw e;
+                        throw;
                     }
                 }
             }
