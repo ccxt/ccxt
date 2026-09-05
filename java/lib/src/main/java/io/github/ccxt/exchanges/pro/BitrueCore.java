@@ -328,7 +328,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "E");
-        Object marketId = this.safeStringUpper(order, "s");
+        String marketId = (String)this.safeStringUpper(order, "s");
         Object typeId = this.safeString(order, "o");
         Object sideId = this.safeInteger(order, "S");
         // 1: buy
@@ -382,15 +382,15 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             Object cbId = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object baseIdLower = this.safeStringLower(market, "baseId");
-                Object quoteIdLower = this.safeStringLower(market, "quoteId");
+                String baseIdLower = (String)this.safeStringLower(market, "baseId");
+                String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
                 Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
                 channel = Helpers.add(Helpers.add("market_", wsId), "_depth_step0");
                 cbId = wsId;
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "futurePublic");
             } else
             {
-                Object marketIdLowercase = this.safeStringLower(market, "id");
+                String marketIdLowercase = (String)this.safeStringLower(market, "id");
                 channel = Helpers.add(Helpers.add("market_", marketIdLowercase), "_simple_depth_step0");
                 cbId = marketIdLowercase;
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -451,11 +451,11 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object market = null;
         if (Helpers.isTrue(isFutures))
         {
-            Object wsBaseQuote = this.safeStringLower(parts, 2);
+            String wsBaseQuote = (String)this.safeStringLower(parts, 2);
             market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         } else
         {
-            Object marketId = this.safeStringUpper(parts, 1);
+            String marketId = (String)this.safeStringUpper(parts, 1);
             market = this.safeMarket(marketId);
         }
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -498,8 +498,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 continue;
             }
-            Object baseId = this.safeStringLower(candidate, "baseId", "");
-            Object quoteId = this.safeStringLower(candidate, "quoteId", "");
+            String baseId = (String)this.safeStringLower(candidate, "baseId", "");
+            String quoteId = (String)this.safeStringLower(candidate, "quoteId", "");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.add(((String)baseId), quoteId), wsBaseQuote)))
             {
                 return candidate;
@@ -566,8 +566,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchTrades is only supported for swap markets")) ;
             }
-            Object baseIdLower = this.safeStringLower(market, "baseId");
-            Object quoteIdLower = this.safeStringLower(market, "quoteId");
+            String baseIdLower = (String)this.safeStringLower(market, "baseId");
+            String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
             Object channel = Helpers.add(Helpers.add("market_", wsId), "_trade_ticker");
             Object messageHash = Helpers.add("trades:", symbol);
@@ -614,7 +614,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //
         Object channel = this.safeString(message, "channel");
         Object parts = Helpers.split(((String)channel), "_");
-        Object wsBaseQuote = this.safeStringLower(parts, 2);
+        String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
@@ -649,7 +649,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(trade, "ts");
-        Object sideLower = this.safeStringLower(trade, "side");
+        String sideLower = (String)this.safeStringLower(trade, "side");
         Object priceString = this.safeString(trade, "price");
         Object rawVol = this.safeNumber(trade, "vol");
         Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
@@ -707,8 +707,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(this.id, " watchOHLCV does not support timeframe "), timeframe)) ;
             }
-            Object baseIdLower = this.safeStringLower(market, "baseId");
-            Object quoteIdLower = this.safeStringLower(market, "quoteId");
+            String baseIdLower = (String)this.safeStringLower(market, "baseId");
+            String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
             Object channel = Helpers.add(Helpers.add(Helpers.add("market_", wsId), "_kline_"), interval);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
@@ -753,7 +753,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //
         Object channel = this.safeString(message, "channel");
         Object parts = Helpers.split(((String)channel), "_");
-        Object wsBaseQuote = this.safeStringLower(parts, 2);
+        String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
@@ -824,8 +824,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchTicker is only supported for swap markets")) ;
             }
-            Object baseIdLower = this.safeStringLower(market, "baseId");
-            Object quoteIdLower = this.safeStringLower(market, "quoteId");
+            String baseIdLower = (String)this.safeStringLower(market, "baseId");
+            String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
             Object channel = Helpers.add(Helpers.add("market_", wsId), "_ticker");
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -863,7 +863,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //
         Object channel = this.safeString(message, "channel");
         Object parts = Helpers.split(((String)channel), "_");
-        Object wsBaseQuote = this.safeStringLower(parts, 2);
+        String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {

@@ -248,6 +248,30 @@ public class Dydx extends DydxCore {
     public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
+    public MarginModification addMargin(String symbol, Double amount, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.addMargin(symbol, amount, params));
+        return new MarginModification(res);
+    }
+    public MarginModification addMargin(String symbol, Double amount) { return addMargin(symbol, amount, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount, Map<String, Object> params) {
+        return super.addMargin(symbol, amount, params).thenApply(MarginModification::new);
+    }
+    public CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount) { return addMarginAsync(symbol, amount, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public MarginModification reduceMargin(String symbol, Double amount, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.reduceMargin(symbol, amount, params));
+        return new MarginModification(res);
+    }
+    public MarginModification reduceMargin(String symbol, Double amount) { return reduceMargin(symbol, amount, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount, Map<String, Object> params) {
+        return super.reduceMargin(symbol, amount, params).thenApply(MarginModification::new);
+    }
+    public CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount) { return reduceMarginAsync(symbol, amount, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public MarginModification setMargin(String symbol, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.setMargin(symbol, amount, params));
         return new MarginModification(res);
@@ -324,6 +348,82 @@ public class Dydx extends DydxCore {
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
+    public MarginLoan repayCrossMargin(String code, Double amount, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.repayCrossMargin(code, amount, params));
+        return new MarginLoan(res);
+    }
+    public MarginLoan repayCrossMargin(String code, Double amount) { return repayCrossMargin(code, amount, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount, Map<String, Object> params) {
+        return super.repayCrossMargin(code, amount, params).thenApply(MarginLoan::new);
+    }
+    public CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount) { return repayCrossMarginAsync(code, amount, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public MarginLoan repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.repayIsolatedMargin(symbol, code, amount, params));
+        return new MarginLoan(res);
+    }
+    public MarginLoan repayIsolatedMargin(String symbol, String code, Double amount) { return repayIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) {
+        return super.repayIsolatedMargin(symbol, code, amount, params).thenApply(MarginLoan::new);
+    }
+    public CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount) { return repayIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public MarginLoan borrowCrossMargin(String code, Double amount, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.borrowCrossMargin(code, amount, params));
+        return new MarginLoan(res);
+    }
+    public MarginLoan borrowCrossMargin(String code, Double amount) { return borrowCrossMargin(code, amount, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount, Map<String, Object> params) {
+        return super.borrowCrossMargin(code, amount, params).thenApply(MarginLoan::new);
+    }
+    public CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount) { return borrowCrossMarginAsync(code, amount, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.borrowIsolatedMargin(symbol, code, amount, params));
+        return new MarginLoan(res);
+    }
+    public MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount) { return borrowIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) {
+        return super.borrowIsolatedMargin(symbol, code, amount, params).thenApply(MarginLoan::new);
+    }
+    public CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount) { return borrowIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public MarginLoan borrowMargin(String code, Double amount, String symbol, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.borrowMargin(code, amount, symbol, params));
+        return new MarginLoan(res);
+    }
+    public MarginLoan borrowMargin(String code, Double amount) { return borrowMargin(code, amount, (String) null, (Map<String, Object>) null); }
+    public MarginLoan borrowMargin(String code, Double amount, String symbol) { return borrowMargin(code, amount, symbol, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) {
+        return super.borrowMargin(code, amount, symbol, params).thenApply(MarginLoan::new);
+    }
+    public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount) { return borrowMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
+    public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol) { return borrowMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public MarginLoan repayMargin(String code, Double amount, String symbol, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.repayMargin(code, amount, symbol, params));
+        return new MarginLoan(res);
+    }
+    public MarginLoan repayMargin(String code, Double amount) { return repayMargin(code, amount, (String) null, (Map<String, Object>) null); }
+    public MarginLoan repayMargin(String code, Double amount, String symbol) { return repayMargin(code, amount, symbol, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) {
+        return super.repayMargin(code, amount, symbol, params).thenApply(MarginLoan::new);
+    }
+    public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount) { return repayMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
+    public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol) { return repayMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOHLCV(symbol, timeframe, since, limit, params));
         return toTypedList(res, OHLCV::new);
@@ -376,6 +476,16 @@ public class Dydx extends DydxCore {
     public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe) { return fetchContractOHLCVAsync(symbol, timeframe, (Long) null, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since) { return fetchContractOHLCVAsync(symbol, timeframe, since, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<List<OHLCV>> fetchContractOHLCVAsync(String symbol, String timeframe, Long since, Long limit) { return fetchContractOHLCVAsync(symbol, timeframe, since, limit, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public List<Account> loadAccounts(Object reload, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.loadAccounts(reload, params));
+        return toTypedList(res, Account::new);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<Account>> loadAccountsAsync(Object reload, Map<String, Object> params) {
+        return super.loadAccounts(reload, params).thenApply(res -> toTypedList(res, Account::new));
+    }
 
     @SuppressWarnings("unchecked")
     public List<BorrowInterest> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> params) {
@@ -1236,6 +1346,20 @@ public class Dydx extends DydxCore {
         return super.fetchOpenInterest(symbol, params).thenApply(OpenInterest::new);
     }
     public CompletableFuture<OpenInterest> fetchOpenInterestAsync(String symbol) { return fetchOpenInterestAsync(symbol, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public OrderBook fetchL2OrderBook(String symbol, Long limit, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchL2OrderBook(symbol, limit, params));
+        return new OrderBook(res);
+    }
+    public OrderBook fetchL2OrderBook(String symbol) { return fetchL2OrderBook(symbol, (Long) null, (Map<String, Object>) null); }
+    public OrderBook fetchL2OrderBook(String symbol, Long limit) { return fetchL2OrderBook(symbol, limit, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<OrderBook> fetchL2OrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
+        return super.fetchL2OrderBook(symbol, limit, params).thenApply(OrderBook::new);
+    }
+    public CompletableFuture<OrderBook> fetchL2OrderBookAsync(String symbol) { return fetchL2OrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
+    public CompletableFuture<OrderBook> fetchL2OrderBookAsync(String symbol, Long limit) { return fetchL2OrderBookAsync(symbol, limit, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Order editLimitBuyOrder(String id, String symbol, Double amount, Double price, Map<String, Object> params) {

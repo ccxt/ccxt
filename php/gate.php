@@ -1816,7 +1816,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_option_underlyings() {
+    public function fetch_option_underlyings(): array {
         $underlyingsResponse = $this->publicOptionsGetUnderlyings();
         //
         //    array(
@@ -3457,7 +3457,7 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         // separated option logic because the from, to and $limit parameters weren't functioning
         if ($this->markets === null) {
             $this->load_markets();
@@ -7142,7 +7142,7 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

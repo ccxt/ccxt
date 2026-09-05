@@ -1997,7 +1997,7 @@ class lbank extends Exchange {
         return Async\await($this->fetch_order_default($id, $symbol, $params));
     }
 
-    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_supplement(...))($id, $symbol, $params);
     }
 
@@ -2039,7 +2039,7 @@ class lbank extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_default(...))($id, $symbol, $params);
     }
 

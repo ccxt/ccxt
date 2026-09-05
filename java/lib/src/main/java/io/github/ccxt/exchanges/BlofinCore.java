@@ -668,16 +668,16 @@ public class BlofinCore extends BlofinApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "instId");
-        Object type = this.safeStringLower(market, "instType");
+        String id = this.safeString(market, "instId");
+        String type = (String)this.safeStringLower(market, "instType");
         Object spot = (Helpers.isEqual(type, "spot"));
         Object future = (Helpers.isEqual(type, "future"));
         Object swap = (Helpers.isEqual(type, "swap"));
         Object option = (Helpers.isEqual(type, "option"));
         Object contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
-        Object baseId = this.safeString(market, "baseCurrency");
-        Object quoteId = this.safeString(market, "quoteCurrency");
-        Object settleId = this.safeString(market, "settleCurrency", quoteId);
+        String baseId = this.safeString(market, "baseCurrency");
+        String quoteId = this.safeString(market, "quoteCurrency");
+        String settleId = this.safeString(market, "settleCurrency", quoteId);
         Object settle = this.safeCurrencyCode(settleId);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
@@ -689,15 +689,15 @@ public class BlofinCore extends BlofinApi
         Object expiry = null;
         Object strikePrice = null;
         Object optionType = null;
-        Object tickSize = this.safeString(market, "tickSize");
+        String tickSize = this.safeString(market, "tickSize");
         Object fees = this.safeDict2(this.fees, type, "trading", new java.util.HashMap<String, Object>() {{}});
         Object taker = this.safeNumber(fees, "taker");
         Object maker = this.safeNumber(fees, "maker");
-        Object maxLeverage = this.safeString(market, "maxLeverage", "100");
+        String maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object isActive = (Helpers.isEqual(this.safeString(market, "state"), "live"));
         Object isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
-        Object contractType = this.safeString(market, "contractType");
+        String contractType = this.safeString(market, "contractType");
         Object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         Object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         final Object finalSymbol = symbol;
@@ -843,16 +843,16 @@ public class BlofinCore extends BlofinApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "ts");
-        Object marketId = this.safeString(ticker, "instId");
+        String marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object last = this.safeString(ticker, "last");
-        Object open = this.safeString(ticker, "open24h");
+        String last = this.safeString(ticker, "last");
+        String open = this.safeString(ticker, "open24h");
         Object spot = this.safeBool(market, "spot", false);
         Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
-        Object baseVolume = this.safeString(ticker, "vol24h");
-        Object high = this.safeString(ticker, "high24h");
-        Object low = this.safeString(ticker, "low24h");
+        String baseVolume = this.safeString(ticker, "vol24h");
+        String high = this.safeString(ticker, "high24h");
+        String low = this.safeString(ticker, "low24h");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1015,16 +1015,16 @@ public class BlofinCore extends BlofinApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(trade, "tradeId");
-        Object marketId = this.safeString(trade, "instId");
+        String id = this.safeString(trade, "tradeId");
+        String marketId = this.safeString(trade, "instId");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(trade, "ts");
-        Object price = this.safeString2(trade, "price", "fillPrice");
-        Object amount = this.safeString2(trade, "size", "fillSize");
-        Object side = this.safeString(trade, "side");
-        Object orderId = this.safeString(trade, "orderId");
-        Object feeCost = this.safeString(trade, "fee");
+        String price = this.safeString2(trade, "price", "fillPrice");
+        String amount = this.safeString2(trade, "size", "fillSize");
+        String side = this.safeString(trade, "side");
+        String orderId = this.safeString(trade, "orderId");
+        String feeCost = this.safeString(trade, "fee");
         Object fee = null;
         Object feeCurrency = this.safeString(trade, "feeCurrency");
         Object isSpot = !Helpers.isEqual(feeCurrency, null);
@@ -1313,7 +1313,7 @@ public class BlofinCore extends BlofinApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "instId");
+        String marketId = this.safeString(contract, "instId");
         Object symbol = this.safeSymbol(marketId, market);
         Object fundingTime = this.safeInteger(contract, "fundingTime");
         // > The current interest is 0.
@@ -1440,12 +1440,12 @@ public class BlofinCore extends BlofinApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
         {
             Object balance = Helpers.GetValue(details, i);
-            Object currencyId = this.safeString(balance, "currency");
+            String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
-            Object eq = this.safeString(balance, "equity");
-            Object availEq = this.safeString(balance, "available");
+            String eq = this.safeString(balance, "equity");
+            String availEq = this.safeString(balance, "available");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eq, null))) || Helpers.isTrue((Helpers.isEqual(availEq, null)))))
             {
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "availableEquity"));
@@ -1486,7 +1486,7 @@ public class BlofinCore extends BlofinApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object balance = Helpers.GetValue(data, i);
-            Object currencyId = this.safeString(balance, "currency");
+            String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
@@ -1540,7 +1540,7 @@ public class BlofinCore extends BlofinApi
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(accountType, null)) && Helpers.isTrue(!Helpers.isEqual(accountType, "swap"))))
             {
                 Object options = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-                Object parsedAccountType = this.safeString(options, accountType, accountType);
+                String parsedAccountType = this.safeString(options, accountType, accountType);
                 Helpers.addElementToObject(request, "accountType", parsedAccountType);
                 response = (this.privateGetAssetBalances(this.extend(request, parameters))).join();
             } else
@@ -1579,9 +1579,9 @@ public class BlofinCore extends BlofinApi
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         Helpers.addElementToObject(request, "marginMode", marginMode);
-        Object triggerPriceAny = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
-        Object triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
-        Object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
+        String triggerPriceAny = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        String triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
+        String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         Object isHedged = this.safeBool(parameters, "hedged", false);
         if (Helpers.isTrue(Helpers.isEqual(isHedged, true)))
         {
@@ -1616,16 +1616,16 @@ public class BlofinCore extends BlofinApi
         {
             if (Helpers.isTrue(hasStopLoss))
             {
-                Object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
+                String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "slTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
-                Object slOrderPrice = this.safeString(stopLoss, "price", "-1");
+                String slOrderPrice = this.safeString(stopLoss, "price", "-1");
                 Helpers.addElementToObject(request, "slOrderPrice", this.priceToPrecision(symbol, slOrderPrice));
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
-                Object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
+                String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "tpTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
-                Object tpPrice = this.safeString(takeProfit, "price", "-1");
+                String tpPrice = this.safeString(takeProfit, "price", "-1");
                 Helpers.addElementToObject(request, "tpOrderPrice", this.priceToPrecision(symbol, tpPrice));
             }
         } else if (Helpers.isTrue(!Helpers.isEqual(triggerPriceAny, null)))
@@ -1696,12 +1696,12 @@ public class BlofinCore extends BlofinApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("tpslId", "orderId", "algoId")));
+        String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("tpslId", "orderId", "algoId")));
         Object timestamp = this.safeInteger(order, "createTime");
         Object lastUpdateTimestamp = this.safeInteger(order, "updateTime");
         Object lastTradeTimestamp = this.safeInteger(order, "fillTime");
-        Object side = this.safeString(order, "side");
-        Object type = this.safeString(order, "orderType");
+        String side = this.safeString(order, "side");
+        String type = this.safeString(order, "orderType");
         Object postOnly = null;
         Object timeInForce = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "post_only")))
@@ -1720,16 +1720,16 @@ public class BlofinCore extends BlofinApi
         {
             type = "trigger";
         }
-        Object marketId = this.safeString(order, "instId");
+        String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeSymbol(marketId, market, "-");
-        Object filled = this.safeString(order, "filledSize");
-        Object price = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("px", "price", "orderPrice")));
-        Object average = this.safeString(order, "averagePrice");
+        String filled = this.safeString(order, "filledSize");
+        String price = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("px", "price", "orderPrice")));
+        String average = this.safeString(order, "averagePrice");
         Object status = this.parseOrderStatus(this.safeString(order, "state"));
-        Object feeCostString = this.safeString(order, "fee");
-        Object amount = this.safeString(order, "size");
-        Object contractSize = this.safeString(market, "contractSize");
+        String feeCostString = this.safeString(order, "fee");
+        String amount = this.safeString(order, "size");
+        String contractSize = this.safeString(market, "contractSize");
         Object baseAmount = Precise.stringMul(contractSize, filled);
         Object cost = null;
         if (Helpers.isTrue(!Helpers.isEqual(average, null)))
@@ -1741,14 +1741,14 @@ public class BlofinCore extends BlofinApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             Object feeCostSigned = Precise.stringAbs(feeCostString);
-            Object feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
+            String feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
             Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", BlofinCore.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object clientOrderId = this.safeString(order, "clientOrderId");
+        String clientOrderId = this.safeString(order, "clientOrderId");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(((String)clientOrderId).length(), 1)))))
         {
             clientOrderId = null; // fix empty clientOrderId string
@@ -1757,7 +1757,7 @@ public class BlofinCore extends BlofinApi
         Object stopLossPrice = this.safeNumber(order, "slOrderPrice");
         Object takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice");
         Object takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
-        Object reduceOnlyRaw = this.safeString(order, "reduceOnly");
+        String reduceOnlyRaw = this.safeString(order, "reduceOnly");
         Object reduceOnly = (Helpers.isEqual(reduceOnlyRaw, "true"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalType = type;
@@ -1907,13 +1907,13 @@ public class BlofinCore extends BlofinApi
         {
             Helpers.addElementToObject(request, "size", this.amountToPrecision(symbol, amount));
         }
-        Object marginMode = this.safeString(parameters, "marginMode", "cross"); // cross or isolated
+        String marginMode = this.safeString(parameters, "marginMode", "cross"); // cross or isolated
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, "cross")) && Helpers.isTrue(!Helpers.isEqual(marginMode, "isolated"))))
         {
             throw new BadRequest((String)Helpers.add(this.id, " createTpslOrder() requires a marginMode parameter that must be either cross or isolated")) ;
         }
-        Object stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        Object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        String stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
         {
             Helpers.addElementToObject(request, "slTriggerPrice", this.priceToPrecision(symbol, stopLossPrice));
@@ -1922,7 +1922,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "slOrderPrice", "-1");
             } else
             {
-                Object slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
+                String slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
                 if (Helpers.isTrue(Helpers.isEqual(slLimitPrice, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
@@ -1939,7 +1939,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "tpOrderPrice", "-1");
             } else
             {
-                Object tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
+                String tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
                 if (Helpers.isTrue(Helpers.isEqual(tpLimitPrice, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
@@ -1987,7 +1987,7 @@ public class BlofinCore extends BlofinApi
             }};
             Object isTrigger = this.safeBool(parameters, "trigger", false);
             Object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
@@ -2047,9 +2047,9 @@ public class BlofinCore extends BlofinApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object marketId = this.safeString(rawOrder, "symbol");
-                Object type = this.safeString(rawOrder, "type");
-                Object side = this.safeString(rawOrder, "side");
+                String marketId = this.safeString(rawOrder, "symbol");
+                String type = this.safeString(rawOrder, "type");
+                String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
@@ -2441,11 +2441,11 @@ public class BlofinCore extends BlofinApi
         Object type = null;
         Object id = null;
         Object status = null;
-        Object withdrawalId = this.safeString(transaction, "withdrawId");
-        Object depositId = this.safeString(transaction, "depositId");
-        Object addressTo = this.safeString(transaction, "address");
+        String withdrawalId = this.safeString(transaction, "withdrawId");
+        String depositId = this.safeString(transaction, "depositId");
+        String addressTo = this.safeString(transaction, "address");
         Object address = addressTo;
-        Object tagTo = this.safeString(transaction, "tag");
+        String tagTo = this.safeString(transaction, "tag");
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalId, null)))
         {
             type = "withdrawal";
@@ -2457,12 +2457,12 @@ public class BlofinCore extends BlofinApi
             type = "deposit";
             status = this.parseTransactionDepositStatus(this.safeString(transaction, "state"));
         }
-        Object currencyId = this.safeString(transaction, "currency");
+        String currencyId = this.safeString(transaction, "currency");
         Object code = this.safeCurrencyCode(currencyId);
         Object amount = this.safeNumber(transaction, "amount");
-        Object txid = this.safeString(transaction, "txId");
+        String txid = this.safeString(transaction, "txId");
         Object timestamp = this.safeInteger(transaction, "ts");
-        Object feeCurrencyId = this.safeString(transaction, "feeCurrency");
+        String feeCurrencyId = this.safeString(transaction, "feeCurrency");
         Object feeCode = this.safeCurrencyCode(feeCurrencyId);
         Object feeCost = this.safeNumber(transaction, "fee");
         final Object finalId = id;
@@ -2540,7 +2540,7 @@ public class BlofinCore extends BlofinApi
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(item, "currency");
+        String currencyId = this.safeString(item, "currency");
         Object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Object timestamp = this.safeInteger(item, "ts");
@@ -2703,8 +2703,8 @@ public class BlofinCore extends BlofinApi
             }
             Object currency = this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            Object toId = this.safeString(accountsByType, toAccount, toAccount);
+            String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+            String toId = this.safeString(accountsByType, toAccount, toAccount);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", BlofinCore.this.currencyToPrecision(code, amount) );
@@ -2721,7 +2721,7 @@ public class BlofinCore extends BlofinApi
     public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(transfer, "transferId");
+        String id = this.safeString(transfer, "transferId");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
@@ -2937,12 +2937,12 @@ public class BlofinCore extends BlofinApi
         //            },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "instId");
+        String marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object pos = this.safeString(position, "positions");
+        String pos = this.safeString(position, "positions");
         Object contractsAbs = Precise.stringAbs(pos);
-        Object side = this.safeString(position, "positionSide");
+        String side = this.safeString(position, "positionSide");
         Object hedged = !Helpers.isEqual(side, "net");
         Object contracts = this.parseNumber(contractsAbs);
         if (Helpers.isTrue(!Helpers.isEqual(pos, null)))
@@ -2963,18 +2963,18 @@ public class BlofinCore extends BlofinApi
         }
         Object contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
-        Object markPriceString = this.safeString(position, "markPrice");
-        Object notionalString = this.safeString(position, "notionalUsd");
+        String markPriceString = this.safeString(position, "markPrice");
+        String notionalString = this.safeString(position, "notionalUsd");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         Object notional = this.parseNumber(notionalString);
-        Object marginMode = this.safeString(position, "marginMode");
+        String marginMode = this.safeString(position, "marginMode");
         Object initialMarginString = null;
-        Object entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
-        Object unrealizedPnlString = this.safeString(position, "unrealizedPnl");
-        Object leverageString = this.safeString(position, "leverage");
+        String entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
+        String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
+        String leverageString = this.safeString(position, "leverage");
         Object initialMarginPercentage = null;
         Object collateralString = null;
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
@@ -2986,7 +2986,7 @@ public class BlofinCore extends BlofinApi
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
             collateralString = this.safeString(position, "margin");
         }
-        Object maintenanceMarginString = this.safeString(position, "maintenanceMargin");
+        String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         Object maintenanceMarginPercentageString = Precise.stringDiv(maintenanceMarginString, notionalString);
         if (Helpers.isTrue(Helpers.isEqual(initialMarginPercentage, null)))
@@ -3000,7 +3000,7 @@ public class BlofinCore extends BlofinApi
         Object rounder = "0.00005"; // round to closest 0.01%
         Object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
         Object liquidationPrice = this.safeNumber(position, "liquidationPrice");
-        Object percentageString = this.safeString(position, "unrealizedPnlRatio");
+        String percentageString = this.safeString(position, "unrealizedPnlRatio");
         Object percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Object timestamp = this.safeInteger(position, "updateTime");
         Object marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
@@ -3179,7 +3179,7 @@ public class BlofinCore extends BlofinApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(leverage, "instId");
+        String marketId = this.safeString(leverage, "instId");
         Object leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -3274,7 +3274,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -3474,7 +3474,7 @@ public class BlofinCore extends BlofinApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.privateGetAccountPositionMode(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object positionMode = this.safeString(data, "positionMode");
+            String positionMode = this.safeString(data, "positionMode");
             //
             //     {
             //         "code": "0",
@@ -3612,7 +3612,7 @@ public class BlofinCore extends BlofinApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(info, "instId");
+        String marketId = this.safeString(info, "instId");
         Object timestamp = this.safeIntegerOmitZero(info, "createTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -3634,8 +3634,8 @@ public class BlofinCore extends BlofinApi
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        Object code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
+        String code = this.safeString(response, "code");
+        String message = this.safeString(response, "msg");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))))
         {
@@ -3654,8 +3654,8 @@ public class BlofinCore extends BlofinApi
         //
         Object data = this.safeList(response, "data");
         Object first = this.safeDict(data, 0);
-        Object insideMsg = this.safeString(first, "msg");
-        Object insideCode = this.safeString(first, "code");
+        String insideMsg = this.safeString(first, "msg");
+        String insideCode = this.safeString(first, "code");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(insideCode, null)) && Helpers.isTrue(!Helpers.isEqual(insideCode, "0"))))
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), insideCode, feedback);

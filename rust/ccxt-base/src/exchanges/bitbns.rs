@@ -633,7 +633,7 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut usdt: Value = Value::Bool(is_equal(&quoteId, &Value::Str("USDT".to_string())));
+            let mut usdt: bool = is_equal(&quoteId, &Value::Str("USDT".to_string()));
             // INR markets don't need a _INR prefix
             let mut uppercaseId: Value = ternary(is_true(&usdt), (add(&add(&baseId, &Value::Str("_".to_string())), &quoteId)), baseId.clone());
             append_to_array(&mut result, Value::Map({
@@ -1832,7 +1832,7 @@ impl BitbnsCore {
         //
         let mut code: Value = self.safe_string_k(response.clone(), "code", &[]);
         let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
-        let mut error: Value = Value::Bool(is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(!is_equal(&code, &Value::Str("200".to_string())))) && is_true(&(!is_equal(&code, &Value::Str("204".to_string())))));
+        let mut error: bool = is_true(&(!is_equal(&code, &Value::Null))) && is_true(&(!is_equal(&code, &Value::Str("200".to_string())))) && is_true(&(!is_equal(&code, &Value::Str("204".to_string()))));
         if is_true(&error) || is_true(&(!is_equal(&message, &Value::Null))) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), code.clone(), feedback.clone());

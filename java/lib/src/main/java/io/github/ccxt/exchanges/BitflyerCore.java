@@ -317,7 +317,7 @@ public class BitflyerCore extends BitflyerApi
             put( "NOV", "11" );
             put( "DEC", "12" );
         }};
-        Object month = this.safeString(months, monthName);
+        String month = this.safeString(months, monthName);
         return this.parse8601(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
@@ -384,9 +384,9 @@ public class BitflyerCore extends BitflyerApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                Object id = this.safeString(market, "product_code");
+                String id = this.safeString(market, "product_code");
                 Object currencies = Helpers.split(((String)id), "_");
-                Object marketType = this.safeString(market, "market_type");
+                String marketType = this.safeString(market, "market_type");
                 Object swap = (Helpers.isEqual(marketType, "FX"));
                 Object future = (Helpers.isEqual(marketType, "Futures"));
                 Object spot = !Helpers.isTrue(swap) && !Helpers.isTrue(future);
@@ -406,7 +406,7 @@ public class BitflyerCore extends BitflyerApi
                     quoteId = this.safeString(currencies, 2);
                 } else if (Helpers.isTrue(future))
                 {
-                    Object alias = this.safeString(market, "alias");
+                    String alias = this.safeString(market, "alias");
                     if (Helpers.isTrue(Helpers.isEqual(alias, null)))
                     {
                         // no alias:
@@ -420,11 +420,11 @@ public class BitflyerCore extends BitflyerApi
                     } else
                     {
                         Object splitAlias = Helpers.split(alias, "_");
-                        Object currencyIds = this.safeString(splitAlias, 0);
+                        String currencyIds = this.safeString(splitAlias, 0);
                         baseId = Helpers.slice(((String)currencyIds), 0, Helpers.opNeg(3));
                         quoteId = Helpers.slice(((String)currencyIds), Helpers.opNeg(3), null);
                         Object splitId = Helpers.split(((String)id), ((String)currencyIds));
-                        Object expiryDate = this.safeString(splitId, 1);
+                        String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }
                     type = "future";
@@ -521,7 +521,7 @@ public class BitflyerCore extends BitflyerApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(balance, "currency_code");
+            String currencyId = this.safeString(balance, "currency_code");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
@@ -613,7 +613,7 @@ public class BitflyerCore extends BitflyerApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
-        Object last = this.safeString(ticker, "ltp");
+        String last = this.safeString(ticker, "ltp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -696,7 +696,7 @@ public class BitflyerCore extends BitflyerApi
         //      },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object side = this.safeStringLower(trade, "side");
+        String side = (String)this.safeStringLower(trade, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Helpers.isLessThan(((String)side).length(), 1)))
@@ -718,9 +718,9 @@ public class BitflyerCore extends BitflyerApi
             order = this.safeString(trade, "child_order_acceptance_id");
         }
         Object timestamp = this.parse8601(this.safeString(trade, "exec_date"));
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "size");
-        Object id = this.safeString(trade, "id");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "size");
+        String id = this.safeString(trade, "id");
         market = this.safeMarket(null, market);
         final Object finalMarket = market;
         final Object finalOrder = order;
@@ -867,7 +867,7 @@ public class BitflyerCore extends BitflyerApi
             }};
             Object result = (this.privatePostSendchildorder(this.extend(request, parameters))).join();
             // { "status": - 200, "error_message": "Insufficient funds", "data": null }
-            Object id = this.safeString(result, "child_order_acceptance_id");
+            String id = this.safeString(result, "child_order_acceptance_id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "info", result );
@@ -933,14 +933,14 @@ public class BitflyerCore extends BitflyerApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(order, "child_order_date"));
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "size");
-        Object filled = this.safeString(order, "executed_size");
-        Object remaining = this.safeString(order, "outstanding_size");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "size");
+        String filled = this.safeString(order, "executed_size");
+        String remaining = this.safeString(order, "outstanding_size");
         Object status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
-        Object type = this.safeStringLower(order, "child_order_type");
-        Object side = this.safeStringLower(order, "side");
-        Object marketId = this.safeString(order, "product_code");
+        String type = (String)this.safeStringLower(order, "child_order_type");
+        String side = (String)this.safeStringLower(order, "side");
+        String marketId = this.safeString(order, "product_code");
         Object symbol = this.safeSymbol(marketId, market);
         Object fee = null;
         Object feeCost = this.safeNumber(order, "total_commission");
@@ -953,7 +953,7 @@ public class BitflyerCore extends BitflyerApi
                 put( "rate", null );
             }};
         }
-        Object id = this.safeString(order, "child_order_acceptance_id");
+        String id = this.safeString(order, "child_order_acceptance_id");
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1430,14 +1430,14 @@ public class BitflyerCore extends BitflyerApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(transaction, "id", "message_id");
-        Object address = this.safeString(transaction, "address");
-        Object currencyId = this.safeString(transaction, "currency_code");
+        String id = this.safeString2(transaction, "id", "message_id");
+        String address = this.safeString(transaction, "address");
+        String currencyId = this.safeString(transaction, "currency_code");
         Object code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.parse8601(this.safeString(transaction, "event_date"));
         Object amount = this.safeNumber(transaction, "amount");
-        Object txId = this.safeString(transaction, "tx_hash");
-        Object rawStatus = this.safeString(transaction, "status");
+        String txId = this.safeString(transaction, "tx_hash");
+        String rawStatus = this.safeString(transaction, "status");
         Object type = null;
         Object status = null;
         Object fee = null;
@@ -1445,8 +1445,8 @@ public class BitflyerCore extends BitflyerApi
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
-            Object feeCost = this.safeString(transaction, "fee");
-            Object additionalFee = this.safeString(transaction, "additional_fee");
+            String feeCost = this.safeString(transaction, "fee");
+            String additionalFee = this.safeString(transaction, "additional_fee");
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", BitflyerCore.this.parseNumber(Precise.stringAdd(feeCost, additionalFee)) );
@@ -1527,7 +1527,7 @@ public class BitflyerCore extends BitflyerApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
+        String nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
         Object nextFundingTimestamp = this.parse8601(nextFundingDatetime);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -1614,7 +1614,7 @@ public class BitflyerCore extends BitflyerApi
         }
         Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
-        Object errorMessage = this.safeString(response, "error_message");
+        String errorMessage = this.safeString(response, "error_message");
         Object statusCode = this.safeInteger(response, "status");
         if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {

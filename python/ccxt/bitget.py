@@ -5548,7 +5548,7 @@ class bitget(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' orders')
         return self.extend(request, params)
 
-    def create_uta_orders(self, orders: list[OrderRequest], params={}):
+    def create_uta_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
@@ -6047,7 +6047,7 @@ class bitget(Exchange, ImplicitAPI):
                 order = data
         return self.parse_order(order, market)
 
-    def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}):
+    def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}) -> list[Order]:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -7184,7 +7184,7 @@ class bitget(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         market = None

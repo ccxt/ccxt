@@ -581,7 +581,7 @@ impl BingxCore {
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         // const marketId = messageHash.split('@')[0];
-        let mut isSwap: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0)));
+        let mut isSwap: bool = is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0));
         let mut marketType: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -867,7 +867,7 @@ impl BingxCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut rawHash: Value = self.safe_string_k(message.clone(), "dataType", &[Value::Str("".to_string())]);
         let mut marketId: Value = get_value(&split(&rawHash, &Value::Str("@".to_string())), &Value::Int(0));
-        let mut isSwap: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0)));
+        let mut isSwap: bool = is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0));
         let mut marketType: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1088,9 +1088,9 @@ impl BingxCore {
         let mut dataType: Value = self.safe_string_k(message.clone(), "dataType", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&dataType, &Value::Str("@".to_string()));
         let mut firstPart: Value = get_value(&parts, &Value::Int(0));
-        let mut isAllEndpoint: Value = Value::Bool(is_equal(&firstPart, &Value::Str("all".to_string())));
+        let mut isAllEndpoint: bool = is_equal(&firstPart, &Value::Str("all".to_string()));
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[firstPart.clone()]);
-        let mut isSwap: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0)));
+        let mut isSwap: bool = is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0));
         let mut marketType: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1143,8 +1143,8 @@ impl BingxCore {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let mut isSpot: Value = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "spot", &[]), &Value::Bool(true)));
-        let mut isInverse: Value = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "inverse", &[]), &Value::Bool(true)));
+        let mut isSpot: bool = is_equal(&self.safe_bool_k(market.clone(), "spot", &[]), &Value::Bool(true));
+        let mut isInverse: bool = is_equal(&self.safe_bool_k(market.clone(), "inverse", &[]), &Value::Bool(true));
         let mut timestamp: Value = ternary(is_true(&isSpot), Value::Str("t".to_string()), Value::Str("T".to_string()));
         if is_equal(&self.safe_bool_k(market.clone(), "swap", &[]), &Value::Bool(true)) {
             timestamp = ternary(is_true(&isInverse), Value::Str("t".to_string()), Value::Str("T".to_string()));
@@ -1219,11 +1219,11 @@ impl BingxCore {
         //         }
         //     }
         //
-        let mut isSwap: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0)));
+        let mut isSwap: bool = is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())), &Value::Int(0));
         let mut dataType: Value = self.safe_string_k(message.clone(), "dataType", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&dataType, &Value::Str("@".to_string()));
         let mut firstPart: Value = get_value(&parts, &Value::Int(0));
-        let mut isAllEndpoint: Value = Value::Bool(is_equal(&firstPart, &Value::Str("all".to_string())));
+        let mut isAllEndpoint: bool = is_equal(&firstPart, &Value::Str("all".to_string()));
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[firstPart.clone()]);
         let mut marketType: Value = ternary(is_true(&isSwap), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -1444,7 +1444,7 @@ impl BingxCore {
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchOrders".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchOrders".to_string()), &[market.clone(), params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut spotHash: Value = Value::Str("spot:private".to_string());
         let mut swapHash: Value = Value::Str("swap:private".to_string());
         let mut subscriptionHash: Value = ternary(is_true(&isSpot), spotHash.clone(), swapHash.clone());
@@ -1522,7 +1522,7 @@ impl BingxCore {
         }
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchMyTrades".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchMyTrades".to_string()), &[market.clone(), params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut spotHash: Value = Value::Str("spot:private".to_string());
         let mut swapHash: Value = Value::Str("swap:private".to_string());
         let mut subscriptionHash: Value = ternary(is_true(&isSpot), spotHash.clone(), swapHash.clone());
@@ -1592,7 +1592,7 @@ impl BingxCore {
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone(), Value::Str("linear".to_string())]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut spotSubHash: Value = Value::Str("spot:balance".to_string());
         let mut swapSubHash: Value = Value::Str("swap:private".to_string());
         let mut spotMessageHash: Value = Value::Str("spot:balance".to_string());
@@ -2315,7 +2315,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(a.clone(), "B", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer2(message.clone(), Value::Str("T".to_string()), Value::Str("E".to_string()), &[]);
         let mut spotUrl: Value = self.safe_string(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), Value::Str("spot".to_string()), &[]);
-        let mut isSpot: Value = Value::Bool(is_true(&(!is_equal(&spotUrl, &Value::Null))) && is_true(&(is_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &spotUrl), &Value::Int(0)))));
+        let mut isSpot: bool = is_true(&(!is_equal(&spotUrl, &Value::Null))) && is_true(&(is_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &spotUrl), &Value::Int(0))));
         let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({

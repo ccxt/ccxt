@@ -1161,7 +1161,7 @@ impl BitmexCore {
         let mut maxWithdrawal: Value = self.parse_number(crate::precise::Precise::stringMul(&maxWithdrawalString, &precisionString), &[]);
         let mut minDepositString: Value = self.safe_string_k(currency.clone(), "minDepositAmount", &[]);
         let mut minDeposit: Value = self.parse_number(crate::precise::Precise::stringMul(&minDepositString, &precisionString), &[]);
-        let mut isCrypto: Value = Value::Bool(is_equal(&self.safe_string_k(currency.clone(), "currencyType", &[]), &Value::Str("Crypto".to_string())));
+        let mut isCrypto: bool = is_equal(&self.safe_string_k(currency.clone(), "currencyType", &[]), &Value::Str("Crypto".to_string()));
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1347,7 +1347,7 @@ impl BitmexCore {
         }
         let mut positionId: Value = self.safe_string2(market.clone(), Value::Str("positionCurrency".to_string()), Value::Str("underlying".to_string()), &[]);
         let mut position: Value = self.safe_currency_code(positionId.clone(), &[]);
-        let mut positionIsQuote: Value = Value::Bool(is_equal(&position, &quote));
+        let mut positionIsQuote: bool = is_equal(&position, &quote);
         let mut maxOrderQty: Value = self.safe_number_k(market.clone(), "maxOrderQty", &[]);
         let mut initMargin: Value = self.safe_string_k(market.clone(), "initMargin", &[Value::Str("1".to_string())]);
         let mut maxLeverage: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".to_string()), &initMargin), &[]);
@@ -2737,11 +2737,11 @@ impl BitmexCore {
         // support for unified trigger format
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("pegOffsetValue".to_string()), &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
         if is_true(&isTriggerOrder) || is_true(&isTrailingAmountOrder) {
             let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
-            let mut triggerAbove: Value = Value::Bool(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string())))));
+            let mut triggerAbove: bool = is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string()))));
             if is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) {
                 self.check_required_argument(Value::Str("createOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::List(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
             }
@@ -2759,8 +2759,8 @@ impl BitmexCore {
                 }
             }
             if is_true(&isTrailingAmountOrder) {
-                let mut isStopSellOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string())))))));
-                let mut isBuyIfTouchedOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string())))))));
+                let mut isStopSellOrder: bool = is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string()))))));
+                let mut isBuyIfTouchedOrder: bool = is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string()))))));
                 if is_true(&isStopSellOrder) || is_true(&isBuyIfTouchedOrder) {
                     trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
                 }
@@ -2805,10 +2805,10 @@ impl BitmexCore {
             m
         });
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("pegOffsetValue".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
         if is_true(&isTrailingAmountOrder) {
             let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
-            let mut triggerAbove: Value = Value::Bool(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string())))));
+            let mut triggerAbove: bool = is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string()))));
             if is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) {
                 self.check_required_argument(Value::Str("editOrder".to_string()), triggerDirection.clone(), Value::Str("triggerDirection".to_string()), &[Value::List(vec![Value::Str("above".to_string()), Value::Str("below".to_string())])]);
             }
@@ -2826,8 +2826,8 @@ impl BitmexCore {
                     orderType = ternary(is_true(&triggerAbove), Value::Str("MarketIfTouched".to_string()), Value::Str("Stop".to_string()));
                 }
             }
-            let mut isStopSellOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string())))))));
-            let mut isBuyIfTouchedOrder: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string())))))));
+            let mut isStopSellOrder: bool = is_true(&(is_equal(&side, &Value::Str("sell".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("Stop".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("StopLimit".to_string()))))));
+            let mut isBuyIfTouchedOrder: bool = is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(is_equal(&orderType, &Value::Str("MarketIfTouched".to_string())))) || is_true(&(is_equal(&orderType, &Value::Str("LimitIfTouched".to_string()))))));
             if is_true(&isStopSellOrder) || is_true(&isBuyIfTouchedOrder) {
                 trailingAmount = add(&Value::Str("-".to_string()), &trailingAmount);
             }

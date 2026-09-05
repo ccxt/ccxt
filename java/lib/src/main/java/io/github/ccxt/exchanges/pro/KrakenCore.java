@@ -188,7 +188,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "reduce_only", true);
             }
-            Object timeInForce = this.safeStringLower(parameters, "timeInForce");
+            String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "time_in_force", timeInForce);

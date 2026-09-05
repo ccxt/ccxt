@@ -890,7 +890,7 @@ impl DeltaCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: Value = Value::Bool(is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string()))))) || is_true(&(Value::Bool(starts_with(&marketId, &Value::Str("C-".to_string()))))) || is_true(&(Value::Bool(starts_with(&marketId, &Value::Str("P-".to_string()))))))));
+        let mut isOption: bool = is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string()))))) || is_true(&(Value::Bool(starts_with(&marketId, &Value::Str("C-".to_string()))))) || is_true(&(Value::Bool(starts_with(&marketId, &Value::Str("P-".to_string())))))));
         if is_true(&isOption) && is_true(&(is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))))) {
             return self.create_expired_option_market(marketId.clone());
         }
@@ -1436,9 +1436,9 @@ impl DeltaCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut callOptions: Value = Value::Bool(is_equal(&type_var, &Value::Str("call_options".to_string())));
-            let mut putOptions: Value = Value::Bool(is_equal(&type_var, &Value::Str("put_options".to_string())));
-            let mut moveOptions: Value = Value::Bool(is_equal(&type_var, &Value::Str("move_options".to_string())));
+            let mut callOptions: bool = is_equal(&type_var, &Value::Str("call_options".to_string()));
+            let mut putOptions: bool = is_equal(&type_var, &Value::Str("put_options".to_string()));
+            let mut moveOptions: bool = is_equal(&type_var, &Value::Str("move_options".to_string()));
             let mut spot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
             let mut swap: Value = Value::Bool(is_equal(&type_var, &Value::Str("perpetual_futures".to_string())));
             let mut future: Value = Value::Bool(is_equal(&type_var, &Value::Str("futures".to_string())));
@@ -1684,7 +1684,7 @@ impl DeltaCore {
         // spot markets that is the base currency rather than the quote
         let mut turnoverSymbol: Value = self.safe_string_upper(ticker.clone(), Value::Str("turnover_symbol".to_string()), &[]);
         let mut quoteId: Value = self.safe_string_upper(market.clone(), Value::Str("quoteId".to_string()), &[]);
-        let mut baseDenominated: Value = Value::Bool(is_true(&(!is_equal(&turnoverSymbol, &Value::Null))) && is_true(&(!is_equal(&quoteId, &Value::Null))) && is_true(&(!is_equal(&turnoverSymbol, &quoteId))));
+        let mut baseDenominated: bool = is_true(&(!is_equal(&turnoverSymbol, &Value::Null))) && is_true(&(!is_equal(&quoteId, &Value::Null))) && is_true(&(!is_equal(&turnoverSymbol, &quoteId)));
         let mut quoteVolume: Value = ternary(is_true(&baseDenominated), self.safe_number_k(ticker.clone(), "turnover_usd", &[]), self.safe_number_k(ticker.clone(), "turnover", &[]));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2304,7 +2304,7 @@ impl DeltaCore {
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         limit = ternary(is_true(&(!is_equal(&limit, &Value::Null) && !is_equal(&limit, &Value::Null) && !is_equal(&limit, &Value::Int(0)))), limit.clone(), Value::Int(2000)); // max 2000
         let mut until: Value = self.safe_integer_product(params.clone(), Value::Str("until".to_string()), Value::Float(0.001), &[]);
-        let mut untilIsDefined: Value = Value::Bool(!is_equal(&until, &Value::Null));
+        let mut untilIsDefined: bool = !is_equal(&until, &Value::Null);
         if is_true(&untilIsDefined) {
             until = self.parse_to_int(until.clone());
         }

@@ -994,15 +994,15 @@ public class WeexCore extends WeexApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object currencyId = this.safeString(rawCurrency, "coin");
+        String currencyId = this.safeString(rawCurrency, "coin");
         Object code = this.safeCurrencyCode(currencyId);
-        Object name = this.safeString(rawCurrency, "name");
+        String name = this.safeString(rawCurrency, "name");
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = this.safeDict(chains, j);
-            Object networkId = this.safeString(chain, "network");
+            String networkId = this.safeString(chain, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -1152,10 +1152,10 @@ public class WeexCore extends WeexApi
         //         "marketOpenLimitSize": "2300"
         //     }
         //
-        Object id = this.safeString(market, "symbol");
-        Object baseId = this.safeString(market, "baseAsset");
-        Object quoteId = this.safeString(market, "quoteAsset");
-        Object settleId = this.safeString(market, "marginAsset");
+        String id = this.safeString(market, "symbol");
+        String baseId = this.safeString(market, "baseAsset");
+        String quoteId = this.safeString(market, "quoteAsset");
+        String settleId = this.safeString(market, "marginAsset");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object settle = this.safeCurrencyCode(settleId);
@@ -1405,7 +1405,7 @@ public class WeexCore extends WeexApi
             {
                 Object rawTicker = Helpers.GetValue(response, i);
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
-                Object marketId = this.safeString(rawTicker, "symbol");
+                String marketId = this.safeString(rawTicker, "symbol");
                 Object tickerMarket = this.safeMarket(marketId, null, null, marketType);
                 ((java.util.List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
             }
@@ -1476,8 +1476,8 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "symbol");
-        Object markPrice = this.safeString(ticker, "markPrice");
+        String marketId = this.safeString(ticker, "symbol");
+        String markPrice = this.safeString(ticker, "markPrice");
         Object marketType = "spot";
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(markPrice, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))))))
         {
@@ -1568,7 +1568,7 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(entry, "symbol");
+        String marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, "spot");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -1876,7 +1876,7 @@ public class WeexCore extends WeexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", WeexCore.this.safeString(contractTimeframes, timeframe, timeframe) );
             }};
-            Object priceType = this.safeStringUpper(parameters, "price");
+            String priceType = (String)this.safeStringUpper(parameters, "price");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("historical", "until", "price")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2055,7 +2055,7 @@ public class WeexCore extends WeexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(trade, "time");
         Object isBuyer = this.safeBool(trade, "isBuyer");
-        Object side = this.safeStringLower(trade, "side");
+        String side = (String)this.safeStringLower(trade, "side");
         Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
         {
@@ -2067,8 +2067,8 @@ public class WeexCore extends WeexApi
         Object isSpot = true;
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            Object marketId = this.safeString(trade, "symbol");
-            Object realizedPnl = this.safeString(trade, "realizedPnl");
+            String marketId = this.safeString(trade, "symbol");
+            String realizedPnl = this.safeString(trade, "realizedPnl");
             Object marketType = ((Helpers.isTrue((!Helpers.isEqual(realizedPnl, null))))) ? "swap" : "spot";
             market = this.safeMarket(marketId, null, null, marketType);
             isSpot = Helpers.isEqual(marketType, "spot");
@@ -2077,10 +2077,10 @@ public class WeexCore extends WeexApi
             isSpot = Helpers.GetValue(market, "spot");
         }
         Object fee = null;
-        Object commission = this.safeString(trade, "commission");
+        String commission = this.safeString(trade, "commission");
         if (Helpers.isTrue(!Helpers.isEqual(commission, null)))
         {
-            Object commissionAsset = this.safeString(trade, "commissionAsset");
+            String commissionAsset = this.safeString(trade, "commissionAsset");
             Object feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (Helpers.isTrue(Helpers.isEqual(isSpot, true)))
             {
@@ -2168,7 +2168,7 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(interest, "symbol");
+        String marketId = this.safeString(interest, "symbol");
         Object symbol = this.safeSymbol(marketId, market, null, "swap");
         Object timestamp = this.safeInteger(interest, "time");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
@@ -2238,12 +2238,12 @@ public class WeexCore extends WeexApi
     public Object parseFundingRate(Object contract, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "symbol");
+        String marketId = this.safeString(contract, "symbol");
         Object symbol = this.safeSymbol(marketId, market, null, "swap");
         Object timestamp = this.safeInteger(contract, "time");
         Object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Object interval = null;
-        Object collectCycle = this.safeString(contract, "collectCycle");
+        String collectCycle = this.safeString(contract, "collectCycle");
         if (Helpers.isTrue(!Helpers.isEqual(collectCycle, null)))
         {
             interval = Precise.stringDiv(collectCycle, "60");
@@ -2333,7 +2333,7 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "symbol");
+        String marketId = this.safeString(contract, "symbol");
         Object symbol = this.safeSymbol(marketId, market, null, "swap");
         Object timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
@@ -2362,7 +2362,7 @@ public class WeexCore extends WeexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object requestedType = this.safeString(parameters, "type");
+            String requestedType = this.safeString(parameters, "type");
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -2442,7 +2442,7 @@ public class WeexCore extends WeexApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object entry = this.safeDict(balances, i);
-            Object currencyId = this.safeString(entry, "asset");
+            String currencyId = this.safeString(entry, "asset");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sandboxMode, true))) && Helpers.isTrue((Helpers.isEqual(currencyId, "SUSDT")))))
             {
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
@@ -2535,9 +2535,9 @@ public class WeexCore extends WeexApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transfer, "tradeTime");
-        Object currencyId = this.safeString(transfer, "coinName");
+        String currencyId = this.safeString(transfer, "coinName");
         Object currencyCode = this.safeCurrencyCode(currencyId, currency);
-        Object status = this.safeString(transfer, "status");
+        String status = this.safeString(transfer, "status");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -2684,7 +2684,7 @@ public class WeexCore extends WeexApi
         parameters = this.omit(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
-            Object partner = this.safeString(parameters, "partner", "b-WEEX111125");
+            String partner = this.safeString(parameters, "partner", "b-WEEX111125");
             clientOrderId = Helpers.add(Helpers.add(partner, "-"), this.uuid22());
         }
         Helpers.addElementToObject(request, "newClientOrderId", clientOrderId);
@@ -2736,7 +2736,7 @@ public class WeexCore extends WeexApi
             }
             Object market = this.market(symbol);
             Object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
-            Object triggerPrice = this.safeString(request, "triggerPrice");
+            String triggerPrice = this.safeString(request, "triggerPrice");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
@@ -2835,14 +2835,14 @@ public class WeexCore extends WeexApi
         {
             throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
         }
-        Object timeInForce = this.safeString(parameters, "timeInForce");
+        String timeInForce = this.safeString(parameters, "timeInForce");
         Object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
-            Object partner = this.safeString(parameters, "partner", "b-WEEX111125");
+            String partner = this.safeString(parameters, "partner", "b-WEEX111125");
             clientOrderId = Helpers.add(Helpers.add(partner, "-"), this.uuid22());
         }
-        Object callerMethodName = this.safeString(parameters, "callerMethodName");
+        String callerMethodName = this.safeString(parameters, "callerMethodName");
         if (Helpers.isTrue(isTrigger))
         {
             // entry conditional order, triggers a regular order when the trigger price is reached
@@ -2868,7 +2868,7 @@ public class WeexCore extends WeexApi
             {
                 Object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "presetStopLossPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                Object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
+                String stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
                 {
                     Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
@@ -2878,7 +2878,7 @@ public class WeexCore extends WeexApi
             {
                 Object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "presetTakeProfitPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                Object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
+                String takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
                 {
                     Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
@@ -2906,7 +2906,7 @@ public class WeexCore extends WeexApi
             Object orderType = null;
             if (Helpers.isTrue(isStopLoss))
             {
-                Object stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType");
+                String stopLossPriceType = this.safeString2(parameters, "stopLossPriceType", "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
                 {
                     Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
@@ -2921,7 +2921,7 @@ public class WeexCore extends WeexApi
                 }
             } else if (Helpers.isTrue(isTakeProfit))
             {
-                Object takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType");
+                String takeProfitPriceType = this.safeString2(parameters, "takeProfitPriceType", "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
                 {
                     Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
@@ -2947,7 +2947,7 @@ public class WeexCore extends WeexApi
             {
                 Object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "slTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                Object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
+                String stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
                 {
                     Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
@@ -2957,7 +2957,7 @@ public class WeexCore extends WeexApi
             {
                 Object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "tpTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                Object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
+                String takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
                 {
                     Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
@@ -3017,7 +3017,7 @@ public class WeexCore extends WeexApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires an id argument for trigger orders")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "trigger")));
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -3238,7 +3238,7 @@ public class WeexCore extends WeexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires an id argument for non-spot markets")) ;
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             parameters = this.omit(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -3850,8 +3850,8 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object errorCode = this.safeString(order, "errorCode");
-        Object errorMessage = this.safeString(order, "errorMsg");
+        String errorCode = this.safeString(order, "errorCode");
+        String errorMessage = this.safeString(order, "errorMsg");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errorCode, null))) || Helpers.isTrue((!Helpers.isEqual(errorMessage, null)))))
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, order);
@@ -3859,14 +3859,14 @@ public class WeexCore extends WeexApi
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
             Object marketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
-            Object positionSide = this.safeString(order, "positionSide");
+            String positionSide = this.safeString(order, "positionSide");
             Object marketType = ((Helpers.isTrue((Helpers.isEqual(positionSide, null))))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
         Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactTime", "time", "createTime")));
-        Object rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
+        String rawStatus = (String)this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         Object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
-        Object rawType = this.safeStringUpper2(order, "type", "orderType");
+        String rawType = (String)this.safeStringUpper2(order, "type", "orderType");
         Object isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
@@ -4284,12 +4284,12 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString2(item, "coinName", "asset");
+        String currencyId = this.safeString2(item, "coinName", "asset");
         Object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Object timestamp = this.safeInteger2(item, "cTime", "time");
-        Object amountRaw = this.safeString2(item, "deltaAmount", "income");
-        Object after = this.safeString2(item, "afterAmount", "balance");
+        String amountRaw = this.safeString2(item, "deltaAmount", "income");
+        String after = this.safeString2(item, "afterAmount", "balance");
         Object before = Precise.stringSub(after, amountRaw);
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         Object direction = "in";
@@ -4301,8 +4301,8 @@ public class WeexCore extends WeexApi
         {
             direction = "out";
         }
-        Object rawType = this.safeString2(item, "bizType", "incomeType");
-        Object transferReason = this.safeString(item, "transferReason");
+        String rawType = this.safeString2(item, "bizType", "incomeType");
+        String transferReason = this.safeString(item, "transferReason");
         Object isContractEntry = (!Helpers.isEqual(transferReason, null));
         if (Helpers.isTrue(isContractEntry))
         {
@@ -4511,8 +4511,8 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object errorMessage = this.safeString(position, "errorMsg");
-        Object errorCode = this.safeString(position, "errorCode");
+        String errorMessage = this.safeString(position, "errorMsg");
+        String errorCode = this.safeString(position, "errorCode");
         if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
@@ -4520,13 +4520,13 @@ public class WeexCore extends WeexApi
         Object marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
         Object timestamp = this.safeInteger(position, "createdTime");
-        Object marginType = this.safeString2(position, "marginType", "marginMode");
+        String marginType = this.safeString2(position, "marginType", "marginMode");
         Object marginMode = "cross";
         if (Helpers.isTrue(Helpers.isEqual(marginType, "ISOLATED")))
         {
             marginMode = "isolated";
         }
-        Object separatedMode = this.safeString(position, "separatedMode");
+        String separatedMode = this.safeString(position, "separatedMode");
         Object hedged = null;
         if (Helpers.isTrue(Helpers.isEqual(separatedMode, "COMBINED")))
         {
@@ -4535,8 +4535,8 @@ public class WeexCore extends WeexApi
         {
             hedged = true;
         }
-        Object notional = this.safeString(position, "openValue");
-        Object size = this.safeString(position, "size");
+        String notional = this.safeString(position, "openValue");
+        String size = this.safeString(position, "size");
         Object entryPrice = Precise.stringDiv(notional, size);
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
@@ -4690,7 +4690,7 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(fee, "symbol");
+        String marketId = this.safeString(fee, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", WeexCore.this.safeSymbol(marketId, market, null, "contract") );
@@ -4773,8 +4773,8 @@ public class WeexCore extends WeexApi
     public Object parseMarginMode(Object marginMode, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(marginMode, "symbol");
-        Object marginType = this.safeString(marginMode, "marginType");
+        String marketId = this.safeString(marginMode, "symbol");
+        String marginType = this.safeString(marginMode, "marginType");
         return new java.util.HashMap<String, Object>() {{
             put( "info", marginMode );
             put( "symbol", WeexCore.this.safeSymbol(marketId, market, null, "swap") );
@@ -4832,7 +4832,7 @@ public class WeexCore extends WeexApi
             put( "cross", "CROSSED" );
             put( "isolated", "ISOLATED" );
         }};
-        Object result = this.safeString(marginTypes, marginMode);
+        String result = this.safeString(marginTypes, marginMode);
         if (Helpers.isTrue(Helpers.isEqual(result, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " marginMode must be either cross or isolated")) ;
@@ -4900,8 +4900,8 @@ public class WeexCore extends WeexApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(leverage, "symbol");
-        Object marginType = this.safeString(leverage, "marginType");
+        String marketId = this.safeString(leverage, "symbol");
+        String marginType = this.safeString(leverage, "marginType");
         Object marginMode = this.parseMarginType(marginType);
         Object crossLeverage = this.safeNumber(leverage, "crossLeverage");
         Object longLeverage = this.safeNumber(leverage, "isolatedLongLeverage");
@@ -5014,7 +5014,7 @@ public class WeexCore extends WeexApi
             }};
             Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Object entry = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-            Object separatedType = this.safeString(entry, "separatedType");
+            String separatedType = this.safeString(entry, "separatedType");
             final Object finalSeparatedType = separatedType;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -5081,7 +5081,7 @@ public class WeexCore extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object isolatedPositionId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("positionId", "id", "isolatedPositionId")));
+            String isolatedPositionId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("positionId", "id", "isolatedPositionId")));
             if (Helpers.isTrue(Helpers.isEqual(isolatedPositionId, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
@@ -5115,7 +5115,7 @@ public class WeexCore extends WeexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object msg = this.safeString(data, "msg");
+        String msg = this.safeString(data, "msg");
         Object status = ((Helpers.isTrue((Helpers.isEqual(msg, "success"))))) ? "ok" : "failed";
         Object timestamp = this.safeInteger(data, "requestTime");
         return new java.util.HashMap<String, Object>() {{
@@ -5187,7 +5187,7 @@ public class WeexCore extends WeexApi
     public Object toSandboxMarketId(Object market)
     {
         Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        Object baseId = this.safeString(market, "baseId");
+        String baseId = this.safeString(market, "baseId");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sandboxMode, true))) && Helpers.isTrue((!Helpers.isEqual(baseId, null)))))
         {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
@@ -5299,10 +5299,10 @@ public class WeexCore extends WeexApi
         //         "msg": "Either orderId or origClientOrderId must be sent."
         //     }
         //
-        Object message = this.safeString(response, "msg");
+        String message = this.safeString(response, "msg");
         if (Helpers.isTrue(!Helpers.isEqual(message, null)))
         {
-            Object errorCode = this.safeString(response, "code");
+            String errorCode = this.safeString(response, "code");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);

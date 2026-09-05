@@ -5949,6 +5949,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [independentreserve](/exchanges/independentreserve.md#fetchticker)
 * [indodax](/exchanges/indodax.md#fetchticker)
 * [kraken](/exchanges/kraken.md#fetchticker)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchticker)
 * [kucoin](/exchanges/kucoin.md#fetchticker)
 * [latoken](/exchanges/latoken.md#fetchticker)
 * [lbank](/exchanges/lbank.md#fetchticker)

@@ -4209,7 +4209,7 @@ func (this *XtCore) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		// and return entries in every state, so filter by status first,
 		// otherwise since/limit could cut off matching rows
 		var parsedOrders any = this.ParseOrders(orders, market)
-		var filteredOrders any = this.FilterBy(parsedOrders, "status", status)
+		var filteredOrders []any = this.FilterBy(parsedOrders, "status", status)
 
 		ch <- this.FilterBySinceLimit(filteredOrders, since, limit)
 		return nil
@@ -5949,7 +5949,7 @@ func (this *XtCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -6393,7 +6393,7 @@ func (this *XtCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		var entry any = GetValue(items, i)
 		AppendToArray(&result, this.ParseFundingHistory(entry, market))
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySinceLimit(sorted, since, limit)
 	return nil
@@ -7217,7 +7217,7 @@ func (this *XtCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), endpoint), payload)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var urlencoded any = this.Urlencode(this.Keysort(query))
+	var urlencoded string = this.Urlencode(this.Keysort(query))
 	headers = map[string]any{
 		"Content-Type": "application/json",
 	}

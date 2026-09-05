@@ -1914,7 +1914,7 @@ func (this *NadoCore) ParseWsTimestamp(message any, key any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(value, nil)) {
 		return nil
 	}
-	var length any = ccxt.GetLength(value)
+	var length int = ccxt.GetLength(value)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(length, 13)) {
 		return this.ParseToInt(ccxt.Slice(value, 0, ccxt.Subtract(length, 6)))
 	}
@@ -2472,12 +2472,12 @@ func (this *NadoCore) HandleUnsubscriptionCache(messageHash any) {
 		return
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(messageHash, "trade:"), 0)) {
-		var symbol any = ccxt.Replace(messageHash, "trade:", "")
+		var symbol string = ccxt.Replace(messageHash, "trade:", "")
 		if ccxt.IsTrue(ccxt.InOp(this.Trades, symbol)) {
 			ccxt.Remove(this.Trades, symbol)
 		}
 	} else if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(messageHash, "orderbook:"), 0)) {
-		var symbol any = ccxt.Replace(messageHash, "orderbook:", "")
+		var symbol string = ccxt.Replace(messageHash, "orderbook:", "")
 		if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
 			ccxt.Remove(this.Orderbooks, symbol)
 		}
@@ -2489,7 +2489,7 @@ func (this *NadoCore) HandleUnsubscriptionCache(messageHash any) {
 			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		}
 	} else if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(messageHash, "ticker:"), 0)) {
-		var symbol any = ccxt.Replace(messageHash, "ticker:", "")
+		var symbol string = ccxt.Replace(messageHash, "ticker:", "")
 		if ccxt.IsTrue(ccxt.InOp(this.Tickers, symbol)) {
 			ccxt.Remove(this.Tickers, symbol)
 		}
@@ -2499,7 +2499,7 @@ func (this *NadoCore) HandleUnsubscriptionCache(messageHash any) {
 			ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
 		}
 	} else if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(messageHash, "bidask:"), 0)) {
-		var symbol any = ccxt.Replace(messageHash, "bidask:", "")
+		var symbol string = ccxt.Replace(messageHash, "bidask:", "")
 		if ccxt.IsTrue(ccxt.InOp(this.Bidsasks, symbol)) {
 			ccxt.Remove(this.Bidsasks, symbol)
 		}

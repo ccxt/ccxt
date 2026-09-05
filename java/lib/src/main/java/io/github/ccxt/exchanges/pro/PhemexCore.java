@@ -1541,7 +1541,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         market = marketResolved;
         Object symbol = Helpers.GetValue(marketResolved, "symbol");
         Object status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
-        Object side = this.safeStringLower(order, "side");
+        String side = (String)this.safeStringLower(order, "side");
         Object type = this.parseOrderType(this.safeString(order, "ordType"));
         Object price = this.safeString(order, "priceRp", this.fromEp(this.safeString(order, "priceEp"), market));
         Object amount = this.safeString(order, "orderQty");

@@ -1260,10 +1260,10 @@ impl BitgetCore {
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut channel: Value = Value::Str("books".to_string());
-        let mut incrementalFeed: Value = Value::Bool(true);
+        let mut incrementalFeed: bool = true;
         if is_true(&(is_equal(&limit, &Value::Int(1)))) || is_true(&(is_equal(&limit, &Value::Int(5)))) || is_true(&(is_equal(&limit, &Value::Int(15)))) || is_true(&(is_equal(&limit, &Value::Int(50)))) {
             channel = add(&channel, &to_string_val(&limit));
-            incrementalFeed = Value::Bool(false);
+            incrementalFeed = false;
         }
         let mut topics: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
@@ -1362,7 +1362,7 @@ impl BitgetCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut rawOrderBook: Value = self.safe_value(data.clone(), Value::Int(0), &[]);
         let mut timestamp: Value = self.safe_integer_k(rawOrderBook.clone(), "ts", &[]);
-        let mut incrementalBook: Value = Value::Bool(is_equal(&channel, &Value::Str("books".to_string())));
+        let mut incrementalBook: bool = is_equal(&channel, &Value::Str("books".to_string()));
         if is_true(&incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
@@ -1382,7 +1382,7 @@ impl BitgetCore {
             add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("checksum".to_string()), &[Value::Bool(true)]);
-            let mut isSnapshot: Value = Value::Bool(is_equal(&self.safe_string_k(message.clone(), "action", &[]), &Value::Str("snapshot".to_string()))); // snapshot does not have a checksum
+            let mut isSnapshot: bool = is_equal(&self.safe_string_k(message.clone(), "action", &[]), &Value::Str("snapshot".to_string())); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             let mut responseChecksum: Value = self.safe_integer_k(rawOrderBook.clone(), "checksum", &[]);
@@ -2323,9 +2323,9 @@ impl BitgetCore {
             m
         })]);
         let mut category: Value = self.safe_string_lower(first.clone(), Value::Str("category".to_string()), &[instType.clone()]);
-        let mut isLinearSwap: Value = Value::Bool(is_equal(&category, &Value::Str("usdt-futures".to_string())));
-        let mut isInverseSwap: Value = Value::Bool(is_equal(&category, &Value::Str("coin-futures".to_string())));
-        let mut isUSDCFutures: Value = Value::Bool(is_equal(&category, &Value::Str("usdc-futures".to_string())));
+        let mut isLinearSwap: bool = is_equal(&category, &Value::Str("usdt-futures".to_string()));
+        let mut isInverseSwap: bool = is_equal(&category, &Value::Str("coin-futures".to_string()));
+        let mut isUSDCFutures: bool = is_equal(&category, &Value::Str("usdc-futures".to_string()));
         if is_equal(&instType, &Value::Str("uta".to_string())) {
             // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
             // the instType->marketType mapping above defaults UTA to 'contract', which
@@ -2342,7 +2342,7 @@ impl BitgetCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
             self.triggerOrders = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut isTrigger: Value = Value::Bool(is_true(&(is_equal(&channel, &Value::Str("orders-algo".to_string())))) || is_true(&(is_equal(&channel, &Value::Str("ordersAlgo".to_string())))));
+        let mut isTrigger: bool = is_true(&(is_equal(&channel, &Value::Str("orders-algo".to_string())))) || is_true(&(is_equal(&channel, &Value::Str("ordersAlgo".to_string()))));
         let mut stored: Value = ternary(is_true(&isTrigger), self.triggerOrders.clone(), self.orders.clone());
         let mut messageHash: Value = ternary(is_true(&isTrigger), Value::Str("triggerOrder".to_string()), Value::Str("order".to_string()));
         let mut marketSymbols: Value = Value::Map({
@@ -2549,11 +2549,11 @@ impl BitgetCore {
         //         "stpMode": "none"
         //     }
         //
-        let mut isSpot: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&order, &Value::Str("posMode".to_string()))))));
+        let mut isSpot: bool = !is_true(&(Value::Bool(in_op(&order, &Value::Str("posMode".to_string())))));
         let mut isMargin: Value = (Value::Bool(in_op(&order, &Value::Str("loanType".to_string()))));
         let mut category: Value = self.safe_string_lower(order.clone(), Value::Str("category".to_string()), &[]);
         if is_equal(&category, &Value::Str("spot".to_string())) {
-            isSpot = Value::Bool(true);
+            isSpot = true;
         }
         if is_equal(&category, &Value::Str("margin".to_string())) {
             isMargin = Value::Bool(true);
@@ -2577,7 +2577,7 @@ impl BitgetCore {
             });
         }
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut price: Value = Value::Null;
         if !is_true(&isTriggerOrder) {
             price = self.safe_number_k(order.clone(), "price", &[]);
@@ -2591,8 +2591,8 @@ impl BitgetCore {
         let mut type_var: Value = self.safe_string_k(order.clone(), "orderType", &[]);
         let mut accBaseVolume: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("accBaseVolume".to_string()), Value::Str("cumExecQty".to_string()), &[]));
         let mut newSizeValue: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("newSize".to_string()), Value::Str("cumExecValue".to_string()), &[]));
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
-        let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+        let mut isMarketOrder: bool = is_equal(&type_var, &Value::Str("market".to_string()));
+        let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
         let mut totalAmount: Value = Value::Null;
         let mut filledAmount: Value = Value::Null;
         let mut cost: Value = Value::Null;

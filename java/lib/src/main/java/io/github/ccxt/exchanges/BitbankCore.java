@@ -378,9 +378,9 @@ public class BitbankCore extends BitbankApi
 
     public Object parseMarket(Object entry)
     {
-        Object id = this.safeString(entry, "name");
-        Object baseId = this.safeString(entry, "base_asset");
-        Object quoteId = this.safeString(entry, "quote_asset");
+        String id = this.safeString(entry, "name");
+        String baseId = this.safeString(entry, "base_asset");
+        String quoteId = this.safeString(entry, "quote_asset");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
@@ -442,7 +442,7 @@ public class BitbankCore extends BitbankApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -546,12 +546,12 @@ public class BitbankCore extends BitbankApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(trade, "executed_at");
         market = this.safeMarket(null, market);
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object id = this.safeString2(trade, "transaction_id", "trade_id");
-        Object takerOrMaker = this.safeString(trade, "maker_taker");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String id = this.safeString2(trade, "transaction_id", "trade_id");
+        String takerOrMaker = this.safeString(trade, "maker_taker");
         Object fee = null;
-        Object feeCostString = this.safeString(trade, "fee_amount_quote");
+        String feeCostString = this.safeString(trade, "fee_amount_quote");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             final Object finalMarket = market;
@@ -561,9 +561,9 @@ public class BitbankCore extends BitbankApi
                 put( "cost", finalFeeCostString );
             }};
         }
-        Object orderId = this.safeString(trade, "order_id");
-        Object type = this.safeString(trade, "type");
-        Object side = this.safeString(trade, "side");
+        String orderId = this.safeString(trade, "order_id");
+        String type = this.safeString(trade, "type");
+        String side = this.safeString(trade, "side");
         final Object finalMarket_2 = market;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -671,7 +671,7 @@ public class BitbankCore extends BitbankApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
             {
                 Object pair = Helpers.GetValue(pairs, i);
-                Object marketId = this.safeString(pair, "name");
+                String marketId = this.safeString(pair, "name");
                 Object market = this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
@@ -785,7 +785,7 @@ public class BitbankCore extends BitbankApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
         {
             Object balance = Helpers.GetValue(assets, i);
-            Object currencyId = this.safeString(balance, "asset");
+            String currencyId = this.safeString(balance, "asset");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free_amount"));
@@ -871,18 +871,18 @@ public class BitbankCore extends BitbankApi
     public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "order_id");
-        Object marketId = this.safeString(order, "pair");
+        String id = this.safeString(order, "order_id");
+        String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(order, "ordered_at");
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "start_amount");
-        Object filled = this.safeString(order, "executed_amount");
-        Object remaining = this.safeString(order, "remaining_amount");
-        Object average = this.safeString(order, "average_price");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "start_amount");
+        String filled = this.safeString(order, "executed_amount");
+        String remaining = this.safeString(order, "remaining_amount");
+        String average = this.safeString(order, "average_price");
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object type = this.safeStringLower(order, "type");
-        Object side = this.safeStringLower(order, "side");
+        String type = (String)this.safeStringLower(order, "type");
+        String side = (String)this.safeStringLower(order, "side");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1182,7 +1182,7 @@ public class BitbankCore extends BitbankApi
             // Not sure about this if there could be more than one account...
             Object accounts = this.safeValue(data, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object firstAccount = this.safeValue(accounts, 0, new java.util.HashMap<String, Object>() {{}});
-            Object address = this.safeString(firstAccount, "address");
+            String address = this.safeString(firstAccount, "address");
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", Helpers.GetValue(currency, "code") );
@@ -1272,7 +1272,7 @@ public class BitbankCore extends BitbankApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object txid = this.safeString(transaction, "txid");
+        String txid = this.safeString(transaction, "txid");
         currency = this.safeCurrency(null, currency);
         final Object finalCurrency = currency;
         return new java.util.HashMap<String, Object>() {{
@@ -1327,10 +1327,10 @@ public class BitbankCore extends BitbankApi
             // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
-            Object authMethod = this.safeString(this.options, "authMethod", "timeWindow");
+            String authMethod = this.safeString(this.options, "authMethod", "timeWindow");
             Object isTimeWindow = (Helpers.isEqual(authMethod, "timeWindow"));
             Object requestTime = String.valueOf(this.milliseconds());
-            Object timeWindow = this.safeString(this.options, "timeWindow", "5000");
+            String timeWindow = this.safeString(this.options, "timeWindow", "5000");
             Object nonce = String.valueOf(this.nonce());
             Object auth = null;
             if (Helpers.isTrue(isTimeWindow))
@@ -1454,8 +1454,8 @@ public class BitbankCore extends BitbankApi
                 put( "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." );
                 put( "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." );
             }};
-            Object code = this.safeString(data, "code");
-            Object message = this.safeString(errorMessages, code, "Error");
+            String code = this.safeString(data, "code");
+            String message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, message);
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }

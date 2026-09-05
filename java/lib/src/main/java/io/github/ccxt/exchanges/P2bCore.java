@@ -399,14 +399,14 @@ public class P2bCore extends P2bApi
 
     public Object parseMarket(Object market)
     {
-        Object marketId = this.safeString(market, "name");
-        Object baseId = this.safeString(market, "stock");
-        Object quoteId = this.safeString(market, "money");
+        String marketId = this.safeString(market, "name");
+        String baseId = this.safeString(market, "stock");
+        String quoteId = this.safeString(market, "money");
         Object base = ((String)this.safeCurrencyCode(baseId));
         Object quote = ((String)this.safeCurrencyCode(quoteId));
         Object limits = this.safeDict(market, "limits");
-        Object maxAmount = this.safeString(limits, "max_amount");
-        Object maxPrice = this.safeString(limits, "max_price");
+        String maxAmount = this.safeString(limits, "max_amount");
+        String maxPrice = this.safeString(limits, "max_price");
         final Object finalBase = base;
         return new java.util.HashMap<String, Object>() {{
             put( "id", marketId );
@@ -604,7 +604,7 @@ public class P2bCore extends P2bApi
         {
             ticker = this.safeValue(ticker, "ticker");
         }
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         final Object finalTicker = ticker;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", P2bCore.this.safeString(market, "symbol") );
@@ -804,7 +804,7 @@ public class P2bCore extends P2bApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
-        Object takerOrMaker = this.safeString(trade, "role");
+        String takerOrMaker = this.safeString(trade, "role");
         if (Helpers.isTrue(Helpers.isEqual(takerOrMaker, "1")))
         {
             takerOrMaker = "maker";
@@ -980,8 +980,8 @@ public class P2bCore extends P2bApi
             Object currencyId = Helpers.GetValue(keys, i);
             Object balance = Helpers.GetValue(response, currencyId);
             Object code = this.safeCurrencyCode(currencyId);
-            Object used = this.safeString(balance, "freeze");
-            Object available = this.safeString(balance, "available");
+            String used = this.safeString(balance, "freeze");
+            String available = this.safeString(balance, "available");
             Object account = new java.util.HashMap<String, Object>() {{
                 put( "free", available );
                 put( "used", used );
@@ -1500,7 +1500,7 @@ public class P2bCore extends P2bApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
-        Object marketId = this.safeString(order, "market");
+        String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1586,7 +1586,7 @@ public class P2bCore extends P2bApi
         Object success = this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
-            Object errorCode = this.safeString(response, "errorCode");
+            String errorCode = this.safeString(response, "errorCode");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             if (Helpers.isTrue(Helpers.isLessThan(code, 400)))

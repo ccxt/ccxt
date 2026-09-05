@@ -1834,7 +1834,7 @@ impl WooCore {
         let mut id: Value = self.safe_string_k(trade.clone(), "id", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if is_true(&isFromFetchOrder) {
-            let mut isMaker: Value = Value::Bool(is_equal(&self.safe_string2(trade.clone(), Value::Str("is_maker".to_string()), Value::Str("isMaker".to_string()), &[]), &Value::Str("1".to_string())));
+            let mut isMaker: bool = is_equal(&self.safe_string2(trade.clone(), Value::Str("is_maker".to_string()), Value::Str("isMaker".to_string()), &[]), &Value::Str("1".to_string()));
             takerOrMaker = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
         }
         return self.safe_trade(Value::Map({
@@ -2430,16 +2430,16 @@ impl WooCore {
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut algoType: Value = self.safe_string_k(params.clone(), "algoType", &[]);
         let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".to_string()), Value::Str("activatedPrice".to_string()), &[self.number_to_string(price.clone())]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("callbackValue".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRate".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrailing: Value = Value::Bool(is_true(&isTrailingAmountOrder) || is_true(&isTrailingPercentOrder));
-        let mut isConditional: Value = Value::Bool(is_true(&isTrailing) || !is_equal(&triggerPrice, &Value::Null) || is_true(&hasStopLoss) || is_true(&hasTakeProfit) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "childOrders", &[]), &Value::Null))));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrailing: bool = is_true(&isTrailingAmountOrder) || is_true(&isTrailingPercentOrder);
+        let mut isConditional: bool = is_true(&isTrailing) || !is_equal(&triggerPrice, &Value::Null) || is_true(&hasStopLoss) || is_true(&hasTakeProfit) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "childOrders", &[]), &Value::Null)));
         let mut isMarket: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
         let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
@@ -2464,7 +2464,7 @@ impl WooCore {
             // for market buy it requires the amount of quote currency to spend
             let mut cost: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("order_amount".to_string()), Value::Str("orderAmount".to_string())]), &[]);
-            let mut isPriceProvided: Value = Value::Bool(!is_equal(&price, &Value::Null));
+            let mut isPriceProvided: bool = !is_equal(&price, &Value::Null);
             if is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && is_true(&(is_true(&isPriceProvided) || is_true(&(!is_equal(&cost, &Value::Null))))) {
                 let mut quoteAmount: Value = Value::Null;
                 if !is_equal(&cost, &Value::Null) {
@@ -2621,7 +2621,7 @@ impl WooCore {
         }
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.clone()]);
-        let mut isByClientOrder: Value = Value::Bool(!is_equal(&clientOrderIdExchangeSpecific, &Value::Null));
+        let mut isByClientOrder: bool = !is_equal(&clientOrderIdExchangeSpecific, &Value::Null);
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string())]), &[]);
         if !is_equal(&triggerPrice, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
@@ -2629,9 +2629,9 @@ impl WooCore {
         let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".to_string()), Value::Str("activatedPrice".to_string()), &[self.number_to_string(price.clone())]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("callbackValue".to_string()), &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRate".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrailing: Value = Value::Bool(is_true(&isTrailingAmountOrder) || is_true(&isTrailingPercentOrder));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrailing: bool = is_true(&isTrailingAmountOrder) || is_true(&isTrailingPercentOrder);
         if is_true(&isTrailing) {
             if !is_equal(&trailingTriggerPrice, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("activatedPrice".to_string()), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone()));
@@ -2645,7 +2645,7 @@ impl WooCore {
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
-        let mut isConditional: Value = Value::Bool(is_true(&(is_equal(&isTrigger, &Value::Bool(true)))) || is_true(&isTrailing) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "childOrders", &[]), &Value::Null))));
+        let mut isConditional: bool = is_true(&(is_equal(&isTrigger, &Value::Bool(true)))) || is_true(&isTrailing) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "childOrders", &[]), &Value::Null)));
         let mut response: Value = Value::Null;
         if is_true(&isConditional) {
             if is_true(&isByClientOrder) {
@@ -2725,7 +2725,7 @@ impl WooCore {
         let mut clientOrderIdUnified: Value = self.safe_string2(params.clone(), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
-        let mut isByClientOrder: Value = Value::Bool(!is_equal(&clientOrderIdExchangeSpecific, &Value::Null));
+        let mut isByClientOrder: bool = !is_equal(&clientOrderIdExchangeSpecific, &Value::Null);
         let mut response: Value = Value::Null;
         if is_equal(&isTrigger, &Value::Bool(true)) {
             if is_true(&isByClientOrder) {
@@ -4571,7 +4571,7 @@ impl WooCore {
                 if !is_equal(&isSandboxMode, &Value::Bool(true)) {
                     let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId.clone()]);
-                    let mut isTrigger: Value = Value::Bool(is_greater_than(&get_index_of(&path, &Value::Str("algo".to_string())), &negate(&Value::Int(1))));
+                    let mut isTrigger: bool = is_greater_than(&get_index_of(&path, &Value::Str("algo".to_string())), &negate(&Value::Int(1)));
                     if is_true(&isTrigger) {
                         add_element_to_object(&mut params, &Value::Str("brokerId".to_string()), brokerId.clone());
                     }  else {

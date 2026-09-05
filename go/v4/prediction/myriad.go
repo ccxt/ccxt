@@ -973,20 +973,20 @@ func (this *MyriadCore) SignEvmTransaction(tx any, privateKey any) any {
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
 	var payload any = ccxt.Add("02", this.RlpEncodeList(fields))
 	var hashHex any = this.Hash(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
-	var signature any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any = this.SafeString(signature, "r")
 	var sHex any = this.SafeString(signature, "s")
 	if ccxt.IsTrue(ccxt.IsEqual(rHex, nil)) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " signEvmTransaction() missing rHex")))
 	}
-	var rHexLength any = ccxt.GetLength(rHex)
+	var rHexLength int = ccxt.GetLength(rHex)
 	if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(rHexLength, 2)), 0)) {
 		rHex = ccxt.Add("0", rHex)
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(sHex, nil)) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " signEvmTransaction() missing sHex")))
 	}
-	var sHexLength any = ccxt.GetLength(sHex)
+	var sHexLength int = ccxt.GetLength(sHex)
 	if ccxt.IsTrue(!ccxt.IsEqual((ccxt.Mod(sHexLength, 2)), 0)) {
 		sHex = ccxt.Add("0", sHex)
 	}
@@ -1229,7 +1229,7 @@ func (this *MyriadCore) BuildOrderbookOrder(outcome any, typeVar any, side any, 
 	var networkId any = this.SafeString(info, "networkId", this.SafeString(this.Options, "defaultNetworkId", "56"))
 	var marketId any = this.SafeString(info, "marketId")
 	var outcomeId any = this.SafeInteger(info, "outcomeId", 0)
-	var trader any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var trader string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var typeStr any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, nil))), "limit", ccxt.ToLower(typeVar))
 	var sideStr string = ccxt.ToLower(side)
 	var sideInt any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(sideStr, "buy"))), 0, 1)
@@ -1443,7 +1443,7 @@ func (this *MyriadCore) createAmmOrderBody(ch chan any, outcome any, typeVar any
 	if ccxt.IsTrue(ccxt.IsEqual(calldata, nil)) {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id, " createAmmOrder is missing calldata from fetchTradeQuote")))
 	}
-	var fromAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var fromAddress string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var txHashParam any = this.SafeString2(params, "transactionHash", "txHash")
 	var hasPreBroadcastTxHash any = (!ccxt.IsEqual(txHashParam, nil))
 	var skipAllowance any = this.SafeBool(params, "skipAllowance", hasPreBroadcastTxHash)
@@ -1526,11 +1526,11 @@ func (this *MyriadCore) SignOrderbookTypedData(types any, message any, networkId
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, types, message)
 	var digest any = this.Hash(encoded, ccxt.Keccak, "hex")
-	var signature any = ccxt.Ecdsa(digest, this.Remove0xPrefix(this.PrivateKey), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(digest, this.Remove0xPrefix(this.PrivateKey), ccxt.Secp256k1, nil)
 	var rRaw any = ccxt.GetValue(signature, "r")
 	var sRaw any = ccxt.GetValue(signature, "s")
-	var r any = ccxt.PadStart(rRaw, 64, "0")
-	var s any = ccxt.PadStart(sRaw, 64, "0")
+	var r string = ccxt.PadStart(rRaw, 64, "0")
+	var s string = ccxt.PadStart(sRaw, 64, "0")
 	var v any = this.Sum(27, ccxt.GetValue(signature, "v"))
 	var sigHex any = ccxt.Add(ccxt.Add(ccxt.Add("0x", r), s), this.IntToBase16(v))
 	return ccxt.ToLower(sigHex)
@@ -1951,7 +1951,7 @@ func (this *MyriadCore) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any
 		}
 		ccxt.AppendToArray(&result, this.ParseAmmEventToOrder(row, outcomeObj))
 	}
-	var sorted any = this.SortBy(result, "timestamp", true)
+	var sorted []any = this.SortBy(result, "timestamp", true)
 
 	ch <- this.FilterByOutcomeSinceLimit(sorted, outcomeSymbol, since, limit)
 	return nil
@@ -2069,7 +2069,7 @@ func (this *MyriadCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	if ccxt.IsTrue(ccxt.IsEqual(this.PrivateKey, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelAllOrders() requires a privateKey to sign the cancellation")))
 	}
-	var trader any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var trader string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var marketId any = this.SafeString(params, "market_id", "0")
 	var networkId any = this.SafeString(params, "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
 	if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
@@ -2623,11 +2623,11 @@ func (this *MyriadCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *MyriadCore) HexToDecimalString(hexValue any) any {
 	// portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
-	var stripped any = this.Remove0xPrefix(hexValue)
+	var stripped string = this.Remove0xPrefix(hexValue)
 	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(stripped, nil))) || ccxt.IsTrue((ccxt.IsEqual(stripped, "")))) {
 		return nil
 	}
-	var chars any = this.StringToCharsArray(ccxt.ToLower(stripped))
+	var chars []string = this.StringToCharsArray(ccxt.ToLower(stripped))
 	var n int = ccxt.GetArrayLength(chars)
 	var digits string = "0123456789abcdef"
 	var result any = "0"
@@ -4821,7 +4821,7 @@ func (this *MyriadCore) HandlePosition(client any, data any) {
 	// the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance)
 	// apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
 	var deltaStr any = this.SafeString(data, "delta", "0")
-	var firstChar any = ccxt.Slice(deltaStr, 0, 1)
+	var firstChar string = ccxt.Slice(deltaStr, 0, 1)
 	if ccxt.IsTrue(ccxt.IsEqual(firstChar, "+")) {
 		deltaStr = ccxt.Slice(deltaStr, 1, nil)
 	}
@@ -4919,7 +4919,7 @@ func (this *MyriadCore) Sign(path any, optionalArgs ...any) any {
 	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if ccxt.IsTrue(ccxt.IsEqual(method, "GET")) {
-		var querystring any = this.Urlencode(query)
+		var querystring string = this.Urlencode(query)
 		if ccxt.IsTrue(!ccxt.IsEqual(querystring, "")) {
 			url = ccxt.Add(url, ccxt.Add("?", querystring))
 		}

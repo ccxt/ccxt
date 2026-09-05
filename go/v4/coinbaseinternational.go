@@ -1058,7 +1058,7 @@ func (this *CoinbaseinternationalCore) createDepositAddressBody(ch chan any, cod
 	return nil
 }
 func (this *CoinbaseinternationalCore) FindDefaultNetwork(networks any) any {
-	var networksArray any = this.ToArray(networks)
+	var networksArray []any = this.ToArray(networks)
 	for i := 0; IsLessThan(i, GetArrayLength(networksArray)); i++ {
 		var info any = GetValue(GetValue(networksArray, i), "info")
 		var is_default any = this.SafeBool(info, "is_default", false)

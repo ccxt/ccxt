@@ -786,14 +786,14 @@ impl LighterCore {
         }
         let mut libraryPath: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("loadAccount".to_string()), Value::Str("libraryPath".to_string()), &[]); libraryPath = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut lighterPrivateKeyIsSet: Value = Value::Bool(is_true(&(!is_equal(&privateKey, &Value::Null))) && is_true(&(!is_equal(&privateKey, &Value::Str("".to_string())))));
+        let mut lighterPrivateKeyIsSet: bool = is_true(&(!is_equal(&privateKey, &Value::Null))) && is_true(&(!is_equal(&privateKey, &Value::Str("".to_string()))));
         if is_true(&lighterPrivateKeyIsSet) && is_true(&(!is_equal(&libraryPath, &Value::Null))) && is_true(&(!is_equal(&apiKeyIndex, &Value::Null))) && is_true(&(!is_equal(&accountIndex, &Value::Null))) {
             // load lighter library, and create lighter client
             signer = self.load_lighter_library(libraryPath.clone(), chainId.clone(), privateKey.clone(), self.parse_to_int(apiKeyIndex.clone()), self.parse_to_int(accountIndex.clone()), &[Value::Bool(true)]).await;
             add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("auths".to_string())), &accountIndex), &apiKeyIndex), &Value::Str("signer".to_string()), signer.clone());
             return signer;
         }
-        let mut privateKeyIsSet: Value = Value::Bool(is_true(&(!is_equal(&self.privateKey, &Value::Null))) && is_true(&(!is_equal(&self.privateKey, &Value::Str("".to_string())))));
+        let mut privateKeyIsSet: bool = is_true(&(!is_equal(&self.privateKey, &Value::Null))) && is_true(&(!is_equal(&self.privateKey, &Value::Str("".to_string()))));
         if is_true(&privateKeyIsSet) && is_true(&(!is_equal(&apiKeyIndex, &Value::Null))) && is_true(&(!is_equal(&accountIndex, &Value::Null))) {
             if is_greater_than(&get_array_length(&self.privateKey), &Value::Int(66)) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt".to_string()))));
@@ -1282,9 +1282,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
-        let mut isConditional: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
+        let mut isConditional: bool = is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
         let mut isMarketOrder: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
         let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[Value::Str("gtt".to_string())]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Null, &[params.clone()]);

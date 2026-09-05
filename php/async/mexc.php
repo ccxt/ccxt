@@ -2510,7 +2510,7 @@ class mexc extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_order(...))($market, $type, $side, $amount, $price, $marginMode, $params);
     }
 

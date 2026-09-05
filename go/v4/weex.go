@@ -1291,7 +1291,7 @@ func (this *WeexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var symbolsLength any = 0
+	var symbolsLength int = 0
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 	}
@@ -1905,7 +1905,7 @@ func (this *WeexCore) fetchContractOHLCVBody(ch chan any, symbol any, optionalAr
 		retRes158112 := (<-this.LoadMarkets())
 		PanicOnError(retRes158112)
 	}
-	var maxHistoricalLimit any = 100
+	var maxHistoricalLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -2055,7 +2055,7 @@ func (this *WeexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     ]
 	//
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -2255,7 +2255,7 @@ func (this *WeexCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes186512)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var symbolsLength any = 0
+	var symbolsLength int = 0
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbolsLength = GetArrayLength(symbols)
 	}
@@ -2552,7 +2552,7 @@ func (this *WeexCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -3379,7 +3379,7 @@ func (this *WeexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var maxLimit any = 100
+	var maxLimit int = 100
 	if IsTrue(paginate) {
 		if IsTrue(isSpot) {
 			panic(NotSupported(Add(this.Id, " fetchOpenOrders() pagination is not supported for spot markets")))
@@ -3669,7 +3669,7 @@ func (this *WeexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(this.Id, " fetchOrders() supports spot markets only")))
 	}
-	var maxLimit any = 1000
+	var maxLimit int = 1000
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -3772,7 +3772,7 @@ func (this *WeexCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var maxLimit any = 1000
+	var maxLimit int = 1000
 	if IsTrue(paginate) {
 
 		retRes302019 := (<-this.FetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, params, maxLimit))
@@ -4136,7 +4136,7 @@ func (this *WeexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var maxLimit any = 100
+	var maxLimit int = 100
 	if IsTrue(paginate) {
 
 		retRes333219 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, maxLimit))
@@ -4202,7 +4202,7 @@ func (this *WeexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.ContractPrivateGetCapiV3UserTrades(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -4252,7 +4252,7 @@ func (this *WeexCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var maxLimit any = 100
+	var maxLimit int = 100
 	if IsTrue(paginate) {
 
 		retRes341719 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, maxLimit))

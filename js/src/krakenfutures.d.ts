@@ -28,6 +28,16 @@ export default class krakenfutures extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
+     * @name krakenfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
      * @name krakenfutures#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers

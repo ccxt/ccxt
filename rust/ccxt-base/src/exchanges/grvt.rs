@@ -1114,7 +1114,7 @@ impl GrvtCore {
 
     pub fn uses_private_key(&self) -> Value {
         let mut privateKeyDefined: Value = Value::Bool(!is_equal(&self.privateKey, &Value::Null) && !is_equal(&self.privateKey, &Value::Str("".to_string())));
-        let mut apiKeyDefined: Value = Value::Bool(!is_equal(&self.apiKey, &Value::Null) && !is_equal(&self.apiKey, &Value::Str("".to_string())));
+        let mut apiKeyDefined: bool = !is_equal(&self.apiKey, &Value::Null) && !is_equal(&self.apiKey, &Value::Str("".to_string()));
         if is_true(&privateKeyDefined) && is_true(&apiKeyDefined) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str("You should provide either \"privateKey\" or \"apikey & secret\"".to_string())));
         }
@@ -1251,7 +1251,7 @@ impl GrvtCore {
         let mut currentBuilders: Value = get_value(&results, &Value::Int(0));
         let mut approvedBuilder: Value = self.safe_list_k(currentBuilders.clone(), "results", &[Value::List(vec![])]);
         let mut length: Value = get_array_length(&approvedBuilder);
-        let mut found: Value = Value::Bool(false);
+        let mut found: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_715: bool = true;
@@ -1262,7 +1262,7 @@ impl GrvtCore {
 })]);
             let mut builderAccountId: Value = self.safe_string_k(builderInfo.clone(), "builder_account_id", &[]);
             if is_equal(&builderAccountId, &self.safe_string_k(self.options.clone(), "builder", &[])) {
-                found = Value::Bool(true);
+                found = true;
                 break;
             }
         }
@@ -1868,8 +1868,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             side = ternary(is_true(&isTakerBuyer), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
             takerOrMaker = Value::Str("taker".to_string());
         }  else {
-            let mut isTaker: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "is_taker", &[]), &Value::Bool(true)));
-            let mut isBuyer: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "is_buyer", &[]), &Value::Bool(true)));
+            let mut isTaker: bool = is_equal(&self.safe_bool_k(trade.clone(), "is_taker", &[]), &Value::Bool(true));
+            let mut isBuyer: bool = is_equal(&self.safe_bool_k(trade.clone(), "is_buyer", &[]), &Value::Bool(true));
             takerOrMaker = ternary(is_true(&isTaker), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
             side = ternary(is_true(&isBuyer), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
         }
@@ -2687,7 +2687,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut msg: Value = self.exception_message(error.clone(), &[]);
-            let mut isFromFundingAccount: Value = Value::Bool(is_equal(&fromAccount, &Value::Str("funding".to_string())));
+            let mut isFromFundingAccount: bool = is_equal(&fromAccount, &Value::Str("funding".to_string()));
             if is_true(&isFromFundingAccount) && is_true(&(is_greater_than_or_equal(&get_index_of(&msg, &Value::Str("You are not authorized".to_string())), &Value::Int(0)))) {
                 panic!("{}", crate::exchange_errors::permission_denied(add(&add(&self.id, &Value::Str(" transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ".to_string())), &msg)));
             }
@@ -2794,7 +2794,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         }
         //     }
         //
-        let mut accountIsUndefined: Value = Value::Bool(is_equal(&self.safe_string_k(self.options.clone(), "accountId", &[]), &Value::Null));
+        let mut accountIsUndefined: bool = is_equal(&self.safe_string_k(self.options.clone(), "accountId", &[]), &Value::Null);
         if is_true(&accountIsUndefined) {
             append_to_array(&mut promises, self.private_trading_post_full_v1_get_sub_accounts(&[]).await);
         }
@@ -2999,7 +2999,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             // trigger type
             let mut selectedType: Value = Value::Null;
-            let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+            let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
             if !is_equal(&stopLossPrice, &Value::Null) {
                 selectedType = ternary(is_true(&isBuy), Value::Str("STOP_LOSS".to_string()), Value::Str("TAKE_PROFIT".to_string()));
             }  else if !is_equal(&takeProfitPrice, &Value::Null) {
@@ -4096,7 +4096,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut marketId: Value = self.safe_string_k(firstLeg.clone(), "instrument", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone()]);
             size = self.safe_string_k(firstLeg.clone(), "size", &[]);
-            let mut isBuyingAsset: Value = Value::Bool(is_equal(&self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[]), &Value::Bool(true)));
+            let mut isBuyingAsset: bool = is_equal(&self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[]), &Value::Bool(true));
             side = ternary(is_true(&isBuyingAsset), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
             price = self.safe_string_k(firstLeg.clone(), "limit_price", &[]);
             filled = self.safe_string(filledAmounts.clone(), primaryOrderIndex.clone(), &[]);

@@ -630,7 +630,7 @@ public class NdaxCore extends NdaxApi
             //         "msg":"PONG"
             //     }
             //
-            Object message = this.safeString(response, "msg");
+            String message = this.safeString(response, "msg");
             final Object finalMessage = message;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalMessage, "PONG"))))) ? "ok" : "error" );
@@ -675,13 +675,13 @@ public class NdaxCore extends NdaxApi
             //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
             //     }
             //
-            Object sessionToken = this.safeString(response, "SessionToken");
+            String sessionToken = this.safeString(response, "SessionToken");
             if (Helpers.isTrue(!Helpers.isEqual(sessionToken, null)))
             {
                 Helpers.addElementToObject(this.options, "sessionToken", sessionToken);
                 return response;
             }
-            Object pending2faToken = this.safeString(response, "Pending2FaToken");
+            String pending2faToken = this.safeString(response, "Pending2FaToken");
             if (Helpers.isTrue(!Helpers.isEqual(pending2faToken, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(this.twofa, null)))
@@ -754,9 +754,9 @@ public class NdaxCore extends NdaxApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "ProductId");
+        String id = this.safeString(rawCurrency, "ProductId");
         Object code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
-        Object ProductType = this.safeString(rawCurrency, "ProductType");
+        String ProductType = this.safeString(rawCurrency, "ProductType");
         Object type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
         if (Helpers.isTrue(Helpers.isEqual(ProductType, "Unknown")))
         {
@@ -862,13 +862,13 @@ public class NdaxCore extends NdaxApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "InstrumentId");
+        String id = this.safeString(market, "InstrumentId");
         // const lowercaseId = this.safeStringLower (market, 'symbol');
-        Object baseId = this.safeString(market, "Product1");
-        Object quoteId = this.safeString(market, "Product2");
+        String baseId = this.safeString(market, "Product1");
+        String quoteId = this.safeString(market, "Product2");
         Object base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
         Object quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
-        Object sessionStatus = this.safeString(market, "SessionStatus");
+        String sessionStatus = this.safeString(market, "SessionStatus");
         Object isDisable = this.safeValue(market, "IsDisable");
         Object sessionRunning = (Helpers.isEqual(sessionStatus, "Running"));
         final Object finalBase = base;
@@ -1088,19 +1088,19 @@ public class NdaxCore extends NdaxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "TimeStamp");
-        Object marketId = this.safeString(ticker, "InstrumentId");
+        String marketId = this.safeString(ticker, "InstrumentId");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             marketId = this.safeString(ticker, "trading_pairs");
         }
         market = this.safeMarket(marketId, market, "_");
         Object symbol = this.safeSymbol(marketId, market);
-        Object last = this.safeString2(ticker, "LastTradedPx", "last_price");
-        Object percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
-        Object change = this.safeString(ticker, "Rolling24HrPxChange");
-        Object open = this.safeString(ticker, "SessionOpen");
-        Object baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
-        Object quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
+        String last = this.safeString2(ticker, "LastTradedPx", "last_price");
+        String percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
+        String change = this.safeString(ticker, "Rolling24HrPxChange");
+        String open = this.safeString(ticker, "SessionOpen");
+        String baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
+        String quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1462,10 +1462,10 @@ public class NdaxCore extends NdaxApi
             takerOrMaker = this.safeStringLower(trade, "MakerTaker");
             side = this.safeStringLower(trade, "Side");
             type = this.safeStringLower(trade, "OrderType");
-            Object feeCostString = this.safeString(trade, "Fee");
+            String feeCostString = this.safeString(trade, "Fee");
             if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
             {
-                Object feeCurrencyId = this.safeString(trade, "FeeProductId");
+                String feeCurrencyId = this.safeString(trade, "FeeProductId");
                 Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
                 final Object finalFeeCostString = feeCostString;
                 fee = new java.util.HashMap<String, Object>() {{
@@ -1579,7 +1579,7 @@ public class NdaxCore extends NdaxApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
-                Object accountId = this.safeString(response, i);
+                String accountId = this.safeString(response, i);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", null );
@@ -1602,7 +1602,7 @@ public class NdaxCore extends NdaxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(balance, "ProductId");
+            String currencyId = this.safeString(balance, "ProductId");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((!Helpers.isEqual(this.currencies_by_id, null)))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))))
             {
                 Object code = this.safeCurrencyCode(currencyId);
@@ -1726,10 +1726,10 @@ public class NdaxCore extends NdaxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(item, "ProductId");
+        String currencyId = this.safeString(item, "ProductId");
         currency = this.safeCurrency(currencyId, currency);
-        Object credit = this.safeString(item, "CR");
-        Object debit = this.safeString(item, "DR");
+        String credit = this.safeString(item, "CR");
+        String debit = this.safeString(item, "DR");
         Object amount = null;
         Object direction = null;
         if (Helpers.isTrue(Precise.stringLt(credit, "0")))
@@ -1742,7 +1742,7 @@ public class NdaxCore extends NdaxApi
             direction = "out";
         }
         Object before = null;
-        Object after = this.safeString(item, "Balance");
+        String after = this.safeString(item, "Balance");
         if (Helpers.isTrue(Helpers.isEqual(direction, "out")))
         {
             before = Precise.stringAdd(after, amount);
@@ -1928,7 +1928,7 @@ public class NdaxCore extends NdaxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "ReceiveTime");
-        Object marketId = this.safeString(order, "Instrument");
+        String marketId = this.safeString(order, "Instrument");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", NdaxCore.this.safeString2(order, "ReplacementOrderId", "OrderId") );
             put( "clientOrderId", NdaxCore.this.safeString2(order, "ReplacementClOrdId", "ClientOrderId") );
@@ -1988,7 +1988,7 @@ public class NdaxCore extends NdaxApi
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Object clientOrderId = this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             Object orderType = this.safeInteger(Helpers.GetValue(this.options, "orderTypes"), this.capitalize(type));
-            Object triggerPrice = this.safeString(parameters, "triggerPrice");
+            String triggerPrice = this.safeString(parameters, "triggerPrice");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(type, "market")))
@@ -2769,13 +2769,13 @@ public class NdaxCore extends NdaxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
+        String depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         Object depositInfo = Helpers.parseJson(depositInfoString);
         Object depositInfoLength = Helpers.getArrayLength(depositInfo);
-        Object lastString = this.safeString(depositInfo, Helpers.subtract(depositInfoLength, 1), "");
+        String lastString = this.safeString(depositInfo, Helpers.subtract(depositInfoLength, 1), "");
         Object parts = Helpers.split(lastString, "?memo=");
-        Object address = this.safeString(parts, 0);
-        Object tag = this.safeString(parts, 1);
+        String address = this.safeString(parts, 0);
+        String tag = this.safeString(parts, 1);
         Object code = null;
         if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
         {
@@ -3068,7 +3068,7 @@ public class NdaxCore extends NdaxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
-        Object currencyId = this.safeString(transaction, "ProductId");
+        String currencyId = this.safeString(transaction, "ProductId");
         Object code = this.safeCurrencyCode(currencyId, currency);
         Object type = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "DepositId")))
@@ -3086,10 +3086,10 @@ public class NdaxCore extends NdaxApi
         {
             updated = this.safeInteger(templateForm, "LastUpdated", updated);
         }
-        Object address = this.safeString2(templateForm, "ExternalAddress", "ToAddress");
+        String address = this.safeString2(templateForm, "ExternalAddress", "ToAddress");
         Object timestamp = this.safeInteger(templateForm, "TimeSubmitted");
         Object feeCost = this.safeNumber(transaction, "FeeAmount");
-        Object transactionStatus = this.safeString(transaction, "TicketStatus");
+        String transactionStatus = this.safeString(transaction, "TicketStatus");
         Object fee = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -3150,7 +3150,7 @@ public class NdaxCore extends NdaxApi
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             // this method required login, password and twofa key
-            Object sessionToken = this.safeString(this.options, "sessionToken");
+            String sessionToken = this.safeString(this.options, "sessionToken");
             if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
             {
                 throw new AuthenticationError((String)Helpers.add(this.id, " call signIn() method to obtain a session token")) ;
@@ -3194,7 +3194,7 @@ public class NdaxCore extends NdaxApi
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template type for "), Helpers.GetValue(currency, "code"))) ;
             }
-            Object templateName = this.safeString(firstTemplateType, "TemplateName");
+            String templateName = this.safeString(firstTemplateType, "TemplateName");
             final Object finalFirstTemplateType = firstTemplateType;
             Object withdrawTemplateRequest = new java.util.HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -3212,7 +3212,7 @@ public class NdaxCore extends NdaxApi
             //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
             //     }
             //
-            Object template = this.safeString(withdrawTemplateResponse, "Template");
+            String template = this.safeString(withdrawTemplateResponse, "Template");
             if (Helpers.isTrue(Helpers.isEqual(template, null)))
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() could not find a withdraw template for "), Helpers.GetValue(currency, "code"))) ;
@@ -3269,7 +3269,7 @@ public class NdaxCore extends NdaxApi
                 }};
             } else if (Helpers.isTrue(Helpers.isEqual(path, "Authenticate2FA")))
             {
-                Object pending2faToken = this.safeString(this.options, "pending2faToken");
+                String pending2faToken = this.safeString(this.options, "pending2faToken");
                 if (Helpers.isTrue(!Helpers.isEqual(pending2faToken, null)))
                 {
                     final Object finalPending2faToken = pending2faToken;
@@ -3286,7 +3286,7 @@ public class NdaxCore extends NdaxApi
         } else if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object sessionToken = this.safeString(this.options, "sessionToken");
+            String sessionToken = this.safeString(this.options, "sessionToken");
             if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
             {
                 Object nonce = String.valueOf(this.nonce());
@@ -3344,7 +3344,7 @@ public class NdaxCore extends NdaxApi
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
         //     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
         //
-        Object message = this.safeString(response, "errormsg");
+        String message = this.safeString(response, "errormsg");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(message, null))) && Helpers.isTrue((!Helpers.isEqual(message, "")))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

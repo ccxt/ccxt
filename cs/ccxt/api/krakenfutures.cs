@@ -39,6 +39,13 @@ public partial class krakenfutures : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetTickers",parameters);
     }
 
+    /// <summary>Calls the publicGetTickersSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTickersSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTickersSymbol",parameters);
+    }
+
     /// <summary>Calls the publicGetHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetHistory (object parameters = null)

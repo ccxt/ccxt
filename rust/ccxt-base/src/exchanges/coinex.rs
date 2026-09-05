@@ -3311,7 +3311,7 @@ impl CoinexCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isMargin: Value = Value::Bool(is_true(&(!is_equal(&marginMode, &Value::Null))) || is_true(&(is_equal(&marketType, &Value::Str("margin".to_string())))));
+        let mut isMargin: bool = is_true(&(!is_equal(&marginMode, &Value::Null))) || is_true(&(is_equal(&marketType, &Value::Str("margin".to_string()))));
         if is_equal(&marketType, &Value::Str("swap".to_string())) {
             return self.fetch_swap_balance(&[params.clone()]).await;
         }  else if is_equal(&marketType, &Value::Str("financial".to_string())) {
@@ -3799,10 +3799,10 @@ impl CoinexCore {
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut stopLossTriggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut isStopLossOrTakeProfitTrigger: bool = is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder);
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
@@ -3860,8 +3860,8 @@ impl CoinexCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         let mut symbol: Value = Value::Null;
         let mut reduceOnly: Value = Value::Bool(false);
-        let mut isTriggerOrder: Value = Value::Bool(false);
-        let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(false);
+        let mut isTriggerOrder: bool = false;
+        let mut isStopLossOrTakeProfitTrigger: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_557: bool = true;
@@ -3891,10 +3891,10 @@ impl CoinexCore {
             let mut triggerPrice: Value = self.safe_number2(orderParams.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
             let mut stopLossTriggerPrice: Value = self.safe_number_k(orderParams.clone(), "stopLossPrice", &[]);
             let mut takeProfitTriggerPrice: Value = self.safe_number_k(orderParams.clone(), "takeProfitPrice", &[]);
-            isTriggerOrder = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-            let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-            let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-            isStopLossOrTakeProfitTrigger = Value::Bool(is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder));
+            isTriggerOrder = !is_equal(&triggerPrice, &Value::Null);
+            let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+            let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+            isStopLossOrTakeProfitTrigger = is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder);
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
@@ -4096,7 +4096,7 @@ impl CoinexCore {
         let mut response: Value = Value::Null;
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         if is_true(&isTriggerOrder) {
             add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("stop_id".to_string()), self.parse_to_numeric(id.clone()));
@@ -4501,8 +4501,8 @@ impl CoinexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut response: Value = Value::Null;
-        let mut isClosed: Value = Value::Bool(is_true(&(is_equal(&status, &Value::Str("finished".to_string())))) || is_true(&(is_equal(&status, &Value::Str("closed".to_string())))));
-        let mut isOpen: Value = Value::Bool(is_true(&(is_equal(&status, &Value::Str("pending".to_string())))) || is_true(&(is_equal(&status, &Value::Str("open".to_string())))));
+        let mut isClosed: bool = is_true(&(is_equal(&status, &Value::Str("finished".to_string())))) || is_true(&(is_equal(&status, &Value::Str("closed".to_string()))));
+        let mut isOpen: bool = is_true(&(is_equal(&status, &Value::Str("pending".to_string())))) || is_true(&(is_equal(&status, &Value::Str("open".to_string()))));
         if is_equal(&marketType, &Value::Str("swap".to_string())) {
             add_element_to_object(&mut request, &Value::Str("market_type".to_string()), Value::Str("FUTURES".to_string()));
             if is_true(&isClosed) {

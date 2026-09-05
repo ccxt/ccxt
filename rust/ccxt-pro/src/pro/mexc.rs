@@ -625,7 +625,7 @@ impl MexcCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut channelStartsWithSpot: Value = Value::Bool(starts_with(&channel, &Value::Str("spot".to_string())));
-        let mut marketIdIsUndefined: Value = Value::Bool(is_equal(&marketId, &Value::Null));
+        let mut marketIdIsUndefined: bool = is_equal(&marketId, &Value::Null);
         let mut isSpot: Value = ternary(is_true(&marketIdIsUndefined), channelStartsWithSpot.clone(), get_value(&market, &Value::Str("spot".to_string())));
         let mut spotPrefix: Value = Value::Str("spot:".to_string());
         let mut messageHashPrefix: Value = ternary(is_true(&(is_equal(&isSpot, &Value::Bool(true)))), spotPrefix.clone(), Value::Str("".to_string()));
@@ -745,7 +745,7 @@ impl MexcCore {
         }
         let mut markets: Value = self.require_value(self.markets_for_symbols(&[symbols.clone()]), &[Value::Str("watchBidsAsks() markets is required".to_string())]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[get_value(&markets, &Value::Int(0)), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         if !is_true(&isSpot) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks only support spot market".to_string()))));
         }
@@ -1310,7 +1310,7 @@ impl MexcCore {
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
-        let mut shouldReturn: Value = Value::Bool(false);
+        let mut shouldReturn: bool = false;
         if is_equal(&nonce, &Value::Null) {
             let mut cacheLength: Value = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".to_string())));
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("snapshotDelay".to_string()), &[Value::Int(25)]);
@@ -1333,7 +1333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             client.reject(&[e.clone(), messageHash.clone()]);
             // return;
-            shouldReturn = Value::Bool(true);
+            shouldReturn = true;
         }
         if is_true(&shouldReturn) {
             return;
@@ -2324,7 +2324,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut markets: Value = self.require_value(self.markets_for_symbols(&[symbols.clone()]), &[Value::Str("unWatchBidsAsks() markets is required".to_string())]);
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBidsAsks".to_string()), &[get_value(&markets, &Value::Int(0)), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         if !is_true(&isSpot) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks only support spot market".to_string()))));
         }

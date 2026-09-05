@@ -565,7 +565,7 @@ impl CoinbaseCore {
         });
         let mut timestamp: Value = self.number_to_string(self.seconds());
         self.check_required_credentials(&[]);
-        let mut isCloudAPiKey: Value = Value::Bool(is_true(&(is_greater_than_or_equal(&get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())), &Value::Int(0)))) || is_true(&(Value::Bool(starts_with(&self.secret, &Value::Str("-----BEGIN".to_string()))))));
+        let mut isCloudAPiKey: bool = is_true(&(is_greater_than_or_equal(&get_index_of(&self.apiKey, &Value::Str("organizations/".to_string())), &Value::Int(0)))) || is_true(&(Value::Bool(starts_with(&self.secret, &Value::Str("-----BEGIN".to_string())))));
         let mut auth: Value = add(&add(&timestamp, &name), &join(&productIds, &Value::Str(",".to_string())));
         if !is_true(&isCloudAPiKey) {
             add_element_to_object(&mut subscribe, &Value::Str("api_key".to_string()), self.apiKey.clone());

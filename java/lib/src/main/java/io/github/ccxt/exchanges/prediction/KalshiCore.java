@@ -778,7 +778,7 @@ public class KalshiCore extends KalshiApi
         Object status = this.safeString(raw, "status");
         Object active = Helpers.isTrue((Helpers.isEqual(status, "active"))) || Helpers.isTrue((Helpers.isEqual(status, "open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
-        Object result = this.safeStringLower(raw, "result");
+        String result = (String)this.safeStringLower(raw, "result");
         Object resolved = Helpers.isTrue((Helpers.isEqual(status, "settled"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(result, null))) && Helpers.isTrue((!Helpers.isEqual(result, "")))));
         Object endDate = this.safeString(raw, "expiration_time");
         Object volume = this.safeNumber2(raw, "volume_fp", "volume");
@@ -1701,11 +1701,11 @@ final Object finalOi = oi;
         }
         Object amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
         Object amount = this.safeNumber(trade, "count", amountFp);
-        Object rawSide = this.safeStringLower(trade, "taker_side");
+        String rawSide = (String)this.safeStringLower(trade, "taker_side");
         Object marketAny = market;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         Object marketInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-        Object requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
+        String requestedOutcomeLabel = (String)this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
         Object outcomeSymbol = this.safeString(outcomeObj, "outcome");
         Object outcomeId = this.safeString2(outcomeObj, "outcomeId", "id");
         Object side = null;
@@ -1832,7 +1832,7 @@ final Object finalOi = oi;
         Object orderId = this.safeString(fill, "order_id");
         Object ticker = this.safeString2(fill, "ticker", "market_ticker");
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
-        Object sideLeg = this.safeStringLower(fill, "side");
+        String sideLeg = (String)this.safeStringLower(fill, "side");
         Object outcomeKey = ticker;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLeg, "no"))) && Helpers.isTrue((!Helpers.isEqual(ticker, null)))))
         {
@@ -1841,7 +1841,7 @@ final Object finalOi = oi;
         Object mkt = this.safeOutcome(outcomeKey, market);
         Object ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
-        Object action = this.safeStringLower(fill, "action");
+        String action = (String)this.safeStringLower(fill, "action");
         Object side = ((Helpers.isTrue((Helpers.isEqual(action, "sell"))))) ? "sell" : "buy";
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         Object price = null;
@@ -2106,7 +2106,7 @@ final Object finalOi = oi;
         Object heldTicker = ((Helpers.isTrue((useHeldYesTicker)))) ? ticker : (Helpers.add(ticker, "-NO"));
         Object mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
-        Object marketResult = this.safeStringUpper(settlement, "market_result");
+        String marketResult = (String)this.safeStringUpper(settlement, "market_result");
         Object won = (Helpers.isEqual(marketResult, heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
         Object payout = this.safeNumber(settlement, "revenue_dollars");
@@ -2389,7 +2389,7 @@ final Object finalOi = oi;
         Object ticker = this.safeString(order, "ticker");
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
-        Object sideLeg = this.safeStringLower(order, "side");
+        String sideLeg = (String)this.safeStringLower(order, "side");
         Object outcomeKey = ticker;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideLeg, "no"))) && Helpers.isTrue((!Helpers.isEqual(ticker, null)))))
         {
@@ -2399,7 +2399,7 @@ final Object finalOi = oi;
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
-        Object action = this.safeStringLower(order, "action");
+        String action = (String)this.safeStringLower(order, "action");
         Object side = null;
         if (Helpers.isTrue(Helpers.isEqual(action, "buy")))
         {
@@ -2534,7 +2534,7 @@ final Object finalOi = oi;
             Object isMarket = (Helpers.isEqual(type, "market"));
             // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
             // `time_in_force` param (handled below) still overrides
-            Object unifiedTif = this.safeStringUpper(parameters, "timeInForce");
+            String unifiedTif = (String)this.safeStringUpper(parameters, "timeInForce");
             parameters = this.omit(parameters, "timeInForce");
             Object defaultTif = ((Helpers.isTrue((isMarket)))) ? "immediate_or_cancel" : "good_till_canceled";
             // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);

@@ -522,13 +522,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    fetchDepositMethodId(id: string, params?: {}): Promise<{
-        info: any;
-        id: Str;
-        currency: Str;
-        verified: boolean | undefined;
-        tag: Str;
-    }>;
+    fetchDepositMethodId(id: string, params?: {}): Promise<Dict>;
     parseDepositMethodIds(ids: any, params?: {}): Dict[];
     parseDepositMethodId(depositId: any): {
         info: any;

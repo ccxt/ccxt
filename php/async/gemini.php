@@ -420,7 +420,7 @@ class gemini extends Exchange {
         return Async\await($this->fetch_currencies_from_web($params));
     }
 
-    public function fetch_currencies_from_web($params = array()) {
+    public function fetch_currencies_from_web($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_currencies_from_web(...))($params);
     }
 
@@ -544,7 +544,7 @@ class gemini extends Exchange {
         return Async\await($this->fetch_markets_from_api($params));
     }
 
-    public function fetch_markets_from_web($params = array()) {
+    public function fetch_markets_from_web($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_from_web(...))($params);
     }
 
@@ -660,7 +660,7 @@ class gemini extends Exchange {
         return $this->safe_bool($statuses, $status, true);
     }
 
-    public function fetch_usdt_markets($params = array()) {
+    public function fetch_usdt_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_usdt_markets(...))($params);
     }
 
@@ -684,7 +684,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_from_api($params = array()) {
+    public function fetch_markets_from_api($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_from_api(...))($params);
     }
 

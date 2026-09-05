@@ -1362,9 +1362,9 @@ impl LimitlessCore {
         let mut groupId: Value = self.safe_string_k(event.clone(), "address", &[self.safe_string(event.clone(), Value::Str("groupId".to_string()), &[self.safe_string(event.clone(), Value::Str("slug".to_string()), &[])])]);
         let mut endDate: Value = self.safe_string_k(event.clone(), "deadline", &[self.safe_string(event.clone(), Value::Str("expiresAt".to_string()), &[])]);
         let mut title: Value = self.safe_string_k(event.clone(), "title", &[groupId.clone()]);
-        let mut hasGroupId: Value = Value::Bool(is_true(&(!is_equal(&groupId, &Value::Null))) && is_true(&(!is_equal(&groupId, &Value::Str("".to_string())))));
+        let mut hasGroupId: bool = is_true(&(!is_equal(&groupId, &Value::Null))) && is_true(&(!is_equal(&groupId, &Value::Str("".to_string()))));
         let mut eventSlug: Value = ternary(is_true(&hasGroupId), self.shorten_slug(groupId.clone()), Value::Null);
-        let mut hasEndDate: Value = Value::Bool(is_true(&(!is_equal(&endDate, &Value::Null))) && is_true(&(!is_equal(&endDate, &Value::Str("".to_string())))));
+        let mut hasEndDate: bool = is_true(&(!is_equal(&endDate, &Value::Null))) && is_true(&(!is_equal(&endDate, &Value::Str("".to_string()))));
         let mut endTimestamp: Value = ternary(is_true(&hasEndDate), self.parse8601(endDate.clone()), Value::Null);
         let mut markets: Value = Value::List(vec![]);
         let mut rawMarkets: Value = self.safe_list_k(event.clone(), "markets", &[Value::List(vec![])]);
@@ -2841,8 +2841,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // when the profile trades through a smart wallet the order must be signed by the
         // linked embedded (owner) wallet, not by the smart wallet itself
         let mut embeddedAddress: Value = self.safe_string_k(accountInfo.clone(), "embeddedAccount", &[]);
-        let mut hasEmbedded: Value = Value::Bool(!is_equal(&embeddedAddress, &Value::Null));
-        let mut isSmartWallet: Value = Value::Bool(is_true(&usesSmartWallet) && is_true(&hasEmbedded));
+        let mut hasEmbedded: bool = !is_equal(&embeddedAddress, &Value::Null);
+        let mut isSmartWallet: bool = is_true(&usesSmartWallet) && is_true(&hasEmbedded);
         let mut signer: Value = maker.clone();
         if is_true(&isSmartWallet) {
             signer = embeddedAddress.clone();
@@ -4125,7 +4125,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut category: Value = get_value(&categories, &i);
             let mut name: Value = self.safe_string_lower(category.clone(), Value::Str("name".to_string()), &[Value::Str("".to_string())]);
             let mut categoryId: Value = self.safe_string_k(category.clone(), "id", &[]);
-            let mut matched: Value = Value::Bool(false);
+            let mut matched: bool = false;
             {
                                 let mut wi: Value = Value::Int(0);
                 let mut __for_first_1285: bool = true;
@@ -4134,7 +4134,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchRawMarketsByTags() missing name".to_string()))));
                 }
                 if is_greater_than_or_equal(&get_index_of(&name, &get_value(&wanted, &wi)), &Value::Int(0)) {
-                    matched = Value::Bool(true);
+                    matched = true;
                     break;
                 }
             }

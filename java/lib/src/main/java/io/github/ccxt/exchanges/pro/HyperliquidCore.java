@@ -1950,7 +1950,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        Object user = this.safeStringLower(subscription, "user");
+        String user = (String)this.safeStringLower(subscription, "user");
         if (Helpers.isTrue(!Helpers.isEqual(user, null)))
         {
             Object subscribeHash = Helpers.add("subscribe:orderUpdates::", user);
@@ -1972,7 +1972,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        Object user = this.safeStringLower(subscription, "user");
+        String user = (String)this.safeStringLower(subscription, "user");
         if (Helpers.isTrue(!Helpers.isEqual(user, null)))
         {
             Object subscribeHash = Helpers.add("subscribe:userFills::", user);

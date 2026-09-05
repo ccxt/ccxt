@@ -500,7 +500,7 @@ func (this *LighterCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		"channel": "market_stats/all",
 	}
 	var messageHashes any = []any{}
-	var symbolsLength any = 0
+	var symbolsLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		symbolsLength = ccxt.GetArrayLength(symbols)
 	}

@@ -3665,7 +3665,7 @@ func (this *GateCore) ParseFundingHistories(response any, symbol any, since any,
 		var funding any = this.ParseFundingHistory(entry)
 		AppendToArray(&result, funding)
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
 func (this *GateCore) ParseFundingHistory(info any, optionalArgs ...any) any {
@@ -4685,7 +4685,7 @@ func (this *GateCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -8268,7 +8268,7 @@ func (this *GateCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -8964,7 +8964,7 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 		path = this.ImplodeParams(path, settle)
 		// remove the first element from params
 		var newParams any = []any{}
-		var anyParams any = this.ToArray(params)
+		var anyParams []any = this.ToArray(params)
 		for i := 1; IsLessThan(i, GetArrayLength(anyParams)); i++ {
 			AppendToArray(&newParams, GetValue(params, i))
 		}
@@ -8995,8 +8995,8 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var queryString any = ""
-		var rawQueryString any = ""
+		var queryString string = ""
+		var rawQueryString string = ""
 		var requiresURLEncoding bool = false
 		if IsTrue(IsTrue((IsTrue((IsEqual(typeVar, "futures"))) || IsTrue((IsEqual(typeVar, "delivery"))))) && IsTrue(IsEqual(method, "POST"))) {
 			var pathParts []string = Split(path, "/")
@@ -9034,7 +9034,7 @@ func (this *GateCore) Sign(path any, optionalArgs ...any) any {
 		var signaturePath any = Add(Add("/api/", this.Version), entirePath)
 		var payloadArray []any = []any{ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
 		// eslint-disable-next-line quotes
-		var payload any = Join(payloadArray, "\n")
+		var payload string = Join(payloadArray, "\n")
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
 		headers = map[string]any{
 			"KEY":          this.ApiKey,
@@ -9379,7 +9379,7 @@ func (this *GateCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...an
 	//     ]
 	//
 	var settlements any = this.ParseSettlements(response, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -9494,7 +9494,7 @@ func (this *GateCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...
 	var result any = this.SafeValue(response, "result", map[string]any{})
 	var data any = this.SafeValue(result, "list", []any{})
 	var settlements any = this.ParseSettlements(data, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -10816,7 +10816,7 @@ func (this *GateCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	//        ...
 	//    ]
 	//
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}

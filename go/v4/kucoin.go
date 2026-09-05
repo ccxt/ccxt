@@ -3993,7 +3993,7 @@ func (this *KucoinCore) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs 
 		retRes334212 := (<-this.LoadMarkets())
 		PanicOnError(retRes334212)
 	}
-	var maxLimit any = 1500
+	var maxLimit int = 1500
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -4012,7 +4012,7 @@ func (this *KucoinCore) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs 
 	}
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var endAt any = this.Milliseconds() // required param
-	var denominator any = 1000
+	var denominator int = 1000
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startAt", this.ParseToInt(MathFloor(Divide(since, denominator))))
 		if IsTrue(IsEqual(limit, nil)) {
@@ -4109,7 +4109,7 @@ func (this *KucoinCore) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs
 		retRes342712 := (<-this.LoadMarkets())
 		PanicOnError(retRes342712)
 	}
-	var maxLimit any = 1500
+	var maxLimit int = 1500
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -4128,7 +4128,7 @@ func (this *KucoinCore) fetchSpotOHLCVBody(ch chan any, symbol any, optionalArgs
 	}
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var endAt any = this.Milliseconds() // required param
-	var denominator any = 1000
+	var denominator int = 1000
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startAt", this.ParseToInt(MathFloor(Divide(since, denominator))))
 		if IsTrue(IsEqual(limit, nil)) {
@@ -4195,7 +4195,7 @@ func (this *KucoinCore) fetchContractOHLCVBody(ch chan any, symbol any, optional
 		retRes348612 := (<-this.LoadMarkets())
 		PanicOnError(retRes348612)
 	}
-	var maxLimit any = 200
+	var maxLimit int = 200
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -7075,7 +7075,7 @@ func (this *KucoinCore) fetchUtaOrdersByStatusBody(ch chan any, status any, opti
 		PanicOnError(retRes572412)
 	}
 	var paginate any = false
-	var maxLimit any = 200
+	var maxLimit int = 200
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersByStatus", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
@@ -8516,7 +8516,7 @@ func (this *KucoinCore) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) 
 		trades = this.SafeList(data, "items", []any{})
 	}
 	// v1 may put a bare list or dict under data; normalize once for parseTrades
-	var tradesList any = []any{}
+	var tradesList []any = []any{}
 	if IsTrue(!IsEqual(trades, nil)) {
 		tradesList = this.ToArray(trades)
 	}
@@ -9819,7 +9819,7 @@ func (this *KucoinCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		ch <- retRes797019
 		return nil
 	}
-	var maxLimit any = 500
+	var maxLimit int = 500
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -11117,7 +11117,7 @@ func (this *KucoinCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	typeVar = this.SafeString(accountsByType, requestedType, requestedType)
-	var maxLimit any = 500 // for spot non-uta and margin
+	var maxLimit int = 500 // for spot non-uta and margin
 	if IsTrue(IsEqual(hf, true)) {
 		maxLimit = 200
 	} else if IsTrue(IsEqual(typeVar, "contract")) {
@@ -14219,7 +14219,7 @@ func (this *KucoinCore) fetchOpenInterestHistoryBody(ch chan any, symbol any, op
 		PanicOnError(retRes1157212)
 	}
 	var market any = this.Market(symbol)
-	var maxLimit any = 200
+	var maxLimit int = 200
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", paginate)
 	paginate = GetValue(paginateparamsVariable, 0)

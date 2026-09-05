@@ -3729,7 +3729,7 @@ impl OkxCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: Value = Value::Bool(false);
+        let mut isOption: bool = false;
         if !is_equal(&marketId, &Value::Null) {
             let mut parts: Value = split(&marketId, &Value::Str("-".to_string()));
             let mut partsLength: Value = get_array_length(&parts);
@@ -3739,7 +3739,7 @@ impl OkxCore {
             // misclassifying ordinary ids that merely contain "-C"/"-P" (such as a SPOT id like
             // "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             // on the missing expiry.
-            isOption = Value::Bool(is_true(&(is_greater_than(&partsLength, &Value::Int(3)))) && is_true(&(is_true(&Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string())))) || is_true(&Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string())))))));
+            isOption = is_true(&(is_greater_than(&partsLength, &Value::Int(3)))) && is_true(&(is_true(&Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string())))) || is_true(&Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string()))))));
         }
         if is_true(&isOption) && is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))))) {
             return self.create_expired_option_market(marketId.clone());
@@ -5093,7 +5093,7 @@ impl OkxCore {
     m
 })]);
         let mut timezone: Value = self.safe_string_k(options.clone(), "timezone", &[Value::Str("UTC".to_string())]);
-        let mut limitIsUndefined: Value = Value::Bool(is_equal(&limit, &Value::Null));
+        let mut limitIsUndefined: bool = is_equal(&limit, &Value::Null);
         if is_equal(&limit, &Value::Null) {
             limit = Value::Int(100); // default 100, max 300
         }  else {
@@ -5135,7 +5135,7 @@ impl OkxCore {
         defaultType = self.safe_string_k(options.clone(), "type", &[defaultType.clone()]); // Candles or HistoryCandles
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
-        let mut isHistoryCandles: Value = Value::Bool(is_equal(&type_var, &Value::Str("HistoryCandles".to_string())));
+        let mut isHistoryCandles: bool = is_equal(&type_var, &Value::Str("HistoryCandles".to_string()));
         let mut response: Value = Value::Null;
         if is_equal(&priceType, &Value::Str("mark".to_string())) {
             if is_true(&isHistoryCandles) {
@@ -5558,7 +5558,7 @@ impl OkxCore {
         let mut market: Value = self.market(symbol.clone());
         let mut takeProfitPrice: Value = self.safe_value2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("tpTriggerPx".to_string()), &[]);
         let mut stopLossPrice: Value = self.safe_value2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("slTriggerPx".to_string()), &[]);
-        let mut conditional: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("conditional".to_string())))));
+        let mut conditional: bool = is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("conditional".to_string()))));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -5566,9 +5566,9 @@ impl OkxCore {
                 m.insert("ordType".to_string(), type_var.clone());
             m
         });
-        let mut isConditionalOrOCO: Value = Value::Bool(is_true(&conditional) || is_true(&(is_equal(&type_var, &Value::Str("oco".to_string())))));
+        let mut isConditionalOrOCO: bool = is_true(&conditional) || is_true(&(is_equal(&type_var, &Value::Str("oco".to_string()))));
         let mut closeFraction: Value = self.safe_string_k(params.clone(), "closeFraction", &[]);
-        let mut shouldOmitSize: Value = Value::Bool(is_true(&isConditionalOrOCO) && !is_equal(&closeFraction, &Value::Null));
+        let mut shouldOmitSize: bool = is_true(&isConditionalOrOCO) && !is_equal(&closeFraction, &Value::Null);
         if !is_true(&shouldOmitSize) {
             add_element_to_object(&mut request, &Value::Str("sz".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
@@ -5585,14 +5585,14 @@ impl OkxCore {
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
         let mut trailingPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingPrice".to_string()), Value::Str("callbackSpread".to_string()), &[]);
-        let mut isTrailingPriceOrder: Value = Value::Bool(!is_equal(&trailingPrice, &Value::Null));
-        let mut trigger: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("trigger".to_string())))));
-        let mut isReduceOnly: Value = Value::Bool(is_true(&(is_equal(&self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]), &Value::Bool(true)))) || is_true(&(!is_equal(&closeFraction, &Value::Null))));
+        let mut isTrailingPriceOrder: bool = !is_equal(&trailingPrice, &Value::Null);
+        let mut trigger: bool = is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("trigger".to_string()))));
+        let mut isReduceOnly: bool = is_true(&(is_equal(&self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]), &Value::Bool(true)))) || is_true(&(!is_equal(&closeFraction, &Value::Null)));
         let mut defaultMarginMode: Value = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".to_string()), Value::Str("marginMode".to_string()), &[Value::Str("cross".to_string())]);
         let mut marginMode: Value = self.safe_string2(params.clone(), Value::Str("marginMode".to_string()), Value::Str("tdMode".to_string()), &[]); // cross or isolated, tdMode not omitted so as to be extended into the request
         let mut margin: Value = Value::Bool(false);
@@ -5620,8 +5620,8 @@ impl OkxCore {
                     let mut hedged: Value = Value::Null;
                     { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("hedged".to_string()), &[]); hedged = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                     if is_equal(&hedged, &Value::Bool(true)) {
-                        let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
-                        let mut isProtective: Value = Value::Bool(is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&isReduceOnly));
+                        let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
+                        let mut isProtective: bool = is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&isReduceOnly);
                         if is_true(&isProtective) {
                             // in case of protective orders, the posSide should be opposite of position side
                             // reduceOnly is emulated and not natively supported by the exchange
@@ -5641,10 +5641,10 @@ impl OkxCore {
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(is_equal(&type_var, &Value::Str("post_only".to_string()))), &[params.clone()]); postOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("currency".to_string()), Value::Str("ccy".to_string()), Value::Str("marginMode".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("slOrdPx".to_string()), Value::Str("tpOrdPx".to_string()), Value::Str("margin".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("trailingPercent".to_string())]), &[]);
-        let mut ioc: Value = Value::Bool(is_true(&(is_equal(&timeInForce, &Value::Str("IOC".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("ioc".to_string())))));
-        let mut fok: Value = Value::Bool(is_true(&(is_equal(&timeInForce, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("fok".to_string())))));
+        let mut ioc: bool = is_true(&(is_equal(&timeInForce, &Value::Str("IOC".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("ioc".to_string()))));
+        let mut fok: bool = is_true(&(is_equal(&timeInForce, &Value::Str("FOK".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("fok".to_string()))));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
-        let mut marketIOC: Value = Value::Bool(is_true(&(is_true(&isMarketOrder) && is_true(&ioc))) || is_true(&(is_equal(&type_var, &Value::Str("optimal_limit_ioc".to_string())))));
+        let mut marketIOC: bool = is_true(&(is_true(&isMarketOrder) && is_true(&ioc))) || is_true(&(is_equal(&type_var, &Value::Str("optimal_limit_ioc".to_string()))));
         let mut defaultTgtCcy: Value = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".to_string())]);
         let mut tgtCcy: Value = self.safe_string_k(params.clone(), "tgtCcy", &[defaultTgtCcy.clone()]);
         if is_true(&(!is_equal(&contract, &Value::Bool(true)))) && is_true(&(!is_equal(&margin, &Value::Bool(true)))) {
@@ -5719,8 +5719,8 @@ impl OkxCore {
                 let mut stopLossLimitPrice: Value = self.safe_value_n(stopLoss.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("slOrdPx".to_string())]), &[]);
                 let mut stopLossOrderType: Value = self.safe_string_k(stopLoss.clone(), "type", &[]);
                 if !is_equal(&stopLossOrderType, &Value::Null) {
-                    let mut stopLossLimitOrderType: Value = Value::Bool(is_equal(&stopLossOrderType, &Value::Str("limit".to_string())));
-                    let mut stopLossMarketOrderType: Value = Value::Bool(is_equal(&stopLossOrderType, &Value::Str("market".to_string())));
+                    let mut stopLossLimitOrderType: bool = is_equal(&stopLossOrderType, &Value::Str("limit".to_string()));
+                    let mut stopLossMarketOrderType: bool = is_equal(&stopLossOrderType, &Value::Str("market".to_string()));
                     if is_true(&(!is_true(&stopLossLimitOrderType))) && is_true(&(!is_true(&stopLossMarketOrderType))) {
                         panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"".to_string()))));
                     }  else if is_true(&stopLossLimitOrderType) {
@@ -5759,8 +5759,8 @@ impl OkxCore {
                 let mut takeProfitLimitPrice: Value = self.safe_value_n(takeProfit.clone(), Value::List(vec![Value::Str("price".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("tpOrdPx".to_string())]), &[]);
                 let mut takeProfitOrderType: Value = self.safe_string2(takeProfit.clone(), Value::Str("type".to_string()), Value::Str("tpOrdKind".to_string()), &[]);
                 if !is_equal(&takeProfitOrderType, &Value::Null) {
-                    let mut takeProfitLimitOrderType: Value = Value::Bool(is_equal(&takeProfitOrderType, &Value::Str("limit".to_string())));
-                    let mut takeProfitMarketOrderType: Value = Value::Bool(is_equal(&takeProfitOrderType, &Value::Str("market".to_string())));
+                    let mut takeProfitLimitOrderType: bool = is_equal(&takeProfitOrderType, &Value::Str("limit".to_string()));
+                    let mut takeProfitMarketOrderType: bool = is_equal(&takeProfitOrderType, &Value::Str("market".to_string()));
                     if is_true(&(!is_true(&takeProfitLimitOrderType))) && is_true(&(!is_true(&takeProfitMarketOrderType))) {
                         panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"".to_string()))));
                     }  else if is_true(&takeProfitLimitOrderType) {
@@ -5801,7 +5801,7 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("orderPx".to_string()), ternary(is_true(&isMarketOrder), Value::Str("-1".to_string()), self.price_to_precision(symbol.clone(), price.clone())));
         }  else if is_true(&conditional) {
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("conditional".to_string()));
-            let mut twoWayCondition: Value = Value::Bool(is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) && is_true(&(!is_equal(&stopLossPrice, &Value::Null))));
+            let mut twoWayCondition: bool = is_true(&(!is_equal(&takeProfitPrice, &Value::Null))) && is_true(&(!is_equal(&stopLossPrice, &Value::Null)));
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
             // tpOrdKind is 'condition' which is the default
@@ -6035,8 +6035,8 @@ impl OkxCore {
         let mut takeProfitTriggerPriceType: Value = self.safe_string_k(params.clone(), "newTpTriggerPxType", &[Value::Str("last".to_string())]);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         if is_true(&isAlgoOrder) {
             if is_true(&(is_equal(&stopLossTriggerPrice, &Value::Null))) && is_true(&(is_equal(&takeProfitTriggerPrice, &Value::Null))) {
                 panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order".to_string()))));
@@ -6207,7 +6207,7 @@ impl OkxCore {
         }
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false)))));
+        let mut isTrigger: bool = is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false))));
         if is_true(&isTrigger) || is_true(&(is_equal(&trailing, &Value::Bool(true)))) {
             let mut orderInner: Value = self.cancel_orders(Value::List(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
             return self.safe_dict(orderInner.clone(), Value::Int(0), &[]);
@@ -6293,7 +6293,7 @@ impl OkxCore {
         let mut algoIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "algoId", &[]));
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false)))));
+        let mut isTrigger: bool = is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false))));
         if is_true(&isTrigger) || is_true(&(is_equal(&trailing, &Value::Bool(true)))) {
             method = Value::Str("privatePostTradeCancelAlgos".to_string());
         }
@@ -6885,7 +6885,7 @@ impl OkxCore {
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("privateGetTradeOrder".to_string())]);
         let mut method: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false)))));
+        let mut isTrigger: bool = is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false))));
         if is_true(&isTrigger) {
             method = Value::Str("privateGetTradeOrderAlgo".to_string());
             if !is_equal(&clientOrderId, &Value::Null) {
@@ -7071,7 +7071,7 @@ impl OkxCore {
         let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false)))));
+        let mut isTrigger: bool = is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false))));
         if is_true(&(is_equal(&trailing, &Value::Bool(true)))) || is_true(&isTrigger) || is_true(&(is_true(&(!is_equal(&ordType, &Value::Null))) && is_true(&(Value::Bool(in_op(&algoOrderTypes, &ordType)))))) {
             method = Value::Str("privateGetTradeOrdersAlgoPending".to_string());
         }
@@ -7248,7 +7248,7 @@ impl OkxCore {
         let mut ordType: Value = self.safe_string_k(params.clone(), "ordType", &[]);
         let mut trigger: Value = self.safe_value2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false)))));
+        let mut isTrigger: bool = is_true(&(!is_equal(&trigger, &Value::Null))) && is_true(&(!is_equal(&trigger, &Value::Bool(false))));
         if is_equal(&trailing, &Value::Bool(true)) {
             method = Value::Str("privateGetTradeOrdersAlgoHistory".to_string());
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("move_order_stop".to_string()));
@@ -9474,7 +9474,7 @@ impl OkxCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut isArray: Value = Value::Bool(is_array(&params));
+        let mut isArray: bool = is_array(&params);
         let mut request: Value = add(&add(&add(&Value::Str("/api/".to_string()), &self.version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut url: Value = add(&self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("rest".to_string()))), &request);
@@ -9670,7 +9670,7 @@ impl OkxCore {
     m
 })]);
         let mut ruleType: Value = self.safe_string_k(marketInfo.clone(), "ruleType", &[]);
-        let mut isExtendedPerpetual: Value = Value::Bool(is_equal(&ruleType, &Value::Str("xperp".to_string()))); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        let mut isExtendedPerpetual: bool = is_equal(&ruleType, &Value::Str("xperp".to_string())); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
         if is_true(&(!is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) && !is_true(&isExtendedPerpetual) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchFundingRate() is only valid for swap markets or XPERP futures".to_string()))));
         }
@@ -9737,7 +9737,7 @@ impl OkxCore {
     m
 })]);
                 let mut ruleType: Value = self.safe_string_k(marketInfo.clone(), "ruleType", &[]);
-                let mut isExtendedPerpetual: Value = Value::Bool(is_equal(&ruleType, &Value::Str("xperp".to_string()))); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                let mut isExtendedPerpetual: bool = is_equal(&ruleType, &Value::Str("xperp".to_string())); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if is_true(&(!is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) && !is_true(&isExtendedPerpetual) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" fetchFundingRates() symbols must be swap markets or XPERP futures, ".to_string())), &get_value(&symbols, &i)), &Value::Str(" is not".to_string()))));
                 }
@@ -12531,7 +12531,7 @@ impl OkxCore {
         if is_equal(&type_var, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory () requires a type argument".to_string()))));
         }
-        let mut isAdd: Value = Value::Bool(is_equal(&type_var, &Value::Str("add".to_string())));
+        let mut isAdd: bool = is_equal(&type_var, &Value::Str("add".to_string()));
         let mut subType: Value = ternary(is_true(&isAdd), Value::Str("160".to_string()), Value::Str("161".to_string()));
         if is_equal(&auto, &Value::Bool(true)) {
             if is_true(&isAdd) {

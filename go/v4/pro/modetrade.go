@@ -765,7 +765,7 @@ func (this *ModetradeCore) authenticateBody(ch chan any, optionalArgs ...any) an
 			var parts []string = ccxt.Split(secret, "ed25519:")
 			secret = ccxt.GetValue(parts, 1)
 		}
-		var signature any = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
+		var signature string = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
 		var request map[string]any = map[string]any{
 			"event": event,
 			"params": map[string]any{

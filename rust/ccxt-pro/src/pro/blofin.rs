@@ -1168,7 +1168,7 @@ impl BlofinCore {
         }
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[callerMethodName.clone()]); callerMethodName = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-        let mut isOHLCV: Value = Value::Bool(is_equal(&channelName, &Value::Str("candle".to_string())));
+        let mut isOHLCV: bool = is_equal(&channelName, &Value::Str("candle".to_string()));
         let mut symbols: Value = ternary(is_true(&isOHLCV), self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)), symbolsArray.clone());
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
         let mut firstMarket: Value = Value::Null;

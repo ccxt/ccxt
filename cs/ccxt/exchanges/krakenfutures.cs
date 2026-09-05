@@ -70,7 +70,7 @@ public partial class krakenfutures : Exchange
                 { "fetchOrders", true },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
-                { "fetchTicker", "emulated" },
+                { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", "emulated" },
@@ -114,6 +114,9 @@ public partial class krakenfutures : Exchange
                             { "cost", 1 },
                         } },
                         { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "history", new Dictionary<string, object>() {
@@ -273,6 +276,7 @@ public partial class krakenfutures : Exchange
                     { "notFound", typeof(BadRequest) },
                     { "Server Error", typeof(ExchangeError) },
                     { "unknownError", typeof(ExchangeError) },
+                    { "contractNotFound", typeof(BadSymbol) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "invalidArgument", typeof(BadRequest) },
@@ -660,6 +664,52 @@ public partial class krakenfutures : Exchange
         Int64? timestamp = this.parse8601(this.safeString(response, "serverTime"));
         object orderBook = this.safeDict(response, "orderBook", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, symbol, timestamp));
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.publicGetTickersSymbol(this.extend(request, parameters));
+        //
+        //    {
+        //        "result": "success",
+        //        "ticker": {
+        //            "tag": "perpetual",
+        //            "pair": "XBT:USD",
+        //            "symbol": "PF_XBTUSD",
+        //            "markPrice": 77343.38154086835,
+        //            "bid": 77333,
+        //            "bidSize": 0.0776,
+        //            "ask": 77334,
+        //            "askSize": 0.4929,
+        //            "vol24h": 8309.2546,
+        //            "openInterest": 1950.596600000000000,
+        //            "open24h": 77332,
+        //            "indexPrice": 77340.22,
+        //            "last": 77334,
+        //            "lastTime": "2026-09-02T17:52:21.057577Z",
+        //            "lastSize": 0.0114,
+        //            "suspended": false
+        //        },
+        //        "serverTime": "2026-09-02T17:52:21.671Z"
+        //    }
+        //
+        object ticker = this.safeDict(response, "ticker", new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     /**

@@ -33,7 +33,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	var method string = "watchTickers"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
-	var maxIdleTime any = 5000
+	var maxIdleTime int = 5000
 	var idle bool = false
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = map[string]any{}
@@ -83,7 +83,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 		}
 		if IsTrue(IsEqual(success, true)) {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
-			var values any = ObjectValues(response)
+			var values []any = ObjectValues(response)
 			var checkedSymbol any = nil
 			if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
 				checkedSymbol = GetValue(argSymbols, 0)

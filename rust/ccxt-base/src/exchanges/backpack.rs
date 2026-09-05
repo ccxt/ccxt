@@ -2580,7 +2580,7 @@ impl BackpackCore {
             m
         });
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut quantityKey: Value = ternary(is_true(&isTriggerOrder), Value::Str("triggerQuantity".to_string()), Value::Str("quantity".to_string()));
         // handle basic limit/market order types
         if is_equal(&type_var, &Value::Str("limit".to_string())) {

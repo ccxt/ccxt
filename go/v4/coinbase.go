@@ -4804,7 +4804,7 @@ func (this *CoinbaseCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		retRes390612 := (<-this.LoadMarkets())
 		PanicOnError(retRes390612)
 	}
-	var maxLimit any = 300
+	var maxLimit int = 300
 	limit = Ternary(IsTrue((IsEqual(limit, nil))), maxLimit, mathMin(limit, maxLimit))
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -6553,7 +6553,7 @@ func (this *CoinbaseCore) CreateAuthToken(seconds any, optionalArgs ...any) any 
 		}
 	}
 	// eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
-	var nonce any = this.RandomBytes(16)
+	var nonce string = this.RandomBytes(16)
 	var aud any = Ternary(IsTrue(useEddsa), "cdp_service", "retail_rest_api_proxy")
 	var iss any = Ternary(IsTrue(useEddsa), "cdp", "coinbase-cloud")
 	var request map[string]any = map[string]any{
@@ -6572,7 +6572,7 @@ func (this *CoinbaseCore) CreateAuthToken(seconds any, optionalArgs ...any) any 
 		}
 	}
 	if IsTrue(useEddsa) {
-		var byteArray any = this.Base64ToBinary(this.Secret)
+		var byteArray []byte = this.Base64ToBinary(this.Secret)
 		var seed any = this.ArraySlice(byteArray, 0, 32)
 		return Jwt(request, seed, sha256, false, map[string]any{
 			"kid":   this.ApiKey,

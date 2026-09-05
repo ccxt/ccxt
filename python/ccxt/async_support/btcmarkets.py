@@ -303,7 +303,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -800,7 +800,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    async def fetch_ticker_2(self, symbol: str, params={}):
+    async def fetch_ticker_2(self, symbol: str, params={}) -> Ticker:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

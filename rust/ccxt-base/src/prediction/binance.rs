@@ -571,7 +571,7 @@ impl BinanceCore {
             let mut rawTopic: Value = get_value(&rawTopics, &i);
             let mut rawMarkets: Value = self.safe_list_k(rawTopic.clone(), "markets", &[Value::List(vec![])]);
             let mut rawMarketsLength: Value = get_array_length(&rawMarkets);
-            let mut hasOutcomes: Value = Value::Bool(false);
+            let mut hasOutcomes: bool = false;
             if is_greater_than(&rawMarketsLength, &Value::Int(0)) {
                 let mut firstMarket: Value = self.safe_dict(rawMarkets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -579,7 +579,7 @@ impl BinanceCore {
 })]);
                 let mut firstOutcomes: Value = self.safe_list_k(firstMarket.clone(), "outcomes", &[Value::List(vec![])]);
                 let mut firstOutcomesLength: Value = get_array_length(&firstOutcomes);
-                hasOutcomes = Value::Bool(is_greater_than(&firstOutcomesLength, &Value::Int(0)));
+                hasOutcomes = is_greater_than(&firstOutcomesLength, &Value::Int(0));
             }
             if is_true(&hasOutcomes) {
                 append_to_array(&mut result, rawTopic.clone());
@@ -1181,12 +1181,12 @@ impl BinanceCore {
     m
 })]);
         let mut outcomeIndex: Value = self.safe_string_k(outcomeInfo.clone(), "index", &[]);
-        let mut isMirrored: Value = Value::Bool(false);
+        let mut isMirrored: bool = false;
         if !is_equal(&outcomeIndex, &Value::Null) {
-            isMirrored = Value::Bool(!is_equal(&outcomeIndex, &Value::Str("0".to_string())));
+            isMirrored = !is_equal(&outcomeIndex, &Value::Str("0".to_string()));
         }  else {
             let mut label: Value = self.safe_string_upper(outcomeObj.clone(), Value::Str("label".to_string()), &[Value::Str("YES".to_string())]);
-            isMirrored = Value::Bool(is_true(&(is_equal(&label, &Value::Str("NO".to_string())))) || is_true(&(is_equal(&label, &Value::Str("DOWN".to_string())))));
+            isMirrored = is_true(&(is_equal(&label, &Value::Str("NO".to_string())))) || is_true(&(is_equal(&label, &Value::Str("DOWN".to_string()))));
         }
         let mut lastString: Value = self.safe_string_k(raw.clone(), "lastTradePrice", &[]);
         let mut last: Value = Value::Null;

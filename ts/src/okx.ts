@@ -1921,7 +1921,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type: any, params = {}) {
+    async fetchMarketsByType (type: any, params = {}): Promise<Market[]> {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -5689,7 +5689,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5793,7 +5793,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

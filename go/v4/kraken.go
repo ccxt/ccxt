@@ -2220,10 +2220,10 @@ func (this *KrakenCore) GetDelistedMarketById(id any) any {
 	if IsTrue(!IsEqual(market, nil)) {
 		return market
 	}
-	var baseIdStart any = 0
-	var baseIdEnd any = 3
-	var quoteIdStart any = 3
-	var quoteIdEnd any = 6
+	var baseIdStart int = 0
+	var baseIdEnd int = 3
+	var quoteIdStart int = 3
+	var quoteIdEnd int = 6
 	if IsTrue(IsEqual(GetArrayLength(id), 8)) {
 		baseIdEnd = 4
 		quoteIdStart = 4
@@ -2233,8 +2233,8 @@ func (this *KrakenCore) GetDelistedMarketById(id any) any {
 		quoteIdStart = 4
 		quoteIdEnd = 7
 	}
-	var baseId any = Slice(id, baseIdStart, baseIdEnd)
-	var quoteId any = Slice(id, quoteIdStart, quoteIdEnd)
+	var baseId string = Slice(id, baseIdStart, baseIdEnd)
+	var quoteId string = Slice(id, quoteIdStart, quoteIdEnd)
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
@@ -3090,7 +3090,7 @@ func (this *KrakenCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var tradesList any = this.ToArray(trades)
+	var tradesList []any = this.ToArray(trades)
 
 	ch <- this.ParseTrades(tradesList, market, since, limit)
 	return nil
@@ -4462,11 +4462,11 @@ func (this *KrakenCore) Sign(path any, optionalArgs ...any) any {
 				"nonce": nonce,
 			}, params))
 		}
-		var auth any = this.Encode(Add(nonce, body))
+		var auth string = this.Encode(Add(nonce, body))
 		var hash any = this.Hash(auth, sha256, "binary")
-		var binary any = this.Encode(url)
-		var binhash any = this.BinaryConcat(binary, hash)
-		var secret any = this.Base64ToBinary(this.Secret)
+		var binary string = this.Encode(url)
+		var binhash []byte = this.BinaryConcat(binary, hash)
+		var secret []byte = this.Base64ToBinary(this.Secret)
 		var signature string = this.Hmac(binhash, secret, sha512, "base64")
 		headers = map[string]any{
 			"API-Key":  this.ApiKey,

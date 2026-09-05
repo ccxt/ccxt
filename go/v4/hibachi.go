@@ -976,7 +976,7 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
-	var sideInternal any = 0
+	var sideInternal int = 0
 	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = 0
 	} else if IsTrue(IsEqual(side, "buy")) {
@@ -997,31 +997,31 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, underlying), one, 0)
 	var feeRateInternal any = Precise.StringDiv(Precise.StringMul(feeRateStr, feeRateFactor), one, 0)
 	// Encoding
-	var nonce16 any = this.IntToBase16(nonce)
-	var noncePadded any = PadStart(nonce16, 16, "0")
-	var encodedNonce any = this.Base16ToBinary(noncePadded)
-	var numericId any = this.IntToBase16(this.SafeInteger(market, "numericId"))
-	var numericIdPadded any = PadStart(numericId, 8, "0")
-	var encodedMarketId any = this.Base16ToBinary(numericIdPadded)
-	var quantity16 any = this.IntToBase16(this.ParseToInt(quantityInternal))
-	var quantityPadded any = PadStart(quantity16, 16, "0")
-	var encodedQuantity any = this.Base16ToBinary(quantityPadded)
-	var sideInternal16 any = this.IntToBase16(sideInternal)
-	var sidePadded any = PadStart(sideInternal16, 8, "0")
-	var encodedSide any = this.Base16ToBinary(sidePadded)
-	var feeRateInternal16 any = this.IntToBase16(this.ParseToInt(feeRateInternal))
-	var feeRatePadded any = PadStart(feeRateInternal16, 16, "0")
-	var encodedFeeRate any = this.Base16ToBinary(feeRatePadded)
-	var encodedPrice any = this.BinaryConcat()
+	var nonce16 string = this.IntToBase16(nonce)
+	var noncePadded string = PadStart(nonce16, 16, "0")
+	var encodedNonce []byte = this.Base16ToBinary(noncePadded)
+	var numericId string = this.IntToBase16(this.SafeInteger(market, "numericId"))
+	var numericIdPadded string = PadStart(numericId, 8, "0")
+	var encodedMarketId []byte = this.Base16ToBinary(numericIdPadded)
+	var quantity16 string = this.IntToBase16(this.ParseToInt(quantityInternal))
+	var quantityPadded string = PadStart(quantity16, 16, "0")
+	var encodedQuantity []byte = this.Base16ToBinary(quantityPadded)
+	var sideInternal16 string = this.IntToBase16(sideInternal)
+	var sidePadded string = PadStart(sideInternal16, 8, "0")
+	var encodedSide []byte = this.Base16ToBinary(sidePadded)
+	var feeRateInternal16 string = this.IntToBase16(this.ParseToInt(feeRateInternal))
+	var feeRatePadded string = PadStart(feeRateInternal16, 16, "0")
+	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
+	var encodedPrice []byte = this.BinaryConcat()
 	if IsTrue(IsEqual(typeVar, "limit")) {
 		var priceStr any = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal any = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
-		var price16 any = this.IntToBase16(this.ParseToInt(priceInternal))
-		var pricePadded any = PadStart(price16, 16, "0")
+		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
+		var pricePadded string = PadStart(price16, 16, "0")
 		// @ts-expect-error
 		encodedPrice = this.Base16ToBinary(pricePadded)
 	}
-	var message any = this.BinaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
+	var message []byte = this.BinaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
 	return message
 }
 func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -1340,9 +1340,9 @@ func (this *HibachiCore) editOrdersBody(ch chan any, orders any, optionalArgs ..
 }
 func (this *HibachiCore) CancelOrderRequest(id any) any {
 	var bigid any = this.ConvertToBigInt(id)
-	var idbase16 any = this.IntToBase16(bigid)
-	var idPadded any = PadStart(idbase16, 16, "0")
-	var message any = this.Base16ToBinary(idPadded)
+	var idbase16 string = this.IntToBase16(bigid)
+	var idPadded string = PadStart(idbase16, 16, "0")
+	var message []byte = this.Base16ToBinary(idPadded)
 	var signature any = this.SignMessage(message, this.PrivateKey)
 	return map[string]any{
 		"orderId":   id,
@@ -1470,9 +1470,9 @@ func (this *HibachiCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes121212)
 	}
 	var nonce any = this.Nonce()
-	var nonce16 any = this.IntToBase16(nonce)
-	var noncePadded any = PadStart(nonce16, 16, "0")
-	var message any = this.Base16ToBinary(noncePadded)
+	var nonce16 string = this.IntToBase16(nonce)
+	var noncePadded string = PadStart(nonce16, 16, "0")
+	var message []byte = this.Base16ToBinary(noncePadded)
 	var signature any = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -1501,7 +1501,7 @@ func (this *HibachiCore) EncodeWithdrawMessage(amount any, maxFees any, address 
 	// - Quantity: Internal = External * (10^6)
 	// - maxFees: Internal = External * (10^6)
 	// We only have USDT as our currency as this time
-	var USDTAssetId any = 1
+	var USDTAssetId int = 1
 	var USDTFactor string = "1000000"
 	var amountStr any = this.NumberToString(amount)
 	var maxFeesStr any = this.NumberToString(maxFees)
@@ -1509,17 +1509,17 @@ func (this *HibachiCore) EncodeWithdrawMessage(amount any, maxFees any, address 
 	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, USDTFactor), one, 0)
 	var maxFeesInternal any = Precise.StringDiv(Precise.StringMul(maxFeesStr, USDTFactor), one, 0)
 	// Encoding
-	var usdtAsset16 any = this.IntToBase16(USDTAssetId)
-	var usdtAssetPadded any = PadStart(usdtAsset16, 8, "0")
-	var encodedAssetId any = this.Base16ToBinary(usdtAssetPadded)
-	var quantity16 any = this.IntToBase16(this.ParseToInt(quantityInternal))
-	var quantityPadded any = PadStart(quantity16, 16, "0")
-	var encodedQuantity any = this.Base16ToBinary(quantityPadded)
-	var maxFees16 any = this.IntToBase16(this.ParseToInt(maxFeesInternal))
-	var maxFeesPadded any = PadStart(maxFees16, 16, "0")
-	var encodedMaxFees any = this.Base16ToBinary(maxFeesPadded)
-	var encodedAddress any = this.Base16ToBinary(address)
-	var message any = this.BinaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
+	var usdtAsset16 string = this.IntToBase16(USDTAssetId)
+	var usdtAssetPadded string = PadStart(usdtAsset16, 8, "0")
+	var encodedAssetId []byte = this.Base16ToBinary(usdtAssetPadded)
+	var quantity16 string = this.IntToBase16(this.ParseToInt(quantityInternal))
+	var quantityPadded string = PadStart(quantity16, 16, "0")
+	var encodedQuantity []byte = this.Base16ToBinary(quantityPadded)
+	var maxFees16 string = this.IntToBase16(this.ParseToInt(maxFeesInternal))
+	var maxFeesPadded string = PadStart(maxFees16, 16, "0")
+	var encodedMaxFees []byte = this.Base16ToBinary(maxFeesPadded)
+	var encodedAddress []byte = this.Base16ToBinary(address)
+	var message []byte = this.BinaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
 	return message
 }
 
@@ -1547,7 +1547,7 @@ func (this *HibachiCore) withdrawBody(ch chan any, code any, amount any, address
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var withdrawAddress any = Slice(address, OpNeg(40), nil)
+	var withdrawAddress string = Slice(address, OpNeg(40), nil)
 	// Get the withdraw fees
 
 	exchangeInfo := (<-this.PublicGetMarketExchangeInfo(params))
@@ -1621,10 +1621,10 @@ func (this *HibachiCore) SignMessage(message any, privateKey any) any {
 	} else {
 		// For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
 		var hash any = this.Hash(message, sha256, "hex")
-		var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+		var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 		var r any = GetValue(signature, "r")
 		var s any = GetValue(signature, "s")
-		var v any = this.IntToBase16(GetValue(signature, "v"))
+		var v string = this.IntToBase16(GetValue(signature, "v"))
 		return Add(Add(PadStart(r, 64, "0"), PadStart(s, 64, "0")), PadStart(v, 2, "0"))
 	}
 }
@@ -1999,7 +1999,7 @@ func (this *HibachiCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 
 	orders := (<-this.FetchOrdersByStatus("filled", symbol, since, limit, params))
 	PanicOnError(orders)
-	var filtered any = this.FilterBy(orders, "status", "closed")
+	var filtered []any = this.FilterBy(orders, "status", "closed")
 
 	ch <- this.FilterBySinceLimit(filtered, since, limit)
 	return nil
@@ -2037,7 +2037,7 @@ func (this *HibachiCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...an
 
 	orders := (<-this.FetchOrdersByStatus(nil, symbol, since, limit, params))
 	PanicOnError(orders)
-	var filtered any = this.FilterBy(orders, "status", "canceled")
+	var filtered []any = this.FilterBy(orders, "status", "canceled")
 
 	ch <- this.FilterBySinceLimit(filtered, since, limit)
 	return nil
@@ -2261,7 +2261,7 @@ func (this *HibachiCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(method, "GET")) {
 		var request any = this.Omit(params, this.ExtractParams(path))
-		var query any = this.Urlencode(request)
+		var query string = this.Urlencode(request)
 		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
@@ -2685,7 +2685,7 @@ func (this *HibachiCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 
 	transactions := (<-this.FetchDepositsWithdrawals(code, since, nil, params))
 	PanicOnError(transactions)
-	var deposits any = this.FilterBy(transactions, "type", "deposit")
+	var deposits []any = this.FilterBy(transactions, "type", "deposit")
 
 	ch <- this.FilterBySinceLimit(deposits, since, limit, "timestamp")
 	return nil
@@ -2721,7 +2721,7 @@ func (this *HibachiCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 
 	transactions := (<-this.FetchDepositsWithdrawals(code, since, nil, params))
 	PanicOnError(transactions)
-	var withdrawals any = this.FilterBy(transactions, "type", "withdrawal")
+	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
 
 	ch <- this.FilterBySinceLimit(withdrawals, since, limit, "timestamp")
 	return nil
@@ -2833,7 +2833,7 @@ func (this *HibachiCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs 
 	//
 	var data any = this.SafeList(response, "settlements", []any{})
 	var settlements any = this.ParseSettlements(data, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -3051,7 +3051,7 @@ func (this *HibachiCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil

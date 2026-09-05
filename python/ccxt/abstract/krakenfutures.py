@@ -7,6 +7,7 @@ class ImplicitAPI:
     public_get_instruments = publicGetInstruments = Entry[_Dict]('instruments', 'public', 'GET', {'cost': 1})
     public_get_orderbook = publicGetOrderbook = Entry[_Dict]('orderbook', 'public', 'GET', {'cost': 1})
     public_get_tickers = publicGetTickers = Entry[_Dict]('tickers', 'public', 'GET', {'cost': 1})
+    public_get_tickers_symbol = publicGetTickersSymbol = Entry[_Dict]('tickers/{symbol}', 'public', 'GET', {'cost': 1})
     public_get_history = publicGetHistory = Entry[_Dict]('history', 'public', 'GET', {'cost': 1})
     public_get_historicalfundingrates = publicGetHistoricalfundingrates = Entry[_Dict]('historicalfundingrates', 'public', 'GET', {'cost': 1})
     private_get_feeschedules_volumes = privateGetFeeschedulesVolumes = Entry[_Dict]('feeschedules/volumes', 'private', 'GET', {'cost': 1})

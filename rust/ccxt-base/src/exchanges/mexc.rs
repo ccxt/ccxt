@@ -2223,7 +2223,7 @@ impl MexcCore {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            let mut success: Value = Value::Bool(is_equal(&self.safe_bool_k(response.clone(), "success", &[]), &Value::Bool(true)));
+            let mut success: bool = is_equal(&self.safe_bool_k(response.clone(), "success", &[]), &Value::Bool(true));
             status = ternary(is_true(&success), Value::Str("ok".to_string()), self.json(response.clone()));
             updated = self.safe_integer_k(response.clone(), "data", &[]);
         }
@@ -2988,7 +2988,7 @@ impl MexcCore {
                         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), &[]));
                     m
                 });
-                let mut isTaker: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "taker", &[]), &Value::Bool(true)));
+                let mut isTaker: bool = is_equal(&self.safe_bool_k(trade.clone(), "taker", &[]), &Value::Bool(true));
                 takerOrMaker = ternary(is_true(&isTaker), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
             }  else {
                 timestamp = self.safe_integer2(trade.clone(), Value::Str("time".to_string()), Value::Str("T".to_string()), &[]);
@@ -3213,10 +3213,10 @@ impl MexcCore {
             m
         });
         let mut market: Value = Value::Null;
-        let mut isSingularMarket: Value = Value::Bool(false);
+        let mut isSingularMarket: bool = false;
         if !is_equal(&symbols, &Value::Null) {
             let mut length: Value = get_array_length(&symbols);
-            isSingularMarket = Value::Bool(is_equal(&length, &Value::Int(1)));
+            isSingularMarket = is_equal(&length, &Value::Int(1));
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             market = self.market(firstSymbol.clone());
         }
@@ -3481,10 +3481,10 @@ impl MexcCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
-        let mut isSingularMarket: Value = Value::Bool(false);
+        let mut isSingularMarket: bool = false;
         if !is_equal(&symbols, &Value::Null) {
             let mut length: Value = get_array_length(&symbols);
-            isSingularMarket = Value::Bool(is_equal(&length, &Value::Int(1)));
+            isSingularMarket = is_equal(&length, &Value::Int(1));
             market = self.market(get_value(&symbols, &Value::Int(0)));
         }
         let mut marketTypequeryVariable = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".to_string()), &[market.clone(), params.clone()]);

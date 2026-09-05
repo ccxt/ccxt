@@ -16,6 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
+import { installCcxtGoLocalTypes } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
@@ -1167,6 +1168,9 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig());
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
+        // build/go-worker.js installs the same hook for the Piscina path
+        installCcxtGoLocalTypes (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
@@ -2842,7 +2846,7 @@ ${caseStatements.join('\n')}
         const maxThreads = this.goWorkerThreads ()
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'go-worker.js'),
+                filename: resolve(__dirname, 'go-worker.ts'),
                 maxThreads,
             });
         }
@@ -2852,7 +2856,7 @@ ${caseStatements.join('\n')}
         const promises: any = [];
         const now = Date.now();
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         for (const file of allFiles) {
             promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }

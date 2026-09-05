@@ -1006,7 +1006,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchInverseSwapMarkets (params: any) {
+    async fetchInverseSwapMarkets (params: any): Promise<Market[]> {
         const response = await this.cswapV1PublicGetMarketContracts (params);
         //
         //     {

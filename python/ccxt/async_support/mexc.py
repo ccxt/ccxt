@@ -2368,7 +2368,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['type'] = 'FILL_OR_KILL'
         return self.extend(request, params)
 
-    async def create_spot_order(self, market: object, type: OrderType, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}):
+    async def create_spot_order(self, market: object, type: OrderType, side: object, amount: object, price: Num = None, marginMode: Str = None, params={}) -> Order:
         """
  @ignore
         create a trade order

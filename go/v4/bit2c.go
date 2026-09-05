@@ -605,7 +605,7 @@ func (this *Bit2cCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit) // max 100000
 	}
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(IsEqual(method, "public_get_exchanges_pair_trades")) {
 
 		response := (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
@@ -1101,7 +1101,7 @@ func (this *Bit2cCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	var responseList any = []any{}
+	var responseList []any = []any{}
 	if IsTrue(!IsEqual(response, nil)) {
 		responseList = this.ToArray(response)
 	}
@@ -1309,7 +1309,7 @@ func (this *Bit2cCore) Sign(path any, optionalArgs ...any) any {
 		var query map[string]any = this.Extend(map[string]any{
 			"nonce": nonce,
 		}, params)
-		var auth any = this.Urlencode(query)
+		var auth string = this.Urlencode(query)
 		if IsTrue(IsEqual(method, "GET")) {
 			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", auth))

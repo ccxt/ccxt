@@ -2628,7 +2628,7 @@ class hyperliquid extends Exchange {
         return $orders;
     }
 
-    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_twap_order(...))($id, $symbol, $params);
     }
 

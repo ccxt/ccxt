@@ -1473,7 +1473,7 @@ impl CoinspotCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut isVersionedApi: Value = Value::Bool(is_array(&api));
+        let mut isVersionedApi: bool = is_array(&api);
         let mut version: Value = ternary(is_true(&isVersionedApi), get_value(&api, &Value::Int(0)), Value::Null);
         let mut accessType: Value = ternary(is_true(&isVersionedApi), get_value(&api, &Value::Int(1)), api.clone());
         let mut endpoint: Value = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));

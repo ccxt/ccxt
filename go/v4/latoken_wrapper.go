@@ -225,7 +225,7 @@ func (this *Latoken) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	}
 	return NewTradingFeeInterface(res), nil
 }
-func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublicTradingFeeOptions) (map[string]any, error) {
+func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublicTradingFeeOptions) (TradingFeeInterface, error) {
 
 	opts := FetchPublicTradingFeeOptionsStruct{}
 
@@ -236,11 +236,11 @@ func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublic
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchPublicTradingFee(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return TradingFeeInterface{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTradingFeeInterface(res), nil
 }
-func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPrivateTradingFeeOptions) (map[string]any, error) {
+func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPrivateTradingFeeOptions) (TradingFeeInterface, error) {
 
 	opts := FetchPrivateTradingFeeOptionsStruct{}
 
@@ -251,9 +251,9 @@ func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPriva
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchPrivateTradingFee(symbol, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return TradingFeeInterface{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTradingFeeInterface(res), nil
 }
 
 /**

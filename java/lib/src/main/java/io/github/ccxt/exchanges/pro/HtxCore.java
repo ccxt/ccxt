@@ -1509,7 +1509,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             return;
         }
         Object genericMessageHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
-        Object lowerCaseBaseId = this.safeStringLower(market, "baseId");
+        String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
         genericMessageHash = Helpers.replace((String)genericMessageHash, (String)Helpers.add(".", lowerCaseBaseId), (String)"");
         client.resolve(this.orders, genericMessageHash);
     }
@@ -1714,7 +1714,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             type = this.safeString(order, "order_price_type");
         }
-        Object side = this.safeStringLower(typeSideParts, 0);
+        String side = (String)this.safeStringLower(typeSideParts, 0);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             side = this.safeString2(order, "direction", "side");
@@ -3137,7 +3137,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 Object genericOrderHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
-                Object lowerCaseBaseId = this.safeStringLower(market, "baseId");
+                String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
                 genericOrderHash = Helpers.replace((String)genericOrderHash, (String)Helpers.add(".", lowerCaseBaseId), (String)"");
                 Object genericTradesHash = Helpers.add(Helpers.add(genericOrderHash, ":"), "trade");
                 client.resolve(this.myTrades, genericTradesHash);

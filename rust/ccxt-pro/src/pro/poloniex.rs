@@ -1586,8 +1586,8 @@ impl PoloniexCore {
         //
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut type_var: Value = self.safe_string_k(message.clone(), "action", &[]);
-        let mut snapshot: Value = Value::Bool(is_equal(&type_var, &Value::Str("snapshot".to_string())));
-        let mut update: Value = Value::Bool(is_equal(&type_var, &Value::Str("update".to_string())));
+        let mut snapshot: bool = is_equal(&type_var, &Value::Str("snapshot".to_string()));
+        let mut update: bool = is_equal(&type_var, &Value::Str("update".to_string()));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_604: bool = true;

@@ -146,7 +146,7 @@ func TestYymmdd() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var testMs any = 1750123456789 // 17 June 2025
+	var testMs int = 1750123456789 // 17 June 2025
 	var value any = exchange.Yymmdd(testMs, "_")
 	Assert(ccxt.IsEqual(value, "25_06_17"))
 	var value2 any = exchange.Yymmdd(exchange.Milliseconds())
@@ -160,7 +160,7 @@ func TestYyyymmdd() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var testMs any = 1750123456789 // 17 June 2025
+	var testMs int = 1750123456789 // 17 June 2025
 	var value any = exchange.Yyyymmdd(testMs, "_")
 	Assert(ccxt.IsEqual(value, "2025_06_17"))
 	var value2 any = exchange.Yyyymmdd(exchange.Milliseconds())
@@ -174,7 +174,7 @@ func TestYmd() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var testMs any = 1750123456789 // 17 June 2025
+	var testMs int = 1750123456789 // 17 June 2025
 	var value any = exchange.Ymd(testMs, "_")
 	Assert(ccxt.IsEqual(value, "2025_06_17"))
 }
@@ -184,7 +184,7 @@ func TestYmdhms() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var testMs any = 1750123456789 // 17 June 2025
+	var testMs int = 1750123456789 // 17 June 2025
 	var value any = exchange.Ymdhms(testMs, "_")
 	Assert(ccxt.IsTrue(ccxt.IsEqual(value, "2025-06-17_01:24:16")) || ccxt.IsTrue(ccxt.IsEqual(value, "2025-06-17_01:24:17"))) // todo: php/py rounds up to 17
 }

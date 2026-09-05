@@ -2747,7 +2747,7 @@ func (this *OkxCore) ParseMarket(market any) any {
 		if IsTrue(future) {
 			expiry = this.SafeInteger(market, "expTime")
 			if IsTrue(!IsEqual(expiry, nil)) {
-				var ymd any = this.Yymmdd(expiry)
+				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(symbol, "-"), ymd)
 			}
 		} else if IsTrue(option) {
@@ -2755,7 +2755,7 @@ func (this *OkxCore) ParseMarket(market any) any {
 			strikePrice = this.SafeString(market, "stk")
 			optionType = this.SafeString(market, "optType")
 			if IsTrue(!IsEqual(expiry, nil)) {
-				var ymd any = this.Yymmdd(expiry)
+				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(Add(Add(Add(Add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType)
 				optionType = Ternary(IsTrue((IsEqual(optionType, "P"))), "put", "call")
 			}
@@ -2994,7 +2994,7 @@ func (this *OkxCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	var dataByCurrencyId map[string]any = this.GroupBy(data, "ccy")
-	var currencies any = ObjectValues(dataByCurrencyId)
+	var currencies []any = ObjectValues(dataByCurrencyId)
 
 	ch <- this.ParseCurrencies(currencies)
 	return nil
@@ -3018,7 +3018,7 @@ func (this *OkxCore) ParseCurrency(currency any) any {
 		}
 		var idParts []string = Split(networkId, "-")
 		var parts any = this.ArraySlice(idParts, 1)
-		var chainPart any = Join(parts, "-")
+		var chainPart string = Join(parts, "-")
 		var networkCode any = this.NetworkIdToCode(chainPart, code)
 		if IsTrue(!IsEqual(networkCode, nil)) {
 			AddElementToObject(networks, networkCode, map[string]any{
@@ -3942,7 +3942,7 @@ func (this *OkxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -5841,7 +5841,7 @@ func (this *OkxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes451512 := (<-this.LoadMarkets())
 		PanicOnError(retRes451512)
 	}
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -6234,7 +6234,7 @@ func (this *OkxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes487312 := (<-this.LoadMarkets())
 		PanicOnError(retRes487312)
 	}
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -6930,7 +6930,7 @@ func (this *OkxCore) fetchDepositAddressesByNetworkBody(ch chan any, code any, o
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var filtered any = this.FilterBy(data, "selected", true)
+	var filtered []any = this.FilterBy(data, "selected", true)
 	var parsed any = this.ParseDepositAddresses(filtered, []any{GetValue(currency, "code")}, false)
 
 	ch <- this.IndexBy(parsed, "network")
@@ -7510,7 +7510,7 @@ func (this *OkxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 	if IsTrue(!IsEqual(chain, nil)) {
 		var chainParts []string = Split(chain, "-")
 		var networkParts any = this.ArraySlice(chainParts, 1)
-		var networkId any = Join(networkParts, "-")
+		var networkId string = Join(networkParts, "-")
 		if IsTrue(!IsEqual(networkId, nil)) {
 			network = this.NetworkIdToCode(networkId, code)
 		}
@@ -8770,7 +8770,7 @@ func (this *OkxCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 			"amount":    this.ParseNumber(amount),
 		})
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -10405,7 +10405,7 @@ func (this *OkxCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	var settlements any = this.ParseSettlements(data, market)
-	var sorted any = this.SortBy(settlements, "timestamp")
+	var sorted []any = this.SortBy(settlements, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil

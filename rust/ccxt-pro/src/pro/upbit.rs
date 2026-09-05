@@ -743,7 +743,7 @@ impl UpbitCore {
             channelKey = add(&add(&channel, &Value::Str(":".to_string())), &symbol);
         }
         let mut subscriptions: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionsKey);
-        let mut isNewChannel: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&subscriptions, &channelKey)))));
+        let mut isNewChannel: bool = !is_true(&(Value::Bool(in_op(&subscriptions, &channelKey))));
         if is_true(&isNewChannel) {
             add_element_to_object(&mut subscriptions, &channelKey, request.clone());
         }

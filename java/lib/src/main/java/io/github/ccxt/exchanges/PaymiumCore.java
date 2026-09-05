@@ -316,10 +316,10 @@ public class PaymiumCore extends PaymiumApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "at");
-        Object vwap = this.safeString(ticker, "vwap");
-        Object baseVolume = this.safeString(ticker, "volume");
+        String vwap = this.safeString(ticker, "vwap");
+        String baseVolume = this.safeString(ticker, "volume");
         Object quoteVolume = Precise.stringMul(baseVolume, vwap);
-        Object last = this.safeString(ticker, "price");
+        String last = this.safeString(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -395,12 +395,12 @@ public class PaymiumCore extends PaymiumApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(trade, "created_at_int");
-        Object id = this.safeString(trade, "uuid");
+        String id = this.safeString(trade, "uuid");
         market = this.safeMarket(null, market);
-        Object side = this.safeString(trade, "side");
-        Object price = this.safeString(trade, "price");
+        String side = this.safeString(trade, "side");
+        String price = this.safeString(trade, "price");
         Object amountField = Helpers.add("traded_", ((String)Helpers.GetValue(market, "base")).toLowerCase());
-        Object amount = this.safeString(trade, amountField);
+        String amount = this.safeString(trade, amountField);
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -568,8 +568,8 @@ public class PaymiumCore extends PaymiumApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
-        Object currencyId = this.safeString(depositAddress, "currency");
+        String address = this.safeString(depositAddress, "address");
+        String currencyId = this.safeString(depositAddress, "currency");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", PaymiumCore.this.safeCurrencyCode(currencyId, currency) );
@@ -762,12 +762,12 @@ public class PaymiumCore extends PaymiumApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transfer, "currency");
-        Object updatedAt = this.safeString(transfer, "updated_at");
+        String currencyId = this.safeString(transfer, "currency");
+        String updatedAt = this.safeString(transfer, "updated_at");
         Object timetstamp = this.parseDate(updatedAt);
         Object accountOperations = this.safeValue(transfer, "account_operations");
         Object firstOperation = this.safeValue(accountOperations, 0, new java.util.HashMap<String, Object>() {{}});
-        Object status = this.safeString(transfer, "state");
+        String status = this.safeString(transfer, "state");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", PaymiumCore.this.safeString(transfer, "uuid") );

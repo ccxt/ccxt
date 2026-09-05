@@ -1740,7 +1740,7 @@ impl DeriveCore {
             while { if !__for_first_632 { i = add(&i, &Value::Int(1)); } __for_first_632 = false; is_less_than(&i, &get_array_length(&tradesArray)) } {
             let mut rawTrade: Value = get_value(&tradesArray, &i);
             let mut rawTrade: Value = get_value(&tradesArray, &i);
-            let mut isFetchTrades: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&rawTrade, &Value::Str("order_id".to_string()))))));
+            let mut isFetchTrades: bool = !is_true(&(Value::Bool(in_op(&rawTrade, &Value::Str("order_id".to_string())))));
             let mut liquidityRole: Value = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]);
             if is_true(&isFetchTrades) && is_true(&(is_equal(&liquidityRole, &Value::Str("maker".to_string())))) {
                 continue;
@@ -2417,7 +2417,7 @@ impl DeriveCore {
         });
         let mut clientOrderIdUnified: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "label", &[clientOrderIdUnified.clone()]);
-        let mut isByClientOrder: Value = Value::Bool(!is_equal(&clientOrderIdExchangeSpecific, &Value::Null));
+        let mut isByClientOrder: bool = !is_equal(&clientOrderIdExchangeSpecific, &Value::Null);
         let mut response: Value = Value::Null;
         if is_true(&isByClientOrder) {
             add_element_to_object(&mut request, &Value::Str("label".to_string()), clientOrderIdExchangeSpecific.clone());

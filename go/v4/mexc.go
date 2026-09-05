@@ -1979,7 +1979,7 @@ func (this *MexcCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any 
 	_ = amountKey
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
-	var countKey any = 2
+	var countKey int = 2
 	var price any = this.SafeNumber(bidask, priceKey)
 	var amount any = this.SafeNumber(bidask, amountKey)
 	var count any = this.SafeNumber(bidask, countKey)
@@ -5538,7 +5538,7 @@ func (this *MexcCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -7516,7 +7516,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(urlParams, "recvWindow", this.SafeInteger(this.Options, "recvWindow", 5000))
 			}
 		}
-		var paramsEncoded any = ""
+		var paramsEncoded string = ""
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(urlParams)), 0)) {
 			paramsEncoded = this.Urlencode(urlParams)
 			url = Add(url, Add("?", paramsEncoded))

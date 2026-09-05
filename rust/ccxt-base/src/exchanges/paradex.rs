@@ -1319,8 +1319,8 @@ impl ParadexCore {
         //  }
         //
         let mut assetKind: Value = self.safe_string_k(market.clone(), "asset_kind", &[]);
-        let mut isOptionPerpetual: Value = Value::Bool(is_equal(&assetKind, &Value::Str("PERP_OPTION".to_string())));
-        let mut isOptionDelivery: Value = Value::Bool(is_equal(&assetKind, &Value::Str("OPTION".to_string())));
+        let mut isOptionPerpetual: bool = is_equal(&assetKind, &Value::Str("PERP_OPTION".to_string()));
+        let mut isOptionDelivery: bool = is_equal(&assetKind, &Value::Str("OPTION".to_string()));
         let mut isOption: Value = Value::Bool(is_true(&isOptionPerpetual) || is_true(&isOptionDelivery));
         let mut type_var: Value = ternary(is_true(&(isOption)), Value::Str("option".to_string()), Value::Str("swap".to_string()));
         let mut isSwap: Value = Value::Bool(is_equal(&type_var, &Value::Str("swap".to_string())));
@@ -2536,9 +2536,9 @@ impl ParadexCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut isMarket: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isStopOrder: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&isTakeProfitOrder) || is_true(&isStopLossOrder));
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitPrice, &Value::Null);
+        let mut isStopLossOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isStopOrder: bool = is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&isTakeProfitOrder) || is_true(&isStopLossOrder);
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if !is_true(&isMarket) {
@@ -2951,8 +2951,8 @@ impl ParadexCore {
         }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdIDs".to_string()), Value::Str("clientOrderIds".to_string()), Value::Str("client_order_ids".to_string())]), &[]);
-        let mut hasOrderIds: Value = Value::Bool(is_true(&(!is_equal(&ids, &Value::Null))) && is_true(&(Value::Bool(is_array(&ids)))));
-        let mut hasClientOrderIds: Value = Value::Bool(is_true(&(!is_equal(&clientOrderIds, &Value::Null))) && is_true(&(Value::Bool(is_array(&clientOrderIds)))));
+        let mut hasOrderIds: bool = is_true(&(!is_equal(&ids, &Value::Null))) && is_true(&(Value::Bool(is_array(&ids))));
+        let mut hasClientOrderIds: bool = is_true(&(!is_equal(&clientOrderIds, &Value::Null))) && is_true(&(Value::Bool(is_array(&clientOrderIds))));
         if !is_true(&hasOrderIds) && !is_true(&hasClientOrderIds) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter".to_string()))));
         }

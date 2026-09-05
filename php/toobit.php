@@ -2767,7 +2767,7 @@ class toobit extends Exchange {
         return $this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()) {
+    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

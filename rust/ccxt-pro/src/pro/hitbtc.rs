@@ -427,7 +427,7 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut isBatch: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&name, &Value::Str("batch".to_string())), &Value::Int(0)));
+        let mut isBatch: bool = is_greater_than_or_equal(&get_index_of(&name, &Value::Str("batch".to_string())), &Value::Int(0));
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("public".to_string()));
         let mut messageHashes: Value = Value::List(vec![]);
         if !is_equal(&symbols, &Value::Null) && !is_true(&isBatch) {

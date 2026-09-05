@@ -356,6 +356,28 @@ pub fn testSafeFloat() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]), &ccxt::runtime::parse_float(&Value::Int(3)))))));
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]), &ccxt::runtime::parse_float(&Value::Int(2)))))));
+    // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(inputDict.clone(), Value::Str("nonexistent".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(inputDict.clone(), Value::Str("nonexistent".to_string()), &[Value::Int(5)]), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(inputDict.clone(), Value::Str("emptyString".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(inputDict.clone(), Value::Str("str".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(inputDict.clone(), Value::Str("undefined".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(Value::Null, Value::Str("i".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(Value::Null, Value::Str("i".to_string()), &[Value::Int(7)]), &Value::Int(7))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float(inputList.clone(), Value::Int(5), &[]), &Value::Null)))));
+    // safeFloat2 - negative paths
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float2(inputDict.clone(), Value::Str("nonexistent".to_string()), Value::Str("nonexistent2".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float2(inputDict.clone(), Value::Str("nonexistent".to_string()), Value::Str("str".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float2(inputDict.clone(), Value::Str("nonexistent".to_string()), Value::Str("emptyString".to_string()), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float2(inputDict.clone(), Value::Str("nonexistent".to_string()), Value::Str("nonexistent2".to_string()), &[Value::Int(9)]), &Value::Int(9))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float2(Value::Null, Value::Str("i".to_string()), Value::Str("f".to_string()), &[]), &Value::Null)))));
+    // safeFloatN - negative paths
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Int(11)]), &Value::Int(11))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(Value::Null, Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_float_n(inputList.clone(), Value::List(vec![Value::Int(5), Value::Int(6)]), &[]), &Value::Null)))));
 }
 pub fn testSafeNumber() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

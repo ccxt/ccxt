@@ -612,7 +612,7 @@ func (this *BlofinCore) HandleOHLCV(client any, message any) {
 	var marketId any = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var interval any = ccxt.Replace(channelName, "candle", "")
+	var interval string = ccxt.Replace(channelName, "candle", "")
 	var unifiedTimeframe any = this.FindTimeframe(interval)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe)
@@ -1120,7 +1120,7 @@ func (this *BlofinCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var timestamp string = ccxt.ToString(milliseconds)
 	var nonce any = ccxt.Add("n_", timestamp)
 	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("/users/self/verify", "GET"), timestamp), ""), nonce)
-	var signature any = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256))
+	var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256))
 	var request map[string]any = map[string]any{
 		"op": "login",
 		"args": []any{map[string]any{

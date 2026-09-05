@@ -5828,7 +5828,7 @@ func (this *BingxCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 		AddElementToObject(request, "toAccount", toId)
 	}
 	params = this.Omit(params, []any{"fromAccount", "toAccount"})
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -6857,7 +6857,7 @@ func (this *BingxCore) withdrawBody(ch chan any, code any, amount any, address a
 		PanicOnError(retRes622312)
 	}
 	var currency any = this.Currency(code)
-	var defaultWalletType any = 15 // spot
+	var defaultWalletType int = 15 // spot
 	var walletType any = nil
 	walletTypeparamsVariable := this.HandleOptionAndParams2(params, "withdraw", "type", "walletType", defaultWalletType)
 	walletType = GetValue(walletTypeparamsVariable, 0)
@@ -6903,7 +6903,7 @@ func (this *BingxCore) ParseParams(params any) any {
 	// const sortedParams = this.keysort (params);
 	var copied any = this.Clone(params)
 	var rawKeys []string = ObjectKeys(params)
-	var keys any = this.Sort(rawKeys)
+	var keys []any = this.Sort(rawKeys)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(params, key)
@@ -7580,7 +7580,7 @@ func (this *BingxCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 func (this *BingxCore) CustomEncode(params any) any {
 	// const sortedParams = this.keysort (params);
 	var rawKeys []string = ObjectKeys(params)
-	var keys any = this.Sort(rawKeys)
+	var keys []any = this.Sort(rawKeys)
 	var adjustedValue any = nil
 	var result any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
@@ -7780,7 +7780,7 @@ func (this *BingxCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(params, "signature", signature)
 			body = this.Json(params)
 		} else {
-			var query any = this.Urlencode(parsedParams, true)
+			var query string = this.Urlencode(parsedParams, true)
 			url = Add(url, Add(Add(Add(Add("?", query), "&"), "signature="), signature))
 		}
 	}

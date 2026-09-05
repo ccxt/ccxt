@@ -1060,7 +1060,7 @@ impl DeribitCore {
         let mut parts: Value = split(&channel, &Value::Str(".".to_string()));
         let mut descriptor: Value = Value::Str("".to_string());
         let mut partsLength: Value = get_array_length(&parts);
-        let mut isDetailed: Value = Value::Bool(is_equal(&partsLength, &Value::Int(5)));
+        let mut isDetailed: bool = is_equal(&partsLength, &Value::Int(5));
         if is_true(&isDetailed) {
             let mut group: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
             let mut depth: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
@@ -1400,7 +1400,7 @@ impl DeribitCore {
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
         let mut rawSubscriptions: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
-        let mut isOHLCV: Value = Value::Bool(is_equal(&channelName, &Value::Str("chart.trades".to_string())));
+        let mut isOHLCV: bool = is_equal(&channelName, &Value::Str("chart.trades".to_string()));
         let mut symbols: Value = ternary(is_true(&isOHLCV), self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)), symbolsArray.clone());
         self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         if is_equal(&symbolsArray, &Value::Null) {

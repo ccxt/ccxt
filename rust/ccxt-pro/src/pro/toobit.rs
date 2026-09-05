@@ -1145,7 +1145,7 @@ impl ToobitCore {
         self.authenticate(&[]).await;
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
         let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         let mut spotSubHash: Value = Value::Str("spot:balance".to_string());
         let mut swapSubHash: Value = Value::Str("contract:private".to_string());
@@ -1486,7 +1486,7 @@ impl ToobitCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
         let mut ts: Value = self.safe_string_k(trade.clone(), "t", &[]);
-        let mut isMaker: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "m", &[]), &Value::Bool(true)));
+        let mut isMaker: bool = is_equal(&self.safe_bool_k(trade.clone(), "m", &[]), &Value::Bool(true));
         let mut takerOrMaker: Value = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();

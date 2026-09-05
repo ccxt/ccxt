@@ -390,7 +390,7 @@ func (this *GeminiCore) HandleOHLCV(client any, message any) any {
 	//     }
 	//
 	var typeVar any = this.SafeString(message, "type", "")
-	var timeframeId any = ccxt.Slice(typeVar, 8, nil)
+	var timeframeId string = ccxt.Slice(typeVar, 8, nil)
 	var timeframeEndIndex int = ccxt.GetIndexOf(timeframeId, "_")
 	timeframeId = ccxt.Slice(timeframeId, 0, timeframeEndIndex)
 	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
@@ -657,7 +657,7 @@ func (this *GeminiCore) helperForWatchMultipleConstructBody(ch chan any, itemHas
 		var market any = this.Market(symbol)
 		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
 	}
-	var queryStr any = ccxt.Join(marketIds, ",")
+	var queryStr string = ccxt.Join(marketIds, ",")
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&")
 	if ccxt.IsTrue(ccxt.IsEqual(itemHashName, "orderbook")) {
 		url = ccxt.Add(url, "trades=false&bids=true&offers=true")
@@ -1084,14 +1084,14 @@ func (this *GeminiCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 	var startIndex int = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var urlParamsIndex int = ccxt.GetIndexOf(url, "?")
-	var urlLength any = ccxt.GetLength(url)
+	var urlLength int = ccxt.GetLength(url)
 	var endIndex any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(urlParamsIndex, 0))), urlParamsIndex, urlLength)
-	var request any = ccxt.Slice(url, startIndex, endIndex)
+	var request string = ccxt.Slice(url, startIndex, endIndex)
 	var payload map[string]any = map[string]any{
 		"request": request,
 		"nonce":   this.Nonce(),
 	}
-	var b64 any = this.StringToBase64(this.Json(payload))
+	var b64 string = this.StringToBase64(this.Json(payload))
 	var signature string = this.Hmac(this.Encode(b64), this.Encode(this.Secret), ccxt.Sha384, "hex")
 	var defaultOptions map[string]any = map[string]any{
 		"ws": map[string]any{

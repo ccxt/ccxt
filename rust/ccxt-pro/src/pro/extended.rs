@@ -1357,22 +1357,22 @@ impl ExtendedCore {
         }  else if !is_equal(&data, &Value::Null) {
             // an account frame may carry several sections at once, so these are
             // not mutually exclusive and must not fall through to the order book
-            let mut isAccountUpdate: Value = Value::Bool(false);
+            let mut isAccountUpdate: bool = false;
             if is_true(&(is_equal(&type_var, &Value::Str("ORDER".to_string())))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("orders".to_string()))))) {
                 self.handle_orders(client.clone(), message.clone());
-                isAccountUpdate = Value::Bool(true);
+                isAccountUpdate = true;
             }
             if is_true(&(is_equal(&type_var, &Value::Str("TRADE".to_string())))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("trades".to_string()))))) {
                 self.handle_my_trades(client.clone(), message.clone());
-                isAccountUpdate = Value::Bool(true);
+                isAccountUpdate = true;
             }
             if is_true(&(is_equal(&type_var, &Value::Str("POSITION".to_string())))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("positions".to_string()))))) {
                 self.handle_positions(client.clone(), message.clone());
-                isAccountUpdate = Value::Bool(true);
+                isAccountUpdate = true;
             }
             if is_true(&(is_equal(&type_var, &Value::Str("BALANCE".to_string())))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("balance".to_string()))))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("spotBalances".to_string()))))) {
                 self.handle_balance(client.clone(), message.clone());
-                isAccountUpdate = Value::Bool(true);
+                isAccountUpdate = true;
             }
             if is_equal(&type_var, &Value::Str("MP".to_string())) {
                 self.handle_mark_price(client.clone(), message.clone());

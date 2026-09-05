@@ -919,7 +919,7 @@ impl HashkeyCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "t", &[]);
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "m", &[]);
-        let mut isPublicTrade: Value = Value::Bool(is_equal(&self.safe_string_k(trade.clone(), "e", &[]), &Value::Null));
+        let mut isPublicTrade: bool = is_equal(&self.safe_string_k(trade.clone(), "e", &[]), &Value::Null);
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         if !is_equal(&isBuyerMaker, &Value::Null) {
@@ -1174,7 +1174,7 @@ impl HashkeyCore {
         let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
         let mut data: Value = self.safe_list_k(message.clone(), "B", &[Value::List(vec![])]);
         let mut balanceUpdate: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
-        let mut isSpot: Value = Value::Bool(is_equal(&event, &Value::Str("outboundAccountInfo".to_string())));
+        let mut isSpot: bool = is_equal(&event, &Value::Str("outboundAccountInfo".to_string()));
         let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("swap".to_string()));
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({

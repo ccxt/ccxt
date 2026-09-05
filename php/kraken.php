@@ -1369,7 +1369,7 @@ class kraken extends Exchange {
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
 
-    public function fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()) {
+    public function fetch_ledger_entries_by_ids(mixed $ids, ?string $code = null, $params = array()): array {
         // https://www.kraken.com/features/api#query-ledgers
         if ($this->markets === null) {
             $this->load_markets();

@@ -810,13 +810,13 @@ public class BittradeCore extends BittradeApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                Object baseId = this.safeString(market, "base-currency");
-                Object quoteId = this.safeString(market, "quote-currency");
+                String baseId = this.safeString(market, "base-currency");
+                String quoteId = this.safeString(market, "quote-currency");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-                Object state = this.safeString(market, "state");
-                Object leverageRatio = this.safeString(market, "leverage-ratio", "1");
-                Object superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
+                String state = this.safeString(market, "state");
+                String leverageRatio = this.safeString(market, "leverage-ratio", "1");
+                String superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
                 Object margin = Helpers.isTrue(Precise.stringGt(leverageRatio, "1")) || Helpers.isTrue(Precise.stringGt(superLeverageRatio, "1"));
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(base, "OMG"))))) ? this.parseNumber("0") : this.parseNumber("0.002");
                 if (Helpers.isTrue(Helpers.isEqual(baseId, null)))
@@ -956,10 +956,10 @@ public class BittradeCore extends BittradeApi
                 askVolume = this.safeString(ticker, "askSize");
             }
         }
-        Object open = this.safeString(ticker, "open");
-        Object close = this.safeString(ticker, "close");
-        Object baseVolume = this.safeString(ticker, "amount");
-        Object quoteVolume = this.safeString(ticker, "vol");
+        String open = this.safeString(ticker, "open");
+        String close = this.safeString(ticker, "close");
+        String baseVolume = this.safeString(ticker, "amount");
+        String quoteVolume = this.safeString(ticker, "vol");
         final Object finalBid = bid;
         final Object finalBidVolume = bidVolume;
         final Object finalAsk = ask;
@@ -1131,7 +1131,7 @@ public class BittradeCore extends BittradeApi
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
+                String marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
                 Object market = this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
@@ -1179,10 +1179,10 @@ public class BittradeCore extends BittradeApi
         //     },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "symbol");
+        String marketId = this.safeString(trade, "symbol");
         Object symbol = this.safeSymbol(marketId, market);
         Object timestamp = this.safeInteger2(trade, "ts", "created-at");
-        Object order = this.safeString(trade, "order-id");
+        String order = this.safeString(trade, "order-id");
         Object side = this.safeString(trade, "direction");
         Object type = this.safeString(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -1191,14 +1191,14 @@ public class BittradeCore extends BittradeApi
             side = Helpers.GetValue(typeParts, 0);
             type = Helpers.GetValue(typeParts, 1);
         }
-        Object takerOrMaker = this.safeString(trade, "role");
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString2(trade, "filled-amount", "amount");
+        String takerOrMaker = this.safeString(trade, "role");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString2(trade, "filled-amount", "amount");
         Object cost = Precise.stringMul(price, amount);
         Object fee = null;
         Object feeCost = this.safeString(trade, "filled-fees");
         Object feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
-        Object filledPoints = this.safeString(trade, "filled-points");
+        String filledPoints = this.safeString(trade, "filled-points");
         if (Helpers.isTrue(!Helpers.isEqual(filledPoints, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(feeCost, null))) || Helpers.isTrue((Precise.stringEq(feeCost, "0.0")))))
@@ -1216,8 +1216,8 @@ public class BittradeCore extends BittradeApi
                 put( "currency", finalFeeCurrency );
             }};
         }
-        Object tradeId = this.safeString2(trade, "trade-id", "tradeId");
-        Object id = this.safeString(trade, "id", tradeId);
+        String tradeId = this.safeString2(trade, "trade-id", "tradeId");
+        String id = this.safeString(trade, "id", tradeId);
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalFee = fee;
@@ -1553,9 +1553,9 @@ public class BittradeCore extends BittradeApi
         Object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
         Object countryDisabled = this.safeValue(currency, "country-disabled");
         Object visible = this.safeBool(currency, "visible", false);
-        Object state = this.safeString(currency, "state");
+        String state = this.safeString(currency, "state");
         Object active = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(visible, true))) && Helpers.isTrue((Helpers.isEqual(depositEnabled, true)))) && Helpers.isTrue((Helpers.isEqual(withdrawEnabled, true)))) && Helpers.isTrue((Helpers.isEqual(state, "online")))) && Helpers.isTrue((!Helpers.isEqual(countryDisabled, true)));
-        Object name = this.safeString(currency, "display-name");
+        String name = this.safeString(currency, "display-name");
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         final Object finalDepositEnabled = depositEnabled;
         final Object finalWithdrawEnabled = withdrawEnabled;
@@ -1597,7 +1597,7 @@ public class BittradeCore extends BittradeApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object currencyId = this.safeString(balance, "currency");
+            String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(result, code)))))
@@ -1864,7 +1864,7 @@ public class BittradeCore extends BittradeApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object accountId = this.safeString(parameters, "account-id");
+            String accountId = this.safeString(parameters, "account-id");
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
             {
                 // pick the first account
@@ -1962,7 +1962,7 @@ public class BittradeCore extends BittradeApi
         //             "canceled-at":  0                      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
+        String id = this.safeString(order, "id");
         Object side = null;
         Object type = null;
         Object status = null;
@@ -1973,15 +1973,15 @@ public class BittradeCore extends BittradeApi
             type = Helpers.GetValue(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(order, "created-at");
-        Object clientOrderId = this.safeString(order, "client-order-id");
-        Object amount = this.safeString(order, "amount");
-        Object filled = this.safeString2(order, "filled-amount", "field-amount"); // typo in their API, filled amount
-        Object price = this.safeString(order, "price");
-        Object cost = this.safeString2(order, "filled-cash-amount", "field-cash-amount"); // same typo
-        Object feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled fees
+        String clientOrderId = this.safeString(order, "client-order-id");
+        String amount = this.safeString(order, "amount");
+        String filled = this.safeString2(order, "filled-amount", "field-amount"); // typo in their API, filled amount
+        String price = this.safeString(order, "price");
+        String cost = this.safeString2(order, "filled-cash-amount", "field-cash-amount"); // same typo
+        String feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled fees
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2086,11 +2086,11 @@ public class BittradeCore extends BittradeApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", Helpers.add(Helpers.add(finalSide, "-"), finalType) );
             }};
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 Object broker = this.safeValue(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
-                Object brokerId = this.safeString(broker, "id");
+                String brokerId = this.safeString(broker, "id");
                 Helpers.addElementToObject(request, "client-order-id", Helpers.add(brokerId, this.uuid()));
             } else
             {
@@ -2148,7 +2148,7 @@ public class BittradeCore extends BittradeApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support the "), method), " method")) ;
             }
-            Object id = this.safeString(response, "data");
+            String id = this.safeString(response, "data");
             final Object finalResponse = response;
             final Object finalPrice = price;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -2306,7 +2306,7 @@ public class BittradeCore extends BittradeApi
         //        "successes": "1258075374411399168,1258075393254871040"
         //    }
         //
-        Object successes = this.safeString(orders, "successes");
+        String successes = this.safeString(orders, "successes");
         Object success = null;
         if (Helpers.isTrue(!Helpers.isEqual(successes, null)))
         {
@@ -2395,16 +2395,16 @@ public class BittradeCore extends BittradeApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
-        Object tag = this.safeString(depositAddress, "addressTag");
-        Object currencyId = this.safeString(depositAddress, "currency");
+        String address = this.safeString(depositAddress, "address");
+        String tag = this.safeString(depositAddress, "addressTag");
+        String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
         Object code = this.safeCurrencyCode(currencyId, currency);
-        Object networkId = this.safeString(depositAddress, "chain");
+        String networkId = this.safeString(depositAddress, "chain");
         Object networks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         Object networksById = this.indexBy(networks, "id");
         Object networkValue = this.safeValue(networksById, networkId, networkId);
-        Object network = this.safeString(networkValue, "network");
+        String network = this.safeString(networkValue, "network");
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "currency", code );
@@ -2566,12 +2566,12 @@ public class BittradeCore extends BittradeApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transaction, "created-at");
         Object code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
-        Object type = this.safeString(transaction, "type");
+        String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {
             type = "withdrawal";
         }
-        Object feeCost = this.safeString(transaction, "fee");
+        String feeCost = this.safeString(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             feeCost = Precise.stringAbs(feeCost);
@@ -2781,14 +2781,14 @@ public class BittradeCore extends BittradeApi
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //
-            Object status = this.safeString(response, "status");
+            String status = this.safeString(response, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, "error")))
             {
-                Object code = this.safeString(response, "err-code");
+                String code = this.safeString(response, "err-code");
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
-                Object message = this.safeString(response, "err-msg");
+                String message = this.safeString(response, "err-msg");
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
                 throw new ExchangeError((String)feedback) ;
             }

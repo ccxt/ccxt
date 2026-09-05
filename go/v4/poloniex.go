@@ -3612,7 +3612,7 @@ func (this *PoloniexCore) fetchTransactionsHelperBody(ch chan any, optionalArgs 
 
 	retRes28928 := (<-this.LoadMarkets())
 	PanicOnError(retRes28928)
-	var year any = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
+	var year int = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
 	var now int64 = this.Seconds()
 	var start any = Ternary(IsTrue((!IsEqual(since, nil))), this.ParseToInt(Divide(since, 1000)), Subtract(now, Multiply(10, year)))
 	var request map[string]any = map[string]any{

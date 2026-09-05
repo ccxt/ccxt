@@ -2549,8 +2549,8 @@ impl ToobitCore {
         }
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut triggerPriceTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MARK_PRICE".to_string()));
@@ -3923,8 +3923,8 @@ impl ToobitCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
-        let mut isPost: Value = Value::Bool(is_equal(&method, &Value::Str("POST".to_string())));
-        let mut isDelete: Value = Value::Bool(is_equal(&method, &Value::Str("DELETE".to_string())));
+        let mut isPost: bool = is_equal(&method, &Value::Str("POST".to_string()));
+        let mut isDelete: bool = is_equal(&method, &Value::Str("DELETE".to_string()));
         let mut extraQuery: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

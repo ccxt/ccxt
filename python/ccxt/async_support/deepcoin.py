@@ -408,7 +408,7 @@ class deepcoin(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    async def fetch_markets_by_type(self, type: object, params={}):
+    async def fetch_markets_by_type(self, type: object, params={}) -> list[Market]:
         request = {
             'instType': self.convert_to_instrument_type(type),
         }

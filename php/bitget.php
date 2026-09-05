@@ -5785,7 +5785,7 @@ class bitget extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_uta_orders(array $orders, $params = array()) {
+    public function create_uta_orders(array $orders, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -6347,7 +6347,7 @@ class bitget extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()): array {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -7565,7 +7565,7 @@ class bitget extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

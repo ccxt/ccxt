@@ -420,9 +420,9 @@ public class IndodaxCore extends IndodaxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
-                Object id = this.safeString(market, "id");
-                Object baseId = this.safeString(market, "traded_currency");
-                Object quoteId = this.safeString(market, "base_currency");
+                String id = this.safeString(market, "id");
+                String baseId = this.safeString(market, "traded_currency");
+                String quoteId = this.safeString(market, "base_currency");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object isMaintenance = this.safeInteger(market, "is_maintenance");
@@ -617,7 +617,7 @@ public class IndodaxCore extends IndodaxApi
         Object timestamp = this.safeTimestamp(ticker, "server_time");
         Object baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
         Object quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -836,7 +836,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
+            String selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
             Object now = this.seconds();
             Object until = this.safeInteger(parameters, "until", now);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -937,11 +937,11 @@ public class IndodaxCore extends IndodaxApi
         Object status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         Object symbol = null;
         Object cost = null;
-        Object price = this.safeString(order, "price");
+        String price = this.safeString(order, "price");
         Object amount = null;
         Object remaining = null;
         Object filled = null;
-        Object marketId = this.safeString(order, "pair");
+        String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
@@ -965,7 +965,7 @@ public class IndodaxCore extends IndodaxApi
         }
         Object timestamp = this.safeInteger(order, "submit_time");
         Object fee = null;
-        Object id = this.safeString(order, "order_id");
+        String id = this.safeString(order, "order_id");
         final Object finalSymbol = symbol;
         final Object finalSide = side;
         final Object finalCost = cost;
@@ -1224,7 +1224,7 @@ public class IndodaxCore extends IndodaxApi
             }
             Object result = (this.privatePostTrade(this.extend(request, parameters))).join();
             Object data = this.safeValue(result, "return", new java.util.HashMap<String, Object>() {{}});
-            Object id = this.safeString(data, "order_id");
+            String id = this.safeString(data, "order_id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", id );
@@ -1331,7 +1331,7 @@ public class IndodaxCore extends IndodaxApi
             //     }
             //
             Object data = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-            Object currencyId = this.safeString(data, "currency");
+            String currencyId = this.safeString(data, "currency");
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "rate", IndodaxCore.this.safeNumber(data, "withdraw_fee") );
@@ -1613,9 +1613,9 @@ public class IndodaxCore extends IndodaxApi
         //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
         //     },
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.safeString(transaction, "status");
+        String status = this.safeString(transaction, "status");
         Object timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
-        Object depositId = this.safeString(transaction, "deposit_id");
+        String depositId = this.safeString(transaction, "deposit_id");
         Object feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1728,14 +1728,14 @@ public class IndodaxCore extends IndodaxApi
             {
                 Object marketId = Helpers.GetValue(addressKeys, i);
                 Object code = this.safeCurrencyCode(marketId);
-                Object address = this.safeString(addresses, marketId);
+                String address = this.safeString(addresses, marketId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
                 {
                     this.checkAddress(address);
                     Object network = null;
                     if (Helpers.isTrue(Helpers.inOp(networks, marketId)))
                     {
-                        Object networkId = this.safeString(networks, marketId);
+                        String networkId = this.safeString(networks, marketId);
                         if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
                         {
                             throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
@@ -1847,7 +1847,7 @@ public class IndodaxCore extends IndodaxApi
         {
             return null;  // no 'success' property on public responses
         }
-        Object status = this.safeString(response, "success");
+        String status = this.safeString(response, "success");
         if (Helpers.isTrue(Helpers.isEqual(status, "approved")))
         {
             return null;

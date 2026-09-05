@@ -1819,7 +1819,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchOptionUnderlyings () {
+    async fetchOptionUnderlyings (): Promise<Str[]> {
         const underlyingsResponse = await this.publicOptionsGetUnderlyings ();
         //
         //    [
@@ -3473,7 +3473,7 @@ export default class gate extends Exchange {
         return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOptionOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // separated option logic because the from, to and limit parameters weren't functioning
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -7171,7 +7171,7 @@ export default class gate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

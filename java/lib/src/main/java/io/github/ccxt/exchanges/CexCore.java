@@ -426,7 +426,7 @@ public class CexCore extends CexApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "currency");
+        String id = this.safeString(rawCurrency, "currency");
         Object code = this.safeCurrencyCode(id);
         Object isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
         Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
@@ -536,9 +536,9 @@ public class CexCore extends CexApi
 
     public Object parseMarket(Object market)
     {
-        Object baseId = this.safeString(market, "base");
+        String baseId = this.safeString(market, "base");
         Object base = this.safeCurrencyCode(baseId);
-        Object quoteId = this.safeString(market, "quote");
+        String quoteId = this.safeString(market, "quote");
         Object quote = this.safeCurrencyCode(quoteId);
         Object id = Helpers.add(Helpers.add(base, "-"), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -713,7 +713,7 @@ public class CexCore extends CexApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "id");
+        String marketId = this.safeString(ticker, "id");
         Object symbol = this.safeSymbol(marketId, market);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -819,7 +819,7 @@ public class CexCore extends CexApi
         //                },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object dateStr = this.safeString(trade, "dateISO");
+        String dateStr = this.safeString(trade, "dateISO");
         Object timestamp = this.parse8601(dateStr);
         market = this.safeMarket(null, market);
         final Object finalMarket = market;
@@ -1473,8 +1473,8 @@ public class CexCore extends CexApi
         //                "effectiveTime": null
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object currency1 = this.safeString(order, "currency1");
-        Object currency2 = this.safeString(order, "currency2");
+        String currency1 = this.safeString(order, "currency1");
+        String currency2 = this.safeString(order, "currency2");
         Object marketId = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currency1, null)) && Helpers.isTrue(!Helpers.isEqual(currency2, null))))
         {
@@ -1487,7 +1487,7 @@ public class CexCore extends CexApi
         Object feeAmount = this.safeNumber(order, "feeAmount");
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
-            Object currencyId = this.safeString(order, "feeCurrency");
+            String currencyId = this.safeString(order, "feeCurrency");
             Object feeCode = this.safeCurrencyCode(currencyId);
             Helpers.addElementToObject(fee, "currency", feeCode);
             Helpers.addElementToObject(fee, "cost", feeAmount);
@@ -1805,7 +1805,7 @@ public class CexCore extends CexApi
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object amount = this.safeString(item, "amount");
+        String amount = this.safeString(item, "amount");
         Object direction = null;
         if (Helpers.isTrue(Precise.stringLe(amount, "0")))
         {
@@ -1815,12 +1815,12 @@ public class CexCore extends CexApi
         {
             direction = "in";
         }
-        Object currencyId = this.safeString(item, "currency");
+        String currencyId = this.safeString(item, "currency");
         currency = this.safeCurrency(currencyId, currency);
         Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestampString = this.safeString(item, "timestamp");
+        String timestampString = this.safeString(item, "timestamp");
         Object timestamp = this.parse8601(timestampString);
-        Object type = this.safeString(item, "type");
+        String type = this.safeString(item, "type");
         final Object finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -1926,11 +1926,11 @@ public class CexCore extends CexApi
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transaction, "currency");
-        Object direction = this.safeString(transaction, "direction");
+        String currencyId = this.safeString(transaction, "currency");
+        String direction = this.safeString(transaction, "direction");
         Object type = ((Helpers.isTrue((Helpers.isEqual(direction, "withdraw"))))) ? "withdrawal" : "deposit";
         Object code = this.safeCurrencyCode(currencyId, currency);
-        Object updatedAt = this.safeString(transaction, "updatedAt");
+        String updatedAt = this.safeString(transaction, "updatedAt");
         Object timestamp = this.parse8601(updatedAt);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2021,7 +2021,7 @@ public class CexCore extends CexApi
             Object currency = this.currency(code);
             Object fromMain = (Helpers.isEqual(fromAccount, ""));
             Object targetAccount = ((Helpers.isTrue(fromMain))) ? toAccount : fromAccount;
-            Object guid = this.safeString(parameters, "guid", this.uuid());
+            String guid = this.safeString(parameters, "guid", this.uuid());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", CexCore.this.currencyToPrecision(code, amount) );
@@ -2112,7 +2112,7 @@ public class CexCore extends CexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transfer, "currency");
+        String currencyId = this.safeString(transfer, "currency");
         Object currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
@@ -2188,8 +2188,8 @@ public class CexCore extends CexApi
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
-        Object currencyId = this.safeString(depositAddress, "currency");
+        String address = this.safeString(depositAddress, "address");
+        String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
         this.checkAddress(address);
         final Object finalCurrency = currency;
@@ -2271,7 +2271,7 @@ public class CexCore extends CexApi
                 throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " returned unparsed response: "), body)) ;
             }
         }
-        Object error = this.safeString(response, "error");
+        String error = this.safeString(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
@@ -2283,7 +2283,7 @@ public class CexCore extends CexApi
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "do_my_new_order"), 0)))
         {
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rejectReason = this.safeString(data, "rejectReason");
+            String rejectReason = this.safeString(data, "rejectReason");
             if (Helpers.isTrue(!Helpers.isEqual(rejectReason, null)))
             {
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), rejectReason, rejectReason);
