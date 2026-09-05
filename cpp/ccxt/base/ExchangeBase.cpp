@@ -1313,8 +1313,16 @@ std::shared_future<std::any> ExchangeBase::fetchCurrencies (std::any) {
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::loadMarkets (std::any, std::any) {
-    return std::async (std::launch::deferred, [] () -> std::any {
+std::shared_future<std::any> ExchangeBase::loadMarkets (std::any reload, std::any) {
+    return std::async (std::launch::deferred, [this, reload] () -> std::any {
+        // Markets already in hand means nothing to fetch -- TS returns them straight
+        // back in that case, which is what makes the offline static tests work at all:
+        // they call setMarkets() from a fixture and every loadMarkets() after that is a
+        // no-op. Only a genuine fetch needs the transport.
+        if (!isTrue (reload) && isDict (this->markets)
+            && (std::any_cast<dict> (this->markets).size () > 0)) {
+            return this->markets;
+        }
         throw NotSupported ("loadMarkets requires the HTTP transport, not implemented yet");
     }).share ();
 }

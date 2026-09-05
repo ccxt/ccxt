@@ -543,27 +543,31 @@ class CppTranspilerDriver {
         return this.buildDispatchTable (id, scanned);
     }
 
-    // Counts top-level commas in the parameter list that starts just after `openAt`
-    // (i.e. immediately following the '('), ignoring anything nested in parentheses,
-    // braces, angle brackets or string literals.
-    countParameters (content: string, openAt: number): number {
+    // Splits the parameter list that starts just after `openAt` (immediately following
+    // the '(') into its top-level parameters, ignoring anything nested in parentheses,
+    // braces, angle brackets or string literals -- a default value can contain both
+    // commas and parentheses (`std::any timeframe = std::string("1m")`).
+    splitParameters (content: string, openAt: number): string[] {
         let depth = 0;
-        let parameters = 1;
         let inString = false;
+        let current = '';
+        const parameters: string[] = [];
         for (let i = openAt; i < content.length; i++) {
             const c = content[i];
             if (inString) {
-                if (c === '\\') { i++; } else if (c === '"') { inString = false; }
+                current += c;
+                if (c === '\\') { current += content[++i] ?? ''; } else if (c === '"') { inString = false; }
                 continue;
             }
-            if (c === '"') { inString = true; continue; }
-            if (c === '(' || c === '{' || c === '<') { depth++; continue; }
-            if (c === ')' && depth === 0) {
-                // empty parameter list
-                return (content.slice (openAt, i).trim ().length === 0) ? 0 : parameters;
+            if (c === '"') { inString = true; current += c; continue; }
+            if (c === '(' || c === '{' || c === '<') { depth++; current += c; continue; }
+            if ((c === ')') && (depth === 0)) {
+                if (current.trim ().length) { parameters.push (current.trim ()); }
+                return parameters;
             }
-            if (c === ')' || c === '}' || c === '>') { depth--; continue; }
-            if (c === ',' && depth === 0) { parameters++; }
+            if (c === ')' || c === '}' || c === '>') { depth--; current += c; continue; }
+            if ((c === ',') && (depth === 0)) { parameters.push (current.trim ()); current = ''; continue; }
+            current += c;
         }
         return parameters;
     }
@@ -586,13 +590,31 @@ class CppTranspilerDriver {
                 continue;
             }
             seen.add (name);
-            const arity = this.countParameters (content, signature.lastIndex);
-            const passed: string[] = [];
-            for (let i = 0; i < arity; i++) {
-                passed.push (`::getValue(args, ${i})`);
+            const parameters = this.splitParameters (content, signature.lastIndex);
+            const arity = parameters.length;
+            // a parameter with no `=` has no default, so the call must supply it; arms
+            // below that count would not compile
+            const required = parameters.filter ((p) => p.indexOf ('=') === -1).length;
+            // Dispatch on how many arguments the fixture actually supplied. JS spreads a
+            // short array, so the parameters it does not reach keep their defaults; C++
+            // has no such thing, and passing an explicit std::any{} OVERRIDES the
+            // default. fetchOHLCV(symbol) must leave timeframe as "1m", not undefined --
+            // passing undefined dropped `interval` from every ohlcv request.
+            const arms: string[] = [];
+            for (let n = required; n <= arity; n++) {
+                const passed: string[] = [];
+                for (let i = 0; i < n; i++) {
+                    passed.push (`::getValue(args, ${i})`);
+                }
+                const test = (n === arity)
+                    ? ((n === required) ? 'true' : `count >= ${n}`)
+                    : ((n === required) ? `count <= ${n}` : `count == ${n}`);
+                arms.push (
+                    `            if (${test}) return awaitValue(this->${name}(${passed.join (', ')}));`
+                );
             }
             branches.push (
-                `        if (which == "${name}") return awaitValue(this->${name}(${passed.join (', ')}));`
+                `        if (which == "${name}") {\n${arms.join ('\n')}\n        }`
             );
         }
         return [
@@ -600,6 +622,8 @@ class CppTranspilerDriver {
             '    virtual std::any callMethod (std::any name, std::any args) override {',
             '        const std::string which = ::toString(name).has_value()',
             '            ? std::any_cast<std::string>(::toString(name)) : std::string();',
+            '        const long count = ccxt::isList(args)',
+            '            ? static_cast<long>(std::any_cast<ccxt::list>(args).size()) : 0;',
             ...branches,
             `        throw NotSupported (std::string("${id} has no unified method ") + which);`,
             '    }',
