@@ -1185,10 +1185,7 @@ class BaseExchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False, default=0):
-        def sort_by_keyfunc(k):
-            value = k[key]
-            return value if value is not None else default
-        return sorted(array, key=sort_by_keyfunc, reverse=descending)
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else default, reverse=descending)
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
