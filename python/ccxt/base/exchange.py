@@ -1185,11 +1185,18 @@ class BaseExchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False, default=0):
-        return sorted(array, key=lambda k: k[key] if k[key] is not None else default, reverse=descending)
+        def sort_by_keyfunc(k):
+            value = k[key]
+            return value if value is not None else default
+        return sorted(array, key=sort_by_keyfunc, reverse=descending)
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
-        return sorted(array, key=lambda k: (k[key1] if k[key1] is not None else "", k[key2] if k[key2] is not None else ""), reverse=descending)
+        def sort_by_2_keyfunc(k):
+            value1 = k[key1]
+            value2 = k[key2]
+            return (value1 if value1 is not None else "", value2 if value2 is not None else "")
+        return sorted(array, key=sort_by_2_keyfunc, reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
