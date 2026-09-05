@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded, AccountNotEnabled } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL, Endpoint } from './base/types.js';
@@ -579,6 +579,7 @@ export default class phemex extends Exchange {
                     '30018': BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
                     '34003': PermissionDenied, // {"code":34003,"msg":"Access forbidden","data":null}
                     '35104': InsufficientFunds, // {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
+                    '39108': AccountNotEnabled, // {"code":39108,"msg":"Currency not supported.","data":null} the account has no wallet for that currency
                     '39995': RateLimitExceeded, // {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
                     '39997': BadSymbol, // {"code":39997,"msg":"Symbol not listed sMOVRUSDT","data":null}
@@ -3874,11 +3875,10 @@ export default class phemex extends Exchange {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', code);
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
-        const isUSDTSettled = settle === 'USDT';
-        if (isUSDTSettled) {
-            code = 'USDT';
-        } else if (settle === 'BTC') {
-            code = 'BTC';
+        // the stable-settled contracts live on the hedged (g) api, every other settle currency on the legacy contract api
+        const isStableSettled = (settle === 'USDT') || (settle === 'USDC');
+        if (settle !== undefined) {
+            code = settle;
         } else if (code === undefined) {
             code = (subType === 'linear') ? 'USD' : 'BTC';
         }
@@ -3887,7 +3887,7 @@ export default class phemex extends Exchange {
             'currency': currency['id'],
         };
         let response: Dict;
-        if (isUSDTSettled) {
+        if (isStableSettled) {
             let method: Str = undefined;
             [ method, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', 'privateGetGAccountsAccountPositions');
             if (method === 'privateGetGAccountsAccountPositions') {
@@ -4139,24 +4139,51 @@ export default class phemex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const collateral = this.safeString2 (position, 'positionMargin', 'positionMarginRv');
-        const notionalString = this.safeString2 (position, 'value', 'valueRv');
-        const maintenanceMarginPercentageString = this.safeString2 (position, 'maintMarginReq', 'maintMarginReqRr');
+        // the coin-settled contract websocket channel only carries the scaled Ev/Ep/Er variants
+        let collateral = this.safeString2 (position, 'positionMargin', 'positionMarginRv');
+        if (collateral === undefined) {
+            collateral = this.fromEv (this.safeString (position, 'positionMarginEv'), market);
+        }
+        let notionalString = this.safeString2 (position, 'value', 'valueRv');
+        if (notionalString === undefined) {
+            notionalString = this.fromEv (this.safeString (position, 'valueEv'), market);
+        }
+        let maintenanceMarginPercentageString = this.safeString2 (position, 'maintMarginReq', 'maintMarginReqRr');
+        if (maintenanceMarginPercentageString === undefined) {
+            maintenanceMarginPercentageString = this.fromEr (this.safeString (position, 'maintMarginReqEr'), market);
+        }
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const initialMarginString = this.safeString2 (position, 'assignedPosBalance', 'assignedPosBalanceRv');
+        let initialMarginString = this.safeString2 (position, 'assignedPosBalance', 'assignedPosBalanceRv');
+        if (initialMarginString === undefined) {
+            initialMarginString = this.fromEv (this.safeString (position, 'assignedPosBalanceEv'), market);
+        }
         const initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
-        const liquidationPrice = this.safeNumber2 (position, 'liquidationPrice', 'liquidationPriceRp');
-        const markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
+        let liquidationPriceString = this.safeString2 (position, 'liquidationPrice', 'liquidationPriceRp');
+        if (liquidationPriceString === undefined) {
+            liquidationPriceString = this.fromEp (this.safeString (position, 'liquidationPriceEp'), market);
+        }
+        let markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
+        if (markPriceString === undefined) {
+            markPriceString = this.fromEp (this.safeString (position, 'markPriceEp'), market);
+        }
         const contracts = this.safeStringN (position, [ 'size', 'sizeRq', 'closedSizeRq' ]);
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const leverage = this.parseNumber (Precise.stringAbs ((this.safeString2 (position, 'leverage', 'leverageRr'))));
-        const entryPriceString = this.safeStringN (position, [ 'avgEntryPrice', 'avgEntryPriceRp', 'openPrice' ]);
+        let leverageString = this.safeString2 (position, 'leverage', 'leverageRr');
+        if (leverageString === undefined) {
+            leverageString = this.fromEr (this.safeString (position, 'leverageEr'), market);
+        }
+        const leverage = this.parseNumber (Precise.stringAbs (leverageString));
+        let entryPriceString = this.safeStringN (position, [ 'avgEntryPrice', 'avgEntryPriceRp', 'openPrice' ]);
+        if (entryPriceString === undefined) {
+            entryPriceString = this.fromEp (this.safeString (position, 'avgEntryPriceEp'), market);
+        }
         const rawSide = this.safeString (position, 'side');
         let side: Str = undefined;
-        if (rawSide !== undefined) {
-            const isLong = (rawSide === 'Buy' || rawSide === '1');
-            side = isLong ? 'long' : 'short';
+        if ((rawSide === 'Buy') || (rawSide === '1')) {
+            side = 'long';
+        } else if ((rawSide === 'Sell') || (rawSide === '2')) {
+            side = 'short';
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4179,7 +4206,17 @@ export default class phemex extends Exchange {
         }
         const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
-        const apiUnrealizedPnl = this.safeString (position, 'unRealisedPnlRv', unrealizedPnl);
+        let apiUnrealizedPnl = this.safeString2 (position, 'unRealisedPnlRv', 'unrealisedPnlRv');
+        if (apiUnrealizedPnl === undefined) {
+            apiUnrealizedPnl = this.fromEv (this.safeString (position, 'unrealisedPnlEv'), market);
+        }
+        if (apiUnrealizedPnl === undefined) {
+            apiUnrealizedPnl = unrealizedPnl;
+        }
+        let realizedPnlString = this.safeString2 (position, 'curTermRealisedPnlRv', 'realizedPnlRv');
+        if (realizedPnlString === undefined) {
+            realizedPnlString = this.fromEv (this.safeString (position, 'curTermRealisedPnlEv'), market);
+        }
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         const isCross = this.safeValue (position, 'crossMargin');
         const timestamp = this.safeInteger (position, 'openedTimeNs');
@@ -4190,10 +4227,10 @@ export default class phemex extends Exchange {
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
-            'realizedPnl': this.safeNumber2 (position, 'curTermRealisedPnlRv', 'realizedPnlRv'),
+            'realizedPnl': this.parseNumber (realizedPnlString),
             'unrealizedPnl': this.parseNumber (apiUnrealizedPnl),
             'leverage': leverage,
-            'liquidationPrice': liquidationPrice,
+            'liquidationPrice': this.parseNumber (liquidationPriceString),
             'collateral': this.parseNumber (collateral),
             'notional': this.parseNumber (notionalString),
             'markPrice': this.parseNumber (markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
