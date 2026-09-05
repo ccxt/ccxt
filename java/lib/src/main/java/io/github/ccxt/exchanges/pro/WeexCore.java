@@ -1527,7 +1527,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         Object marketResolved = this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
-        Object side = this.safeStringLower(trade, "orderSide");
+        String side = (String)this.safeStringLower(trade, "orderSide");
         Object fee = null;
         Object commission = this.safeString(trade, "fillFee");
         if (Helpers.isTrue(!Helpers.isEqual(commission, null)))
@@ -1847,7 +1847,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         Object marketResolved = this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
-        Object side = this.safeStringLower(order, "orderSide");
+        String side = (String)this.safeStringLower(order, "orderSide");
         Object fee = null;
         Object commission = this.safeString(order, "cumFillFee");
         if (Helpers.isTrue(!Helpers.isEqual(commission, null)))
@@ -1871,7 +1871,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 put( "currency", finalFeeCurrency );
             }};
         }
-        Object rawStatus = this.safeStringLower(order, "status");
+        String rawStatus = (String)this.safeStringLower(order, "status");
         Object rawType = this.safeString(order, "type");
         Object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
         Object stopLossPrice = null;

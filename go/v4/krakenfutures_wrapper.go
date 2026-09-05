@@ -72,6 +72,31 @@ func (this *Krakenfutures) FetchOrderBook(symbol string, options ...FetchOrderBo
 
 /**
  * @method
+ * @name krakenfutures#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
+
+	opts := FetchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params *map[string]any = opts.Params
+	res := <-this.Core.FetchTicker(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+
+/**
+ * @method
  * @name krakenfutures#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
@@ -987,7 +1012,7 @@ func (this *Krakenfutures) EditOrders(orders []OrderRequest, options ...EditOrde
 func (this *Krakenfutures) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Krakenfutures) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Krakenfutures) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Krakenfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1029,7 +1054,7 @@ func (this *Krakenfutures) FetchDepositAddress(code string, options ...FetchDepo
 func (this *Krakenfutures) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Krakenfutures) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Krakenfutures) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Krakenfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
@@ -1163,9 +1188,6 @@ func (this *Krakenfutures) FetchPremiumIndexOHLCV(symbol string, options ...Fetc
 }
 func (this *Krakenfutures) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Krakenfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
 func (this *Krakenfutures) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)

@@ -228,6 +228,7 @@ dead man's switch, cancel all orders after the given timeout
 | timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | spot or swap market |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported |
 
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
@@ -1864,7 +1865,7 @@ fetch all the accounts associated with a profile
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 
 | Param | Type | Required | Description |
@@ -5948,6 +5949,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [independentreserve](/exchanges/independentreserve.md#fetchticker)
 * [indodax](/exchanges/indodax.md#fetchticker)
 * [kraken](/exchanges/kraken.md#fetchticker)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchticker)
 * [kucoin](/exchanges/kucoin.md#fetchticker)
 * [latoken](/exchanges/latoken.md#fetchticker)
 * [lbank](/exchanges/lbank.md#fetchticker)

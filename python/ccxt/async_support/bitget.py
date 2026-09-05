@@ -1943,7 +1943,7 @@ class bitget(Exchange, ImplicitAPI):
             # use the api to determine if the account is uta or not
             accountIsUTa = False
             try:
-                await self.privateUtaGetV3AccountSettings(params)
+                await self.privateUtaGetV3AccountSettings()
                 accountIsUTa = True
             except Exception as e:
                 accountIsUTa = False
@@ -5549,7 +5549,7 @@ class bitget(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createOrder() does not support ' + marketType + ' orders')
         return self.extend(request, params)
 
-    async def create_uta_orders(self, orders: list[OrderRequest], params={}):
+    async def create_uta_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         ordersRequests = []
@@ -6048,7 +6048,7 @@ class bitget(Exchange, ImplicitAPI):
                 order = data
         return self.parse_order(order, market)
 
-    async def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}):
+    async def cancel_uta_orders(self, ids: object, symbol: Str = None, params={}) -> list[Order]:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         if self.markets is None:
@@ -6533,6 +6533,8 @@ class bitget(Exchange, ImplicitAPI):
             if type == 'spot':
                 if marginMode is not None:
                     productType = 'MARGIN'
+                else:
+                    productType = 'SPOT'
             request['category'] = productType
             if trigger is True:
                 response = await self.privateUtaGetV3TradeUnfilledStrategyOrders(self.extend(request, params))
@@ -7183,7 +7185,7 @@ class bitget(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_uta_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         market = None

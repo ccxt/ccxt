@@ -342,14 +342,14 @@ public class HibachiCore extends HibachiApi
 
     public Object parseMarket(Object market)
     {
-        Object marketId = this.safeString(market, "symbol");
+        String marketId = this.safeString(market, "symbol");
         Object numericId = this.safeNumber(market, "id");
         Object marketType = "swap";
-        Object baseId = this.safeString(market, "underlyingSymbol");
-        Object quoteId = this.safeString(market, "settlementSymbol");
+        String baseId = this.safeString(market, "underlyingSymbol");
+        String quoteId = this.safeString(market, "settlementSymbol");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
-        Object settleId = this.safeString(market, "settlementSymbol");
+        String settleId = this.safeString(market, "settlementSymbol");
         Object settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
@@ -626,12 +626,12 @@ public class HibachiCore extends HibachiApi
         //          "timestamp": 1752543391
         //      }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "symbol");
+        String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object id = this.safeString(trade, "id");
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString(trade, "quantity");
+        String id = this.safeString(trade, "id");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "quantity");
         Object timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         Object cost = Precise.stringMul(price, amount);
         Object side = null;
@@ -810,12 +810,12 @@ public class HibachiCore extends HibachiApi
     public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object status = this.safeString(order, "status");
-        Object type = this.safeStringLower(order, "orderType");
-        Object price = this.safeString2(order, "price", "avgFillPrice");
-        Object rawSide = this.safeString(order, "side");
+        String status = this.safeString(order, "status");
+        String type = (String)this.safeStringLower(order, "orderType");
+        String price = this.safeString2(order, "price", "avgFillPrice");
+        String rawSide = this.safeString(order, "side");
         Object side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "BID")))
         {
@@ -824,11 +824,11 @@ public class HibachiCore extends HibachiApi
         {
             side = "sell";
         }
-        Object amount = this.safeString(order, "totalQuantity");
-        Object remaining = this.safeString(order, "availableQuantity");
-        Object totalQuantity = this.safeString(order, "totalQuantity");
-        Object availableQuantity = this.safeString(order, "availableQuantity");
-        Object filled = this.safeString(order, "filledQuantity");
+        String amount = this.safeString(order, "totalQuantity");
+        String remaining = this.safeString(order, "availableQuantity");
+        String totalQuantity = this.safeString(order, "totalQuantity");
+        String availableQuantity = this.safeString(order, "availableQuantity");
+        String filled = this.safeString(order, "filledQuantity");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(totalQuantity, null)) && Helpers.isTrue(!Helpers.isEqual(availableQuantity, null))))
         {
             filled = Precise.stringSub(totalQuantity, availableQuantity);
@@ -1087,8 +1087,8 @@ public class HibachiCore extends HibachiApi
         }};
         Object postOnly = this.isPostOnly(Helpers.isEqual(((String)type).toUpperCase(), "MARKET"), null, parameters);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        Object timeInForce = this.safeStringLower(parameters, "timeInForce");
-        Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (Helpers.isTrue(postOnly))
         {
             Helpers.addElementToObject(request, "orderFlags", "POST_ONLY");
@@ -1172,9 +1172,9 @@ public class HibachiCore extends HibachiApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object symbol = this.safeString(rawOrder, "symbol");
-                Object type = this.safeString(rawOrder, "type");
-                Object side = this.safeString(rawOrder, "side");
+                String symbol = this.safeString(rawOrder, "symbol");
+                String type = this.safeString(rawOrder, "type");
+                String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
@@ -1304,10 +1304,10 @@ public class HibachiCore extends HibachiApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object id = this.safeString(rawOrder, "id");
-                Object symbol = this.safeString(rawOrder, "symbol");
-                Object type = this.safeString(rawOrder, "type");
-                Object side = this.safeString(rawOrder, "side");
+                String id = this.safeString(rawOrder, "id");
+                String symbol = this.safeString(rawOrder, "symbol");
+                String type = this.safeString(rawOrder, "type");
+                String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
@@ -2129,13 +2129,13 @@ public class HibachiCore extends HibachiApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "symbol");
+        String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object side = this.safeStringLower(position, "direction");
-        Object quantity = this.safeString(position, "quantity");
-        Object unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
-        Object unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");
+        String side = (String)this.safeStringLower(position, "direction");
+        String quantity = this.safeString(position, "quantity");
+        String unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");
+        String unrealizedTrading = this.safeString(position, "unrealizedTradingPnl", "0");
         Object unrealizedPnl = Precise.stringAdd(unrealizedFunding, unrealizedTrading);
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -2180,7 +2180,7 @@ public class HibachiCore extends HibachiApi
         {
             Object request = this.omit(parameters, this.extractParams(path));
             Object query = this.urlencode(request);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
@@ -2218,14 +2218,14 @@ public class HibachiCore extends HibachiApi
             //
             //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
             //
-            Object status = this.safeString(response, "status");
+            String status = this.safeString(response, "status");
             if (Helpers.isTrue(Helpers.isEqual(status, "failed")))
             {
-                Object code = this.safeString(response, "errorCode");
+                String code = this.safeString(response, "errorCode");
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
-                Object message = this.safeString(response, "message");
+                String message = this.safeString(response, "message");
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
                 throw new ExchangeError((String)feedback) ;
             }
@@ -2258,7 +2258,7 @@ public class HibachiCore extends HibachiApi
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object transactionType = this.safeString(item, "transactionType");
+        String transactionType = this.safeString(item, "transactionType");
         Object timestamp = null;
         Object type = null;
         Object direction = null;
@@ -2272,7 +2272,7 @@ public class HibachiCore extends HibachiApi
             // response from TradeAccountTradingHistory
             timestamp = this.safeIntegerProduct(item, "timestamp", 1000);
             type = "trade";
-            Object amountStr = this.safeString(item, "realizedPnl");
+            String amountStr = this.safeString(item, "realizedPnl");
             if (Helpers.isTrue(Precise.stringLt(amountStr, "0")))
             {
                 direction = "out";
@@ -2489,7 +2489,7 @@ public class HibachiCore extends HibachiApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
-        Object address = this.safeString(transaction, "withdrawalAddress");
+        String address = this.safeString(transaction, "withdrawalAddress");
         Object transactionType = this.safeString(transaction, "transactionType");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(transactionType, "deposit")) && Helpers.isTrue(!Helpers.isEqual(transactionType, "withdrawal"))))
         {
@@ -2651,7 +2651,7 @@ public class HibachiCore extends HibachiApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(settlement, "timestamp");
-        Object marketId = this.safeString(settlement, "symbol");
+        String marketId = this.safeString(settlement, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
             put( "symbol", HibachiCore.this.safeSymbol(marketId, market) );

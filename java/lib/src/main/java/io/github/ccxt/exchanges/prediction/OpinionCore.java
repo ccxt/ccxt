@@ -1044,7 +1044,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, listLength); i++)
             {
                 Object entry = Helpers.GetValue(list, i);
-                Object address = this.safeStringLower(entry, "quoteTokenAddress");
+                String address = (String)this.safeStringLower(entry, "quoteTokenAddress");
                 if (Helpers.isTrue(!Helpers.isEqual(address, null)))
                 {
                     Helpers.addElementToObject(quoteTokens, address, entry);
@@ -1401,8 +1401,8 @@ final Object finalTokenId = tokenId;
         Object marketAny = ((Object)market);
         Object statusEnum = this.safeString(order, "statusEnum");
         Object status = this.parseOrderStatus(statusEnum);
-        Object sideEnum = this.safeStringLower(order, "sideEnum");
-        Object tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
+        String sideEnum = (String)this.safeStringLower(order, "sideEnum");
+        String tradingMethodEnum = (String)this.safeStringLower(order, "tradingMethodEnum");
         Object timestamp = this.safeTimestamp(order, "createdAt");
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1677,7 +1677,7 @@ final Object finalTokenId = tokenId;
         Object tokenId = this.safeString(trade, "tokenId");
         Object outcomeObj = this.safeOutcome(tokenId, ((Object)market));
         Object timestamp = this.safeTimestamp(trade, "createdAt");
-        Object side = this.safeStringLower(trade, "side");
+        String side = (String)this.safeStringLower(trade, "side");
         return this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
             put( "id", OpinionCore.this.safeString(trade, "txHash") );
             put( "timestamp", timestamp );
@@ -1839,7 +1839,7 @@ final Object finalTokenId = tokenId;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object tokenId = this.safeString(position, "tokenId");
         Object outcomeObj = this.safeOutcome(tokenId, ((Object)market));
-        Object outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
+        String outcomeSideEnum = (String)this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
             put( "contracts", OpinionCore.this.safeNumber(position, "sharesOwned") );
             put( "side", outcomeSideEnum );

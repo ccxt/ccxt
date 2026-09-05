@@ -274,7 +274,7 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 0))), this.ValueToChecksum(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 1)))
 			}
 		}
-		var calculatedChecksum any = this.Crc32(payload, true)
+		var calculatedChecksum int64 = this.Crc32(payload, true)
 		var responseChecksum any = this.SafeInteger(orderBook, "Crc32")
 		if ccxt.IsTrue(!ccxt.IsEqual(calculatedChecksum, responseChecksum)) {
 			error := ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol)))

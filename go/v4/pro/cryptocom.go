@@ -608,7 +608,7 @@ func (this *CryptocomCore) HandleTrades(client any, message any) {
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(parsedTrades)); j++ {
 		stored.(ccxt.Appender).Append(ccxt.GetValue(parsedTrades, j))
 	}
-	var channelReplaced any = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
+	var channelReplaced string = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
 	client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 	client.(ccxt.ClientInterface).Resolve(stored, channelReplaced)
 }

@@ -93,13 +93,21 @@ public partial class BaseExchange
     {
         // var targetA = (List<object>)aa;
         var targetA = new List<object>() { };
-        if (aa.GetType() == typeof(List<object>))
+        if (aa is List<object> plain)
         {
-            targetA = (List<object>)aa;
+            targetA = plain;
         }
-        else
+        else if (aa is dict asDict)
         {
-            targetA = ((dict)aa).Values.ToList();
+            targetA = asDict.Values.ToList();
+        }
+        else if (aa is System.Collections.IEnumerable rows)
+        {
+            // a typed core's List<Dictionary<string, object>> (dydx FetchTransactionsHelper)
+            foreach (var row in rows)
+            {
+                targetA.Add(row);
+            }
         }
         var outList = new List<object>();
         foreach (object elem in targetA)
@@ -140,48 +148,6 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public object deepExtend2(params object[] objs)
-    {
-        // old implementation
-        object outDict = new Dictionary<string, object>();
-        foreach (object obj in objs)
-        {
-            var obj2 = obj;
-            if (obj2 == null)
-            {
-                obj2 = new Dictionary<string, object>();
-            }
-            if (obj2 is dict)
-            {
-                var keys = new List<string>(((dict)obj2).Keys);
-                foreach (string key in keys)
-                {
-
-                    var value = ((dict)obj2)[key];
-                    if (value != null && value is dict)
-                    {
-                        if (((dict)outDict).ContainsKey(key))
-                        {
-                            ((dict)outDict)[key] = deepExtend2(((dict)outDict)[key], value);
-                        }
-                        else
-                        {
-                            ((dict)outDict)[key] = deepExtend2(value);
-                        }
-                    }
-                    else
-                    {
-                        ((dict)outDict)[key] = value;
-                    }
-                }
-            }
-            else
-            {
-                outDict = obj;
-            }
-        }
-        return outDict;
-    }
     public Dictionary<string, object> deepExtend(params object[] objs)
     {
         object outObj = null;

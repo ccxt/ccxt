@@ -1,0 +1,29 @@
+[package]
+name = "ccxt-prediction"
+version = "4.5.75"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed prediction-market API"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt-prediction"
+readme = "README.md"
+keywords = ["cryptocurrency", "prediction-market", "trading", "ccxt", "kalshi"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt_prediction"
+path = "src/lib.rs"
+
+[dependencies]
+# The untyped engine. The per-venue typed wrappers wrap its prediction Cores
+# (ccxt_base::prediction::<id>) and base method surface. This crate re-exports
+# ccxt-base at its root, so `ccxt_prediction::Value` / `::types::…` resolve
+# alongside the typed wrappers (`ccxt_prediction::Kalshi`).
+ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
+
+# The generated typed wrappers (`src/prediction/*_typed.rs`, `typed.rs`, emitted
+# by build/generateRustWrappers.ts) reference exactly one external crate
+# directly: `#[async_trait::async_trait]`. Every other external type is reached
+# through the `ccxt_base::*` re-exports, so it is not re-declared here.
+async-trait = "0.1"

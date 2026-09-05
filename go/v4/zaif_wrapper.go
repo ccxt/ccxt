@@ -410,7 +410,7 @@ func (this *Zaif) EditOrders(orders []OrderRequest, options ...EditOrdersOptions
 func (this *Zaif) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Zaif) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Zaif) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Zaif) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -452,7 +452,7 @@ func (this *Zaif) FetchDepositAddress(code string, options ...FetchDepositAddres
 func (this *Zaif) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Zaif) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Zaif) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Zaif) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

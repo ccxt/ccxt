@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         // iteration risks blocking until the test-runner kills the whole exchange.
         // a validated book is already a pass, so keep sampling only while updates
         // keep arriving quickly and stop once the book goes quiet.
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         bool idle = false;

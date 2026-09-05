@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1804,7 +1804,7 @@ class gate(Exchange, ImplicitAPI):
                 })
         return result
 
-    async def fetch_option_underlyings(self):
+    async def fetch_option_underlyings(self) -> list[Str]:
         underlyingsResponse = await self.publicOptionsGetUnderlyings()
         #
         #    [
@@ -2274,7 +2274,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -3255,21 +3255,16 @@ class gate(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             entry = data[i]
             if isolated:
-                marketId = self.safe_string(entry, 'currency_pair')
-                symbolInner = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
-                subResult[baseCode] = self.parse_balance_helper(base)
-                subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbolInner] = self.safe_balance(subResult)
+                result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
+                result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
                 result[code] = self.parse_balance_helper(entry)
-        returnResult = result if isolated else self.safe_balance(result)
-        return returnResult
+        return self.safe_balance(result)
 
     async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
@@ -3339,7 +3334,7 @@ class gate(Exchange, ImplicitAPI):
             response = await self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    async def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    async def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         # separated option logic because the from, to and limit parameters weren't functioning
         if self.markets is None:
             await self.load_markets()
@@ -6740,7 +6735,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def modify_margin_helper(self, symbol: str, amount: object, params={}):
+    async def modify_margin_helper(self, symbol: str, amount: object, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -6959,7 +6954,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 

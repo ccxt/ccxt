@@ -1,0 +1,34 @@
+[package]
+name = "ccxt-pro"
+version = "4.5.75"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – pro (WebSocket / watch*) exchanges"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt-pro"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt_pro"
+path = "src/lib.rs"
+
+[dependencies]
+# The base crate. The transpiled WS venues in `src/pro/<id>.rs` reference the
+# REST cores, runtime helpers and hand-written pro infra (cache / order_book /
+# ws_client) that live in `ccxt`. Splitting the WS venues into their own crate
+# keeps each `rustc` invocation well under the CI runner's memory limit.
+ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
+
+# The generated WS venues (`src/pro/<id>.rs`, emitted by build/rustTranspiler.ts)
+# and typed wrappers (`src/pro_typed/`, `typed.rs`, emitted by
+# build/generateRustWrappers.ts) reference exactly three external crates
+# directly: `indexmap::IndexMap` (Value::Map backing store), `futures::FutureExt`
+# (`.boxed()` on watch* futures) and `#[async_trait::async_trait]`. Everything
+# else — HTTP, crypto, WS transport, decimal math — is reached through
+# `ccxt_base::*` re-exports, so it is not re-declared here.
+async-trait = "0.1"
+futures = "0.3"
+indexmap = { version = "2", features = ["serde"] }

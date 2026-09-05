@@ -74,9 +74,9 @@ description: "Wenn Ihre Frage so kurz formuliert ist wie die obige, werden wir n
 
   ## Hey! Der Fix, den Sie hochgeladen haben, ist in TypeScript – würden Sie bitte auch JavaScript / Python / PHP beheben?
 
-  Unser Build-System generiert automatisch börsenspezifischen JavaScript-, Python-, PHP-, C#-, Go- und Java-Code für uns, der also aus TypeScript transpiliert wird, sodass es nicht notwendig ist, alle Sprachen einzeln nacheinander zu beheben.
+  Unser Build-System generiert automatisch börsenspezifischen JavaScript-, Python-, PHP-, C#-, Go-, Java- und Rust-Code für uns, der also aus TypeScript transpiliert wird, sodass es nicht notwendig ist, alle Sprachen einzeln nacheinander zu beheben.
 
-  Wenn es also in TypeScript behoben ist, ist es auch in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go und Java behoben. Der automatische Build dauert in der Regel 15–20 Minuten. Aktualisieren Sie einfach Ihre Version mit `npm`, `pip` oder `composer` **nachdem die neue Version erschienen ist**, und alles ist in Ordnung.
+  Wenn es also in TypeScript behoben ist, ist es auch in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java und Rust (crates.io) behoben. Der automatische Build dauert in der Regel 15–20 Minuten. Aktualisieren Sie einfach Ihre Version mit `npm`, `pip` oder `composer` **nachdem die neue Version erschienen ist**, und alles ist in Ordnung.
 
   Mehr dazu hier:
 

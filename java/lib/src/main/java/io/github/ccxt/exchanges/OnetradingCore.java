@@ -480,7 +480,7 @@ public class OnetradingCore extends OnetradingApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "code");
+        String id = this.safeString(rawCurrency, "code");
         Object code = this.safeCurrencyCode(id);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -582,13 +582,13 @@ public class OnetradingCore extends OnetradingApi
         //
         Object baseAsset = this.safeDict(market, "base", new java.util.HashMap<String, Object>() {{}});
         Object quoteAsset = this.safeDict(market, "quote", new java.util.HashMap<String, Object>() {{}});
-        Object baseId = this.safeString(baseAsset, "code");
-        Object quoteId = this.safeString(quoteAsset, "code");
-        Object id = this.safeString(market, "id");
+        String baseId = this.safeString(baseAsset, "code");
+        String quoteId = this.safeString(quoteAsset, "code");
+        String id = this.safeString(market, "id");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
-        Object state = this.safeString(market, "state");
-        Object type = this.safeString(market, "type");
+        String state = this.safeString(market, "state");
+        String type = this.safeString(market, "type");
         Object isPerp = Helpers.isEqual(type, "PERP");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(isPerp))
@@ -665,7 +665,7 @@ public class OnetradingCore extends OnetradingApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object method = this.safeString(parameters, "method");
+            String method = this.safeString(parameters, "method");
             parameters = this.omit(parameters, "method");
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
@@ -814,13 +814,13 @@ public class OnetradingCore extends OnetradingApi
             Object activeFeeTier = this.safeList(response, "active_fee_tiers");
             Object spotFees = this.safeDict(activeFeeTier, 0, new java.util.HashMap<String, Object>() {{}});
             Object futuresFees = this.safeDict(activeFeeTier, 1, new java.util.HashMap<String, Object>() {{}});
-            Object spotMakerFee = this.safeString(spotFees, "maker_fee");
-            Object spotTakerFee = this.safeString(spotFees, "taker_fee");
+            String spotMakerFee = this.safeString(spotFees, "maker_fee");
+            String spotTakerFee = this.safeString(spotFees, "taker_fee");
             spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
             spotTakerFee = Precise.stringDiv(spotTakerFee, "100");
             // const feeTiers = this.safeValue (response, 'fee_tiers');
-            Object futuresMakerFee = this.safeString(futuresFees, "maker_fee");
-            Object futuresTakerFee = this.safeString(futuresFees, "taker_fee");
+            String futuresMakerFee = this.safeString(futuresFees, "maker_fee");
+            String futuresTakerFee = this.safeString(futuresFees, "taker_fee");
             futuresMakerFee = Precise.stringDiv(futuresMakerFee, "100");
             futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
             Object result = new java.util.HashMap<String, Object>() {{}};
@@ -856,8 +856,8 @@ public class OnetradingCore extends OnetradingApi
         {
             Object tier = Helpers.GetValue(feeTiers, i);
             Object volume = this.safeNumber(tier, "volume");
-            Object taker = this.safeString(tier, "taker_fee");
-            Object maker = this.safeString(tier, "maker_fee");
+            String taker = this.safeString(tier, "taker_fee");
+            String maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
             ((java.util.List<Object>)makerFees).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(volume, this.parseNumber(maker))));
@@ -893,13 +893,13 @@ public class OnetradingCore extends OnetradingApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(ticker, "time"));
-        Object marketId = this.safeString(ticker, "instrument_code");
+        String marketId = this.safeString(ticker, "instrument_code");
         Object symbol = this.safeSymbol(marketId, market, "_");
-        Object last = this.safeString(ticker, "last_price");
-        Object percentage = this.safeString(ticker, "price_change_percentage");
-        Object change = this.safeString(ticker, "price_change");
-        Object baseVolume = this.safeString(ticker, "base_volume");
-        Object quoteVolume = this.safeString(ticker, "quote_volume");
+        String last = this.safeString(ticker, "last_price");
+        String percentage = this.safeString(ticker, "price_change_percentage");
+        String change = this.safeString(ticker, "price_change");
+        String baseVolume = this.safeString(ticker, "base_volume");
+        String quoteVolume = this.safeString(ticker, "quote_volume");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1138,8 +1138,8 @@ public class OnetradingCore extends OnetradingApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object granularity = this.safeValue(ohlcv, "granularity");
-        Object unit = this.safeString(granularity, "unit");
-        Object period = this.safeString(granularity, "period");
+        String unit = this.safeString(granularity, "unit");
+        String period = this.safeString(granularity, "period");
         Object units = new java.util.HashMap<String, Object>() {{
             put( "MINUTES", "m" );
             put( "HOURS", "h" );
@@ -1147,7 +1147,7 @@ public class OnetradingCore extends OnetradingApi
             put( "WEEKS", "w" );
             put( "MONTHS", "M" );
         }};
-        Object lowercaseUnit = this.safeString(units, unit);
+        String lowercaseUnit = this.safeString(units, unit);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(period, null))) || Helpers.isTrue((Helpers.isEqual(lowercaseUnit, null)))))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseOHLCV() missing period/unit")) ;
@@ -1162,7 +1162,7 @@ public class OnetradingCore extends OnetradingApi
         }
         Object alignedTimestamp = Helpers.multiply(duration, this.parseToInt(Helpers.divide(timestamp, duration)));
         Object options = this.safeValue(this.options, "fetchOHLCV", new java.util.HashMap<String, Object>() {{}});
-        Object volumeField = this.safeString(options, "volume", "total_amount");
+        String volumeField = this.safeString(options, "volume", "total_amount");
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)));
     }
 
@@ -1192,7 +1192,7 @@ public class OnetradingCore extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object periodUnit = this.safeString(this.timeframes, timeframe);
+            String periodUnit = this.safeString(this.timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(periodUnit, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing periodUnit")) ;
@@ -1283,20 +1283,20 @@ public class OnetradingCore extends OnetradingApi
         {
             timestamp = this.parse8601(this.safeString(trade, "time"));
         }
-        Object side = this.safeStringLower2(trade, "side", "taker_side");
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object costString = this.safeString(trade, "volume");
-        Object marketId = this.safeString(trade, "instrument_code");
+        String side = (String)this.safeStringLower2(trade, "side", "taker_side");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String costString = this.safeString(trade, "volume");
+        String marketId = this.safeString(trade, "instrument_code");
         Object symbol = this.safeSymbol(marketId, market, "_");
-        Object feeCostString = this.safeString(feeInfo, "fee_amount");
+        String feeCostString = this.safeString(feeInfo, "fee_amount");
         Object takerOrMaker = null;
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
-            Object feeCurrencyId = this.safeString(feeInfo, "fee_currency");
+            String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
             Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            Object feeRateString = this.safeString(feeInfo, "fee_percentage");
+            String feeRateString = this.safeString(feeInfo, "fee_percentage");
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -1335,7 +1335,7 @@ public class OnetradingCore extends OnetradingApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object currencyId = this.safeString(balance, "currency_code");
+            String currencyId = this.safeString(balance, "currency_code");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -1476,17 +1476,17 @@ public class OnetradingCore extends OnetradingApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object rawOrder = this.safeValue(order, "order", order);
-        Object id = this.safeString(rawOrder, "order_id");
-        Object clientOrderId = this.safeString(rawOrder, "client_id");
+        String id = this.safeString(rawOrder, "order_id");
+        String clientOrderId = this.safeString(rawOrder, "client_id");
         Object timestamp = this.parse8601(this.safeString(rawOrder, "time"));
         Object status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
-        Object marketId = this.safeString(rawOrder, "instrument_code");
+        String marketId = this.safeString(rawOrder, "instrument_code");
         Object symbol = this.safeSymbol(marketId, market, "_");
-        Object price = this.safeString(rawOrder, "price");
-        Object amount = this.safeString(rawOrder, "amount");
-        Object filled = this.safeString(rawOrder, "filled_amount");
-        Object side = this.safeStringLower(rawOrder, "side");
-        Object type = this.safeStringLower(rawOrder, "type");
+        String price = this.safeString(rawOrder, "price");
+        String amount = this.safeString(rawOrder, "amount");
+        String filled = this.safeString(rawOrder, "filled_amount");
+        String side = (String)this.safeStringLower(rawOrder, "side");
+        String type = (String)this.safeStringLower(rawOrder, "type");
         Object timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
         Object postOnly = this.safeValue(rawOrder, "is_post_only");
         Object rawTrades = this.safeValue(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1588,13 +1588,13 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_id", clientOrderId);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
             }
-            Object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
+            String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
             parameters = this.omit(parameters, "timeInForce");
             Helpers.addElementToObject(request, "time_in_force", timeInForce);
             Object response = (this.privatePostAccountOrders(this.extend(request, parameters))).join();
@@ -1640,7 +1640,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
             Object method = "privateDeleteAccountOrdersOrderId";
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -2191,7 +2191,7 @@ public class OnetradingCore extends OnetradingApi
         //     {"error":"MISSING_TO_PARAM"}
         //     {"error":"CANDLESTICKS_TIME_RANGE_TOO_BIG"}
         //
-        Object message = this.safeString(response, "error");
+        String message = this.safeString(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(message, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

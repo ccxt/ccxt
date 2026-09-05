@@ -11,6 +11,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -92,7 +93,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchOrders': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': 'emulated',
+                'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': 'emulated',
@@ -132,6 +133,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'instruments': {'cost': 1},
                         'orderbook': {'cost': 1},
                         'tickers': {'cost': 1},
+                        'tickers/{symbol}': {'cost': 1},
                         'history': {'cost': 1},
                         'historicalfundingrates': {'cost': 1},
                     },
@@ -237,6 +239,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'notFound': BadRequest,
                     'Server Error': ExchangeError,
                     'unknownError': ExchangeError,
+                    'contractNotFound': BadSymbol,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
@@ -602,6 +605,49 @@ class krakenfutures(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'serverTime'))
         orderBook = self.safe_dict(response, 'orderBook', {})
         return self.parse_order_book(orderBook, symbol, timestamp)
+
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetTickersSymbol(self.extend(request, params))
+        #
+        #    {
+        #        "result": "success",
+        #        "ticker": {
+        #            "tag": "perpetual",
+        #            "pair": "XBT:USD",
+        #            "symbol": "PF_XBTUSD",
+        #            "markPrice": 77343.38154086835,
+        #            "bid": 77333,
+        #            "bidSize": 0.0776,
+        #            "ask": 77334,
+        #            "askSize": 0.4929,
+        #            "vol24h": 8309.2546,
+        #            "openInterest": 1950.596600000000000,
+        #            "open24h": 77332,
+        #            "indexPrice": 77340.22,
+        #            "last": 77334,
+        #            "lastTime": "2026-09-02T17:52:21.057577Z",
+        #            "lastSize": 0.0114,
+        #            "suspended": False
+        #        },
+        #        "serverTime": "2026-09-02T17:52:21.671Z"
+        #    }
+        #
+        ticker = self.safe_dict(response, 'ticker', {})
+        return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """

@@ -460,7 +460,7 @@ public class UpbitCore extends UpbitApi
             Object currencyInfo = this.safeValue(response, "currency", new java.util.HashMap<String, Object>() {{}});
             Object withdrawLimits = this.safeValue(response, "withdraw_limit", new java.util.HashMap<String, Object>() {{}});
             Object canWithdraw = this.safeValue(withdrawLimits, "can_withdraw");
-            Object walletState = this.safeString(currencyInfo, "wallet_state");
+            String walletState = this.safeString(currencyInfo, "wallet_state");
             Object walletLocked = this.safeValue(memberInfo, "wallet_locked");
             Object locked = this.safeValue(memberInfo, "locked");
             Object active = true;
@@ -477,9 +477,9 @@ public class UpbitCore extends UpbitApi
             {
                 active = false;
             }
-            Object maxOnetimeWithdrawal = this.safeString(withdrawLimits, "onetime");
-            Object maxDailyWithdrawal = this.safeString(withdrawLimits, "daily", maxOnetimeWithdrawal);
-            Object remainingDailyWithdrawal = this.safeString(withdrawLimits, "remaining_daily", maxDailyWithdrawal);
+            String maxOnetimeWithdrawal = this.safeString(withdrawLimits, "onetime");
+            String maxDailyWithdrawal = this.safeString(withdrawLimits, "daily", maxOnetimeWithdrawal);
+            String remainingDailyWithdrawal = this.safeString(withdrawLimits, "remaining_daily", maxDailyWithdrawal);
             Object maxWithdrawLimit = null;
             if (Helpers.isTrue(Precise.stringGt(remainingDailyWithdrawal, "0")))
             {
@@ -488,7 +488,7 @@ public class UpbitCore extends UpbitApi
             {
                 maxWithdrawLimit = maxDailyWithdrawal;
             }
-            Object currencyId = this.safeString(currencyInfo, "code");
+            String currencyId = this.safeString(currencyInfo, "code");
             Object code = this.safeCurrencyCode(currencyId);
             final Object finalActive = active;
             final Object finalMaxWithdrawLimit = maxWithdrawLimit;
@@ -576,14 +576,14 @@ public class UpbitCore extends UpbitApi
             Object marketInfo = this.safeValue(response, "market");
             Object bid = this.safeValue(marketInfo, "bid");
             Object ask = this.safeValue(marketInfo, "ask");
-            Object marketId = this.safeString(marketInfo, "id");
-            Object baseId = this.safeString(ask, "currency");
-            Object quoteId = this.safeString(bid, "currency");
+            String marketId = this.safeString(marketInfo, "id");
+            String baseId = this.safeString(ask, "currency");
+            String quoteId = this.safeString(bid, "currency");
             Object base = this.safeCurrencyCode(baseId);
             Object quote = this.safeCurrencyCode(quoteId);
-            Object state = this.safeString(marketInfo, "state");
-            Object bidFee = this.safeString(response, "bid_fee");
-            Object askFee = this.safeString(response, "ask_fee");
+            String state = this.safeString(marketInfo, "state");
+            String bidFee = this.safeString(response, "bid_fee");
+            String askFee = this.safeString(response, "ask_fee");
             Object fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
             final Object finalBase = base;
             final Object finalState = state;
@@ -674,7 +674,7 @@ public class UpbitCore extends UpbitApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "market");
+        String id = this.safeString(market, "market");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
@@ -749,7 +749,7 @@ public class UpbitCore extends UpbitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(balance, "currency");
+            String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
@@ -877,7 +877,7 @@ public class UpbitCore extends UpbitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderbooks)); i++)
             {
                 Object orderbook = Helpers.GetValue(orderbooks, i);
-                Object marketId = this.safeString(orderbook, "market");
+                String marketId = this.safeString(orderbook, "market");
                 Object symbol = this.safeSymbol(marketId, null, "-");
                 Object timestamp = this.safeInteger(orderbook, "timestamp");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
@@ -950,9 +950,9 @@ public class UpbitCore extends UpbitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "trade_timestamp");
-        Object marketId = this.safeString2(ticker, "market", "code");
+        String marketId = this.safeString2(ticker, "market", "code");
         market = this.safeMarket(marketId, market, "-");
-        Object last = this.safeString(ticker, "trade_price");
+        String last = this.safeString(ticker, "trade_price");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1163,7 +1163,7 @@ public class UpbitCore extends UpbitApi
         //         }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(trade, "sequential_id", "uuid");
+        String id = this.safeString2(trade, "sequential_id", "uuid");
         Object orderId = null;
         Object timestamp = this.safeInteger(trade, "timestamp");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
@@ -1171,7 +1171,7 @@ public class UpbitCore extends UpbitApi
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }
         Object side = null;
-        Object askOrBid = this.safeStringLower2(trade, "ask_bid", "side");
+        String askOrBid = (String)this.safeStringLower2(trade, "ask_bid", "side");
         if (Helpers.isTrue(Helpers.isEqual(askOrBid, "ask")))
         {
             side = "sell";
@@ -1179,13 +1179,13 @@ public class UpbitCore extends UpbitApi
         {
             side = "buy";
         }
-        Object cost = this.safeString(trade, "funds");
-        Object price = this.safeString2(trade, "trade_price", "price");
-        Object amount = this.safeString2(trade, "trade_volume", "volume");
-        Object marketId = this.safeString2(trade, "market", "code");
+        String cost = this.safeString(trade, "funds");
+        String price = this.safeString2(trade, "trade_price", "price");
+        String amount = this.safeString2(trade, "trade_volume", "volume");
+        String marketId = this.safeString2(trade, "market", "code");
         market = this.safeMarket(marketId, market, "-");
         Object fee = null;
-        Object feeCost = this.safeString(trade, Helpers.add(askOrBid, "_fee"));
+        String feeCost = this.safeString(trade, Helpers.add(askOrBid, "_fee"));
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalMarket = market;
@@ -1337,11 +1337,11 @@ public class UpbitCore extends UpbitApi
             //         }
             //     }
             //
-            Object askFee = this.safeString(response, "ask_fee");
-            Object bidFee = this.safeString(response, "bid_fee");
+            String askFee = this.safeString(response, "ask_fee");
+            String bidFee = this.safeString(response, "bid_fee");
             Object taker = Precise.stringMax(askFee, bidFee);
-            Object makerAskFee = this.safeString(response, "maker_ask_fee");
-            Object makerBidFee = this.safeString(response, "maker_bid_fee");
+            String makerAskFee = this.safeString(response, "maker_ask_fee");
+            String makerBidFee = this.safeString(response, "maker_bid_fee");
             Object maker = Precise.stringMax(makerAskFee, makerBidFee);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1383,7 +1383,7 @@ public class UpbitCore extends UpbitApi
                 Helpers.addElementToObject(element, "percentage", true);
                 Helpers.addElementToObject(element, "tierBased", false);
                 Helpers.addElementToObject(element, "info", Helpers.GetValue(fetchMarketResponse, i));
-                Object feeSymbol = this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol");
+                String feeSymbol = this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(feeSymbol, null)))
                 {
                     Helpers.addElementToObject(response, feeSymbol, element);
@@ -1443,7 +1443,7 @@ public class UpbitCore extends UpbitApi
             }
             Object market = this.market(symbol);
             Object timeframePeriod = this.parseTimeframe(timeframe);
-            Object timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
+            String timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 200;
@@ -1512,7 +1512,7 @@ public class UpbitCore extends UpbitApi
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object quoteAmount = null;
         Object createMarketBuyOrderRequiresPrice = this.safeValue(this.options, "createMarketBuyOrderRequiresPrice");
-        Object cost = this.safeString(parameters, "cost");
+        String cost = this.safeString(parameters, "cost");
         if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
         {
             quoteAmount = this.costToPrecision(symbol, cost);
@@ -1578,11 +1578,11 @@ public class UpbitCore extends UpbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object customType = this.safeString2(parameters, "ordType", "ord_type");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            String customType = this.safeString2(parameters, "ordType", "ord_type");
             Object postOnly = this.isPostOnly(Helpers.isEqual(type, "market"), false, parameters);
-            Object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
+            String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+            String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
             Object test = this.safeBool(parameters, "test", false);
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
             {
@@ -1795,12 +1795,12 @@ public class UpbitCore extends UpbitApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object prevClientOrderId = this.safeString(parameters, "clientOrderId");
-            Object customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
-            Object clientOrderId = this.safeString(parameters, "newClientOrderId");
+            String prevClientOrderId = this.safeString(parameters, "clientOrderId");
+            String customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
+            String clientOrderId = this.safeString(parameters, "newClientOrderId");
             Object postOnly = this.isPostOnly(Helpers.isEqual(type, "market"), false, parameters);
-            Object timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
-            Object selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
+            String timeInForce = (String)this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
+            String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
@@ -2195,14 +2195,14 @@ public class UpbitCore extends UpbitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object address = null; // not present in the data structure received from the exchange
         Object tag = null; // not present in the data structure received from the exchange
-        Object updatedRaw = this.safeString(transaction, "done_at");
+        String updatedRaw = this.safeString(transaction, "done_at");
         Object timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
-        Object type = this.safeString(transaction, "type");
+        String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {
             type = "withdrawal";
         }
-        Object currencyId = this.safeString(transaction, "currency");
+        String currencyId = this.safeString(transaction, "currency");
         Object code = this.safeCurrencyCode(currencyId, currency);
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
@@ -2318,8 +2318,8 @@ public class UpbitCore extends UpbitApi
         //        new_order_identifier: '22'
         //      }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "uuid");
-        Object side = this.safeStringLower(order, "side");
+        String id = this.safeString(order, "uuid");
+        String side = (String)this.safeStringLower(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -2327,15 +2327,15 @@ public class UpbitCore extends UpbitApi
         {
             side = "sell";
         }
-        Object identifier = this.safeString(order, "identifier");
-        Object type = this.safeString(order, "ord_type");
+        String identifier = this.safeString(order, "identifier");
+        String type = this.safeString(order, "ord_type");
         Object timestamp = this.parse8601(this.safeString(order, "created_at"));
         Object status = this.parseOrderStatus(this.safeString(order, "state"));
         Object lastTradeTimestamp = null;
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "volume");
-        Object remaining = this.safeString(order, "remaining_volume");
-        Object filled = this.safeString(order, "executed_volume");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "volume");
+        String remaining = this.safeString(order, "remaining_volume");
+        String filled = this.safeString(order, "executed_volume");
         Object cost = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "price")))
         {
@@ -2345,8 +2345,8 @@ public class UpbitCore extends UpbitApi
         }
         Object average = null;
         Object fee = null;
-        Object feeCost = this.safeString(order, "paid_fee");
-        Object marketId = this.safeString(order, "market");
+        String feeCost = this.safeString(order, "paid_fee");
+        String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         Object trades = this.safeValue(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         final Object finalType = type;
@@ -2373,7 +2373,7 @@ public class UpbitCore extends UpbitApi
                 if (Helpers.isTrue(getFeesFromTrades))
                 {
                     Object tradeFee = this.safeValue(Helpers.GetValue(trades, i), "fee", new java.util.HashMap<String, Object>() {{}});
-                    Object tradeFeeCost = this.safeString(tradeFee, "cost");
+                    String tradeFeeCost = this.safeString(tradeFee, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(tradeFeeCost, null)))
                     {
                         feeCost = Precise.stringAdd(feeCost, tradeFeeCost);
@@ -2770,11 +2770,11 @@ public class UpbitCore extends UpbitApi
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "deposit_address");
-        Object tag = this.safeString(depositAddress, "secondary_address");
-        Object currencyId = this.safeString(depositAddress, "currency");
+        String address = this.safeString(depositAddress, "deposit_address");
+        String tag = this.safeString(depositAddress, "secondary_address");
+        String currencyId = this.safeString(depositAddress, "currency");
         Object code = this.safeCurrencyCode(currencyId);
-        Object networkId = this.safeString(depositAddress, "net_type");
+        String networkId = this.safeString(depositAddress, "net_type");
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -2874,7 +2874,7 @@ public class UpbitCore extends UpbitApi
             //         "secondary_address": null
             //     }
             //
-            Object message = this.safeString(response, "message");
+            String message = this.safeString(response, "message");
             if (Helpers.isTrue(!Helpers.isEqual(message, null)))
             {
                 throw new AddressPending((String)Helpers.add(Helpers.add(Helpers.add(this.id, " is generating "), code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
@@ -2920,7 +2920,7 @@ public class UpbitCore extends UpbitApi
             {
                 this.checkAddress(address);
                 // 2023-05-23 Change to required parameters for digital assets
-                Object network = this.safeStringUpper2(parameters, "network", "net_type");
+                String network = (String)this.safeStringUpper2(parameters, "network", "net_type");
                 if (Helpers.isTrue(Helpers.isEqual(network, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network argument")) ;
@@ -3043,8 +3043,8 @@ public class UpbitCore extends UpbitApi
         Object error = this.safeValue(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            Object message = this.safeString(error, "message");
-            Object name = this.safeString(error, "name");
+            String message = this.safeString(error, "message");
+            String name = this.safeString(error, "name");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), name, feedback);

@@ -99,7 +99,7 @@ public Object describe()
     {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object singleQuery = this.safeString(parameters, "query");
+        String singleQuery = this.safeString(parameters, "query");
         if (Helpers.isTrue(!Helpers.isEqual(singleQuery, null)))
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(singleQuery));
@@ -114,11 +114,11 @@ public Object describe()
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object query = this.safeString(parameters, "query");
+        String query = this.safeString(parameters, "query");
         Object queries = this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object eventId = this.safeString(parameters, "eventId");
-        Object slug = this.safeString(parameters, "slug");
+        String eventId = this.safeString(parameters, "eventId");
+        String slug = this.safeString(parameters, "slug");
         Object queriesLength = Helpers.getArrayLength(queries);
         Object tagsLength = Helpers.getArrayLength(tags);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) || Helpers.isTrue((Helpers.isGreaterThan(queriesLength, 0)))) || Helpers.isTrue((Helpers.isGreaterThan(tagsLength, 0)))) || Helpers.isTrue((!Helpers.isEqual(eventId, null)))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
@@ -150,8 +150,8 @@ public Object describe()
         Object queries = Helpers.getArg(optionalArgs, 1, null);
         this.setEvents(events);
         Object result = events;
-        Object eventId = this.safeString(parameters, "eventId");
-        Object slug = this.safeString(parameters, "slug");
+        String eventId = this.safeString(parameters, "eventId");
+        String slug = this.safeString(parameters, "slug");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
         {
             Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -180,7 +180,7 @@ public Object describe()
         {
             result = this.filterEventsBySearchIn(result, queries, this.safeString(parameters, "searchIn"));
         }
-        Object sort = this.safeString(parameters, "sort");
+        String sort = this.safeString(parameters, "sort");
         if (Helpers.isTrue(!Helpers.isEqual(sort, null)))
         {
             Object sortKey = null;
@@ -265,8 +265,8 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Object title = this.safeStringLower(eventVar, "title", "");
-            Object description = this.safeStringLower(eventVar, "description", "");
+            String title = (String)this.safeStringLower(eventVar, "title", "");
+            String description = (String)this.safeStringLower(eventVar, "description", "");
             Object matched = false;
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
@@ -428,9 +428,9 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Object id = this.safeString(eventVar, "id");
-            Object slug = this.safeString(eventVar, "slug");
-            Object handle = this.safeString(eventVar, "event");
+            String id = this.safeString(eventVar, "id");
+            String slug = this.safeString(eventVar, "slug");
+            String handle = this.safeString(eventVar, "event");
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(this.events, id, eventVar);
@@ -461,7 +461,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, Helpers.GetValue(keys, i));
-            Object identity = this.safeString2(eventVar, "id", "event", Helpers.GetValue(keys, i));
+            String identity = this.safeString2(eventVar, "id", "event", Helpers.GetValue(keys, i));
             if (!Helpers.isTrue((Helpers.inOp(seen, identity))))
             {
                 Helpers.addElementToObject(seen, identity, true);
@@ -650,7 +650,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(replacementKeys)); i++)
         {
             Object replacementKey = Helpers.GetValue(replacementKeys, i);
-            Object replacementValue = this.safeString(replacements, replacementKey);
+            String replacementValue = this.safeString(replacements, replacementKey);
             if (Helpers.isTrue(!Helpers.isEqual(replacementValue, null)))
             {
                 s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
@@ -781,7 +781,7 @@ public Object describe()
         {
             Object oc = Helpers.GetValue(outcomesList, j);
             Object ocSymbol = this.safeString2(oc, "outcome", "symbol");
-            Object ocId = this.safeString2(oc, "outcomeId", "id");
+            String ocId = this.safeString2(oc, "outcomeId", "id");
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
@@ -796,7 +796,7 @@ public Object describe()
                 Object existing = this.safeValue(this.outcomes, ocSymbol);
                 if (Helpers.isTrue(!Helpers.isEqual(existing, null)))
                 {
-                    Object existingId = this.safeString(existing, "outcomeId");
+                    String existingId = this.safeString(existing, "outcomeId");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
                     {
                         Object idLen = ((String)ocId).length();
@@ -856,7 +856,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
             Object m = Helpers.GetValue(markets, i);
-            Object marketHandle = this.safeString2(m, "market", "symbol");
+            String marketHandle = this.safeString2(m, "market", "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(marketHandle, null)))
             {
                 Helpers.addElementToObject(this.markets, marketHandle, m);
@@ -1733,13 +1733,13 @@ public Object describe()
         // outcome-addressed row). prediction is always linear with a contract size of 1.
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
         Object amount = this.omitZero(this.safeString(outcomeOrder, "amount"));
-        Object filled = this.safeString(outcomeOrder, "filled");
-        Object remaining = this.safeString(outcomeOrder, "remaining");
-        Object cost = this.safeString(outcomeOrder, "cost");
+        String filled = this.safeString(outcomeOrder, "filled");
+        String remaining = this.safeString(outcomeOrder, "remaining");
+        String cost = this.safeString(outcomeOrder, "cost");
         Object average = this.omitZero(this.safeString(outcomeOrder, "average"));
         Object price = this.omitZero(this.safeString(outcomeOrder, "price"));
-        Object side = this.safeString(outcomeOrder, "side");
-        Object status = this.safeString(outcomeOrder, "status");
+        String side = this.safeString(outcomeOrder, "side");
+        String status = this.safeString(outcomeOrder, "status");
         Object lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         Object rawTrades = this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1759,12 +1759,12 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
             {
                 Object trade = Helpers.GetValue(trades, i);
-                Object tradeAmount = this.safeString(trade, "amount");
+                String tradeAmount = this.safeString(trade, "amount");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeAmount, null)))
                 {
                     filled = Precise.stringAdd(filled, tradeAmount);
                 }
-                Object tradeCost = this.safeString(trade, "cost");
+                String tradeCost = this.safeString(trade, "cost");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeCost, null)))
                 {
                     cost = Precise.stringAdd(cost, tradeCost);
@@ -1830,8 +1830,8 @@ public Object describe()
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
-        Object orderType = this.safeString(outcomeOrder, "type");
-        Object timeInForce = this.safeString(outcomeOrder, "timeInForce");
+        String orderType = this.safeString(outcomeOrder, "type");
+        String timeInForce = this.safeString(outcomeOrder, "timeInForce");
         Object postOnly = this.safeBool(outcomeOrder, "postOnly");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
         {
@@ -1848,7 +1848,7 @@ public Object describe()
             postOnly = (Helpers.isEqual(timeInForce, "PO"));
         }
         Object timestamp = this.safeInteger(outcomeOrder, "timestamp");
-        Object datetime = this.safeString(outcomeOrder, "datetime");
+        String datetime = this.safeString(outcomeOrder, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -1900,15 +1900,15 @@ public Object describe()
     {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString(trade, "amount");
-        Object cost = this.safeString(trade, "cost");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "amount");
+        String cost = this.safeString(trade, "cost");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))))
         {
             cost = Precise.stringMul(price, amount);
         }
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object datetime = this.safeString(trade, "datetime");
+        String datetime = this.safeString(trade, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -1948,7 +1948,7 @@ public Object describe()
         Object open = this.omitZero(this.safeString(ticker, "open"));
         Object close = this.omitZero(this.safeString2(ticker, "close", "last"));
         Object last = this.omitZero(this.safeString2(ticker, "last", "close"));
-        Object change = this.safeString(ticker, "change");
+        String change = this.safeString(ticker, "change");
         Object percentage = this.omitZero(this.safeString(ticker, "percentage"));
         Object average = this.omitZero(this.safeString(ticker, "average"));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(change, null))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))))
@@ -1964,7 +1964,7 @@ public Object describe()
             average = Precise.stringDiv(Precise.stringAdd(open, close), "2");
         }
         Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object datetime = this.safeString(ticker, "datetime");
+        String datetime = this.safeString(ticker, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -2008,7 +2008,7 @@ public Object describe()
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
         Object timestamp = this.safeInteger(position, "timestamp");
-        Object datetime = this.safeString(position, "datetime");
+        String datetime = this.safeString(position, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
             datetime = this.iso8601(timestamp);
@@ -2049,7 +2049,7 @@ public Object describe()
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
-        Object fallback = this.safeString2(orderbook, "outcome", "symbol");
+        String fallback = this.safeString2(orderbook, "outcome", "symbol");
         Helpers.addElementToObject(orderbook, "outcome", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? fallback : this.safeString(outcomeObj, "outcome", fallback));
         Helpers.addElementToObject(orderbook, "outcomeId", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId"));
         Helpers.addElementToObject(orderbook, "market", ((Helpers.isTrue((Helpers.isEqual(outcomeObj, null))))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market"));
@@ -2118,7 +2118,7 @@ public Object describe()
             ((java.util.List<Object>)results).add(trade);
         }
         results = this.sortBy2(results, "timestamp", "id");
-        Object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        String outcomeHandle = this.safeString(outcomeObj, "outcome");
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
 
@@ -2150,7 +2150,7 @@ public Object describe()
             ((java.util.List<Object>)results).add(order);
         }
         results = this.sortBy(results, "timestamp");
-        Object outcomeHandle = this.safeString(outcomeObj, "outcome");
+        String outcomeHandle = this.safeString(outcomeObj, "outcome");
         return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
     }
 
@@ -2203,21 +2203,21 @@ public Object describe()
     public Object amountToPredictionPrecision(Object outcome, Object amount)
     {
         Object outcomeObj = this.outcome(outcome);
-        Object marketSymbol = this.safeString(outcomeObj, "market");
+        String marketSymbol = this.safeString(outcomeObj, "market");
         return this.amountToPrecision(marketSymbol, amount);
     }
 
     public Object priceToPredictionPrecision(Object outcome, Object price)
     {
         Object outcomeObj = this.outcome(outcome);
-        Object marketSymbol = this.safeString(outcomeObj, "market");
+        String marketSymbol = this.safeString(outcomeObj, "market");
         return this.priceToPrecision(marketSymbol, price);
     }
 
     public Object costToPredictionPrecision(Object outcome, Object cost)
     {
         Object outcomeObj = this.outcome(outcome);
-        Object marketSymbol = this.safeString(outcomeObj, "market");
+        String marketSymbol = this.safeString(outcomeObj, "market");
         return this.costToPrecision(marketSymbol, cost);
     }
 

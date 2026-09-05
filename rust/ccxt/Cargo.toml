@@ -1,0 +1,32 @@
+[package]
+name = "ccxt"
+version = "4.5.75"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt"
+path = "src/lib.rs"
+
+[dependencies]
+# The untyped engine. The per-exchange typed wrappers wrap its REST/prediction
+# Cores and base method surface. Kept a separate crate so no single rustc
+# invocation compiles the whole generated surface at once (CI memory ceiling).
+# This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
+# `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
+ccxt-base = { path = "../ccxt-base", version = "4.5.75", features = ["transpiled-base"] }
+
+# The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
+# by build/generateRustWrappers.ts) reference exactly one external crate
+# directly: `#[async_trait::async_trait]` on the `TypedExchange` trait. Every
+# other external type (tokio, serde_json, Decimal, IndexMap, chrono, …) is
+# reached through the `ccxt_base::*` re-exports above, so it is not
+# re-declared here.
+async-trait = "0.1"

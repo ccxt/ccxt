@@ -1937,7 +1937,7 @@ export default class bitget extends Exchange {
             // use the api to determine if the account is uta or not
             let accountIsUTa = false;
             try {
-                await this.privateUtaGetV3AccountSettings (params);
+                await this.privateUtaGetV3AccountSettings ();
                 accountIsUTa = true;
             } catch (e) {
                 accountIsUTa = false;
@@ -5796,7 +5796,7 @@ export default class bitget extends Exchange {
         return this.extend (request, params);
     }
 
-    async createUtaOrders (orders: OrderRequest[], params = {}) {
+    async createUtaOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6358,7 +6358,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelUtaOrders (ids: any, symbol: Str = undefined, params = {}) {
+    async cancelUtaOrders (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -6885,6 +6885,8 @@ export default class bitget extends Exchange {
             if (type === 'spot') {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
+                } else {
+                    productType = 'SPOT';
                 }
             }
             request['category'] = productType;
@@ -7574,7 +7576,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchUtaCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchUtaCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

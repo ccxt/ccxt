@@ -2533,7 +2533,7 @@ func (this *ToobitCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 		retRes214312 := (<-this.LoadMarkets())
 		PanicOnError(retRes214312)
 	}
-	var idsString any = Join(ids, ",")
+	var idsString string = Join(ids, ",")
 	var request map[string]any = map[string]any{
 		"ids": idsString,
 	}

@@ -660,7 +660,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object price = this.safeString2(trade, "executedPrice", "price");
         Object amount = this.safeString2(trade, "executedQuantity", "size");
         Object cost = Precise.stringMul(price, amount);
-        Object side = this.safeStringLower(trade, "side");
+        String side = (String)this.safeStringLower(trade, "side");
         Object timestamp = this.safeInteger(trade, "timestamp");
         Object takerOrMaker = null;
         Object maker = this.safeBool(trade, "maker");
@@ -988,8 +988,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             price = avgPrice;
         }
         Object amount = this.safeString(order, "quantity");
-        Object side = this.safeStringLower(order, "side");
-        Object type = this.safeStringLower(order, "type");
+        String side = (String)this.safeStringLower(order, "side");
+        String type = (String)this.safeStringLower(order, "type");
         Object filled = this.safeNumber(order, "totalExecutedQuantity");
         Object totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         Object remaining = amount;

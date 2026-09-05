@@ -7481,7 +7481,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_derivatives_open_interest_history(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -7833,7 +7833,7 @@ class bybit extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
     }
 
@@ -8567,7 +8567,7 @@ class bybit extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -8703,7 +8703,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_volatility_history(...))($code, $params);
     }
 
@@ -8853,7 +8853,7 @@ class bybit extends Exchange {
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->baseCoin] the $baseCoin of the symbol, default is BTC
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by $market symbol
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

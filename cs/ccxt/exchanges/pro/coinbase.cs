@@ -94,7 +94,7 @@ public partial class coinbase : ccxt.coinbase
             productIds = new List<object>() {getValue(market, "id")};
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
             { "channel", name },
@@ -154,12 +154,12 @@ public partial class coinbase : ccxt.coinbase
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "product_ids", productIds },
             { "channel", name },
         };
-        object subscription = new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHashes", new List<object>() {unWatchMessageHash} },
             { "subMessageHashes", new List<object>() {watchMessageHash} },
             { "topic", topic },
@@ -195,8 +195,8 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object productIds = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> productIds = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -207,7 +207,7 @@ public partial class coinbase : ccxt.coinbase
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
             { "channel", name },
@@ -243,9 +243,9 @@ public partial class coinbase : ccxt.coinbase
         {
             await this.loadMarkets();
         }
-        object productIds = new List<object>() {};
-        object watchMessageHashes = new List<object>() {};
-        object unWatchMessageHashes = new List<object>() {};
+        List<object> productIds = new List<object>() {};
+        List<object> watchMessageHashes = new List<object>() {};
+        List<object> unWatchMessageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -257,7 +257,7 @@ public partial class coinbase : ccxt.coinbase
             ((IList<object>)unWatchMessageHashes).Add(add(add(add("unsubscribe:", name), "::"), symbol));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object message = new Dictionary<string, object>() {
+        Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "product_ids", productIds },
             { "channel", name },
@@ -266,7 +266,7 @@ public partial class coinbase : ccxt.coinbase
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }
-        object subscription = new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHashes", unWatchMessageHashes },
             { "subMessageHashes", watchMessageHashes },
             { "topic", topic },
@@ -282,7 +282,7 @@ public partial class coinbase : ccxt.coinbase
 
     public virtual object createWSAuth(object name, object productIds)
     {
-        object subscribe = new Dictionary<string, object>() {};
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {};
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         bool isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
@@ -298,8 +298,8 @@ public partial class coinbase : ccxt.coinbase
             {
                 throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
-            object currentToken = this.safeString(this.options, "wsToken");
-            object tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
+            string? currentToken = this.safeString(this.options, "wsToken");
+            Int64? tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Int64 seconds = this.seconds();
             if (isTrue(isTrue(isEqual(currentToken, null)) || isTrue(isLessThan(add(tokenTimestamp, 120), seconds))))
             {
@@ -362,7 +362,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -377,12 +377,12 @@ public partial class coinbase : ccxt.coinbase
         object ticker = await this.subscribeMultiple(name, false, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            object tickers = new Dictionary<string, object>() {};
+            Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;
-            return tickers;
+            return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return this.tickers;
+        return ccxt.BaseExchange.ToTickers(this.tickers);
     }
 
     /**
@@ -501,9 +501,9 @@ public partial class coinbase : ccxt.coinbase
         //
         object channel = this.safeString(message, "channel");
         object events = this.safeList(message, "events", new List<object>() {});
-        object datetime = this.safeString(message, "timestamp");
-        object timestamp = this.parse8601(datetime);
-        object newTickers = new List<object>() {};
+        string? datetime = this.safeString(message, "timestamp");
+        Int64? timestamp = this.parse8601(datetime);
+        List<object> newTickers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object tickersObj = getValue(events, i);
@@ -511,7 +511,7 @@ public partial class coinbase : ccxt.coinbase
             for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
             {
                 object ticker = getValue(tickers, j);
-                object wsMarketId = this.safeString(ticker, "product_id");
+                string? wsMarketId = this.safeString(ticker, "product_id");
                 if (isTrue(isEqual(wsMarketId, null)))
                 {
                     continue;
@@ -552,7 +552,7 @@ public partial class coinbase : ccxt.coinbase
         //         "best_ask_quantity": "300.0"
         //     }
         //
-        object marketId = this.safeString(ticker, "product_id");
+        string? marketId = this.safeString(ticker, "product_id");
         object timestamp = null;
         object last = this.safeNumber(ticker, "price");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -653,7 +653,7 @@ public partial class coinbase : ccxt.coinbase
         if (isTrue(this.newUpdates))
         {
             object first = this.safeDict(trades, 0);
-            object tradeSymbol = this.safeString(first, "symbol");
+            string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
@@ -828,13 +828,13 @@ public partial class coinbase : ccxt.coinbase
         object eventVar = this.safeValue(events, 0);
         object trades = this.safeList(eventVar, "trades");
         object trade = this.safeDict(trades, 0);
-        object marketId = this.safeString(trade, "product_id");
+        string? marketId = this.safeString(trade, "product_id");
         object symbol = this.safeSymbol(marketId);
         object messageHash = add("market_trades::", symbol);
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {
-            object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCacheBySymbolById(tradesLimit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
@@ -893,10 +893,10 @@ public partial class coinbase : ccxt.coinbase
         {
             return;
         }
-        object marketIds = new List<object>() {};
+        List<object> marketIds = new List<object>() {};
         if (isTrue(isEqual(this.orders, null)))
         {
-            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
@@ -912,7 +912,7 @@ public partial class coinbase : ccxt.coinbase
                 object responseOrder = getValue(responseOrders, j);
                 object parsed = this.parseWsOrder(responseOrder);
                 object cachedOrders = this.orders;
-                object marketId = this.safeString(responseOrder, "product_id");
+                string? marketId = this.safeString(responseOrder, "product_id");
                 if (isTrue(!isEqual(marketId, null)))
                 {
                     if (!isTrue((inOp(marketIds, marketId))))
@@ -951,12 +951,12 @@ public partial class coinbase : ccxt.coinbase
         //        "order_type": "Limit"
         //    }
         //
-        object id = this.safeString(order, "order_id");
-        object clientOrderId = this.safeString(order, "client_order_id");
-        object marketId = this.safeString(order, "product_id");
-        object datetime = this.safeString2(order, "time", "creation_time");
+        string? id = this.safeString(order, "order_id");
+        string? clientOrderId = this.safeString(order, "client_order_id");
+        string? marketId = this.safeString(order, "product_id");
+        string? datetime = this.safeString2(order, "time", "creation_time");
         market = this.safeMarket(marketId, market);
-        object stopPrice = this.safeString(order, "stop_price");
+        string? stopPrice = this.safeString(order, "stop_price");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", this.safeString(market, "symbol") },
@@ -991,8 +991,8 @@ public partial class coinbase : ccxt.coinbase
         for (object i = 0; isLessThan(i, getArrayLength(updates)); postFixIncrement(ref i))
         {
             object trade = getValue(updates, i);
-            object sideId = this.safeString(trade, "side");
-            object side = this.safeString(getValue(this.options, "sides"), sideId);
+            string? sideId = this.safeString(trade, "side");
+            string? side = this.safeString(getValue(this.options, "sides"), sideId);
             object price = this.safeNumber(trade, "price_level");
             object amount = this.safeNumber(trade, "new_quantity");
             object orderbookSide = this.safeValue(orderbook, side);
@@ -1035,19 +1035,19 @@ public partial class coinbase : ccxt.coinbase
         {
             return;
         }
-        object datetime = this.safeString(message, "timestamp");
+        string? datetime = this.safeString(message, "timestamp");
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
             object updates = this.safeList(eventVar, "updates", new List<object>() {});
-            object marketId = this.safeString(eventVar, "product_id");
+            string? marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             object messageHash = add("level2::", symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
-            object limit = this.safeInteger(subscription, "limit");
-            object type = this.safeString(eventVar, "type");
+            Int64? limit = this.safeInteger(subscription, "limit");
+            string? type = this.safeString(eventVar, "type");
             if (isTrue(isEqual(type, "snapshot")))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
@@ -1141,8 +1141,8 @@ public partial class coinbase : ccxt.coinbase
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object channel = this.safeString(message, "channel");
-        object methods = new Dictionary<string, object>() {
+        string? channel = this.safeString(message, "channel");
+        Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "subscriptions", this.handleSubscriptionStatus },
             { "ticker", this.handleTickers },
             { "ticker_batch", this.handleTickers },
@@ -1151,10 +1151,10 @@ public partial class coinbase : ccxt.coinbase
             { "l2_data", this.handleOrderBook },
             { "heartbeats", this.handleHeartbeats },
         };
-        object type = this.safeString(message, "type");
+        string? type = this.safeString(message, "type");
         if (isTrue(isEqual(type, "error")))
         {
-            object errorMessage = this.safeString(message, "message");
+            string? errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
             object errorMessageValue = ((bool) isTrue((!isEqual(errorMessage, null)))) ? errorMessage : "unknown error";
             throw new ExchangeError ((string)errorMessageValue) ;

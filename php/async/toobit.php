@@ -2886,7 +2886,7 @@ class toobit extends Exchange {
         return Async\await($this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params));
     }
 
-    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()) {
+    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposits_or_withdrawals_helper(...))($type, $code, $since, $limit, $params);
     }
 

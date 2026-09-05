@@ -419,7 +419,7 @@ class deepcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_by_type(mixed $type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_by_type(...))($type, $params);
     }
 

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
 
-> 39 implicit endpoints across 4 access groups.
+> 40 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -67,6 +67,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetInstruments` | GET | `instruments` | 1 |
 | `publicGetOrderbook` | GET | `orderbook` | 1 |
 | `publicGetTickers` | GET | `tickers` | 1 |
+| `publicGetTickersSymbol` | GET | `tickers/{symbol}` | 1 |
 | `publicGetHistory` | GET | `history` | 1 |
 | `publicGetHistoricalfundingrates` | GET | `historicalfundingrates` | 1 |
 

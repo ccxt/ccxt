@@ -484,7 +484,7 @@ public class BinanceCore extends BinanceApi
                 {
                     Helpers.addElementToObject(listingRequest, "l2Category", l2Category);
                 }
-                Object sortBy = this.safeStringUpper2(parameters, "sortBy", "sort");
+                String sortBy = (String)this.safeStringUpper2(parameters, "sortBy", "sort");
                 if (Helpers.isTrue(!Helpers.isEqual(sortBy, null)))
                 {
                     // map the unified sort values onto the server enum, one of RECOMMENDED,
@@ -787,7 +787,7 @@ public class BinanceCore extends BinanceApi
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
             Object rawOutcome = Helpers.GetValue(rawOutcomes, oi);
-            Object label = this.safeStringUpper(rawOutcome, "name");
+            String label = (String)this.safeStringUpper(rawOutcome, "name");
             Object tokenId = this.safeString(rawOutcome, "tokenId");
             Object outcomeHandle = Helpers.add(Helpers.add(marketSymbol, ":"), label);
             Object price = this.safeString(rawOutcome, "price");
@@ -965,7 +965,7 @@ final Object finalMarketSymbol = marketSymbol;
             isMirrored = (!Helpers.isEqual(outcomeIndex, "0"));
         } else
         {
-            Object label = this.safeStringUpper(outcomeObj, "label", "YES");
+            String label = (String)this.safeStringUpper(outcomeObj, "label", "YES");
             isMirrored = Helpers.isTrue((Helpers.isEqual(label, "NO"))) || Helpers.isTrue((Helpers.isEqual(label, "DOWN")));
         }
         Object lastString = this.safeString(raw, "lastTradePrice");
@@ -1198,7 +1198,7 @@ final Object finalMarketSymbol = marketSymbol;
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             Object marketId = this.safeString(order, "marketId");
-            Object outcome = this.safeStringUpper(order, "outcome");
+            String outcome = (String)this.safeStringUpper(order, "outcome");
             Object market = this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
@@ -1208,7 +1208,7 @@ final Object finalMarketSymbol = marketSymbol;
             outcomeName = Helpers.add(outcomeName, Helpers.add(":", outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
-        Object side = this.safeStringLower(order, "side");
+        String side = (String)this.safeStringLower(order, "side");
         Object timestamp = this.safeInteger(order, "createTime");
         final Object finalOutcomeObj = outcomeObj;
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
@@ -1627,7 +1627,7 @@ final Object finalMarketSymbol = marketSymbol;
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             Object marketId = this.safeString(position, "marketId");
-            Object outcome = this.safeStringUpper(position, "outcomeName");
+            String outcome = (String)this.safeStringUpper(position, "outcomeName");
             Object market = this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
@@ -1825,7 +1825,7 @@ final Object finalMarketSymbol = marketSymbol;
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             Object marketId = this.safeString(trade, "marketId");
-            Object outcome = this.safeStringUpper(trade, "outcome");
+            String outcome = (String)this.safeStringUpper(trade, "outcome");
             Object market = this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
@@ -1839,7 +1839,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object filled = this.safeString(trade, "filledShareQty");
         Object cost = this.safeString(trade, "filledUsdtAmount");
         Object price = this.safeString(trade, "price");
-        Object orderType = this.safeStringLower(trade, "orderType");
+        String orderType = (String)this.safeStringLower(trade, "orderType");
         Object fee = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "market"))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
         {

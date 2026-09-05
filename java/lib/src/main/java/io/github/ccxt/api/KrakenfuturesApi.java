@@ -64,6 +64,17 @@ public class KrakenfuturesApi extends Exchange
     }
 
     /**
+     * Calls the publicGetTickersSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickersSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTickersSymbol", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetHistory endpoint.
      *
      * @param optionalArgs the request parameters

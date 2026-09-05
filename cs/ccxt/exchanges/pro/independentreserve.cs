@@ -84,13 +84,13 @@ public partial class independentreserve : ccxt.independentreserve
         //    }
         //
         object data = this.safeValue(message, "Data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "Pair");
+        string? marketId = this.safeString(data, "Pair");
         object symbol = this.safeSymbol(marketId, null, "-");
         object messageHash = add("trades:", symbol);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
@@ -114,8 +114,8 @@ public partial class independentreserve : ccxt.independentreserve
         //        "Side": "Buy"
         //    }
         //
-        object datetime = this.safeString(trade, "TradeDate");
-        object marketId = this.safeString(market, "Pair");
+        string? datetime = this.safeString(trade, "TradeDate");
+        string? marketId = this.safeString(market, "Pair");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "TradeGuid") },
@@ -160,7 +160,7 @@ public partial class independentreserve : ccxt.independentreserve
         object limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
         object messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
-        object subscription = new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
         object orderbook = await this.watch(url, messageHash, null, messageHash, subscription);
@@ -191,16 +191,16 @@ public partial class independentreserve : ccxt.independentreserve
         //        "Event": "OrderBookSnapshot",
         //    }
         //
-        object eventVar = this.safeString(message, "Event");
-        object channel = this.safeString(message, "Channel");
+        string? eventVar = this.safeString(message, "Event");
+        string? channel = this.safeString(message, "Channel");
         if (isTrue(isEqual(channel, null)))
         {
             return;
         }
         List<object> parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object depth = this.safeString(parts, 1);
-        object baseId = this.safeString(parts, 2);
-        object quoteId = this.safeString(parts, 3);
+        string? baseId = this.safeString(parts, 2);
+        string? quoteId = this.safeString(parts, 3);
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
@@ -208,7 +208,7 @@ public partial class independentreserve : ccxt.independentreserve
         object messageHash = add(add(add("orderbook:", symbol), ":"), depth);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
-        object timestamp = this.safeInteger(message, "Time");
+        Int64? timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -252,7 +252,7 @@ public partial class independentreserve : ccxt.independentreserve
                 }
             }
             object calculatedChecksum = this.crc32(payload, true);
-            object responseChecksum = this.safeInteger(orderBook, "Crc32");
+            Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
@@ -317,8 +317,8 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object eventVar = this.safeString(message, "Event");
-        object handlers = new Dictionary<string, object>() {
+        string? eventVar = this.safeString(message, "Event");
+        Dictionary<string, object> handlers = new Dictionary<string, object>() {
             { "Subscriptions", this.handleSubscriptions },
             { "Heartbeat", this.handleHeartbeat },
             { "Trade", this.handleTrades },

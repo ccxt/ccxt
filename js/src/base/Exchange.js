@@ -25,10 +25,9 @@ import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { totp } from './functions/totp.js';
-import ethers from '../static_dependencies/ethers/index.js';
-import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
-import * as Starknet from '../static_dependencies/starknet/index.js';
+import * as Starknet from './functions/starknet.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
@@ -1783,7 +1782,7 @@ export class BaseExchange {
         return modifiedContent;
     }
     ethAbiEncode(types, args) {
-        return this.base16ToBinary(ethers.encode(types, args).slice(2));
+        return this.base16ToBinary(abiEncode(types, args).slice(2));
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
@@ -1808,15 +1807,15 @@ export class BaseExchange {
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = ethSigToPrivate(signature);
         const publicKey = getStarkKey(privateKey);
-        const callData = Starknet.CallData.compile({
+        const callData = Starknet.compileCalldata({
             'implementation': accountClassHash,
-            'selector': Starknet.hash.getSelectorFromName('initialize'),
-            'calldata': Starknet.CallData.compile({
+            'selector': Starknet.getSelectorFromName('initialize'),
+            'calldata': Starknet.compileCalldata({
                 'signer': publicKey,
                 'guardian': '0',
             }),
         });
-        const address = Starknet.hash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
+        const address = Starknet.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
@@ -1840,7 +1839,7 @@ export class BaseExchange {
             }, messageTypes),
             'message': messageData,
         };
-        const msgHash = Starknet.typedData.getMessageHash(request, address);
+        const msgHash = Starknet.getMessageHash(request, address);
         return msgHash;
     }
     starknetSign(msgHash, pri) {
@@ -1853,10 +1852,10 @@ export class BaseExchange {
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     extendedStarknetGetSelectorFromName(name) {
-        return Starknet.hash.getSelectorFromName(name);
+        return Starknet.getSelectorFromName(name);
     }
     extendedStarknetComputePoseidonHashOnElements(data) {
-        return Starknet.hash.computePoseidonHashOnElements(data);
+        return Starknet.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId', '')), sha256, 'hex'))).toString();
@@ -6522,6 +6521,34 @@ export class BaseExchange {
             'used': undefined,
             'total': undefined,
         };
+    }
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     */
+    mergeBalanceAccount(result, code, account) {
+        if (!(code in result)) {
+            result[code] = account;
+            return result;
+        }
+        const fields = ['free', 'used', 'total', 'debt'];
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const current = this.safeString(result[code], field);
+            const incoming = this.safeString(account, field);
+            if (current === undefined) {
+                result[code][field] = incoming;
+            }
+            else if (incoming !== undefined) {
+                result[code][field] = Precise.stringAdd(current, incoming);
+            }
+        }
+        return result;
     }
     commonCurrencyCode(code) {
         if (!this.substituteCommonCurrencyCodes) {

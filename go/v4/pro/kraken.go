@@ -1250,8 +1250,8 @@ func (this *KrakenCore) HandleOrderBook(client any, message any) {
 				ccxt.AppendToArray(&payloadArray, formattedBid)
 			}
 		}
-		var payload any = ccxt.Join(payloadArray, "")
-		var localChecksum any = this.Crc32(payload, false)
+		var payload string = ccxt.Join(payloadArray, "")
+		var localChecksum int64 = this.Crc32(payload, false)
 		if ccxt.IsTrue(!ccxt.IsEqual(localChecksum, c)) {
 			error := ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

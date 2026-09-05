@@ -462,7 +462,7 @@ func (this *CryptomusCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any)
 	//
 	var coins any = this.SafeList(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
-	var groupedArray any = ObjectValues(groupedById)
+	var groupedArray []any = ObjectValues(groupedById)
 
 	ch <- this.ParseCurrencies(groupedArray)
 	return nil
@@ -1407,17 +1407,17 @@ func (this *CryptomusCore) Sign(path any, optionalArgs ...any) any {
 			jsonParams = body
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
-			var query any = this.Urlencode(params)
+			var query string = this.Urlencode(params)
 			if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 				url = Add(url, Add("?", query))
 			}
 		}
-		var jsonParamsBase64 any = this.StringToBase64(jsonParams)
+		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
 		var stringToSign any = Add(jsonParamsBase64, this.Secret)
 		var signature any = this.Hash(this.Encode(stringToSign), md5)
 		AddElementToObject(headers, "sign", signature)
 	} else {
-		var query any = this.Urlencode(params)
+		var query string = this.Urlencode(params)
 		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}

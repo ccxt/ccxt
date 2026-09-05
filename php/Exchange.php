@@ -30,7 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-use MessagePack\MessagePack;
 use kornrunner\Keccak;
 use Web3\Contracts\TypedDataEncoder;
 use StarkNet\Crypto\Curve;
@@ -41,7 +40,7 @@ use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
-use Sop\ASN1\Type\UnspecifiedType;
+use phpseclib\File\ASN1;
 use Exception;
 
 // import global functions so unqualified calls bind directly to the root
@@ -473,21 +472,6 @@ class BaseExchange {
         return trim($string);
     }
 
-    public static function decimal($number) {
-        return '' + $number;
-    }
-
-    public static function valid_string($string) {
-        return isset($string) && $string !== '';
-    }
-
-    public static function valid_object_value($object, $key) {
-        if ($key === null) {
-            return false;
-        }
-        return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
-    }
-
     public static function safe_float($object, $key, $default_value = null) {
         if ($key === null) {
             return $default_value;
@@ -501,8 +485,10 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return $val;
+            if (is_string($val)) {
+                if ($val !== '') {
+                    return $val;
+                }
             } else if (is_numeric($val)) {
                 return (string)$val;
             }
@@ -516,8 +502,10 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtolower($val);
+            if (is_string($val)) {
+                if ($val !== '') {
+                    return strtolower($val);
+                }
             } else if (is_numeric($val)) {
                 return strtolower((string)$val);
             }
@@ -531,8 +519,10 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtoupper($val);
+            if (is_string($val)) {
+                if ($val !== '') {
+                    return strtoupper($val);
+                }
             } else if (is_numeric($val)) {
                 return strtoupper((string)$val);
             }
@@ -584,12 +574,12 @@ class BaseExchange {
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return $val;
+            if (is_string($val)) { if ($val !== '') return $val; }
             else if (is_numeric($val)) return (string)$val;
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return $val;
+            if (is_string($val)) { if ($val !== '') return $val; }
             else if (is_numeric($val)) return (string)$val;
         }
         return $default_value;
@@ -598,12 +588,12 @@ class BaseExchange {
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtolower($val);
+            if (is_string($val)) { if ($val !== '') return strtolower($val); }
             else if (is_numeric($val)) return strtolower((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtolower($val);
+            if (is_string($val)) { if ($val !== '') return strtolower($val); }
             else if (is_numeric($val)) return strtolower((string)$val);
         }
         return $default_value;
@@ -612,12 +602,12 @@ class BaseExchange {
     public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtoupper($val);
+            if (is_string($val)) { if ($val !== '') return strtoupper($val); }
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtoupper($val);
+            if (is_string($val)) { if ($val !== '') return strtoupper($val); }
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
         return $default_value;
@@ -666,7 +656,7 @@ class BaseExchange {
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return $value;
+            if (is_string($value)) { if ($value !== '') return $value; }
             else if (is_numeric($value)) return (string)$value;
         }
         return $default_value;
@@ -675,7 +665,7 @@ class BaseExchange {
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtolower($value);
+            if (is_string($value)) { if ($value !== '') return strtolower($value); }
             else if (is_numeric($value)) return strtolower((string)$value);
         }
         return $default_value;
@@ -684,7 +674,7 @@ class BaseExchange {
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtoupper($value);
+            if (is_string($value)) { if ($value !== '') return strtoupper($value); }
             else if (is_numeric($value)) return strtoupper((string)$value);
         }
         return $default_value;
@@ -1125,15 +1115,25 @@ class BaseExchange {
         if (!isset($timestamp)) {
             return null;
         }
-        if (!is_numeric($timestamp) || intval($timestamp) != $timestamp) {
+        if (is_float($timestamp)) {
+            // reject NaN / +-INF (and out-of-range magnitudes) before the lossy int cast
+            if (!is_finite($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
+                return null;
+            }
+            $timestamp = (int) floor($timestamp);
+        }
+        else if (is_string($timestamp)) {
+            // only plain-integer strings are accepted, e.g. '1755432123456' (not '123abc' or '')
+            if (!preg_match('/^[0-9]+$/', $timestamp)) {
+                return null;
+            }
+            $timestamp = (int) $timestamp;
+        }
+        if (!is_int($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
             return null;
         }
-        $timestamp = (int) $timestamp;
-        if ($timestamp < 0) {
-            return null;
-        }
-        $result = gmdate('c', (int) floor($timestamp / 1000));
-        $msec = (int) $timestamp % 1000;
+        $result = gmdate('c', intdiv($timestamp, 1000));
+        $msec = $timestamp % 1000;
         $result = str_replace('+00:00', sprintf('.%03dZ', $msec), $result);
         return $result;
     }
@@ -1171,10 +1171,6 @@ class BaseExchange {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
-    }
-
-    public static function dmy($timestamp, $infix = '-') {
-        return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
 
     public static function ymd($timestamp, $infix = '-', $fullYear = true) {
@@ -1539,17 +1535,25 @@ class BaseExchange {
         }
         if (preg_match('/^-----BEGIN EC PRIVATE KEY-----\s([\w\d+=\/\s]+)\s-----END EC PRIVATE KEY-----/', $secret, $match) >= 1) {
             $pemKey = $match[1];
-            $decodedPemKey = UnspecifiedType::fromDER(base64_decode($pemKey))->asSequence();
-            $secret = bin2hex($decodedPemKey->at(1)->asOctetString()->string());
-            if ($decodedPemKey->hasTagged(0)) {
-                $params = $decodedPemKey->getTagged(0)->asExplicit();
-                $oid = $params->asObjectIdentifier()->oid();
-                $supportedCurve = array(
-                    '1.3.132.0.10' => 'secp256k1',
-                    '1.2.840.10045.3.1.7' => 'p256',
-                );
-                if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
-                $algorithm = $supportedCurve[$oid];
+            // SEC1 ECPrivateKey ::= SEQUENCE { version INTEGER, privateKey OCTET STRING,
+            //   parameters [0] EXPLICIT ECParameters OPTIONAL, publicKey [1] EXPLICIT BIT STRING OPTIONAL }
+            $decodedPemKey = (new ASN1())->decodeBER(base64_decode($pemKey))[0] ?? null;
+            if (!is_array($decodedPemKey) || $decodedPemKey['type'] !== ASN1::TYPE_SEQUENCE || !isset($decodedPemKey['content'][1]) || $decodedPemKey['content'][1]['type'] !== ASN1::TYPE_OCTET_STRING) {
+                throw new Exception('Invalid EC private key');
+            }
+            $secret = bin2hex($decodedPemKey['content'][1]['content']);
+            foreach ($decodedPemKey['content'] as $element) {
+                if (isset($element['constant']) && $element['constant'] === 0) {
+                    $params = $element['content'][0] ?? null;
+                    if (!is_array($params) || $params['type'] !== ASN1::TYPE_OBJECT_IDENTIFIER) throw new Exception('Unsupported curve');
+                    $oid = $params['content'];
+                    $supportedCurve = array(
+                        '1.3.132.0.10' => 'secp256k1',
+                        '1.2.840.10045.3.1.7' => 'p256',
+                    );
+                    if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
+                    $algorithm = $supportedCurve[$oid];
+                }
             }
         }
         $ec = new EC(strtolower($algorithm));
@@ -1688,10 +1692,6 @@ class BaseExchange {
 
     public function extended_starknet_compute_poseidon_hash_on_elements($data) {
         return Hash::computePoseidonHashOnElements($data);
-    }
-
-    public function is_lighter_library_path_required() {
-        return true;
     }
 
     public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
@@ -1929,7 +1929,44 @@ class BaseExchange {
     }
 
     public function packb($data) {
-        return MessagePack::pack($data);
+        // minimal MessagePack serializer (str/int/float64/bool/nil/array/map)
+        // mirrors the previously vendored rybakit/msgpack defaults FORCE_STR | DETECT_ARR_MAP | FORCE_FLOAT64
+        if (is_int($data)) {
+            if ($data >= 0) {
+                if ($data <= 0x7f) return chr($data);
+                if ($data <= 0xff) return "\xcc" . chr($data);
+                if ($data <= 0xffff) return "\xcd" . pack('n', $data);
+                if ($data <= 0xffffffff) return "\xce" . pack('N', $data);
+                return "\xcf" . pack('J', $data);
+            }
+            if ($data >= -0x20) return chr((0xe0 | $data) & 0xff);
+            if ($data >= -0x80) return "\xd0" . chr($data & 0xff);
+            if ($data >= -0x8000) return "\xd1" . pack('n', $data & 0xffff);
+            if ($data >= -0x80000000) return "\xd2" . pack('N', $data & 0xffffffff);
+            return "\xd3" . pack('J', $data);
+        }
+        if (is_string($data)) {
+            $length = strlen($data);
+            if ($length < 32) return chr(0xa0 | $length) . $data;
+            if ($length <= 0xff) return "\xd9" . chr($length) . $data;
+            if ($length <= 0xffff) return "\xda" . pack('n', $length) . $data;
+            return "\xdb" . pack('N', $length) . $data;
+        }
+        if (is_array($data)) {
+            $count = count($data);
+            if (array_values($data) === $data) { // list (also covers [])
+                $out = ($count < 16) ? chr(0x90 | $count) : (($count <= 0xffff) ? "\xdc" . pack('n', $count) : "\xdd" . pack('N', $count));
+                foreach ($data as $value) $out .= $this->packb($value);
+                return $out;
+            }
+            $out = ($count < 16) ? chr(0x80 | $count) : (($count <= 0xffff) ? "\xde" . pack('n', $count) : "\xdf" . pack('N', $count));
+            foreach ($data as $key => $value) $out .= $this->packb($key) . $this->packb($value);
+            return $out;
+        }
+        if ($data === null) return "\xc0";
+        if (is_bool($data)) return $data ? "\xc3" : "\xc2";
+        if (is_float($data)) return "\xcb" . pack('E', $data);
+        throw new Exception('packb: unsupported type ' . get_debug_type($data));
     }
 
     public function throttle($cost = null) {
@@ -2605,21 +2642,13 @@ class BaseExchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    public static function has_web3() {
-        // PHP version of this function does nothing, as most of its
-        // dependencies are lightweight and don't eat a lot
-        return true;
-    }
-
     // returns the version of the ccxt library, e.g. "4.5.54"
     public function get_ccxt_version() {
         return static::VERSION;
     }
 
     public function check_required_dependencies() {
-        if (!static::has_web3()) {
-            throw new ExchangeError($this->id . ' requires web3 dependencies');
-        }
+        // no-op, mirrors ts/src/base/Exchange.ts checkRequiredDependencies()
     }
 
     public static function hashMessage($message) {
@@ -2640,11 +2669,6 @@ class BaseExchange {
 
     public static function signMessage($message, $privateKey) {
         return static::signHash(static::hashMessage($message), $privateKey);
-    }
-
-    public function sign_message_string($message, $privateKey) {
-        $signature = static::signMessage($message, $privateKey);
-        return $signature['r'] . $this->remove0x_prefix($signature['s']) . dechex($signature['v']);
     }
 
     public static function base32_decode($s) {
@@ -7393,6 +7417,33 @@ class BaseExchange {
             'used' => null,
             'total' => null,
         );
+    }
+
+    public function merge_balance_account(array $result, string $code, array $account) {
+        /**
+         * @ignore
+         * merges a per-market (isolated margin) $account into a flat $code-keyed balance dict, summing string $fields when the $code recurs across markets
+         * @param {array} $result the $code-keyed balance dict being built
+         * @param {string} $code unified currency $code
+         * @param {array} $account a balance $account with string free/used/total/debt
+         * @return {array} $result — callers MUST reassign (`$result = $this->merge_balance_account($result, ...)`) => PHP arrays are passed by value, so the mutation is not visible through the argument
+         */
+        if (!(is_array($result) && array_key_exists($code ?? '', $result))) {
+            $result[$code] = $account;
+            return $result;
+        }
+        $fields = array( 'free', 'used', 'total', 'debt' );
+        for ($i = 0; $i < count($fields); $i++) {
+            $field = $fields[$i];
+            $current = $this->safe_string($result[$code], $field);
+            $incoming = $this->safe_string($account, $field);
+            if ($current === null) {
+                $result[$code][$field] = $incoming;
+            } elseif ($incoming !== null) {
+                $result[$code][$field] = Precise::string_add($current, $incoming);
+            }
+        }
+        return $result;
     }
 
     public function common_currency_code(string $code) {

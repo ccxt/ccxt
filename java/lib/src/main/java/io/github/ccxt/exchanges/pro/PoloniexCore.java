@@ -919,7 +919,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         Object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(trade, "createTime");
-        Object takerMaker = this.safeStringLower2(trade, "matchRole", "taker");
+        String takerMaker = (String)this.safeStringLower2(trade, "matchRole", "taker");
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );

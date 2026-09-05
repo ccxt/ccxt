@@ -472,7 +472,7 @@ func (this *UpbitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 			"access_key": this.ApiKey,
 			"nonce":      this.Uuid(),
 		}
-		var token any = ccxt.Jwt(auth, this.Encode(this.Secret), ccxt.Sha256, false)
+		var token string = ccxt.Jwt(auth, this.Encode(this.Secret), ccxt.Sha256, false)
 		ccxt.AddElementToObject(wsOptions, "token", token)
 		ccxt.AddElementToObject(wsOptions, "options", map[string]any{
 			"headers": map[string]any{

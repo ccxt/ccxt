@@ -1612,7 +1612,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //     { "id": 2, "code": 21001, "message": "require auth" }
         //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
         //
-        Object message = this.safeStringLower(response, "message");
+        String message = (String)this.safeStringLower(response, "message");
         Object isErrorMessage = Helpers.isTrue((!Helpers.isEqual(message, null))) && Helpers.isTrue((!Helpers.isEqual(message, "ok")));
         Object errorCode = this.safeString(response, "code");
         Object isErrorCode = Helpers.isTrue((!Helpers.isEqual(errorCode, null))) && Helpers.isTrue((!Helpers.isEqual(errorCode, "0")));
@@ -1645,7 +1645,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //         "message": ""
         //     }
         //
-        Object status = this.safeStringLower(message, "message");
+        String status = (String)this.safeStringLower(message, "message");
         Object errorCode = this.safeString(message, "code");
         Object messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "ok"))) || Helpers.isTrue((Helpers.isEqual(errorCode, "0")))))

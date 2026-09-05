@@ -531,13 +531,13 @@ public class LunoCore extends LunoApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(Helpers.GetValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
+        String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
         Object code = this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
         {
             Object networkEntry = Helpers.GetValue(rawCurrency, i);
-            Object networkId = this.safeString(networkEntry, "name");
+            String networkId = this.safeString(networkEntry, "name");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -628,12 +628,12 @@ public class LunoCore extends LunoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                Object id = this.safeString(market, "market_id");
-                Object baseId = this.safeString(market, "base_currency");
-                Object quoteId = this.safeString(market, "counter_currency");
+                String id = this.safeString(market, "market_id");
+                String baseId = this.safeString(market, "base_currency");
+                String quoteId = this.safeString(market, "counter_currency");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-                Object status = this.safeString(market, "trading_status");
+                String status = this.safeString(market, "trading_status");
                 // Luno's published schedule is categorical, not a single pair. Entry-tier
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
                 // market; markets quoted in other fiat currencies are left on the
@@ -745,8 +745,8 @@ public class LunoCore extends LunoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallets)); i++)
             {
                 Object account = Helpers.GetValue(wallets, i);
-                Object accountId = this.safeString(account, "account_id");
-                Object currencyId = this.safeString(account, "asset");
+                String accountId = this.safeString(account, "account_id");
+                String currencyId = this.safeString(account, "asset");
                 Object code = this.safeCurrencyCode(currencyId);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
@@ -771,11 +771,11 @@ public class LunoCore extends LunoApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallets)); i++)
         {
             Object wallet = Helpers.GetValue(wallets, i);
-            Object currencyId = this.safeString(wallet, "asset");
+            String currencyId = this.safeString(wallet, "asset");
             Object code = this.safeCurrencyCode(currencyId);
-            Object reserved = this.safeString(wallet, "reserved");
-            Object unconfirmed = this.safeString(wallet, "unconfirmed");
-            Object balance = this.safeString(wallet, "balance");
+            String reserved = this.safeString(wallet, "reserved");
+            String unconfirmed = this.safeString(wallet, "unconfirmed");
+            String balance = this.safeString(wallet, "balance");
             Object reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
             Object balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(result, code)))))
@@ -899,7 +899,7 @@ public class LunoCore extends LunoApi
         Object status = this.parseOrderStatus(this.safeString(order, "state"));
         status = ((Helpers.isTrue((Helpers.isEqual(status, "open"))))) ? status : status;
         Object side = null;
-        Object orderType = this.safeString(order, "type");
+        String orderType = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "ASK"))) || Helpers.isTrue((Helpers.isEqual(orderType, "SELL")))))
         {
             side = "sell";
@@ -907,14 +907,14 @@ public class LunoCore extends LunoApi
         {
             side = "buy";
         }
-        Object marketId = this.safeString(order, "pair");
+        String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
-        Object price = this.safeString(order, "limit_price");
-        Object amount = this.safeString(order, "limit_volume");
+        String price = this.safeString(order, "limit_price");
+        String amount = this.safeString(order, "limit_volume");
         Object quoteFee = this.safeNumber(order, "fee_counter");
         Object baseFee = this.safeNumber(order, "fee_base");
-        Object filled = this.safeString(order, "base");
-        Object cost = this.safeString(order, "counter");
+        String filled = this.safeString(order, "base");
+        String cost = this.safeString(order, "counter");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(quoteFee, null)))
         {
@@ -933,7 +933,7 @@ public class LunoCore extends LunoApi
                 put( "currency", Helpers.GetValue(finalMarket_2, "base") );
             }};
         }
-        Object id = this.safeString(order, "order_id");
+        String id = this.safeString(order, "order_id");
         final Object finalStatus = status;
         final Object finalMarket_3 = market;
         final Object finalSide = side;
@@ -1112,9 +1112,9 @@ public class LunoCore extends LunoApi
         // }
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object marketId = this.safeString(ticker, "pair");
+        String marketId = this.safeString(ticker, "pair");
         Object symbol = this.safeSymbol(marketId, market);
-        Object last = this.safeString(ticker, "last_trade");
+        String last = this.safeString(ticker, "last_trade");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1251,13 +1251,13 @@ public class LunoCore extends LunoApi
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
         // Private trade data includes ID field which public trade data does not.
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object orderId = this.safeString(trade, "order_id");
-        Object id = this.safeString(trade, "sequence");
+        String orderId = this.safeString(trade, "order_id");
+        String id = this.safeString(trade, "sequence");
         Object takerOrMaker = null;
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
         {
-            Object type = this.safeString(trade, "type");
+            String type = this.safeString(trade, "type");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "ASK"))) || Helpers.isTrue((Helpers.isEqual(type, "SELL")))))
             {
                 side = "sell";
@@ -1279,8 +1279,8 @@ public class LunoCore extends LunoApi
         {
             side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "is_buy"), true))))) ? "buy" : "sell";
         }
-        Object feeBaseString = this.safeString(trade, "fee_base");
-        Object feeCounterString = this.safeString(trade, "fee_counter");
+        String feeBaseString = this.safeString(trade, "fee_base");
+        String feeCounterString = this.safeString(trade, "fee_counter");
         Object feeCurrency = null;
         Object feeCost = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeBaseString, null)))
@@ -1794,10 +1794,10 @@ public class LunoCore extends LunoApi
             put( "Failure", "failed" );
         }};
         Object referenceId = null;
-        Object firstWord = this.safeString(words, 0);
-        Object thirdWord = this.safeString(words, 2);
-        Object fourthWord = this.safeString(words, 3);
-        Object type = this.safeString(types, firstWord);
+        String firstWord = this.safeString(words, 0);
+        String thirdWord = this.safeString(words, 2);
+        String fourthWord = this.safeString(words, 3);
+        String type = this.safeString(types, firstWord);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isEqual(thirdWord, "fee")))))
         {
             type = "fee";
@@ -1818,16 +1818,16 @@ public class LunoCore extends LunoApi
     {
         // const details = this.safeValue (entry, 'details', {});
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(entry, "row_index");
-        Object account_id = this.safeString(entry, "account_id");
+        String id = this.safeString(entry, "row_index");
+        String account_id = this.safeString(entry, "account_id");
         Object timestamp = this.safeInteger(entry, "timestamp");
-        Object currencyId = this.safeString(entry, "currency");
+        String currencyId = this.safeString(entry, "currency");
         Object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object available_delta = this.safeString(entry, "available_delta");
-        Object balance_delta = this.safeString(entry, "balance_delta");
-        Object after = this.safeString(entry, "balance");
-        Object comment = this.safeString(entry, "description");
+        String available_delta = this.safeString(entry, "available_delta");
+        String balance_delta = this.safeString(entry, "balance_delta");
+        String after = this.safeString(entry, "balance");
+        String comment = this.safeString(entry, "description");
         Object before = after;
         Object amount = "0.0";
         Object result = this.parseLedgerComment(comment);
@@ -2005,7 +2005,7 @@ public class LunoCore extends LunoApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeStringUpper(depositAddress, "currency");
+        String currencyId = (String)this.safeStringUpper(depositAddress, "currency");
         Object code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -2032,7 +2032,7 @@ public class LunoCore extends LunoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object address = this.safeString(parameters, "address");
+            String address = this.safeString(parameters, "address");
             if (Helpers.isTrue(Helpers.isEqual(address, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
@@ -2098,7 +2098,7 @@ public class LunoCore extends LunoApi
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
-            Object errorCode = this.safeString(response, "error_code");
+            String errorCode = this.safeString(response, "error_code");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError((String)feedback) ;
         }

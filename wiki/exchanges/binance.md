@@ -2434,7 +2434,7 @@ binance.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price  
 

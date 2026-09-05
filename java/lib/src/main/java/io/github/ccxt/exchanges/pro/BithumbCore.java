@@ -1167,7 +1167,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object symbol = this.safeSymbol(marketId, market, "-");
         Object timestamp = this.safeInteger(order, "order_timestamp");
         Object sideId = this.safeString(order, "ask_bid");
-        Object side = this.safeStringLower(order, "side");
+        String side = (String)this.safeStringLower(order, "side");
         if (Helpers.isTrue(!Helpers.isEqual(sideId, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(sideId, "BID"))))) ? ("buy") : ("sell");

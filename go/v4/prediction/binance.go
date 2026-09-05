@@ -2043,7 +2043,7 @@ func (this *BinanceCore) fetchQuoteBody(ch chan any, request any, optionalArgs .
 func (this *BinanceCore) PriceToPrecision(outcome any, price any) any {
 	var market any = this.Market(outcome)
 	var prec any = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
-	var decimals any = 4
+	var decimals int = 4
 	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(prec, nil))) && ccxt.IsTrue((ccxt.IsGreaterThan(prec, 0)))) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
@@ -2052,7 +2052,7 @@ func (this *BinanceCore) PriceToPrecision(outcome any, price any) any {
 func (this *BinanceCore) AmountToPrecision(outcome any, amount any) any {
 	var market any = this.Market(outcome)
 	var prec any = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
-	var decimals any = 2
+	var decimals int = 2
 	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(prec, nil))) && ccxt.IsTrue((ccxt.IsGreaterThan(prec, 0)))) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}

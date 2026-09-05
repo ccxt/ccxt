@@ -236,6 +236,7 @@
         "createOrders": [
             {
                 "description": "batch limit orders",
+                "disabledRS": true,
                 "method": "createOrders",
                 "input": [
                     [
@@ -434,6 +435,7 @@
         "editOrder": [
             {
                 "description": "edit limit order",
+                "disabledRS": true,
                 "method": "editOrder",
                 "input": [
                     "1748360402930201709192260002",

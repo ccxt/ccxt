@@ -590,22 +590,22 @@ public class BigoneCore extends BigoneApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "symbol");
+        String id = this.safeString(rawCurrency, "symbol");
         Object code = this.safeCurrencyCode(id);
-        Object name = this.safeString(rawCurrency, "name");
+        String name = this.safeString(rawCurrency, "name");
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "binding_gateways", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
-            Object networkId = this.safeString(chain, "gateway_name");
+            String networkId = this.safeString(chain, "gateway_name");
             Object networkCode = this.networkIdToCode(networkId, code);
             Object deposit = this.safeBool(chain, "is_deposit_enabled");
             Object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
-            Object minDepositAmount = this.safeString(chain, "min_deposit_amount");
-            Object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
-            Object withdrawalFee = this.safeString(chain, "withdrawal_fee");
+            String minDepositAmount = this.safeString(chain, "min_deposit_amount");
+            String minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
+            String withdrawalFee = this.safeString(chain, "withdrawal_fee");
             Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -754,8 +754,8 @@ public class BigoneCore extends BigoneApi
                 Object market = Helpers.GetValue(markets, i);
                 Object baseAsset = this.safeDict(market, "base_asset", new java.util.HashMap<String, Object>() {{}});
                 Object quoteAsset = this.safeDict(market, "quote_asset", new java.util.HashMap<String, Object>() {{}});
-                Object baseId = this.safeString(baseAsset, "symbol");
-                Object quoteId = this.safeString(quoteAsset, "symbol");
+                String baseId = this.safeString(baseAsset, "symbol");
+                String quoteId = this.safeString(quoteAsset, "symbol");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
@@ -814,10 +814,10 @@ public class BigoneCore extends BigoneApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contractMarkets)); i++)
             {
                 Object market = Helpers.GetValue(contractMarkets, i);
-                Object baseId = this.safeString(market, "baseCurrency");
-                Object quoteId = this.safeString(market, "quoteCurrency");
-                Object settleId = this.safeString(market, "settleCurrency");
-                Object marketId = this.safeString(market, "symbol");
+                String baseId = this.safeString(market, "baseCurrency");
+                String quoteId = this.safeString(market, "quoteCurrency");
+                String settleId = this.safeString(market, "settleCurrency");
+                String marketId = this.safeString(market, "symbol");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object settle = this.safeCurrencyCode(settleId);
@@ -928,9 +928,9 @@ public class BigoneCore extends BigoneApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "asset_pair_name"))))) ? "spot" : "swap";
-        Object marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
+        String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         Object symbol = this.safeSymbol(marketId, market, "-", marketType);
-        Object close = this.safeString2(ticker, "close", "latestPrice");
+        String close = this.safeString2(ticker, "close", "latestPrice");
         Object bid = this.safeDict(ticker, "bid", new java.util.HashMap<String, Object>() {{}});
         Object ask = this.safeDict(ticker, "ask", new java.util.HashMap<String, Object>() {{}});
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1037,7 +1037,7 @@ public class BigoneCore extends BigoneApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object symbol = this.safeString(symbols, 0);
+            String symbol = this.safeString(symbols, 0);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1293,12 +1293,12 @@ public class BigoneCore extends BigoneApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString2(trade, "created_at", "inserted_at"));
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object marketId = this.safeString(trade, "asset_pair_name");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String marketId = this.safeString(trade, "asset_pair_name");
         market = this.safeMarket(marketId, market, "-");
-        Object side = this.safeString(trade, "side");
-        Object takerSide = this.safeString(trade, "taker_side");
+        String side = this.safeString(trade, "side");
+        String takerSide = this.safeString(trade, "taker_side");
         Object takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takerSide, null))) && Helpers.isTrue((!Helpers.isEqual(side, null)))) && Helpers.isTrue((!Helpers.isEqual(side, "SELF_TRADING")))))
         {
@@ -1319,8 +1319,8 @@ public class BigoneCore extends BigoneApi
                 side = "sell";
             }
         }
-        Object makerOrderId = this.safeString(trade, "maker_order_id");
-        Object takerOrderId = this.safeString(trade, "taker_order_id");
+        String makerOrderId = this.safeString(trade, "maker_order_id");
+        String takerOrderId = this.safeString(trade, "taker_order_id");
         Object orderId = null;
         if (Helpers.isTrue(!Helpers.isEqual(makerOrderId, null)))
         {
@@ -1329,7 +1329,7 @@ public class BigoneCore extends BigoneApi
         {
             orderId = takerOrderId;
         }
-        Object id = this.safeString(trade, "id");
+        String id = this.safeString(trade, "id");
         final Object finalMarket = market;
         final Object finalOrderId = orderId;
         final Object finalSide = side;
@@ -1387,8 +1387,8 @@ public class BigoneCore extends BigoneApi
                 takerCurrencyCode = Helpers.GetValue(market, "quote");
             }
         }
-        Object makerFeeCost = this.safeString(trade, "maker_fee");
-        Object takerFeeCost = this.safeString(trade, "taker_fee");
+        String makerFeeCost = this.safeString(trade, "maker_fee");
+        String takerFeeCost = this.safeString(trade, "taker_fee");
         if (Helpers.isTrue(!Helpers.isEqual(makerFeeCost, null)))
         {
             Object makerCode = makerCurrencyCode;
@@ -1602,7 +1602,7 @@ public class BigoneCore extends BigoneApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object symbol = this.safeString(balance, "asset_symbol");
+            String symbol = this.safeString(balance, "asset_symbol");
             Object code = this.safeCurrencyCode(symbol);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
@@ -1634,7 +1634,7 @@ public class BigoneCore extends BigoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object type = this.safeString(parameters, "type", "");
+            String type = this.safeString(parameters, "type", "");
             parameters = this.omit(parameters, "type");
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "funding")) || Helpers.isTrue(Helpers.isEqual(type, "fund"))))
@@ -1692,11 +1692,11 @@ public class BigoneCore extends BigoneApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
-        Object marketId = this.safeString(order, "asset_pair_name");
+        String id = this.safeString(order, "id");
+        String marketId = this.safeString(order, "asset_pair_name");
         Object symbol = this.safeSymbol(marketId, market, "-");
         Object timestamp = this.parse8601(this.safeString(order, "created_at"));
-        Object side = this.safeString(order, "side");
+        String side = this.safeString(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "BID")))
         {
             side = "buy";
@@ -1704,7 +1704,7 @@ public class BigoneCore extends BigoneApi
         {
             side = "sell";
         }
-        Object triggerPrice = this.safeString(order, "stop_price");
+        String triggerPrice = this.safeString(order, "stop_price");
         if (Helpers.isTrue(Precise.stringEq(triggerPrice, "0")))
         {
             triggerPrice = null;
@@ -1716,7 +1716,7 @@ public class BigoneCore extends BigoneApi
             timeInForce = "IOC";
         }
         Object type = this.parseType(this.safeString(order, "type"));
-        Object price = this.safeString(order, "price");
+        String price = this.safeString(order, "price");
         Object amount = null;
         Object filled = null;
         Object cost = null;
@@ -1833,7 +1833,7 @@ public class BigoneCore extends BigoneApi
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(uppercaseType, "MARKET"), Helpers.isEqual(exchangeSpecificParam, true), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset_pair_name", Helpers.GetValue(market, "id") );
                 put( "side", requestSide );
@@ -1844,7 +1844,7 @@ public class BigoneCore extends BigoneApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                 if (Helpers.isTrue(isLimit))
                 {
-                    Object timeInForce = this.safeString(parameters, "timeInForce");
+                    String timeInForce = this.safeString(parameters, "timeInForce");
                     if (Helpers.isTrue(Helpers.isEqual(timeInForce, "IOC")))
                     {
                         Helpers.addElementToObject(request, "immediate_or_cancel", true);
@@ -1900,7 +1900,7 @@ public class BigoneCore extends BigoneApi
                 }
             }
             Helpers.addElementToObject(request, "type", uppercaseType);
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2383,8 +2383,8 @@ public class BigoneCore extends BigoneApi
             Object chainsIndexedById = this.indexBy(data, "chain");
             Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
             Object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new java.util.HashMap<String, Object>() {{}});
-            Object address = this.safeString(addressObject, "value");
-            Object tag = this.safeString(addressObject, "memo");
+            String address = this.safeString(addressObject, "value");
+            String tag = this.safeString(addressObject, "memo");
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -2463,16 +2463,16 @@ public class BigoneCore extends BigoneApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transaction, "asset_symbol");
+        String currencyId = this.safeString(transaction, "asset_symbol");
         Object code = this.safeCurrencyCode(currencyId);
-        Object id = this.safeString(transaction, "id");
+        String id = this.safeString(transaction, "id");
         Object amount = this.safeNumber(transaction, "amount");
         Object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         Object timestamp = this.parse8601(this.safeString(transaction, "inserted_at"));
         Object updated = this.parse8601(this.safeString2(transaction, "updated_at", "completed_at"));
-        Object txid = this.safeString(transaction, "txid");
-        Object address = this.safeString(transaction, "target_address");
-        Object tag = this.safeString(transaction, "memo");
+        String txid = this.safeString(transaction, "txid");
+        String address = this.safeString(transaction, "target_address");
+        String tag = this.safeString(transaction, "memo");
         Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "customer_id"))))) ? "withdrawal" : "deposit";
         Object intern = this.safeBool(transaction, "is_internal");
         return new java.util.HashMap<String, Object>() {{
@@ -2649,9 +2649,9 @@ public class BigoneCore extends BigoneApi
             }
             Object currency = this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-            Object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-            Object toId = this.safeString(accountsByType, toAccount, toAccount);
-            Object guid = this.safeString(parameters, "guid", this.uuid());
+            String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
+            String toId = this.safeString(accountsByType, toAccount, toAccount);
+            String guid = this.safeString(parameters, "guid", this.uuid());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "amount", BigoneCore.this.currencyToPrecision(code, amount) );
@@ -2690,7 +2690,7 @@ public class BigoneCore extends BigoneApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object code = this.safeString(transfer, "code");
+        String code = this.safeString(transfer, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -2795,8 +2795,8 @@ public class BigoneCore extends BigoneApi
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        Object code = this.safeString(response, "code");
-        Object message = this.safeString(response, "message");
+        String code = this.safeString(response, "code");
+        String message = this.safeString(response, "message");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, "0"))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

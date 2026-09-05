@@ -1939,7 +1939,7 @@ class bitget extends bitget$1["default"] {
             // use the api to determine if the account is uta or not
             let accountIsUTa = false;
             try {
-                await this.privateUtaGetV3AccountSettings(params);
+                await this.privateUtaGetV3AccountSettings();
                 accountIsUTa = true;
             }
             catch (e) {
@@ -6997,6 +6997,9 @@ class bitget extends bitget$1["default"] {
             if (type === 'spot') {
                 if (marginMode !== undefined) {
                     productType = 'MARGIN';
+                }
+                else {
+                    productType = 'SPOT';
                 }
             }
             request['category'] = productType;

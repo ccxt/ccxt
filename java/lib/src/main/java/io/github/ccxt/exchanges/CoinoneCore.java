@@ -470,7 +470,7 @@ public class CoinoneCore extends CoinoneApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "symbol");
+        String id = this.safeString(rawCurrency, "symbol");
         Object code = this.safeCurrencyCode(id);
         Object isWithdrawEnabled = Helpers.isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         Object isDepositEnabled = Helpers.isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
@@ -557,9 +557,9 @@ public class CoinoneCore extends CoinoneApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object entry = this.safeValue(tickers, i);
-                Object id = this.safeString(entry, "id");
-                Object baseId = this.safeStringUpper(entry, "target_currency");
-                Object quoteId = this.safeStringUpper(entry, "quote_currency");
+                String id = this.safeString(entry, "id");
+                String baseId = (String)this.safeStringUpper(entry, "target_currency");
+                String quoteId = (String)this.safeStringUpper(entry, "quote_currency");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
@@ -755,7 +755,7 @@ public class CoinoneCore extends CoinoneApi
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object first = this.safeString(symbols, 0);
+                String first = this.safeString(symbols, 0);
                 market = this.market(first);
                 Helpers.addElementToObject(request, "quote_currency", Helpers.GetValue(market, "quote"));
                 Helpers.addElementToObject(request, "target_currency", Helpers.GetValue(market, "base"));
@@ -898,11 +898,11 @@ public class CoinoneCore extends CoinoneApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         Object asks = this.safeList(ticker, "best_asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bids = this.safeList(ticker, "best_bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object baseId = this.safeString(ticker, "target_currency");
-        Object quoteId = this.safeString(ticker, "quote_currency");
+        String baseId = this.safeString(ticker, "target_currency");
+        String quoteId = this.safeString(ticker, "quote_currency");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
@@ -964,15 +964,15 @@ public class CoinoneCore extends CoinoneApi
         {
             side = ((Helpers.isTrue(isSellerMaker))) ? "sell" : "buy";
         }
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "qty");
-        Object orderId = this.safeString(trade, "orderId");
-        Object feeCostString = this.safeString(trade, "fee");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "qty");
+        String orderId = this.safeString(trade, "orderId");
+        String feeCostString = this.safeString(trade, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             feeCostString = Precise.stringAbs(feeCostString);
-            Object feeRateString = this.safeString(trade, "feeRate");
+            String feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
             Object feeCurrencyCode = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
             final Object finalFeeCostString = feeCostString;
@@ -1235,9 +1235,9 @@ public class CoinoneCore extends CoinoneApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(order, "orderId", "order_id");
-        Object baseId = this.safeString2(order, "baseCurrency", "target_currency");
-        Object quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
+        String id = this.safeString2(order, "orderId", "order_id");
+        String baseId = this.safeString2(order, "baseCurrency", "target_currency");
+        String quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
         Object base = null;
         Object quote = null;
         if (Helpers.isTrue(!Helpers.isEqual(baseId, null)))
@@ -1259,10 +1259,10 @@ public class CoinoneCore extends CoinoneApi
         {
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
         }
-        Object side = this.safeStringLower2(order, "type", "side");
+        String side = (String)this.safeStringLower2(order, "type", "side");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "limit"))) || Helpers.isTrue((Helpers.isEqual(side, "market")))) || Helpers.isTrue((Helpers.isEqual(side, "stop_limit")))))
         {
-            side = this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
+            side = (String)this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if (Helpers.isTrue(Helpers.isEqual(side, "ask")))
         {
@@ -1271,8 +1271,8 @@ public class CoinoneCore extends CoinoneApi
         {
             side = "buy";
         }
-        Object remainingString = this.safeString2(order, "remainQty", "remain_qty");
-        Object amountString = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("originalQty", "qty", "original_qty")));
+        String remainingString = this.safeString2(order, "remainQty", "remain_qty");
+        String amountString = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("originalQty", "qty", "original_qty")));
         Object status = this.safeString(order, "status");
         // https://github.com/ccxt/ccxt/pull/7067
         if (Helpers.isTrue(Helpers.isEqual(status, "live")))
@@ -1288,7 +1288,7 @@ public class CoinoneCore extends CoinoneApi
         }
         status = this.parseOrderStatus(status);
         Object fee = null;
-        Object feeCostString = this.safeString(order, "fee");
+        String feeCostString = this.safeString(order, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             Object feeCurrencyCode = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? quote : base;
@@ -1563,7 +1563,7 @@ public class CoinoneCore extends CoinoneApi
                         put( "tag", null );
                     }};
                 }
-                Object address = this.safeString(depositAddress, "address", value);
+                String address = this.safeString(depositAddress, "address", value);
                 this.checkAddress(address);
                 Helpers.addElementToObject(depositAddress, "address", address);
                 Helpers.addElementToObject(depositAddress, "info", address);
@@ -1659,7 +1659,7 @@ public class CoinoneCore extends CoinoneApi
         //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
         //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
         //
-        Object errorCode = this.safeString(response, "error_code");
+        String errorCode = this.safeString(response, "error_code");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(errorCode, null)) && Helpers.isTrue(!Helpers.isEqual(errorCode, "0"))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

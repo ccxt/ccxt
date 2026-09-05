@@ -5,6 +5,7 @@ interface Exchange {
     publicGetInstruments(params?: {}): Promise<Dict>;
     publicGetOrderbook(params?: {}): Promise<Dict>;
     publicGetTickers(params?: {}): Promise<Dict>;
+    publicGetTickersSymbol(params?: {}): Promise<Dict>;
     publicGetHistory(params?: {}): Promise<Dict>;
     publicGetHistoricalfundingrates(params?: {}): Promise<Dict>;
     privateGetFeeschedulesVolumes(params?: {}): Promise<Dict>;

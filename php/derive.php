@@ -1239,6 +1239,7 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         // Order $signature expiry must be between 2592000 and 7776000 sec from now
         $signatureExpiry = $this->safe_integer($params, 'signature_expiry_sec', $this->seconds() + 7776000);
@@ -1262,7 +1263,7 @@ class derive extends Exchange {
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
-            $orderSide === 'buy',
+            $orderSideIsBuy,
         )), 'keccak', 'binary');
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('createOrder', $params);
@@ -1429,6 +1430,7 @@ class derive extends Exchange {
         $postOnly = $this->safe_bool($params, 'postOnly');
         $orderType = strtolower($type);
         $orderSide = strtolower($side);
+        $orderSideIsBuy = ($orderSide === 'buy'); // extracted to a named local => the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         $nonce = $this->milliseconds();
         $signatureExpiry = $this->safe_number($params, 'signature_expiry_sec', $this->seconds() + 7776000);
         // TODO => subaccount $id / trade module address
@@ -1447,7 +1449,7 @@ class derive extends Exchange {
             $this->convert_to_big_int(($this->parse_units(($this->amount_to_precision($symbol, $amountString))))),
             $this->convert_to_big_int(($this->parse_units($maxFeeString))),
             $subaccountId,
-            $orderSide === 'buy',
+            $orderSideIsBuy,
         )), 'keccak', 'binary');
         $deriveWalletAddress = null;
         list($deriveWalletAddress, $params) = $this->handle_derive_wallet_address('editOrder', $params);

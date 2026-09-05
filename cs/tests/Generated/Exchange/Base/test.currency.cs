@@ -13,12 +13,12 @@ public partial class testMainClass : BaseTest
         {
             return;
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "id", "btc" },
             { "code", "BTC" },
         };
         // todo: remove fee from empty
-        object emptyAllowedFor = new List<object>() {"name", "fee"};
+        List<object> emptyAllowedFor = new List<object>() {"name", "fee"};
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         bool isNative = isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), false)))) && isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated")));
         object currencyType = exchange.safeString(entry, "type");

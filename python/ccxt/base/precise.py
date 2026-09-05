@@ -65,12 +65,6 @@ class Precise:
     def __abs__(self):
         return self.abs()
 
-    def __min__(self, other):
-        return self.min(other)
-
-    def __max__(self, other):
-        return self.max(other)
-
     def __lt__(self, other):
         return self.lt(other)
 

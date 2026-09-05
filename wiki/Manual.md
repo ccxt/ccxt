@@ -43,7 +43,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
 ```
 
-Full public and private HTTP REST APIs for all exchanges are implemented in JavaScript, Python, PHP, C#, Go and Java. WebSocket implementations are available in [CCXT Pro](https://ccxt.pro), with support for WebSocket streams.
+Full public and private HTTP REST APIs for all exchanges are implemented in JavaScript, Python, PHP, C#, Go, Java and Rust. WebSocket implementations are available in [CCXT Pro](https://ccxt.pro), with support for WebSocket streams.
 
 - [**Exchanges**](#exchanges)
 - [**Markets**](#markets)
@@ -4510,7 +4510,7 @@ fetchAllGreeks ([ 'BTC/USD:BTC-240927-40000-C', 'ETH/USD:ETH-240927-4000-C' ]) /
 
 Returns
 
-- A list of [greeks structure](#greeks-structure)
+- a dictionary of [greeks structures](#greeks-structure) indexed by unified market symbol
 
 ### Greeks Structure
 
@@ -7263,7 +7263,7 @@ Parameters
 
 Returns
 
-- an array of [address structures](#address-structure)
+- a dictionary of [address structures](#address-structure) indexed by unified network code (e.g. `{ 'ERC20': {...}, 'TRC20': {...} }`)
 
 ### Address Structure
 

@@ -13,9 +13,9 @@ public partial class testMainClass : BaseTest
         string method = "watchTradesForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         bool idle = false;
-        object returnedSymbols = new List<object>() {};
+        List<object> returnedSymbols = new List<object>() {};
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;

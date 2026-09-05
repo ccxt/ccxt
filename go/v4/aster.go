@@ -2181,7 +2181,7 @@ func (this *AsterCore) fetchLastPricesBody(ch chan any, optionalArgs ...any) any
 	if IsTrue(IsEqual(response, nil)) {
 		panic(NullResponse(Add(this.Id, " fetchLastPrices() returned empty response")))
 	}
-	var rows any = this.ToArray(response)
+	var rows []any = this.ToArray(response)
 	var results any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var marketId any = this.SafeString(GetValue(rows, i), "symbol")
@@ -4554,7 +4554,7 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 				}
 				var inner any = Precise.StringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
 				var leftSide any = Precise.StringAdd(inner, entryPriceSignString)
-				var quotePrecision any = this.PrecisionFromString(this.SafeString2(precision, "quote", "price"))
+				var quotePrecision int = this.PrecisionFromString(this.SafeString2(precision, "quote", "price"))
 				if IsTrue(!IsEqual(quotePrecision, nil)) {
 					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, contractsAbs), "1", quotePrecision)
 				}
@@ -4570,7 +4570,7 @@ func (this *AsterCore) ParsePositionRisk(position any, optionalArgs ...any) any 
 				}
 				var leftSide any = Precise.StringMul(contractsAbs, contractSizeString)
 				var rightSide any = Precise.StringSub(Precise.StringDiv("1", entryPriceSignString), Precise.StringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-				var basePrecision any = this.PrecisionFromString(this.SafeString(precision, "base"))
+				var basePrecision int = this.PrecisionFromString(this.SafeString(precision, "base"))
 				if IsTrue(!IsEqual(basePrecision, nil)) {
 					collateralString = Precise.StringDiv(Precise.StringMul(leftSide, rightSide), "1", basePrecision)
 				}
@@ -4702,7 +4702,7 @@ func (this *AsterCore) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) 
 	//         }
 	//     ]
 	//
-	var rawPositions any = this.ToArray(response)
+	var rawPositions []any = this.ToArray(response)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawPositions)); i++ {
 		var rawPosition any = GetValue(rawPositions, i)
@@ -4932,7 +4932,7 @@ func (this *AsterCore) ParseAccountPosition(position any, optionalArgs ...any) a
 			var rightSide any = Precise.StringSub(Precise.StringMul(Precise.StringDiv("1", entryPriceSignString), size), walletBalance)
 			liquidationPriceStringRaw = Precise.StringDiv(leftSide, rightSide)
 		}
-		var pricePrecision any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
+		var pricePrecision int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
 		var pricePrecisionPlusOne any = Add(pricePrecision, 1)
 		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
 		// round half up
@@ -5073,7 +5073,7 @@ func (this *AsterCore) loadLeverageBracketsBody(ch chan any, optionalArgs ...any
 		//                ...
 		//
 		AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
-		var entries any = this.ToArray(response)
+		var entries []any = this.ToArray(response)
 		for i := 0; IsLessThan(i, GetArrayLength(entries)); i++ {
 			var entry any = GetValue(entries, i)
 			var marketId any = this.SafeString(entry, "symbol")
@@ -5333,18 +5333,18 @@ func (this *AsterCore) ParseTransferStatus(status any) any {
 }
 func (this *AsterCore) HashMessage(binaryMessage any) any {
 	// const binaryMessage = this.encode (message);
-	var binaryMessageLength any = this.BinaryLength(binaryMessage)
-	var x19 any = this.Base16ToBinary("19")
-	var newline any = this.Base16ToBinary("0a")
-	var prefix any = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
+	var binaryMessageLength int = this.BinaryLength(binaryMessage)
+	var x19 []byte = this.Base16ToBinary("19")
+	var newline []byte = this.Base16ToBinary("0a")
+	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func (this *AsterCore) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
@@ -5461,7 +5461,7 @@ func (this *AsterCore) EncodeValuesWithJson(values any) any {
 		var value any = GetValue(values, key)
 		var isObj bool = IsTrue(IsArray(value)) || IsTrue(this.IsDictionary(value))
 		var valueJsonified any = Ternary(IsTrue(isObj), this.Json(value), ToString(value))
-		var encoded any = this.EncodeURIComponent(valueJsonified)
+		var encoded string = this.EncodeURIComponent(valueJsonified)
 		encodedString = Add(encodedString, Add(Add(Add(key, "="), encoded), "&"))
 	}
 	return Slice(encodedString, 0, OpNeg(1))
@@ -5472,7 +5472,7 @@ func (this *AsterCore) CapitalizeKeys(dict any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(dict, key)
-		var capitalizedKey any = this.Capitalize(key)
+		var capitalizedKey string = this.Capitalize(key)
 		AddElementToObject(capitalized, capitalizedKey, value)
 	}
 	return capitalized

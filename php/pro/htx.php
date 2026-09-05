@@ -2139,7 +2139,6 @@ class htx extends \ccxt\async\htx {
                 $messageHash .= '.' . strtolower($currencyId);
                 $subscription = $this->safe_value($client->subscriptions, $messageHash);
             }
-            $type = $this->safe_string($subscription, 'type');
             $subType = $this->safe_string($subscription, 'subType');
             if ($topic === 'accounts_unify') {
                 // {
@@ -2169,30 +2168,16 @@ class htx extends \ccxt\async\htx {
             } elseif ($subType === 'linear') {
                 $margin = $this->safe_string($subscription, 'margin');
                 if ($margin === 'cross') {
-                    $fieldName = ($type === 'future') ? 'futures_contract_detail' : 'contract_detail';
-                    $balances = $this->safe_value($first, $fieldName, array());
-                    $balancesLength = count($balances);
-                    if ($balancesLength > 0) {
-                        for ($i = 0; $i < count($balances); $i++) {
-                            $balance = $balances[$i];
-                            $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
-                            $market = $this->safe_market($marketId);
-                            $currencyId = $this->safe_string($balance, 'margin_asset');
-                            $currency = $this->safe_currency($currencyId);
-                            $code = $this->safe_string($market, 'settle', $currency['code']);
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the $market was delisted
-                            if ($code !== null) {
-                                $account = $this->account();
-                                $account['free'] = $this->safe_string_2($balance, 'margin_balance', 'margin_available');
-                                $account['used'] = $this->safe_string($balance, 'margin_frozen');
-                                $accountsByCode = array();
-                                $accountsByCode[$code] = $account;
-                                $symbol = $market['symbol'];
-                                $this->balance[$symbol] = $this->safe_balance($accountsByCode);
-                            }
-                        }
+                    // the cross $account is one shared $margin $balance, keyed by the settle currency
+                    $currencyId = $this->safe_string_2($first, 'margin_asset', 'margin_account');
+                    $code = $this->safe_currency_code($currencyId);
+                    if ($code !== null) {
+                        $account = $this->account();
+                        $account['free'] = $this->safe_string_2($first, 'withdraw_available', 'margin_available');
+                        $account['used'] = $this->safe_string($first, 'margin_frozen');
+                        $account['total'] = $this->safe_string($first, 'margin_balance');
+                        $this->balance[$code] = $account;
+                        $this->balance = $this->safe_balance($this->balance);
                     }
                 } else {
                     // isolated $margin

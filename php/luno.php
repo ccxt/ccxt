@@ -867,7 +867,7 @@ class luno extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

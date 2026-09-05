@@ -710,13 +710,13 @@ public class LighterCore extends LighterApi
     {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object apiKeyIndex = this.safeString2(parameters, "apiKeyIndex", "api_key_index");
+        String apiKeyIndex = this.safeString2(parameters, "apiKeyIndex", "api_key_index");
         if (Helpers.isTrue(Helpers.isEqual(apiKeyIndex, null)))
         {
             Object res = this.handleOptionAndParams2(new java.util.HashMap<String, Object>() {{}}, "createAuth", "apiKeyIndex", "api_key_index");
             apiKeyIndex = this.safeString(res, 0);
         }
-        Object accountIndex = this.safeString2(parameters, "accountIndex", "account_index");
+        String accountIndex = this.safeString2(parameters, "accountIndex", "account_index");
         if (Helpers.isTrue(Helpers.isEqual(accountIndex, null)))
         {
             Object res = this.handleOptionAndParams2(new java.util.HashMap<String, Object>() {{}}, "createAuth", "accountIndex", "account_index");
@@ -988,7 +988,7 @@ public class LighterCore extends LighterApi
         }
         Helpers.addElementToObject(request, "api_key_index", apiKeyIndex);
         Helpers.addElementToObject(request, "account_index", this.parseToInt(accountIndex));
-        Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -997,7 +997,7 @@ public class LighterCore extends LighterApi
         Object hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
         Object isConditional = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
         Object isMarketOrder = (Helpers.isEqual(orderType, "MARKET"));
-        Object timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
+        String timeInForce = (String)this.safeStringLower(parameters, "timeInForce", "gtt");
         Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
@@ -1102,10 +1102,10 @@ public class LighterCore extends LighterApi
                 triggerOrderSide = "buy";
             }
             Object stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
-            Object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
+            String stopLossOrderType = this.safeString(stopLoss, "type", "limit");
             Object stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
             Object takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
-            Object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
+            String takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
             Object takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
@@ -1336,7 +1336,7 @@ public class LighterCore extends LighterApi
             Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
             Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
             Object priceScale = this.pow("10", Helpers.GetValue(marketInfo, "price_decimals"));
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
             Object amountStr = null;
             Object priceStr = this.priceToPrecision(symbol, price);
@@ -1405,7 +1405,7 @@ public class LighterCore extends LighterApi
             //         "timestamp": "1717777777"
             //     }
             //
-            Object status = this.safeString(response, "status");
+            String status = this.safeString(response, "status");
             final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalStatus, "200"))))) ? "ok" : "error" );
@@ -1547,8 +1547,8 @@ public class LighterCore extends LighterApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                Object id = this.safeString(market, "market_id");
-                Object type = this.safeString(market, "market_type");
+                String id = this.safeString(market, "market_id");
+                String type = this.safeString(market, "market_type");
                 type = ((Helpers.isTrue((Helpers.isEqual(type, "perp"))))) ? "swap" : type;
                 Object baseId = this.safeString(market, "symbol");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(baseId, null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.getIndexOf(baseId, "/"), Helpers.opNeg(1)))))
@@ -1565,8 +1565,8 @@ public class LighterCore extends LighterApi
                 {
                     symbol = Helpers.add(Helpers.add(symbol, ":"), settle);
                 }
-                Object amountDecimals = this.safeString2(market, "size_decimals", "supported_size_decimals");
-                Object priceDecimals = this.safeString2(market, "price_decimals", "supported_price_decimals");
+                String amountDecimals = this.safeString2(market, "size_decimals", "supported_size_decimals");
+                String priceDecimals = this.safeString2(market, "price_decimals", "supported_price_decimals");
                 Object amountPrecision = ((Helpers.isTrue((Helpers.isEqual(amountDecimals, null))))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
                 Object pricePrecision = ((Helpers.isTrue((Helpers.isEqual(priceDecimals, null))))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
                 Object quoteMultiplier = this.safeNumber(market, "quote_multiplier");
@@ -1677,9 +1677,9 @@ public class LighterCore extends LighterApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "asset_id");
+        String id = this.safeString(rawCurrency, "asset_id");
         Object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
-        Object decimals = this.safeString(rawCurrency, "decimals");
+        String decimals = this.safeString(rawCurrency, "decimals");
         Object isUSDC = (Helpers.isEqual(code, "USDC"));
         Object depositMin = null;
         Object withdrawMin = null;
@@ -1849,16 +1849,16 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "market_id");
+        String marketId = this.safeString(ticker, "market_id");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object last = this.safeString(ticker, "last_trade_price");
-        Object high = this.safeString(ticker, "daily_price_high");
-        Object low = this.safeString(ticker, "daily_price_low");
-        Object baseVolume = this.safeString(ticker, "daily_base_token_volume");
-        Object quoteVolume = this.safeString(ticker, "daily_quote_token_volume");
-        Object change = this.safeString(ticker, "daily_price_change");
-        Object openInterest = this.safeString(ticker, "open_interest");
+        String last = this.safeString(ticker, "last_trade_price");
+        String high = this.safeString(ticker, "daily_price_high");
+        String low = this.safeString(ticker, "daily_price_low");
+        String baseVolume = this.safeString(ticker, "daily_base_token_volume");
+        String quoteVolume = this.safeString(ticker, "daily_quote_token_volume");
+        String change = this.safeString(ticker, "daily_price_change");
+        String openInterest = this.safeString(ticker, "open_interest");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -2130,7 +2130,7 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "market_id");
+        String marketId = this.safeString(contract, "market_id");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", LighterCore.this.safeSymbol(marketId, market) );
@@ -2191,7 +2191,7 @@ public class LighterCore extends LighterApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object exchange = this.safeString(Helpers.GetValue(data, i), "exchange");
+                String exchange = this.safeString(Helpers.GetValue(data, i), "exchange");
                 if (Helpers.isTrue(Helpers.isEqual(exchange, "lighter")))
                 {
                     ((java.util.List<Object>)result).add(Helpers.GetValue(data, i));
@@ -2227,8 +2227,8 @@ public class LighterCore extends LighterApi
             var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "fetchBalance", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
-            Object defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
-            Object type = this.safeString(parameters, "type", defaultType);
+            String defaultType = this.safeString2(this.options, "fetchBalance", "defaultType", "spot");
+            String type = this.safeString(parameters, "type", defaultType);
             final Object finalParameters = parameters;
             final Object finalAccountIndex = accountIndex;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2293,7 +2293,7 @@ public class LighterCore extends LighterApi
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(assets)); j++)
                     {
                         Object asset = Helpers.GetValue(assets, j);
-                        Object codeId = this.safeString(asset, "symbol");
+                        String codeId = this.safeString(asset, "symbol");
                         Object code = this.safeCurrencyCode(codeId);
                         Object balance = this.safeDict(result, code, this.account());
                         Helpers.addElementToObject(balance, "total", Precise.stringAdd(Helpers.GetValue(balance, "total"), this.safeString(asset, "balance")));
@@ -2306,10 +2306,10 @@ public class LighterCore extends LighterApi
                 } else
                 {
                     Object perpBalance = this.safeDict(result, "USDC", this.account());
-                    Object perpTotal = this.safeString(perpBalance, "total", "0");
-                    Object perpFree = this.safeString(perpBalance, "free", "0");
-                    Object perpUSDCTotal = this.safeString(account, "collateral", "0");
-                    Object perpUSDCFree = this.safeString(account, "available_balance", "0");
+                    String perpTotal = this.safeString(perpBalance, "total", "0");
+                    String perpFree = this.safeString(perpBalance, "free", "0");
+                    String perpUSDCTotal = this.safeString(account, "collateral", "0");
+                    String perpUSDCFree = this.safeString(account, "available_balance", "0");
                     Helpers.addElementToObject(perpBalance, "total", Precise.stringAdd(perpTotal, perpUSDCTotal));
                     Helpers.addElementToObject(perpBalance, "free", Precise.stringAdd(perpFree, perpUSDCFree));
                     Helpers.addElementToObject(result, "USDC", perpBalance);
@@ -2463,7 +2463,7 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "market_id");
+        String marketId = this.safeString(position, "market_id");
         market = this.safeMarket(marketId, market);
         Object sign = this.safeInteger(position, "sign");
         Object side = null;
@@ -2477,7 +2477,7 @@ public class LighterCore extends LighterApi
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(marginModeId, 0))))) ? "cross" : "isolated";
         }
-        Object imfStr = this.safeString(position, "initial_margin_fraction");
+        String imfStr = this.safeString(position, "initial_margin_fraction");
         Object leverage = null;
         if (Helpers.isTrue(!Helpers.isEqual(imfStr, null)))
         {
@@ -2613,7 +2613,7 @@ public class LighterCore extends LighterApi
         //         "shares": []
         //     }
         //
-        Object accountType = this.safeString(account, "account_type");
+        String accountType = this.safeString(account, "account_type");
         final Object finalAccountType = accountType;
         return new java.util.HashMap<String, Object>() {{
             put( "id", LighterCore.this.safeString(account, "account_index") );
@@ -2858,7 +2858,7 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "market_index");
+        String marketId = this.safeString(order, "market_index");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeTimestamp(order, "timestamp");
         Object isAsk = this.safeBool(order, "is_ask");
@@ -2914,7 +2914,7 @@ public class LighterCore extends LighterApi
                 reduceOnly = Helpers.isEqual(reduceOnlyAsInteger, 1);
             }
         }
-        Object status = this.safeString(order, "status");
+        String status = this.safeString(order, "status");
         final Object finalMarket = market;
         final Object finalType = type;
         final Object finalTif = tif;
@@ -3088,7 +3088,7 @@ public class LighterCore extends LighterApi
             }
             Object fromRouteType = ((Helpers.isTrue((Helpers.isEqual(fromAccount, "perp"))))) ? 0 : 1; // 0: perp, 1: spot
             Object toRouteType = ((Helpers.isTrue((Helpers.isEqual(toAccount, "perp"))))) ? 0 : 1;
-            Object memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
+            String memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("memo")));
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalToAccountIndex = toAccountIndex;
@@ -3199,7 +3199,7 @@ public class LighterCore extends LighterApi
             //     }
             //
             Object rows = this.safeList(response, "transfers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object cursor = this.safeString(response, "cursor");
+            String cursor = this.safeString(response, "cursor");
             Object first = this.safeDict(rows, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))))
             {
@@ -3230,7 +3230,7 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transfer, "asset_id");
+        String currencyId = this.safeString(transfer, "asset_id");
         Object code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transfer, "timestamp");
         Object fromAccount = this.safeDict(transfer, "from", new java.util.HashMap<String, Object>() {{}});
@@ -3332,7 +3332,7 @@ public class LighterCore extends LighterApi
             //     }
             //
             Object data = this.safeList(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object cursor = this.safeString(response, "cursor");
+            String cursor = this.safeString(response, "cursor");
             Object first = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))))
             {
@@ -3417,7 +3417,7 @@ public class LighterCore extends LighterApi
             //     }
             //
             Object data = this.safeList(response, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object cursor = this.safeString(response, "cursor");
+            String cursor = this.safeString(response, "cursor");
             Object first = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))))
             {
@@ -3452,7 +3452,7 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object type = this.safeString(transaction, "type");
+        String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             type = "deposit";
@@ -3461,7 +3461,7 @@ public class LighterCore extends LighterApi
             type = "withdrawal";
         }
         Object timestamp = this.safeInteger(transaction, "timestamp");
-        Object status = this.safeString(transaction, "status");
+        String status = this.safeString(transaction, "status");
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3679,7 +3679,7 @@ public class LighterCore extends LighterApi
             {
                 Helpers.addElementToObject(Helpers.GetValue(data, i), "account_index", accountIndex);
             }
-            Object nextCursor = this.safeString(response, "next_cursor");
+            String nextCursor = this.safeString(response, "next_cursor");
             Object first = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(nextCursor, null)))))
             {
@@ -3719,12 +3719,12 @@ public class LighterCore extends LighterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "market_id");
+        String marketId = this.safeString(trade, "market_id");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object accountIndex = this.safeString(trade, "account_index");
-        Object askAccountId = this.safeString(trade, "ask_account_id");
-        Object bidAccountId = this.safeString(trade, "bid_account_id");
+        String accountIndex = this.safeString(trade, "account_index");
+        String askAccountId = this.safeString(trade, "ask_account_id");
+        String bidAccountId = this.safeString(trade, "bid_account_id");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
         Object side = null;
         Object orderId = null;
@@ -3918,7 +3918,7 @@ public class LighterCore extends LighterApi
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object market = this.market(symbol);
-            Object clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
+            String clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_index", "clientOrderId")));
             Object strAccountIndex = ((String)this.numberToString(accountIndex));
             Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
@@ -4301,8 +4301,8 @@ public class LighterCore extends LighterApi
         //         "message": "string"
         //     }
         //
-        Object code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
+        String code = this.safeString(response, "code");
+        String message = this.safeString(response, "msg");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))) && Helpers.isTrue(!Helpers.isEqual(code, "200"))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

@@ -403,7 +403,7 @@ class deepcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_by_type(mixed $type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()): array {
         $request = array(
             'instType' => $this->convert_to_instrument_type($type),
         );

@@ -355,7 +355,7 @@ public class CryptomusCore extends CryptomusApi
         //         "quotePrec": "4"
         //     }
         //
-        Object marketId = this.safeString(market, "symbol");
+        String marketId = this.safeString(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
@@ -481,7 +481,7 @@ public class CryptomusCore extends CryptomusApi
                 id = this.safeString(networkEntry, "currency_code");
                 code = this.safeCurrencyCode(id);
             }
-            Object networkId = this.safeString(networkEntry, "network_code");
+            String networkId = this.safeString(networkEntry, "network_code");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -569,10 +569,10 @@ public class CryptomusCore extends CryptomusApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "currency_pair");
+        String marketId = this.safeString(ticker, "currency_pair");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object last = this.safeString(ticker, "last_price");
+        String last = this.safeString(ticker, "last_price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -794,7 +794,7 @@ public class CryptomusCore extends CryptomusApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balance)); i++)
         {
             Object balanceEntry = Helpers.GetValue(balance, i);
-            Object currencyId = this.safeString(balanceEntry, "ticker");
+            String currencyId = this.safeString(balanceEntry, "ticker");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "available"));
@@ -843,7 +843,7 @@ public class CryptomusCore extends CryptomusApi
                 put( "direction", finalSide );
                 put( "tag", "ccxt" );
             }};
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 parameters = this.omit(parameters, "clientOrderId");
@@ -1159,20 +1159,20 @@ public class CryptomusCore extends CryptomusApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(order, "order_id", "id");
-        Object marketId = this.safeString(order, "symbol");
+        String id = this.safeString2(order, "order_id", "id");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object dateTime = this.safeString(order, "createdAt");
+        String dateTime = this.safeString(order, "createdAt");
         Object timestamp = this.parse8601(dateTime);
         Object deal = this.safeDict(order, "deal", new java.util.HashMap<String, Object>() {{}});
         Object averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
-        Object type = this.safeString(order, "type");
-        Object side = this.safeString(order, "direction");
+        String type = this.safeString(order, "type");
+        String side = this.safeString(order, "direction");
         Object price = this.safeNumber(order, "price");
         Object transaction = this.safeList(deal, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object fee = null;
         Object firstTx = this.safeDict(transaction, 0);
-        Object feeCurrency = this.safeString(firstTx, "feeCurrency");
+        String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
             final Object finalFeeCurrency = feeCurrency;
@@ -1188,7 +1188,7 @@ public class CryptomusCore extends CryptomusApi
         Object amount = this.safeNumber(order, "quantity");
         Object cost = this.safeNumber(order, "value");
         Object status = this.parseOrderStatus(this.safeString(order, "state"));
-        Object clientOrderId = this.safeString(order, "clientOrderId");
+        String clientOrderId = this.safeString(order, "clientOrderId");
         final Object finalMarket = market;
         final Object finalPrice = price;
         final Object finalFee = fee;
@@ -1297,8 +1297,8 @@ public class CryptomusCore extends CryptomusApi
             //
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object currentFeeTier = this.safeDict(data, "current_tariff_step", new java.util.HashMap<String, Object>() {{}});
-            Object makerFee = this.safeString(currentFeeTier, "maker_percent");
-            Object takerFee = this.safeString(currentFeeTier, "taker_percent");
+            String makerFee = this.safeString(currentFeeTier, "maker_percent");
+            String takerFee = this.safeString(currentFeeTier, "taker_percent");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
             Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1338,8 +1338,8 @@ public class CryptomusCore extends CryptomusApi
         {
             Object tier = Helpers.GetValue(feeTiers, i);
             Object turnover = this.safeNumber(tier, "from_turnover");
-            Object taker = this.safeString(tier, "taker_percent");
-            Object maker = this.safeString(tier, "maker_percent");
+            String taker = this.safeString(tier, "taker_percent");
+            String maker = this.safeString(tier, "maker_percent");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
             ((java.util.List<Object>)makerFees).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(turnover, this.parseNumber(maker))));
@@ -1376,7 +1376,7 @@ public class CryptomusCore extends CryptomusApi
             } else
             {
                 Object query = this.urlencode(parameters);
-                if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+                if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", query));
                 }
@@ -1388,7 +1388,7 @@ public class CryptomusCore extends CryptomusApi
         } else
         {
             Object query = this.urlencode(parameters);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
@@ -1413,7 +1413,7 @@ public class CryptomusCore extends CryptomusApi
         }
         if (Helpers.isTrue(Helpers.inOp(response, "code")))
         {
-            Object code = this.safeString(response, "code");
+            String code = this.safeString(response, "code");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError((String)feedback) ;
@@ -1422,7 +1422,7 @@ public class CryptomusCore extends CryptomusApi
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            Object message = this.safeString(response, "message");
+            String message = this.safeString(response, "message");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);

@@ -4023,20 +4023,16 @@ class binance extends Exchange {
             $assets = $this->safe_list($response, 'assets', array());
             for ($i = 0; $i < count($assets); $i++) {
                 $asset = $assets[$i];
-                $marketId = $this->safe_string($asset, 'symbol');
-                $symbol = $this->safe_symbol($marketId, null, null, 'spot');
                 $base = $this->safe_dict($asset, 'baseAsset', array());
                 $quote = $this->safe_dict($asset, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
-                $subResult = array();
                 if ($baseCode !== null) {
-                    $subResult[$baseCode] = $this->parse_balance_helper($base);
+                    $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
                 }
                 if ($quoteCode !== null) {
-                    $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                    $result = $this->merge_balance_account($result, $quoteCode, $this->parse_balance_helper($quote));
                 }
-                $result[$symbol] = $this->safe_balance($subResult);
             }
         } elseif ($type === 'savings') {
             $positionAmountVos = $this->safe_list($response, 'positionAmountVos', array());
@@ -4092,7 +4088,7 @@ class binance extends Exchange {
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
-        return $isolated ? $result : $this->safe_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
@@ -5740,7 +5736,7 @@ class binance extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function edit_spot_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_spot_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -5982,7 +5978,7 @@ class binance extends Exchange {
         return $request;
     }
 
-    public function edit_contract_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_contract_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -9269,7 +9265,7 @@ class binance extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function fetch_my_dust_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_dust_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_dust_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -10952,7 +10948,7 @@ class binance extends Exchange {
         throw new NotSupported($this->id . ' fetchTradingFees() is not supported for ' . $type . ' markets');
     }
 
-    public function futures_transfer(string $code, mixed $amount, mixed $type, $params = array()) {
+    public function futures_transfer(string $code, mixed $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(self::do_futures_transfer(...))($code, $amount, $type, $params);
     }
 
@@ -11996,7 +11992,7 @@ class binance extends Exchange {
         return $this->parse_option_position($this->safe_dict($response, 0, array()), $market);
     }
 
-    public function fetch_option_positions(?array $symbols = null, $params = array()) {
+    public function fetch_option_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_option_positions(...))($symbols, $params);
     }
 
@@ -12165,7 +12161,7 @@ class binance extends Exchange {
         }
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_account_positions(...))($symbols, $params);
     }
 
@@ -12890,7 +12886,7 @@ class binance extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -13842,7 +13838,7 @@ class binance extends Exchange {
         return $this->parse_isolated_borrow_rates($response);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
     }
 
@@ -13951,7 +13947,7 @@ class binance extends Exchange {
         );
     }
 
-    public function create_gift_code(string $code, mixed $amount, $params = array()) {
+    public function create_gift_code(string $code, mixed $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_create_gift_code(...))($code, $amount, $params);
     }
 
@@ -14875,7 +14871,7 @@ class binance extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by $market symbol
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

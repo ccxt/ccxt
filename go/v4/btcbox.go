@@ -1067,7 +1067,7 @@ func (this *BtcboxCore) Sign(path any, optionalArgs ...any) any {
 			"key":   this.ApiKey,
 			"nonce": nonce,
 		}, params)
-		var request any = this.Urlencode(query)
+		var request string = this.Urlencode(query)
 		var secret any = this.Hash(this.Encode(this.Secret), md5)
 		AddElementToObject(query, "signature", this.Hmac(this.Encode(request), this.Encode(secret), sha256))
 		body = this.Urlencode(query)

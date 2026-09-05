@@ -139,7 +139,7 @@ function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
 //
 // This MUST run before the worker pool is fed: the per-language drivers hand the
 // whole file list to piscina as the sticky ts.Program `roots` (see
-// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// build/worker-program-batch.ts), so a skipped exchange that stayed in the list
 // would still be parsed, printed and written — i.e. no saving at all.
 //
 // `resolvePaths` returns the ts source and every file the driver writes for that
@@ -167,7 +167,7 @@ function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean
 // base methods, the error hierarchy, and the test groups. Those stages emit a fixed
 // set of files from a fixed set of sources, and they cannot be filtered file by file
 // — `webworkerTranspile` hands the whole stage list to piscina as the sticky
-// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// ts.Program `roots` (build/worker-program-batch.ts), so printing a subset off a
 // different root set is not guaranteed to reproduce the full-run output. A stage is
 // therefore skipped all-or-nothing: clean only when every output exists and the
 // newest input is not newer than the oldest output.
@@ -1082,9 +1082,11 @@ class Transpiler {
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
             'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress\b(?!es)/,
+            'DepositAddresses': /-> (?:[Ll]ist\[)?DepositAddresses\b/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
+            'AllGreeks': /-> AllGreeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
             'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
@@ -1092,7 +1094,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
-            'LedgerEntry': /-> LedgerEntry:/,
+            'LedgerEntry': /-> (?:[Ll]ist\[)?LedgerEntry\b/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
@@ -1101,9 +1103,9 @@ class Transpiler {
             'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
-            'MarginModification': /-> MarginModification:/,
+            'MarginModification': /-> (?:[Ll]ist\[)?MarginModification\b/,
             'MarginLoan': /-> MarginLoan:/,
-            'Market': /(-> Market:|: Market)/,
+            'Market': /(-> (?:[Ll]ist\[)?Market\b|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
@@ -1125,7 +1127,7 @@ class Transpiler {
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'FundingRate': /-> FundingRate:/,
-            'OpenInterest': /-> OpenInterest:/,
+            'OpenInterest': /-> (?:[Ll]ist\[)?OpenInterest\b/,
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
@@ -1137,7 +1139,7 @@ class Transpiler {
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
             'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
-            'TransferEntry': /-> TransferEntry:/,
+            'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
             'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
@@ -1772,9 +1774,6 @@ class Transpiler {
 
         newContents = deleteFunction ('test_tickers_async', newContents)
         newContents = deleteFunction ('test_l2_order_books_async', newContents)
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -1794,9 +1793,6 @@ class Transpiler {
         ]
 
         const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
-        if (fs.existsSync (sync)) {
-            fs.truncateSync (sync)
-        }
         fs.writeFileSync (sync, newContents)
     }
 
@@ -2242,7 +2238,7 @@ class Transpiler {
                     'List': 'array',
                     'NullableList': '?array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')
@@ -3138,7 +3134,7 @@ class Transpiler {
         // create worker
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, './ast-transpiler-worker.js'),
+            filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
         });
 

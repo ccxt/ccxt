@@ -2323,7 +2323,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_with_method(mixed $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $this->load_markets();
         $request = array(
             // 'product_ids' => $market['id'], // comma-separated

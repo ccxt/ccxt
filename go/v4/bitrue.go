@@ -1824,7 +1824,7 @@ func (this *BitrueCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var response any = []any{}
-	var data any = []any{}
+	var data []any = []any{}
 	var request map[string]any = map[string]any{}
 	var typeVar any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {

@@ -409,7 +409,7 @@ export default class deepcoin extends Exchange {
         return result;
     }
 
-    async fetchMarketsByType (type: any, params = {}) {
+    async fetchMarketsByType (type: any, params = {}): Promise<Market[]> {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
