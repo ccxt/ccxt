@@ -35,6 +35,8 @@ function helperDefaultInputDict () {
         'floatNumeric': 0.123,
         'floatString': '0.123',
         'longInt': 123456789012345,
+        'tiny': 0.5,
+        'largeInt': 1000000000000000,
     };
 }
 
@@ -308,18 +310,26 @@ function testSafeInteger () {
     assert (exchange.safeIntegerProduct (inputList, 1, factor) === 20);
     assert (exchange.safeIntegerProduct (inputDict, 'longInt', 0.000001) === 123456789);
     assert (exchange.safeIntegerProduct (inputDict, 'inexistent', 0.000001, 123456789) === 123456789);
+    // regression: 0.5 * 0.000001 is 5e-7, the product is rendered in exponential notation and the old parseInt-based truncation returned 5 instead of 0
+    assert (exchange.safeIntegerProduct (inputDict, 'tiny', 0.000001) === 0);
+    // a product of 1e18 stays within fixed notation (no exponential form) and fits signed int64 range in non-JS target languages
+    assert (exchange.safeIntegerProduct (inputDict, 'largeInt', 1000) === 1000000000000000000);
 
     // safeIntegerProduct2
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'i', factor) === 10);
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'f', factor) === 1); // NB the result is 1
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'strNumber', factor) === 30);
     assert (exchange.safeIntegerProduct2 (inputList, 2, 1, factor) === 20);
+    assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'tiny', 0.000001) === 0);
+    assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'largeInt', 1000) === 1000000000000000000);
 
     // safeIntegerProductN
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'i' ], factor) === 10);
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'f' ], factor) === 1); // NB the result is 1
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'strNumber' ], factor) === 30);
     assert (exchange.safeIntegerProductN (inputList, [ 3, 2, 1 ], factor) === 20);
+    assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'tiny' ], 0.000001) === 0);
+    assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'largeInt' ], 1000) === 1000000000000000000);
 }
 
 function testSafeTimestamp () {
@@ -336,18 +346,22 @@ function testSafeTimestamp () {
     assert (exchange.safeTimestamp (inputDict, 'f') === 123);
     assert (exchange.safeTimestamp (inputDict, 'strNumber') === 3000);
     assert (exchange.safeTimestamp (inputList, 1) === 2000);
+    // 1e15 seconds multiplied by 1000 is 1e18 ms, the largest timestamp product every language represents exactly
+    assert (exchange.safeTimestamp (inputDict, 'largeInt') === 1000000000000000000);
 
     // safeTimestamp2
     assert (exchange.safeTimestamp2 (inputDict, 'a', 'i') === 1000);
     assert (exchange.safeTimestamp2 (inputDict, 'a', 'f') === 123);
     assert (exchange.safeTimestamp2 (inputDict, 'a', 'strNumber') === 3000);
     assert (exchange.safeTimestamp2 (inputList, 2, 1) === 2000);
+    assert (exchange.safeTimestamp2 (inputDict, 'a', 'largeInt') === 1000000000000000000);
 
     // safeTimestampN
     assert (exchange.safeTimestampN (inputDict, [ 'a', 'b', 'i' ]) === 1000);
     assert (exchange.safeTimestampN (inputDict, [ 'a', 'b', 'f' ]) === 123);
     assert (exchange.safeTimestampN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3000);
     assert (exchange.safeTimestampN (inputList, [ 3, 2, 1 ]) === 2000);
+    assert (exchange.safeTimestampN (inputDict, [ 'a', 'b', 'largeInt' ]) === 1000000000000000000);
 }
 
 function testSafeFloat () {
