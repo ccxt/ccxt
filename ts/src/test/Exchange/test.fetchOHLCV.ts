@@ -35,7 +35,6 @@ function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, s
     const method = 'fetchOHLCV';
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
-    logText = logText + '' + exchange.json (ohlcvs); // trick transpiler
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i] as number[], symbol, now);
@@ -45,7 +44,7 @@ function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, s
     // check bars amounts, to be between 0 and limit
     // less then limit
     if (limit !== undefined) {
-        assert (barsLength <= limit, 'Returned bars amount (' + barsLength.toString () + ') is more than requested (' + limit.toString () + ')' + logText);
+        assert (barsLength <= limit, 'Returned bars amount (' + barsLength.toString () + ') is more than requested (' + limit.toString () + ')' + logText + '' + exchange.json (ohlcvs));
     }
     // ensure bars amount is more than zero
     if (barsLength === 0) {
@@ -61,17 +60,23 @@ function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, s
     for (let i = 0; i < barsLength; i++) {
         const ohlcv = ohlcvs[i];
         const barTs = ohlcv[0];
-        // if this is the first bar, then ensure last timestamp is under than requested since + limit * duration
+        // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
         if (!('compareTimestampToSince' in skippedProperties)) {
             if (i === 0 && since !== undefined) {
                 assert (barTs >= since, 'Returned bars earliest timestamp (' + barTs.toString () + ') is before than requested since (' + since.toString () + ')' + logText);
-                continue;
             }
         }
         // if this is the last bar, then check if it's <= now
         if (i === barsLength - 1) {
             if (!('compareToNow' in skippedProperties)) {
                 assert (barTs <= now, 'Returned bars latest timestamp (' + barTs.toString () + ') is after than current timestamp (' + now.toString () + ')' + logText);
+            }
+            // and ensure the last bar's timestamp does not exceed the requested "since + limit * duration" upper bound
+            if (!('compareTimestampToLimit' in skippedProperties)) {
+                if (since !== undefined && limit !== undefined) {
+                    const maxExpectedTs = since + (limit * durationMs);
+                    assert (barTs <= maxExpectedTs, 'Returned bars latest timestamp (' + barTs.toString () + ') is after than requested since + limit * duration (' + maxExpectedTs.toString () + ')' + logText);
+                }
             }
         }
         // we do compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration

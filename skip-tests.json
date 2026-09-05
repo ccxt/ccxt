@@ -1610,9 +1610,6 @@
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
-            "fetchOHLCV": {
-                "compareTimestampToLimit": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2309"
-            },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5965"
             }
