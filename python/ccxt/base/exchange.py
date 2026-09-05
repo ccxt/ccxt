@@ -1970,6 +1970,39 @@ class BaseExchange(object):
 
     @staticmethod
     def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
+        try:
+            amount = float(timeframe[:-1])
+        except ValueError:
+            amount = 0
+        unit = timeframe[-1] if len(timeframe) else ''
+        is_integer_amount = amount == int(amount)
+        if unit in ('w', 'M', 'y') and amount >= 1 and is_integer_amount:
+            amount = int(amount)
+            date = datetime.datetime.fromtimestamp(timestamp / 1000, datetime.timezone.utc)
+            if unit == 'w':
+                monday = date - datetime.timedelta(days=date.weekday(), hours=date.hour, minutes=date.minute, seconds=date.second, microseconds=date.microsecond)
+                epoch_monday = datetime.datetime(1970, 1, 5, tzinfo=datetime.timezone.utc)
+                weeks_since_epoch_monday = (monday - epoch_monday).days // 7
+                rounded = epoch_monday + datetime.timedelta(weeks=(weeks_since_epoch_monday // amount) * amount)
+                if direction == ROUND_UP:
+                    rounded += datetime.timedelta(weeks=amount)
+            elif unit == 'M':
+                months_since_year_zero = date.year * 12 + date.month - 1
+                rounded_months = (months_since_year_zero // amount) * amount
+                year = rounded_months // 12
+                month = rounded_months % 12 + 1
+                rounded = datetime.datetime(year, month, 1, tzinfo=datetime.timezone.utc)
+                if direction == ROUND_UP:
+                    month = month + amount
+                    year = year + (month - 1) // 12
+                    month = (month - 1) % 12 + 1
+                    rounded = datetime.datetime(year, month, 1, tzinfo=datetime.timezone.utc)
+            else:
+                year = (date.year // amount) * amount
+                rounded = datetime.datetime(year, 1, 1, tzinfo=datetime.timezone.utc)
+                if direction == ROUND_UP:
+                    rounded = rounded.replace(year=year + amount)
+            return int(rounded.timestamp() * 1000)
         ms = Exchange.parse_timeframe(timeframe) * 1000
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms

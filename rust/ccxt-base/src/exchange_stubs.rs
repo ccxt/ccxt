@@ -18,6 +18,7 @@
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
 use crate::{ExchangeError, Result, Value};
+use chrono::{Datelike, TimeZone, Utc};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
@@ -2382,6 +2383,12 @@ impl Exchange {
     /// timestamp to the timeframe boundary (down by default, up for
     /// `ROUND_UP`).
     pub fn round_timeframe(&self, tf: Value, ts: Value, direction: Value) -> Value {
+        let timeframe = match &tf {
+            Value::Str(timeframe) => timeframe.as_str(),
+            _ => "",
+        };
+        let unit = timeframe.chars().last().unwrap_or(' ');
+        let amount = timeframe[..timeframe.len().saturating_sub(1)].parse::<i64>().unwrap_or(0);
         let secs = match self.parse_timeframe(tf) {
             Value::Int(s) => s,
             Value::Float(s) => s as i64,
@@ -2395,6 +2402,39 @@ impl Exchange {
         };
         if ms == 0 {
             return ts;
+        }
+        if ((unit == 'w') || (unit == 'M') || (unit == 'y')) && (amount >= 1) {
+            let date = match Utc.timestamp_millis_opt(t).single() {
+                Some(date) => date,
+                None => return ts,
+            };
+            let mut rounded = date.date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc();
+            if unit == 'w' {
+                let days_since_monday = date.weekday().num_days_from_monday() as i64;
+                let monday = rounded - chrono::Duration::days(days_since_monday);
+                let epoch_monday = Utc.with_ymd_and_hms(1970, 1, 5, 0, 0, 0).unwrap();
+                let weeks_since_epoch_monday = (monday - epoch_monday).num_days() / 7;
+                rounded = epoch_monday + chrono::Duration::days(weeks_since_epoch_monday.div_euclid(amount) * amount * 7);
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Duration::days(amount * 7);
+                }
+            } else if unit == 'M' {
+                let months_since_year_zero = date.year() as i64 * 12 + date.month0() as i64;
+                let rounded_months = months_since_year_zero.div_euclid(amount) * amount;
+                let year = rounded_months.div_euclid(12) as i32;
+                let month = (rounded_months.rem_euclid(12) + 1) as u32;
+                rounded = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new(amount as u32);
+                }
+            } else {
+                let year = (date.year() as i64).div_euclid(amount) * amount;
+                rounded = Utc.with_ymd_and_hms(year as i32, 1, 1, 0, 0, 0).unwrap();
+                if matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP) {
+                    rounded = rounded + chrono::Months::new((amount * 12) as u32);
+                }
+            }
+            return Value::Int(rounded.timestamp_millis());
         }
         let offset = t % ms;
         let is_up = matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP);

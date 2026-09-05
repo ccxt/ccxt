@@ -4,6 +4,9 @@ import io.github.ccxt.Exchange;
 
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 public class Misc {
 
@@ -78,6 +81,44 @@ public class Misc {
             throw new IllegalArgumentException("timestamp must be numeric");
         }
         long ts = ((Number) timestamp).longValue();
+        String timeframeString = (String) timeframe;
+        int amount = 0;
+        try {
+            amount = Integer.parseInt(timeframeString.substring(0, timeframeString.length() - 1));
+        } catch (NumberFormatException e) {
+            amount = 0;
+        }
+        String unit = timeframeString.substring(timeframeString.length() - 1);
+        if ((unit.equals("w") || unit.equals("M") || unit.equals("y")) && amount >= 1) {
+            ZonedDateTime date = Instant.ofEpochMilli(ts).atZone(ZoneOffset.UTC);
+            ZonedDateTime rounded;
+            if (unit.equals("w")) {
+                int daysSinceMonday = (date.getDayOfWeek().getValue() + 6) % 7;
+                ZonedDateTime monday = date.minusDays(daysSinceMonday).toLocalDate().atStartOfDay(ZoneOffset.UTC);
+                ZonedDateTime epochMonday = ZonedDateTime.of(1970, 1, 5, 0, 0, 0, 0, ZoneOffset.UTC);
+                long weeksSinceEpochMonday = java.time.Duration.between(epochMonday, monday).toDays() / 7;
+                rounded = epochMonday.plusDays(Math.floorDiv(weeksSinceEpochMonday, amount) * amount * 7);
+                if (dir == ROUND_UP) {
+                    rounded = rounded.plusDays(amount * 7);
+                }
+            } else if (unit.equals("M")) {
+                int monthsSinceYearZero = date.getYear() * 12 + date.getMonthValue() - 1;
+                int roundedMonths = Math.floorDiv(monthsSinceYearZero, amount) * amount;
+                int year = Math.floorDiv(roundedMonths, 12);
+                int month = roundedMonths % 12 + 1;
+                rounded = ZonedDateTime.of(year, month, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+                if (dir == ROUND_UP) {
+                    rounded = rounded.plusMonths(amount);
+                }
+            } else {
+                int year = Math.floorDiv(date.getYear(), amount) * amount;
+                rounded = ZonedDateTime.of(year, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+                if (dir == ROUND_UP) {
+                    rounded = rounded.plusYears(amount);
+                }
+            }
+            return rounded.toInstant().toEpochMilli();
+        }
 
         long offset = ts % ms;
 

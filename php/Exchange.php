@@ -818,6 +818,38 @@ class BaseExchange {
     }
 
     public static function round_timeframe($timeframe, $timestamp, $direction = ROUND_DOWN) {
+        $amount = (float) substr($timeframe, 0, -1);
+        $unit = substr($timeframe, -1);
+        $isIntegerAmount = $amount === floor($amount);
+        if ((($unit === 'w') || ($unit === 'M') || ($unit === 'y')) && ($amount >= 1) && $isIntegerAmount) {
+            $amount = (int) $amount;
+            $date = (new \DateTimeImmutable('@' . ($timestamp / 1000)))->setTimezone(new \DateTimeZone('UTC'));
+            if ($unit === 'w') {
+                $monday = $date->modify('monday this week')->setTime(0, 0, 0);
+                $epochMonday = new \DateTimeImmutable('1970-01-05T00:00:00Z');
+                $weeksSinceEpochMonday = (int) (($monday->getTimestamp() - $epochMonday->getTimestamp()) / 604800);
+                $rounded = $epochMonday->modify('+' . ((int) (floor($weeksSinceEpochMonday / $amount) * $amount)) . ' weeks');
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+' . $amount . ' weeks');
+                }
+            } elseif ($unit === 'M') {
+                $monthsSinceYearZero = ((int) $date->format('Y')) * 12 + ((int) $date->format('n')) - 1;
+                $roundedMonths = ((int) floor($monthsSinceYearZero / $amount)) * $amount;
+                $year = (int) floor($roundedMonths / 12);
+                $month = ($roundedMonths % 12) + 1;
+                $rounded = $date->setDate($year, $month, 1)->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+' . $amount . ' months');
+                }
+            } else {
+                $year = ((int) floor(((int) $date->format('Y')) / $amount)) * $amount;
+                $rounded = $date->setDate($year, 1, 1)->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+' . $amount . ' years');
+                }
+            }
+            return ((int) $rounded->format('U')) * 1000;
+        }
         $ms = static::parse_timeframe($timeframe) * 1000;
         // Get offset based on timeframe in milliseconds
         $offset = $timestamp % $ms;
