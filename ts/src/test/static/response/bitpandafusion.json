@@ -1,0 +1,162 @@
+{
+    "exchange": "bitpandafusion",
+    "apiKey": "test-api-key",
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "parse the documented millisecond server timestamp",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": { "epochMs": 1746441600000, "iso": "2026-05-05T12:00:00.000Z" },
+                "parsedResponse": 1746441600000
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "parse market precision and limits",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [ { "pair": "BTC-EUR", "baseAsset": "BTC", "quoteAsset": "EUR", "baseAssetType": "cryptocoin", "quoteAssetType": "fiat", "tickSize": "0.01", "sizeIncrement": "0.00001", "amountIncrement": "0.00001", "maxOrderSize": "10.0", "minOrderAmount": "25.00", "maxOrderAmount": "678343.91" } ],
+                "parsedResponse": [ { "id": "BTC-EUR", "lowercaseId": null, "symbol": "BTC/EUR", "base": "BTC", "quote": "EUR", "settle": null, "baseId": "BTC", "quoteId": "EUR", "settleId": null, "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false, "active": true, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": null, "maker": null, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": { "amount": 0.00001, "price": 0.01, "cost": 0.00001 }, "limits": { "leverage": { "min": null, "max": null }, "amount": { "min": null, "max": 10 }, "price": { "min": null, "max": null }, "cost": { "min": 25, "max": 678343.91 } }, "marginModes": { "cross": null, "isolated": null }, "created": null, "info": { "pair": "BTC-EUR", "baseAsset": "BTC", "quoteAsset": "EUR", "baseAssetType": "cryptocoin", "quoteAssetType": "fiat", "tickSize": "0.01", "sizeIncrement": "0.00001", "amountIncrement": "0.00001", "maxOrderSize": "10.0", "minOrderAmount": "25.00", "maxOrderAmount": "678343.91" } } ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "parse crypto and fiat assets without funding claims",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [ { "symbol": "BTC", "name": "Bitcoin", "type": "crypto" }, { "symbol": "EUR", "name": "Euro", "type": "fiat" } ],
+                "parsedResponse": { "BTC": { "info": { "symbol": "BTC", "name": "Bitcoin", "type": "crypto" }, "id": "BTC", "numericId": null, "code": "BTC", "precision": null, "type": "crypto", "name": "Bitcoin", "active": true, "deposit": null, "withdraw": null, "fee": null, "fees": {}, "networks": {}, "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } } }, "EUR": { "info": { "symbol": "EUR", "name": "Euro", "type": "fiat" }, "id": "EUR", "numericId": null, "code": "EUR", "precision": null, "type": "fiat", "name": "Euro", "active": true, "deposit": null, "withdraw": null, "fee": null, "fees": {}, "networks": {}, "limits": { "deposit": { "min": null, "max": null }, "withdraw": { "min": null, "max": null } } } }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "expose documented mid price without inventing bid or ask",
+                "method": "fetchTicker",
+                "input": [ "BTC/EUR" ],
+                "httpResponse": [ { "pair": "BTC-EUR", "price": "61500.00", "high": "62000.00", "low": "60000.00", "volume": "250000" } ],
+                "parsedResponse": { "symbol": "BTC/EUR", "timestamp": null, "datetime": null, "high": 62000, "low": 60000, "bid": null, "bidVolume": null, "ask": null, "askVolume": null, "vwap": null, "open": null, "close": 61500, "last": 61500, "previousClose": null, "change": null, "percentage": null, "average": null, "baseVolume": null, "quoteVolume": null, "info": { "pair": "BTC-EUR", "price": "61500.00", "high": "62000.00", "low": "60000.00", "volume": "250000" }, "indexPrice": null, "markPrice": null }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "parse documented mid prices for multiple markets",
+                "method": "fetchTickers",
+                "input": [ [ "BTC/EUR" ] ],
+                "httpResponse": [ { "pair": "BTC-EUR", "price": "61500.00", "high": "62000.00", "low": "60000.00", "volume": "250000" } ],
+                "parsedResponse": { "BTC/EUR": { "symbol": "BTC/EUR", "timestamp": null, "datetime": null, "high": 62000, "low": 60000, "bid": null, "bidVolume": null, "ask": null, "askVolume": null, "vwap": null, "open": null, "close": 61500, "last": 61500, "previousClose": null, "change": null, "percentage": null, "average": null, "baseVolume": null, "quoteVolume": null, "info": { "pair": "BTC-EUR", "price": "61500.00", "high": "62000.00", "low": "60000.00", "volume": "250000" }, "indexPrice": null, "markPrice": null } }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "use per-level quantity rather than cumulative totalQuantity",
+                "method": "fetchOrderBook",
+                "input": [ "BTC/EUR", 10 ],
+                "httpResponse": { "pair": "BTC-EUR", "timestamp": "2025-05-08T16:17:01.863Z", "bids": [ { "price": "49990.0", "quantity": "0.051", "totalQuantity": "0.072" } ], "asks": [ { "price": "50010.0", "quantity": "0.043", "totalQuantity": "0.061" } ] },
+                "parsedResponse": { "symbol": "BTC/EUR", "bids": [ [ 49990, 0.051 ] ], "asks": [ [ 50010, 0.043 ] ], "timestamp": 1746721021863, "datetime": "2025-05-08T16:17:01.863Z", "nonce": null }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "convert candle timestamps from seconds to milliseconds",
+                "method": "fetchOHLCV",
+                "input": [ "BTC/EUR", "5m" ],
+                "httpResponse": [ { "timestamp": 1718445600, "open": 61200, "high": 61800, "low": 60900, "close": 61500, "volume": 1200.5 } ],
+                "parsedResponse": [ [ 1718445600000, 61200, 61800, 60900, 61500, 1200.5 ] ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "sum available and locked balances precisely",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [ { "symbol": "BTC", "available": "1.5", "locked": "0.5" } ],
+                "parsedResponse": { "info": [ { "symbol": "BTC", "available": "1.5", "locked": "0.5" } ], "BTC": { "free": 1.5, "used": 0.5, "total": 2 }, "free": { "BTC": 1.5 }, "used": { "BTC": 0.5 }, "total": { "BTC": 2 } }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "parse the live camelCase quote-currency fee as a decimal rate",
+                "method": "fetchTradingFee",
+                "input": [ "BTC/EUR" ],
+                "httpResponse": { "tradedVolume30d": "146.0300", "currentTier": { "name": "Tier 1", "fee": "0.00250000", "feeMode": "QuoteCurrency", "requiredVolume30d": "0" }, "nextTier": { "name": "Tier 2", "fee": "0.00210000", "feeMode": "QuoteCurrency", "requiredVolume30d": "100000" } },
+                "parsedResponse": { "info": { "tradedVolume30d": "146.0300", "currentTier": { "name": "Tier 1", "fee": "0.00250000", "feeMode": "QuoteCurrency", "requiredVolume30d": "0" }, "nextTier": { "name": "Tier 2", "fee": "0.00210000", "feeMode": "QuoteCurrency", "requiredVolume30d": "100000" } }, "symbol": "BTC/EUR", "maker": 0.0025, "taker": 0.0025, "percentage": true, "tierBased": true }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "support the documented legacy snake_case percentage response and apply its uniform fee to every loaded market",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": { "traded_volume30d": "12500.00", "current_tier": { "name": "Tier 2", "fee": "0.15", "fee_mode": "Percentage", "required_volume30d": "10000.00" } },
+                "parsedResponse": { "BTC/EUR": { "info": { "traded_volume30d": "12500.00", "current_tier": { "name": "Tier 2", "fee": "0.15", "fee_mode": "Percentage", "required_volume30d": "10000.00" } }, "symbol": "BTC/EUR", "maker": 0.0015, "taker": 0.0015, "percentage": true, "tierBased": true } }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "parse partially filled order quantities",
+                "method": "fetchOrder",
+                "input": [ "order-123" ],
+                "httpResponse": { "id": "order-123", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "partially-filled", "pricedIn": "BTC", "quantity": "0.5", "amount": "15000.0", "limitPrice": "30000.0", "triggerPrice": "29500.0", "filledQuantity": "0.25", "filledAmount": "7500.0", "filledAveragePrice": "30000.0", "fee": { "amount": "0.45", "currency": "EUR" }, "timeInForce": "GTC", "updatedAt": "2024-06-15T10:30:00.000Z", "createdAt": "2024-06-15T10:29:55.000Z", "executedAt": "2024-06-15T10:30:01.000Z" },
+                "parsedResponse": { "info": { "id": "order-123", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "partially-filled", "pricedIn": "BTC", "quantity": "0.5", "amount": "15000.0", "limitPrice": "30000.0", "triggerPrice": "29500.0", "filledQuantity": "0.25", "filledAmount": "7500.0", "filledAveragePrice": "30000.0", "fee": { "amount": "0.45", "currency": "EUR" }, "timeInForce": "GTC", "updatedAt": "2024-06-15T10:30:00.000Z", "createdAt": "2024-06-15T10:29:55.000Z", "executedAt": "2024-06-15T10:30:01.000Z" }, "id": "order-123", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": 1718447401000, "lastUpdateTimestamp": 1718447400000, "status": "open", "symbol": "BTC/EUR", "type": "limit", "timeInForce": "GTC", "postOnly": false, "side": "buy", "price": 30000, "triggerPrice": 29500, "cost": 7500, "amount": 0.5, "filled": 0.25, "remaining": 0.25, "average": 30000, "fee": { "cost": 0.45, "currency": "EUR" }, "trades": [], "fees": [ { "cost": 0.45, "currency": "EUR" } ], "reduceOnly": null, "stopPrice": 29500, "takeProfitPrice": null, "stopLossPrice": null }
+            },
+            {
+                "description": "map a live unfilled order without treating its execution timestamp or empty fee object as a fill",
+                "method": "fetchOrder",
+                "input": [ "order-new" ],
+                "httpResponse": { "id": "order-new", "pair": "BTC-EUR", "side": "Sell", "type": "Limit", "status": "new", "pricedIn": "BTC", "quantity": "0.00049361", "amount": "39.5994871064", "limitPrice": "80224.24", "triggerPrice": null, "filledQuantity": "0", "filledAmount": "0", "filledPercentage": "0.00", "filledAveragePrice": "0", "fee": { "amount": null, "currency": null }, "timeInForce": "GTC", "updatedAt": "2026-08-29T07:09:11.548183Z", "createdAt": "2026-08-29T07:09:10.892300Z", "executedAt": "2026-08-29T07:09:10.879581Z", "endTime": null },
+                "parsedResponse": { "info": { "id": "order-new", "pair": "BTC-EUR", "side": "Sell", "type": "Limit", "status": "new", "pricedIn": "BTC", "quantity": "0.00049361", "amount": "39.5994871064", "limitPrice": "80224.24", "triggerPrice": null, "filledQuantity": "0", "filledAmount": "0", "filledPercentage": "0.00", "filledAveragePrice": "0", "fee": { "amount": null, "currency": null }, "timeInForce": "GTC", "updatedAt": "2026-08-29T07:09:11.548183Z", "createdAt": "2026-08-29T07:09:10.892300Z", "executedAt": "2026-08-29T07:09:10.879581Z", "endTime": null }, "id": "order-new", "clientOrderId": null, "timestamp": 1787987350892, "datetime": "2026-08-29T07:09:10.892Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": 1787987351548, "status": "open", "symbol": "BTC/EUR", "type": "limit", "timeInForce": "GTC", "postOnly": false, "side": "sell", "price": 80224.24, "triggerPrice": null, "cost": 0, "amount": 0.00049361, "filled": 0, "remaining": 0.00049361, "average": null, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null }
+            },
+            {
+                "description": "map filled order status",
+                "method": "fetchOrder",
+                "input": [ "order-filled" ],
+                "httpResponse": { "id": "order-filled", "pair": "BTC-EUR", "side": "Sell", "type": "Market", "status": "filled", "quantity": "0.5", "amount": "15000", "filledQuantity": "0.5", "filledAmount": "15000", "filledAveragePrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z" },
+                "parsedResponse": { "info": { "id": "order-filled", "pair": "BTC-EUR", "side": "Sell", "type": "Market", "status": "filled", "quantity": "0.5", "amount": "15000", "filledQuantity": "0.5", "filledAmount": "15000", "filledAveragePrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z" }, "id": "order-filled", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": null, "status": "closed", "symbol": "BTC/EUR", "type": "market", "timeInForce": "IOC", "postOnly": null, "side": "sell", "price": 30000, "triggerPrice": null, "cost": 15000, "amount": 0.5, "filled": 0.5, "remaining": 0, "average": 30000, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "parse a cursor-paginated order page without auto-pagination",
+                "method": "fetchOrders",
+                "input": [ "BTC/EUR" ],
+                "httpResponse": { "data": [ { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "quantity": "0.5", "filledQuantity": "0.1", "filledAmount": "3000", "limitPrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z" } ], "meta": { "limit": 100, "hasNextPage": true, "nextCursor": "next-page" } },
+                "parsedResponse": [ { "info": { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "quantity": "0.5", "filledQuantity": "0.1", "filledAmount": "3000", "limitPrice": "30000", "createdAt": "2024-06-15T10:29:55.000Z" }, "id": "order-canceled", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": null, "status": "canceled", "symbol": "BTC/EUR", "type": "limit", "timeInForce": null, "postOnly": null, "side": "buy", "price": 30000, "triggerPrice": null, "cost": 3000, "amount": 0.5, "filled": 0.1, "remaining": 0.4, "average": 30000, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": null, "takeProfitPrice": null, "stopLossPrice": null } ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "parse the asynchronously accepted order response",
+                "method": "createOrder",
+                "input": [ "BTC/EUR", "limit", "buy", 0.5, 30000 ],
+                "httpResponse": { "id": "order-new", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "new", "pricedIn": "BTC", "quantity": "0.5", "amount": "15000.0", "limitPrice": "30000.0", "triggerPrice": "29500.0", "filledQuantity": "0", "filledAmount": "0", "timeInForce": "GTC", "updatedAt": "2024-06-15T10:29:55.000Z", "createdAt": "2024-06-15T10:29:55.000Z" },
+                "parsedResponse": { "info": { "id": "order-new", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "new", "pricedIn": "BTC", "quantity": "0.5", "amount": "15000.0", "limitPrice": "30000.0", "triggerPrice": "29500.0", "filledQuantity": "0", "filledAmount": "0", "timeInForce": "GTC", "updatedAt": "2024-06-15T10:29:55.000Z", "createdAt": "2024-06-15T10:29:55.000Z" }, "id": "order-new", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": 1718447395000, "status": "open", "symbol": "BTC/EUR", "type": "limit", "timeInForce": "GTC", "postOnly": false, "side": "buy", "price": 30000, "triggerPrice": 29500, "cost": 0, "amount": 0.5, "filled": 0, "remaining": 0.5, "average": null, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": 29500, "takeProfitPrice": null, "stopLossPrice": null }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "parse the documented canceled order response",
+                "method": "cancelOrder",
+                "input": [ "order-canceled" ],
+                "httpResponse": { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "pricedIn": "BTC", "quantity": "0.5", "amount": "15000.0", "limitPrice": "30000.0", "triggerPrice": "29500.0", "filledQuantity": "0.1", "filledAmount": "3000.0", "filledAveragePrice": "30000.0", "timeInForce": "GTC", "updatedAt": "2024-06-15T10:30:00.000Z", "createdAt": "2024-06-15T10:29:55.000Z" },
+                "parsedResponse": { "info": { "id": "order-canceled", "pair": "BTC-EUR", "side": "Buy", "type": "Limit", "status": "canceled", "pricedIn": "BTC", "quantity": "0.5", "amount": "15000.0", "limitPrice": "30000.0", "triggerPrice": "29500.0", "filledQuantity": "0.1", "filledAmount": "3000.0", "filledAveragePrice": "30000.0", "timeInForce": "GTC", "updatedAt": "2024-06-15T10:30:00.000Z", "createdAt": "2024-06-15T10:29:55.000Z" }, "id": "order-canceled", "clientOrderId": null, "timestamp": 1718447395000, "datetime": "2024-06-15T10:29:55.000Z", "lastTradeTimestamp": null, "lastUpdateTimestamp": 1718447400000, "status": "canceled", "symbol": "BTC/EUR", "type": "limit", "timeInForce": "GTC", "postOnly": false, "side": "buy", "price": 30000, "triggerPrice": 29500, "cost": 3000, "amount": 0.5, "filled": 0.1, "remaining": 0.4, "average": 30000, "fee": null, "trades": [], "fees": [], "reduceOnly": null, "stopPrice": 29500, "takeProfitPrice": null, "stopLossPrice": null }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "parse documented list trade fields",
+                "method": "fetchMyTrades",
+                "input": [ "BTC/EUR" ],
+                "httpResponse": { "data": [ { "id": "trade-a1b2c3d4", "orderId": "order-123", "pair": "BTC-EUR", "side": "sell", "price": "61501.20", "quantity": "0.15000000", "fee": { "amount": "2.25", "currency": "EUR" }, "totalAmount": "9225.18", "executedAt": "2025-09-11T12:15:30.000Z" } ], "meta": { "limit": 100, "hasNextPage": false, "nextCursor": null } },
+                "parsedResponse": [ { "info": { "id": "trade-a1b2c3d4", "orderId": "order-123", "pair": "BTC-EUR", "side": "sell", "price": "61501.20", "quantity": "0.15000000", "fee": { "amount": "2.25", "currency": "EUR" }, "totalAmount": "9225.18", "executedAt": "2025-09-11T12:15:30.000Z" }, "id": "trade-a1b2c3d4", "order": "order-123", "timestamp": 1757592930000, "datetime": "2025-09-11T12:15:30.000Z", "symbol": "BTC/EUR", "type": null, "side": "sell", "takerOrMaker": null, "price": 61501.2, "amount": 0.15, "cost": 9225.18, "fee": { "currency": "EUR", "cost": 2.25 }, "fees": [ { "currency": "EUR", "cost": 2.25 } ] } ]
+            },
+            {
+                "description": "parse the documented trade-by-id field aliases",
+                "method": "fetchMyTrades",
+                "input": [ "BTC/EUR" ],
+                "httpResponse": { "data": [ { "id": "trade-detail", "orderId": "order-123", "pair": "BTC-EUR", "side": "sell", "price": "61501.20", "amount": "0.15000000", "fee": { "amount": "2.25", "symbol": "EUR" }, "total": "9225.18", "executedAt": "2025-09-11T12:15:30.000Z" } ], "meta": { "limit": 100, "hasNextPage": false, "nextCursor": null } },
+                "parsedResponse": [ { "info": { "id": "trade-detail", "orderId": "order-123", "pair": "BTC-EUR", "side": "sell", "price": "61501.20", "amount": "0.15000000", "fee": { "amount": "2.25", "symbol": "EUR" }, "total": "9225.18", "executedAt": "2025-09-11T12:15:30.000Z" }, "id": "trade-detail", "order": "order-123", "timestamp": 1757592930000, "datetime": "2025-09-11T12:15:30.000Z", "symbol": "BTC/EUR", "type": null, "side": "sell", "takerOrMaker": null, "price": 61501.2, "amount": 0.15, "cost": 9225.18, "fee": { "currency": "EUR", "cost": 2.25 }, "fees": [ { "currency": "EUR", "cost": 2.25 } ] } ]
+            }
+        ]
+    }
+}
