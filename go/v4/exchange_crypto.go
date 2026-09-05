@@ -485,57 +485,6 @@ func enforceLowS(s *big.Int) *big.Int {
 	return s
 }
 
-// Sign the message with secp256k1 curve using Go's native ecdsa package
-
-// func signSecp256k1(message []byte, seckey []byte) ([]byte, int, bool) {
-// 	// Sign the message with the secp256k1 private key
-// 	// return nil, 0, false
-// 	signature, err := secp256k1Hash.Sign(message, seckey)
-// 	if err != nil {
-// 		return nil, 0, false
-// 	}
-
-// 	recoveryID := int(signature[64])
-
-// 	// // Split the signature into r and s components
-// 	r := new(big.Int).SetBytes(signature[:32])
-// 	s := new(big.Int).SetBytes(signature[32:64])
-
-// 	// // Enforce low-s rule on the 's' value
-// 	s = enforceLowS(s)
-
-// 	// // Convert r and s back to byte slices
-// 	rBytes := r.FillBytes(make([]byte, 32))
-// 	sBytes := s.FillBytes(make([]byte, 32))
-
-// 	// // Reconstruct the signature with the adjusted low-s value
-// 	signature = append(rBytes, sBytes...)
-
-// 	// The recovery ID is the last byte in the original signature
-
-// 	return signature, recoveryID, true
-// }
-
-// Helper function to sign with P256 (Go's native implementation)
-// func signP256(message []byte, seckey []byte) ([]byte, int, bool) {
-// 	curve := elliptic.P256()
-// 	privKey := new(ecdsa.PrivateKey)
-// 	privKey.PublicKey.Curve = curve
-// 	privKey.D = new(big.Int).SetBytes(seckey)
-
-// 	r, s, err := ecdsa.Sign(rand.Reader, privKey, message)
-// 	if err != nil {
-// 		return nil, 0, false
-// 	}
-
-// 	rBytes := r.Bytes()
-// 	sBytes := s.Bytes()
-// 	signature := append(rBytes, sBytes...)
-
-// 	return signature, 0, true // P256 does not need a recovery ID
-// }
-
-// Main Ecdsa function
 func Ecdsa(request any, secret any, curveFunc func() string, hashFunc func() string) map[string]any {
 	// Initialize return structure
 	result := map[string]any{

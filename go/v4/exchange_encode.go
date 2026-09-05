@@ -436,32 +436,6 @@ func (e *BaseExchange) UrlencodeNested(parameters2 any) string {
 	return strings.Join(outList, "&")
 }
 
-// without sorting
-// func (e *BaseExchange) Urlencode(params ...any) string {
-// 	parameters := params[0].(map[string]any)
-// 	sort := GetArg(params, 1, false).(bool)
-// 	var queryString []string
-// 	for key, value := range parameters {
-// 		encodedKey := url.QueryEscape(key)
-// 		finalValue := ""
-// 		if IsNumber(value) {
-// 			finalValue = NumberToString(value)
-// 		} else {
-// 			finalValue = ToString(value)
-// 		}
-// 		if boolVal, ok := value.(bool); ok {
-// 			finalValue = strings.ToLower(fmt.Sprintf("%v", boolVal))
-// 		}
-// 		if strings.ToLower(key) == "timestamp" {
-// 			finalValue = strings.ToUpper(url.QueryEscape(finalValue))
-// 		} else {
-// 			finalValue = url.QueryEscape(finalValue)
-// 		}
-// 		queryString = append(queryString, fmt.Sprintf("%s=%s", encodedKey, finalValue))
-// 	}
-// 	return strings.Join(queryString, "&")
-// }
-
 func (e *BaseExchange) Urlencode(params ...any) string {
 	parameters := params[0].(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
