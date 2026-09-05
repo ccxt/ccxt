@@ -725,11 +725,13 @@ class BaseExchange(object):
             return False
 
     @staticmethod
-    def safe_float(dictionary, key, default_value=None):
-        try:
-            return float(dictionary[key])
-        except Exception:
-            return default_value
+    def safe_float(container, key, default_value=None):
+        if container is not None:
+            try:
+                return float(container[key])
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
+        return default_value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
@@ -808,14 +810,17 @@ class BaseExchange(object):
     # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
 
     @staticmethod
-    def safe_float_2(dictionary, key1, key2, default_value=None):
-        try:
-            return float(dictionary[key1])
-        except Exception:
+    def safe_float_2(container, key1, key2, default_value=None):
+        if container is not None:
             try:
-                return float(dictionary[key2])
-            except Exception:
-                return default_value
+                return float(container[key1])
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
+            try:
+                return float(container[key2])
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
+        return default_value
 
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
@@ -932,14 +937,14 @@ class BaseExchange(object):
     # safe_method_n methods family
 
     @staticmethod
-    def safe_float_n(dictionary, key_list, default_value=None):
-        value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        if value is None:
-            return default_value
-        try:
-            return float(value)
-        except ValueError as e:
-            return default_value
+    def safe_float_n(container, key_list, default_value=None):
+        value = Exchange.get_object_value_from_key_list(container, key_list)
+        if value is not None:
+            try:
+                return float(value)
+            except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+                pass
+        return default_value
 
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
