@@ -1724,6 +1724,42 @@
                   "BTC/USD:BTC",
                   5
                 ]
+            },
+            {
+                "description": "spot orderbook caps limit",
+                "method": "fetchOrderBook",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/depth?limit=1000&symbol=BTC-USDT&timestamp=1709992985098",
+                "input": [
+                    "BTC/USDT",
+                    1500
+                ]
+            },
+            {
+                "description": "swap orderbook normalizes limit to an accepted level",
+                "method": "fetchOrderBook",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/depth?limit=10&symbol=BTC-USDT&timestamp=1709992985380",
+                "input": [
+                    "BTC/USDT:USDT",
+                    7
+                ]
+            },
+            {
+                "description": "swap orderbook normalizes limit to the minimum accepted level",
+                "method": "fetchOrderBook",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/depth?limit=5&symbol=BTC-USDT&timestamp=1709992985380",
+                "input": [
+                    "BTC/USDT:USDT",
+                    3
+                ]
+            },
+            {
+                "description": "inverse swap orderbook caps limit",
+                "method": "fetchOrderBook",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/depth?limit=1000&symbol=BTC-USD&timestamp=1720164891997",
+                "input": [
+                    "BTC/USD:BTC",
+                    1500
+                ]
             }
         ],
         "fetchTicker": [
