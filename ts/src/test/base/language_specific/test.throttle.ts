@@ -1,6 +1,6 @@
 /* eslint-disable */
 import assert from 'assert'
-import { Throttler, QUEUE_COMPACTION_THRESHOLD } from '../../../base/functions/throttle.js'
+import { Throttler } from '../../../base/functions/throttle.js'
 import type { Dict } from '../../../base/types.js'
 
 async function testThrottle () {
@@ -95,7 +95,11 @@ async function testThrottle () {
     }
 
     for (const test of testCases) {
-        runner (test)
+        // awaited sequentially: firing all 10 concurrently lets their independent
+        // Throttler timer loops contend for the event loop at once, inflating the
+        // elapsed time each case measures against its `delta`-ms tolerance and
+        // making the suite flaky (observed failing consistently when run unawaited)
+        await runner (test)
     }
 
     await testThrottleQueueCompaction ()
@@ -112,7 +116,7 @@ async function testThrottleQueueCompaction () {
     // sized off the real threshold (rather than a hardcoded number) so this
     // stays a meaningful coverage guarantee even if QUEUE_COMPACTION_THRESHOLD
     // is ever raised
-    const total = QUEUE_COMPACTION_THRESHOLD * 3
+    const total = Throttler.QUEUE_COMPACTION_THRESHOLD * 3
     const throttler = new Throttler ({
         'tokens': total + 10, // abundant tokens: no request should ever have to wait
         'cost': 1,

@@ -5,12 +5,16 @@
 import { now, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
 
-// dequeue () only compacts the queue array once the consumed head has drifted
-// this far past the start; exported so tests can size a backlog large enough
-// to exercise that branch without hardcoding the threshold in two places.
-const QUEUE_COMPACTION_THRESHOLD = 1024;
-
 class Throttler {
+
+    // dequeue () only compacts the queue array once the consumed head has drifted
+    // this far past the start; a static class property (rather than a module-level
+    // export) so tests can size a backlog large enough to exercise that branch
+    // without hardcoding the threshold in two places, while not becoming part of
+    // ccxt's public API surface (functions.ts re-exports every named export of
+    // this module onto the top-level ccxt object - Throttler itself is meant to
+    // be public, an implementation-detail constant living on it is not)
+    static QUEUE_COMPACTION_THRESHOLD = 1024;
 
     running: boolean;
     queue: { resolver: any; cost: number }[];
@@ -59,7 +63,7 @@ class Throttler {
         if (this.queueHead === this.queue.length) {
             this.queue.length = 0;
             this.queueHead = 0;
-        } else if (this.queueHead >= QUEUE_COMPACTION_THRESHOLD && this.queueHead >= (this.queue.length / 2)) {
+        } else if (this.queueHead >= Throttler.QUEUE_COMPACTION_THRESHOLD && this.queueHead >= (this.queue.length / 2)) {
             this.queue = this.queue.slice (this.queueHead);
             this.queueHead = 0;
         }
@@ -160,7 +164,6 @@ class Throttler {
 
 export {
     Throttler,
-    QUEUE_COMPACTION_THRESHOLD,
 };
 
 // ----------------------------------------
