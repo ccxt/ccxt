@@ -267,6 +267,11 @@ int main (int argc, char** argv) {
     }
     int status = 0;
     try {
+        if (!selfTestComparator ()) {
+            std::cout << "[TEST_FAILURE] comparator self-test failed; fixture results "
+                         "would be meaningless" << std::endl;
+            return 1;
+        }
         if (request)  status |= runRequestTests (only);
         if (response) status |= runResponseTests (only);
     } catch (const std::exception& e) {
