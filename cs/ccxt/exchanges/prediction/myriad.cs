@@ -1016,8 +1016,8 @@ public partial class myriad : PredictionExchange
         object parsed = this.parsePredictionOrder(wrapper, outcomeObj);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-        object sideStr = ((bool) isTrue((isEqual(side, null)))) ? null : ((string)((string)side)).ToLower();
-        object typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)type).ToLower();
+        string? sideStr = ((bool) isTrue((isEqual(side, null)))) ? null : ((string)((string)side)).ToLower();
+        string typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)type).ToLower();
         if (isTrue(isEqual(this.safeString(parsed, "side"), null)))
         {
             ((IDictionary<string,object>)parsed)["side"] = sideStr;
@@ -1071,11 +1071,11 @@ public partial class myriad : PredictionExchange
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId", 0);
         object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
-        object typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)type).ToLower();
+        string typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)type).ToLower();
         string sideStr = ((string)((string)side)).ToLower();
-        object sideInt = ((bool) isTrue((isEqual(sideStr, "buy")))) ? 0 : 1;
+        int sideInt = ((bool) isTrue((isEqual(sideStr, "buy")))) ? 0 : 1;
         bool isMarket = (isEqual(typeStr, "market"));
-        object defaultTif = ((bool) isTrue(isMarket)) ? "FOK" : "GTC";
+        string defaultTif = ((bool) isTrue(isMarket)) ? "FOK" : "GTC";
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
         object priceValue = price;
         if (isTrue(isEqual(priceValue, null)))
@@ -1217,7 +1217,7 @@ public partial class myriad : PredictionExchange
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         parameters ??= new Dictionary<string, object>();
-        object sideLower = ((bool) isTrue((!isEqual(side, null)))) ? ((string)((string)side)).ToLower() : null;
+        string? sideLower = ((bool) isTrue((!isEqual(side, null)))) ? ((string)((string)side)).ToLower() : null;
         object isCostDenominated = this.safeBool(parameters, "costDenominated", false);
         if (isTrue(isTrue((isEqual(sideLower, "buy"))) && isTrue((!isEqual(isCostDenominated, true)))))
         {
@@ -1526,7 +1526,7 @@ public partial class myriad : PredictionExchange
         object inner = this.safeDict(order, "order", new Dictionary<string, object>() {});
         string? orderHash = this.safeString2(order, "orderHash", "hash");
         Int64? sideInt = this.safeInteger(inner, "side");
-        object side = ((bool) isTrue((isEqual(sideInt, 1)))) ? "sell" : "buy";
+        string side = ((bool) isTrue((isEqual(sideInt, 1)))) ? "sell" : "buy";
         string? amountWei = this.safeString(inner, "amount");
         string? priceWei = this.safeString(inner, "price");
         string? filledWei = this.safeString(order, "filledAmount");
@@ -1539,7 +1539,7 @@ public partial class myriad : PredictionExchange
         string? tif = this.safeStringUpper(order, "timeInForce");
         bool isMarketTif = isTrue((isEqual(tif, "FOK"))) || isTrue((isEqual(tif, "FAK")));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        object outcome = ((bool) isTrue((isEqual(market, null)))) ? null : this.safeString(market, "outcome");
+        string? outcome = ((bool) isTrue((isEqual(market, null)))) ? null : this.safeString(market, "outcome");
         object outcomeObj = market;
         if (isTrue(isEqual(outcome, null)))
         {
@@ -2492,7 +2492,7 @@ public partial class myriad : PredictionExchange
             });
         }
         string? marketTradingModel = this.safeString(raw, "tradingModel", "amm");
-        object marketExecutionModel = ((bool) isTrue((isEqual(marketTradingModel, "amm")))) ? "amm" : "clob";
+        string marketExecutionModel = ((bool) isTrue((isEqual(marketTradingModel, "amm")))) ? "amm" : "clob";
         int outcomesLength = getArrayLength(outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         object marketResolvedOutcome = resolvedOutcome;
@@ -2777,7 +2777,7 @@ public partial class myriad : PredictionExchange
         //         "externalSources": []
         //     }
         //
-        object outcomeId = ((bool) isTrue((isTrue(!isEqual(market, null)) && isTrue(!isEqual(market, null))))) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
+        string? outcomeId = ((bool) isTrue((isTrue(!isEqual(market, null)) && isTrue(!isEqual(market, null))))) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
         object outcomes = (IList<object>)(this.safeList(raw, "outcomes", new List<object>() {}));
         object price = null;
         object change = null;

@@ -1029,7 +1029,7 @@ public partial class pacifica : Exchange
         // }
         object isIsolated = this.safeBool(setting, "isolated", false);
         Int64? leverage = this.safeInteger(setting, "leverage");
-        object marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
+        string marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "info", setting },
             { "symbol", symbol },
@@ -1182,7 +1182,7 @@ public partial class pacifica : Exchange
         //
         // }
         object isIsolated = this.safeBool(setting, "isolated", false);
-        object marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
+        string marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "marginMode", marginMode },
@@ -1644,7 +1644,7 @@ public partial class pacifica : Exchange
         }
         string? fee = this.safeString(trade, "fee");
         string? orderId = this.safeString(trade, "order_id");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(eventType, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(eventType, "fulfill_maker")))) ? "maker" : "taker";
@@ -2225,7 +2225,7 @@ public partial class pacifica : Exchange
         // }
         //
         object success = this.safeBool(response, "success", false);
-        object status = ((bool) isTrue((isEqual(success, true)))) ? "canceled" : "closed";
+        string status = ((bool) isTrue((isEqual(success, true)))) ? "canceled" : "closed";
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
@@ -2963,7 +2963,7 @@ public partial class pacifica : Exchange
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
-        object side = this.safeString(order, "side", "d");
+        string? side = this.safeString(order, "side", "d");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
@@ -3088,9 +3088,9 @@ public partial class pacifica : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         string? margin = this.safeString(position, "margin");
-        object marginMode = ((bool) isTrue((isTrue(!isEqual(margin, null)) && isTrue(!isEqual(margin, "0"))))) ? "isolated" : "cross";
+        string marginMode = ((bool) isTrue((isTrue(!isEqual(margin, null)) && isTrue(!isEqual(margin, "0"))))) ? "isolated" : "cross";
         bool isIsolated = (isEqual(marginMode, "isolated"));
-        object side = this.safeString(position, "side");
+        string? side = this.safeString(position, "side");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "bid")))) ? "long" : "short";
@@ -3899,7 +3899,7 @@ public partial class pacifica : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object isTestnet = this.isSandboxModeEnabled;
-        object urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
+        string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));

@@ -555,7 +555,7 @@ public partial class hollaex : Exchange
         object code = this.safeCurrencyCode(id);
         object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new List<object>() {});
         string? rawType = this.safeString(rawCurrency, "type");
-        object type = ((bool) isTrue((isEqual(rawType, "blockchain")))) ? "crypto" : "other";
+        string type = ((bool) isTrue((isEqual(rawType, "blockchain")))) ? "crypto" : "other";
         object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);

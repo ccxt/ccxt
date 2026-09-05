@@ -623,7 +623,7 @@ public partial class blockchaincom : Exchange
         string? marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market, "-");
         string? exchangeOrderId = this.safeString(order, "exOrdId");
-        object price = ((bool) isTrue((!isEqual(type, "market")))) ? this.safeString(order, "price") : null;
+        string? price = ((bool) isTrue((!isEqual(type, "market")))) ? this.safeString(order, "price") : null;
         object average = this.safeNumber(order, "avgPx");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? datetime = this.iso8601(timestamp);

@@ -1903,7 +1903,7 @@ public partial class xt : Exchange
         //     }
         //
         object isInverse = this.safeBool(market, "inverse");
-        object volumeIndex = ((bool) isTrue((isEqual(isInverse, true)))) ? "v" : "a";
+        string volumeIndex = ((bool) isTrue((isEqual(isInverse, true)))) ? "v" : "a";
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)};
     }
 
@@ -2295,7 +2295,7 @@ public partial class xt : Exchange
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             string? marketId = this.safeString(rawTicker, "s");
-            object marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+            string marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
             object marketInner = this.safeMarket(marketId, market, "_", marketType);
             object ticker = this.parseTicker(rawTicker, marketInner);
             object symbol = getValue(ticker, "symbol");
@@ -2536,7 +2536,7 @@ public partial class xt : Exchange
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
-            object marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
+            string marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
             ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
             if (isTrue(!isEqual(limit, null)))
             {
@@ -3038,7 +3038,7 @@ public partial class xt : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
+        string marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
         ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
         if (isTrue(isEqual(type, "market")))
         {
@@ -3136,11 +3136,11 @@ public partial class xt : Exchange
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(isEqual(side, "buy")))
         {
-            object requestType = ((bool) isTrue((isEqual(reduceOnly, true)))) ? "SHORT" : "LONG";
+            string requestType = ((bool) isTrue((isEqual(reduceOnly, true)))) ? "SHORT" : "LONG";
             ((IDictionary<string,object>)request)["positionSide"] = requestType;
         } else
         {
-            object requestType = ((bool) isTrue((isEqual(reduceOnly, true)))) ? "LONG" : "SHORT";
+            string requestType = ((bool) isTrue((isEqual(reduceOnly, true)))) ? "LONG" : "SHORT";
             ((IDictionary<string,object>)request)["positionSide"] = requestType;
         }
         object response = new Dictionary<string, object>() {};
@@ -3205,7 +3205,7 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)request)["triggerPriceType"] = this.safeString(parameters, "triggerPriceType", "LATEST_PRICE");
             ((IDictionary<string,object>)request)["orderSide"] = ((string)side).ToUpper();
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
-            object entrustType = ((bool) isTrue((isEqual(type, "market")))) ? "STOP_MARKET" : "STOP";
+            string entrustType = ((bool) isTrue((isEqual(type, "market")))) ? "STOP_MARKET" : "STOP";
             ((IDictionary<string,object>)request)["entrustType"] = entrustType;
             parameters = this.omit(parameters, "triggerPrice");
             if (isTrue(isEqual(getValue(market, "linear"), true)))
@@ -3568,7 +3568,7 @@ public partial class xt : Exchange
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
-            object marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
+            string marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
             ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
             response = await this.privateSpotGetHistoryOrder(this.extend(request, parameters));
         }
@@ -3831,7 +3831,7 @@ public partial class xt : Exchange
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
-            object marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
+            string marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
             ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
             if (isTrue(!isEqual(status, "open")))
             {
@@ -4342,7 +4342,7 @@ public partial class xt : Exchange
             var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
-            object marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
+            string marginOrSpotRequest = ((bool) isTrue((!isEqual(marginMode, null)))) ? "LEVER" : "SPOT";
             ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
             response = await this.privateSpotDeleteOpenOrder(this.extend(request, parameters));
         }
@@ -4544,7 +4544,7 @@ public partial class xt : Exchange
         //     }
         //
         string? marketId = this.safeString(order, "symbol");
-        object marketType = ((bool) isTrue(isTrue((inOp(order, "result"))) || isTrue((inOp(order, "positionSide"))))) ? "contract" : "spot";
+        string marketType = ((bool) isTrue(isTrue((inOp(order, "result"))) || isTrue((inOp(order, "positionSide"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         object timestamp = this.safeInteger2(order, "time", "createdTime");
@@ -4730,7 +4730,7 @@ public partial class xt : Exchange
         //     }
         //
         string? side = this.safeString(item, "side");
-        object direction = ((bool) isTrue((isEqual(side, "ADD")))) ? "in" : "out";
+        string direction = ((bool) isTrue((isEqual(side, "ADD")))) ? "in" : "out";
         string? currencyId = this.safeString(item, "coin");
         currency = this.safeCurrency(currencyId, currency);
         Int64? timestamp = this.safeInteger(item, "createdTime");
@@ -5061,7 +5061,7 @@ public partial class xt : Exchange
         //         "id": 950898
         //     }
         //
-        object type = ((bool) isTrue((inOp(transaction, "fromAddr")))) ? "deposit" : "withdraw";
+        string type = ((bool) isTrue((inOp(transaction, "fromAddr")))) ? "deposit" : "withdraw";
         Int64? timestamp = this.safeInteger(transaction, "createdTime");
         string? address = this.safeString(transaction, "address");
         string? memo = this.safeString(transaction, "memo");
@@ -5210,7 +5210,7 @@ public partial class xt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? positionSide = this.safeString(parameters, "positionSide");
-        object methodName = ((bool) isTrue((isEqual(addOrReduce, "ADD")))) ? "addMargin" : "reduceMargin";
+        string methodName = ((bool) isTrue((isEqual(addOrReduce, "ADD")))) ? "addMargin" : "reduceMargin";
         this.checkRequiredArgument(methodName, positionSide, "positionSide", new List<object>() {"LONG", "SHORT"});
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -6341,7 +6341,7 @@ public partial class xt : Exchange
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         string? positionType = this.safeString(position, "positionType");
         bool isCross = isTrue((isEqual(positionType, "CROSSED"))) || isTrue((isEqual(positionType, "1")));
-        object marginMode = ((bool) isTrue((isCross))) ? "cross" : "isolated";
+        string marginMode = ((bool) isTrue((isCross))) ? "cross" : "isolated";
         object collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
         object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));

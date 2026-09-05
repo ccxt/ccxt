@@ -723,7 +723,7 @@ public partial class ndax : Exchange
         string? id = this.safeString(rawCurrency, "ProductId");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         string? ProductType = this.safeString(rawCurrency, "ProductType");
-        object type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
+        string type = ((bool) isTrue((isEqual(ProductType, "NationalCurrency")))) ? "fiat" : "crypto";
         if (isTrue(isEqual(ProductType, "Unknown")))
         {
             // such currency is just a blanket entry
@@ -1365,7 +1365,7 @@ public partial class ndax : Exchange
         object timestamp = null;
         string? id = null;
         string? marketId = null;
-        object side = null;
+        string? side = null;
         string? orderId = null;
         string? takerOrMaker = null;
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
@@ -1882,7 +1882,7 @@ public partial class ndax : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"});
         object market = this.market(symbol);
-        object orderSide = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
+        int orderSide = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
         object amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentId", this.parseToInt(getValue(market, "id")) },
@@ -1950,7 +1950,7 @@ public partial class ndax : Exchange
         object clientOrderId = this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId"});
         object market = this.market(symbol);
-        object orderSide = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
+        int orderSide = ((bool) isTrue((isEqual(side, "buy")))) ? 0 : 1;
         object amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OrderIdToReplace", parseInt(id) },

@@ -64,7 +64,7 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+        string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", topics },
@@ -86,7 +86,7 @@ public partial class backpack : ccxt.backpack
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         string instruction = "subscribe";
         string ts = ((object)this.nonce()).ToString();
-        object method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+        string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
         object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         object payload = add(add(add(add(add(add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
         object secretBytes = this.base64ToBinary(this.secret);

@@ -1027,7 +1027,7 @@ public partial class bitmex : Exchange
         string? contractSize = null;
         object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        object linear = ((bool) isTrue(contract)) ? (isTrue((!isEqual(isInverse, true))) && isTrue((!isEqual(isQuanto, true)))) : null;
+        bool? linear = ((bool) isTrue(contract)) ? (isTrue((!isEqual(isInverse, true))) && isTrue((!isEqual(isQuanto, true)))) : null;
         string? status = this.safeString(market, "state");
         bool active = isEqual(status, "Open"); // Open, Settled, Unlisted
         Int64? expiry = null;
@@ -1306,7 +1306,7 @@ public partial class bitmex : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
-            object side = ((bool) isTrue((isEqual(getValue(order, "side"), "Sell")))) ? "asks" : "bids";
+            string side = ((bool) isTrue((isEqual(getValue(order, "side"), "Sell")))) ? "asks" : "bids";
             object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
             object price = this.safeNumber(order, "price");
             // https://github.com/ccxt/ccxt/issues/4926
@@ -2181,7 +2181,7 @@ public partial class bitmex : Exchange
         }
         // Trade or Funding
         string? execType = this.safeString(trade, "execType");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(isTrue(!isEqual(feeCostString, null)) && isTrue(isEqual(execType, "Trade"))))
         {
             takerOrMaker = ((bool) isTrue(Precise.stringLt(feeCostString, "0"))) ? "maker" : "taker";
@@ -2567,7 +2567,7 @@ public partial class bitmex : Exchange
             {
                 this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new List<object>() {"above", "below"});
             }
-            object orderType = null;
+            string? orderType = null;
             if (isTrue(isEqual(type, "limit")))
             {
                 if (isTrue(isEqual(side, "buy")))
@@ -3049,7 +3049,7 @@ public partial class bitmex : Exchange
         object symbol = getValue(market, "symbol");
         string? datetime = this.safeString(position, "timestamp");
         object crossMargin = this.safeValue(position, "crossMargin");
-        object marginMode = ((bool) isTrue((isEqual(crossMargin, true)))) ? "cross" : "isolated";
+        string marginMode = ((bool) isTrue((isEqual(crossMargin, true)))) ? "cross" : "isolated";
         string? notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
         string? settleCurrencyCode = this.safeString(market, "settle");
         object maintenanceMargin = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "maintMargin"));
@@ -3398,7 +3398,7 @@ public partial class bitmex : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap and future contracts only")) ;
         }
-        object enabled = ((bool) isTrue((isEqual(marginModeVar, "cross")))) ? false : true;
+        bool enabled = ((bool) isTrue((isEqual(marginModeVar, "cross")))) ? false : true;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "enabled", enabled },

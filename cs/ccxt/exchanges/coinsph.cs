@@ -1480,13 +1480,13 @@ public partial class coinsph : Exchange
             };
         }
         object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue((isEqual(isBuyer, true)))) ? "buy" : "sell";
         }
         string? isMaker = this.safeString(trade, "isMaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(isMaker, "true")))) ? "maker" : "taker";

@@ -360,7 +360,7 @@ public partial class coinone : ccxt.coinone
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         object isSellerMaker = this.safeValue(trade, "is_seller_maker");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
             side = ((bool) isTrue((isEqual(isSellerMaker, true)))) ? "sell" : "buy";

@@ -904,7 +904,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         string? id = this.safeString(trade, "tid");
-        object side = this.safeString(trade, "side");
+        string? side = this.safeString(trade, "side");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "A")))) ? "sell" : "buy";

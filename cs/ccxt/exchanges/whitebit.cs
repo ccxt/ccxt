@@ -2135,7 +2135,7 @@ public partial class whitebit : Exchange
         string? side = this.safeString2(trade, "type", "side");
         object symbol = getValue(market, "symbol");
         Int64? role = this.safeInteger(trade, "role");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(role, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(role, 1)))) ? "maker" : "taker";

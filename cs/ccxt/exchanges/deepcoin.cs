@@ -631,7 +631,7 @@ public partial class deepcoin : Exchange
         object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         string? state = this.safeString(market, "state");
         bool isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
-        object isInverse = ((bool) isTrue(swap)) ? (!isEqual(isLinear, true)) : null;
+        bool? isInverse = ((bool) isTrue(swap)) ? (!isEqual(isLinear, true)) : null;
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -1556,7 +1556,7 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeInteger(item, "ts");
         string? change = this.safeString(item, "balChg");
         string? amount = Precise.stringAbs(change);
-        object direction = ((bool) isTrue(Precise.stringLt(change, "0"))) ? "out" : "in";
+        string direction = ((bool) isTrue(Precise.stringLt(change, "0"))) ? "out" : "in";
         string? currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");
@@ -2614,7 +2614,7 @@ public partial class deepcoin : Exchange
         var mergedparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
         merged = ((IList<object>)mergedparametersVariable)[0];
         parameters = ((IList<object>)mergedparametersVariable)[1];
-        object isMergedMode = ((bool) isTrue(merged)) ? 1 : 0;
+        int isMergedMode = ((bool) isTrue(merged)) ? 1 : 0;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentID", getValue(market, "id") },
             { "ProductGroup", productGroup },

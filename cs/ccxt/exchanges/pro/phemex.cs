@@ -1647,7 +1647,7 @@ public partial class phemex : ccxt.phemex
         }
         if (isTrue(isTrue(isTrue((inOp(message, "accounts"))) || isTrue((inOp(message, "accounts_p")))) || isTrue((inOp(message, "wallets")))))
         {
-            object type = ((bool) isTrue((inOp(message, "accounts")))) ? "swap" : "spot";
+            string type = ((bool) isTrue((inOp(message, "accounts")))) ? "swap" : "spot";
             if (isTrue(inOp(message, "accounts_p")))
             {
                 type = "perpetual";

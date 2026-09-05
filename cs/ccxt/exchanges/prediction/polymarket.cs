@@ -1112,7 +1112,7 @@ public partial class polymarket : PredictionExchange
                 });
             }
             object baseId = ((bool) isTrue((!isEqual(conditionId, null)))) ? conditionId : marketId;
-            object marketType = ((bool) isTrue((isGreaterThan(outcomeLabelsLength, 2)))) ? "categorical" : "binary";
+            string marketType = ((bool) isTrue((isGreaterThan(outcomeLabelsLength, 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             object marketResolvedOutcome = resolvedOutcome;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -2496,7 +2496,7 @@ public partial class polymarket : PredictionExchange
         bool isMarket = (isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
-        object orderTypeStr = this.safeStringUpper(parameters, "orderType");
+        string? orderTypeStr = this.safeStringUpper(parameters, "orderType");
         if (isTrue(isEqual(orderTypeStr, null)))
         {
             // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
@@ -2555,7 +2555,7 @@ public partial class polymarket : PredictionExchange
         object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");
-        object sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
+        int sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         string bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
         // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
         // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
@@ -2879,7 +2879,7 @@ public partial class polymarket : PredictionExchange
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         object notCanceled = this.safeDict(response, "not_canceled", new Dictionary<string, object>() {});
         string? failureReason = this.safeString(notCanceled, id);
-        object status = ((bool) isTrue((isEqual(failureReason, null)))) ? "canceled" : "open";
+        string status = ((bool) isTrue((isEqual(failureReason, null)))) ? "canceled" : "open";
         return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },         }));
     }
 

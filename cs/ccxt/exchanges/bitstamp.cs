@@ -2945,7 +2945,7 @@ public partial class bitstamp : Exchange
         //
         string? id = this.safeString2(order, "id", "order_id");
         string? clientOrderId = this.safeString2(order, "client_order_id", "orig_client_order_id");
-        object side = this.safeString2(order, "type", "order_type");
+        string? side = this.safeString2(order, "type", "order_type");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "1")))) ? "sell" : "buy";
@@ -3042,7 +3042,7 @@ public partial class bitstamp : Exchange
             {
                 market = this.getMarketFromTrade(item);
             }
-            object direction = ((bool) isTrue((isEqual(getValue(parsedTrade, "side"), "buy")))) ? "in" : "out";
+            string direction = ((bool) isTrue((isEqual(getValue(parsedTrade, "side"), "buy")))) ? "in" : "out";
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
                 { "id", getValue(parsedTrade, "id") },
@@ -3063,7 +3063,7 @@ public partial class bitstamp : Exchange
         } else
         {
             object parsedTransaction = this.parseTransaction(item, currency);
-            object direction = null;
+            string? direction = null;
             if (isTrue(inOp(item, "amount")))
             {
                 string? amount = this.safeString(item, "amount");

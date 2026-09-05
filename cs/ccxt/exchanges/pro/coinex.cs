@@ -529,7 +529,7 @@ public partial class coinex : ccxt.coinex
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
         bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
-        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("myTrades:", symbol);
@@ -593,7 +593,7 @@ public partial class coinex : ccxt.coinex
         object trades = this.safeList(data, "deal_list", new List<object>() {});
         string? marketId = this.safeString(data, "market");
         bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
-        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, defaultType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trades:", symbol);
@@ -655,7 +655,7 @@ public partial class coinex : ccxt.coinex
         //
         Int64? timestamp = this.safeInteger(trade, "created_at");
         bool isSpot = (inOp(trade, "margin_market"));
-        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
@@ -982,7 +982,7 @@ public partial class coinex : ccxt.coinex
         //     }
         //
         bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
-        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
@@ -1329,7 +1329,7 @@ public partial class coinex : ccxt.coinex
         string? marketId = this.safeString(order, "market");
         string? status = this.safeString(order, "status");
         bool isSpot = (inOp(order, "margin_market"));
-        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         object fee = null;
         object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));

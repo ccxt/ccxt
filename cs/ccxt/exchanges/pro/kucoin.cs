@@ -187,7 +187,7 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         string requestId = ((object)this.requestId()).ToString();
         object market = this.market(symbol);
-        object urlType = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? "futures" : "spot";
+        string urlType = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? "futures" : "spot";
         string tradeType = ((string)urlType).ToUpper();
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
@@ -549,7 +549,7 @@ public partial class kucoin : ccxt.kucoin
         string requestId = ((object)this.requestId()).ToString();
         object market = this.getMarketFromSymbols(symbols);
         bool isContract = (isEqual(getValue(market, "contract"), true));
-        object urlType = ((bool) isTrue(isContract)) ? "futures" : "spot";
+        string urlType = ((bool) isTrue(isContract)) ? "futures" : "spot";
         string tradeType = ((string)urlType).ToUpper();
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
@@ -1161,7 +1161,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
         bool isContractMarket = (isGreaterThanOrEqual(getIndexOf(((string)topic), "contractMarket"), 0));
-        object baseVolumeIndex = ((bool) isTrue(isContractMarket)) ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        int baseVolumeIndex = ((bool) isTrue(isContractMarket)) ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         List<object> parsed = new List<object> {this.safeTimestamp(candles, 0), this.safeNumber(candles, 1), this.safeNumber(candles, 3), this.safeNumber(candles, 4), this.safeNumber(candles, 2), this.safeNumber(candles, baseVolumeIndex)};
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -1686,7 +1686,7 @@ public partial class kucoin : ccxt.kucoin
         bool isFuturesMethod = (isEqual(getValue(firstMarket, "contract"), true));
         object url = await this.negotiate(false, isFuturesMethod);
         object method = ((bool) isTrue(isFuturesMethod)) ? "/contractMarket/level2" : "/market/level2";
-        object optionName = ((bool) isTrue(isFuturesMethod)) ? "contractMethod" : "spotMethod";
+        string optionName = ((bool) isTrue(isFuturesMethod)) ? "contractMethod" : "spotMethod";
         var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
@@ -1754,7 +1754,7 @@ public partial class kucoin : ccxt.kucoin
         bool isFuturesMethod = (isEqual(getValue(firstMarket, "contract"), true));
         object url = await this.negotiate(false, isFuturesMethod);
         object method = ((bool) isTrue(isFuturesMethod)) ? "/contractMarket/level2" : "/market/level2";
-        object optionName = ((bool) isTrue(isFuturesMethod)) ? "contractMethod" : "spotMethod";
+        string optionName = ((bool) isTrue(isFuturesMethod)) ? "contractMethod" : "spotMethod";
         var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
@@ -2004,7 +2004,7 @@ public partial class kucoin : ccxt.kucoin
             object price = this.safeNumber(splitChange, 0);
             string? side = this.safeString(splitChange, 1);
             object quantity = this.safeNumber(splitChange, 2);
-            object type = ((bool) isTrue((isEqual(side, "buy")))) ? "bids" : "asks";
+            string type = ((bool) isTrue((isEqual(side, "buy")))) ? "bids" : "asks";
             List<object> value = new List<object>() {price, quantity};
             if (isTrue(isEqual(type, "bids")))
             {
@@ -2203,7 +2203,7 @@ public partial class kucoin : ccxt.kucoin
             parameters = ((IList<object>)marketTypeparametersVariable)[1];
             bool isFuturesMethod = (isTrue((!isEqual(marketType, "spot"))) && isTrue((!isEqual(marketType, "margin"))));
             object url = await this.negotiate(true, isFuturesMethod);
-            object topic = ((bool) isTrue((isEqual(trigger, true)))) ? "/spotMarket/advancedOrders" : "/spotMarket/tradeOrders";
+            string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "/spotMarket/advancedOrders" : "/spotMarket/tradeOrders";
             if (isTrue(isFuturesMethod))
             {
                 topic = ((bool) isTrue((isEqual(trigger, true)))) ? "/contractMarket/advancedOrders" : "/contractMarket/tradeOrders";
@@ -2520,7 +2520,7 @@ public partial class kucoin : ccxt.kucoin
         if (isTrue(isTrue(isTrue((isEqual(rawType, "match"))) && isTrue((!isEqual(matchPrice, null)))) && isTrue((!isEqual(matchSize, null)))))
         {
             string? matchCost = Precise.stringMul(matchPrice, matchSize);
-            object previousCost = ((bool) isTrue((isEqual(order, null)))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
+            string? previousCost = ((bool) isTrue((isEqual(order, null)))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
             string? costString = Precise.stringAdd(previousCost, matchCost);
             ((IDictionary<string,object>)parsed)["cost"] = this.parseNumber(costString);
             string? filledString = this.numberToString(getValue(parsed, "filled"));
@@ -2657,7 +2657,7 @@ public partial class kucoin : ccxt.kucoin
         {
             object url = await this.negotiate(true, isFuturesMethod);
             object topic = ((bool) isTrue(isFuturesMethod)) ? "/contractMarket/tradeOrders" : "/spotMarket/tradeOrders";
-            object optionName = ((bool) isTrue(isFuturesMethod)) ? "contractMethod" : "spotMethod";
+            string optionName = ((bool) isTrue(isFuturesMethod)) ? "contractMethod" : "spotMethod";
             var topicparametersVariable = this.handleOptionAndParams2(parameters, "watchMyTrades", optionName, "method", topic);
             topic = ((IList<object>)topicparametersVariable)[0];
             parameters = ((IList<object>)topicparametersVariable)[1];
@@ -3193,7 +3193,7 @@ public partial class kucoin : ccxt.kucoin
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        object tradeType = ((bool) isTrue(uta)) ? "UNIFIED" : "TRADE";
+        string tradeType = ((bool) isTrue(uta)) ? "UNIFIED" : "TRADE";
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols);
@@ -3516,7 +3516,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? timestamp = this.safeIntegerProduct(position, "O", 0.000001);
         string? amountString = this.safeString(position, "q");
         string? size = Precise.stringAbs(amountString);
-        object side = ((bool) isTrue(Precise.stringGt(amountString, "0"))) ? "long" : "short";
+        string side = ((bool) isTrue(Precise.stringGt(amountString, "0"))) ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "pi") },

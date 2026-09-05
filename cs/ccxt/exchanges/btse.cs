@@ -3828,7 +3828,7 @@ public partial class btse : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object positionMode = ((bool) isTrue(hedged)) ? "HEDGE" : "ONE_WAY";
+        string positionMode = ((bool) isTrue(hedged)) ? "HEDGE" : "ONE_WAY";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
             { "positionMode", positionMode },

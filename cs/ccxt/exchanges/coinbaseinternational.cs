@@ -1615,8 +1615,8 @@ public partial class coinbaseinternational : Exchange
             settleId = quoteId;
             symbol = add(symbol, add(":", quoteId));
         }
-        object isLinear = ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId));
-        object isInverse = ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId));
+        bool? isLinear = ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId));
+        bool? isInverse = ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId));
         if (isTrue(isEqual(marketId, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;

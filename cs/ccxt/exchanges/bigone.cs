@@ -899,7 +899,7 @@ public partial class bigone : Exchange
         //        "openInterest": 1141372.0
         //    }
         //
-        object marketType = ((bool) isTrue((inOp(ticker, "asset_pair_name")))) ? "spot" : "swap";
+        string marketType = ((bool) isTrue((inOp(ticker, "asset_pair_name")))) ? "spot" : "swap";
         string? marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         object symbol = this.safeSymbol(marketId, market, "-", marketType);
         string? close = this.safeString2(ticker, "close", "latestPrice");
@@ -1245,9 +1245,9 @@ public partial class bigone : Exchange
         string? amountString = this.safeString(trade, "amount");
         string? marketId = this.safeString(trade, "asset_pair_name");
         market = this.safeMarket(marketId, market, "-");
-        object side = this.safeString(trade, "side");
+        string? side = this.safeString(trade, "side");
         string? takerSide = this.safeString(trade, "taker_side");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(isTrue(isTrue((!isEqual(takerSide, null))) && isTrue((!isEqual(side, null)))) && isTrue((!isEqual(side, "SELF_TRADING")))))
         {
             takerOrMaker = ((bool) isTrue((isEqual(takerSide, side)))) ? "taker" : "maker";
@@ -1731,7 +1731,7 @@ public partial class bigone : Exchange
         }
         object market = this.market(symbol);
         bool isBuy = (isEqual(side, "buy"));
-        object requestSide = ((bool) isTrue(isBuy)) ? "BID" : "ASK";
+        string requestSide = ((bool) isTrue(isBuy)) ? "BID" : "ASK";
         string uppercaseType = ((string)type).ToUpper();
         bool isLimit = isEqual(uppercaseType, "LIMIT");
         object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
@@ -2309,7 +2309,7 @@ public partial class bigone : Exchange
         string? txid = this.safeString(transaction, "txid");
         string? address = this.safeString(transaction, "target_address");
         string? tag = this.safeString(transaction, "memo");
-        object type = ((bool) isTrue((inOp(transaction, "customer_id")))) ? "withdrawal" : "deposit";
+        string type = ((bool) isTrue((inOp(transaction, "customer_id")))) ? "withdrawal" : "deposit";
         object intern = this.safeBool(transaction, "is_internal");
         return new Dictionary<string, object>() {
             { "info", transaction },

@@ -2048,7 +2048,7 @@ public partial class kucoin : Exchange
         if (isTrue(uta))
         {
             string? defaultType = this.safeString(this.options, "defaultType", "spot");
-            object defaultTradeType = ((bool) isTrue((isEqual(defaultType, "spot")))) ? "SPOT" : "FUTURES";
+            string defaultTradeType = ((bool) isTrue((isEqual(defaultType, "spot")))) ? "SPOT" : "FUTURES";
             string? tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "tradeType", tradeType },
@@ -2552,7 +2552,7 @@ public partial class kucoin : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
             string? hasMargin = this.safeString(market, "marginMode");
-            object isMarginable = ((bool) isTrue((isEqual(hasMargin, "1")))) ? true : false;
+            bool isMarginable = ((bool) isTrue((isEqual(hasMargin, "1")))) ? true : false;
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(!isEqual(settle, null)))
             {
@@ -5020,14 +5020,14 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
             if (isTrue(isEqual(hedged, true)))
             {
-                object reduceOnlyPosSide = ((bool) isTrue((isEqual(side, "sell")))) ? "LONG" : "SHORT";
+                string reduceOnlyPosSide = ((bool) isTrue((isEqual(side, "sell")))) ? "LONG" : "SHORT";
                 ((IDictionary<string,object>)request)["positionSide"] = reduceOnlyPosSide;
             }
         } else
         {
             if (isTrue(isEqual(hedged, true)))
             {
-                object posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                string posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
                 ((IDictionary<string,object>)request)["positionSide"] = posSide;
             }
         }
@@ -5201,7 +5201,7 @@ public partial class kucoin : Exchange
                 parameters = ((IList<object>)hedgedparametersVariable)[1];
                 if (isTrue(isEqual(hedged, true)))
                 {
-                    object positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                    string positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
                     if (isTrue(isEqual(reduceOnly, true)))
                     {
                         positionSide = ((bool) isTrue((isEqual(positionSide, "LONG")))) ? "SHORT" : "LONG";
@@ -6162,12 +6162,12 @@ public partial class kucoin : Exchange
         }
         object market = this.market(symbol);
         object isContract = getValue(market, "contract");
-        object tradeType = ((bool) isTrue((isEqual(isContract, true)))) ? "FUTURES" : "SPOT";
+        string tradeType = ((bool) isTrue((isEqual(isContract, true)))) ? "FUTURES" : "SPOT";
         object trigger = false;
         var triggerparametersVariable = this.handleParamBool(parameters, "trigger", trigger);
         trigger = ((IList<object>)triggerparametersVariable)[0];
         parameters = ((IList<object>)triggerparametersVariable)[1];
-        object orderFilter = ((bool) isTrue((isEqual(trigger, true)))) ? "ADVANCED" : "NORMAL";
+        string orderFilter = ((bool) isTrue((isEqual(trigger, true)))) ? "ADVANCED" : "NORMAL";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountMode", "unified" },
             { "symbol", getValue(market, "id") },
@@ -8804,7 +8804,7 @@ public partial class kucoin : Exchange
             }
             txid = getValue(txidParts, 0);
         }
-        object type = ((bool) isTrue((isEqual(txid, null)))) ? "withdrawal" : "deposit";
+        string type = ((bool) isTrue((isEqual(txid, null)))) ? "withdrawal" : "deposit";
         string? rawStatus = this.safeString(transaction, "status");
         object fee = null;
         string? feeCost = this.safeString(transaction, "fee");
@@ -10007,8 +10007,8 @@ public partial class kucoin : Exchange
             accountToRaw = this.safeStringLower(transfer, "recAccountType");
         }
         object accountsByType = this.safeDict(this.options, "accountsByType");
-        object accountFrom = ((bool) isTrue((isEqual(accountFromRaw, null)))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
-        object accountTo = ((bool) isTrue((isEqual(accountToRaw, null)))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
+        string? accountFrom = ((bool) isTrue((isEqual(accountFromRaw, null)))) ? null : this.safeString(accountsByType, accountFromRaw, accountFromRaw);
+        string? accountTo = ((bool) isTrue((isEqual(accountToRaw, null)))) ? null : this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new Dictionary<string, object>() {
             { "id", this.safeStringN(transfer, new List<object>() {"id", "applyId", "orderId"}) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -10680,7 +10680,7 @@ public partial class kucoin : Exchange
         //     }
         //
         string? marketId = this.safeString(info, "symbol");
-        object marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
+        string marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
         market = this.safeMarket(marketId, market);
         string? symbol = this.safeString(market, "symbol");
         object isolatedBase = this.safeDict(info, "baseAsset", new Dictionary<string, object>() {});
@@ -12179,7 +12179,7 @@ public partial class kucoin : Exchange
         string? unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
         object crossMode = this.safeValue(position, "crossMode");
         // currently crossMode is always set to false and only isolated positions are supported
-        object marginMode = this.safeStringLower(position, "marginMode");
+        string? marginMode = this.safeStringLower(position, "marginMode");
         if (isTrue(!isEqual(crossMode, null)))
         {
             marginMode = ((bool) isTrue((isEqual(crossMode, true)))) ? "cross" : "isolated";
@@ -12319,7 +12319,7 @@ public partial class kucoin : Exchange
             orders = this.safeList(data, "items", new List<object>() {});
         } else
         {
-            object requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
+            string requestKey = ((bool) isTrue(useClientorderId)) ? "clientOidsList" : "orderIdsList";
             ((IDictionary<string,object>)request)[(string)requestKey] = ordersRequests;
             response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters));
             //
@@ -12527,7 +12527,7 @@ public partial class kucoin : Exchange
         market = this.safeMarket(id, market);
         string? currencyId = this.safeString(info, "settleCurrency");
         object crossMode = this.safeValue(info, "crossMode");
-        object mode = ((bool) isTrue((isEqual(crossMode, true)))) ? "cross" : "isolated";
+        string mode = ((bool) isTrue((isEqual(crossMode, true)))) ? "cross" : "isolated";
         string? marketId = this.safeString(market, "symbol");
         Int64? timestamp = this.safeInteger(info, "currentTimestamp");
         return new Dictionary<string, object>() {
@@ -12580,7 +12580,7 @@ public partial class kucoin : Exchange
 
     public override object parseMarginMode(object marginMode, object market = null)
     {
-        object marginType = this.safeString(marginMode, "marginMode");
+        string? marginType = this.safeString(marginMode, "marginMode");
         marginType = ((bool) isTrue((isEqual(marginType, "ISOLATED")))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "info", marginMode },
@@ -12651,7 +12651,7 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object posMode = ((bool) isTrue(hedged)) ? "1" : "0";
+        string posMode = ((bool) isTrue(hedged)) ? "1" : "0";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "positionMode", posMode },
         };

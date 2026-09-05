@@ -275,7 +275,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object snapshot = this.safeDict(message, "snapshot");
         object data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        object type = ((bool) isTrue((isTrue(!isEqual(snapshot, null)) && isTrue(!isEqual(snapshot, null))))) ? "snapshot" : "update";
+        string type = ((bool) isTrue((isTrue(!isEqual(snapshot, null)) && isTrue(!isEqual(snapshot, null))))) ? "snapshot" : "update";
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {

@@ -1435,7 +1435,7 @@ public partial class lighter : Exchange
                 baseId = getValue(((string)baseId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0);
             }
             string quoteId = "USDC";
-            object settleId = ((bool) isTrue((isEqual(type, "swap")))) ? "USDC" : null;
+            string? settleId = ((bool) isTrue((isEqual(type, "swap")))) ? "USDC" : null;
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
@@ -2275,13 +2275,13 @@ public partial class lighter : Exchange
         string? marketId = this.safeString(position, "market_id");
         market = this.safeMarket(marketId, market);
         Int64? sign = this.safeInteger(position, "sign");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(sign, null)))
         {
             side = ((bool) isTrue((isEqual(sign, 1)))) ? "long" : "short";
         }
         Int64? marginModeId = this.safeInteger(position, "margin_mode");
-        object marginMode = null;
+        string? marginMode = null;
         if (isTrue(!isEqual(marginModeId, null)))
         {
             marginMode = ((bool) isTrue((isEqual(marginModeId, 0)))) ? "cross" : "isolated";
@@ -2648,7 +2648,7 @@ public partial class lighter : Exchange
                 isAsk = isEqual(isAskAsInteger, 1);
             }
         }
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isAsk, null)))
         {
             side = ((bool) isTrue(isAsk)) ? "sell" : "buy";
@@ -2851,8 +2851,8 @@ public partial class lighter : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " transfer() only supports USDC and ETH transfers")) ;
         }
-        object fromRouteType = ((bool) isTrue((isEqual(fromAccount, "perp")))) ? 0 : 1; // 0: perp, 1: spot
-        object toRouteType = ((bool) isTrue((isEqual(toAccount, "perp")))) ? 0 : 1;
+        int fromRouteType = ((bool) isTrue((isEqual(fromAccount, "perp")))) ? 0 : 1; // 0: perp, 1: spot
+        int toRouteType = ((bool) isTrue((isEqual(toAccount, "perp")))) ? 0 : 1;
         string? memo = this.safeString(parameters, "memo", "0x000000000000000000000000000000");
         parameters = this.omit(parameters, new List<object>() {"memo"});
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
@@ -3450,7 +3450,7 @@ public partial class lighter : Exchange
                 orderId = this.safeString(trade, "bid_id");
             }
         }
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(isTrue(!isEqual(side, null)) && isTrue(!isEqual(isMakerAsk, null))))
         {
             object isMaker = ((bool) isTrue((isEqual(side, "sell")))) ? isMakerAsk : !isTrue(isMakerAsk);

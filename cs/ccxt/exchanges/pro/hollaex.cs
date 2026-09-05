@@ -488,7 +488,7 @@ public partial class hollaex : ccxt.hollaex
                 account = getValue(this.balance, code);
             }
             string? second = this.safeString(parts, 1);
-            object freeOrTotal = ((bool) isTrue((isEqual(second, "available")))) ? "free" : "total";
+            string freeOrTotal = ((bool) isTrue((isEqual(second, "available")))) ? "free" : "total";
             ((IDictionary<string,object>)account)[(string)freeOrTotal] = this.safeString(data, key);
             if (isTrue(!isEqual(code, null)))
             {

@@ -1205,7 +1205,7 @@ public partial class woo : Exchange
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(isFromFetchOrder))
         {
             bool isMaker = isEqual(this.safeString2(trade, "is_maker", "isMaker"), "1");
@@ -1726,7 +1726,7 @@ public partial class woo : Exchange
         bool isMarket = isEqual(orderType, "MARKET");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
-        object clientOrderIdKey = ((bool) isTrue(isConditional)) ? "clientAlgoOrderId" : "clientOrderId";
+        string clientOrderIdKey = ((bool) isTrue(isConditional)) ? "clientAlgoOrderId" : "clientOrderId";
         ((IDictionary<string,object>)request)["type"] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isTrue(isConditional))
         {
@@ -1815,7 +1815,7 @@ public partial class woo : Exchange
                 { "childOrders", new List<object>() {} },
             };
             object childOrders = getValue(outterOrder, "childOrders");
-            object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
+            string closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(hasStopLoss))
             {
                 string? stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
@@ -3148,7 +3148,7 @@ public partial class woo : Exchange
         currency = this.safeCurrency(code, currency);
         object amount = this.safeNumber(item, "amount");
         string? side = this.safeString(item, "tokenSide");
-        object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
+        string direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
         object timestamp = this.safeTimestamp(item, "createdTime");
         object fee = this.parseTokenAndFeeTemp(item, new List<object>() {"feeToken"}, new List<object>() {"feeAmount"});
         return this.safeLedgerEntry(new Dictionary<string, object>() {
@@ -3501,7 +3501,7 @@ public partial class woo : Exchange
         object code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
         object success = this.safeBool(transfer, "success");
-        object status = null;
+        string? status = null;
         if (isTrue(!isEqual(success, null)))
         {
             status = ((bool) isTrue(success)) ? "ok" : "failed";

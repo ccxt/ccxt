@@ -518,7 +518,7 @@ public partial class mexc : ccxt.mexc
         object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         parameters = this.omit(parameters, new List<object>() {"unsubscribed"});
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
-        object method = ((bool) isTrue((isEqual(unsubscribed, true)))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
+        string method = ((bool) isTrue((isEqual(unsubscribed, true)))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", method },
             { "params", new List<object>() {channel} },
@@ -1329,7 +1329,7 @@ public partial class mexc : ccxt.mexc
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "v", "quantity");
         string? rawSide = this.safeString2(trade, "S", "tradeType");
-        object side = ((bool) isTrue((isEqual(rawSide, "1")))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(rawSide, "1")))) ? "buy" : "sell";
         Int64? isMaker = this.safeInteger(trade, "m");
         string? feeAmount = this.safeString2(trade, "n", "feeAmount");
         string? feeCurrencyId = this.safeString2(trade, "N", "feeCurrency");

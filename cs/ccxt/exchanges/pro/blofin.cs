@@ -600,7 +600,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrders";
-        object symbolsArray = ((bool) isTrue((!isEqual(symbol, null)))) ? new List<object>() {symbol} : new List<object>() {};
+        List<object> symbolsArray = ((bool) isTrue((!isEqual(symbol, null)))) ? new List<object>() {symbol} : new List<object>() {};
         return await this.WatchOrdersForSymbols(symbolsArray,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
@@ -628,7 +628,7 @@ public partial class blofin : ccxt.blofin
         }
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object channel = ((bool) isTrue((isEqual(trigger, true)))) ? "orders-algo" : "orders";
+        string channel = ((bool) isTrue((isEqual(trigger, true)))) ? "orders-algo" : "orders";
         object orders = await this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -869,7 +869,7 @@ public partial class blofin : ccxt.blofin
 }};
         }
         object request = this.getSubscriptionRequest(rawSubscriptions);
-        object privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
+        string privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
         object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }

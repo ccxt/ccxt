@@ -1881,7 +1881,7 @@ public partial class deribit : Exchange
             cost = Precise.stringDiv(amount, priceString);
         }
         string? liquidity = this.safeString(trade, "liquidity");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(liquidity, null)))
         {
             // M = maker, T = taker, MT = both
@@ -3158,7 +3158,7 @@ public partial class deribit : Exchange
         //
         string? contract = this.safeString(position, "instrument_name");
         market = this.safeMarket(contract, market);
-        object side = this.safeString(position, "direction");
+        string? side = this.safeString(position, "direction");
         side = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");

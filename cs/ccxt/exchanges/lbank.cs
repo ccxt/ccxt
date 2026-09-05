@@ -1212,7 +1212,7 @@ public partial class lbank : Exchange
         string? feeCost = this.safeString(trade, "tradeFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurr = ((bool) isTrue((isEqual(side, "buy")))) ? this.safeString(market, "base") : this.safeString(market, "quote");
+            string? feeCurr = ((bool) isTrue((isEqual(side, "buy")))) ? this.safeString(market, "base") : this.safeString(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
                 { "currency", feeCurr },

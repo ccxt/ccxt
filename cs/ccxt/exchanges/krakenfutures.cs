@@ -481,7 +481,7 @@ public partial class krakenfutures : Exchange
             object market = getValue(instruments, i);
             string? id = this.safeString(market, "symbol");
             string? marketType = this.safeString(market, "type");
-            object type = null;
+            string? type = null;
             bool index = (isGreaterThanOrEqual(getIndexOf(((string)marketType), " index"), 0));
             bool? linear = null;
             bool? inverse = null;

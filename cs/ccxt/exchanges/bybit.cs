@@ -3323,7 +3323,7 @@ public partial class bybit : Exchange
         bool isSpot = isEqual(this.safeString(ticker, "openInterestValue"), null);
         Int64? timestamp = this.safeInteger(ticker, "time");
         string? marketId = this.safeString(ticker, "symbol");
-        object type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, type);
         object symbol = this.safeSymbol(marketId, market, null, type);
         string? last = this.safeString(ticker, "lastPrice");
@@ -3589,7 +3589,7 @@ public partial class bybit : Exchange
         //     ]
         //
         object isInverse = this.safeBool(market, "inverse");
-        object volumeIndex = ((bool) isTrue((isEqual(isInverse, true)))) ? 6 : 5;
+        int volumeIndex = ((bool) isTrue((isEqual(isInverse, true)))) ? 6 : 5;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
 
@@ -4176,7 +4176,7 @@ public partial class bybit : Exchange
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
         string? costString = this.safeString(trade, "execValue");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"time", "execTime", "tradeTime"});
-        object side = this.safeStringLower(trade, "side");
+        string? side = this.safeStringLower(trade, "side");
         if (isTrue(isEqual(side, null)))
         {
             Int64? isBuyer = this.safeInteger(trade, "isBuyer");
@@ -4186,7 +4186,7 @@ public partial class bybit : Exchange
             }
         }
         object isMaker = this.safeBool(trade, "isMaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -4634,7 +4634,7 @@ public partial class bybit : Exchange
         {
             type = subType;
         }
-        object lowercaseRawType = ((bool) isTrue((!isEqual(type, null)))) ? ((string)type).ToLower() : null;
+        string? lowercaseRawType = ((bool) isTrue((!isEqual(type, null)))) ? ((string)type).ToLower() : null;
         bool isSpot = (isEqual(type, "spot"));
         bool isLinear = (isEqual(type, "linear"));
         bool isInverse = (isEqual(type, "inverse"));
@@ -4936,7 +4936,7 @@ public partial class bybit : Exchange
             if (isTrue(!isEqual(code, "0")))
             {
                 string? category = this.safeString(order, "category");
-                object inferredMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
+                string inferredMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
                 return this.safeOrder(new Dictionary<string, object>() {
                     { "info", order },
                     { "status", "rejected" },
@@ -7485,7 +7485,7 @@ public partial class bybit : Exchange
         Int64? updated = this.safeInteger(transaction, "updateTime");
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
-        object type = ((bool) isTrue((inOp(transaction, "depositFee")))) ? "deposit" : "withdrawal";
+        string type = ((bool) isTrue((inOp(transaction, "depositFee")))) ? "deposit" : "withdrawal";
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -7744,7 +7744,7 @@ public partial class bybit : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? amountString = this.safeString2(item, "amount", "change");
         string? afterString = this.safeString2(item, "wallet_balance", "cashBalance");
-        object direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
+        string direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
         object before = null;
         object after = null;
         object amount = null;
@@ -8237,7 +8237,7 @@ public partial class bybit : Exchange
         string? contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market, null, "contract");
         string? size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
-        object side = this.safeString(position, "side");
+        string? side = this.safeString(position, "side");
         string? positionIdx = this.safeString(position, "positionIdx");
         bool? hedged = null;
         if (isTrue(!isEqual(positionIdx, null)))
@@ -8643,7 +8643,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object subType = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? "linear" : "inverse";
+        string subType = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? "linear" : "inverse";
         string? category = this.safeString(parameters, "category", subType);
         object intervals = this.safeDict(this.options, "intervals");
         string? interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
@@ -8737,7 +8737,7 @@ public partial class bybit : Exchange
         {
             throw new BadRequest ((string)add(add(add(this.id, " fetchOpenInterest() cannot use the "), timeframe), " timeframe")) ;
         }
-        object subType = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? "linear" : "inverse";
+        string subType = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? "linear" : "inverse";
         string? category = this.safeString(parameters, "category", subType);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -8933,7 +8933,7 @@ public partial class bybit : Exchange
         Int64? timestamp = this.safeInteger(info, "timestamp");
         string? currencyId = this.safeString2(info, "coin", "currency");
         object hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate");
-        object period = ((bool) isTrue((!isEqual(hourlyBorrowRate, null)))) ? 3600000 : 86400000; // 1h or 1d
+        int period = ((bool) isTrue((!isEqual(hourlyBorrowRate, null)))) ? 3600000 : 86400000; // 1h or 1d
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "rate", this.safeNumber(info, "interestRate", hourlyBorrowRate) },
@@ -10900,7 +10900,7 @@ public partial class bybit : Exchange
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         bool isUnifiedAccount = isTrue((isEqual(enableUnifiedMargin, true))) || isTrue((isEqual(enableUnifiedAccount, true)));
-        object accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
+        string accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
         var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
         accountType = ((IList<object>)accountTypeparametersVariable)[0];
         parameters = ((IList<object>)accountTypeparametersVariable)[1];
@@ -11011,7 +11011,7 @@ public partial class bybit : Exchange
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         bool isUnifiedAccount = isTrue((isEqual(enableUnifiedMargin, true))) || isTrue((isEqual(enableUnifiedAccount, true)));
-        object accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
+        string accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
         var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
         accountType = ((IList<object>)accountTypeparametersVariable)[0];
         parameters = ((IList<object>)accountTypeparametersVariable)[1];
@@ -11113,7 +11113,7 @@ public partial class bybit : Exchange
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         bool isUnifiedAccount = isTrue((isEqual(enableUnifiedMargin, true))) || isTrue((isEqual(enableUnifiedAccount, true)));
-        object accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
+        string accountTypeDefault = ((bool) isTrue(isUnifiedAccount)) ? "eb_convert_uta" : "eb_convert_spot";
         var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
         accountType = ((IList<object>)accountTypeparametersVariable)[0];
         parameters = ((IList<object>)accountTypeparametersVariable)[1];

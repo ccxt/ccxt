@@ -974,7 +974,7 @@ public partial class woo : ccxt.woo
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         object maker = this.safeBool(trade, "maker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
@@ -1100,7 +1100,7 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
+        string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = topic;
         if (isTrue(!isEqual(symbolVar, null)))
@@ -1145,7 +1145,7 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
+        string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbolVar, null)))

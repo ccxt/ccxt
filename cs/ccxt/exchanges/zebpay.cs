@@ -2161,7 +2161,7 @@ public partial class zebpay : Exchange
         parameters ??= new Dictionary<string, object>();
         parameters = this.omit(parameters, "defaultType");
         bool isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
-        object marketType = ((bool) isTrue(isV1)) ? "swap" : "spot";
+        string marketType = ((bool) isTrue(isV1)) ? "swap" : "spot";
         object url = getValue(getValue(this.urls, "api"), marketType);
         object tail = add("/api/", this.implodeParams(path, parameters));
         url = add(url, tail);

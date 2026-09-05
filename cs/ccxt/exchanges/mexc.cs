@@ -1354,7 +1354,7 @@ public partial class mexc : Exchange
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
         object response = new Dictionary<string, object>() {};
-        object status = null;
+        string? status = null;
         Int64? updated = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -1999,7 +1999,7 @@ public partial class mexc : Exchange
         object fee = null;
         object type = null;
         object side = null;
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         string? priceString = null;
         string? amountString = null;
         string? costString = null;
@@ -2174,7 +2174,7 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object maxLimit = ((bool) isTrue((isEqual(getValue(market, "spot"), true)))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
+        int maxLimit = ((bool) isTrue((isEqual(getValue(market, "spot"), true)))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -5616,7 +5616,7 @@ public partial class mexc : Exchange
         //     }
         //
         string? id = this.safeString2(transaction, "id", "tranId");
-        object type = ((bool) isTrue((isEqual(id, null)))) ? "deposit" : "withdrawal";
+        string type = ((bool) isTrue((isEqual(id, null)))) ? "deposit" : "withdrawal";
         object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         Int64? updated = this.safeInteger(transaction, "updateTime");
         object currencyId = null;
@@ -5873,9 +5873,9 @@ public partial class mexc : Exchange
         object entryPrice = this.safeNumber(position, "openAvgPrice");
         string? initialMargin = this.safeString(position, "im");
         string? rawSide = this.safeString(position, "positionType");
-        object side = ((bool) isTrue((isEqual(rawSide, "1")))) ? "long" : "short";
+        string side = ((bool) isTrue((isEqual(rawSide, "1")))) ? "long" : "short";
         string? openType = this.safeString(position, "margin_mode");
-        object marginType = ((bool) isTrue((isEqual(openType, "1")))) ? "isolated" : "cross";
+        string marginType = ((bool) isTrue((isEqual(openType, "1")))) ? "isolated" : "cross";
         object leverage = this.safeNumber(position, "leverage");
         object liquidationPrice = this.safeNumber(position, "liquidatePrice");
         Int64? timestamp = this.safeInteger(position, "updateTime");
@@ -6178,7 +6178,7 @@ public partial class mexc : Exchange
         string? currencyId = this.safeString2(transfer, "currency", "asset");
         string? id = this.safeStringN(transfer, new List<object>() {"transact_id", "txid", "tranId"});
         object timestamp = this.safeInteger2(transfer, "createTime", "timestamp");
-        object datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? this.iso8601(timestamp) : null;
+        string? datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? this.iso8601(timestamp) : null;
         string? direction = this.safeString(transfer, "type");
         object accountFrom = null;
         object accountTo = null;
@@ -6627,7 +6627,7 @@ public partial class mexc : Exchange
 
     public override object parseLeverage(object leverage, object market = null)
     {
-        object marginMode = null;
+        string? marginMode = null;
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
         for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))

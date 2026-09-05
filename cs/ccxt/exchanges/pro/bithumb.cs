@@ -137,7 +137,7 @@ public partial class bithumb : ccxt.bithumb
         parameters = ((IList<object>)generationparametersVariable)[1];
         bool isGenerationTwo = (isEqual(generation, 2));
         symbols = this.marketSymbols(symbols, null, false, true, true);
-        object symbolsLength = ((bool) isTrue((isEqual(symbols, null)))) ? 0 : getArrayLength(symbols);
+        int symbolsLength = ((bool) isTrue((isEqual(symbols, null)))) ? 0 : getArrayLength(symbols);
         if (isTrue(isTrue(isGenerationTwo) && isTrue((isEqual(symbolsLength, 0)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
@@ -583,7 +583,7 @@ public partial class bithumb : ccxt.bithumb
         //    }
         //
         string? sideId = this.safeString(delta, "orderType");
-        object side = ((bool) isTrue((isEqual(sideId, "bid")))) ? "bids" : "asks";
+        string side = ((bool) isTrue((isEqual(sideId, "bid")))) ? "bids" : "asks";
         object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         object orderbookSide = getValue(orderbook, side);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
@@ -1106,7 +1106,7 @@ public partial class bithumb : ccxt.bithumb
         object symbol = this.safeSymbol(marketId, market, "-");
         Int64? timestamp = this.safeInteger(order, "order_timestamp");
         string? sideId = this.safeString(order, "ask_bid");
-        object side = this.safeStringLower(order, "side");
+        string? side = this.safeStringLower(order, "side");
         if (isTrue(!isEqual(sideId, null)))
         {
             side = ((bool) isTrue((isEqual(sideId, "BID")))) ? ("buy") : ("sell");

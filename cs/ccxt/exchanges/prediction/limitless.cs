@@ -986,7 +986,7 @@ public partial class limitless : PredictionExchange
         bool hasGroupId = isTrue((!isEqual(groupId, null))) && isTrue((!isEqual(groupId, "")));
         object eventSlug = ((bool) isTrue(hasGroupId)) ? this.shortenSlug(groupId) : null;
         bool hasEndDate = isTrue((!isEqual(endDate, null))) && isTrue((!isEqual(endDate, "")));
-        object endTimestamp = ((bool) isTrue(hasEndDate)) ? this.parse8601(endDate) : null;
+        Int64? endTimestamp = ((bool) isTrue(hasEndDate)) ? this.parse8601(endDate) : null;
         List<object> markets = new List<object>() {};
         object rawMarkets = this.safeList(eventVar, "markets", new List<object>() {});
         // aggregate 24h volume across the markets so sort by volume works
@@ -1211,7 +1211,7 @@ public partial class limitless : PredictionExchange
             raw = this.safeDict(ticker, "market", new Dictionary<string, object>() {});
             book = this.safeDict(ticker, "book");
         }
-        object rawLabel = ((bool) isTrue((!isEqual(market, null)))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "yes")) : "yes";
+        string? rawLabel = ((bool) isTrue((!isEqual(market, null)))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "yes")) : "yes";
         bool isYes = !isEqual(((string)rawLabel).ToLower(), "no");
         object bidStr = null;
         object askStr = null;
@@ -2123,7 +2123,7 @@ public partial class limitless : PredictionExchange
         string? rawSide = this.safeString(rawOrder, "side");
         object side = this.parseOrderSide(rawSide);
         string? price = this.safeString(rawOrder, "price");
-        object amountKey = ((bool) isTrue((isEqual(side, "buy")))) ? "takerAmount" : "makerAmount"; // todo check
+        string amountKey = ((bool) isTrue((isEqual(side, "buy")))) ? "takerAmount" : "makerAmount"; // todo check
         string? amount = this.safeString(rawOrder, amountKey);
         string? remaining = this.safeString(rawOrder, "remainingSize");
         string? datetime = this.safeString(rawOrder, "createdAt");
@@ -2312,7 +2312,7 @@ public partial class limitless : PredictionExchange
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         string? tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
         bool usesSmartWallet = (isEqual(tradeWalletOption, "smartWallet"));
-        object walletFromAccount = ((bool) isTrue((usesSmartWallet))) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
+        string? walletFromAccount = ((bool) isTrue((usesSmartWallet))) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
         object maker = ((bool) isTrue((!isEqual(this.walletAddress, "")))) ? this.walletAddress : walletFromAccount;
         var makerparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
         maker = ((IList<object>)makerparametersVariable)[0];
@@ -2401,7 +2401,7 @@ public partial class limitless : PredictionExchange
         var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        object timeInForce = this.safeString(parameters, "timeInForce");
+        string? timeInForce = this.safeString(parameters, "timeInForce");
         parameters = this.omit(parameters, "timeInForce");
         if (isTrue(isEqual(timeInForce, null)))
         {
@@ -2998,7 +2998,7 @@ public partial class limitless : PredictionExchange
             throw new ExchangeError ((string)add(this.id, " parsePredictionTrade() missing rawSide")) ;
         }
         int sellIndex = getIndexOf(rawSide, "sell");
-        object side = ((bool) isTrue((isGreaterThanOrEqual(sellIndex, 0)))) ? "sell" : "buy";
+        string side = ((bool) isTrue((isGreaterThanOrEqual(sellIndex, 0)))) ? "sell" : "buy";
         string? type = null;
         string? takerOrMaker = null;
         if (isTrue(isEqual(rawSide, null)))
@@ -3021,7 +3021,7 @@ public partial class limitless : PredictionExchange
         object rawMarket = this.safeDict(trade, "market", new Dictionary<string, object>() {});
         string? slug = this.safeString(rawMarket, "slug");
         Int64? outcomeIndex = this.safeInteger(trade, "outcomeIndex");
-        object label = ((bool) isTrue((isEqual(outcomeIndex, 0)))) ? "yes" : "no";
+        string label = ((bool) isTrue((isEqual(outcomeIndex, 0)))) ? "yes" : "no";
         object outcome = this.getOutcomeBySlugAndLabel(slug, label, market);
         string? tradeOutcome = this.safeString(outcome, "outcome");
         return this.safePredictionTrade(new Dictionary<string, object>() {

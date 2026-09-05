@@ -1384,7 +1384,7 @@ public partial class toobit : Exchange
             };
         }
         object isMaker = this.safeBool(trade, "isMaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -3046,7 +3046,7 @@ public partial class toobit : Exchange
         string? addressTo = this.safeString(transaction, "address");
         string? addressFrom = this.safeString(transaction, "fromAddress");
         bool isWithdraw = (inOp(transaction, "arriveQuantity"));
-        object type = ((bool) isTrue(isWithdraw)) ? "withdrawal" : "deposit";
+        string type = ((bool) isTrue(isWithdraw)) ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "id") },
@@ -3307,7 +3307,7 @@ public partial class toobit : Exchange
         string? marketId = this.safeString2(leverage, "symbolId", "symbol");
         Int64? leverageValue = this.safeInteger(leverage, "leverage");
         string? marginType = this.safeStringLower(leverage, "marginType");
-        object marginMode = ((bool) isTrue((isEqual(marginType, "cross")))) ? "cross" : "isolated";
+        string marginMode = ((bool) isTrue((isEqual(marginType, "cross")))) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market) },

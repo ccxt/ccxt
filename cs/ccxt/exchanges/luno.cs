@@ -1151,7 +1151,7 @@ public partial class luno : Exchange
         string? orderId = this.safeString(trade, "order_id");
         string? id = this.safeString(trade, "sequence");
         string? takerOrMaker = null;
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(orderId, null)))
         {
             string? type = this.safeString(trade, "type");

@@ -585,7 +585,7 @@ public partial class PredictionExchange : BaseExchange
             { "percent", "pct" },
         };
         List<object> stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
-        object lower = ((bool) isTrue((isEqual(slug, null)))) ? "" : ((string)slug).ToLower();
+        string lower = ((bool) isTrue((isEqual(slug, null)))) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
         object s = "";

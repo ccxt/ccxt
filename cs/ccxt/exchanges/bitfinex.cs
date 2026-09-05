@@ -1112,7 +1112,7 @@ public partial class bitfinex : Exchange
         object pool = this.safeList(getValue(indexed, "pool"), id, new List<object>() {});
         string? rawType = this.safeString(pool, 1);
         bool isCryptoCoin = isTrue((!isEqual(rawType, null))) || isTrue((inOp(getValue(indexed, "explorer"), id))); // "hacky" solution
-        object type = ((bool) isTrue(isCryptoCoin)) ? "crypto" : null;
+        string? type = ((bool) isTrue(isCryptoCoin)) ? "crypto" : null;
         object feeValues = this.safeList(getValue(indexed, "fees"), id, new List<object>() {});
         object fees = this.safeList(feeValues, 1, new List<object>() {});
         object fee = this.safeNumber(fees, 1);
@@ -1445,7 +1445,7 @@ public partial class bitfinex : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         };
-        object priceIndex = ((bool) isTrue((isEqual(getValue(fullRequest, "precision"), "R0")))) ? 1 : 0;
+        int priceIndex = ((bool) isTrue((isEqual(getValue(fullRequest, "precision"), "R0")))) ? 1 : 0;
         IList<object> orders = this.toArray(orderbook);
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -1453,7 +1453,7 @@ public partial class bitfinex : Exchange
             object price = this.safeNumber(order, priceIndex);
             string? signedAmount = this.safeString(order, 2);
             string? amount = Precise.stringAbs(signedAmount);
-            object side = ((bool) isTrue(Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
+            string side = ((bool) isTrue(Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
             ((IList<object>)getValue(result, side)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
@@ -1700,10 +1700,10 @@ public partial class bitfinex : Exchange
         int tradeLength = getArrayLength(tradeList);
         bool isPrivate = (isGreaterThan(tradeLength, 5));
         string? id = this.safeString(tradeList, 0);
-        object amountIndex = ((bool) isTrue(isPrivate)) ? 4 : 2;
+        int amountIndex = ((bool) isTrue(isPrivate)) ? 4 : 2;
         string? side = null;
         string? amountString = this.safeString(tradeList, amountIndex);
-        object priceIndex = ((bool) isTrue(isPrivate)) ? 5 : 3;
+        int priceIndex = ((bool) isTrue(isPrivate)) ? 5 : 3;
         string? priceString = this.safeString(tradeList, priceIndex);
         if (isTrue(isEqual(getValue(((string)amountString), 0), "-")))
         {
@@ -1714,11 +1714,11 @@ public partial class bitfinex : Exchange
             side = "buy";
         }
         string? orderId = null;
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         string? type = null;
         object fee = null;
         object symbol = this.safeSymbol(null, market);
-        object timestampIndex = ((bool) isTrue(isPrivate)) ? 2 : 1;
+        int timestampIndex = ((bool) isTrue(isPrivate)) ? 2 : 1;
         Int64? timestamp = this.safeInteger(tradeList, timestampIndex);
         if (isTrue(isPrivate))
         {
@@ -1961,7 +1961,7 @@ public partial class bitfinex : Exchange
         string? remaining = Precise.stringAbs(this.safeString(orderList, 6));
         string? signedAmount = this.safeString(orderList, 7);
         string? amount = Precise.stringAbs(signedAmount);
-        object side = ((bool) isTrue(Precise.stringLt(signedAmount, "0"))) ? "sell" : "buy";
+        string side = ((bool) isTrue(Precise.stringLt(signedAmount, "0"))) ? "sell" : "buy";
         string? orderType = this.safeString(orderList, 8);
         string? type = this.safeString(this.safeValue(this.options, "exchangeTypes"), orderType);
         object timeInForce = this.parseTimeInForce(orderType);
@@ -2883,7 +2883,7 @@ public partial class bitfinex : Exchange
         object result = this.safeValue(response, 4, new List<object>() {});
         string? poolAddress = this.safeString(result, 5);
         object address = ((bool) isTrue((isEqual(poolAddress, null)))) ? this.safeString(result, 4) : poolAddress;
-        object tag = ((bool) isTrue((isEqual(poolAddress, null)))) ? null : this.safeString(result, 4);
+        string? tag = ((bool) isTrue((isEqual(poolAddress, null)))) ? null : this.safeString(result, 4);
         this.checkAddress(address);
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "currency", code },             { "address", address },             { "tag", tag },             { "network", null },             { "info", response },         });
     }
@@ -4238,7 +4238,7 @@ public partial class bitfinex : Exchange
         //     ]
         //
         int interestLength = getArrayLength(interest);
-        object openInterestIndex = ((bool) isTrue((isEqual(interestLength, 23)))) ? 17 : 18;
+        int openInterestIndex = ((bool) isTrue((isEqual(interestLength, 23)))) ? 17 : 18;
         Int64? timestamp = this.safeInteger(interest, 1);
         string? marketId = this.safeString(interest, 0);
         return this.safeOpenInterest(new Dictionary<string, object>() {
@@ -4344,7 +4344,7 @@ public partial class bitfinex : Exchange
         string? baseValue = Precise.stringMul(contracts, contractSize);
         string? price = this.safeString(entry, 11);
         Int64? sideFlag = this.safeInteger(entry, 8);
-        object side = ((bool) isTrue((isEqual(sideFlag, 1)))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(sideFlag, 1)))) ? "buy" : "sell";
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", entry },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
@@ -4409,7 +4409,7 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object marginStatusRaw = getValue(data, 0);
-        object marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
+        string marginStatus = ((bool) isTrue((isEqual(marginStatusRaw, 1)))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeString(market, "symbol") },

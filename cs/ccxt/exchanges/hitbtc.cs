@@ -1172,7 +1172,7 @@ public partial class hitbtc : Exchange
         string? type = this.safeStringLower(parameters, "type", "spot");
         parameters = this.omit(parameters, new List<object>() {"type"});
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
-        object account = ((bool) isTrue((isEqual(type, null)))) ? null : this.safeString(accountsByType, type, type);
+        string? account = ((bool) isTrue((isEqual(type, null)))) ? null : this.safeString(accountsByType, type, type);
         object response = null;
         if (isTrue(isEqual(account, "wallet")))
         {

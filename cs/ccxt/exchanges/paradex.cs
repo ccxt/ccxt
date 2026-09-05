@@ -817,7 +817,7 @@ public partial class paradex : Exchange
         bool isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
         bool isOptionDelivery = (isEqual(assetKind, "OPTION"));
         bool isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
-        object type = ((bool) isTrue((isOption))) ? "option" : "swap";
+        string type = ((bool) isTrue((isOption))) ? "option" : "swap";
         bool isSwap = (isEqual(type, "swap"));
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quote_currency");
@@ -842,7 +842,7 @@ public partial class paradex : Exchange
         {
             expiry = null;
         }
-        object expireDatetime = ((bool) isTrue((isEqual(expiry, 0)))) ? null : this.iso8601(expiry);
+        string? expireDatetime = ((bool) isTrue((isEqual(expiry, 0)))) ? null : this.iso8601(expiry);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1429,7 +1429,7 @@ public partial class paradex : Exchange
         string? side = this.safeStringLower(trade, "side");
         string? liability = this.safeStringLower(trade, "liquidity", "taker");
         bool isTaker = isEqual(liability, "taker");
-        object takerOrMaker = ((bool) isTrue((isTaker))) ? "taker" : "maker";
+        string takerOrMaker = ((bool) isTrue((isTaker))) ? "taker" : "maker";
         string? currencyId = this.safeString(trade, "fee_currency");
         object code = this.safeCurrencyCode(currencyId);
         return this.safeTrade(new Dictionary<string, object>() {
@@ -3257,7 +3257,7 @@ public partial class paradex : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "created_at");
         Int64? updated = this.safeInteger(transaction, "last_updated_at");
-        object type = this.safeString(transaction, "kind");
+        string? type = this.safeString(transaction, "kind");
         type = ((bool) isTrue((isEqual(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object amount = this.safeNumber(transaction, "amount");

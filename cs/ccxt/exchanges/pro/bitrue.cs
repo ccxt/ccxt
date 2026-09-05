@@ -310,7 +310,7 @@ public partial class bitrue : ccxt.bitrue
         Int64? sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
-        object side = ((bool) isTrue((isEqual(sideId, 1)))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(sideId, 1)))) ? "buy" : "sell";
         string? statusId = this.safeString(order, "X");
         string? feeCurrencyId = this.safeString(order, "N");
         return this.safeOrder(new Dictionary<string, object>() {

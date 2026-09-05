@@ -421,7 +421,7 @@ public partial class revolutx : Exchange
         string? status = this.safeString(currency, "status");
         bool active = (isEqual(status, "active"));
         string? assetType = this.safeString(currency, "asset_type");
-        object type = ((bool) isTrue((isEqual(assetType, "crypto")))) ? "crypto" : "fiat";
+        string type = ((bool) isTrue((isEqual(assetType, "crypto")))) ? "crypto" : "fiat";
         object precision = ((bool) isTrue((!isEqual(scale, null)))) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
         return new Dictionary<string, object>() {
             { "info", currency },
@@ -1421,7 +1421,7 @@ public partial class revolutx : Exchange
         string? side = this.safeStringLower(trade, "s");
         object timestamp = this.safeInteger2(trade, "tdt", "pdt");
         object isMaker = this.safeBool(trade, "im", false);
-        object takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
+        string takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
         object cost = null;
         if (isTrue(isTrue(!isEqual(price, null)) && isTrue(!isEqual(amount, null))))
         {

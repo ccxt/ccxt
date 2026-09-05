@@ -1627,8 +1627,8 @@ public partial class kraken : Exchange
         //
         object timestamp = null;
         string? datetime = null;
-        object side = null;
-        object type = null;
+        string? side = null;
+        string? type = null;
         string? price = null;
         string? amount = null;
         object id = null;
@@ -1697,7 +1697,7 @@ public partial class kraken : Exchange
         }
         string? cost = this.safeString(trade, "cost");
         object maker = this.safeBool(trade, "maker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
@@ -3928,7 +3928,7 @@ public partial class kraken : Exchange
         //
         string? marketId = this.safeString(position, "pair");
         string? rawSide = this.safeString(position, "type");
-        object side = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
+        string side = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -4077,7 +4077,7 @@ public partial class kraken : Exchange
         } else if (isTrue(isEqual(api, "private")))
         {
             string? price = this.safeString(parameters, "price");
-            object isTriggerPercent = false;
+            bool isTriggerPercent = false;
             if (isTrue(!isEqual(price, null)))
             {
                 isTriggerPercent = ((bool) isTrue((((string)price).EndsWith(((string)"%"))))) ? true : false;

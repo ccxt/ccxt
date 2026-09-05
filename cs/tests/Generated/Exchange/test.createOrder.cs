@@ -121,8 +121,8 @@ public partial class testMainClass : BaseTest
         {
             bool isSwapFuture = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
             bool isBuy = (isEqual(buyOrSellString, "buy"));
-            object entrySide = ((bool) isTrue(isBuy)) ? "buy" : "sell";
-            object exitSide = ((bool) isTrue(isBuy)) ? "sell" : "buy";
+            string entrySide = ((bool) isTrue(isBuy)) ? "buy" : "sell";
+            string exitSide = ((bool) isTrue(isBuy)) ? "sell" : "buy";
             object entryorderPrice = ((bool) isTrue(isBuy)) ? multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : divide(bestBid, limitPriceSafetyMultiplierFromMedian);
             object exitorderPrice = ((bool) isTrue(isBuy)) ? divide(bestBid, limitPriceSafetyMultiplierFromMedian) : multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             //

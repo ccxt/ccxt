@@ -476,7 +476,7 @@ public partial class testMainClass
                             }
                         }
                         // output the message
-                        object failType = ((bool) isTrue(shouldFail)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                        string failType = ((bool) isTrue(shouldFail)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
                         dump(failType, exchange.id, methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", exceptionMessage(e));
                         return retSuccess;
                     } else
@@ -789,7 +789,7 @@ public partial class testMainClass
         // an explicit per-exchange pin is a deliberate maintainer choice (it usually
         // works around a venue-specific quirk), so never rank around it
         object isSpot = exchange.safeBool(defaultMarket, "spot", false);
-        object preferredKey = ((bool) isTrue((isEqual(isSpot, true)))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
+        string preferredKey = ((bool) isTrue((isEqual(isSpot, true)))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
         object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
         if (isTrue(!isEqual(preferredSymbol, null)))
         {

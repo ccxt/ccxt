@@ -2744,7 +2744,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        object positionType = ((bool) isTrue(hedged)) ? "HEDGE" : "ONEWAY";
+        string positionType = ((bool) isTrue(hedged)) ? "HEDGE" : "ONEWAY";
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
         wallet = ((IList<object>)walletparametersVariable)[0];

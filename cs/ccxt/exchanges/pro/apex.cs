@@ -616,7 +616,7 @@ public partial class apex : ccxt.apex
         object timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, subtract(topicLength, 1));
         bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.ohlcvs, symbol))))

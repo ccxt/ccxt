@@ -968,7 +968,7 @@ public partial class extended : Exchange
         object symbol = this.safeSymbol(null, market);
         object last = this.safeNumber(ticker, "lastPrice");
         string? percentageRaw = this.safeString(ticker, "dailyPriceChangePercentage");
-        object percentage = ((bool) isTrue((!isEqual(percentageRaw, null)))) ? Precise.stringMul(percentageRaw, "100") : null;
+        string? percentage = ((bool) isTrue((!isEqual(percentageRaw, null)))) ? Precise.stringMul(percentageRaw, "100") : null;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -1331,14 +1331,14 @@ public partial class extended : Exchange
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
         string? sideRaw = this.safeString2(trade, "S", "side");
-        object side = ((bool) isTrue((!isEqual(sideRaw, null)))) ? ((string)sideRaw).ToLower() : null;
+        string? side = ((bool) isTrue((!isEqual(sideRaw, null)))) ? ((string)sideRaw).ToLower() : null;
         string? feeCost = this.safeString(trade, "fee");
-        object fee = ((bool) isTrue((isEqual(feeCost, null)))) ? null : new Dictionary<string, object>() {
+        Dictionary<string, object> fee = ((bool) isTrue((isEqual(feeCost, null)))) ? null : new Dictionary<string, object>() {
     { "cost", feeCost },
     { "currency", ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "settle") },
 };
         object isTaker = this.safeBool(trade, "isTaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";
@@ -1782,7 +1782,7 @@ public partial class extended : Exchange
     public override object parseAccount(object account)
     {
         Int64? accountIndex = this.safeInteger(account, "accountIndex");
-        object type = null;
+        string? type = null;
         if (isTrue(!isEqual(accountIndex, null)))
         {
             type = ((bool) isTrue((isEqual(accountIndex, 0)))) ? "main" : "subaccount";
@@ -1869,7 +1869,7 @@ public partial class extended : Exchange
         object code = this.getExtendedCurrencyCodeById(assetId, currency);
         object ledgerCurrency = this.safeCurrency(code, currency);
         string? amountString = this.safeString(item, "amount");
-        object direction = null;
+        string? direction = null;
         if (isTrue(!isEqual(amountString, null)))
         {
             direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
@@ -2186,7 +2186,7 @@ public partial class extended : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object validSignature = this.safeBool(data, "validSignature");
         Int64 now = this.milliseconds();
-        object status = "pending";
+        string status = "pending";
         if (isTrue(!isEqual(validSignature, null)))
         {
             status = ((bool) isTrue(validSignature)) ? "ok" : "failed";
@@ -2914,7 +2914,7 @@ public partial class extended : Exchange
         object priceString = this.priceToPrecision(symbol, price);
         object postOnly = this.isPostOnly(isEqual(uppercaseType, "MARKET"), null, parameters);
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(timeInForce, null)))
         {
             timeInForce = ((bool) isTrue((isEqual(uppercaseType, "MARKET")))) ? "IOC" : "GTT";
@@ -3822,7 +3822,7 @@ public partial class extended : Exchange
     {
         object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
         bool isTestnet = isGreaterThanOrEqual(getIndexOf(getValue(getValue(this.urls, "api"), "rest"), "sepolia"), 0);
-        object defaultChainId = ((bool) isTrue(isTestnet)) ? "SN_SEPOLIA" : "SN_MAIN";
+        string defaultChainId = ((bool) isTrue(isTestnet)) ? "SN_SEPOLIA" : "SN_MAIN";
         string? chainId = this.safeString(this.options, "chainId", defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")}));
     }

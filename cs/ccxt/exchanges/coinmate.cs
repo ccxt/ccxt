@@ -1065,7 +1065,7 @@ public partial class coinmate : Exchange
                 { "currency", getValue(market, "quote") },
             };
         }
-        object takerOrMaker = this.safeString(trade, "feeType");
+        string? takerOrMaker = this.safeString(trade, "feeType");
         takerOrMaker = ((bool) isTrue((isEqual(takerOrMaker, "MAKER")))) ? "maker" : "taker";
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },

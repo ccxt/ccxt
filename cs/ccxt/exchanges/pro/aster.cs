@@ -948,8 +948,8 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(trade, "s");
         object defaultType = ((bool) isTrue((isEqual(market, null)))) ? this.safeString(this.options, "defaultType", "spot") : getValue(market, "type");
         object symbol = this.safeSymbol(marketId, market, null, defaultType);
-        object side = this.safeStringLower(trade, "S");
-        object takerOrMaker = null;
+        string? side = this.safeStringLower(trade, "S");
+        string? takerOrMaker = null;
         string? orderId = this.safeString(trade, "i");
         if (isTrue(inOp(trade, "m")))
         {
@@ -2034,7 +2034,7 @@ public partial class aster : ccxt.aster
         if (isTrue(isEqual(executionType, "TRADE")))
         {
             bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "fstream"), 0);
-            object type = ((bool) isTrue(isSwap)) ? "swap" : "spot";
+            string type = ((bool) isTrue(isSwap)) ? "swap" : "spot";
             object fakeMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "type", type },
             });

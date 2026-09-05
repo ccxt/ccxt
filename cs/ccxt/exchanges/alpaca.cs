@@ -2048,7 +2048,7 @@ public partial class alpaca : Exchange
                 string? activityType = this.safeString(entry, "activity_type");
                 string? amount = this.safeString(entry, "net_amount");
                 bool isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
-                object entryDirection = ((bool) isTrue(isIncoming)) ? "INCOMING" : "OUTGOING";
+                string entryDirection = ((bool) isTrue(isIncoming)) ? "INCOMING" : "OUTGOING";
                 if (isTrue(isTrue((isEqual(type, "BOTH"))) || isTrue((isEqual(entryDirection, type)))))
                 {
                     ((IList<object>)filtered).Add(entry);

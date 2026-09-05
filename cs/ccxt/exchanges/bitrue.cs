@@ -756,7 +756,7 @@ public partial class bitrue : Exchange
         //
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         int keysLength = getArrayLength(keys);
-        object formattedStatus = ((bool) isTrue((isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
+        string formattedStatus = ((bool) isTrue((isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", formattedStatus },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -1875,7 +1875,7 @@ public partial class bitrue : Exchange
         object symbol = this.safeSymbol(marketId, market);
         string? orderId = this.safeString(trade, "orderId");
         string? id = this.safeString2(trade, "id", "tradeId");
-        object side = null;
+        string? side = null;
         object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
         object isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(buyerMaker, null)))
@@ -1894,7 +1894,7 @@ public partial class bitrue : Exchange
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "commissionAssert")) },
             };
         }
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         object isMaker = this.safeBool(trade, "isMaker");
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -3044,7 +3044,7 @@ public partial class bitrue : Exchange
         Int64? updated = this.safeInteger(transaction, "updatedAt");
         bool payAmount = (inOp(transaction, "payAmount"));
         bool ctime = (inOp(transaction, "ctime"));
-        object type = ((bool) isTrue((isTrue(payAmount) || isTrue(ctime)))) ? "withdrawal" : "deposit";
+        string type = ((bool) isTrue((isTrue(payAmount) || isTrue(ctime)))) ? "withdrawal" : "deposit";
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amount = this.safeNumber(transaction, "amount");
         string? network = null;

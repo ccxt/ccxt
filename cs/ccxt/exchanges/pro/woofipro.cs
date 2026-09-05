@@ -608,7 +608,7 @@ public partial class woofipro : ccxt.woofipro
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         object maker = this.safeBool(trade, "maker");
         if (isTrue(!isEqual(maker, null)))
         {
@@ -752,7 +752,7 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
+        string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = topic;
         if (isTrue(!isEqual(symbolVar, null)))
@@ -797,7 +797,7 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
+        string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbolVar, null)))

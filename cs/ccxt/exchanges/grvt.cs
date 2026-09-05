@@ -1311,9 +1311,9 @@ public partial class grvt : Exchange
         string? marketId = this.safeString(trade, "instrument");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isTakerBuyer, null)))
         {
             side = ((bool) isTrue(isTakerBuyer)) ? "buy" : "sell";
@@ -2414,7 +2414,7 @@ public partial class grvt : Exchange
                 selectedPrice = takeProfitPrice;
             }
             // trigger type
-            object selectedType = null;
+            string? selectedType = null;
             bool isBuy = (isEqual(side, "buy"));
             if (isTrue(!isEqual(stopLossPrice, null)))
             {
@@ -2768,7 +2768,7 @@ public partial class grvt : Exchange
         Int64? timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         string? sizeRaw = this.safeString(position, "size");
         bool isLong = (Precise.stringGe(sizeRaw, "0"));
-        object side = ((bool) isTrue(isLong)) ? "long" : "short";
+        string side = ((bool) isTrue(isLong)) ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3401,13 +3401,13 @@ public partial class grvt : Exchange
             });
         }
         object isMarket = this.safeBool(order, "is_market");
-        object orderType = ((bool) isTrue((isEqual(isMarket, true)))) ? "market" : "limit";
+        string orderType = ((bool) isTrue((isEqual(isMarket, true)))) ? "market" : "limit";
         object isPostOnly = this.safeBool(order, "post_only");
         object isReduceOnly = this.safeBool(order, "reduce_only");
         string? timeInForceRaw = this.safeString(order, "time_in_force");
         object timeInForce = ((bool) isTrue((isEqual(isPostOnly, true)))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         string? size = null;
-        object side = null;
+        string? side = null;
         string? price = null;
         string? filled = null;
         string? avgPrice = null;

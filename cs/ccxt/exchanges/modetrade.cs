@@ -1010,7 +1010,7 @@ public partial class modetrade : Exchange
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(isFromFetchOrder))
         {
             bool isMaker = isEqual(this.safeString(trade, "is_maker"), "1");
@@ -1820,9 +1820,9 @@ public partial class modetrade : Exchange
         bool isMarket = isEqual(orderType, "MARKET");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
-        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
-        object typeKey = ((bool) isTrue(isConditional)) ? "type" : "order_type";
+        string orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
+        string priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
+        string typeKey = ((bool) isTrue(isConditional)) ? "type" : "order_type";
         ((IDictionary<string,object>)request)[(string)typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isTrue(isConditional))
         {
@@ -1871,7 +1871,7 @@ public partial class modetrade : Exchange
                 { "child_orders", new List<object>() {} },
             };
             object childOrders = getValue(outterOrder, "child_orders");
-            object closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
+            string closeSide = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? "SELL" : "BUY";
             if (isTrue(hasStopLoss))
             {
                 object stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
@@ -2054,8 +2054,8 @@ public partial class modetrade : Exchange
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         bool isConditional = isTrue((!isEqual(triggerPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
-        object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
+        string orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
+        string priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
         if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
@@ -2423,7 +2423,7 @@ public partial class modetrade : Exchange
         }
         object paginate = false;
         object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
-        object maxLimit = ((bool) isTrue((isEqual(isTrigger, true)))) ? 100 : 500;
+        int maxLimit = ((bool) isTrue((isEqual(isTrigger, true)))) ? 100 : 500;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
@@ -2820,7 +2820,7 @@ public partial class modetrade : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeNumber(item, "amount");
         string? side = this.safeString(item, "token_side");
-        object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
+        string direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
         Int64? timestamp = this.safeInteger(item, "created_time");
         object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new Dictionary<string, object>() {

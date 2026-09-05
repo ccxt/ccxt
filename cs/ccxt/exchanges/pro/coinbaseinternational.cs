@@ -782,7 +782,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public override void handleDelta(object orderbook, object delta)
     {
         string? rawSide = this.safeStringLower(delta, 0);
-        object side = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "bids" : "asks";
+        string side = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "bids" : "asks";
         double? price = this.safeFloat(delta, 1);
         double? amount = this.safeFloat(delta, 2);
         object bookside = getValue(orderbook, side);

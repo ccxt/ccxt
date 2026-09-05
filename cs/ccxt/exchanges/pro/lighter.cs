@@ -549,7 +549,7 @@ public partial class lighter : ccxt.lighter
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "size");
         object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        object side = ((bool) isTrue((isEqual(isMakerAsk, true)))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(isMakerAsk, true)))) ? "buy" : "sell";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", tradeId },
@@ -725,9 +725,9 @@ public partial class lighter : ccxt.lighter
         Int64? accountIndex = this.safeInteger(trade, "accountIndex");
         Int64? bidAccountId = this.safeInteger(trade, "bid_account_id");
         Int64? askAccountId = this.safeInteger(trade, "ask_account_id");
-        object side = null;
+        string? side = null;
         string? order = null;
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(accountIndex, null)))
         {
             if (isTrue(isEqual(bidAccountId, accountIndex)))
@@ -751,8 +751,8 @@ public partial class lighter : ccxt.lighter
         object fee = null;
         if (isTrue(!isEqual(takerOrMaker, null)))
         {
-            object feeRateRaw = ((bool) isTrue((isEqual(takerOrMaker, "maker")))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
-            object feeRate = ((bool) isTrue((!isEqual(feeRateRaw, null)))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
+            string? feeRateRaw = ((bool) isTrue((isEqual(takerOrMaker, "maker")))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            string? feeRate = ((bool) isTrue((!isEqual(feeRateRaw, null)))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             string? feeAmount = Precise.stringMul(costString, feeRate);
             fee = new Dictionary<string, object>() {
                 { "cost", feeAmount },
@@ -959,7 +959,7 @@ public partial class lighter : ccxt.lighter
         //
         Int64? timestamp = this.safeInteger(liquidation, "timestamp");
         object isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
-        object side = ((bool) isTrue((isEqual(isMakerAsk, true)))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(isMakerAsk, true)))) ? "buy" : "sell";
         string? contracts = this.safeString(liquidation, "size");
         string? contractSize = this.safeString(market, "contractSize");
         string? price = this.safeString(liquidation, "price");

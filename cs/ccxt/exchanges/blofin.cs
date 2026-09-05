@@ -819,7 +819,7 @@ public partial class blofin : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         object spot = this.safeBool(market, "spot", false);
-        object quoteVolume = ((bool) isTrue((isEqual(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
+        string? quoteVolume = ((bool) isTrue((isEqual(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -1507,7 +1507,7 @@ public partial class blofin : Exchange
             ((IDictionary<string,object>)request)["orderType"] = "market";
         } else
         {
-            object key = ((bool) isTrue((!isEqual(triggerPriceAny, null)))) ? "orderPrice" : "price";
+            string key = ((bool) isTrue((!isEqual(triggerPriceAny, null)))) ? "orderPrice" : "price";
             ((IDictionary<string,object>)request)[(string)key] = this.priceToPrecision(symbol, price);
         }
         object postOnly = false;
@@ -1783,7 +1783,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object hedged = this.safeBool(parameters, "hedged", false);
-        object positionSide = "net";
+        string positionSide = "net";
         if (isTrue(isEqual(hedged, true)))
         {
             positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "short" : "long";

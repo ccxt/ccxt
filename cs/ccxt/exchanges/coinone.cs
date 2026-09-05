@@ -457,7 +457,7 @@ public partial class coinone : Exchange
         object code = this.safeCurrencyCode(id);
         bool isWithdrawEnabled = isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         bool isDepositEnabled = isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
-        object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
+        string type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -910,7 +910,7 @@ public partial class coinone : Exchange
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
         object isSellerMaker = this.safeBool(trade, "is_seller_maker");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
             side = ((bool) isTrue(isSellerMaker)) ? "sell" : "buy";

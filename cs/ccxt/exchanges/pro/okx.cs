@@ -934,7 +934,7 @@ public partial class okx : ccxt.okx
         }
         object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object accessType = ((bool) isTrue((isEqual(isTrigger, true)))) ? "business" : "private";
+        string accessType = ((bool) isTrue((isEqual(isTrigger, true)))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -1961,7 +1961,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        object access = ((bool) isTrue((isEqual(isTrigger, true)))) ? "business" : "private";
+        string access = ((bool) isTrue((isEqual(isTrigger, true)))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", access },
         });
@@ -2188,7 +2188,7 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        object accessType = ((bool) isTrue((isEqual(isTrigger, true)))) ? "business" : "private";
+        string accessType = ((bool) isTrue((isEqual(isTrigger, true)))) ? "business" : "private";
         await this.authenticate(new Dictionary<string, object>() {
             { "access", accessType },
         });
@@ -2222,7 +2222,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", uppercaseType },
         };
-        object channel = ((bool) isTrue((isEqual(isTrigger, true)))) ? "orders-algo" : "orders";
+        string channel = ((bool) isTrue((isEqual(isTrigger, true)))) ? "orders-algo" : "orders";
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
         if (isTrue(this.newUpdates))
         {

@@ -1562,7 +1562,7 @@ public partial class aster : Exchange
         //
         string? id = this.safeString2(trade, "id", "a");
         string? marketId = this.safeString(trade, "symbol");
-        object marketType = ((bool) isTrue((inOp(trade, "positionSide")))) ? "swap" : "spot";
+        string marketType = ((bool) isTrue((inOp(trade, "positionSide")))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         object currencyCode = this.safeCurrencyCode(currencyId);
@@ -1570,9 +1570,9 @@ public partial class aster : Exchange
         string? priceString = this.safeString2(trade, "price", "p");
         string? costString = this.safeString2(trade, "quoteQty", "baseQty");
         object timestamp = this.safeInteger2(trade, "time", "T");
-        object side = this.safeStringLower(trade, "side");
+        string? side = this.safeStringLower(trade, "side");
         object isMaker = this.safeBool(trade, "maker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -1858,7 +1858,7 @@ public partial class aster : Exchange
         string? high = this.safeString(ticker, "highPrice");
         string? low = this.safeString(ticker, "lowPrice");
         bool isTickerResponse = (inOp(ticker, "priceChange"));
-        object marketType = null;
+        string? marketType = null;
         if (isTrue(isTickerResponse))
         {
             marketType = ((bool) isTrue((inOp(ticker, "baseAsset")))) ? "spot" : "swap";
@@ -2516,7 +2516,7 @@ public partial class aster : Exchange
     public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object strValue = ((bool) isTrue(hedged)) ? "true" : "false";
+        string strValue = ((bool) isTrue(hedged)) ? "true" : "false";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "dualSidePosition", strValue },
         };
@@ -2665,7 +2665,7 @@ public partial class aster : Exchange
         //
         object info = order;
         string? positionSide = this.safeString(order, "positionSide");
-        object defaultType = ((bool) isTrue((!isEqual(positionSide, null)))) ? "swap" : "spot";
+        string defaultType = ((bool) isTrue((!isEqual(positionSide, null)))) ? "swap" : "spot";
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
         string? side = this.safeStringLower(order, "side");
@@ -4082,7 +4082,7 @@ public partial class aster : Exchange
         object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
-        object marginMode = this.safeString(position, "marginType");
+        string? marginMode = this.safeString(position, "marginType");
         if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(!isEqual(isolatedMarginString, null))))
         {
             marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
@@ -4458,7 +4458,7 @@ public partial class aster : Exchange
         }
         object collateral = this.parseNumber(collateralString);
         object marginRatio = null;
-        object side = null;
+        string? side = null;
         object percentage = null;
         string? liquidationPriceStringRaw = null;
         object liquidationPrice = null;
@@ -5018,7 +5018,7 @@ public partial class aster : Exchange
             object key = getValue(keys, i);
             object value = getValue(values, key);
             bool isObj = isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) || isTrue(this.isDictionary(value));
-            object valueJsonified = ((bool) isTrue(isObj)) ? this.json(value) : ((object)value).ToString();
+            string valueJsonified = ((bool) isTrue(isObj)) ? this.json(value) : ((object)value).ToString();
             object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));
         }

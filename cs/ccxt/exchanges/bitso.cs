@@ -2111,7 +2111,7 @@ public partial class bitso : Exchange
         string? status = this.safeString(transaction, "status");
         string? withdrawId = this.safeString(transaction, "wid");
         object networkCode = this.networkIdToCode(networkId, getValue(currency, "code"));
-        object networkCodeUpper = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
+        string? networkCodeUpper = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
         return new Dictionary<string, object>() {
             { "id", this.safeString2(transaction, "wid", "fid") },
             { "txid", this.safeString(details, "tx_hash") },

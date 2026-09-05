@@ -550,7 +550,7 @@ public partial class zaif : Exchange
         //          "trade_type": "ask"
         //      }
         //
-        object side = this.safeString(trade, "trade_type");
+        string? side = this.safeString(trade, "trade_type");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
         object timestamp = this.safeTimestamp(trade, "date");
         string? id = this.safeString2(trade, "id", "tid");
@@ -718,7 +718,7 @@ public partial class zaif : Exchange
         //        }
         //    }
         //
-        object side = this.safeString(order, "action");
+        string? side = this.safeString(order, "action");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
         object timestamp = this.safeTimestamp(order, "timestamp");
         string? marketId = this.safeString(order, "currency_pair");

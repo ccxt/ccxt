@@ -1321,7 +1321,7 @@ public partial class hashkey : Exchange
             }
         }
         string? rawType = this.safeString(rawCurrency, "tokenType");
-        object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
+        string type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -1582,7 +1582,7 @@ public partial class hashkey : Exchange
         object timestamp = this.safeInteger2(trade, "t", "time");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object side = this.safeStringLower(trade, "side"); // swap trades have side param
+        string? side = this.safeStringLower(trade, "side"); // swap trades have side param
         if (isTrue(!isEqual(side, null)))
         {
             side = this.safeString(((string)side).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 0);
@@ -1592,7 +1592,7 @@ public partial class hashkey : Exchange
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (isTrue(!isEqual(isMaker, null)))
         {

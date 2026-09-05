@@ -1756,7 +1756,7 @@ public partial class hyperliquid : Exchange
     public virtual object constructPhantomAgent(object hash, object isTestnet = null)
     {
         isTestnet ??= true;
-        object source = ((bool) isTrue((isTestnet))) ? "b" : "a";
+        string source = ((bool) isTrue((isTestnet))) ? "b" : "a";
         return new Dictionary<string, object>() {
             { "source", source },
             { "connectionId", hash },
@@ -2465,7 +2465,7 @@ public partial class hyperliquid : Exchange
         bool isBuy = (isEqual(side, "BUY"));
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         string? slippage = this.safeString(parameters, "slippage");
-        object defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
+        string defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
         object postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isEqual(postOnly, true)))
         {
@@ -2504,7 +2504,7 @@ public partial class hyperliquid : Exchange
             {
                 triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
             }
-            object tpSlType = ((bool) isTrue((isTp))) ? "tp" : "sl";
+            string tpSlType = ((bool) isTrue((isTp))) ? "tp" : "sl";
             ((IDictionary<string,object>)orderType)["trigger"] = new Dictionary<string, object>() {
                 { "isMarket", isMarket },
                 { "triggerPx", triggerPrice },
@@ -2956,8 +2956,8 @@ public partial class hyperliquid : Exchange
             {
                 throw new BadRequest ((string)add(this.id, " cancelOrdersForSymbols() all orders must have either id or clientOrderId")) ;
             }
-            object assetKey = ((bool) isTrue(cancelByCloid)) ? "asset" : "a";
-            object idKey = ((bool) isTrue(cancelByCloid)) ? "cloid" : "o";
+            string assetKey = ((bool) isTrue(cancelByCloid)) ? "asset" : "a";
+            string idKey = ((bool) isTrue(cancelByCloid)) ? "cloid" : "o";
             object market = this.market(symbol);
             Dictionary<string, object> cancelObj = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)cancelObj)[(string)assetKey] = this.parseToNumeric(getValue(market, "baseId"));
@@ -3093,7 +3093,7 @@ public partial class hyperliquid : Exchange
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? defaultSlippage = this.safeString(this.options, "defaultSlippage");
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            object defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
+            string defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
             object postOnly = this.safeBool(orderParams, "postOnly", false);
             if (isTrue(isEqual(postOnly, true)))
             {
@@ -3130,7 +3130,7 @@ public partial class hyperliquid : Exchange
                 {
                     triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
                 }
-                object tpSlType = ((bool) isTrue((isTp))) ? "tp" : "sl";
+                string tpSlType = ((bool) isTrue((isTp))) ? "tp" : "sl";
                 ((IDictionary<string,object>)orderType)["trigger"] = new Dictionary<string, object>() {
                     { "isMarket", isMarket },
                     { "triggerPx", triggerPrice },
@@ -3865,7 +3865,7 @@ public partial class hyperliquid : Exchange
         Int64? timestamp = this.safeInteger(entry, "timestamp");
         string? status = this.safeString2(order, "status", "ccxtStatus");
         order = this.omit(order, new List<object>() {"ccxtStatus"});
-        object side = this.safeString(entry, "side");
+        string? side = this.safeString(entry, "side");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "A")))) ? "sell" : "buy";
@@ -4063,13 +4063,13 @@ public partial class hyperliquid : Exchange
         market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         string? id = this.safeString(trade, "tid");
-        object side = this.safeString(trade, "side");
+        string? side = this.safeString(trade, "side");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "A")))) ? "sell" : "buy";
         }
         string? fee = this.safeString(trade, "fee");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         object crossed = this.safeBool(trade, "crossed");
         if (isTrue(!isEqual(crossed, null)))
         {
@@ -4275,7 +4275,7 @@ public partial class hyperliquid : Exchange
         bool isIsolated = (isEqual(marginMode, "isolated"));
         string? rawSize = this.safeString(entry, "szi");
         object size = rawSize;
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(size, null)))
         {
             side = ((bool) isTrue(Precise.stringGt(rawSize, "0"))) ? "long" : "short";

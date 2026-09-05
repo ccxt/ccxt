@@ -1101,7 +1101,7 @@ public partial class toobit : ccxt.toobit
         string? marketId = this.safeString(trade, "s");
         string? ts = this.safeString(trade, "t");
         bool isMaker = (isEqual(this.safeBool(trade, "m"), true));
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        string takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "T") },

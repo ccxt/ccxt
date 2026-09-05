@@ -1539,13 +1539,13 @@ public partial class coinex : Exchange
         //         "volume_sell": "6.1249"
         //     }
         //
-        object marketType = ((bool) isTrue((inOp(ticker, "mark_price")))) ? "swap" : "spot";
+        string marketType = ((bool) isTrue((inOp(ticker, "mark_price")))) ? "swap" : "spot";
         string? marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         // on inverse contracts 'value' is denominated in the settle currency, not
         // the quote, so it is the quote volume only for spot and linear markets
-        object quoteVolume = ((bool) isTrue((isEqual(getValue(market, "inverse"), true)))) ? null : this.safeString(ticker, "value");
+        string? quoteVolume = ((bool) isTrue((isEqual(getValue(market, "inverse"), true)))) ? null : this.safeString(ticker, "value");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -2576,7 +2576,7 @@ public partial class coinex : Exchange
         {
             orderType = "swap";
         }
-        object marketType = ((bool) isTrue((isEqual(orderType, "swap")))) ? "swap" : "spot";
+        string marketType = ((bool) isTrue((isEqual(orderType, "swap")))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? feeCurrencyId = this.safeString(order, "fee_ccy");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -4279,7 +4279,7 @@ public partial class coinex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? status = this.safeStringLower(response, "message");
-        object type = ((bool) isTrue((isEqual(addOrReduce, "reduce")))) ? "reduce" : "add";
+        string type = ((bool) isTrue((isEqual(addOrReduce, "reduce")))) ? "reduce" : "add";
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "type", type },
             { "amount", this.parseNumber(amount) },
@@ -4894,7 +4894,7 @@ public partial class coinex : Exchange
         string? currencyId = this.safeString(transaction, "ccy");
         object code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "created_at");
-        object type = ((bool) isTrue((inOp(transaction, "withdraw_id")))) ? "withdrawal" : "deposit";
+        string type = ((bool) isTrue((inOp(transaction, "withdraw_id")))) ? "withdrawal" : "deposit";
         string? networkId = this.safeString(transaction, "chain");
         string? feeCost = this.safeString(transaction, "tx_fee");
         string? transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");

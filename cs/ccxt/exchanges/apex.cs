@@ -609,7 +609,7 @@ public partial class apex : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networksLength = getArrayLength(networkKeys);
         bool emptyChains = isEqual(networksLength, 0); // non-functional coins
-        object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+        bool? valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", currency },
             { "code", code },
@@ -1485,7 +1485,7 @@ public partial class apex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;

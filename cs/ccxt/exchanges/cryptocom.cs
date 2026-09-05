@@ -1048,8 +1048,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
-            object isLinear = ((bool) isTrue((isEqual(contract, true)))) ? true : null;
-            object isInverse = ((bool) isTrue((isEqual(contract, true)))) ? false : null;
+            bool? isLinear = ((bool) isTrue((isEqual(contract, true)))) ? true : null;
+            bool? isInverse = ((bool) isTrue((isEqual(contract, true)))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -4157,8 +4157,8 @@ public partial class cryptocom : Exchange
             object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
             object isSwap = getValue(market, "swap");
-            object takerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            object makerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            string takerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            string makerFeeKey = ((bool) isTrue((isEqual(isSwap, true)))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
             Dictionary<string, object> tradingFee = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

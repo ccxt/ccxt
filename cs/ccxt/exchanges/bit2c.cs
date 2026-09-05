@@ -1044,7 +1044,7 @@ public partial class bit2c : Exchange
         object orderId = null;
         object fee = null;
         object side = null;
-        object makerOrTaker = null;
+        string? makerOrTaker = null;
         string? reference = this.safeString(trade, "reference");
         if (isTrue(!isEqual(reference, null)))
         {

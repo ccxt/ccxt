@@ -1966,7 +1966,7 @@ public partial class bitopro : Exchange
             object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
-            object networkId = ((bool) isTrue((isEqual(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
+            string? networkId = ((bool) isTrue((isEqual(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
             if (isTrue(isEqual(networkId, null)))
             {
                 throw new ExchangeError ((string)add(add(this.id, " invalid network "), requestedNetwork)) ;

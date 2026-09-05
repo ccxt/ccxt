@@ -474,7 +474,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarket(market);
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
         bool isNonEuSpot = isTrue((isEqual(getValue(market, "spot"), true))) && !isTrue(isEuUrl);
-        object intervalDefault = ((bool) isTrue(isNonEuSpot)) ? "50" : "100ms";
+        string intervalDefault = ((bool) isTrue(isNonEuSpot)) ? "50" : "100ms";
         var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         var interval = ((IList<object>) intervalqueryVariable)[0];
         var query = ((IList<object>) intervalqueryVariable)[1];
@@ -539,7 +539,7 @@ public partial class gate : ccxt.gate
         object marketId = getValue(market, "id");
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
         bool isNonEuSpot = isTrue((isEqual(getValue(market, "spot"), true))) && !isTrue(isEuUrl);
-        object intervalDefault = ((bool) isTrue(isNonEuSpot)) ? "50" : "100ms";
+        string intervalDefault = ((bool) isTrue(isNonEuSpot)) ? "50" : "100ms";
         object interval = intervalDefault;
         var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
         interval = ((IList<object>)intervalparametersVariable)[0];
@@ -716,7 +716,7 @@ public partial class gate : ccxt.gate
         List<object> channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? rawMarketType = this.safeString(channelParts, 0);
         bool isSpot = isEqual(rawMarketType, "spot");
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object delta = this.safeValue(message, "result");
         Int64? deltaStart = this.safeInteger(delta, "U");
         Int64? deltaEnd = this.safeInteger(delta, "u");
@@ -969,7 +969,7 @@ public partial class gate : ccxt.gate
         object channel = ((string)this.safeString(message, "channel"));
         List<object> parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? rawMarketType = this.safeString(parts, 0);
-        object marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
+        string marketType = ((bool) isTrue((isEqual(rawMarketType, "futures")))) ? "contract" : "spot";
         object result = this.safeValue(message, "result");
         object results = new List<object>() {};
         if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1224,7 +1224,7 @@ public partial class gate : ccxt.gate
         object channel = ((string)this.safeString(message, "channel"));
         List<object> channelParts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? rawMarketType = this.safeString(channelParts, 0);
-        object marketType = ((bool) isTrue((isEqual(rawMarketType, "spot")))) ? "spot" : "contract";
+        string marketType = ((bool) isTrue((isEqual(rawMarketType, "spot")))) ? "spot" : "contract";
         object result = this.safeValue(message, "result");
         if (!isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {

@@ -738,7 +738,7 @@ public partial class whitebit : ccxt.whitebit
         object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         object symbol = getValue(market, "symbol");
         Int64? rawSide = this.safeInteger(order, "side");
-        object side = ((bool) isTrue((isEqual(rawSide, 1)))) ? "sell" : "buy";
+        string side = ((bool) isTrue((isEqual(rawSide, 1)))) ? "sell" : "buy";
         string? dealFee = this.safeString(order, "deal_fee");
         object fee = null;
         if (isTrue(!isEqual(dealFee, null)))

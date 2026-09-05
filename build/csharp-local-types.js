@@ -151,6 +151,34 @@ function assignable (target, source) {
     return false;
 }
 
+// the type of `c ? a : b` from its two arms: identical types, or T + null -> T? for a
+// reference/nullable T. Anything else (including two distinct provable types) is not
+// provable — the C# ternary needs both arms convertible to one type.
+function unifyArms (a, b) {
+    if (a === undefined || b === undefined) {
+        return undefined;
+    }
+    if (a === b) {
+        return (a === 'null') ? undefined : a;
+    }
+    if (a === 'null' || b === 'null') {
+        const other = (a === 'null') ? b : a;
+        if (isNullable (other)) {
+            return other;
+        }
+        // `cond ? 5 : null` has no natural C# type; the nullable declaration provides one
+        // (the boxed runtime value is the same Int64/bool/... or null either way)
+        return other + '?';
+    }
+    if (a.endsWith ('?') && b === a.slice (0, -1)) {
+        return a;
+    }
+    if (b.endsWith ('?') && a === b.slice (0, -1)) {
+        return b;
+    }
+    return undefined;
+}
+
 // integer literal that the C# compiler also types `int` (fits Int32); decimals/exponents
 // are `double`; anything else (uint/long range, hex, bigint) is left alone
 function numericLiteralType (text) {
@@ -207,6 +235,12 @@ export function csharpTypeOfValue (csharp, node) {
         break;
     case ts.SyntaxKind.ParenthesizedExpression:
         return csharpTypeOfValue (csharp, node.expression);
+    case ts.SyntaxKind.ConditionalExpression: {
+        // `c ? a : b` prints `((bool) isTrue(c)) ? A : B`; typeable when both arms agree
+        const whenTrue = csharpTypeOfValue (csharp, node.whenTrue);
+        const whenFalse = csharpTypeOfValue (csharp, node.whenFalse);
+        return unifyArms (whenTrue, whenFalse);
+    }
     case ts.SyntaxKind.CallExpression: {
         const own = callReturnType (node);
         if (own !== undefined) {

@@ -1004,7 +1004,7 @@ public partial class bitvavo : Exchange
         string? marketId = this.safeString(trade, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
         object taker = this.safeValue(trade, "taker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(taker, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(taker, true)))) ? "taker" : "maker";

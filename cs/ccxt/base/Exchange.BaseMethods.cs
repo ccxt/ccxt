@@ -1570,7 +1570,7 @@ public partial class BaseExchange
             refillRate = divide(1, this.rateLimit);
         }
         bool useLeaky = isTrue((isEqual(this.rollingWindowSize, 0))) || isTrue((isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
-        object algorithm = ((bool) isTrue(useLeaky)) ? "leakyBucket" : "rollingWindow";
+        string algorithm = ((bool) isTrue(useLeaky)) ? "leakyBucket" : "rollingWindow";
         Dictionary<string, object> defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
             { "capacity", 1 },
@@ -2788,7 +2788,7 @@ public partial class BaseExchange
         {
             takerOrMaker = "taker";
         }
-        object rate = ((bool) isTrue((!isEqual(feeRate, null)))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
+        string? rate = ((bool) isTrue((!isEqual(feeRate, null)))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
@@ -3973,7 +3973,7 @@ public partial class BaseExchange
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object item = getValue(response, i);
-                object id = ((bool) isTrue((isEqual(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
+                string? id = ((bool) isTrue((isEqual(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 object market = this.safeMarket(id, null, null, "swap");
                 object symbol = getValue(market, "symbol");
                 object contract = this.safeBool(market, "contract", false);
@@ -7277,7 +7277,7 @@ public partial class BaseExchange
         for (object i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
         {
             object entry = getValue(input, i);
-            object uniqValue = ((bool) isTrue(fallbackToTimestamp)) ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
+            string? uniqValue = ((bool) isTrue(fallbackToTimestamp)) ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
             if (isTrue(isTrue(!isEqual(uniqValue, null)) && !isTrue((inOp(uniqueDic, uniqValue)))))
             {
                 ((IDictionary<string,object>)uniqueDic)[(string)uniqValue] = 1;
@@ -7443,9 +7443,9 @@ public partial class BaseExchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object currencyId = ((bool) isTrue((isEqual(currencyKey, null)))) ? null : this.safeString(info, currencyKey);
+            string? currencyId = ((bool) isTrue((isEqual(currencyKey, null)))) ? null : this.safeString(info, currencyKey);
             object currency = this.safeCurrency(currencyId);
-            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, "option");
             ((IDictionary<string,object>)optionStructures)[(string)getValue(market, "symbol")] = this.parseOption(info, currency, market);
         }
@@ -7462,7 +7462,7 @@ public partial class BaseExchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, marketType);
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
             {
@@ -7487,7 +7487,7 @@ public partial class BaseExchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, marketType);
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
             {
@@ -7512,8 +7512,8 @@ public partial class BaseExchange
         for (object i = 0; isLessThan(i, getArrayLength(conversionsArray)); postFixIncrement(ref i))
         {
             object entry = getValue(conversionsArray, i);
-            object fromId = ((bool) isTrue((isEqual(fromCurrencyKey, null)))) ? null : this.safeString(entry, fromCurrencyKey);
-            object toId = ((bool) isTrue((isEqual(toCurrencyKey, null)))) ? null : this.safeString(entry, toCurrencyKey);
+            string? fromId = ((bool) isTrue((isEqual(fromCurrencyKey, null)))) ? null : this.safeString(entry, fromCurrencyKey);
+            string? toId = ((bool) isTrue((isEqual(toCurrencyKey, null)))) ? null : this.safeString(entry, toCurrencyKey);
             if (isTrue(!isEqual(fromId, null)))
             {
                 fromCurrency = this.safeCurrency(fromId);
@@ -7679,7 +7679,7 @@ public partial class BaseExchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            object marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) isTrue((isEqual(symbolKey, null)))) ? null : this.safeString(info, symbolKey);
             object market = this.safeMarket(marketId, null, null, marketType);
             if (isTrue(isTrue((isEqual(symbols, null))) || isTrue(this.inArray(getValue(market, "symbol"), symbols))))
             {

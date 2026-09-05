@@ -107,7 +107,7 @@ public partial class weex : ccxt.weex
         subscription = this.extend(subscription, new Dictionary<string, object>() {
             { "id", id },
         });
-        object type = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string type = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/public");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscription);
     }
@@ -117,7 +117,7 @@ public partial class weex : ccxt.weex
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
-        object type = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string type = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
@@ -1768,7 +1768,7 @@ public partial class weex : ccxt.weex
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
-        object urlType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string urlType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/private");
         this.authenticate(url);
         var client = this.client(url);

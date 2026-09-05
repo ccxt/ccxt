@@ -1107,7 +1107,7 @@ public partial class kalshi : PredictionExchange
         //
         object marketAny = market;
         object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
-        object outcomeLabel = ((bool) isTrue((isTrue(!isEqual(market, null)) && isTrue(!isEqual(market, null))))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
+        string? outcomeLabel = ((bool) isTrue((isTrue(!isEqual(market, null)) && isTrue(!isEqual(market, null))))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         bool isNo = isEqual(((string)outcomeLabel).ToUpper(), "NO");
         Int64 now = this.milliseconds();
         string? outcome = this.safeString(outcomeObj, "outcome");
@@ -1131,8 +1131,8 @@ public partial class kalshi : PredictionExchange
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        object bidSizeString = ((bool) isTrue((isNo))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
-        object askSizeString = ((bool) isTrue((isNo))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
+        string? bidSizeString = ((bool) isTrue((isNo))) ? this.safeString(raw, "yes_ask_size_fp") : this.safeString(raw, "yes_bid_size_fp");
+        string? askSizeString = ((bool) isTrue((isNo))) ? this.safeString(raw, "yes_bid_size_fp") : this.safeString(raw, "yes_ask_size_fp");
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         object bidVolume = null;
@@ -1603,7 +1603,7 @@ public partial class kalshi : PredictionExchange
         string? requestedOutcomeLabel = this.safeStringLower(outcomeObj, "label", this.safeStringLower(marketInfo, "outcomeLabel"));
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome");
         string? outcomeId = this.safeString2(outcomeObj, "outcomeId", "id");
-        object side = null;
+        string? side = null;
         if (isTrue(isTrue(isEqual(rawSide, "yes")) || isTrue(isEqual(rawSide, "no"))))
         {
             if (isTrue(isTrue(isEqual(requestedOutcomeLabel, "yes")) || isTrue(isEqual(requestedOutcomeLabel, "no"))))
@@ -1724,7 +1724,7 @@ public partial class kalshi : PredictionExchange
         Int64? ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
         string? action = this.safeStringLower(fill, "action");
-        object side = ((bool) isTrue((isEqual(action, "sell")))) ? "sell" : "buy";
+        string side = ((bool) isTrue((isEqual(action, "sell")))) ? "sell" : "buy";
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
         object price = null;
         if (isTrue(isEqual(sideLeg, "no")))
@@ -1757,7 +1757,7 @@ public partial class kalshi : PredictionExchange
             cost = multiply(price, amount);
         }
         object isTaker = this.safeBool(fill, "is_taker", true);
-        object takerOrMaker = ((bool) isTrue((isEqual(isTaker, true)))) ? "taker" : "maker";
+        string takerOrMaker = ((bool) isTrue((isEqual(isTaker, true)))) ? "taker" : "maker";
         object feeCost = this.safeNumber(fill, "fee_cost");
         object fee = null;
         if (isTrue(!isEqual(feeCost, null)))
@@ -1955,7 +1955,7 @@ public partial class kalshi : PredictionExchange
         object yesCount = this.safeNumber2(settlement, "yes_count_fp", "yes_count", 0);
         object noCount = this.safeNumber2(settlement, "no_count_fp", "no_count", 0);
         bool heldYes = (isGreaterThanOrEqual(yesCount, noCount));
-        object heldLabel = ((bool) isTrue((heldYes))) ? "YES" : "NO";
+        string heldLabel = ((bool) isTrue((heldYes))) ? "YES" : "NO";
         bool tickerMissing = (isEqual(ticker, null));
         bool useHeldYesTicker = (isTrue(heldYes) || isTrue(tickerMissing));
         object heldTicker = ((bool) isTrue((useHeldYesTicker))) ? ticker : (add(ticker, "-NO"));
@@ -1973,8 +1973,8 @@ public partial class kalshi : PredictionExchange
                 payout = divide(revenueCents, 100);
             }
         }
-        object costKey = ((bool) isTrue((heldYes))) ? "yes_total_cost" : "no_total_cost";
-        object costDollarsKey = ((bool) isTrue((heldYes))) ? "yes_total_cost_dollars" : "no_total_cost_dollars";
+        string costKey = ((bool) isTrue((heldYes))) ? "yes_total_cost" : "no_total_cost";
+        string costDollarsKey = ((bool) isTrue((heldYes))) ? "yes_total_cost_dollars" : "no_total_cost_dollars";
         object cost = this.safeNumber(settlement, costDollarsKey);
         if (isTrue(isEqual(cost, null)))
         {
@@ -2023,7 +2023,7 @@ public partial class kalshi : PredictionExchange
         string? ticker = this.safeString(position, "ticker");
         object outcomeObj = this.safeOutcome(ticker, market);
         object yesContracts = this.safeNumber(position, "position"); // positive = long YES
-        object positionSide = null;
+        string? positionSide = null;
         object contractsValue = null;
         if (isTrue(!isEqual(yesContracts, null)))
         {
@@ -2225,8 +2225,8 @@ public partial class kalshi : PredictionExchange
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
         bool labelIsNo = (isEqual(this.safeStringUpper(mkt, "label"), "NO"));
-        object dollarsKey = ((bool) isTrue((labelIsNo))) ? "no_price_dollars" : "yes_price_dollars";
-        object centsKey = ((bool) isTrue((labelIsNo))) ? "no_price" : "yes_price";
+        string dollarsKey = ((bool) isTrue((labelIsNo))) ? "no_price_dollars" : "yes_price_dollars";
+        string centsKey = ((bool) isTrue((labelIsNo))) ? "no_price" : "yes_price";
         object price = this.safeNumber(order, dollarsKey);
         if (isTrue(isEqual(price, null)))
         {
@@ -2322,7 +2322,7 @@ public partial class kalshi : PredictionExchange
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
-        object bookSide = ((bool) isTrue((isBuy))) ? "bid" : "ask";
+        string bookSide = ((bool) isTrue((isBuy))) ? "bid" : "ask";
         object yesPrice = price;
         if (isTrue(isNo))
         {
@@ -2337,7 +2337,7 @@ public partial class kalshi : PredictionExchange
         // `time_in_force` param (handled below) still overrides
         string? unifiedTif = this.safeStringUpper(parameters, "timeInForce");
         parameters = this.omit(parameters, "timeInForce");
-        object defaultTif = ((bool) isTrue((isMarket))) ? "immediate_or_cancel" : "good_till_canceled";
+        string defaultTif = ((bool) isTrue((isMarket))) ? "immediate_or_cancel" : "good_till_canceled";
         // kalshi has BOTH immediate_or_cancel (partial ok) and fill_or_kill (all-or-nothing);
         // map the unified tokens to the matching primitive rather than collapsing FOK into IOC
         if (isTrue(isEqual(unifiedTif, "IOC")))

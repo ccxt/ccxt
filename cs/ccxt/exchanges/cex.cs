@@ -412,7 +412,7 @@ public partial class cex : Exchange
         string? id = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(id);
         bool isFiat = (isEqual(this.safeBool(rawCurrency, "fiat"), true));
-        object type = ((bool) isTrue(isFiat)) ? "fiat" : "crypto";
+        string type = ((bool) isTrue(isFiat)) ? "fiat" : "crypto";
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -1768,7 +1768,7 @@ public partial class cex : Exchange
     {
         string? currencyId = this.safeString(transaction, "currency");
         string? direction = this.safeString(transaction, "direction");
-        object type = ((bool) isTrue((isEqual(direction, "withdraw")))) ? "withdrawal" : "deposit";
+        string type = ((bool) isTrue((isEqual(direction, "withdraw")))) ? "withdrawal" : "deposit";
         object code = this.safeCurrencyCode(currencyId, currency);
         string? updatedAt = this.safeString(transaction, "updatedAt");
         Int64? timestamp = this.parse8601(updatedAt);

@@ -284,7 +284,7 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
         bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
-        object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
+        string marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object ticker = this.parseWsTicker(data, market);
@@ -568,7 +568,7 @@ public partial class bingx : ccxt.bingx
         string? rawHash = this.safeString(message, "dataType", "");
         object marketId = getValue(((string)rawHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
         bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
-        object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
+        string marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trade::", symbol);
@@ -776,7 +776,7 @@ public partial class bingx : ccxt.bingx
         bool isAllEndpoint = (isEqual(firstPart, "all"));
         string? marketId = this.safeString(data, "symbol", firstPart);
         bool isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
-        object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
+        string marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -831,7 +831,7 @@ public partial class bingx : ccxt.bingx
         // for linear swap, (T) is the opening time
         bool isSpot = (isEqual(this.safeBool(market, "spot"), true));
         bool isInverse = (isEqual(this.safeBool(market, "inverse"), true));
-        object timestamp = ((bool) isTrue(isSpot)) ? "t" : "T";
+        string timestamp = ((bool) isTrue(isSpot)) ? "t" : "T";
         if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
         {
             timestamp = ((bool) isTrue(isInverse)) ? "t" : "T";
@@ -911,7 +911,7 @@ public partial class bingx : ccxt.bingx
         object firstPart = getValue(parts, 0);
         bool isAllEndpoint = (isEqual(firstPart, "all"));
         string? marketId = this.safeString(message, "s", firstPart);
-        object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
+        string marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object candles = null;
         if (isTrue(isSwap))
@@ -1902,7 +1902,7 @@ public partial class bingx : ccxt.bingx
             cachedTrades = new ArrayCacheBySymbolById(limit);
             this.myTrades = cachedTrades;
         }
-        object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         string? marketId = this.safeString(result, "s");
         object market = this.safeMarket(marketId, null, "-", type);
         object parsed = this.parseTrade(result, market);

@@ -2384,7 +2384,7 @@ public partial class gate : Exchange
                 object strike = this.safeString(market, "strike_price");
                 object isCall = this.safeValue(market, "is_call");
                 object optionLetter = ((bool) isTrue((isEqual(isCall, true)))) ? "C" : "P";
-                object optionType = ((bool) isTrue((isEqual(isCall, true)))) ? "call" : "put";
+                string optionType = ((bool) isTrue((isEqual(isCall, true)))) ? "call" : "put";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
                 string? priceDeviate = this.safeString(market, "order_price_deviate");
                 string? markPrice = this.safeString(market, "mark_price");
@@ -2512,7 +2512,7 @@ public partial class gate : Exchange
             bool future = isEqual(type, "future");
             if (isTrue(isTrue(swap) || isTrue(future)))
             {
-                object defaultSettle = ((bool) isTrue(swap)) ? "usdt" : "btc";
+                string defaultSettle = ((bool) isTrue(swap)) ? "usdt" : "btc";
                 string? settle = this.safeStringLower(parameters, "settle", defaultSettle);
                 parameters = this.omit(parameters, "settle");
                 ((IDictionary<string,object>)request)["settle"] = settle;
@@ -2636,7 +2636,7 @@ public partial class gate : Exchange
     {
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {}); // [ 'BTC', 'USDT' ] unified codes
         object fetchMarketsContractOptions = this.safeValue(options, method, new Dictionary<string, object>() {});
-        object defaultSettle = ((bool) isTrue((isEqual(type, "swap")))) ? new List<object>() {"usdt"} : new List<object>() {"btc"};
+        List<object> defaultSettle = ((bool) isTrue((isEqual(type, "swap")))) ? new List<object>() {"usdt"} : new List<object>() {"btc"};
         return this.safeValue(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle);
     }
 
@@ -2704,7 +2704,7 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
-        object type = ((bool) isTrue(this.isLeveragedCurrency(currencyId))) ? "leveraged" : "crypto";
+        string type = ((bool) isTrue(this.isLeveragedCurrency(currencyId))) ? "leveraged" : "crypto";
         object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
@@ -3210,8 +3210,8 @@ public partial class gate : Exchange
         //    }
         //
         object gtDiscount = this.safeValue(info, "gt_discount");
-        object taker = ((bool) isTrue((isEqual(gtDiscount, true)))) ? "gt_taker_fee" : "taker_fee";
-        object maker = ((bool) isTrue((isEqual(gtDiscount, true)))) ? "gt_maker_fee" : "maker_fee";
+        string taker = ((bool) isTrue((isEqual(gtDiscount, true)))) ? "gt_taker_fee" : "taker_fee";
+        string maker = ((bool) isTrue((isEqual(gtDiscount, true)))) ? "gt_maker_fee" : "maker_fee";
         object contract = this.safeValue(market, "contract");
         object takerKey = ((bool) isTrue((isEqual(contract, true)))) ? "futures_taker_fee" : taker;
         object makerKey = ((bool) isTrue((isEqual(contract, true)))) ? "futures_maker_fee" : maker;
@@ -3782,7 +3782,7 @@ public partial class gate : Exchange
         //     }
         //
         string? marketId = this.safeStringN(ticker, new List<object>() {"currency_pair", "contract", "name"});
-        object marketType = ((bool) isTrue((inOp(ticker, "mark_price")))) ? "contract" : "spot";
+        string marketType = ((bool) isTrue((inOp(ticker, "mark_price")))) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, market, "_", marketType);
         string? last = this.safeString2(ticker, "last", "last_price");
         string? ask = this.safeStringN(ticker, new List<object>() {"lowest_ask", "a", "ask1_price"});
@@ -4265,7 +4265,7 @@ public partial class gate : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object maxLimit = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? 1999 : 1000;
+        int maxLimit = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? 1999 : 1000;
         limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? maxLimit : mathMin(limitVar, maxLimit);
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
@@ -4917,11 +4917,11 @@ public partial class gate : Exchange
             timestamp = this.safeTimestamp2(trade, "time", "create_time");
         }
         string? marketId = this.safeString2(trade, "currency_pair", "contract");
-        object marketType = ((bool) isTrue((inOp(trade, "contract")))) ? "contract" : "spot";
+        string marketType = ((bool) isTrue((inOp(trade, "contract")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, "_", marketType);
         string? amountString = this.safeString2(trade, "amount", "size");
         string? priceString = this.safeString(trade, "price");
-        object contractSide = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
+        string contractSide = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
         amountString = Precise.stringAbs(amountString);
         string? side = this.safeString2(trade, "side", "type", contractSide);
         string? orderId = this.safeString(trade, "order_id");
@@ -6199,10 +6199,10 @@ public partial class gate : Exchange
         object put = this.safeValue2(order, "put", "initial", new Dictionary<string, object>() {});
         object trigger = this.safeValue(order, "trigger", new Dictionary<string, object>() {});
         string? contract = this.safeString(put, "contract");
-        object type = this.safeString(put, "type");
+        string? type = this.safeString(put, "type");
         string? timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
         string? amount = this.safeString2(put, "amount", "size");
-        object side = this.safeString(put, "side");
+        string? side = this.safeString(put, "side");
         string? price = this.safeString(put, "price");
         contract = this.safeString(order, "contract", contract);
         type = this.safeString(order, "type", type);
@@ -8354,7 +8354,7 @@ public partial class gate : Exchange
     {
         string? marketId = this.safeString(info, "currency_pair");
         market = this.safeMarket(marketId, market);
-        object marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
+        string marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
         Int64? timestamp = this.safeInteger(info, "create_time");
         return new Dictionary<string, object>() {
             { "info", info },
@@ -9009,7 +9009,7 @@ public partial class gate : Exchange
         }
         if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
         {
-            object defaultSettle = ((bool) isTrue((isEqual(type, "swap")))) ? "usdt" : "btc";
+            string defaultSettle = ((bool) isTrue((isEqual(type, "swap")))) ? "usdt" : "btc";
             string? settle = this.safeStringLower(parameters, "settle", defaultSettle);
             parameters = this.omit(parameters, "settle");
             ((IDictionary<string,object>)request)["settle"] = settle;

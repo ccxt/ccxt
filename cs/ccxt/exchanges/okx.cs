@@ -3124,7 +3124,7 @@ public partial class okx : Exchange
         //     },
         //
         string? instType = this.safeString(ticker, "instType");
-        object marketType = null;
+        string? marketType = null;
         if (isTrue(!isEqual(instType, null)))
         {
             marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "swap";
@@ -3136,7 +3136,7 @@ public partial class okx : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         object spot = this.safeBool(market, "spot", false);
-        object quoteVolume = ((bool) isTrue((isEqual(spot, true)))) ? this.safeString(ticker, "volCcy24h") : null;
+        string? quoteVolume = ((bool) isTrue((isEqual(spot, true)))) ? this.safeString(ticker, "volCcy24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -3575,7 +3575,7 @@ public partial class okx : Exchange
         //
         object res = this.handleMarketTypeAndParams("fetchOHLCV", market, null);
         object type = getValue(res, 0);
-        object volumeIndex = ((bool) isTrue((isEqual(type, "spot")))) ? 5 : 6;
+        int volumeIndex = ((bool) isTrue((isEqual(type, "spot")))) ? 5 : 6;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
 
@@ -3631,7 +3631,7 @@ public partial class okx : Exchange
             limitVar = 100; // default 100, max 300
         } else
         {
-            object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            int maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
             limitVar = mathMin(limitVar, maxLimit);
         }
         int duration = this.parseTimeframe(timeframeVar);
@@ -3655,7 +3655,7 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300;
+                int maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300;
                 limitVar = mathMin(limitVar, maxLimit);
             }
             object startTime = mathMax(subtract(since, 1), 0);
@@ -7171,7 +7171,7 @@ public partial class okx : Exchange
         string? addressFrom = this.safeString(transaction, "from");
         string? addressTo = this.safeString(transaction, "to");
         object address = addressTo;
-        object tagTo = this.safeString2(transaction, "tag", "memo");
+        string? tagTo = this.safeString2(transaction, "tag", "memo");
         tagTo = ((bool) isTrue((isEqual(tagTo, null)))) ? this.safeString(transaction, "pmtId") : this.safeString2(transaction, "pmtId", tagTo);
         if (isTrue(!isEqual(withdrawalId, null)))
         {
@@ -7595,7 +7595,7 @@ public partial class okx : Exchange
         object symbol = getValue(market, "symbol");
         string? pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         string? contractsAbs = Precise.stringAbs(pos);
-        object side = this.safeString2(position, "posSide", "direction");
+        string? side = this.safeString2(position, "posSide", "direction");
         bool hedged = !isEqual(side, "net");
         object contracts = this.parseNumber(contractsAbs);
         if (isTrue(isEqual(getValue(market, "margin"), true)))
@@ -10788,7 +10788,7 @@ public partial class okx : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
         }
         bool isAdd = isEqual(type, "add");
-        object subType = ((bool) isTrue(isAdd)) ? "160" : "161";
+        string subType = ((bool) isTrue(isAdd)) ? "160" : "161";
         if (isTrue(isEqual(auto, true)))
         {
             if (isTrue(isAdd))

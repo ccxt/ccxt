@@ -559,9 +559,9 @@ public partial class bitfinex : ccxt.bitfinex
         bool isPublic = isLessThanOrEqual(numFields, 8);
         object marketId = ((bool) isTrue((!isTrue(isPublic)))) ? this.safeString(trade, 1) : null;
         market = this.safeMarket(marketId, market);
-        object createdKey = ((bool) isTrue(isPublic)) ? 1 : 2;
-        object priceKey = ((bool) isTrue(isPublic)) ? 3 : 5;
-        object amountKey = ((bool) isTrue(isPublic)) ? 2 : 4;
+        int createdKey = ((bool) isTrue(isPublic)) ? 1 : 2;
+        int priceKey = ((bool) isTrue(isPublic)) ? 3 : 5;
+        int amountKey = ((bool) isTrue(isPublic)) ? 2 : 4;
         marketId = getValue(market, "id");
         string? type = this.safeString(trade, 6);
         if (isTrue(!isEqual(type, null)))
@@ -574,13 +574,13 @@ public partial class bitfinex : ccxt.bitfinex
                 type = "market";
             }
         }
-        object orderId = ((bool) isTrue((!isTrue(isPublic)))) ? this.safeString(trade, 3) : null;
+        string? orderId = ((bool) isTrue((!isTrue(isPublic)))) ? this.safeString(trade, 3) : null;
         string? id = this.safeString(trade, 0);
         Int64? timestamp = this.safeInteger(trade, createdKey);
         string? price = this.safeString(trade, priceKey);
         string? amountString = this.safeString(trade, amountKey);
         object amount = this.parseNumber(Precise.stringAbs(amountString));
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(amount, null)))
         {
             side = ((bool) isTrue(Precise.stringGt(amountString, "0"))) ? "buy" : "sell";
@@ -598,7 +598,7 @@ public partial class bitfinex : ccxt.bitfinex
             };
         }
         Int64? maker = this.safeInteger(trade, 8);
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(maker, -1)))) ? "taker" : "maker";
@@ -784,7 +784,7 @@ public partial class bitfinex : ccxt.bitfinex
                     object delta = getValue(deltas, i);
                     object delta2 = getValue(delta, 2);
                     object size = ((bool) isTrue((isLessThan(delta2, 0)))) ? prefixUnaryNeg(ref delta2) : delta2;
-                    object side = ((bool) isTrue((isLessThan(delta2, 0)))) ? "asks" : "bids";
+                    string side = ((bool) isTrue((isLessThan(delta2, 0)))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
                     string? idString = this.safeString(delta, 0);
                     double? price = this.safeFloat(delta, 1);
@@ -804,7 +804,7 @@ public partial class bitfinex : ccxt.bitfinex
                     object counter = this.safeNumber(delta, 1);
                     object price = this.safeNumber(delta, 0);
                     object size = ((bool) isTrue((isLessThan(amount, 0)))) ? prefixUnaryNeg(ref amount) : amount;
-                    object side = ((bool) isTrue((isLessThan(amount, 0)))) ? "asks" : "bids";
+                    string side = ((bool) isTrue((isLessThan(amount, 0)))) ? "asks" : "bids";
                     object bookside = getValue(orderbook, side);
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
@@ -821,7 +821,7 @@ public partial class bitfinex : ccxt.bitfinex
                 string? price = this.safeString(deltas, 1);
                 object deltas2 = getValue(deltas, 2);
                 object size = ((bool) isTrue((isLessThan(deltas2, 0)))) ? prefixUnaryNeg(ref deltas2) : deltas2;
-                object side = ((bool) isTrue((isLessThan(deltas2, 0)))) ? "asks" : "bids";
+                string side = ((bool) isTrue((isLessThan(deltas2, 0)))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
                 object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
@@ -833,7 +833,7 @@ public partial class bitfinex : ccxt.bitfinex
                 string? counter = this.safeString(deltas, 1);
                 string? price = this.safeString(deltas, 0);
                 object size = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
-                object side = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "asks" : "bids";
+                string side = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
@@ -861,7 +861,7 @@ public partial class bitfinex : ccxt.bitfinex
         object asks = getValue(book, "asks");
         string? prec = this.safeString(subscription, "prec", "P0");
         bool isRaw = (isEqual(prec, "R0"));
-        object idToCheck = ((bool) isTrue(isRaw)) ? 2 : 0;
+        int idToCheck = ((bool) isTrue(isRaw)) ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (object i = 0; isLessThan(i, depth); postFixIncrement(ref i))
         {

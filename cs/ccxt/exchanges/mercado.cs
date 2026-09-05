@@ -772,7 +772,7 @@ public partial class mercado : Exchange
         //
         string? id = this.safeString(order, "order_id");
         string? order_type = this.safeString(order, "order_type");
-        object side = null;
+        string? side = null;
         if (isTrue(inOp(order, "order_type")))
         {
             side = ((bool) isTrue((isEqual(order_type, "1")))) ? "buy" : "sell";

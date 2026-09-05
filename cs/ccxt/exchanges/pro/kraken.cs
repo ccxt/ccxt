@@ -168,7 +168,7 @@ public partial class kraken : ccxt.kraken
         object trailingPercentString = ((bool) isTrue((!isEqual(trailingPercent, null)))) ? add(offset, this.numberToString(trailingPercent)) : null;
         object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
         object trailingLimitPercentString = ((bool) isTrue((!isEqual(trailingLimitPercent, null)))) ? add(offset, this.numberToString(trailingLimitPercent)) : null;
-        object priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
+        string priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (isTrue(isEqual(method, "createOrderWs")))
         {
             object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -1408,7 +1408,7 @@ public partial class kraken : ccxt.kraken
         }
         string? datetime = this.safeString(trade, "timestamp");
         string? liquidityIndicator = this.safeString(trade, "liquidity_ind");
-        object takerOrMaker = ((bool) isTrue((isEqual(liquidityIndicator, "t")))) ? "taker" : "maker";
+        string takerOrMaker = ((bool) isTrue((isEqual(liquidityIndicator, "t")))) ? "taker" : "maker";
         return new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "exec_id") },
@@ -1803,7 +1803,7 @@ public partial class kraken : ccxt.kraken
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (isTrue(!isEqual(channel, null)))
         {
             if (isTrue(isEqual(channel, "executions")))

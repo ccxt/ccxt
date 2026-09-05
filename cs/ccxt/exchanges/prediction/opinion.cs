@@ -1158,7 +1158,7 @@ public partial class opinion : PredictionExchange
         object amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");
-        object sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
+        int sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
         object postOnly = this.safeBool(parameters, "postOnly", false);
         object rest = this.omit(parameters, new List<object>() {"postOnly"});
@@ -1168,7 +1168,7 @@ public partial class opinion : PredictionExchange
         // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
         string makerLower = ((string)maker).ToLower();
         string walletAddressLower = ((string)this.walletAddress).ToLower();
-        object signatureType = ((bool) isTrue((isEqual(makerLower, walletAddressLower)))) ? 0 : 2;
+        int signatureType = ((bool) isTrue((isEqual(makerLower, walletAddressLower)))) ? 0 : 2;
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "salt", salt },
             { "maker", maker },
@@ -1239,7 +1239,7 @@ public partial class opinion : PredictionExchange
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
-        object status = ((bool) isTrue((isEqual(canceled, true)))) ? "canceled" : null;
+        string? status = ((bool) isTrue((isEqual(canceled, true)))) ? "canceled" : null;
         return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },         }));
     }
 
@@ -1958,7 +1958,7 @@ public partial class opinion : PredictionExchange
             if (isTrue(isEqual(this.safeInteger(info, "marketId"), marketId)))
             {
                 object outcomes = this.safeList(market, "outcomes", new List<object>() {});
-                object index = ((bool) isTrue((isEqual(outcomeSide, 2)))) ? 1 : 0;
+                int index = ((bool) isTrue((isEqual(outcomeSide, 2)))) ? 1 : 0;
                 return this.safeDict(outcomes, index);
             }
         }
@@ -2278,9 +2278,9 @@ public partial class opinion : PredictionExchange
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         Int64? sideInt = this.safeInteger(message, "side");
-        object side = ((bool) isTrue((isEqual(sideInt, 1)))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(sideInt, 1)))) ? "buy" : "sell";
         Int64? tradingMethod = this.safeInteger(message, "tradingMethod");
-        object type = ((bool) isTrue((isEqual(tradingMethod, 1)))) ? "market" : "limit";
+        string type = ((bool) isTrue((isEqual(tradingMethod, 1)))) ? "market" : "limit";
         object order = this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(message, "orderId") },
             { "clientOrderId", null },

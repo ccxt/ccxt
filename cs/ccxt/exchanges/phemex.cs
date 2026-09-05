@@ -3121,7 +3121,7 @@ public partial class phemex : Exchange
         {
             object hedged = this.safeBool(parameters, "hedged", false);
             parameters = this.omit(parameters, "hedged");
-            object posSide = this.safeStringLower(parameters, "posSide");
+            string? posSide = this.safeStringLower(parameters, "posSide");
             if (isTrue(isEqual(posSide, null)))
             {
                 if (isTrue(isEqual(hedged, true)))
@@ -4649,7 +4649,7 @@ public partial class phemex : Exchange
         object leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         string? entryPriceString = this.safeStringN(position, new List<object>() {"avgEntryPrice", "avgEntryPriceRp", "openPrice"});
         string? rawSide = this.safeString(position, "side");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(rawSide, null)))
         {
             bool isLong = (isTrue(isEqual(rawSide, "Buy")) || isTrue(isEqual(rawSide, "1")));
@@ -5003,7 +5003,7 @@ public partial class phemex : Exchange
         //
         market = this.safeMarket(null, market);
         object inverse = this.safeValue(market, "inverse");
-        object codeCurrency = ((bool) isTrue((isEqual(inverse, true)))) ? "base" : "quote";
+        string codeCurrency = ((bool) isTrue((isEqual(inverse, true)))) ? "base" : "quote";
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeSymbol(null, market) },

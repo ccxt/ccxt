@@ -254,7 +254,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
         object symbol = getValue(market, "symbol");
         Int64? sideRaw = this.safeInteger(trade, "type");
-        object side = ((bool) isTrue((isEqual(sideRaw, 0)))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(sideRaw, 0)))) ? "buy" : "sell";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -416,7 +416,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         string? id = this.safeString(order, "id_str");
         string? orderTypeRaw = this.safeStringLower(order, "order_type");
-        object side = ((bool) isTrue((isEqual(orderTypeRaw, "1")))) ? "sell" : "buy";
+        string side = ((bool) isTrue((isEqual(orderTypeRaw, "1")))) ? "sell" : "buy";
         string? orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         string? orderType = null;
         string? timeInForce = null;

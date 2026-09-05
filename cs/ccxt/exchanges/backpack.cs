@@ -1458,7 +1458,7 @@ public partial class backpack : Exchange
         object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         object side = this.parseOrderSide(this.safeString(trade, "side"));
         object isMaker = this.safeBool(trade, "isMaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -2014,7 +2014,7 @@ public partial class backpack : Exchange
         };
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         bool isTriggerOrder = !isEqual(triggerPrice, null);
-        object quantityKey = ((bool) isTrue(isTriggerOrder)) ? "triggerQuantity" : "quantity";
+        string quantityKey = ((bool) isTrue(isTriggerOrder)) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (isTrue(isEqual(type, "limit")))
         {

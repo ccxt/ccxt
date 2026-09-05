@@ -2416,7 +2416,7 @@ public partial class nado : Exchange
                 side = "buy";
             }
         }
-        object price = this.safeString(trade, "price");
+        string? price = this.safeString(trade, "price");
         if (isTrue(isEqual(price, null)))
         {
             object parsedPrice = this.parseX18(this.safeString(order, "priceX18"));
@@ -2942,7 +2942,7 @@ public partial class nado : Exchange
         object timestamp = null;
         object timeInForce = null;
         bool? postOnly = null;
-        object side = null;
+        string? side = null;
         object price = null;
         object amount = null;
         object filled = null;

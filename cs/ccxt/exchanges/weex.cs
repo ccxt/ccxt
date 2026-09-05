@@ -999,7 +999,7 @@ public partial class weex : Exchange
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networksLength = getArrayLength(networkKeys);
         bool emptyChains = isEqual(networksLength, 0); // non-functional coins
-        object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+        bool? valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
             { "code", code },
@@ -1939,7 +1939,7 @@ public partial class weex : Exchange
         //
         Int64? timestamp = this.safeInteger(trade, "time");
         object isBuyer = this.safeBool(trade, "isBuyer");
-        object side = this.safeStringLower(trade, "side");
+        string? side = this.safeStringLower(trade, "side");
         object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (isTrue(!isEqual(isBuyer, null)))
         {
@@ -1953,7 +1953,7 @@ public partial class weex : Exchange
         {
             string? marketId = this.safeString(trade, "symbol");
             string? realizedPnl = this.safeString(trade, "realizedPnl");
-            object marketType = ((bool) isTrue((!isEqual(realizedPnl, null)))) ? "swap" : "spot";
+            string marketType = ((bool) isTrue((!isEqual(realizedPnl, null)))) ? "swap" : "spot";
             market = this.safeMarket(marketId, null, null, marketType);
             isSpot = isEqual(marketType, "spot");
         } else
@@ -1982,7 +1982,7 @@ public partial class weex : Exchange
             };
         }
         object isMaker = this.safeBool(trade, "maker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -3612,7 +3612,7 @@ public partial class weex : Exchange
         {
             object marketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
             string? positionSide = this.safeString(order, "positionSide");
-            object marketType = ((bool) isTrue((isEqual(positionSide, null)))) ? "spot" : "swap";
+            string marketType = ((bool) isTrue((isEqual(positionSide, null)))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
         object timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
@@ -4690,7 +4690,7 @@ public partial class weex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setPositionMode() also sets marginMode, so a marginMode parameter is required")) ;
         }
-        object separatedType = ((bool) isTrue(hedged)) ? "SEPARATED" : "COMBINED";
+        string separatedType = ((bool) isTrue(hedged)) ? "SEPARATED" : "COMBINED";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "marginType", this.encodeMarginMode(marginMode) },
@@ -4718,7 +4718,7 @@ public partial class weex : Exchange
             { "amount", this.costToPrecision(symbol, amount) },
             { "type", type },
         };
-        object parsedType = ((bool) isTrue((isEqual(type, 1)))) ? "add" : "reduce";
+        string parsedType = ((bool) isTrue((isEqual(type, 1)))) ? "add" : "reduce";
         object response = await this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters));
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
@@ -4736,7 +4736,7 @@ public partial class weex : Exchange
         //     }
         //
         string? msg = this.safeString(data, "msg");
-        object status = ((bool) isTrue((isEqual(msg, "success")))) ? "ok" : "failed";
+        string status = ((bool) isTrue((isEqual(msg, "success")))) ? "ok" : "failed";
         Int64? timestamp = this.safeInteger(data, "requestTime");
         return new Dictionary<string, object>() {
             { "info", data },

@@ -1593,7 +1593,7 @@ public partial class coinbase : Exchange
         {
             object baseId = getValue(baseIds, i);
             object bs = this.safeCurrencyCode(baseId);
-            object type = ((bool) isTrue((inOp(dataById, baseId)))) ? "fiat" : "crypto";
+            string type = ((bool) isTrue((inOp(dataById, baseId)))) ? "fiat" : "crypto";
             // https://github.com/ccxt/ccxt/issues/6066
             if (isTrue(isEqual(type, "crypto")))
             {
@@ -2239,7 +2239,7 @@ public partial class coinbase : Exchange
             {
                 ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)((string)name)).ToLower();
             }
-            object type = ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat";
+            string type = ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat";
             if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -3423,7 +3423,7 @@ public partial class coinbase : Exchange
         string? timeInForce = this.safeString(parameters, "timeInForce");
         object postOnly = ((bool) isTrue((isEqual(timeInForce, "PO")))) ? true : this.safeBool2(parameters, "postOnly", "post_only", false);
         string? endTime = this.safeString(parameters, "end_time");
-        object stopDirection = this.safeString(parameters, "stop_direction");
+        string? stopDirection = this.safeString(parameters, "stop_direction");
         if (isTrue(isEqual(type, "limit")))
         {
             if (isTrue(isStop))
@@ -5646,14 +5646,14 @@ public partial class coinbase : Exchange
         string? marketId = this.safeString(position, "symbol", "");
         market = this.safeMarket(marketId, market);
         string? rawMargin = this.safeString(position, "margin_type");
-        object marginMode = null;
+        string? marginMode = null;
         if (isTrue(!isEqual(rawMargin, null)))
         {
             marginMode = ((bool) isTrue((isEqual(rawMargin, "MARGIN_TYPE_CROSS")))) ? "cross" : "isolated";
         }
         object notionalObject = this.safeDict(position, "position_notional", new Dictionary<string, object>() {});
         string? positionSide = this.safeString(position, "position_side");
-        object side = ((bool) isTrue((isEqual(positionSide, "POSITION_SIDE_LONG")))) ? "long" : "short";
+        string side = ((bool) isTrue((isEqual(positionSide, "POSITION_SIDE_LONG")))) ? "long" : "short";
         object unrealizedPNLObject = this.safeDict(position, "unrealized_pnl", new Dictionary<string, object>() {});
         object liquidationPriceObject = this.safeDict(position, "liquidation_price", new Dictionary<string, object>() {});
         object liquidationPrice = this.safeNumber(liquidationPriceObject, "value");
@@ -5712,7 +5712,7 @@ public partial class coinbase : Exchange
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isSpot = (isEqual(type, "spot"));
-        object productType = ((bool) isTrue(isSpot)) ? "SPOT" : "FUTURE";
+        string productType = ((bool) isTrue(isSpot)) ? "SPOT" : "FUTURE";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_type", productType },
         };
@@ -5855,8 +5855,8 @@ public partial class coinbase : Exchange
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         object nonce = this.randomBytes(16);
-        object aud = ((bool) isTrue(useEddsa)) ? "cdp_service" : "retail_rest_api_proxy";
-        object iss = ((bool) isTrue(useEddsa)) ? "cdp" : "coinbase-cloud";
+        string aud = ((bool) isTrue(useEddsa)) ? "cdp_service" : "retail_rest_api_proxy";
+        string iss = ((bool) isTrue(useEddsa)) ? "cdp" : "coinbase-cloud";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "aud", new List<object>() {aud} },
             { "iss", iss },

@@ -1196,7 +1196,7 @@ public partial class coinbaseexchange : Exchange
         string? marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
         string? feeRate = null;
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         string? cost = null;
         object feeCurrencyId = this.safeStringLower(market, "quoteId");
         if (isTrue(!isEqual(feeCurrencyId, null)))
@@ -1217,7 +1217,7 @@ public partial class coinbaseexchange : Exchange
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
-        object side = ((bool) isTrue((isEqual(getValue(trade, "side"), "buy")))) ? "sell" : "buy";
+        string side = ((bool) isTrue((isEqual(getValue(trade, "side"), "buy")))) ? "sell" : "buy";
         string? orderId = this.safeString(trade, "order_id");
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         string? makerOrderId = this.safeString(trade, "maker_order_id");

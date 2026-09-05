@@ -122,7 +122,7 @@ public partial class grvt : ccxt.grvt
             { "params", request },
             { "id", this.requestId() },
         };
-        object apiPart = ((bool) isTrue(publicOrPrivate)) ? "publicMarket" : "privateTrading";
+        string apiPart = ((bool) isTrue(publicOrPrivate)) ? "publicMarket" : "privateTrading";
         return await this.watchMultiple(getValue(getValue(getValue(this.urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes);
     }
 

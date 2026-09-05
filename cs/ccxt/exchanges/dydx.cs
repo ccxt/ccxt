@@ -1604,7 +1604,7 @@ public partial class dydx : Exchange
             }
             goodTillBlockTime = add(this.seconds(), goodTillBlockTimeInSeconds);
         }
-        object sideNumber = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? 1 : 2;
+        int sideNumber = ((bool) isTrue((isEqual(orderSide, "BUY")))) ? 1 : 2;
         object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Int64? clientOrderId = this.safeInteger(parameters, "clientOrderId", defaultClientOrderId);
         Dictionary<string, object> orderPayload = new Dictionary<string, object>() {
@@ -1792,7 +1792,7 @@ public partial class dydx : Exchange
         goodTillBlockTimeInSeconds = ((IList<object>)goodTillBlockTimeInSecondsparametersVariable)[0];
         parameters = ((IList<object>)goodTillBlockTimeInSecondsparametersVariable)[1]; // default is 30 days
         object goodTillBlockTime = null;
-        object defaultOrderFlags = ((bool) isTrue((isEqual(isTrigger, true)))) ? 32 : 64;
+        int defaultOrderFlags = ((bool) isTrue((isEqual(isTrigger, true)))) ? 32 : 64;
         Int64? orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
         object subAccountId = 0;
         var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);

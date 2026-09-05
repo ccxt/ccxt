@@ -444,7 +444,7 @@ public partial class delta : Exchange
         object strike = this.safeString(optionParts, 2);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
-        object optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
+        string optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(optionType, "-"), bs), "-"), strike), "-"), expiry) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
@@ -584,7 +584,7 @@ public partial class delta : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         string? underMaintenance = this.safeString(result, "under_maintenance");
-        object status = ((bool) isTrue((isEqual(underMaintenance, "true")))) ? "maintenance" : "ok";
+        string status = ((bool) isTrue((isEqual(underMaintenance, "true")))) ? "maintenance" : "ok";
         Int64? updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", updated },             { "eta", null },             { "url", null },             { "info", response },         });
     }

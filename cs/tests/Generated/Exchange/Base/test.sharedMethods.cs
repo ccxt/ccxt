@@ -426,7 +426,7 @@ public partial class testMainClass : BaseTest
                     if (isTrue(isTrue(!isEqual(currentTs, null)) && isTrue(!isEqual(nextTs, null))))
                     {
                         object ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
-                        object comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
+                        bool comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
                         assert(comparison, add(add(add(add(add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ((object)currentTs).ToString()), " is opposite with its next "), ((object)nextTs).ToString()), " "), exchange.json(items)));
                     }
                 }

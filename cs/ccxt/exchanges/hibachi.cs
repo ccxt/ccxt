@@ -748,7 +748,7 @@ public partial class hibachi : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
-        object uppercaseStatus = ((bool) isTrue((isEqual(status, null)))) ? null : ((string)status).ToUpper();
+        string? uppercaseStatus = ((bool) isTrue((isEqual(status, null)))) ? null : ((string)status).ToUpper();
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "open" },
             { "CHILD_PENDING", "open" },
@@ -2039,7 +2039,7 @@ public partial class hibachi : Exchange
         string? transactionType = this.safeString(item, "transactionType");
         Int64? timestamp = null;
         object type = null;
-        object direction = null;
+        string? direction = null;
         object amount = null;
         object fee = null;
         string? referenceId = null;

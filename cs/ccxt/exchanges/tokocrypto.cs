@@ -1134,10 +1134,10 @@ public partial class tokocrypto : Exchange
         object symbol = this.safeSymbol(marketId, market);
         string? id = this.safeString2(trade, "t", "a");
         id = this.safeString2(trade, "id", "tradeId", id);
-        object side = null;
+        string? side = null;
         string? orderId = this.safeString(trade, "orderId");
         object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(buyerMaker, null)))
         {
             side = ((bool) isTrue((isEqual(buyerMaker, true)))) ? "sell" : "buy"; // this is reversed intentionally

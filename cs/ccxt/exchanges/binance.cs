@@ -5310,7 +5310,7 @@ public partial class binance : Exchange
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = isEqual(settle, quote);
             inverse = isEqual(settle, bs);
-            object feesType = ((bool) isTrue(linear)) ? "linear" : "inverse";
+            string feesType = ((bool) isTrue(linear)) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new Dictionary<string, object>() {});
         }
         object active = (isEqual(status, "TRADING"));
@@ -6186,7 +6186,7 @@ public partial class binance : Exchange
         //     }
         //
         object timestamp = this.safeInteger2(ticker, "closeTime", "time");
-        object marketType = null;
+        string? marketType = null;
         if (isTrue((inOp(ticker, "time"))))
         {
             marketType = "contract";
@@ -6469,7 +6469,7 @@ public partial class binance : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(entry, "time");
-        object type = ((bool) isTrue((isEqual(timestamp, null)))) ? "spot" : "swap";
+        string type = ((bool) isTrue((isEqual(timestamp, null)))) ? "spot" : "swap";
         string? marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, type);
         return new Dictionary<string, object>() {
@@ -6722,7 +6722,7 @@ public partial class binance : Exchange
         //     }
         //
         object inverse = this.safeBool(market, "inverse");
-        object volumeIndex = ((bool) isTrue((isEqual(inverse, true)))) ? 7 : 5;
+        int volumeIndex = ((bool) isTrue((isEqual(inverse, true)))) ? 7 : 5;
         return new List<object> {this.safeInteger2(ohlcv, 0, "openTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
     }
 
@@ -7116,12 +7116,12 @@ public partial class binance : Exchange
         amount = this.safeString(trade, "quantity", amount);
         string? marketId = this.safeString(trade, "symbol");
         bool isSpotTrade = isTrue(isTrue(isTrue((inOp(trade, "isIsolated"))) || isTrue((inOp(trade, "M")))) || isTrue((inOp(trade, "orderListId")))) || isTrue((inOp(trade, "isMaker")));
-        object marketType = ((bool) isTrue(isSpotTrade)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpotTrade)) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
-        object side = null;
+        string? side = null;
         object buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(buyerMaker, null)))
         {
             side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy"; // this is reversed intentionally
@@ -7260,7 +7260,7 @@ public partial class binance : Exchange
         {
             bool isFutureOrSwap = isTrue((isEqual(getValue(market, "swap"), true))) || isTrue((isEqual(getValue(market, "future"), true)));
             bool isHistoricalEndpoint = isTrue((!isEqual(method, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(method, "GetHistoricalTrades"), 0)));
-            object maxLimitForContractHistorical = ((bool) isTrue(isHistoricalEndpoint)) ? 500 : 1000;
+            int maxLimitForContractHistorical = ((bool) isTrue(isHistoricalEndpoint)) ? 500 : 1000;
             ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue((isEqual(isFutureOrSwap, true)))) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         parameters = this.omit(parameters, new List<object>() {"until", "fetchTradesMethod"});
@@ -8556,7 +8556,7 @@ public partial class binance : Exchange
         object status = this.parseOrderStatus(this.safeStringN(order, new List<object>() {"status", "strategyStatus", "algoStatus"}));
         string? marketId = this.safeString(order, "symbol");
         bool isContract = isTrue((inOp(order, "positionSide"))) || isTrue((inOp(order, "cumQuote")));
-        object marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         string? filled = this.safeString2(order, "executedQty", "filledQty", "0");
         object timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"}); // order of the keys matters here
@@ -8950,7 +8950,7 @@ public partial class binance : Exchange
         bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
         bool isPriceMatch = !isEqual(priceMatch, null);
         bool priceRequiredForTrailing = true;
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
         {
@@ -9050,7 +9050,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        object clientOrderIdRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "newClientStrategyId" : "newClientOrderId";
+        string clientOrderIdRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "newClientStrategyId" : "newClientOrderId";
         if (isTrue(isTrue(isTrue(isTrue((isEqual(getValue(market, "linear"), true))) && isTrue((isEqual(getValue(market, "swap"), true)))) && isTrue(isConditional)) && !isTrue(isPortfolioMargin)))
         {
             clientOrderIdRequest = "clientAlgoId";
@@ -9061,8 +9061,8 @@ public partial class binance : Exchange
         if (isTrue(isEqual(clientOrderId, null)))
         {
             object broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
-            object defaultId = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
-            object idMarketType = "spot";
+            string defaultId = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
+            string idMarketType = "spot";
             if (isTrue(isEqual(getValue(market, "contract"), true)))
             {
                 bool isLinearSwap = isTrue((isEqual(getValue(market, "swap"), true))) && isTrue((isEqual(getValue(market, "linear"), true)));
@@ -9113,7 +9113,7 @@ public partial class binance : Exchange
             // swap, futures and options
             ((IDictionary<string,object>)request)["newOrderRespType"] = "RESULT"; // "ACK", "RESULT", default "ACK"
         }
-        object typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
+        string typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
         if (isTrue(isEqual(stock, true)))
         {
             typeRequest = "orderType";
@@ -10178,7 +10178,7 @@ public partial class binance : Exchange
         object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
-        object orderIdRequest = ((bool) isTrue((isEqual(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
+        string orderIdRequest = ((bool) isTrue((isEqual(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
         ((IDictionary<string,object>)request)[(string)orderIdRequest] = id;
         object response = null;
         if (isTrue(isEqual(getValue(market, "linear"), true)))
@@ -11781,7 +11781,7 @@ public partial class binance : Exchange
             timestamp = this.parse8601(this.safeString(transaction, "applyTime"));
         }
         object updated = this.safeInteger2(transaction, "successTime", "updateTime");
-        object type = this.safeString(transaction, "type");
+        string? type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, null)))
         {
             string? txType = this.safeString(transaction, "transactionType");
@@ -11804,7 +11804,7 @@ public partial class binance : Exchange
             };
         }
         Int64? internalInteger = this.safeInteger(transaction, "transferType");
-        object intern = null;
+        bool? intern = null;
         if (isTrue(!isEqual(internalInteger, null)))
         {
             intern = ((bool) isTrue((!isEqual(internalInteger, 0)))) ? true : false;
@@ -12146,7 +12146,7 @@ public partial class binance : Exchange
         {
             string? defaultType = this.safeString2(this.options, "fetchTransfers", "defaultType", "spot");
             string? fromAccount = this.safeString(parameters, "fromAccount", defaultType);
-            object defaultTo = ((bool) isTrue((isEqual(fromAccount, "future")))) ? "spot" : "future";
+            string defaultTo = ((bool) isTrue((isEqual(fromAccount, "future")))) ? "spot" : "future";
             string? toAccount = this.safeString(parameters, "toAccount", defaultTo);
             object type = this.safeString(parameters, "type");
             object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
@@ -13439,7 +13439,7 @@ public partial class binance : Exchange
         }
         object collateral = this.parseNumber(collateralString);
         object marginRatio = null;
-        object side = null;
+        string? side = null;
         object percentage = null;
         string? liquidationPriceStringRaw = null;
         object liquidationPrice = null;
@@ -13654,7 +13654,7 @@ public partial class binance : Exchange
         object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
-        object marginMode = this.safeString(position, "marginType");
+        string? marginMode = this.safeString(position, "marginType");
         if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(!isEqual(isolatedMarginString, null))))
         {
             marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
@@ -14911,7 +14911,7 @@ public partial class binance : Exchange
     {
         string? marketId = this.safeString(leverage, "symbol");
         object marginModeRaw = this.safeBool(leverage, "isolated");
-        object marginMode = null;
+        string? marginMode = null;
         if (isTrue(!isEqual(marginModeRaw, null)))
         {
             marginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";
@@ -15521,8 +15521,8 @@ public partial class binance : Exchange
                 if (isTrue(isEqual(newClientOrderId, null)))
                 {
                     bool isSpotOrMargin = (isTrue(isGreaterThan(getIndexOf(api, "sapi"), -1)) || isTrue(isEqual(api, "private")));
-                    object marketType = ((bool) isTrue(isSpotOrMargin)) ? "spot" : "future";
-                    object defaultId = ((bool) isTrue((!isTrue(isSpotOrMargin)))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
+                    string marketType = ((bool) isTrue(isSpotOrMargin)) ? "spot" : "future";
+                    string defaultId = ((bool) isTrue((!isTrue(isSpotOrMargin)))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
                     object broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
                     object brokerId = this.safeString(broker, marketType, defaultId);
                     ((IDictionary<string,object>)parameters)["newClientOrderId"] = add(brokerId, this.uuid22());
@@ -16382,7 +16382,7 @@ public partial class binance : Exchange
     {
         string? symbol = this.safeString(info, "isolatedSymbol");
         Int64? timestamp = this.safeInteger(info, "interestAccuredTime");
-        object marginMode = ((bool) isTrue((isEqual(symbol, null)))) ? "cross" : "isolated";
+        string marginMode = ((bool) isTrue((isEqual(symbol, null)))) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", symbol },
@@ -16646,7 +16646,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
-        object symbolKey = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? "symbol" : "pair";
+        string symbolKey = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? "symbol" : "pair";
         ((IDictionary<string,object>)request)[(string)symbolKey] = getValue(market, "id");
         if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
@@ -16867,7 +16867,7 @@ public partial class binance : Exchange
         }
         if (isTrue(!isEqual(market, null)))
         {
-            object symbolKey = ((bool) isTrue((isEqual(getValue(market, "spot"), true)))) ? "isolatedSymbol" : "symbol";
+            string symbolKey = ((bool) isTrue((isEqual(getValue(market, "spot"), true)))) ? "isolatedSymbol" : "symbol";
             if (!isTrue(isPortfolioMargin))
             {
                 ((IDictionary<string,object>)request)[(string)symbolKey] = getValue(market, "id");
@@ -17395,7 +17395,7 @@ public partial class binance : Exchange
         string? marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
         object marginModeRaw = this.safeBool(marginMode, "isolated");
-        object reMarginMode = null;
+        string? reMarginMode = null;
         if (isTrue(!isEqual(marginModeRaw, null)))
         {
             reMarginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";

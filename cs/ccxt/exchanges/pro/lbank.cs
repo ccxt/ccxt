@@ -541,7 +541,7 @@ public partial class lbank : ccxt.lbank
         //    }
         //
         Int64? timestamp = this.safeInteger(trade, 0);
-        object datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
+        string? datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(datetime);
@@ -705,7 +705,7 @@ public partial class lbank : ccxt.lbank
         List<object> typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         string? side = this.safeString(typeParts, 0);
         string? exchangeType = this.safeString(typeParts, 1);
-        object type = null;
+        string? type = null;
         if (isTrue(isTrue(!isEqual(rawType, "buy")) && isTrue(!isEqual(rawType, "sell"))))
         {
             type = ((bool) isTrue((isEqual(exchangeType, "market")))) ? "market" : "limit";

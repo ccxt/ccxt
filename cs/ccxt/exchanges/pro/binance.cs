@@ -1210,7 +1210,7 @@ public partial class binance : ccxt.binance
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         object isSpot = this.isSpotUrl(client);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook::", symbol);
@@ -1755,11 +1755,11 @@ public partial class binance : ccxt.binance
             }
         }
         string? marketId = this.safeString(trade, "s");
-        object fallbackType = ((bool) isTrue((inOp(trade, "ps")))) ? "contract" : "spot";
+        string fallbackType = ((bool) isTrue((inOp(trade, "ps")))) ? "contract" : "spot";
         object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : fallbackType;
         object symbol = this.safeSymbol(marketId, market, null, marketType);
-        object side = this.safeStringLower(trade, "S");
-        object takerOrMaker = null;
+        string? side = this.safeStringLower(trade, "S");
+        string? takerOrMaker = null;
         string? orderId = this.safeString(trade, "i");
         if (isTrue(inOp(trade, "m")))
         {
@@ -1806,7 +1806,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         object isSpot = this.isSpotUrl(client);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trade::", symbol);
@@ -2165,7 +2165,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         object isSpot = this.isSpotUrl(client);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -2654,7 +2654,7 @@ public partial class binance : ccxt.binance
             firstMarket = this.market(getValue(symbols, 0));
         }
         string? userDefaultType = this.safeString(this.options, "defaultType");
-        object defaultMarket = ((bool) isTrue((isTrue(isMarkPrice) && isTrue(!isEqual(userDefaultType, "option"))))) ? "swap" : null;
+        string? defaultMarket = ((bool) isTrue((isTrue(isMarkPrice) && isTrue(!isEqual(userDefaultType, "option"))))) ? "swap" : null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
@@ -3111,13 +3111,13 @@ public partial class binance : ccxt.binance
             }
             string? tickerMarketId = this.safeString(ticker, "s");
             object tickerMarketsByIdList = this.safeValue(this.markets_by_id, tickerMarketId);
-            object numTickerMarkets = ((bool) isTrue((isEqual(tickerMarketsByIdList, null)))) ? 0 : getArrayLength(tickerMarketsByIdList);
+            int numTickerMarkets = ((bool) isTrue((isEqual(tickerMarketsByIdList, null)))) ? 0 : getArrayLength(tickerMarketsByIdList);
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             object tickerMarketById = ((bool) isTrue((isEqual(numTickerMarkets, 1)))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             object isSpot = this.isSpotUrl(client);
-            object tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+            string tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object tickerMarketType = ((bool) isTrue((!isEqual(tickerMarketById, null)))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
             object parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
             object symbol = getValue(parsedTicker, "symbol");
@@ -3447,7 +3447,7 @@ public partial class binance : ccxt.binance
         bool isStock = (isEqual(type, "stock"));
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
         Int64? lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
-        object refreshRateKey = ((bool) isTrue(isStock)) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+        string refreshRateKey = ((bool) isTrue(isStock)) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
@@ -3649,7 +3649,7 @@ public partial class binance : ccxt.binance
         });
         // whether or not to schedule another listenKey keepAlive request
         List<object> clients = new List<object>(((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Values);
-        object refreshRateKey = ((bool) isTrue(isStock)) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+        string refreshRateKey = ((bool) isTrue(isStock)) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         object delayParams = parameters;
         if (isTrue(isStock))
@@ -5242,7 +5242,7 @@ public partial class binance : ccxt.binance
         string? executionType = this.safeString(order, "x");
         string? marketId = this.safeString(order, "s");
         // futures user-data events carry the position side field, spot ones do not
-        object marketType = ((bool) isTrue((inOp(order, "ps")))) ? "contract" : "spot";
+        string marketType = ((bool) isTrue((inOp(order, "ps")))) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object timestamp = this.safeInteger(order, "O");
         Int64? T = this.safeInteger(order, "T");

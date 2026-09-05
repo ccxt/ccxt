@@ -971,7 +971,7 @@ public partial class htx : ccxt.htx
         object messageHash = null;
         object channel = null;
         object trades = null;
-        object subType = null;
+        string? subType = null;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             market = this.market(symbolVar);
@@ -1127,7 +1127,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         object type = null;
-        object subType = null;
+        string? subType = null;
         object market = null;
         object suffix = "*"; // wildcard
         if (isTrue(!isEqual(symbolVar, null)))
@@ -1712,7 +1712,7 @@ public partial class htx : ccxt.htx
             type = getValue(typeParts, 1);
         }
         object aggressor = this.safeValue(trade, "aggressor");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(aggressor, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(aggressor, true)))) ? "taker" : "maker";
@@ -1899,7 +1899,7 @@ public partial class htx : ccxt.htx
         //
         object url = client.url;
         string? topic = this.safeString(message, "topic", "");
-        object defaultMarginMode = ((bool) isTrue((isEqual(topic, "positions_cross")))) ? "cross" : "isolated";
+        string defaultMarginMode = ((bool) isTrue((isEqual(topic, "positions_cross")))) ? "cross" : "isolated";
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -3095,7 +3095,7 @@ public partial class htx : ccxt.htx
         object timestamp = this.safeIntegerN(trade, new List<object>() {"tradeTime", "updated_time", "created_time"});
         string? orderType = this.safeString2(trade, "orderType", "type");
         object aggressor = this.safeValue(trade, "aggressor");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(aggressor, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(aggressor, true)))) ? "taker" : "maker";

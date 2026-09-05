@@ -1439,7 +1439,7 @@ public partial class nado : ccxt.nado
         market = this.safeMarket(marketId, market);
         object timestamp = this.parseWsTimestamp(trade, "timestamp");
         object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isTakerBuyer, null)))
         {
             side = ((bool) isTrue(isTakerBuyer)) ? "buy" : "sell";
@@ -1486,13 +1486,13 @@ public partial class nado : ccxt.nado
         market = this.safeMarket(marketId, market);
         object timestamp = this.parseWsTimestamp(trade, "timestamp");
         object isBid = this.safeBool(trade, "is_bid");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isBid, null)))
         {
             side = ((bool) isTrue(isBid)) ? "buy" : "sell";
         }
         object isTaker = this.safeBool(trade, "is_taker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";

@@ -4229,7 +4229,7 @@ public partial class htx : Exchange
         string? currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
         string? assetType = this.safeString(rawCurrency, "assetType");
-        object type = ((bool) isTrue((isEqual(assetType, "1")))) ? "crypto" : "fiat";
+        string type = ((bool) isTrue((isEqual(assetType, "1")))) ? "crypto" : "fiat";
         if (isTrue(!isEqual(code, null)))
         {
             ((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames"))[(string)code] = new Dictionary<string, object>() {};
@@ -6219,7 +6219,7 @@ public partial class htx : Exchange
             }
         } else
         {
-            object defaultOperator = ((bool) isTrue((isEqual(side, "sell")))) ? "lte" : "gte";
+            string defaultOperator = ((bool) isTrue((isEqual(side, "sell")))) ? "lte" : "gte";
             string? stopOperator = this.safeString(parameters, "operator", defaultOperator);
             ((IDictionary<string,object>)request)["stop-price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["operator"] = stopOperator;
@@ -8887,7 +8887,7 @@ public partial class htx : Exchange
         //   }
         //
         string? marketId = this.safeString(info, "symbol");
-        object marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
+        string marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
         market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol");
         Int64? timestamp = this.safeInteger(info, "accrued-at");
@@ -9421,7 +9421,7 @@ public partial class htx : Exchange
         object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         string? initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         string? rawSide = this.safeString(position, "direction");
-        object directionSide = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
+        string directionSide = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
         string? rawPositionSide = this.safeString(position, "position_side");
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         object side = directionSide;
@@ -11099,7 +11099,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object posMode = ((bool) isTrue(hedged)) ? "dual_side" : "single_side";
+        string posMode = ((bool) isTrue(hedged)) ? "dual_side" : "single_side";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {

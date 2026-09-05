@@ -999,7 +999,7 @@ public partial class latoken : Exchange
         string? amountString = this.safeString(trade, "quantity");
         string? costString = this.safeString(trade, "cost");
         object makerBuyer = this.safeValue(trade, "makerBuyer");
-        object side = this.safeString(trade, "direction");
+        string? side = this.safeString(trade, "direction");
         if (isTrue(isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(makerBuyer, true)))) ? "sell" : "buy";
@@ -1015,7 +1015,7 @@ public partial class latoken : Exchange
         }
         bool isBuy = (isEqual(side, "buy"));
         bool isMaker = isTrue((isEqual(makerBuyer, true))) && isTrue(isBuy);
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        string takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);

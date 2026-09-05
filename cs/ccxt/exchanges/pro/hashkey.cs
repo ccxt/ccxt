@@ -646,8 +646,8 @@ public partial class hashkey : ccxt.hashkey
         Int64? timestamp = this.safeInteger(trade, "t");
         object isBuyerMaker = this.safeBool(trade, "m");
         bool isPublicTrade = isEqual(this.safeString(trade, "e"), null);
-        object side = null;
-        object takerOrMaker = null;
+        string? side = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
             if (isTrue(isPublicTrade))

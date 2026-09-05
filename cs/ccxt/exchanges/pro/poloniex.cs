@@ -147,7 +147,7 @@ public partial class poloniex : ccxt.poloniex
     public async virtual Task<object> subscribe(object name, object messageHash, object isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object publicOrPrivate = ((bool) isTrue(isPrivate)) ? "private" : "public";
+        string publicOrPrivate = ((bool) isTrue(isPrivate)) ? "private" : "public";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), publicOrPrivate);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -580,7 +580,7 @@ public partial class poloniex : ccxt.poloniex
         {
             symbolVar = this.symbol(symbolVar);
         }
-        object symbols = ((bool) isTrue((isEqual(symbolVar, null)))) ? null : new List<object>() {symbolVar};
+        List<object> symbols = ((bool) isTrue((isEqual(symbolVar, null)))) ? null : new List<object>() {symbolVar};
         object orders = await this.subscribe(name, name, true, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -616,7 +616,7 @@ public partial class poloniex : ccxt.poloniex
         {
             symbolVar = this.symbol(symbolVar);
         }
-        object symbols = ((bool) isTrue((isEqual(symbolVar, null)))) ? null : new List<object>() {symbolVar};
+        List<object> symbols = ((bool) isTrue((isEqual(symbolVar, null)))) ? null : new List<object>() {symbolVar};
         object trades = await this.subscribe(name, messageHash, true, symbols, parameters);
         if (isTrue(this.newUpdates))
         {

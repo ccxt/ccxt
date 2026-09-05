@@ -459,7 +459,7 @@ public partial class gemini : ccxt.gemini
             object delta = getValue(changes, i);
             object price = this.safeNumber(delta, 1);
             object size = this.safeNumber(delta, 2);
-            object side = ((bool) isTrue((isEqual(getValue(delta, 0), "buy")))) ? "bids" : "asks";
+            string side = ((bool) isTrue((isEqual(getValue(delta, 0), "buy")))) ? "bids" : "asks";
             object bookside = getValue(orderbook, side);
             (bookside as IOrderBookSide).store(price, size);
             ((IDictionary<string,object>)orderbook)[(string)side] = bookside;

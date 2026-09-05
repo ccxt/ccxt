@@ -1379,7 +1379,7 @@ public partial class hyperliquid : PredictionExchange
         object postOnly = this.safeBool(parameters, "postOnly", false);
         string? defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         string? slippage = this.safeString(parameters, "slippage", defaultSlippage);
-        object defaultTif = ((bool) isTrue(isMarket)) ? "Ioc" : "Gtc";
+        string defaultTif = ((bool) isTrue(isMarket)) ? "Ioc" : "Gtc";
         if (isTrue(isEqual(postOnly, true)))
         {
             defaultTif = "Alo";
@@ -1834,7 +1834,7 @@ public partial class hyperliquid : PredictionExchange
         string? marketSymbol = this.safeString(outcomeObj, "outcome");
         object resolvedMarket = ((bool) isTrue((isTrue(!isEqual(marketSymbol, null)) && isTrue(!isEqual(marketSymbol, ""))))) ? this.safeMarket(marketSymbol, market) : market;
         string? sideRaw = this.safeString(entry, "side");
-        object side = ((bool) isTrue((isEqual(sideRaw, "B")))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(sideRaw, "B")))) ? "buy" : "sell";
         string? totalAmount = this.safeString(entry, "origSz");
         string? remaining = this.safeString(entry, "sz");
         string? filled = null;
@@ -1908,7 +1908,7 @@ public partial class hyperliquid : PredictionExchange
             { "stop limit", "limit" },
             { "stop market", "market" },
         };
-        object statusLower = ((bool) isTrue((isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, ""))))) ? ((string)status).ToLower() : null;
+        string? statusLower = ((bool) isTrue((isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, ""))))) ? ((string)status).ToLower() : null;
         return this.safeString(statuses, statusLower, statusLower);
     }
 
@@ -1920,7 +1920,7 @@ public partial class hyperliquid : PredictionExchange
             { "fok", "FOK" },
             { "alo", "PO" },
         };
-        object tifLower = ((bool) isTrue((isTrue(!isEqual(timeInForce, null)) && isTrue(!isEqual(timeInForce, ""))))) ? ((string)timeInForce).ToLower() : null;
+        string? tifLower = ((bool) isTrue((isTrue(!isEqual(timeInForce, null)) && isTrue(!isEqual(timeInForce, ""))))) ? ((string)timeInForce).ToLower() : null;
         return this.safeString(statuses, tifLower, timeInForce);
     }
 
@@ -2059,7 +2059,7 @@ public partial class hyperliquid : PredictionExchange
         string? marketSymbol = this.safeString(outcomeObj, "outcome");
         object resolvedMarket = ((bool) isTrue((isTrue(!isEqual(marketSymbol, null)) && isTrue(!isEqual(marketSymbol, ""))))) ? this.safeMarket(marketSymbol, market) : market;
         string? rawSide = this.safeString(trade, "side");
-        object side = ((bool) isTrue((isEqual(rawSide, "B")))) ? "buy" : "sell";
+        string side = ((bool) isTrue((isEqual(rawSide, "B")))) ? "buy" : "sell";
         object fee = this.safeNumber(trade, "fee");
         string? feeCurrency = this.safeString(trade, "feeToken", "USDC");
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome");
@@ -2077,7 +2077,7 @@ public partial class hyperliquid : PredictionExchange
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
         bool crossed = (isEqual(this.safeBool(trade, "crossed"), true));
-        object takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
+        string takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
         return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "tid") },
             { "info", trade },
@@ -2351,7 +2351,7 @@ public partial class hyperliquid : PredictionExchange
     public virtual object constructPhantomAgent(object hash, object isTestnet = null)
     {
         isTestnet ??= true;
-        object source = ((bool) isTrue(isTestnet)) ? "b" : "a";
+        string source = ((bool) isTrue(isTestnet)) ? "b" : "a";
         return new Dictionary<string, object>() {
             { "source", source },
             { "connectionId", hash },

@@ -181,7 +181,7 @@ public partial class bybit : ccxt.bybit
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
-        object accessibility = ((bool) isTrue(isPrivate)) ? "private" : "public";
+        string accessibility = ((bool) isTrue(isPrivate)) ? "private" : "public";
         if (isTrue(isEqual(method, null)))
         {
             method = "";
@@ -639,7 +639,7 @@ public partial class bybit : ccxt.bybit
         string? updateType = this.safeString(message, "type", "");
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         bool isSpot = !isEqual(this.safeString(data, "usdIndexPrice"), null);
-        object type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object symbol = null;
         object parsed = null;
         if (isTrue((isEqual(updateType, "snapshot"))))
@@ -893,7 +893,7 @@ public partial class bybit : ccxt.bybit
         }
         string? marketId = this.safeString(topicParts, subtract(topicLength, 1));
         bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
@@ -935,7 +935,7 @@ public partial class bybit : ccxt.bybit
         //     }
         //
         bool isInverse = (isEqual(this.safeBool(market, "inverse"), true));
-        object volumeIndex = ((bool) isTrue(isInverse)) ? "turnover" : "volume";
+        string volumeIndex = ((bool) isTrue(isInverse)) ? "turnover" : "volume";
         return new List<object> {this.safeInteger(ohlcv, "start"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeIndex)};
     }
 
@@ -1121,7 +1121,7 @@ public partial class bybit : ccxt.bybit
         bool isSnapshot = (isEqual(type, "snapshot"));
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(message, "ts");
@@ -1311,7 +1311,7 @@ public partial class bybit : ccxt.bybit
         object trades = data;
         List<object> parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         bool isSpot = isGreaterThanOrEqual(getIndexOf(client.url, "spot"), 0);
-        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
+        string marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         string? marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -1375,7 +1375,7 @@ public partial class bybit : ccxt.bybit
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger2(trade, "t", "T");
-        object side = this.safeStringLower(trade, "S");
+        string? side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
         object m = this.safeValue(trade, "m");
         if (isTrue(isEqual(side, null)))
