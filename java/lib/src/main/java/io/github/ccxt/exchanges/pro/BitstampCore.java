@@ -447,9 +447,9 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "id_str");
-        Object orderTypeRaw = this.safeStringLower(order, "order_type");
+        String orderTypeRaw = (String)this.safeStringLower(order, "order_type");
         Object side = ((Helpers.isTrue((Helpers.isEqual(orderTypeRaw, "1"))))) ? "sell" : "buy";
-        Object orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        String orderSubTypeRaw = (String)this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         Object orderType = null;
         Object timeInForce = null;
         if (Helpers.isTrue(Helpers.isEqual(orderSubTypeRaw, "0")))

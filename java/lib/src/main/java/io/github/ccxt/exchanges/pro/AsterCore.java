@@ -816,7 +816,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object marketId = this.safeStringLower(market, "id");
+                String marketId = (String)this.safeStringLower(market, "id");
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(marketId, "@aggTrade"));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("trade::", Helpers.GetValue(market, "symbol")));
             }
@@ -1038,7 +1038,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object marketId = this.safeString(trade, "s");
         Object defaultType = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? this.safeString(this.options, "defaultType", "spot") : Helpers.GetValue(market, "type");
         Object symbol = this.safeSymbol(marketId, market, null, defaultType);
-        Object side = this.safeStringLower(trade, "S");
+        String side = (String)this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
         if (Helpers.isTrue(Helpers.inOp(trade, "m")))
@@ -1061,7 +1061,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object type = this.safeStringLower(trade, "o");
+        String type = (String)this.safeStringLower(trade, "o");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalPrice = price;
@@ -2057,7 +2057,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
         Object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
-        Object positionSide = this.safeStringLower(position, "ps");
+        String positionSide = (String)this.safeStringLower(position, "ps");
         Object hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {

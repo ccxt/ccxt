@@ -1068,8 +1068,8 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object timestamp = this.safeInteger(order, "O");
         Object marketId = this.safeString(order, "s");
         Object symbol = this.safeSymbol(marketId, market);
-        Object priceType = this.safeStringLower(order, "pt");
-        Object rawOrderType = this.safeStringLower(order, "o");
+        String priceType = (String)this.safeStringLower(order, "pt");
+        String rawOrderType = (String)this.safeStringLower(order, "o");
         Object orderType = null;
         if (Helpers.isTrue(Helpers.isEqual(priceType, "market")))
         {

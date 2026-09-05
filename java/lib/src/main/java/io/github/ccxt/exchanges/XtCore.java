@@ -1255,7 +1255,7 @@ public class XtCore extends XtApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesData)); i++)
             {
                 Object entry = Helpers.GetValue(currenciesData, i);
-                Object currencyId = this.safeString(entry, "currency");
+                String currencyId = this.safeString(entry, "currency");
                 Object code = this.safeCurrencyCode(currencyId);
                 Object networkEntry = this.safeDict(chainsDataIndexed, currencyId, new java.util.HashMap<String, Object>() {{}});
                 Object rawNetworks = this.safeList(networkEntry, "supportChains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1263,7 +1263,7 @@ public class XtCore extends XtApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
                 {
                     Object rawNetwork = Helpers.GetValue(rawNetworks, j);
-                    Object networkId = this.safeString(rawNetwork, "chain");
+                    String networkId = this.safeString(rawNetwork, "chain");
                     Object networkCode = this.networkIdToCode(networkId, code);
                     if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                     {
@@ -1295,7 +1295,7 @@ public class XtCore extends XtApi
     }});
                     }
                 }
-                Object typeRaw = this.safeString(entry, "type");
+                String typeRaw = this.safeString(entry, "type");
                 Object type = null;
                 if (Helpers.isTrue(Helpers.isEqual(typeRaw, "FT")))
                 {
@@ -1639,12 +1639,12 @@ public class XtCore extends XtApi
         //         "enDesc": null
         //     }
         //
-        Object id = this.safeString(market, "symbol");
-        Object baseId = this.safeString2(market, "baseCurrency", "baseCoin");
-        Object quoteId = this.safeString2(market, "quoteCurrency", "quoteCoin");
+        String id = this.safeString(market, "symbol");
+        String baseId = this.safeString2(market, "baseCurrency", "baseCoin");
+        String quoteId = this.safeString2(market, "quoteCurrency", "quoteCoin");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
-        Object state = this.safeString(market, "state");
+        String state = this.safeString(market, "state");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minAmount = null;
@@ -1657,7 +1657,7 @@ public class XtCore extends XtApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(filters)); i++)
         {
             Object entry = Helpers.GetValue(filters, i);
-            Object filter = this.safeString(entry, "filter");
+            String filter = this.safeString(entry, "filter");
             if (Helpers.isTrue(Helpers.isEqual(filter, "QUANTITY")))
             {
                 minAmount = this.safeNumber(entry, "min");
@@ -1678,7 +1678,7 @@ public class XtCore extends XtApi
         {
             amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
-        Object underlyingType = this.safeString(market, "underlyingType");
+        String underlyingType = this.safeString(market, "underlyingType");
         Object linear = null;
         Object inverse = null;
         Object settleId = null;
@@ -1707,7 +1707,7 @@ public class XtCore extends XtApi
         if (Helpers.isTrue(!Helpers.isEqual(underlyingType, null)))
         {
             expiry = this.safeInteger(market, "deliveryDate");
-            Object productType = this.safeString(market, "productType");
+            String productType = this.safeString(market, "productType");
             if (Helpers.isTrue(!Helpers.isEqual(productType, "perpetual")))
             {
                 symbol = Helpers.add(Helpers.add(symbol, "-"), this.yymmdd(expiry));
@@ -2381,7 +2381,7 @@ public class XtCore extends XtApi
                 Object rawTicker = Helpers.GetValue(tickers, i);
                 // the spot and contract payloads share the same field names, so
                 // the market type cannot be inferred from the entry itself
-                Object marketId = this.safeString(rawTicker, "s");
+                String marketId = this.safeString(rawTicker, "s");
                 Object marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
                 Object marketInner = this.safeMarket(marketId, market, "_", marketType);
                 Object ticker = this.parseTicker(rawTicker, marketInner);
@@ -2444,7 +2444,7 @@ public class XtCore extends XtApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "s");
+        String marketId = this.safeString(ticker, "s");
         Object marketType = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "type") : null;
         Object hasSpotKeys = Helpers.isTrue((Helpers.inOp(ticker, "cv"))) || Helpers.isTrue((Helpers.inOp(ticker, "aq")));
         if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
@@ -2454,7 +2454,7 @@ public class XtCore extends XtApi
         market = this.safeMarket(marketId, market, "_", marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(ticker, "t");
-        Object percentage = this.safeString2(ticker, "cr", "r");
+        String percentage = this.safeString2(ticker, "cr", "r");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
             percentage = Precise.stringMul(percentage, "100");
@@ -2823,7 +2823,7 @@ public class XtCore extends XtApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(trade, "s", "symbol");
+        String marketId = this.safeString2(trade, "s", "symbol");
         Object marketType = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "type") : null;
         Object hasSpotKeys = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(trade, "b"))) || Helpers.isTrue((Helpers.inOp(trade, "bizType")))) || Helpers.isTrue((Helpers.inOp(trade, "oi")));
         if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
@@ -2840,7 +2840,7 @@ public class XtCore extends XtApi
             takerOrMaker = "taker"; // public trades always taker
         } else
         {
-            Object takerMaker = this.safeStringLower(trade, "takerMaker");
+            String takerMaker = (String)this.safeStringLower(trade, "takerMaker");
             if (Helpers.isTrue(!Helpers.isEqual(takerMaker, null)))
             {
                 takerOrMaker = takerMaker;
@@ -2852,13 +2852,13 @@ public class XtCore extends XtApi
                     takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
                 }
             }
-            Object orderSide = this.safeStringLower(trade, "orderSide");
+            String orderSide = (String)this.safeStringLower(trade, "orderSide");
             if (Helpers.isTrue(!Helpers.isEqual(orderSide, null)))
             {
                 side = orderSide;
             } else
             {
-                Object bidOrAsk = this.safeString(trade, "m");
+                String bidOrAsk = this.safeString(trade, "m");
                 if (Helpers.isTrue(!Helpers.isEqual(bidOrAsk, null)))
                 {
                     side = ((Helpers.isTrue((Helpers.isEqual(bidOrAsk, "BID"))))) ? "buy" : "sell";
@@ -2866,7 +2866,7 @@ public class XtCore extends XtApi
             }
         }
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "time", "timestamp")));
-        Object quantity = this.safeString2(trade, "q", "quantity");
+        String quantity = this.safeString2(trade, "q", "quantity");
         Object amount = null;
         if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
         {
@@ -3036,12 +3036,12 @@ public class XtCore extends XtApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString2(balance, "currency", "coin");
+            String currencyId = this.safeString2(balance, "currency", "coin");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Object free = this.safeString2(balance, "availableAmount", "availableBalance");
-            Object used = this.safeString(balance, "frozenAmount");
-            Object total = this.safeString2(balance, "totalAmount", "walletBalance");
+            String free = this.safeString2(balance, "availableAmount", "availableBalance");
+            String used = this.safeString(balance, "frozenAmount");
+            String total = this.safeString2(balance, "totalAmount", "walletBalance");
             if (Helpers.isTrue(Helpers.isEqual(used, null)))
             {
                 Object crossedAndIsolatedMargin = Precise.stringAdd(this.safeString(balance, "crossedMargin"), this.safeString(balance, "isolatedMargin"));
@@ -3179,7 +3179,7 @@ public class XtCore extends XtApi
                 timeInForce = this.safeStringUpper(parameters, "timeInForce", "FOK");
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Object cost = this.safeString(parameters, "cost");
+                    String cost = this.safeString(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     Object createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
                     if (Helpers.isTrue(Helpers.isEqual(createMarketBuyOrderRequiresPrice, true)))
@@ -3261,7 +3261,7 @@ public class XtCore extends XtApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "origQty", XtCore.this.amountToPrecision(symbol, amount) );
             }};
-            Object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = null;
             var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
@@ -3289,8 +3289,8 @@ public class XtCore extends XtApi
             Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
             Object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
-            Object trailingPercent = this.safeString(parameters, "trailingPercent");
-            Object trailingAmount = this.safeString(parameters, "trailingAmount");
+            String trailingPercent = this.safeString(parameters, "trailingPercent");
+            String trailingAmount = this.safeString(parameters, "trailingAmount");
             Object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
             Object isTrigger = (!Helpers.isEqual(triggerPrice, null));
             Object isStopLoss = (!Helpers.isEqual(stopLoss, null));
@@ -4752,7 +4752,7 @@ public class XtCore extends XtApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         Object marketType = ((Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "result"))) || Helpers.isTrue((Helpers.inOp(order, "positionSide")))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = this.safeSymbol(marketId, market, null, marketType);
@@ -4762,7 +4762,7 @@ public class XtCore extends XtApi
         Object filledQuantity = this.safeNumber(order, "executedQty");
         Object filled = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
         Object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
-        Object timeInForce = this.safeString(order, "timeInForce");
+        String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
@@ -4773,14 +4773,14 @@ public class XtCore extends XtApi
             }
             postOnly = (Helpers.isEqual(timeInForce, "PO"));
         }
-        Object side = this.safeStringLower2(order, "side", "orderSide");
+        String side = (String)this.safeStringLower2(order, "side", "orderSide");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             // the stop loss and take profit entries carry only the position
             // side, they close the position, so a long position closes with a
             // sell and a short position closes with a buy
             // see https://github.com/ccxt/ccxt/issues/25288
-            Object positionSide = this.safeString(order, "positionSide");
+            String positionSide = this.safeString(order, "positionSide");
             if (Helpers.isTrue(!Helpers.isEqual(positionSide, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(positionSide, "LONG")))
@@ -4950,9 +4950,9 @@ public class XtCore extends XtApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object side = this.safeString(item, "side");
+        String side = this.safeString(item, "side");
         Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "ADD"))))) ? "in" : "out";
-        Object currencyId = this.safeString(item, "coin");
+        String currencyId = this.safeString(item, "coin");
         currency = this.safeCurrency(currencyId, currency);
         Object timestamp = this.safeInteger(item, "createdTime");
         final Object finalCurrency = currency;
@@ -5051,7 +5051,7 @@ public class XtCore extends XtApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -5241,7 +5241,7 @@ public class XtCore extends XtApi
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object networkIdsByCodes = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-            Object networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
+            String networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "chain", networkId );
@@ -5313,12 +5313,12 @@ public class XtCore extends XtApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "fromAddr"))))) ? "deposit" : "withdraw";
         Object timestamp = this.safeInteger(transaction, "createdTime");
-        Object address = this.safeString(transaction, "address");
-        Object memo = this.safeString(transaction, "memo");
+        String address = this.safeString(transaction, "address");
+        String memo = this.safeString(transaction, "memo");
         Object currencyCode = this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
         Object fee = this.safeNumber(transaction, "fee");
         Object feeCurrency = ((Helpers.isTrue((!Helpers.isEqual(fee, null))))) ? currencyCode : null;
-        Object networkId = this.safeString(transaction, "chain");
+        String networkId = this.safeString(transaction, "chain");
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -5384,7 +5384,7 @@ public class XtCore extends XtApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            Object positionSide = this.safeString(parameters, "positionSide");
+            String positionSide = this.safeString(parameters, "positionSide");
             this.checkRequiredArgument("setLeverage", positionSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
             {
@@ -5480,7 +5480,7 @@ public class XtCore extends XtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object addOrReduce = addOrReduce3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positionSide = this.safeString(parameters, "positionSide");
+            String positionSide = this.safeString(parameters, "positionSide");
             Object methodName = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "ADD"))))) ? "addMargin" : "reduceMargin";
             this.checkRequiredArgument(methodName, positionSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5625,7 +5625,7 @@ public class XtCore extends XtApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object entry = Helpers.GetValue(response, i);
-            Object marketId = this.safeString(entry, "symbol");
+            String marketId = this.safeString(entry, "symbol");
             Object market = this.safeMarket(marketId, null, "_", "contract");
             Object symbol = this.safeSymbol(marketId, market);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -5730,7 +5730,7 @@ public class XtCore extends XtApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
         {
             Object tier = Helpers.GetValue(brackets, i);
-            Object marketId = this.safeString(info, "symbol");
+            String marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
             Object minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
 final Object finalMarket = market;
@@ -5838,7 +5838,7 @@ final Object finalMarket = market;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
             {
                 Object entry = Helpers.GetValue(items, i);
-                Object marketId = this.safeString(entry, "symbol");
+                String marketId = this.safeString(entry, "symbol");
                 Object symbolInner = this.safeSymbol(marketId, market);
                 Object timestamp = this.safeInteger(entry, "createdTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
@@ -5944,7 +5944,7 @@ final Object finalMarket = market;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "symbol");
+        String marketId = this.safeString(contract, "symbol");
         Object symbol = this.safeSymbol(marketId, market, "_", "swap");
         Object timestamp = this.safeInteger(contract, "nextCollectionTime");
         Object interval = this.safeString(contract, "collectionInternal");
@@ -6041,7 +6041,7 @@ final Object finalMarket = market;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(interest, "symbol");
+        String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         Object timestamp = this.safeInteger(interest, "time");
         final Object finalMarket = market;
@@ -6280,9 +6280,9 @@ final Object finalMarket = market;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "symbol");
+        String marketId = this.safeString(contract, "symbol");
         Object symbol = this.safeSymbol(marketId, market, "_", "swap");
-        Object currencyId = this.safeString(contract, "coin");
+        String currencyId = this.safeString(contract, "coin");
         Object code = this.safeCurrencyCode(currencyId);
         Object timestamp = this.safeInteger(contract, "createdTime");
         return new java.util.HashMap<String, Object>() {{
@@ -6325,7 +6325,7 @@ final Object finalMarket = market;
      */
     public Object mergePositionBreakInfo(Object entry, Object breakBySymbolSide)
     {
-        Object marketId = this.safeString(entry, "symbol");
+        String marketId = this.safeString(entry, "symbol");
         Object key = Helpers.add(Helpers.add(marketId, "_"), this.safeString(entry, "positionSide"));
         Object breakEntry = this.safeDict(breakBySymbolSide, key);
         if (Helpers.isTrue(Helpers.isEqual(breakEntry, null)))
@@ -6427,9 +6427,9 @@ final Object finalMarket = market;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object entry = Helpers.GetValue(positions, i);
-                Object marketId = this.safeString(entry, "symbol");
+                String marketId = this.safeString(entry, "symbol");
                 Object marketInner = this.safeMarket(marketId, null, null, "contract");
-                Object positionSize = this.safeString(entry, "positionSize");
+                String positionSize = this.safeString(entry, "positionSize");
                 if (Helpers.isTrue(!Helpers.isEqual(positionSize, "0")))
                 {
                     Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
@@ -6527,7 +6527,7 @@ final Object finalMarket = market;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object entry = Helpers.GetValue(positions, i);
-                Object marketId = this.safeString(entry, "symbol");
+                String marketId = this.safeString(entry, "symbol");
                 Object marketInner = this.safeMarket(marketId, null, null, "contract");
                 Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
                 ((java.util.List<Object>)result).add(this.parsePosition(merged, marketInner));
@@ -6693,11 +6693,11 @@ final Object finalMarket = market;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "symbol");
+        String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         Object symbol = this.safeSymbol(marketId, market, null, "contract");
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
-        Object positionType = this.safeString(position, "positionType");
+        String positionType = this.safeString(position, "positionType");
         Object isCross = Helpers.isTrue((Helpers.isEqual(positionType, "CROSSED"))) || Helpers.isTrue((Helpers.isEqual(positionType, "1")));
         Object marginMode = ((Helpers.isTrue((isCross)))) ? "cross" : "isolated";
         Object collateral = this.safeNumber(position, "isolatedMargin");
@@ -6758,8 +6758,8 @@ final Object finalMarket = market;
             }
             Object currency = this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsById");
-            Object fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
-            Object toAccountId = this.safeString(accountsByType, toAccount, toAccount);
+            String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
+            String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
             Object amountString = this.currencyToPrecision(code, amount);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "bizId", XtCore.this.uuid() );
@@ -6846,7 +6846,7 @@ final Object finalMarket = market;
             {
                 marginMode = "ISOLATED";
             }
-            Object posSide = this.safeStringUpper(parameters, "positionSide");
+            String posSide = (String)this.safeStringUpper(parameters, "positionSide");
             this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
             parameters = this.omit(parameters, "positionSide");
             final Object finalMarginMode = marginMode;
@@ -7033,15 +7033,15 @@ final Object finalMarket = market;
         // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
         //
         //
-        Object status = this.safeStringUpper2(response, "msgInfo", "mc");
+        String status = (String)this.safeStringUpper2(response, "msgInfo", "mc");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "SUCCESS"))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             Object error = this.safeDict(response, "error", new java.util.HashMap<String, Object>() {{}});
-            Object spotErrorCode = this.safeString(response, "mc");
-            Object errorCode = this.safeString(error, "code", spotErrorCode);
-            Object spotMessage = this.safeString(response, "msgInfo");
-            Object message = this.safeString(error, "msg", spotMessage);
+            String spotErrorCode = this.safeString(response, "mc");
+            String errorCode = this.safeString(error, "code", spotErrorCode);
+            String spotMessage = this.safeString(response, "msgInfo");
+            String message = this.safeString(error, "msg", spotMessage);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError((String)feedback) ;
@@ -7082,8 +7082,8 @@ final Object finalMarket = market;
         if (Helpers.isTrue(signed))
         {
             this.checkRequiredCredentials();
-            Object defaultRecvWindow = this.safeString(this.options, "recvWindow");
-            Object recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
+            String defaultRecvWindow = this.safeString(this.options, "recvWindow");
+            String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
             Object timestamp = this.numberToString(this.nonce());
             body = query;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(payload, "/v4/order"))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create-batch")))))

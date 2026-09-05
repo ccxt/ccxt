@@ -284,8 +284,8 @@ public class BtcboxCore extends BtcboxApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object symbolParts = Helpers.split(marketId, "_");
-                Object baseCurr = this.safeString(symbolParts, 0, "");
-                Object quote = this.safeString(symbolParts, 1, "");
+                String baseCurr = this.safeString(symbolParts, 0, "");
+                String quote = this.safeString(symbolParts, 1, "");
                 Object quoteId = ((String)quote).toLowerCase();
                 Object id = ((String)baseCurr).toLowerCase();
                 Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
@@ -355,9 +355,9 @@ public class BtcboxCore extends BtcboxApi
 
     public Object parseMarket(Object market)
     {
-        Object baseId = this.safeString(market, "base");
+        String baseId = this.safeString(market, "base");
         Object base = this.safeCurrencyCode(baseId);
-        Object quoteId = this.safeString(market, "quote");
+        String quoteId = this.safeString(market, "quote");
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
@@ -499,7 +499,7 @@ public class BtcboxCore extends BtcboxApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -597,11 +597,11 @@ public class BtcboxCore extends BtcboxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(trade, "date");
         market = this.safeMarket(null, market);
-        Object id = this.safeString(trade, "tid");
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
+        String id = this.safeString(trade, "tid");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
         Object type = null;
-        Object side = this.safeString(trade, "type");
+        String side = this.safeString(trade, "type");
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -781,16 +781,16 @@ public class BtcboxCore extends BtcboxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
-        Object datetimeString = this.safeString(order, "datetime");
+        String id = this.safeString(order, "id");
+        String datetimeString = this.safeString(order, "datetime");
         Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(datetimeString, null)))
         {
             timestamp = this.parse8601(Helpers.add(Helpers.GetValue(order, "datetime"), "+09:00")); // Tokyo time
         }
-        Object amount = this.safeString(order, "amount_original");
-        Object remaining = this.safeString(order, "amount_outstanding");
-        Object price = this.safeString(order, "price");
+        String amount = this.safeString(order, "amount_original");
+        String remaining = this.safeString(order, "amount_outstanding");
+        String price = this.safeString(order, "price");
         // status is set by fetchOrder method only
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
         // fetchOrders do not return status, use heuristic
@@ -803,7 +803,7 @@ public class BtcboxCore extends BtcboxApi
         }
         Object trades = null; // todo: this.parseTrades (order['trades']);
         market = this.safeMarket(null, market);
-        Object side = this.safeString(order, "type");
+        String side = this.safeString(order, "type");
         final Object finalTimestamp = timestamp;
         final Object finalStatus = status;
         final Object finalMarket = market;

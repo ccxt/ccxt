@@ -564,7 +564,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             type = "withdrawal";
         }
         Object cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new java.util.HashMap<String, Object>() {{}});
-        Object txid = this.safeString(cryptoPaymentDetail, "txId");
+        String txid = this.safeString(cryptoPaymentDetail, "txId");
         Object address = this.safeString(cryptoPaymentDetail, "address");
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
@@ -581,11 +581,11 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object tagTo = tag;
         Object addressFrom = null;
         Object tagFrom = null;
-        Object fee = this.safeString(transaction, "fee");
+        String fee = this.safeString(transaction, "fee");
         Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object currencyId = this.safeString(transaction, "assetName");
+        String currencyId = this.safeString(transaction, "assetName");
         Object code = this.safeCurrencyCode(currencyId);
-        Object amount = this.safeString(transaction, "amount");
+        String amount = this.safeString(transaction, "amount");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fee, null))) && Helpers.isTrue((!Helpers.isEqual(fee, "")))))
         {
             amount = Precise.stringSub(amount, fee);
@@ -659,9 +659,9 @@ public class BtcmarketsCore extends BtcmarketsApi
 
     public Object parseMarket(Object market)
     {
-        Object baseId = this.safeString(market, "baseAssetName");
-        Object quoteId = this.safeString(market, "quoteAssetName");
-        Object id = this.safeString(market, "marketId");
+        String baseId = this.safeString(market, "baseAssetName");
+        String quoteId = this.safeString(market, "quoteAssetName");
+        String id = this.safeString(market, "marketId");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -669,7 +669,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         Object minAmount = this.safeNumber(market, "minOrderAmount");
         Object maxAmount = this.safeNumber(market, "maxOrderAmount");
-        Object status = this.safeString(market, "status");
+        String status = this.safeString(market, "status");
         Object minPrice = null;
         if (Helpers.isTrue(Helpers.isEqual(quote, "AUD")))
         {
@@ -765,7 +765,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(balance, "assetName");
+            String currencyId = this.safeString(balance, "assetName");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -939,15 +939,15 @@ public class BtcmarketsCore extends BtcmarketsApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "marketId");
+        String marketId = this.safeString(ticker, "marketId");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
-        Object last = this.safeString(ticker, "lastPrice");
-        Object baseVolume = this.safeString(ticker, "volume24h");
-        Object quoteVolume = this.safeString(ticker, "volumeQte24h");
-        Object change = this.safeString(ticker, "price24h");
-        Object percentage = this.safeString(ticker, "pricePct24h");
+        String last = this.safeString(ticker, "lastPrice");
+        String baseVolume = this.safeString(ticker, "volume24h");
+        String quoteVolume = this.safeString(ticker, "volumeQte24h");
+        String change = this.safeString(ticker, "price24h");
+        String percentage = this.safeString(ticker, "pricePct24h");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1066,10 +1066,10 @@ public class BtcmarketsCore extends BtcmarketsApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(trade, "timestamp"));
-        Object marketId = this.safeString(trade, "marketId");
+        String marketId = this.safeString(trade, "marketId");
         market = this.safeMarket(marketId, market, "-");
         Object feeCurrencyCode = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quote"), "AUD"))))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
-        Object side = this.safeString(trade, "side");
+        String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "Bid")))
         {
             side = "buy";
@@ -1077,12 +1077,12 @@ public class BtcmarketsCore extends BtcmarketsApi
         {
             side = "sell";
         }
-        Object id = this.safeString(trade, "id");
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object orderId = this.safeString(trade, "orderId");
+        String id = this.safeString(trade, "id");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String orderId = this.safeString(trade, "orderId");
         Object fee = null;
-        Object feeCostString = this.safeString(trade, "fee");
+        String feeCostString = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             final Object finalFeeCostString = feeCostString;
@@ -1091,7 +1091,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object takerOrMaker = this.safeStringLower(trade, "liquidityType");
+        String takerOrMaker = (String)this.safeStringLower(trade, "liquidityType");
         final Object finalMarket = market;
         final Object finalSide = side;
         final Object finalFee = fee;
@@ -1231,7 +1231,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
@@ -1442,9 +1442,9 @@ public class BtcmarketsCore extends BtcmarketsApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(order, "creationTime"));
-        Object marketId = this.safeString(order, "marketId");
+        String marketId = this.safeString(order, "marketId");
         market = this.safeMarket(marketId, market, "-");
-        Object side = this.safeString(order, "side");
+        String side = this.safeString(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "Bid")))
         {
             side = "buy";
@@ -1452,14 +1452,14 @@ public class BtcmarketsCore extends BtcmarketsApi
         {
             side = "sell";
         }
-        Object type = this.safeStringLower(order, "type");
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "amount");
-        Object remaining = this.safeString(order, "openAmount");
+        String type = (String)this.safeStringLower(order, "type");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "amount");
+        String remaining = this.safeString(order, "openAmount");
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object id = this.safeString(order, "orderId");
-        Object clientOrderId = this.safeString(order, "clientOrderId");
-        Object timeInForce = this.safeString(order, "timeInForce");
+        String id = this.safeString(order, "orderId");
+        String clientOrderId = this.safeString(order, "clientOrderId");
+        String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = this.safeBool(order, "postOnly");
         final Object finalMarket = market;
         final Object finalSide = side;
@@ -1825,8 +1825,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         //     {"code":"UnAuthorized","message":"invalid access token"}
         //     {"code":"MarketNotFound","message":"invalid marketId"}
         //
-        Object errorCode = this.safeString(response, "code");
-        Object message = this.safeString(response, "message");
+        String errorCode = this.safeString(response, "code");
+        String message = this.safeString(response, "message");
         if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

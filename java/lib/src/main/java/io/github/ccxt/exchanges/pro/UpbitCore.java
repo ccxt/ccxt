@@ -641,7 +641,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "uuid");
-        Object side = this.safeStringLower(order, "ask_bid");
+        String side = (String)this.safeStringLower(order, "ask_bid");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
@@ -697,7 +697,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
     {
         // see: parseWsOrder
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object side = this.safeStringLower(trade, "ask_bid");
+        String side = (String)this.safeStringLower(trade, "ask_bid");
         if (Helpers.isTrue(Helpers.isEqual(side, "bid")))
         {
             side = "buy";
