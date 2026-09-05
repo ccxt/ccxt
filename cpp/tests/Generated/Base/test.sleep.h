@@ -10,7 +10,7 @@ std::shared_future<std::any> testSleep();
 
 std::shared_future<std::any> testSleep()
 {
-    return std::async(std::launch::async, [=]() mutable -> std::any {
+    return std::async(std::launch::deferred, [=]() mutable -> std::any {
         ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
             { std::string("id"), std::string("sampleexchange") },
         });

@@ -10,7 +10,7 @@ std::shared_future<std::any> testSetMarketsFromExchange();
 
 std::shared_future<std::any> testSetMarketsFromExchange()
 {
-    return std::async(std::launch::async, [=]() mutable -> std::any {
+    return std::async(std::launch::deferred, [=]() mutable -> std::any {
         ccxt::Exchange emptyExchange = ccxt::Exchange(ccxt::dict {
             { std::string("id"), std::string("sample0") },
         });
