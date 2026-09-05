@@ -28,7 +28,7 @@ export default class onetrading extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -530,6 +530,25 @@ export default class onetrading extends Exchange {
         //      "state": "ACTIVE"
         //  }
         //
+        //  {
+        //      "base": { "code": "BTC", "precision": 8 },
+        //      "quote": { "code": "USD", "precision": 8 },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_USD_P",
+        //      "price_collar_percentage": "10",
+        //      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+        //      "state": "ACTIVE",
+        //      "funding_period": 240,
+        //      "market_offset": 0,
+        //      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+        //      "contract_expiry_date": "2031-04-20",
+        //      "contract_duration": "5Y"
+        //  }
+        //
         const baseAsset = this.safeDict (market, 'base', {});
         const quoteAsset = this.safeDict (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');
@@ -540,32 +559,48 @@ export default class onetrading extends Exchange {
         const state = this.safeString (market, 'state');
         const type = this.safeString (market, 'type');
         const isPerp = type === 'PERP';
+        const isFuture = (type === 'DATED_FUTURE') || (type === 'EQUITY_FUTURE');
+        const isContract = isPerp || isFuture;
+        let expiry: Int = undefined;
+        const expiryDate = this.safeString (market, 'contract_expiry_date');
+        if (expiryDate !== undefined) {
+            expiry = this.parse8601 (expiryDate + 'T00:00:00Z');
+        }
         let symbol = base + '/' + quote;
-        if (isPerp) {
+        if (isContract) {
             symbol = symbol + ':' + quote;
+            if (isFuture && (expiry !== undefined)) {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
+        }
+        let marketType = 'spot';
+        if (isPerp) {
+            marketType = 'swap';
+        } else if (isFuture) {
+            marketType = 'future';
         }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': isPerp ? quote : undefined,
+            'settle': isContract ? quote : undefined,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': isPerp ? quoteId : undefined,
-            'type': isPerp ? 'swap' : 'spot',
-            'spot': !isPerp,
+            'settleId': isContract ? quoteId : undefined,
+            'type': marketType,
+            'spot': !isContract,
             'margin': false,
             'swap': isPerp,
-            'future': false,
+            'future': isFuture,
             'option': false,
-            'active': (state === 'ACTIVE'),
-            'contract': isPerp,
-            'linear': isPerp ? true : undefined,
-            'inverse': isPerp ? false : undefined,
-            'contractSize': isPerp ? this.parseNumber ('1') : undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'active': (state === 'ACTIVE') || (state === 'POST_ONLY'), // POST_ONLY markets accept maker orders and reject taker orders — deliberately flagged tradeable rather than hidden, ccxt has no partial-trading flag
+            'contract': isContract,
+            'linear': isContract ? true : undefined,
+            'inverse': isContract ? false : undefined,
+            'contractSize': isContract ? this.parseNumber ('1') : undefined,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
             'precision': {
