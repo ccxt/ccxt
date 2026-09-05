@@ -362,7 +362,7 @@
                         "bidVolume": null,
                         "ask": null,
                         "askVolume": null,
-                        "vwap": null,
+                        "vwap": 79691.28754299493,
                         "open": 79615.4,
                         "close": 80024.2,
                         "last": 80024.2,
@@ -371,7 +371,7 @@
                         "percentage": 0.5134684998128503,
                         "average": 79819.8,
                         "baseVolume": 2820.1,
-                        "quoteVolume": null,
+                        "quoteVolume": 224737400,
                         "info": {
                             "e": "24hrMiniTicker",
                             "E": 1788627876898,

@@ -2613,16 +2613,21 @@ export default class binance extends binanceRest {
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const last = this.safeString2 (message, 'c', 'price');
-        // A coin-margined stream counts `v` in contracts and puts the base asset in
-        // `q`, so both fields land one place over from where a linear stream puts
-        // them. `parseTicker` derives the pair the same way from `volume` and
-        // `baseVolume`. The recorded BTCUSD_PERP frame below reads 13210881
-        // against 16424.3, and a hundred dollars a contract either way.
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
         let baseVolume = this.safeString (message, 'v');
         let quoteVolume = this.safeString (message, 'q');
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
+            const contracts = baseVolume;
             baseVolume = quoteVolume;
-            quoteVolume = Precise.stringMul (baseVolume, this.safeString (message, 'w'));
+            const weightedAverage = this.safeString (message, 'w');
+            if (weightedAverage === undefined) {
+                quoteVolume = Precise.stringMul (contracts, this.safeString (market, 'contractSize'));
+            } else {
+                quoteVolume = Precise.stringMul (baseVolume, weightedAverage);
+            }
         }
         return this.safeTicker ({
             'symbol': symbol,
