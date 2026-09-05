@@ -1,8 +1,0 @@
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/ccxt.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/ccxt-value-tests.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/ccxt-tests.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/ccxt-smoke-binance.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/ccxt-static-binance.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/test.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/edit_cache.dir
-/root/new-lang/ccxt/cpp/build-asan/CMakeFiles/rebuild_cache.dir
