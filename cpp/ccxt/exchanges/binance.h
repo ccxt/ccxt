@@ -4587,7 +4587,7 @@ public:
      */
     std::shared_future<std::any> fetchTime(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any defaultType = this->safeString2(this->options, std::string("fetchTime"), std::string("defaultType"), std::string("spot"));
             std::any type = this->safeString(params, std::string("type"), defaultType);
             std::any query = this->omit(params, std::string("type"));
@@ -4621,7 +4621,7 @@ public:
      */
     std::shared_future<std::any> fetchCurrencies(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any fetchCurrenciesEnabled = this->safeBool(this->options, std::string("fetchCurrencies"));
             if (isTrue(!isEqual(fetchCurrenciesEnabled, true)))
             {
@@ -4903,7 +4903,7 @@ public:
      */
     std::shared_future<std::any> fetchMarkets(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any promisesRaw = ccxt::list{};
             std::any rawFetchMarkets = std::any{};
             std::any defaultTypes = ccxt::list{std::string("spot"), std::string("linear"), std::string("inverse")};
@@ -5669,7 +5669,7 @@ public:
      */
     std::shared_future<std::any> fetchBalance(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -5966,7 +5966,7 @@ public:
      */
     std::shared_future<std::any> fetchOrderBook(std::any symbol, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6259,7 +6259,7 @@ public:
      */
     std::shared_future<std::any> fetchStatus(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any response = awaitValue(this->sapiGetSystemStatus(params));
             //
             //     {
@@ -6298,7 +6298,7 @@ public:
      */
     std::shared_future<std::any> fetchTicker(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6364,7 +6364,7 @@ public:
      */
     std::shared_future<std::any> fetchBidsAsks(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6431,7 +6431,7 @@ public:
      */
     std::shared_future<std::any> fetchLastPrices(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6522,7 +6522,7 @@ public:
      */
     std::shared_future<std::any> fetchTickers(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6605,7 +6605,7 @@ public:
      */
     std::shared_future<std::any> fetchMarkPrice(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6662,7 +6662,7 @@ public:
      */
     std::shared_future<std::any> fetchMarkPrices(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -6779,7 +6779,7 @@ public:
      */
     std::shared_future<std::any> fetchOHLCV(std::any symbol, std::any timeframe = std::string("1m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -7247,7 +7247,7 @@ public:
      */
     std::shared_future<std::any> fetchTrades(std::any symbol, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -7436,7 +7436,7 @@ public:
      */
     virtual std::shared_future<std::any> editSpotOrder(std::any id, std::any symbol, std::any type, std::any side, std::any amount, std::any price = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -7724,7 +7724,7 @@ public:
      */
     virtual std::shared_future<std::any> editContractOrder(std::any id, std::any symbol, std::any type, std::any side, std::any amount, std::any price = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -7808,7 +7808,7 @@ public:
      */
     std::shared_future<std::any> editOrder(std::any id, std::any symbol, std::any type, std::any side, std::any amount = std::any{}, std::any price = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -7841,7 +7841,7 @@ public:
      */
     std::shared_future<std::any> editOrders(std::any orders, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -8675,7 +8675,7 @@ public:
      */
     std::shared_future<std::any> createOrders(std::any orders, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -8799,7 +8799,7 @@ public:
      */
     std::shared_future<std::any> createOrder(std::any symbol, std::any type, std::any side, std::any amount, std::any price = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -9414,7 +9414,7 @@ public:
      */
     std::shared_future<std::any> createMarketOrderWithCost(std::any symbol, std::any side, std::any cost, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -9443,7 +9443,7 @@ public:
      */
     std::shared_future<std::any> createMarketBuyOrderWithCost(std::any symbol, std::any cost, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -9472,7 +9472,7 @@ public:
      */
     std::shared_future<std::any> createMarketSellOrderWithCost(std::any symbol, std::any cost, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -9511,7 +9511,7 @@ public:
      */
     std::shared_future<std::any> fetchOrder(std::any id, std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -9661,7 +9661,7 @@ public:
      */
     std::shared_future<std::any> fetchOrders(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -10046,7 +10046,7 @@ public:
      */
     std::shared_future<std::any> fetchOpenOrders(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -10193,7 +10193,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchOpenOrder(std::any id, std::any symbol = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(symbol, std::any{})))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" fetchOpenOrder() requires a symbol argument"))));
@@ -10438,7 +10438,7 @@ public:
      */
     std::shared_future<std::any> fetchClosedOrders(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any market = std::any{};
             std::any stock = std::any{};
             std::any stockparamsVariable = this->handleOptionAndParams(params, std::string("fetchClosedOrders"), std::string("stock"), false);
@@ -10489,7 +10489,7 @@ public:
      */
     std::shared_future<std::any> fetchCanceledOrders(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any market = std::any{};
             std::any stock = std::any{};
             std::any stockparamsVariable = this->handleOptionAndParams(params, std::string("fetchCanceledOrders"), std::string("stock"), false);
@@ -10540,7 +10540,7 @@ public:
      */
     std::shared_future<std::any> fetchCanceledAndClosedOrders(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any market = std::any{};
             std::any stock = std::any{};
             std::any stockparamsVariable = this->handleOptionAndParams(params, std::string("fetchCanceledAndClosedOrders"), std::string("stock"), false);
@@ -10594,7 +10594,7 @@ public:
      */
     std::shared_future<std::any> cancelOrder(std::any id, std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -10771,7 +10771,7 @@ public:
      */
     std::shared_future<std::any> cancelAllOrders(std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -10907,7 +10907,7 @@ public:
      */
     std::shared_future<std::any> cancelOrders(std::any ids, std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(symbol, std::any{})))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" cancelOrders() requires a symbol argument"))));
@@ -10997,7 +10997,7 @@ public:
      */
     std::shared_future<std::any> fetchOrderTrades(std::any id, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(symbol, std::any{})))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" fetchOrderTrades() requires a symbol argument"))));
@@ -11044,7 +11044,7 @@ public:
      */
     std::shared_future<std::any> fetchMyTrades(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -11361,7 +11361,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchMyDustTrades(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             //
             // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
             // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
@@ -11526,7 +11526,7 @@ public:
      */
     std::shared_future<std::any> fetchDeposits(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -11622,7 +11622,7 @@ public:
      */
     std::shared_future<std::any> fetchWithdrawals(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12041,7 +12041,7 @@ public:
      */
     std::shared_future<std::any> transfer(std::any code, std::any amount, std::any fromAccount, std::any toAccount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12168,7 +12168,7 @@ public:
      */
     std::shared_future<std::any> fetchTransfers(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12256,7 +12256,7 @@ public:
      */
     std::shared_future<std::any> fetchDepositAddress(std::any code, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12336,7 +12336,7 @@ public:
      */
     std::shared_future<std::any> fetchTransactionFees(std::any codes = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12466,7 +12466,7 @@ public:
      */
     std::shared_future<std::any> fetchDepositWithdrawFees(std::any codes = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12608,7 +12608,7 @@ public:
      */
     std::shared_future<std::any> withdraw(std::any code, std::any amount, std::any address, std::any tag = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any tagparamsVariable = this->handleWithdrawTagAndParams(tag, params);
             tag = ::getValue(tagparamsVariable, 0);
             params = ::getValue(tagparamsVariable, 1);
@@ -12689,7 +12689,7 @@ public:
      */
     std::shared_future<std::any> fetchTradingFee(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12778,7 +12778,7 @@ public:
      */
     std::shared_future<std::any> fetchTradingFees(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -12996,7 +12996,7 @@ public:
      */
     virtual std::shared_future<std::any> futuresTransfer(std::any code, std::any amount, std::any type, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isTrue((isLessThan(type, 1))) || isTrue((isGreaterThan(type, 4)))))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" type must be between 1 and 4"))));
@@ -13033,7 +13033,7 @@ public:
      */
     std::shared_future<std::any> fetchFundingRate(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -13094,7 +13094,7 @@ public:
      */
     std::shared_future<std::any> fetchFundingRateHistory(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -13191,7 +13191,7 @@ public:
      */
     std::shared_future<std::any> fetchFundingRates(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -13866,7 +13866,7 @@ public:
 
     virtual std::shared_future<std::any> loadLeverageBrackets(std::any reload = false, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -13953,7 +13953,7 @@ public:
      */
     std::shared_future<std::any> fetchLeverageTiers(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -14091,7 +14091,7 @@ public:
      */
     std::shared_future<std::any> fetchPosition(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -14143,7 +14143,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchOptionPositions(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -14281,7 +14281,7 @@ public:
      */
     std::shared_future<std::any> fetchPositions(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any defaultMethod = std::any{};
             std::any defaultMethodparamsVariable = this->handleOptionAndParams(params, std::string("fetchPositions"), std::string("method"));
             defaultMethod = ::getValue(defaultMethodparamsVariable, 0);
@@ -14337,7 +14337,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchAccountPositions(std::any symbols = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(!isEqual(symbols, std::any{})))
             {
                 if (!isTrue(isArray(symbols)))
@@ -14423,7 +14423,7 @@ public:
      */
     std::shared_future<std::any> fetchPositionsRisk(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(!isEqual(symbols, std::any{})))
             {
                 if (!isTrue(isArray(symbols)))
@@ -14603,7 +14603,7 @@ public:
      */
     std::shared_future<std::any> fetchFundingHistory(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -14686,7 +14686,7 @@ public:
      */
     std::shared_future<std::any> setLeverage(std::any leverage, std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(symbol, std::any{})))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" setLeverage() requires a symbol argument"))));
@@ -14754,7 +14754,7 @@ public:
      */
     std::shared_future<std::any> setMarginMode(std::any marginMode, std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(symbol, std::any{})))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" setMarginMode() requires a symbol argument"))));
@@ -14847,7 +14847,7 @@ public:
      */
     std::shared_future<std::any> setPositionMode(std::any hedged, std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any market = std::any{};
             if (isTrue(!isEqual(symbol, std::any{})))
             {
@@ -14929,7 +14929,7 @@ public:
      */
     std::shared_future<std::any> fetchLeverages(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -15030,7 +15030,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchSettlementHistory(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -15089,7 +15089,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchMySettlementHistory(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -15243,7 +15243,7 @@ public:
      */
     std::shared_future<std::any> fetchLedgerEntry(std::any id, std::any code = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -15300,7 +15300,7 @@ public:
      */
     std::shared_future<std::any> fetchLedger(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -15890,7 +15890,7 @@ public:
 
     std::shared_future<std::any> request(std::any path, std::any api = std::string("public"), std::any method = std::string("GET"), std::any params = ccxt::dict {}, std::any headers = std::any{}, std::any body = std::any{}, std::any config = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any response = awaitValue(this->fetch2(path, api, method, params, headers, body, config));
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             if (isTrue(isEqual(api, std::string("private"))))
@@ -15903,7 +15903,7 @@ public:
 
     virtual std::shared_future<std::any> modifyMarginHelper(std::any symbol, std::any amount, std::any addOrReduce, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             // used to modify isolated positions
             std::any defaultType = this->safeString(this->options, std::string("defaultType"), std::string("future"));
             if (isTrue(isEqual(defaultType, std::string("spot"))))
@@ -16014,7 +16014,7 @@ public:
      */
     std::shared_future<std::any> reduceMargin(std::any symbol, std::any amount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->modifyMarginHelper(symbol, amount, 2, params));
         }).share();
     }
@@ -16032,7 +16032,7 @@ public:
      */
     std::shared_future<std::any> addMargin(std::any symbol, std::any amount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             return awaitValue(this->modifyMarginHelper(symbol, amount, 1, params));
         }).share();
     }
@@ -16048,7 +16048,7 @@ public:
      */
     std::shared_future<std::any> fetchCrossBorrowRate(std::any code, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16087,7 +16087,7 @@ public:
      */
     std::shared_future<std::any> fetchIsolatedBorrowRate(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any request = ccxt::dict {
                 { std::string("symbol"), symbol },
             };
@@ -16110,7 +16110,7 @@ public:
      */
     std::shared_future<std::any> fetchIsolatedBorrowRates(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16162,7 +16162,7 @@ public:
      */
     virtual std::shared_future<std::any> fetchBorrowRateHistory(std::any code, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16274,7 +16274,7 @@ public:
      */
     virtual std::shared_future<std::any> createGiftCode(std::any code, std::any amount, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16318,7 +16318,7 @@ public:
      */
     virtual std::shared_future<std::any> redeemGiftCode(std::any giftcardCode, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any request = ccxt::dict {
                 { std::string("code"), giftcardCode },
             };
@@ -16349,7 +16349,7 @@ public:
      */
     virtual std::shared_future<std::any> verifyGiftCode(std::any id, std::any params = ccxt::dict {})
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any request = ccxt::dict {
                 { std::string("referenceNo"), id },
             };
@@ -16382,7 +16382,7 @@ public:
      */
     std::shared_future<std::any> fetchBorrowInterest(std::any code = std::any{}, std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16499,7 +16499,7 @@ public:
      */
     std::shared_future<std::any> repayCrossMargin(std::any code, std::any amount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16550,7 +16550,7 @@ public:
      */
     std::shared_future<std::any> repayIsolatedMargin(std::any symbol, std::any code, std::any amount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16589,7 +16589,7 @@ public:
      */
     std::shared_future<std::any> borrowCrossMargin(std::any code, std::any amount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16636,7 +16636,7 @@ public:
      */
     std::shared_future<std::any> borrowIsolatedMargin(std::any symbol, std::any code, std::any amount, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16709,7 +16709,7 @@ public:
      */
     std::shared_future<std::any> fetchOpenInterestHistory(std::any symbol, std::any timeframe = std::string("5m"), std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(timeframe, std::string("1m"))))
             {
                 throw BadRequest(toString(add(this->id, std::string(" fetchOpenInterestHistory cannot use the 1m timeframe"))));
@@ -16795,7 +16795,7 @@ public:
      */
     std::shared_future<std::any> fetchOpenInterest(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -16920,7 +16920,7 @@ public:
      */
     std::shared_future<std::any> fetchMyLiquidations(std::any symbol = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17200,7 +17200,7 @@ public:
      */
     std::shared_future<std::any> fetchGreeks(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17242,7 +17242,7 @@ public:
      */
     std::shared_future<std::any> fetchAllGreeks(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17325,7 +17325,7 @@ public:
 
     std::shared_future<std::any> fetchTradingLimits(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             // this method should not be called directly, use loadTradingLimits () instead
             std::any markets = awaitValue(this->fetchMarkets());
             std::any tradingLimits = ccxt::dict {};
@@ -17362,7 +17362,7 @@ public:
      */
     std::shared_future<std::any> fetchPositionMode(std::any symbol = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             std::any market = std::any{};
             if (isTrue(!isEqual(symbol, std::any{})))
             {
@@ -17409,7 +17409,7 @@ public:
      */
     std::shared_future<std::any> fetchMarginModes(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17457,7 +17457,7 @@ public:
      */
     std::shared_future<std::any> fetchMarginMode(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17523,7 +17523,7 @@ public:
      */
     std::shared_future<std::any> fetchOption(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17625,7 +17625,7 @@ public:
      */
     std::shared_future<std::any> fetchMarginAdjustmentHistory(std::any symbol = std::any{}, std::any type = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17701,7 +17701,7 @@ public:
      */
     std::shared_future<std::any> fetchConvertCurrencies(std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17772,7 +17772,7 @@ public:
      */
     std::shared_future<std::any> fetchConvertQuote(std::any fromCode, std::any toCode, std::any amount = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(amount, std::any{})))
             {
                 throw ArgumentsRequired(toString(add(this->id, std::string(" fetchConvertQuote() requires an amount argument"))));
@@ -17821,7 +17821,7 @@ public:
      */
     std::shared_future<std::any> createConvertTrade(std::any id, std::any fromCode, std::any toCode, std::any amount = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17866,7 +17866,7 @@ public:
      */
     std::shared_future<std::any> fetchConvertTrade(std::any id, std::any code = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -17931,7 +17931,7 @@ public:
      */
     std::shared_future<std::any> fetchConvertTradeHistory(std::any code = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -18095,7 +18095,7 @@ public:
      */
     std::shared_future<std::any> fetchFundingIntervals(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -18153,7 +18153,7 @@ public:
      */
     std::shared_future<std::any> fetchLongShortRatioHistory(std::any symbol = std::any{}, std::any timeframe = std::any{}, std::any since = std::any{}, std::any limit = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -18244,7 +18244,7 @@ public:
      */
     std::shared_future<std::any> fetchADLRank(std::any symbol, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
@@ -18288,7 +18288,7 @@ public:
      */
     std::shared_future<std::any> fetchPositionsADLRank(std::any symbols = std::any{}, std::any params = ccxt::dict {}) override
     {
-        return std::async(std::launch::async, [=]() mutable -> std::any {
+        return std::async(std::launch::deferred, [=]() mutable -> std::any {
             if (isTrue(isEqual(this->markets, std::any{})))
             {
                 awaitValue(this->loadMarkets());
