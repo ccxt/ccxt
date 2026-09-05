@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { patchJavaLocalTypes } from './javaLocalTypes.js';
+import { patchJavaLocalTypes } from './javaTranspiler.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
