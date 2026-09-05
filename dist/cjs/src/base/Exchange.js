@@ -14,19 +14,11 @@ var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
-var index = require('../static_dependencies/ethers/index.js');
-require('../static_dependencies/ethers/utils/errors.js');
-require('../static_dependencies/ethers/utils/maths.js');
-require('../static_dependencies/ethers/utils/utf8.js');
-var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
+var ethabi = require('./functions/ethabi.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
-require('@noble/curves/abstract/poseidon.js');
-var selector = require('../static_dependencies/starknet/utils/selector.js');
-var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
-var index$1 = require('../static_dependencies/starknet/utils/calldata/index.js');
-var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
+var starknet$1 = require('./functions/starknet.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
-var index$2 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
+var index = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 var io = require('./functions/io.js');
 
 function _interopNamespace(e) {
@@ -1799,10 +1791,10 @@ class BaseExchange {
         return modifiedContent;
     }
     ethAbiEncode(types, args) {
-        return this.base16ToBinary(index["default"].encode(types, args).slice(2));
+        return this.base16ToBinary(ethabi.abiEncode(types, args).slice(2));
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
-        return this.base16ToBinary(typedData.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+        return this.base16ToBinary(ethabi.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
     }
     ethGetAddressFromPrivateKey(privateKey) {
         // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
@@ -1824,15 +1816,15 @@ class BaseExchange {
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = starknet.ethSigToPrivate(signature);
         const publicKey = starknet.getStarkKey(privateKey);
-        const callData = index$1.CallData.compile({
+        const callData = starknet$1.compileCalldata({
             'implementation': accountClassHash,
-            'selector': selector.getSelectorFromName('initialize'),
-            'calldata': index$1.CallData.compile({
+            'selector': starknet$1.getSelectorFromName('initialize'),
+            'calldata': starknet$1.compileCalldata({
                 'signer': publicKey,
                 'guardian': '0',
             }),
         });
-        const address = classHash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
+        const address = starknet$1.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
@@ -1856,7 +1848,7 @@ class BaseExchange {
             }, messageTypes),
             'message': messageData,
         };
-        const msgHash = typedData$1.getMessageHash(request, address);
+        const msgHash = starknet$1.getMessageHash(request, address);
         return msgHash;
     }
     starknetSign(msgHash, pri) {
@@ -1869,10 +1861,10 @@ class BaseExchange {
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     extendedStarknetGetSelectorFromName(name) {
-        return selector.getSelectorFromName(name);
+        return starknet$1.getSelectorFromName(name);
     }
     extendedStarknetComputePoseidonHashOnElements(data) {
-        return classHash.computePoseidonHashOnElements(data);
+        return starknet$1.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId', '')), sha2_js.sha256, 'hex'))).toString();
@@ -1964,7 +1956,7 @@ class BaseExchange {
         SignMode = modules[2].SignMode;
     }
     toDydxLong(numStr) {
-        return index$2["default"].fromString(numStr);
+        return index["default"].fromString(numStr);
     }
     retrieveDydxCredentials(privateKey) {
         const privateKeyBytes = this.base16ToBinary(this.remove0xPrefix(privateKey));
