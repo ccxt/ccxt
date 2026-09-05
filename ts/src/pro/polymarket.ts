@@ -722,17 +722,36 @@ export default class polymarket extends polymarketRest {
         //         }
         //     }
         //
-        const data = this.safeDict (message, 'data', {});
+        const data = this.safeValue (message, 'data');
+        let rows = [];
+        if (Array.isArray (data)) {
+            rows = data;
+        } else {
+            rows.push (data);
+        }
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            return;
+        }
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const parsed = this.parseOrder (data);
-        stored.append (parsed);
+        const symbols: Dict = {};
+        for (let i = 0; i < rows.length; i++) {
+            const row = this.safeDict (rows, i, {});
+            const parsed = this.parseOrder (row);
+            stored.append (parsed);
+            const symbol = this.safeString (parsed, 'symbol');
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
+        }
         client.resolve (stored, 'orders');
-        const symbol = this.safeString (parsed, 'symbol');
-        if (symbol !== undefined) {
+        const symbolKeys = Object.keys (symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
             client.resolve (stored, 'orders:' + symbol);
         }
     }
@@ -806,7 +825,7 @@ export default class polymarket extends polymarketRest {
             return;
         }
         if (this.myTrades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const limit = this.safeInteger (this.options, 'myTradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.myTrades;
@@ -1075,6 +1094,7 @@ export default class polymarket extends polymarketRest {
         delete client.subscriptions[key];
         const messageHashes = this.safeList (pending, 'messageHashes', []);
         const subMessageHashes = this.safeList (pending, 'subMessageHashes', []);
+        const action = this.safeString (pending, 'method');
         let errorMessage: Str = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i, {});
@@ -1087,17 +1107,23 @@ export default class polymarket extends polymarketRest {
             const error = new ExchangeError (this.id + ' ' + errorMessage);
             for (let i = 0; i < messageHashes.length; i++) {
                 client.reject (error, messageHashes[i]);
-                // the hash registered by the base watch call is the awaited
-                // message hash, clearing it lets a later call resend - on a
-                // failed unsubscribe the live subscription stays untouched
+                // clearing the awaited hash lets a later call resend, and a
+                // failed subscribe must also clear the shared hash the base
+                // watch registered - a failed unsubscribe keeps the live
+                // subscription untouched instead
                 const messageHash = messageHashes[i];
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
+                if (action === 'sub') {
+                    const subMessageHash = subMessageHashes[i];
+                    if (subMessageHash in client.subscriptions) {
+                        delete client.subscriptions[subMessageHash];
+                    }
+                }
             }
             return;
         }
-        const action = this.safeString (pending, 'method');
         if (action === 'unsub') {
             const topic = this.safeString (pending, 'topic');
             const symbol = this.safeString (pending, 'symbol');
