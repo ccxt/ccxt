@@ -1305,6 +1305,7 @@ export default class polymarket extends Exchange {
      * @param {bool} [params.postOnly] true to place a maker only order
      * @param {bool} [params.reduceOnly] true to reduce an open position only
      * @param {string} [params.clientOrderId] a client order id, exactly 32 lowercase hex characters
+     * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -1317,7 +1318,7 @@ export default class polymarket extends Exchange {
             'price': price,
             'params': params,
         };
-        const orders = await this.createOrders ([ order as OrderRequest ]);
+        const orders = await this.createOrders ([ order as OrderRequest ], params);
         const first = orders[0];
         if (first['status'] === 'rejected') {
             const errorId = this.safeString (first['info'], 'error');
@@ -1336,6 +1337,7 @@ export default class polymarket extends Exchange {
      * @see https://docs.polymarket.com/perps/trading
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.exp] expiry timestamp of the signed command in ms, bounds how long the gateway may hold the request
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     override async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
@@ -1831,7 +1833,8 @@ export default class polymarket extends Exchange {
         const size = this.safeString (position, 'size');
         let side: Str = undefined;
         if (size !== undefined) {
-            side = Precise.stringGt (size, '0') ? 'long' : 'short';
+            const isLong = Precise.stringGt (size, '0');
+            side = (isLong) ? 'long' : 'short';
         }
         const isCross = this.safeBool (position, 'cross');
         let marginMode: Str = undefined;
@@ -2403,7 +2406,7 @@ export default class polymarket extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the venue keeps the current mode when omitted is not supported - the default is cross
      * @returns {object} the raw acknowledgement of the venue
      */
-    override async setLeverage (leverage: Int, symbol: Str = undefined, params = {}): Promise<any> {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}): Promise<any> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
