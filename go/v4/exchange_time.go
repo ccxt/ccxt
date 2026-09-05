@@ -212,54 +212,6 @@ func (this *BaseExchange) Ymd(ts any, args ...any) string {
 	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
 }
 
-// parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
-// func (this *BaseExchange) Parse8601(datetime2 any) any {
-// 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
-// 		return nil
-// 	}
-// 	datetime := datetime2.(string)
-// 	if strings.Contains(datetime, "+0") {
-// 		parts := strings.Split(datetime, "+")
-// 		datetime = parts[0]
-// 	}
-// 	// Try to parse the datetime string as RFC3339 and convert to UTC
-// 	t, err := time.Parse(time.RFC3339, datetime)
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	// Ensure the time is in UTC
-// 	t = t.UTC()
-// 	timestamp := t.UnixNano() / int64(time.Millisecond)
-// 	return timestamp
-// }
-
-// func (this *BaseExchange) Parse8601(datetime2 any) any {
-// 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
-// 		return nil
-// 	}
-// 	datetime := datetime2.(string)
-// 	if strings.Contains(datetime, "+0") {
-// 		parts := strings.Split(datetime, "+")
-// 		datetime = parts[0]
-// 	}
-
-// 	// First, try to parse using RFC3339 format
-// 	t, err := time.Parse(time.RFC3339, datetime)
-// 	if err != nil {
-// 		// If RFC3339 parsing fails, try the custom layout
-// 		layout := "2006-01-02 15:04:05.999"
-// 		t, err = time.Parse(layout, datetime)
-// 		if err != nil {
-// 			return nil // Return nil if both parsing attempts fail
-// 		}
-// 	}
-
-// 	// Ensure the time is in UTC
-// 	t = t.UTC()
-// 	timestamp := t.UnixNano() / int64(time.Millisecond)
-// 	return timestamp
-// }
-
 func (this *BaseExchange) Parse8601(datetime2 any) any {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil

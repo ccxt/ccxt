@@ -51,21 +51,6 @@ func int64OrNil(v *int64) any {
 	return *v
 }
 
-func createOb(Obtype string) OrderBookInterface {
-	switch strings.ToLower(Obtype) {
-	case "counted":
-		return &CountedOrderBook{}
-	case "indexed":
-		return &IndexedOrderBook{}
-	// case "incremental":
-	// 	return &IncrementalOrderBook{}
-	// case "incrementalindexed":
-	// 	return &IncrementalIndexedOrderBook{}
-	default:
-		return &WsOrderBook{}
-	}
-}
-
 func (this *WsOrderBook) ToMap() map[string]any {
 	result := map[string]any{
 		"asks":      this.Asks.GetDataCopy(),
@@ -325,39 +310,6 @@ func getIndexedAsksBids(snapshot any) ([][]any, [][]any) {
 	return newAsks, newBids
 }
 
-// Replace toAsksBids with this if snapshot is coming from json.Unmarshal
-// func getAsksBids(snapshot any) ([][]float64, [][]float64) {
-// 	asks := toFloat64SliceSlice(snapshot["asks"])
-// 	bids := toFloat64SliceSlice(snapshot["bids"])
-// 	return asks, bids
-// }
-
-// func toFloat64SliceSlice(value any) [][]float64 {
-// 	raw, ok := value.([]any)
-// 	if !ok {
-// 		return [][]float64{}
-// 	}
-// 	result := make([][]float64, 0, len(raw))
-// 	for _, row := range raw {
-// 		rowArr, ok := row.([]any)
-// 		if !ok {
-// 			continue
-// 		}
-// 		floatRow := make([]float64, 0, len(rowArr))
-// 		for _, num := range rowArr {
-// 			if f, ok := num.(float64); ok {
-// 				floatRow = append(floatRow, f)
-// 			}
-// 		}
-// 		result = append(result, floatRow)
-// 	}
-// 	return result
-// }
-
-// ----------------------------------------------------------------------------
-// overwrites absolute volumes at price levels
-// or deletes price levels based on order counts (3rd value in a bidask delta)
-
 type CountedOrderBook struct {
 	*WsOrderBook
 }
@@ -448,84 +400,6 @@ func (this *IndexedOrderBook) ToMap() map[string]any {
 		"symbol":    strOrNil(this.Symbol),
 	}
 }
-
-// ----------------------------------------------------------------------------
-// adjusts the volumes by positive or negative relative changes or differences
-
-// type IncrementalOrderBook struct {
-// 	*WsOrderBook
-// }
-
-// func NewIncrementalOrderBook(snapshot any, depth any) *IncrementalOrderBook {
-// 	asks, bids := getAsksBids(snapshot)
-// 	return &IncrementalOrderBook{
-// 		WsOrderBook: NewWsOrderBook(
-// 			DeepExtend(snapshot, map[string]any{
-// 				"asks": NewIncrementalAsks(asks, depth),
-// 				"bids": NewIncrementalBids(bids, depth),
-// 			}),
-// 			depth,
-// 		),
-// 	}
-// }
-
-// func (this *IncrementalOrderBook) Limit() any {
-// 	return this.WsOrderBook.Limit()
-// }
-
-// func (this *IncrementalOrderBook) Update(snapshot any) any {
-// 	return this.WsOrderBook.Update(snapshot)
-// }
-
-// func (this *IncrementalOrderBook) Reset(snapshot any) any {
-// 	return this.WsOrderBook.Reset(snapshot)
-// }
-
-// func (this *IncrementalOrderBook) GetCache() *any {
-// 	return &this.WsOrderBook.GetCache()
-// }
-
-// func (this *IncrementalOrderBook) SetCache(cache any) {
-// 	this.WsOrderBook.SetCache(cache)
-// }
-
-// // incremental and indexed (2 in 1)
-// type IncrementalIndexedOrderBook struct {
-// 	*WsOrderBook
-// }
-
-// func NewIncrementalIndexedOrderBook(snapshot any, depth any) *IncrementalIndexedOrderBook {
-// 	asks, bids := getAsksBids(snapshot)
-// 	return &IncrementalIndexedOrderBook{
-// 		WsOrderBook: NewWsOrderBook(
-// 			DeepExtend(snapshot, map[string]any{
-// 				"asks": NewIncrementalIndexedAsks(asks, depth),
-// 				"bids": NewIncrementalIndexedBids(bids, depth),
-// 			}),
-// 			depth,
-// 		),
-// 	}
-// }
-
-// func (this *IncrementalIndexedOrderBook) Limit() any {
-// 	return this.WsOrderBook.Limit()
-// }
-
-// func (this *IncrementalIndexedOrderBook) Update(snapshot any) any {
-// 	return this.WsOrderBook.Update(snapshot)
-// }
-
-// func (this *IncrementalIndexedOrderBook) Reset(snapshot any) any {
-// 	return this.WsOrderBook.Reset(snapshot)
-// }
-
-// func (this *IncrementalIndexedOrderBook) GetCache() *any {
-// 	return &this.WsOrderBook.GetCache()
-// }
-
-// func (this *IncrementalIndexedOrderBook) SetCache(cache any) {
-// 	this.WsOrderBook.SetCache(cache)
-// }
 
 func (this *WsOrderBook) Copy() OrderBookInterface {
 	snapshot := make(map[string]any)

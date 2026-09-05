@@ -1,1 +1,1 @@
-__all__ = ['keccak', 'ethabi', 'starknet', 'marshmallow', 'starkware', 'lighter_client']
+__all__ = ['keccak', 'ethabi', 'starknet', 'starkware', 'lighter_client']

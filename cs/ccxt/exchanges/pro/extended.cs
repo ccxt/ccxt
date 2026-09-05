@@ -67,7 +67,7 @@ public partial class extended : ccxt.extended
         object messageHash = add("orderbook:", symbolVar);
         object query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), getValue(market, "id"));
-        if (isTrue(isGreaterThan(getArrayLength(query), 0)))
+        if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
             url = add(url, add("?", query));
         }
@@ -601,7 +601,7 @@ public partial class extended : ccxt.extended
         object messageHash = add("fundingRate:", symbolVar);
         object query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), getValue(market, "id"));
-        if (isTrue(isGreaterThan(getArrayLength(query), 0)))
+        if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
             url = add(url, add("?", query));
         }
@@ -679,7 +679,7 @@ public partial class extended : ccxt.extended
         object messageHash = add("markPrice:", symbolVar);
         object query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), getValue(market, "id"));
-        if (isTrue(isGreaterThan(getArrayLength(query), 0)))
+        if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
             url = add(url, add("?", query));
         }
@@ -746,7 +746,7 @@ public partial class extended : ccxt.extended
         object messageHash = add("trades:", symbolVar);
         object query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), getValue(market, "id"));
-        if (isTrue(isGreaterThan(getArrayLength(query), 0)))
+        if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
             url = add(url, add("?", query));
         }

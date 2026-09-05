@@ -4699,7 +4699,7 @@ public partial class hashkey : Exchange
         } else
         {
             query = this.urlencode(parameters);
-            if (isTrue(!isEqual(getArrayLength(query), 0)))
+            if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));
             }

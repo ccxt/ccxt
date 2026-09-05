@@ -3510,7 +3510,7 @@ public partial class deepcoin : Exchange
         if (isTrue(isEqual(method, "GET")))
         {
             object query = this.urlencode(parameters);
-            if (isTrue(isGreaterThan(getArrayLength(query), 0)))
+            if (isTrue(isGreaterThan(((string)query).Length, 0)))
             {
                 requestPath = add(requestPath, add("?", query));
             }

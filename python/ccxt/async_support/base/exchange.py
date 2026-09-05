@@ -12,7 +12,6 @@ import socket
 import certifi
 import aiohttp
 import ssl
-import sys
 import yarl
 import math
 from ccxt.base.types import Int, Str, Num, Strings
@@ -100,13 +99,12 @@ class BaseExchange(SyncExchange):
         if self.session is not None or self.socks_proxy_sessions is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are using the exchange instance with async coroutines, add `await exchange.close()` to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
 
-    if sys.version_info >= (3, 5):
-        async def __aenter__(self):
-            self.open()
-            return self
+    async def __aenter__(self):
+        self.open()
+        return self
 
-        async def __aexit__(self, exc_type, exc, tb):
-            await self.close()
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.close()
 
     def open(self, lazy=False):
         # a request orphaned by a failing gathered sibling can resume after close() and
@@ -115,10 +113,7 @@ class BaseExchange(SyncExchange):
             raise ExchangeClosedByUser(self.id + ' instance was closed by the user')
         self.closed_by_user = False
         if self.asyncio_loop is None:
-            if sys.version_info >= (3, 7):
-                self.asyncio_loop = asyncio.get_running_loop()
-            else:
-                self.asyncio_loop = asyncio.get_event_loop()
+            self.asyncio_loop = asyncio.get_running_loop()
             self.throttler.loop = self.asyncio_loop
 
         if self.ssl_context is None:
@@ -378,13 +373,6 @@ class BaseExchange(SyncExchange):
         self.reloading_markets = False
         return result
 
-    async def load_fees(self, reload=False):
-        if not reload:
-            if self.loaded_fees != Exchange.loaded_fees:
-                return self.loaded_fees
-        self.loaded_fees = self.deep_extend(self.loaded_fees, await self.fetch_fees())
-        return self.loaded_fees
-
     async def fetch_markets(self, params={}):
         # markets are returned as a list
         # currencies are returned as a dict
@@ -399,21 +387,8 @@ class BaseExchange(SyncExchange):
         # and may be changed for consistency later
         return self.currencies
 
-    async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
-
-    async def fetch_full_tickers(self, symbols=None, params={}):
-        return await self.fetch_tickers(symbols, params)
-
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
-
-    async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
 
     def spawn(self, method, *args):
         def callback(asyncio_future):
@@ -486,10 +461,7 @@ class BaseExchange(SyncExchange):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
 
     def handle_message(self, client, message):
-        always = True
-        if always:
-            raise NotSupported(self.id + '.handle_message() not implemented yet')
-        return {}
+        raise NotSupported(self.id + '.handle_message() not implemented yet')
 
     def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context
@@ -674,11 +646,6 @@ class BaseExchange(SyncExchange):
         if client.url in self.clients:
             del self.clients[client.url]
         self.orderbooks[symbol] = self.order_book()  # clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
-
-    def format_scientific_notation_ftx(self, n):
-        if n == 0:
-            return '0e-00'
-        return format(n, 'g')
 
     def decode_proto_msg(self, data):
         try:

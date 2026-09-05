@@ -2577,7 +2577,7 @@ public partial class bitteam : Exchange
             if (isTrue(isEqual(method, "POST")))
             {
                 body = this.json(request);
-            } else if (isTrue(!isEqual(getArrayLength(query), 0)))
+            } else if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));
             }
@@ -2588,7 +2588,7 @@ public partial class bitteam : Exchange
                 { "Authorization", signature },
                 { "Content-Type", "application/json" },
             };
-        } else if (isTrue(!isEqual(getArrayLength(query), 0)))
+        } else if (isTrue(!isEqual(((string)query).Length, 0)))
         {
             url = add(url, add("?", query));
         }

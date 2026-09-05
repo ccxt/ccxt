@@ -694,18 +694,6 @@ public class BaseExchange {
         return unsigned;
     }
 
-    // public Object md5() {
-    //     return Crypto.md5();
-    // }
-
-    // public Object sha256() {
-    //     return Crypto.sha256();
-    // }
-
-    // public Object sha512() {
-    //     return Crypto.sha512();
-    // }
-
     // =======================
     // Encode
     // =======================
@@ -764,18 +752,9 @@ public class BaseExchange {
         return Encode.urlencodeNested(parameters);
     }
 
-    // public String base64ToString(Object b64) {
-    //     return Encode.base64ToString(b64);
-    // }
     public String stringToBase64(Object s) {
         return Encode.StringToBase64(s);
     }
-    // public String bytesToHex(Object bytes) {
-    //     return Encode.bytesToHex(bytes);
-    // }
-    // public Object hexToBytes(Object hex) {
-    //     return Encode.hexToBytes(hex);
-    // }
 
     public String rawencode(Object parameters) {
         return Encode.rawencode(parameters, false);
@@ -838,8 +817,7 @@ public class BaseExchange {
         try {
             String cleanKey = (String) this.remove0xPrefix(privateKey);
             java.math.BigInteger privKeyBigInt = new java.math.BigInteger(cleanKey, 16);
-            java.math.BigInteger publicKey = org.web3j.crypto.Sign.publicKeyFromPrivate(privKeyBigInt);
-            return "0x" + org.web3j.crypto.Keys.getAddress(publicKey);
+            return "0x" + Crypto.secp256k1EthAddress(privKeyBigInt);
         } catch (Exception e) {
             throw new RuntimeException("ethGetAddressFromPrivateKey failed: " + e.getMessage(), e);
         }
@@ -1045,10 +1023,6 @@ public class BaseExchange {
 
     public String numberToString(Object number) {
         return NumberHelpers.NumberToString(number);
-    }
-
-    public String numberToString2(Object number) {
-        return NumberHelpers.NumberToString2(number);
     }
 
     // =======================
@@ -3557,8 +3531,9 @@ public class BaseExchange {
     }
 
     public Object binaryToBase58(Object buff2) {
-        byte[] buff = (byte[])buff2;
-        return Crypto.binaryToHex(buff);
+        // bitcoin-alphabet base58, mirrors TS `binaryToBase58 = base58.encode` (@scure/base);
+        // used by pacifica request signing — must NOT be hex
+        return Encode.binaryToBase58(buff2);
     }
 
     public Object toFixed(Object number, Object decimals) {

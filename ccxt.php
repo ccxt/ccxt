@@ -41,16 +41,9 @@ define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
 spl_autoload_register(function ($class) {
     // used to include static dependencies
     $PATH = PATH_TO_CCXT . 'static_dependencies/';
-    if (strpos($class, 'kornrunner') !== false || strpos($class, 'Web3') !== false) {
-        $version = phpversion();
-        if (intval(explode('.', $version)[0]) < 7) {
-            throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
-        }
-    }
     $class_name = str_replace('Web3\\', 'web3.php/src/', $class);
     $class_name = str_replace('Lighter\\', 'lighter/', $class_name);
     $class_name = str_replace('StarkNet\\', 'starknet.php/src/', $class_name);
-    $class_name = str_replace('Sop\\', 'Sop/', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';

@@ -256,7 +256,7 @@
     "response-php-sync-prediction": "npm run ti-php -- --responseTests --prediction --sync",
     "response-php-prediction": "npm run response-php-sync-prediction && npm run response-php-async-prediction",
     "response-tests-prediction": "npm run response-js-prediction && npm run response-py-prediction && npm run response-php-prediction && npm run response-cs-prediction && npm run response-go-prediction && npm run response-java-prediction",
-    "static-updater": "tsx ./build/utils/update-static-json --update",
+    "static-updater": "tsx ./build/utils/update-static-markets --update",
     "id-tests-js": "npm run ti-js  -- --idTests",
     "id-tests-py": "npm run ti-py  -- --idTests",
     "id-tests-php": "npm run ti-php -- --idTests",

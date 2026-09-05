@@ -2555,7 +2555,7 @@ public partial class coinsph : Exchange
             }
         }
         object encodedQuery = this.urlencode(query);
-        if (isTrue(!isEqual(getArrayLength(encodedQuery), 0)))
+        if (isTrue(!isEqual(((string)encodedQuery).Length, 0)))
         {
             return add(add(encodedQuery, "&"), encodedArrayParams);
         } else

@@ -195,12 +195,6 @@ public partial class BaseExchange
         return res;
     }
 
-    public static byte[] SignSHA256Bytes(string data)
-    {
-        using var encryptor = SHA256.Create();
-        return encryptor.ComputeHash(Encoding.UTF8.GetBytes(data));
-    }
-
     public static byte[] SignSHA256(string data)
     {
         using var encryptor = SHA256.Create();
@@ -449,33 +443,6 @@ public partial class BaseExchange
         };
     }
 
-    public static string ByteArrayToString(byte[] ba)
-    {
-        return BitConverter.ToString(ba).Replace("-", "");
-    }
-
-    private static ECCurve stringToCurve(string curve)
-    {
-        switch (curve)
-        {
-            case "secp256k1":
-                return ECCurve.NamedCurves.nistP256;
-            case "secp256r1":
-                return ECCurve.NamedCurves.nistP256;
-            case "secp384r1":
-                return ECCurve.NamedCurves.nistP384;
-            case "secp521r1":
-                return ECCurve.NamedCurves.nistP521;
-            default:
-                throw new ArgumentException("Invalid curve name");
-        }
-    }
-
-    public object signMessageString(object str, object privateKey = null)
-    {
-        return (string)str; // stub
-    }
-
     public object eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
 
     public static object Eddsa(object request, object secret, object alg = null)
@@ -642,18 +609,6 @@ public partial class BaseExchange
         return count;
     }
 
-    public static object inflate(object data)
-    {
-        var compressedMessage = Encoding.UTF8.GetBytes((string)data);
-        using (var compressedStream = new MemoryStream(compressedMessage))
-        using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
-        using (var resultStream = new MemoryStream())
-        {
-            deflateStream.CopyTo(resultStream);
-            return resultStream.ToArray();
-        }
-    }
-
     public static string ToHex(byte[] value, bool prefix = false)
     {
         var strPrex = prefix ? "0x" : "";
@@ -689,27 +644,6 @@ public partial class BaseExchange
                 // return keyPair.Private as ECPrivateKeyParameters;
                 var privateKeyParameters = keyPair.Private as ECPrivateKeyParameters;
                 return new ECPrivateKeyParameters(privateKeyParameters.D, new ECDomainParameters(curveParameters.Curve, curveParameters.G, curveParameters.N, curveParameters.H, curveParameters.GetSeed()));
-            }
-            else
-            {
-                throw new InvalidCastException("The PEM file does not contain an EC private key in an expected format.");
-            }
-        }
-    }
-
-    private static ECPublicKeyParameters ReadPemPublicKey(string pemContents, Org.BouncyCastle.Asn1.X9.X9ECParameters curveParameters)
-    {
-        using (TextReader textReader = new StringReader(pemContents))
-        {
-            PemReader pemReader = new PemReader(textReader);
-            object pemObject = pemReader.ReadObject();
-
-            // Handling AsymmetricCipherKeyPair
-            if (pemObject is Org.BouncyCastle.Crypto.AsymmetricCipherKeyPair keyPair)
-            {
-                // return keyPair.Private as ECPrivateKeyParameters;
-                var privateKeyParameters = keyPair.Public as ECPublicKeyParameters;
-                return new ECPublicKeyParameters(privateKeyParameters.Q, new ECDomainParameters(curveParameters.Curve, curveParameters.G, curveParameters.N, curveParameters.H, curveParameters.GetSeed()));
             }
             else
             {
@@ -756,30 +690,6 @@ public partial class BaseExchange
             {
                 X = q.AffineXCoord.GetEncoded(),
                 Y = q.AffineYCoord.GetEncoded()
-            }
-        });
-
-        return ecdsa;
-    }
-
-    public static ECDsa ConvertToECDsa(ECPublicKeyParameters publicKeyParameters)
-    {
-        // Extract the public key point
-        var q = publicKeyParameters.Q;
-
-        // Convert BouncyCastle's BigIntegers to byte arrays
-        var x = q.AffineXCoord.GetEncoded();
-        var y = q.AffineYCoord.GetEncoded();
-
-        // Create an ECDsa instance and initialize it with the public key parameters
-        ECDsa ecdsa = ECDsa.Create();
-        ecdsa.ImportParameters(new ECParameters
-        {
-            Curve = ECCurve.NamedCurves.nistP256, // Ensure this matches your actual curve
-            Q = new ECPoint
-            {
-                X = x,
-                Y = y
             }
         });
 

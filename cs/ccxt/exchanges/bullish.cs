@@ -3368,7 +3368,7 @@ public partial class bullish : Exchange
         if (isTrue(isEqual(method, "GET")))
         {
             object query = this.urlencode(request);
-            if (isTrue(isGreaterThan(getArrayLength(query), 0)))
+            if (isTrue(isGreaterThan(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));
             }

@@ -3630,7 +3630,7 @@ public class BullishCore extends BullishApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(request);
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }

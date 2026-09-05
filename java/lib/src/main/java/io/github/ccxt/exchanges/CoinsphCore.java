@@ -2750,7 +2750,7 @@ public class CoinsphCore extends CoinsphApi
             }
         }
         Object encodedQuery = this.urlencode(query);
-        if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(encodedQuery), 0)))
+        if (Helpers.isTrue(!Helpers.isEqual(((String)encodedQuery).length(), 0)))
         {
             return Helpers.add(Helpers.add(encodedQuery, "&"), encodedArrayParams);
         } else
