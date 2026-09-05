@@ -550,7 +550,20 @@ class BaseExchange {
         if ($key === null) {
             return $default_value;
         }
-        return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
+        if (!isset($object[$key])) {
+            return $default_value;
+        }
+        $val = $object[$key];
+        if (is_int($val)) {
+            return $val;
+        }
+        if (is_float($val)) {
+            return (int) $val;
+        }
+        if (is_string($val) && is_numeric($val)) {
+            return (int) (float) $val;
+        }
+        return $default_value;
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
@@ -697,8 +710,20 @@ class BaseExchange {
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
-        $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_numeric($value)) ? intval($value) : $default_value;
+        $val = static::get_object_value_from_key_array($object, $array);
+        if (!isset($val)) {
+            return $default_value;
+        }
+        if (is_int($val)) {
+            return $val;
+        }
+        if (is_float($val)) {
+            return (int) $val;
+        }
+        if (is_string($val) && is_numeric($val)) {
+            return (int) (float) $val;
+        }
+        return $default_value;
     }
 
     public static function safe_integer_product_n($object, $array, $factor, $default_value = null) {
