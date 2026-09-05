@@ -204,11 +204,11 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchDepositAddressesByNetwork`.
-    fn fetch_deposit_addresses_by_network<'a>(&'a mut self, code: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<DepositAddress>>> + Send + 'a {
+    fn fetch_deposit_addresses_by_network<'a>(&'a mut self, code: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<DepositAddresses>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::Str(code.to_string()), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_deposit_addresses_by_network", __args).await?;
-            Ok(vec_from_value(&v, DepositAddress::from_value))
+            Ok(dict_from_value(&v, DepositAddress::from_value))
         }
     }
     /// Typed `fetchOpenInterestHistory`.
@@ -468,11 +468,11 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchAllGreeks`.
-    fn fetch_all_greeks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Greeks>>> + Send + 'a {
+    fn fetch_all_greeks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<AllGreeks>> + Send + 'a {
         let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_all_greeks", __args).await?;
-            Ok(vec_from_value(&v, Greeks::from_value))
+            Ok(dict_from_value(&v, Greeks::from_value))
         }
     }
     /// Typed `fetchDepositsWithdrawals`.

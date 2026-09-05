@@ -919,7 +919,7 @@ func (this *Kraken) CreateDepositAddress(code string, options ...CreateDepositAd
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} of deposit methods
  */
-func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) (map[string]any, error) {
+func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) ([]map[string]any, error) {
 
 	opts := FetchDepositMethodsOptionsStruct{}
 
@@ -930,9 +930,9 @@ func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMeth
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositMethods(code, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1160,7 +1160,7 @@ func (this *Kraken) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Kraken) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Kraken) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Kraken) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Kraken) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1196,7 +1196,7 @@ func (this *Kraken) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, erro
 func (this *Kraken) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Kraken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Kraken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Kraken) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

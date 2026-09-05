@@ -23,7 +23,7 @@ Kraken publishes no maintained client library for the derivatives API. The alter
 | | **CCXT (`krakenfutures`)** | **Kraken Futures API direct** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Kraken Futures is one of them) | Kraken Futures only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any, you write the client |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any, you write the client |
 | Official client libraries | — | Crypto Facilities "Example Client" repos: Python, Node.js, Java, C#, Kotlin, Visual Basic (REST v3); Python, C#, Rust (WebSocket v1) |
 | Unified capabilities | 53, of which 21 are `fetch*` | n/a |
 | Symbols | `'BTC/USD:USD'` | `PF_XBTUSD`, `PI_XBTUSD` |
@@ -187,7 +187,7 @@ Alongside the 53 unified capabilities, **all 39 Kraken Futures endpoints are gen
 Real advantages, not filler:
 
 - **The example clients are literally the docs.** `CryptoFacilities/REST-v3-Python` is a single file, `cfRestApiV3.py`, with one method per endpoint. If you are debugging a signature or a field name against Kraken's reference, nothing is in the way. CCXT's unified names are an abstraction you have to translate back.
-- **Kraken publishes reference implementations in six languages for REST and three for WebSocket**, including Kotlin, Visual Basic and Rust — languages CCXT does not target. If your stack is one of those, the reference code is a real starting point.
+- **Kraken publishes reference implementations in six languages for REST and three for WebSocket**, including Kotlin and Visual Basic — languages CCXT does not target. If your stack is one of those, the reference code is a real starting point.
 - **A raw client is smaller and has no third-party surface.** If you call three endpoints on one venue, a hundred lines of `requests` plus the signing block is less to audit than a multi-venue library.
 - **New Kraken Futures endpoints are usable the day they ship.** You call them immediately; a *unified* CCXT wrapper may lag. (CCXT's implicit API narrows this to the mapping work, not the access.)
 - **A maintained third-party package exists.** [`python-kraken-sdk`](https://github.com/btschwertfeger/python-kraken-sdk) (Apache-2.0, 83 GitHub stars) covers Kraken Spot, xStocks and Futures with REST and WebSocket clients and a generic `request()` passthrough. It states that it is unofficial and not endorsed by Kraken. [CCXT vs the Kraken API](/docs/comparisons/ccxt-vs-kraken-api) compares it and `krakenex` against CCXT in detail.

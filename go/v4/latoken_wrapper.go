@@ -695,7 +695,7 @@ func (this *Latoken) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Latoken) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Latoken) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Latoken) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Latoken) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -737,7 +737,7 @@ func (this *Latoken) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Latoken) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Latoken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Latoken) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Latoken) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

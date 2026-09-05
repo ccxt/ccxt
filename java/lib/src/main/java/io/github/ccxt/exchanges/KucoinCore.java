@@ -4422,7 +4422,7 @@ public class KucoinCore extends KucoinApi
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
-     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Object... optionalArgs)
     {
@@ -9957,22 +9957,18 @@ public class KucoinCore extends KucoinApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
                 {
                     Object entry = Helpers.GetValue(assets, i);
-                    Object marketId = this.safeString(entry, "symbol");
-                    Object symbol = this.safeSymbol(marketId, null, "_");
                     Object base = this.safeDict(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                     Object quote = this.safeDict(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
                     Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
                     Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                    Object subResult = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                     {
-                        Helpers.addElementToObject(subResult, baseCode, this.parseBalanceHelper(base));
+                        result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                     }
                     if (Helpers.isTrue(!Helpers.isEqual(quoteCode, null)))
                     {
-                        Helpers.addElementToObject(subResult, quoteCode, this.parseBalanceHelper(quote));
+                        result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                     }
-                    Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
                 }
             } else if (Helpers.isTrue(cross))
             {
@@ -10010,12 +10006,7 @@ public class KucoinCore extends KucoinApi
                     }
                 }
             }
-            Object returnType = result;
-            if (!Helpers.isTrue(isolated))
-            {
-                returnType = this.safeBalance(result);
-            }
-            return returnType;
+            return this.safeBalance(result);
         });
 
     }
@@ -10214,9 +10205,6 @@ public class KucoinCore extends KucoinApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
                 {
                     Object entry = Helpers.GetValue(accounts, i);
-                    Object marketId = this.safeString(entry, "accountSubtype");
-                    Object symbol = this.safeSymbol(marketId, null, "-");
-                    Object subResult = new java.util.HashMap<String, Object>() {{}};
                     Object currencies = this.safeList(entry, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencies)); j++)
                     {
@@ -10225,10 +10213,9 @@ public class KucoinCore extends KucoinApi
                         Object currencyCode = this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
                         {
-                            Helpers.addElementToObject(subResult, currencyCode, this.parseBalanceHelper(currencyEntry));
+                            result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
                         }
                     }
-                    Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
                 }
             } else
             {
@@ -10245,12 +10232,7 @@ public class KucoinCore extends KucoinApi
                     }
                 }
             }
-            Object returnType = result;
-            if (!Helpers.isTrue(isIsolated))
-            {
-                returnType = this.safeBalance(result);
-            }
-            return returnType;
+            return this.safeBalance(result);
         });
 
     }

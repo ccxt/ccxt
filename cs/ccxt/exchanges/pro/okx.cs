@@ -389,7 +389,7 @@ public partial class okx : ccxt.okx
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         symbolVar = this.symbol(symbolVar);
-        object fr = await this.watchFundingRates(new List<object>() {symbolVar}, parameters);
+        object fr = ccxt.BaseExchange.FromFundingRates(await this.WatchFundingRates(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToFundingRate(getValue(fr, symbolVar));
     }
 
@@ -402,7 +402,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
-    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> WatchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
@@ -442,9 +442,9 @@ public partial class okx : ccxt.okx
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = fundingRate;
             }
-            return result;
+            return ccxt.BaseExchange.ToFundingRates(result);
         }
-        return this.filterByArray(this.fundingRates, "symbol", symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbols));
     }
 
     public virtual void handleFundingRate(WebSocketClient client, object message)
@@ -503,7 +503,7 @@ public partial class okx : ccxt.okx
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object ticker = await this.watchTickers(new List<object>() {symbolVar}, parameters);
+        object ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbolVar));
     }
 
@@ -533,7 +533,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -548,9 +548,9 @@ public partial class okx : ccxt.okx
         object newTickers = await this.subscribeMultiple("public", channel, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newTickers;
+            return ccxt.BaseExchange.ToTickers(newTickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -574,7 +574,7 @@ public partial class okx : ccxt.okx
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object ticker = await this.watchMarkPrices(new List<object>() {symbolVar}, parameters);
+        object ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(ticker, symbolVar));
     }
 
@@ -588,7 +588,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -603,9 +603,9 @@ public partial class okx : ccxt.okx
         object newTickers = await this.subscribeMultiple("public", channel, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newTickers;
+            return ccxt.BaseExchange.ToTickers(newTickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -1178,7 +1178,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbolsAndTimeframes);
@@ -1221,7 +1221,7 @@ public partial class okx : ccxt.okx
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**

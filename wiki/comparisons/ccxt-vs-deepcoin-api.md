@@ -16,7 +16,7 @@ Everywhere else, the comparison is **CCXT against your own client**.
 
 - **Write against the raw API** if you need DeepCoin's stream-resume feature, copy-trading endpoints or step-margin data, and you are happy owning the signer and the socket.
 - **Use `DeepCoin.Net`** if you are on .NET only and want models shaped exactly like DeepCoin's payloads.
-- **Pick CCXT** if you want spot, margin and swaps behind one client in seven languages, with signing, per-endpoint rate limits, order-book maintenance and reconnects handled — and the same API on 103 other venues.
+- **Pick CCXT** if you want spot, margin and swaps behind one client in eight languages, with signing, per-endpoint rate limits, order-book maintenance and reconnects handled — and the same API on 103 other venues.
 
 ## At a glance
 
@@ -24,7 +24,7 @@ Everywhere else, the comparison is **CCXT against your own client**.
 | --- | --- | --- | --- |
 | Maintainer | CCXT | DeepCoin (docs and examples) | JKorf (third party) |
 | Exchanges covered | 104 | DeepCoin only | DeepCoin only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java | any; examples in Python, Go, Java | C#/.NET |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust | any; examples in Python, Go, Java | C#/.NET |
 | Installable package | yes — `ccxt` | no — example scripts only | yes — `DeepCoin.Net` on NuGet |
 | Unified API across venues | yes — 64 unified capabilities, 28 `fetch*` methods | no | no |
 | Products | spot, margin, swap | spot, margin, swap | spot, futures |
@@ -208,9 +208,9 @@ amount = exchange.amount_to_precision('BTC/USDT:USDT', 0.0012345678)
 price = exchange.price_to_precision('BTC/USDT:USDT', 61234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
-`DeepCoin.Net` covers .NET; DeepCoin's own examples cover Python, Go and Java as sample code. CCXT is written once in TypeScript and transpiled to seven languages with identical method names and return structures, so a strategy prototyped in Python ports to a Go or C# execution service without a second data model.
+`DeepCoin.Net` covers .NET; DeepCoin's own examples cover Python, Go and Java as sample code. CCXT is written once in TypeScript and transpiled to eight languages with identical method names and return structures, so a strategy prototyped in Python ports to a Go or C# execution service without a second data model.
 
 ### Nothing is hidden — the implicit API
 

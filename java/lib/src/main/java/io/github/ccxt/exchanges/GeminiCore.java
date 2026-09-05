@@ -2403,13 +2403,12 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object groupedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
-            return this.safeValue(networkGroup, code);
+            return this.safeValue(indexedByNetwork, networkCode);
         });
 
     }
@@ -2455,7 +2454,9 @@ public class GeminiCore extends GeminiApi
                 put( "network", finalNetworkCode );
                 put( "currency", finalCode );
             }});
-            return this.groupBy(results, "network");
+            // one address structure per network, like every other venue (the endpoint is scoped to a
+            // single network, so the last address the venue lists for it wins — same as before)
+            return this.indexBy(results, "network");
         });
 
     }

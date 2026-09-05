@@ -5003,7 +5003,13 @@ final Object finalClientOrderId = clientOrderId;
                     put( "signature", transferSig );
                 }};
                 Object transferResponse = (this.privatePostExchange(transferRequest)).join();
-                return transferResponse;
+                //
+                // {'response': {'type': 'default'}, 'status': 'ok'}
+                //
+                // the sub-account branches below already hand back the unified structure; the
+                // spot <> swap branch returned the raw acknowledgement, breaking the shape
+                Object currency = this.safeCurrency(code);
+                return this.parseTransfer(transferResponse, currency);
             }
             // transfer between main account and subaccount
             Object isDeposit = false;
@@ -5095,11 +5101,11 @@ final Object finalClientOrderId = clientOrderId;
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "currency", null );
+            put( "currency", HyperliquidCore.this.safeCurrencyCode(null, currency) );
             put( "amount", null );
             put( "fromAccount", null );
             put( "toAccount", null );
-            put( "status", "ok" );
+            put( "status", HyperliquidCore.this.safeString(transfer, "status", "ok") );
         }};
     }
 

@@ -1447,6 +1447,10 @@ pub type OptionChain         = HashMap<String, OptionContract>;
 pub type LeverageTiers       = HashMap<String, Vec<LeverageTier>>;
 /// `fetchDepositWithdrawFees` — currency code → [`DepositWithdrawFee`].
 pub type DepositWithdrawFees = HashMap<String, DepositWithdrawFee>;
+/// `fetchAllGreeks` — symbol → [`Greeks`].
+pub type AllGreeks           = HashMap<String, Greeks>;
+/// `fetchDepositAddresses` — currency code → [`DepositAddress`].
+pub type DepositAddresses    = HashMap<String, DepositAddress>;
 
 /// Walk a `Value::Dict` of `<key> → Value` and decode each value with
 /// the supplied `from_value` constructor. Returns an empty map on a

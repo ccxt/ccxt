@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Derive API and the official Derive SDKs -->
 <!-- description: CCXT and derive-py compared on on-chain action signing, session keys, language coverage, streaming, RFQs and vaults, with the same tasks written both ways. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Derive ships maintained Python, TypeScript and Rust clients generated from its own specs. CCXT does the same on-chain action signing in seven languages, with 32 unified capabilities and 113 raw endpoints — but not RFQs or vaults. -->
+<!-- summary: Derive ships maintained Python, TypeScript and Rust clients generated from its own specs. CCXT does the same on-chain action signing in eight languages, with 32 unified capabilities and 113 raw endpoints — but not RFQs or vaults. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Derive API and the official Derive SDKs
@@ -15,7 +15,7 @@ The question that decides it: **do you need Derive's whole product surface — R
 ## TL;DR
 
 - **Pick `derive-py`** if Derive is your venue and you need the full protocol: RFQ maker and taker flows, vault operations, session-key lifecycle, on-chain deposits that create subaccounts, market-maker protection, and a `drv` command-line tool. It is generated from Derive's published OpenAPI and AsyncAPI specs, so its coverage is the whole RPC surface.
-- **Pick CCXT** if you want Derive's perps, spot and options behind the same `create_order` you already use on Binance, Deribit and Hyperliquid — in seven languages, with the action hashing and secp256k1 signing done inside the library.
+- **Pick CCXT** if you want Derive's perps, spot and options behind the same `create_order` you already use on Binance, Deribit and Hyperliquid — in eight languages, with the action hashing and secp256k1 signing done inside the library.
 - **Signing is not the thing you give up.** CCXT takes `walletAddress` and `privateKey` as first-class credentials, builds the trade-module action hash and signs it itself, in Python, Go, C#, PHP, Java, JavaScript and TypeScript alike.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides it: **do you need Derive's whole product surface — R
 | | **CCXT** | **derive-py / derive-ts / derive-rs** |
 | --- | --- | --- |
 | Venues covered | 104 (Derive is one of them) | Derive only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, TypeScript, Rust — separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, TypeScript, Rust — separate codebases |
 | Packages to install | 1 (`ccxt`) | 1 per language |
 | Unified market data + trading API | yes — 32 unified capabilities, 19 `fetch*` methods | no — Derive's own RPC method names and payloads |
 | Instrument addressing | unified symbols: `'BTC/USD:USDC'`, `'LBTC/USDC'`, `'BTC/USDC:USDC-261030-180000-C'` | `instrument_name`: `ETH-PERP`, `BTC-20261030-180000-C` |
@@ -114,7 +114,7 @@ order = client.orders.create(
 
 Both sign. `derive-py` reads `DERIVE_WALLET`, `DERIVE_SESSION_KEY` and `DERIVE_SUBACCOUNT_ID` from the environment and signs with the session key; CCXT takes the same two keys as constructor fields and asks for `subaccount_id` and `max_fee` in `params`, because Derive's trade module signs the maximum fee you accept as part of the action.
 
-Underneath, CCXT ABI-encodes the trade-module data (asset address, sub-id, price, amount, max fee, subaccount, direction), keccak-hashes it, combines it with the action type hash, nonce, trade-module address and signature expiry, and produces the secp256k1 signature — then sends it with `X-LyraWallet`, `X-LyraTimestamp` and `X-LyraSignature` headers. None of that is your code, and it is the same code path in all seven CCXT languages.
+Underneath, CCXT ABI-encodes the trade-module data (asset address, sub-id, price, amount, max fee, subaccount, direction), keccak-hashes it, combines it with the action type hash, nonce, trade-module address and signature expiry, and produces the secp256k1 signature — then sends it with `X-LyraWallet`, `X-LyraTimestamp` and `X-LyraSignature` headers. None of that is your code, and it is the same code path in all eight CCXT languages.
 
 ### Stream an order book
 
@@ -176,9 +176,9 @@ for exchange_id, symbol in [('derive', 'BTC/USD:USDC'), ('hyperliquid', 'BTC/USD
 
 Cross-venue options basis, DEX-versus-CEX hedges and volatility surfaces stitched from several exchanges stop being several integrations with a translation layer between them.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures — including the signing.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures — including the signing.
 
 <!-- tabs:start -->
 
@@ -210,7 +210,7 @@ ticker, err := exchange.FetchTicker("ETH/USD:USDC")
 
 <!-- tabs:end -->
 
-Derive publishes Python, TypeScript and Rust. If your execution service is Go, C#, PHP or Java, CCXT is the shorter path; if it is Rust, `derive-rs` is the only option and CCXT is not in the running.
+Derive publishes Python, TypeScript and Rust. CCXT covers all three plus Go, C#, PHP and Java from one source, so language is no longer what decides this one.
 
 ### Options and perpetuals in one symbol scheme
 
@@ -248,7 +248,7 @@ An honest list, and it is a long one for this venue:
 - **Session-key lifecycle.** Registering a scoped, expiring session key, editing its scopes and retiring it are SDK operations with worked examples. CCXT expects you to already hold a key that can sign.
 - **Deposits that create the account.** On Derive the first deposit is what brings a subaccount into existence, and the SDK has `plan_deposit_to_new_subaccount` plus an L1 RPC path for it. CCXT starts from an account that already exists.
 - **Generated from the published specs.** The client is regenerated from Derive's `openapi.json` and AsyncAPI documents, and anything not hand-wrapped is still reachable through `client.public_api` and `client.private_api` with typed models. Coverage tracks the protocol automatically.
-- **A Rust client and a CLI.** `derive-rs` covers a language CCXT does not, and `drv` gives you `drv market ticker ETH-PERP` without writing code.
+- **A native Rust client and a CLI.** `derive-rs` is written as Rust rather than generated into it, and `drv` gives you `drv market ticker ETH-PERP` without writing code at all. CCXT ships neither a CLI for this venue nor a hand-written Rust API.
 - **Market-maker protection.** MMP configuration and reset are exposed directly.
 
 If you are building a Derive-native market maker, running vault strategies, or quoting RFQs, the official SDK is the better tool and it is not close.
@@ -277,7 +277,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Does CCXT sign Derive orders itself, or do I need a separate signer?**
-CCXT signs them itself. You pass `walletAddress` and `privateKey` to the constructor; the library ABI-encodes the trade-module data, hashes it, builds the action hash with the nonce, trade-module address and signature expiry, and produces the secp256k1 signature. The same path exists in all seven CCXT languages.
+CCXT signs them itself. You pass `walletAddress` and `privateKey` to the constructor; the library ABI-encodes the trade-module data, hashes it, builds the action hash with the nonce, trade-module address and signature expiry, and produces the secp256k1 signature. The same path exists in all eight CCXT languages.
 
 **Can I use a Derive session key with CCXT?**
 Yes. Pass the session key as `privateKey` and the signer address as `walletAddress`, and set `options['deriveWalletAddress']` to the Derive wallet the subaccount belongs to. Orders also take `subaccount_id` and `max_fee` in `params`.

@@ -372,7 +372,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         bool isTriggerOrder = (inOp(placeOrder, "trigger"));
         object response = null;
@@ -410,7 +410,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public async virtual Task<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -525,7 +525,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "place_order", placeOrder },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -557,7 +557,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object request = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
         object response = await this.gatewayPrivatePostExecute(request);
         //
         //     {
@@ -588,7 +588,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_and_place execute
      */
-    public async virtual Task<object> editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> EditOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -683,7 +683,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_and_place", cancelAndPlace },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -702,7 +702,7 @@ public partial class nado : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrders(new List<object>() {id},((string)symbol), parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id},((string)symbol), parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 
@@ -730,7 +730,7 @@ public partial class nado : Exchange
         }
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object request = await this.cancelAllOrdersRequest(symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         object response = null;
         if (isTrue(isEqual(trigger, true)))
         {
@@ -760,7 +760,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_product_orders execute
      */
-    public async virtual Task<object> cancelAllOrdersRequest(object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelAllOrdersRequest(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object productIds = new List<object>() {};
@@ -805,7 +805,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_product_orders", cancelProductOrders },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -822,7 +822,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -834,7 +834,7 @@ public partial class nado : Exchange
         object market = this.market(symbol);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object request = await this.cancelOrdersRequest(ids, symbol, parameters);
+        object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         object response = null;
         if (isTrue(isEqual(trigger, true)))
         {
@@ -852,7 +852,7 @@ public partial class nado : Exchange
                 { "status", "canceled" },
             }, getValue(cancelledOrders, i)), market));
         }
-        return result;
+        return ccxt.BaseExchange.ToOrderList(result);
     }
 
     /**
@@ -865,7 +865,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    public async virtual Task<object> cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CancelOrdersRequest(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
@@ -921,7 +921,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_orders", cancelOrders },
         };
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     /**
@@ -1372,7 +1372,7 @@ public partial class nado : Exchange
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1409,7 +1409,7 @@ public partial class nado : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseBalance(data);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
     /**
@@ -1638,7 +1638,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -1653,7 +1653,7 @@ public partial class nado : Exchange
         //         "server_time": "1780000000123"
         //     }
         //
-        return this.safeInteger(response, "server_time");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "server_time"));
     }
 
     /**
@@ -1692,7 +1692,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object symbolsRequest = this.gatewayPublicGetSymbols(parameters);
@@ -1843,7 +1843,7 @@ public partial class nado : Exchange
                 }) },
             }));
         }
-        return markets;
+        return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
 
     /**
@@ -1897,7 +1897,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1918,7 +1918,7 @@ public partial class nado : Exchange
         //     }
         //
         object tickers = this.toArray(response);
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -1935,7 +1935,7 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         object ticker = this.safeDict(tickers, symbol);
         if (isTrue(isEqual(ticker, null)))
         {
@@ -2070,7 +2070,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2106,7 +2106,7 @@ public partial class nado : Exchange
             object ticker = getValue(tickers, i);
             ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
-        return this.parseFundingRates(rates, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbols));
     }
 
     /**
@@ -2167,7 +2167,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2203,7 +2203,7 @@ public partial class nado : Exchange
             object ticker = getValue(tickers, i);
             ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
         }
-        return this.parseOpenInterests(interests, symbols);
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(interests, symbols));
     }
 
     /**
@@ -2216,7 +2216,7 @@ public partial class nado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2243,7 +2243,7 @@ public partial class nado : Exchange
         //     }
         //
         object timestamp = this.safeInteger(response, "timestamp");
-        return this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
     }
 
     /**

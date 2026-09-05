@@ -360,9 +360,9 @@ impl Hollaex {
     }
 
     /// Typed wrapper around `fetchDepositAddressesByNetwork`.
-    pub async fn fetch_deposit_addresses_by_network(&mut self, code: &str, params: impl Into<Params>) -> crate::Result<Vec<DepositAddress>> {
+    pub async fn fetch_deposit_addresses_by_network(&mut self, code: &str, params: impl Into<Params>) -> crate::Result<DepositAddresses> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_deposit_addresses_by_network(Value::Str(code.to_string()), &[params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, DepositAddress::from_value))
+        Ok(dict_from_value(&v, DepositAddress::from_value))
     }
 
     /// Typed wrapper around `fetchOpenInterestHistory`.
@@ -558,9 +558,9 @@ impl Hollaex {
     }
 
     /// Typed wrapper around `fetchAllGreeks`.
-    pub async fn fetch_all_greeks(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Greeks>> {
+    pub async fn fetch_all_greeks(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<AllGreeks> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_all_greeks(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::Str).collect())), None => Value::Null }, params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Greeks::from_value))
+        Ok(dict_from_value(&v, Greeks::from_value))
     }
 
     /// Typed wrapper around `fetchDepositsWithdrawals`.

@@ -11,6 +11,7 @@ public final class TradingFeeInterface {
     public Double taker;
     public Boolean percentage;
     public Boolean tierBased;
+    public Map<String, Object> tiers;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -21,6 +22,8 @@ public final class TradingFeeInterface {
         this.taker = TypeHelper.safeFloat(data, "taker");
         this.percentage = TypeHelper.safeBool(data, "percentage");
         this.tierBased = TypeHelper.safeBool(data, "tierBased");
+        Object tiersRaw = TypeHelper.safeValue(data, "tiers");
+        this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         this.info = TypeHelper.getInfo(data);
     }
 }

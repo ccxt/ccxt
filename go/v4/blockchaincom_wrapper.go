@@ -753,7 +753,7 @@ func (this *Blockchaincom) EditOrders(orders []OrderRequest, options ...EditOrde
 func (this *Blockchaincom) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Blockchaincom) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Blockchaincom) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Blockchaincom) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -792,7 +792,7 @@ func (this *Blockchaincom) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Blockchaincom) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Blockchaincom) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Blockchaincom) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Blockchaincom) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

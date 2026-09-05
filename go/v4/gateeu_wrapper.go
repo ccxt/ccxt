@@ -145,7 +145,7 @@ func (this *Gateeu) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Gateeu) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Gateeu) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Gateeu) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Gateeu) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Gateeu) FetchDepositAddress(code string, options ...FetchDepositAddr
 func (this *Gateeu) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Gateeu) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Gateeu) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Gateeu) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

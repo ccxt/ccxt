@@ -621,8 +621,8 @@ impl LimitlessCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1248: bool = true;
-                while { if !__for_first_1248 { i = add(&i, &Value::Int(1)); } __for_first_1248 = false; is_less_than(&i, &get_array_length(&queries)) } {
+                let mut __for_first_1250: bool = true;
+                while { if !__for_first_1250 { i = add(&i, &Value::Int(1)); } __for_first_1250 = false; is_less_than(&i, &get_array_length(&queries)) } {
                 let mut q: Value = get_value(&queries, &i);
                 let mut q: Value = get_value(&queries, &i);
                 let __ws_arg_0 = self.extend(Value::Map({
@@ -635,8 +635,8 @@ impl LimitlessCore {
                 let mut found: Value = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_1247: bool = true;
-                    while { if !__for_first_1247 { j = add(&j, &Value::Int(1)); } __for_first_1247 = false; is_less_than(&j, &get_array_length(&found)) } {
+                    let mut __for_first_1249: bool = true;
+                    while { if !__for_first_1249 { j = add(&j, &Value::Int(1)); } __for_first_1249 = false; is_less_than(&j, &get_array_length(&found)) } {
                     let mut raw: Value = get_value(&found, &j);
                     let mut raw: Value = get_value(&found, &j);
                     let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
@@ -669,8 +669,8 @@ impl LimitlessCore {
             let mut totalPages: Value = crate::runtime::Math::min(&allPages, &cappedPages);
             {
                                 let mut i: Value = Value::Int(2);
-                let mut __for_first_1249: bool = true;
-                while { if !__for_first_1249 { i = add(&i, &Value::Int(1)); } __for_first_1249 = false; is_less_than_or_equal(&i, &totalPages) } {
+                let mut __for_first_1251: bool = true;
+                while { if !__for_first_1251 { i = add(&i, &Value::Int(1)); } __for_first_1251 = false; is_less_than_or_equal(&i, &totalPages) } {
                 page = i.clone();
                 add_element_to_object(&mut request, &Value::Str("page".to_string()), page.clone());
                 let __ws_arg_2 = self.extend(request.clone(), &[rest.clone()]);
@@ -681,8 +681,8 @@ impl LimitlessCore {
             let mut length: Value = get_array_length(&responses);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1250: bool = true;
-                while { if !__for_first_1250 { j = add(&j, &Value::Int(1)); } __for_first_1250 = false; is_less_than(&j, &length) } {
+                let mut __for_first_1252: bool = true;
+                while { if !__for_first_1252 { j = add(&j, &Value::Int(1)); } __for_first_1252 = false; is_less_than(&j, &length) } {
                 let mut response: Value = self.safe_dict(responses.clone(), j.clone(), &[]);
                 let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
                 allRaw = self.array_concat(allRaw.clone(), data.clone());
@@ -710,8 +710,8 @@ impl LimitlessCore {
                     }
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_1251: bool = true;
-                        while { if !__for_first_1251 { i = add(&i, &Value::Int(1)); } __for_first_1251 = false; is_less_than(&i, &get_array_length(&page_markets)) } {
+                        let mut __for_first_1253: bool = true;
+                        while { if !__for_first_1253 { i = add(&i, &Value::Int(1)); } __for_first_1253 = false; is_less_than(&i, &get_array_length(&page_markets)) } {
                         let mut raw: Value = get_value(&page_markets, &i);
                         let mut raw: Value = get_value(&page_markets, &i);
                         append_to_array(&mut allRaw, raw.clone());
@@ -734,8 +734,8 @@ impl LimitlessCore {
         let mut expandedRaw: Value = self.expand_group_rows(allRaw.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1252: bool = true;
-            while { if !__for_first_1252 { i = add(&i, &Value::Int(1)); } __for_first_1252 = false; is_less_than(&i, &get_array_length(&expandedRaw)) } {
+            let mut __for_first_1254: bool = true;
+            while { if !__for_first_1254 { i = add(&i, &Value::Int(1)); } __for_first_1254 = false; is_less_than(&i, &get_array_length(&expandedRaw)) } {
             let mut raw: Value = get_value(&expandedRaw, &i);
             let mut raw: Value = get_value(&expandedRaw, &i);
             let mut groupId: Value = self.safe_string_n(raw.clone(), Value::List(vec![Value::Str("groupSlug".to_string()), Value::Str("groupId".to_string())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
@@ -771,8 +771,8 @@ impl LimitlessCore {
         let mut eventKeys: Value = object_keys(&eventGroups);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1253: bool = true;
-            while { if !__for_first_1253 { i = add(&i, &Value::Int(1)); } __for_first_1253 = false; is_less_than(&i, &get_array_length(&eventKeys)) } {
+            let mut __for_first_1255: bool = true;
+            while { if !__for_first_1255 { i = add(&i, &Value::Int(1)); } __for_first_1255 = false; is_less_than(&i, &get_array_length(&eventKeys)) } {
             let mut eventKey: Value = get_value(&eventKeys, &i);
             let mut eventKey: Value = get_value(&eventKeys, &i);
             let mut g: Value = get_value(&eventGroups, &eventKey);
@@ -909,8 +909,8 @@ impl LimitlessCore {
         let mut tokenEntries: Value = object_keys(&tokens);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1254: bool = true;
-            while { if !__for_first_1254 { i = add(&i, &Value::Int(1)); } __for_first_1254 = false; is_less_than(&i, &get_array_length(&tokenEntries)) } {
+            let mut __for_first_1256: bool = true;
+            while { if !__for_first_1256 { i = add(&i, &Value::Int(1)); } __for_first_1256 = false; is_less_than(&i, &get_array_length(&tokenEntries)) } {
             let mut outcomeLabel: Value = get_value(&tokenEntries, &i);
             let mut outcomeLabel: Value = get_value(&tokenEntries, &i);
             let mut tokenData: Value = get_value(&tokens, &outcomeLabel);
@@ -1100,8 +1100,8 @@ impl LimitlessCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1256: bool = true;
-            while { if !__for_first_1256 { i = add(&i, &Value::Int(1)); } __for_first_1256 = false; is_less_than(&i, &get_array_length(&rawRows)) } {
+            let mut __for_first_1258: bool = true;
+            while { if !__for_first_1258 { i = add(&i, &Value::Int(1)); } __for_first_1258 = false; is_less_than(&i, &get_array_length(&rawRows)) } {
             let mut raw: Value = get_value(&rawRows, &i);
             let mut raw: Value = get_value(&rawRows, &i);
             let mut rowType: Value = self.safe_string_k(raw.clone(), "marketType", &[]);
@@ -1112,8 +1112,8 @@ impl LimitlessCore {
                 let mut nestedMarketsLength: Value = get_array_length(&nestedMarkets);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_1255: bool = true;
-                    while { if !__for_first_1255 { j = add(&j, &Value::Int(1)); } __for_first_1255 = false; is_less_than(&j, &nestedMarketsLength) } {
+                    let mut __for_first_1257: bool = true;
+                    while { if !__for_first_1257 { j = add(&j, &Value::Int(1)); } __for_first_1257 = false; is_less_than(&j, &nestedMarketsLength) } {
                     // extend copies — the raw child stays untouched
                     let mut tagged: Value = self.extend(get_value(&nestedMarkets, &j), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -1372,8 +1372,8 @@ impl LimitlessCore {
         let mut totalVolume: Value = Value::Int(0);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1257: bool = true;
-            while { if !__for_first_1257 { i = add(&i, &Value::Int(1)); } __for_first_1257 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_1259: bool = true;
+            while { if !__for_first_1259 { i = add(&i, &Value::Int(1)); } __for_first_1259 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             let mut rawMarket: Value = get_value(&rawMarkets, &i);
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
@@ -1750,8 +1750,8 @@ impl LimitlessCore {
         let mut slugs: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1258: bool = true;
-            while { if !__for_first_1258 { i = add(&i, &Value::Int(1)); } __for_first_1258 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1260: bool = true;
+            while { if !__for_first_1260 { i = add(&i, &Value::Int(1)); } __for_first_1260 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut slug: Value = self.safe_string(get_value(&outcomeObj, &Value::Str("info".to_string())), Value::Str("slug".to_string()), &[]);
             if is_equal(&slug, &Value::Null) {
@@ -1774,8 +1774,8 @@ impl LimitlessCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1259: bool = true;
-            while { if !__for_first_1259 { i = add(&i, &Value::Int(1)); } __for_first_1259 = false; is_less_than(&i, &get_array_length(&slugs)) } {
+            let mut __for_first_1261: bool = true;
+            while { if !__for_first_1261 { i = add(&i, &Value::Int(1)); } __for_first_1261 = false; is_less_than(&i, &get_array_length(&slugs)) } {
             let mut slug: Value = get_value(&slugs, &i);
             let mut slug: Value = get_value(&slugs, &i);
             let __ws_arg_18 = self.extend(Value::Map({
@@ -1794,8 +1794,8 @@ impl LimitlessCore {
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1261: bool = true;
-            while { if !__for_first_1261 { i = add(&i, &Value::Int(1)); } __for_first_1261 = false; is_less_than(&i, &get_array_length(&slugs)) } {
+            let mut __for_first_1263: bool = true;
+            while { if !__for_first_1263 { i = add(&i, &Value::Int(1)); } __for_first_1263 = false; is_less_than(&i, &get_array_length(&slugs)) } {
             let mut slug: Value = get_value(&slugs, &i);
             let mut slug: Value = get_value(&slugs, &i);
             let mut detailIndex: Value = multiply(&i, &Value::Int(2));
@@ -1812,8 +1812,8 @@ impl LimitlessCore {
             let mut grouped: Value = get_value(&outcomesBySlug, &slug);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1260: bool = true;
-                while { if !__for_first_1260 { j = add(&j, &Value::Int(1)); } __for_first_1260 = false; is_less_than(&j, &get_array_length(&grouped)) } {
+                let mut __for_first_1262: bool = true;
+                while { if !__for_first_1262 { j = add(&j, &Value::Int(1)); } __for_first_1262 = false; is_less_than(&j, &get_array_length(&grouped)) } {
                 let mut ticker: Value = self.parse_prediction_ticker(tickerInput.clone(), &[get_value(&grouped, &j)]);
                 let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[]);
                 if !is_equal(&symbolKey, &Value::Null) {
@@ -1886,8 +1886,8 @@ impl LimitlessCore {
         let mut filtered: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1262: bool = true;
-            while { if !__for_first_1262 { i = add(&i, &Value::Int(1)); } __for_first_1262 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_1264: bool = true;
+            while { if !__for_first_1264 { i = add(&i, &Value::Int(1)); } __for_first_1264 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut rowTokenId: Value = self.safe_string_k(row.clone(), "tokenId", &[]);
@@ -1963,8 +1963,8 @@ impl LimitlessCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut bi: Value = Value::Int(0);
-            let mut __for_first_1263: bool = true;
-            while { if !__for_first_1263 { bi = add(&bi, &Value::Int(1)); } __for_first_1263 = false; is_less_than(&bi, &get_array_length(&bidsSource)) } {
+            let mut __for_first_1265: bool = true;
+            while { if !__for_first_1265 { bi = add(&bi, &Value::Int(1)); } __for_first_1265 = false; is_less_than(&bi, &get_array_length(&bidsSource)) } {
             let mut priceStr: Value = self.safe_string_k(get_value(&bidsSource, &bi), "price", &[]);
             if !is_true(&isYes) && is_true(&(!is_equal(&priceStr, &Value::Null))) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceStr);
@@ -1978,8 +1978,8 @@ impl LimitlessCore {
         }
         {
                         let mut ai: Value = Value::Int(0);
-            let mut __for_first_1264: bool = true;
-            while { if !__for_first_1264 { ai = add(&ai, &Value::Int(1)); } __for_first_1264 = false; is_less_than(&ai, &get_array_length(&asksSource)) } {
+            let mut __for_first_1266: bool = true;
+            while { if !__for_first_1266 { ai = add(&ai, &Value::Int(1)); } __for_first_1266 = false; is_less_than(&ai, &get_array_length(&asksSource)) } {
             let mut priceStr: Value = self.safe_string_k(get_value(&asksSource, &ai), "price", &[]);
             if !is_true(&isYes) && is_true(&(!is_equal(&priceStr, &Value::Null))) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &priceStr);
@@ -2088,8 +2088,8 @@ impl LimitlessCore {
                 let mut selectedSeries: Value = first.clone();
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1265: bool = true;
-                    while { if !__for_first_1265 { i = add(&i, &Value::Int(1)); } __for_first_1265 = false; is_less_than(&i, &get_array_length(&rawHistory)) } {
+                    let mut __for_first_1267: bool = true;
+                    while { if !__for_first_1267 { i = add(&i, &Value::Int(1)); } __for_first_1267 = false; is_less_than(&i, &get_array_length(&rawHistory)) } {
                     let mut series: Value = self.safe_dict(rawHistory.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2112,8 +2112,8 @@ impl LimitlessCore {
         let mut pseudoTrades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1266: bool = true;
-            while { if !__for_first_1266 { i = add(&i, &Value::Int(1)); } __for_first_1266 = false; is_less_than(&i, &get_array_length(&history)) } {
+            let mut __for_first_1268: bool = true;
+            while { if !__for_first_1268 { i = add(&i, &Value::Int(1)); } __for_first_1268 = false; is_less_than(&i, &get_array_length(&history)) } {
             let mut point: Value = get_value(&history, &i);
             let mut point: Value = get_value(&history, &i);
             let mut pointPrice: Value = self.safe_number_k(point.clone(), "price", &[]);
@@ -2149,8 +2149,8 @@ impl LimitlessCore {
         let mut bucketOrder: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1267: bool = true;
-            while { if !__for_first_1267 { i = add(&i, &Value::Int(1)); } __for_first_1267 = false; is_less_than(&i, &get_array_length(&sorted)) } {
+            let mut __for_first_1269: bool = true;
+            while { if !__for_first_1269 { i = add(&i, &Value::Int(1)); } __for_first_1269 = false; is_less_than(&i, &get_array_length(&sorted)) } {
             let mut point: Value = get_value(&sorted, &i);
             let mut point: Value = get_value(&sorted, &i);
             let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
@@ -2179,8 +2179,8 @@ impl LimitlessCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1268: bool = true;
-            while { if !__for_first_1268 { i = add(&i, &Value::Int(1)); } __for_first_1268 = false; is_less_than(&i, &get_array_length(&bucketOrder)) } {
+            let mut __for_first_1270: bool = true;
+            while { if !__for_first_1270 { i = add(&i, &Value::Int(1)); } __for_first_1270 = false; is_less_than(&i, &get_array_length(&bucketOrder)) } {
             append_to_array(&mut result, get_value(&candles, &get_value(&bucketOrder, &i)));
         }
         }
@@ -2322,8 +2322,8 @@ impl LimitlessCore {
         let mut items: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1269: bool = true;
-            while { if !__for_first_1269 { i = add(&i, &Value::Int(1)); } __for_first_1269 = false; is_less_than(&i, &length) } {
+            let mut __for_first_1271: bool = true;
+            while { if !__for_first_1271 { i = add(&i, &Value::Int(1)); } __for_first_1271 = false; is_less_than(&i, &length) } {
             let mut id: Value = self.safe_string(ids.clone(), i.clone(), &[]);
             let mut item: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2440,8 +2440,8 @@ impl LimitlessCore {
         let mut found: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1270: bool = true;
-            while { if !__for_first_1270 { i = add(&i, &Value::Int(1)); } __for_first_1270 = false; is_less_than(&i, &get_array_length(&results)) } {
+            let mut __for_first_1272: bool = true;
+            while { if !__for_first_1272 { i = add(&i, &Value::Int(1)); } __for_first_1272 = false; is_less_than(&i, &get_array_length(&results)) } {
             let mut item: Value = self.safe_dict(results.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3100,8 +3100,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut signedFields: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1271: bool = true;
-            while { if !__for_first_1271 { i = add(&i, &Value::Int(1)); } __for_first_1271 = false; is_less_than(&i, &get_array_length(&fields)) } {
+            let mut __for_first_1273: bool = true;
+            while { if !__for_first_1273 { i = add(&i, &Value::Int(1)); } __for_first_1273 = false; is_less_than(&i, &get_array_length(&fields)) } {
             append_to_array(&mut signedFields, get_value(&fields, &i));
         }
         }
@@ -3445,8 +3445,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1272: bool = true;
-            while { if !__for_first_1272 { i = add(&i, &Value::Int(1)); } __for_first_1272 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_1274: bool = true;
+            while { if !__for_first_1274 { i = add(&i, &Value::Int(1)); } __for_first_1274 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut strategy: Value = self.safe_string_lower(item.clone(), Value::Str("strategy".to_string()), &[]);
             if !is_equal(&strategy, &Value::Null) {
@@ -3610,8 +3610,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomes: Value = self.safe_list_k(mkt.clone(), "outcomes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1273: bool = true;
-            while { if !__for_first_1273 { i = add(&i, &Value::Int(1)); } __for_first_1273 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+            let mut __for_first_1275: bool = true;
+            while { if !__for_first_1275 { i = add(&i, &Value::Int(1)); } __for_first_1275 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
             let mut outcome: Value = self.safe_dict(outcomes.clone(), i.clone(), &[]);
             let mut outcomeLabel: Value = self.safe_string_k(outcome.clone(), "label", &[]);
             if is_equal(&outcomeLabel, &label) {
@@ -3734,13 +3734,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut labels: Value = Value::List(vec![Value::Str("yes".to_string()), Value::Str("no".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1275: bool = true;
-            while { if !__for_first_1275 { i = add(&i, &Value::Int(1)); } __for_first_1275 = false; is_less_than(&i, &get_array_length(&clob)) } {
+            let mut __for_first_1277: bool = true;
+            while { if !__for_first_1277 { i = add(&i, &Value::Int(1)); } __for_first_1277 = false; is_less_than(&i, &get_array_length(&clob)) } {
             let mut entry: Value = self.safe_dict(clob.clone(), i.clone(), &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1274: bool = true;
-                while { if !__for_first_1274 { j = add(&j, &Value::Int(1)); } __for_first_1274 = false; is_less_than(&j, &get_array_length(&labels)) } {
+                let mut __for_first_1276: bool = true;
+                while { if !__for_first_1276 { j = add(&j, &Value::Int(1)); } __for_first_1276 = false; is_less_than(&j, &get_array_length(&labels)) } {
                 let mut label: Value = self.safe_string(labels.clone(), j.clone(), &[]);
                 let mut position: Value = self.get_position_from_clob_entry(label.clone(), &[entry.clone()]);
                 if !is_equal(&position, &Value::Null) {
@@ -3888,8 +3888,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1277: bool = true;
-                while { if !__for_first_1277 { i = add(&i, &Value::Int(1)); } __for_first_1277 = false; is_less_than(&i, &get_array_length(&queries)) } {
+                let mut __for_first_1279: bool = true;
+                while { if !__for_first_1279 { i = add(&i, &Value::Int(1)); } __for_first_1279 = false; is_less_than(&i, &get_array_length(&queries)) } {
                 if is_equal(&queries, &Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing queries".to_string()))));
                 }
@@ -3905,8 +3905,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut found: Value = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_1276: bool = true;
-                    while { if !__for_first_1276 { j = add(&j, &Value::Int(1)); } __for_first_1276 = false; is_less_than(&j, &get_array_length(&found)) } {
+                    let mut __for_first_1278: bool = true;
+                    while { if !__for_first_1278 { j = add(&j, &Value::Int(1)); } __for_first_1278 = false; is_less_than(&j, &get_array_length(&found)) } {
                     let mut raw: Value = get_value(&found, &j);
                     let mut raw: Value = get_value(&found, &j);
                     let mut rawSlug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
@@ -3934,8 +3934,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut listRawLength: Value = get_array_length(&listRaw);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1278: bool = true;
-                while { if !__for_first_1278 { i = add(&i, &Value::Int(1)); } __for_first_1278 = false; is_less_than(&i, &listRawLength) } {
+                let mut __for_first_1280: bool = true;
+                while { if !__for_first_1280 { i = add(&i, &Value::Int(1)); } __for_first_1280 = false; is_less_than(&i, &listRawLength) } {
                 append_to_array(&mut rawMarkets, get_value(&listRaw, &i));
             }
             }
@@ -3959,8 +3959,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawMarketsLength: Value = get_array_length(&expandedMarkets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1279: bool = true;
-            while { if !__for_first_1279 { i = add(&i, &Value::Int(1)); } __for_first_1279 = false; is_less_than(&i, &rawMarketsLength) } {
+            let mut __for_first_1281: bool = true;
+            while { if !__for_first_1281 { i = add(&i, &Value::Int(1)); } __for_first_1281 = false; is_less_than(&i, &rawMarketsLength) } {
             let mut raw: Value = get_value(&expandedMarkets, &i);
             let mut raw: Value = get_value(&expandedMarkets, &i);
             let mut groupId: Value = self.safe_string_n(raw.clone(), Value::List(vec![Value::Str("groupSlug".to_string()), Value::Str("groupId".to_string())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
@@ -3997,8 +3997,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut eventKeysLength: Value = get_array_length(&eventKeys);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1280: bool = true;
-            while { if !__for_first_1280 { i = add(&i, &Value::Int(1)); } __for_first_1280 = false; is_less_than(&i, &eventKeysLength) } {
+            let mut __for_first_1282: bool = true;
+            while { if !__for_first_1282 { i = add(&i, &Value::Int(1)); } __for_first_1282 = false; is_less_than(&i, &eventKeysLength) } {
             let mut g: Value = get_value(&eventGroups, &get_value(&eventKeys, &i));
             let mut ev: Value = self.parse_event(g.clone());
             append_to_array(&mut result, ev.clone());
@@ -4069,8 +4069,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1281: bool = true;
-                while { if !__for_first_1281 { i = add(&i, &Value::Int(1)); } __for_first_1281 = false; is_less_than(&i, &dataLength) } {
+                let mut __for_first_1283: bool = true;
+                while { if !__for_first_1283 { i = add(&i, &Value::Int(1)); } __for_first_1283 = false; is_less_than(&i, &dataLength) } {
                 if is_less_than(&collected, &maxMarkets) {
                     append_to_array(&mut allRaw, get_value(&data, &i));
                     collected = self.sum(&[collected.clone(), Value::Int(1)]);
@@ -4110,8 +4110,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut wanted: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1282: bool = true;
-            while { if !__for_first_1282 { i = add(&i, &Value::Int(1)); } __for_first_1282 = false; is_less_than(&i, &get_array_length(&tags)) } {
+            let mut __for_first_1284: bool = true;
+            while { if !__for_first_1284 { i = add(&i, &Value::Int(1)); } __for_first_1284 = false; is_less_than(&i, &get_array_length(&tags)) } {
             append_to_array(&mut wanted, to_lower(&get_value(&tags, &i)));
         }
         }
@@ -4119,8 +4119,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut categoriesLength: Value = get_array_length(&categories);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1284: bool = true;
-            while { if !__for_first_1284 { i = add(&i, &Value::Int(1)); } __for_first_1284 = false; is_less_than(&i, &categoriesLength) } {
+            let mut __for_first_1286: bool = true;
+            while { if !__for_first_1286 { i = add(&i, &Value::Int(1)); } __for_first_1286 = false; is_less_than(&i, &categoriesLength) } {
             let mut category: Value = get_value(&categories, &i);
             let mut category: Value = get_value(&categories, &i);
             let mut name: Value = self.safe_string_lower(category.clone(), Value::Str("name".to_string()), &[Value::Str("".to_string())]);
@@ -4128,8 +4128,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut matched: Value = Value::Bool(false);
             {
                                 let mut wi: Value = Value::Int(0);
-                let mut __for_first_1283: bool = true;
-                while { if !__for_first_1283 { wi = add(&wi, &Value::Int(1)); } __for_first_1283 = false; is_less_than(&wi, &get_array_length(&wanted)) } {
+                let mut __for_first_1285: bool = true;
+                while { if !__for_first_1285 { wi = add(&wi, &Value::Int(1)); } __for_first_1285 = false; is_less_than(&wi, &get_array_length(&wanted)) } {
                 if is_equal(&name, &Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchRawMarketsByTags() missing name".to_string()))));
                 }
@@ -4155,14 +4155,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut allRaw: Value = Value::List(vec![]);
         {
                         let mut ci: Value = Value::Int(0);
-            let mut __for_first_1286: bool = true;
-            while { if !__for_first_1286 { ci = add(&ci, &Value::Int(1)); } __for_first_1286 = false; is_less_than(&ci, &categoryIdsLength) } {
+            let mut __for_first_1288: bool = true;
+            while { if !__for_first_1288 { ci = add(&ci, &Value::Int(1)); } __for_first_1288 = false; is_less_than(&ci, &categoryIdsLength) } {
             let mut categoryMarkets: Value = self.fetch_raw_active_markets(&[params.clone(), get_value(&categoryIds, &ci)]).await;
             let mut categoryMarketsLength: Value = get_array_length(&categoryMarkets);
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1285: bool = true;
-                while { if !__for_first_1285 { mi = add(&mi, &Value::Int(1)); } __for_first_1285 = false; is_less_than(&mi, &categoryMarketsLength) } {
+                let mut __for_first_1287: bool = true;
+                while { if !__for_first_1287 { mi = add(&mi, &Value::Int(1)); } __for_first_1287 = false; is_less_than(&mi, &categoryMarketsLength) } {
                 let mut raw: Value = get_value(&categoryMarkets, &mi);
                 let mut raw: Value = get_value(&categoryMarkets, &mi);
                 let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);

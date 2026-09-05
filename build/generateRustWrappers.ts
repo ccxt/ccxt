@@ -117,6 +117,8 @@ const KNOWN_MAP_TYPES = new Map<string, string>([
     ['LastPrices', 'LastPrice'],
     ['OptionChain', 'OptionContract'],
     ['DepositWithdrawFees', 'DepositWithdrawFee'],
+    ['AllGreeks', 'Greeks'],
+    ['DepositAddresses', 'DepositAddress'],
 ]);
 
 // Collection types whose entries are LISTS of a struct —

@@ -13,7 +13,7 @@ OKX's v5 API is a single, well-documented REST and WebSocket surface covering sp
 ## TL;DR
 
 - **Pick `python-okx`** if OKX is your only venue, you are in Python, and you want `instId`, `tdMode` and `ordType` to read exactly as they do in OKX's reference.
-- **Pick CCXT** if you want one dependency across OKX spot, margin, futures, swaps and options — and across the next venue you add, in whichever of seven languages your service is written in.
+- **Pick CCXT** if you want one dependency across OKX spot, margin, futures, swaps and options — and across the next venue you add, in whichever of eight languages your service is written in.
 - **Demo trading works either way.** OKX's demo environment is a header (`x-simulated-trading: 1`); CCXT sets it for you via `set_sandbox_mode(True)`.
 - **Choosing CCXT does not hide anything.** All 446 raw OKX endpoints are callable as [implicit methods](/docs/exchanges/okx/implicit-api).
 
@@ -22,7 +22,7 @@ OKX's v5 API is a single, well-documented REST and WebSocket surface covering sp
 | | **CCXT** | **python-okx** |
 | --- | --- | --- |
 | Exchanges covered | 104 (OKX is one of them) | OKX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python only (>= 3.7) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python only (>= 3.7) |
 | Packages to install | **1** (`ccxt`) | 1 (`python-okx`) |
 | Client objects | one — `ccxt.okx()` | one per domain — `Account`, `Trade`, `MarketData`, `PublicData`, `Funding`, `Grid`, `CopyTrading`, `SubAccount`, `BlockTrading`, `Convert`, `SpreadTrading`, `TradingData`, `Status`, `DualInvest`, `FDBroker` |
 | Unified market data + trading API | yes — same method names across every exchange | no — OKX's own request/response shapes |
@@ -169,9 +169,9 @@ for exchange_id in ['okx', 'binance', 'bybit', 'kraken', 'coinbase']:
     print(exchange_id, exchange.fetch_ticker('BTC/USDT')['last'])
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names, arguments and return structures in all seven. `python-okx` is Python-only; the well-maintained community Node SDK [`okx-api`](https://github.com/tiagosiebler/okx-api) covers TypeScript, and beyond that you are writing your own.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names, arguments and return structures in all eight. `python-okx` is Python-only; the well-maintained community Node SDK [`okx-api`](https://github.com/tiagosiebler/okx-api) covers TypeScript, and beyond that you are writing your own.
 
 <!-- tabs:start -->
 

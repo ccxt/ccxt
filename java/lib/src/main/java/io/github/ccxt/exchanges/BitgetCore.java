@@ -3186,7 +3186,7 @@ public class BitgetCore extends BitgetApi
                 Object accountIsUTa = false;
                 try
                 {
-                    (this.privateUtaGetV3AccountSettings(parameters)).join();
+                    (this.privateUtaGetV3AccountSettings()).join();
                     accountIsUTa = true;
                 } catch(Exception e)
                 {

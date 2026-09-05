@@ -398,7 +398,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters
      * @returns {Market[]} array of market structures
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         //
         // outcomeMeta response:
@@ -489,7 +489,7 @@ public partial class hyperliquid : PredictionExchange
                 }
             }
         }
-        return markets;
+        return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
 
     /**
@@ -868,7 +868,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -909,7 +909,7 @@ public partial class hyperliquid : PredictionExchange
             { "bids", bids },
             { "asks", asks },
         }, this.safeString(outcomeObj, "outcome", outcome), timestamp);
-        return this.safePredictionOrderBook(orderbook, outcomeObj);
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
     }
 
     /**
@@ -1024,7 +1024,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address (defaults to this.walletAddress)
      * @returns {Balances} balance structure
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1063,7 +1063,7 @@ public partial class hyperliquid : PredictionExchange
                 ((IDictionary<string,object>)result)[(string)coin] = account;
             }
         }
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -2107,7 +2107,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
@@ -2211,7 +2211,7 @@ public partial class hyperliquid : PredictionExchange
         }
         // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
         // so getEvent() resolves these events by any of the three keys
-        return this.applyEventFetchParams(events, parameters, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(events, parameters, queries));
     }
 
     /**

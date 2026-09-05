@@ -993,7 +993,7 @@ func (this *Bithumb) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Bithumb) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bithumb) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bithumb) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bithumb) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1029,7 +1029,7 @@ func (this *Bithumb) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, err
 func (this *Bithumb) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
-func (this *Bithumb) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bithumb) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bithumb) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

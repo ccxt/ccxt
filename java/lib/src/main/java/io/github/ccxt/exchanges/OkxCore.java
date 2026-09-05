@@ -5232,7 +5232,10 @@ public class OkxCore extends OkxApi
             //     }
             //
             Object ordersData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseOrders(ordersData, market, null, null, parameters);
+            // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
+            // request would otherwise come back as a list under the unified string field
+            Object orderParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
+            return this.parseOrders(ordersData, market, null, null, orderParams);
         });
 
     }
@@ -10547,7 +10550,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     public java.util.concurrent.CompletableFuture<Object> fetchAllGreeks(Object... optionalArgs)
     {

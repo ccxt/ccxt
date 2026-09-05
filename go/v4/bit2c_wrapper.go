@@ -434,7 +434,7 @@ func (this *Bit2c) EditOrders(orders []OrderRequest, options ...EditOrdersOption
 func (this *Bit2c) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bit2c) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bit2c) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bit2c) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -476,7 +476,7 @@ func (this *Bit2c) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Bit2c) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bit2c) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bit2c) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bit2c) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

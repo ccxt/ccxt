@@ -716,7 +716,7 @@ func (this *Btcmarkets) EditOrders(orders []OrderRequest, options ...EditOrdersO
 func (this *Btcmarkets) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Btcmarkets) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Btcmarkets) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Btcmarkets) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -758,7 +758,7 @@ func (this *Btcmarkets) FetchDepositAddress(code string, options ...FetchDeposit
 func (this *Btcmarkets) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Btcmarkets) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Btcmarkets) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Btcmarkets) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {

@@ -176,7 +176,7 @@ func (this *Binancecoinm) EditOrders(orders []OrderRequest, options ...EditOrder
 func (this *Binancecoinm) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Binancecoinm) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Binancecoinm) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Binancecoinm) FetchBalance(params ...any) (Balances, error) {
@@ -224,7 +224,7 @@ func (this *Binancecoinm) FetchDepositAddress(code string, options ...FetchDepos
 func (this *Binancecoinm) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Binancecoinm) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Binancecoinm) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Binancecoinm) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

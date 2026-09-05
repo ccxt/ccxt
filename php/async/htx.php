@@ -3225,7 +3225,7 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_account_id_by_type(string $type, ?string $marginMode = null, ?string $symbol = null, $params = array()) {
+    public function fetch_account_id_by_type(string $type, ?string $marginMode = null, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_account_id_by_type(...))($type, $marginMode, $symbol, $params);
     }
 
@@ -3242,7 +3242,7 @@ class htx extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account $type
          */
         $accounts = Async\await($this->load_accounts());
-        $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
+        $accountId = $this->safe_string_2($params, 'accountId', 'account-id');
         if ($accountId !== null) {
             return $accountId;
         }
@@ -3674,7 +3674,6 @@ class htx extends Exchange {
             if ($isolated) {
                 for ($i = 0; $i < count($data); $i++) {
                     $entry = $data[$i];
-                    $symbol = $this->safe_symbol($this->safe_string($entry, 'symbol'));
                     $balances = $this->safe_value($entry, 'list');
                     $subResult = array();
                     for ($j = 0; $j < count($balances); $j++) {
@@ -3685,8 +3684,13 @@ class htx extends Exchange {
                             $subResult[$code] = $this->parse_margin_balance_helper($balance, $code, $subResult);
                         }
                     }
-                    $result[$symbol] = $this->safe_balance($subResult);
+                    $subCodes = is_array($subResult) ? array_keys($subResult) : array();
+                    for ($j = 0; $j < count($subCodes); $j++) {
+                        $subCode = $subCodes[$j];
+                        $result = $this->merge_balance_account($result, $subCode, $subResult[$subCode]);
+                    }
                 }
+                $result = $this->safe_balance($result);
             } else {
                 $balances = $this->safe_value($data, 'list', array());
                 for ($i = 0; $i < count($balances); $i++) {

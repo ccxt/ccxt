@@ -325,7 +325,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -344,15 +344,15 @@ public partial class cex : ccxt.cex
         object tickerSymbol = getValue(ticker, "symbol");
         if (isTrue(isTrue(!isEqual(symbols, null)) && !isTrue(this.inArray(tickerSymbol, symbols))))
         {
-            return await this.watchTickers(symbols, parameters);
+            return await this.WatchTickers(symbols, parameters);
         }
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)tickerSymbol] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -490,7 +490,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalanceWs(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -504,7 +504,7 @@ public partial class cex : ccxt.cex
             { "e", "get-balance" },
             { "oid", messageHash },
         }, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash));
     }
 
     /**

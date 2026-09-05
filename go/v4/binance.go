@@ -5437,7 +5437,7 @@ func (this *BinanceCore) ParseBalanceCustom(response any, optionalArgs ...any) a
 	_ = marginMode
 	isPortfolioMargin := GetArg(optionalArgs, 2, false)
 	_ = isPortfolioMargin
-	var result map[string]any = map[string]any{
+	var result any = map[string]any{
 		"info": response,
 	}
 	var timestamp any = nil
@@ -5496,20 +5496,16 @@ func (this *BinanceCore) ParseBalanceCustom(response any, optionalArgs ...any) a
 		var assets any = this.SafeList(response, "assets", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 			var asset any = GetValue(assets, i)
-			var marketId any = this.SafeString(asset, "symbol")
-			var symbol any = this.SafeSymbol(marketId, nil, nil, "spot")
 			var base any = this.SafeDict(asset, "baseAsset", map[string]any{})
 			var quote any = this.SafeDict(asset, "quoteAsset", map[string]any{})
 			var baseCode any = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode any = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
-			var subResult map[string]any = map[string]any{}
 			if IsTrue(!IsEqual(baseCode, nil)) {
-				AddElementToObject(subResult, baseCode, this.ParseBalanceHelper(base))
+				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
 			}
 			if IsTrue(!IsEqual(quoteCode, nil)) {
-				AddElementToObject(subResult, quoteCode, this.ParseBalanceHelper(quote))
+				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 			}
-			AddElementToObject(result, symbol, this.SafeBalance(subResult))
 		}
 	} else if IsTrue(IsEqual(typeVar, "savings")) {
 		var positionAmountVos any = this.SafeList(response, "positionAmountVos", []any{})
@@ -5565,7 +5561,7 @@ func (this *BinanceCore) ParseBalanceCustom(response any, optionalArgs ...any) a
 	}
 	AddElementToObject(result, "timestamp", timestamp)
 	AddElementToObject(result, "datetime", this.Iso8601(timestamp))
-	return Ternary(IsTrue(isolated), result, this.SafeBalance(result))
+	return this.SafeBalance(result)
 }
 
 /**
@@ -5600,8 +5596,8 @@ func (this *BinanceCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes409912 := (<-this.LoadMarkets())
-		PanicOnError(retRes409912)
+		retRes409512 := (<-this.LoadMarkets())
+		PanicOnError(retRes409512)
 	}
 	var defaultType any = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
 	var typeVar any = this.SafeString(params, "type", defaultType)
@@ -5908,8 +5904,8 @@ func (this *BinanceCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes436612 := (<-this.LoadMarkets())
-		PanicOnError(retRes436612)
+		retRes436212 := (<-this.LoadMarkets())
+		PanicOnError(retRes436212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -6258,8 +6254,8 @@ func (this *BinanceCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes467612 := (<-this.LoadMarkets())
-		PanicOnError(retRes467612)
+		retRes467212 := (<-this.LoadMarkets())
+		PanicOnError(retRes467212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -6339,8 +6335,8 @@ func (this *BinanceCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes472812 := (<-this.LoadMarkets())
-		PanicOnError(retRes472812)
+		retRes472412 := (<-this.LoadMarkets())
+		PanicOnError(retRes472412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
@@ -6416,8 +6412,8 @@ func (this *BinanceCore) fetchLastPricesBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes477812 := (<-this.LoadMarkets())
-		PanicOnError(retRes477812)
+		retRes477412 := (<-this.LoadMarkets())
+		PanicOnError(retRes477412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
@@ -6520,8 +6516,8 @@ func (this *BinanceCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes488512 := (<-this.LoadMarkets())
-		PanicOnError(retRes488512)
+		retRes488112 := (<-this.LoadMarkets())
+		PanicOnError(retRes488112)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
@@ -6613,8 +6609,8 @@ func (this *BinanceCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes495012 := (<-this.LoadMarkets())
-		PanicOnError(retRes495012)
+		retRes494612 := (<-this.LoadMarkets())
+		PanicOnError(retRes494612)
 	}
 	var market any = this.Market(symbol)
 	var typeVar any = nil
@@ -6683,8 +6679,8 @@ func (this *BinanceCore) fetchMarkPricesBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes499312 := (<-this.LoadMarkets())
-		PanicOnError(retRes499312)
+		retRes498912 := (<-this.LoadMarkets())
+		PanicOnError(retRes498912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
@@ -6817,8 +6813,8 @@ func (this *BinanceCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes510412 := (<-this.LoadMarkets())
-		PanicOnError(retRes510412)
+		retRes510012 := (<-this.LoadMarkets())
+		PanicOnError(retRes510012)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
@@ -6826,9 +6822,9 @@ func (this *BinanceCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes510919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-		PanicOnError(retRes510919)
-		ch <- retRes510919
+		retRes510519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+		PanicOnError(retRes510519)
+		ch <- retRes510519
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -7287,8 +7283,8 @@ func (this *BinanceCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes553012 := (<-this.LoadMarkets())
-		PanicOnError(retRes553012)
+		retRes552612 := (<-this.LoadMarkets())
+		PanicOnError(retRes552612)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -7296,9 +7292,9 @@ func (this *BinanceCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes553519 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-		PanicOnError(retRes553519)
-		ch <- retRes553519
+		retRes553119 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+		PanicOnError(retRes553119)
+		ch <- retRes553119
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -7490,8 +7486,8 @@ func (this *BinanceCore) editSpotOrderBody(ch chan any, id any, symbol any, type
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes569412 := (<-this.LoadMarkets())
-		PanicOnError(retRes569412)
+		retRes569012 := (<-this.LoadMarkets())
+		PanicOnError(retRes569012)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
@@ -7754,8 +7750,8 @@ func (this *BinanceCore) editContractOrderBody(ch chan any, id any, symbol any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes593612 := (<-this.LoadMarkets())
-		PanicOnError(retRes593612)
+		retRes593212 := (<-this.LoadMarkets())
+		PanicOnError(retRes593212)
 	}
 	var market any = this.Market(symbol)
 	var isPortfolioMargin any = nil
@@ -7852,8 +7848,8 @@ func (this *BinanceCore) editOrderBody(ch chan any, id any, symbol any, typeVar 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes600712 := (<-this.LoadMarkets())
-		PanicOnError(retRes600712)
+		retRes600312 := (<-this.LoadMarkets())
+		PanicOnError(retRes600312)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(GetValue(market, "option"), true)) {
@@ -7861,15 +7857,15 @@ func (this *BinanceCore) editOrderBody(ch chan any, id any, symbol any, typeVar 
 	}
 	if IsTrue(IsEqual(GetValue(market, "spot"), true)) {
 
-		retRes601419 := (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes601419)
-		ch <- retRes601419
+		retRes601019 := (<-this.EditSpotOrder(id, symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes601019)
+		ch <- retRes601019
 		return nil
 	} else {
 
-		retRes601619 := (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes601619)
-		ch <- retRes601619
+		retRes601219 := (<-this.EditContractOrder(id, symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes601219)
+		ch <- retRes601219
 		return nil
 	}
 }
@@ -7896,8 +7892,8 @@ func (this *BinanceCore) editOrdersBody(ch chan any, orders any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes603212 := (<-this.LoadMarkets())
-		PanicOnError(retRes603212)
+		retRes602812 := (<-this.LoadMarkets())
+		PanicOnError(retRes602812)
 	}
 	var ordersRequests any = []any{}
 	var orderSymbols any = []any{}
@@ -8724,8 +8720,8 @@ func (this *BinanceCore) createOrdersBody(ch chan any, orders any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes683912 := (<-this.LoadMarkets())
-		PanicOnError(retRes683912)
+		retRes683512 := (<-this.LoadMarkets())
+		PanicOnError(retRes683512)
 	}
 	var ordersRequests any = []any{}
 	var orderSymbols any = []any{}
@@ -8860,8 +8856,8 @@ func (this *BinanceCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes695412 := (<-this.LoadMarkets())
-		PanicOnError(retRes695412)
+		retRes695012 := (<-this.LoadMarkets())
+		PanicOnError(retRes695012)
 	}
 	var market any = this.Market(symbol)
 	// don't handle/omit params here, omitting happens inside createOrderRequest
@@ -9392,8 +9388,8 @@ func (this *BinanceCore) createMarketOrderWithCostBody(ch chan any, symbol any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes743112 := (<-this.LoadMarkets())
-		PanicOnError(retRes743112)
+		retRes742712 := (<-this.LoadMarkets())
+		PanicOnError(retRes742712)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
@@ -9403,9 +9399,9 @@ func (this *BinanceCore) createMarketOrderWithCostBody(ch chan any, symbol any, 
 		"cost": cost,
 	}
 
-	retRes744015 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
-	PanicOnError(retRes744015)
-	ch <- retRes744015
+	retRes743615 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes743615)
+	ch <- retRes743615
 	return nil
 }
 
@@ -9431,8 +9427,8 @@ func (this *BinanceCore) createMarketBuyOrderWithCostBody(ch chan any, symbol an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes745512 := (<-this.LoadMarkets())
-		PanicOnError(retRes745512)
+		retRes745112 := (<-this.LoadMarkets())
+		PanicOnError(retRes745112)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
@@ -9442,9 +9438,9 @@ func (this *BinanceCore) createMarketBuyOrderWithCostBody(ch chan any, symbol an
 		"cost": cost,
 	}
 
-	retRes746415 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-	PanicOnError(retRes746415)
-	ch <- retRes746415
+	retRes746015 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes746015)
+	ch <- retRes746015
 	return nil
 }
 
@@ -9470,8 +9466,8 @@ func (this *BinanceCore) createMarketSellOrderWithCostBody(ch chan any, symbol a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes747912 := (<-this.LoadMarkets())
-		PanicOnError(retRes747912)
+		retRes747512 := (<-this.LoadMarkets())
+		PanicOnError(retRes747512)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
@@ -9479,9 +9475,9 @@ func (this *BinanceCore) createMarketSellOrderWithCostBody(ch chan any, symbol a
 	}
 	AddElementToObject(params, "quoteOrderQty", cost)
 
-	retRes748615 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-	PanicOnError(retRes748615)
-	ch <- retRes748615
+	retRes748215 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+	PanicOnError(retRes748215)
+	ch <- retRes748215
 	return nil
 }
 
@@ -9521,8 +9517,8 @@ func (this *BinanceCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes751312 := (<-this.LoadMarkets())
-		PanicOnError(retRes751312)
+		retRes750912 := (<-this.LoadMarkets())
+		PanicOnError(retRes750912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -9681,8 +9677,8 @@ func (this *BinanceCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes762412 := (<-this.LoadMarkets())
-		PanicOnError(retRes762412)
+		retRes762012 := (<-this.LoadMarkets())
+		PanicOnError(retRes762012)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -9690,9 +9686,9 @@ func (this *BinanceCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes762919 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-		PanicOnError(retRes762919)
-		ch <- retRes762919
+		retRes762519 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+		PanicOnError(retRes762519)
+		ch <- retRes762519
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -10080,8 +10076,8 @@ func (this *BinanceCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes796212 := (<-this.LoadMarkets())
-		PanicOnError(retRes796212)
+		retRes795812 := (<-this.LoadMarkets())
+		PanicOnError(retRes795812)
 	}
 	var market any = nil
 	var typeVar any = nil
@@ -10239,8 +10235,8 @@ func (this *BinanceCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ..
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes807012 := (<-this.LoadMarkets())
-		PanicOnError(retRes807012)
+		retRes806612 := (<-this.LoadMarkets())
+		PanicOnError(retRes806612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -10684,8 +10680,8 @@ func (this *BinanceCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes842312 := (<-this.LoadMarkets())
-		PanicOnError(retRes842312)
+		retRes841912 := (<-this.LoadMarkets())
+		PanicOnError(retRes841912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -10863,8 +10859,8 @@ func (this *BinanceCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes855112 := (<-this.LoadMarkets())
-		PanicOnError(retRes855112)
+		retRes854712 := (<-this.LoadMarkets())
+		PanicOnError(retRes854712)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -11014,8 +11010,8 @@ func (this *BinanceCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes874712 := (<-this.LoadMarkets())
-		PanicOnError(retRes874712)
+		retRes874312 := (<-this.LoadMarkets())
+		PanicOnError(retRes874312)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
@@ -11117,8 +11113,8 @@ func (this *BinanceCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes882812 := (<-this.LoadMarkets())
-		PanicOnError(retRes882812)
+		retRes882412 := (<-this.LoadMarkets())
+		PanicOnError(retRes882412)
 	}
 	var market any = this.Market(symbol)
 	var typeVar any = this.SafeString(params, "type", GetValue(market, "type"))
@@ -11130,9 +11126,9 @@ func (this *BinanceCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs 
 		"orderId": id,
 	}
 
-	retRes883915 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes883915)
-	ch <- retRes883915
+	retRes883515 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes883515)
+	ch <- retRes883515
 	return nil
 }
 
@@ -11176,8 +11172,8 @@ func (this *BinanceCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes886612 := (<-this.LoadMarkets())
-		PanicOnError(retRes886612)
+		retRes886212 := (<-this.LoadMarkets())
+		PanicOnError(retRes886212)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -11185,9 +11181,9 @@ func (this *BinanceCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes887119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-		PanicOnError(retRes887119)
-		ch <- retRes887119
+		retRes886719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes886719)
+		ch <- retRes886719
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -11506,8 +11502,8 @@ func (this *BinanceCore) fetchMyDustTradesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes914512 := (<-this.LoadMarkets())
-		PanicOnError(retRes914512)
+		retRes914112 := (<-this.LoadMarkets())
+		PanicOnError(retRes914112)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -11673,8 +11669,8 @@ func (this *BinanceCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes929012 := (<-this.LoadMarkets())
-		PanicOnError(retRes929012)
+		retRes928612 := (<-this.LoadMarkets())
+		PanicOnError(retRes928612)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -11682,9 +11678,9 @@ func (this *BinanceCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes929519 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-		PanicOnError(retRes929519)
-		ch <- retRes929519
+		retRes929119 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+		PanicOnError(retRes929119)
+		ch <- retRes929119
 		return nil
 	}
 	var currency any = nil
@@ -11779,8 +11775,8 @@ func (this *BinanceCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes941212 := (<-this.LoadMarkets())
-		PanicOnError(retRes941212)
+		retRes940812 := (<-this.LoadMarkets())
+		PanicOnError(retRes940812)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -11788,9 +11784,9 @@ func (this *BinanceCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes941719 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-		PanicOnError(retRes941719)
-		ch <- retRes941719
+		retRes941319 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+		PanicOnError(retRes941319)
+		ch <- retRes941319
 		return nil
 	}
 	var legalMoney any = this.SafeDict(this.Options, "legalMoney", map[string]any{})
@@ -12189,8 +12185,8 @@ func (this *BinanceCore) transferBody(ch chan any, code any, amount any, fromAcc
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes986612 := (<-this.LoadMarkets())
-		PanicOnError(retRes986612)
+		retRes986212 := (<-this.LoadMarkets())
+		PanicOnError(retRes986212)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -12314,8 +12310,8 @@ func (this *BinanceCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes997012 := (<-this.LoadMarkets())
-		PanicOnError(retRes997012)
+		retRes996612 := (<-this.LoadMarkets())
+		PanicOnError(retRes996612)
 	}
 	var internal any = this.SafeBool(params, "internal")
 	params = this.Omit(params, "internal")
@@ -12325,9 +12321,9 @@ func (this *BinanceCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(IsTrue(paginate) && IsTrue((!IsEqual(internal, true)))) {
 
-		retRes997719 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
-		PanicOnError(retRes997719)
-		ch <- retRes997719
+		retRes997319 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+		PanicOnError(retRes997319)
+		ch <- retRes997319
 		return nil
 	}
 	var currency any = nil
@@ -12408,8 +12404,8 @@ func (this *BinanceCore) fetchDepositAddressBody(ch chan any, code any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1011312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1011312)
+		retRes1010912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1010912)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -12499,8 +12495,8 @@ func (this *BinanceCore) fetchTransactionFeesBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1018512 := (<-this.LoadMarkets())
-		PanicOnError(retRes1018512)
+		retRes1018112 := (<-this.LoadMarkets())
+		PanicOnError(retRes1018112)
 	}
 
 	response := (<-this.SapiGetCapitalConfigGetall(params))
@@ -12638,8 +12634,8 @@ func (this *BinanceCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1030712 := (<-this.LoadMarkets())
-		PanicOnError(retRes1030712)
+		retRes1030312 := (<-this.LoadMarkets())
+		PanicOnError(retRes1030312)
 	}
 
 	response := (<-this.SapiGetCapitalConfigGetall(params))
@@ -12794,8 +12790,8 @@ func (this *BinanceCore) withdrawBody(ch chan any, code any, amount any, address
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1044312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1044312)
+		retRes1043912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1043912)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -12880,8 +12876,8 @@ func (this *BinanceCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1051312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1051312)
+		retRes1050912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1050912)
 	}
 	var market any = this.Market(symbol)
 	var typeVar any = GetValue(market, "type")
@@ -12979,8 +12975,8 @@ func (this *BinanceCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1058512 := (<-this.LoadMarkets())
-		PanicOnError(retRes1058512)
+		retRes1058112 := (<-this.LoadMarkets())
+		PanicOnError(retRes1058112)
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
@@ -13203,8 +13199,8 @@ func (this *BinanceCore) futuresTransferBody(ch chan any, code any, amount any, 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1078212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1078212)
+		retRes1077812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1077812)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -13247,8 +13243,8 @@ func (this *BinanceCore) fetchFundingRateBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1081112 := (<-this.LoadMarkets())
-		PanicOnError(retRes1081112)
+		retRes1080712 := (<-this.LoadMarkets())
+		PanicOnError(retRes1080712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -13322,8 +13318,8 @@ func (this *BinanceCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1086312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1086312)
+		retRes1085912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1085912)
 	}
 	var request map[string]any = map[string]any{}
 	var paginate any = false
@@ -13332,9 +13328,9 @@ func (this *BinanceCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes1086919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes1086919)
-		ch <- retRes1086919
+		retRes1086519 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+		PanicOnError(retRes1086519)
+		ch <- retRes1086519
 		return nil
 	}
 	var defaultType any = this.SafeString2(this.Options, "fetchFundingRateHistory", "defaultType", "future")
@@ -13430,8 +13426,8 @@ func (this *BinanceCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1094312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1094312)
+		retRes1093912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1093912)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var defaultType any = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
@@ -14069,8 +14065,8 @@ func (this *BinanceCore) loadLeverageBracketsBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1155812 := (<-this.LoadMarkets())
-		PanicOnError(retRes1155812)
+		retRes1155412 := (<-this.LoadMarkets())
+		PanicOnError(retRes1155412)
 	}
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
@@ -14164,8 +14160,8 @@ func (this *BinanceCore) fetchLeverageTiersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1162612 := (<-this.LoadMarkets())
-		PanicOnError(retRes1162612)
+		retRes1162212 := (<-this.LoadMarkets())
+		PanicOnError(retRes1162212)
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params)
@@ -14311,8 +14307,8 @@ func (this *BinanceCore) fetchPositionBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1174512 := (<-this.LoadMarkets())
-		PanicOnError(retRes1174512)
+		retRes1174112 := (<-this.LoadMarkets())
+		PanicOnError(retRes1174112)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "option"), true)) {
@@ -14375,8 +14371,8 @@ func (this *BinanceCore) fetchOptionPositionsBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1179212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1179212)
+		retRes1178812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1178812)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
@@ -14535,21 +14531,21 @@ func (this *BinanceCore) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	}
 	if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
 
-		retRes1193219 := (<-this.FetchPositionsRisk(symbols, params))
-		PanicOnError(retRes1193219)
-		ch <- retRes1193219
+		retRes1192819 := (<-this.FetchPositionsRisk(symbols, params))
+		PanicOnError(retRes1192819)
+		ch <- retRes1192819
 		return nil
 	} else if IsTrue(IsEqual(defaultMethod, "account")) {
 
-		retRes1193419 := (<-this.FetchAccountPositions(symbols, params))
-		PanicOnError(retRes1193419)
-		ch <- retRes1193419
+		retRes1193019 := (<-this.FetchAccountPositions(symbols, params))
+		PanicOnError(retRes1193019)
+		ch <- retRes1193019
 		return nil
 	} else if IsTrue(IsEqual(defaultMethod, "option")) {
 
-		retRes1193619 := (<-this.FetchOptionPositions(symbols, params))
-		PanicOnError(retRes1193619)
-		ch <- retRes1193619
+		retRes1193219 := (<-this.FetchOptionPositions(symbols, params))
+		PanicOnError(retRes1193219)
+		ch <- retRes1193219
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")))
@@ -14593,12 +14589,12 @@ func (this *BinanceCore) fetchAccountPositionsBody(ch chan any, optionalArgs ...
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1196712 := (<-this.LoadMarkets())
-		PanicOnError(retRes1196712)
+		retRes1196312 := (<-this.LoadMarkets())
+		PanicOnError(retRes1196312)
 	}
 
-	retRes119698 := (<-this.LoadLeverageBrackets(false, params))
-	PanicOnError(retRes119698)
+	retRes119658 := (<-this.LoadLeverageBrackets(false, params))
+	PanicOnError(retRes119658)
 	var defaultType any = this.SafeString(this.Options, "defaultType", "future")
 	var typeVar any = this.SafeString(params, "type", defaultType)
 	params = this.Omit(params, "type")
@@ -14691,12 +14687,12 @@ func (this *BinanceCore) fetchPositionsRiskBody(ch chan any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1209612 := (<-this.LoadMarkets())
-		PanicOnError(retRes1209612)
+		retRes1209212 := (<-this.LoadMarkets())
+		PanicOnError(retRes1209212)
 	}
 
-	retRes120988 := (<-this.LoadLeverageBrackets(false, params))
-	PanicOnError(retRes120988)
+	retRes120948 := (<-this.LoadLeverageBrackets(false, params))
+	PanicOnError(retRes120948)
 	var request map[string]any = map[string]any{}
 	var defaultType any = "future"
 	defaultType = this.SafeString(this.Options, "defaultType", defaultType)
@@ -14879,8 +14875,8 @@ func (this *BinanceCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1227312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1227312)
+		retRes1226912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1226912)
 	}
 	var market any = nil
 	var request any = map[string]any{
@@ -14978,8 +14974,8 @@ func (this *BinanceCore) setLeverageBody(ch chan any, leverage any, optionalArgs
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1234312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1234312)
+		retRes1233912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1233912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -15064,8 +15060,8 @@ func (this *BinanceCore) setMarginModeBody(ch chan any, marginMode any, optional
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1240412 := (<-this.LoadMarkets())
-		PanicOnError(retRes1240412)
+		retRes1240012 := (<-this.LoadMarkets())
+		PanicOnError(retRes1240012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -15247,12 +15243,12 @@ func (this *BinanceCore) fetchLeveragesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1252212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1252212)
+		retRes1251812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1251812)
 	}
 
-	retRes125248 := (<-this.LoadLeverageBrackets(false, params))
-	PanicOnError(retRes125248)
+	retRes125208 := (<-this.LoadLeverageBrackets(false, params))
+	PanicOnError(retRes125208)
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLeverages", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
@@ -15360,8 +15356,8 @@ func (this *BinanceCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1259912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1259912)
+		retRes1259512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1259512)
 	}
 	var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 	var typeVar any = nil
@@ -15432,8 +15428,8 @@ func (this *BinanceCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1264812 := (<-this.LoadMarkets())
-		PanicOnError(retRes1264812)
+		retRes1264412 := (<-this.LoadMarkets())
+		PanicOnError(retRes1264412)
 	}
 	var market any = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 	var typeVar any = nil
@@ -15590,8 +15586,8 @@ func (this *BinanceCore) fetchLedgerEntryBody(ch chan any, id any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1278912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1278912)
+		retRes1278512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1278512)
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLedgerEntry", nil, params)
@@ -15663,8 +15659,8 @@ func (this *BinanceCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1283912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1283912)
+		retRes1283512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1283512)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -15672,9 +15668,9 @@ func (this *BinanceCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes1284419 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
-		PanicOnError(retRes1284419)
-		ch <- retRes1284419
+		retRes1284019 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, nil, false))
+		PanicOnError(retRes1284019)
+		ch <- retRes1284019
 		return nil
 	}
 	var typeVar any = nil
@@ -16241,8 +16237,8 @@ func (this *BinanceCore) modifyMarginHelperBody(ch chan any, symbol any, amount 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1333712 := (<-this.LoadMarkets())
-		PanicOnError(retRes1333712)
+		retRes1333312 := (<-this.LoadMarkets())
+		PanicOnError(retRes1333312)
 	}
 	var market any = this.Market(symbol)
 	amount = this.AmountToPrecision(symbol, amount)
@@ -16350,9 +16346,9 @@ func (this *BinanceCore) reduceMarginBody(ch chan any, symbol any, amount any, o
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes1342815 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-	PanicOnError(retRes1342815)
-	ch <- retRes1342815
+	retRes1342415 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+	PanicOnError(retRes1342415)
+	ch <- retRes1342415
 	return nil
 }
 
@@ -16378,9 +16374,9 @@ func (this *BinanceCore) addMarginBody(ch chan any, symbol any, amount any, opti
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes1344315 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-	PanicOnError(retRes1344315)
-	ch <- retRes1344315
+	retRes1343915 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+	PanicOnError(retRes1343915)
+	ch <- retRes1343915
 	return nil
 }
 
@@ -16405,8 +16401,8 @@ func (this *BinanceCore) fetchCrossBorrowRateBody(ch chan any, code any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1345712 := (<-this.LoadMarkets())
-		PanicOnError(retRes1345712)
+		retRes1345312 := (<-this.LoadMarkets())
+		PanicOnError(retRes1345312)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -16488,8 +16484,8 @@ func (this *BinanceCore) fetchIsolatedBorrowRatesBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1351312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1351312)
+		retRes1350912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1350912)
 	}
 	var request map[string]any = map[string]any{}
 	var symbol any = this.SafeString(params, "symbol")
@@ -16554,8 +16550,8 @@ func (this *BinanceCore) fetchBorrowRateHistoryBody(ch chan any, code any, optio
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1356012 := (<-this.LoadMarkets())
-		PanicOnError(retRes1356012)
+		retRes1355612 := (<-this.LoadMarkets())
+		PanicOnError(retRes1355612)
 	}
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 93
@@ -16674,8 +16670,8 @@ func (this *BinanceCore) createGiftCodeBody(ch chan any, code any, amount any, o
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1366412 := (<-this.LoadMarkets())
-		PanicOnError(retRes1366412)
+		retRes1366012 := (<-this.LoadMarkets())
+		PanicOnError(retRes1366012)
 	}
 	var currency any = this.Currency(code)
 	// ensure you have enough token in your funding account before calling this code
@@ -16821,8 +16817,8 @@ func (this *BinanceCore) fetchBorrowInterestBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1376212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1376212)
+		retRes1375812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1375812)
 	}
 	var isPortfolioMargin any = nil
 	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false)
@@ -16945,8 +16941,8 @@ func (this *BinanceCore) repayCrossMarginBody(ch chan any, code any, amount any,
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1386412 := (<-this.LoadMarkets())
-		PanicOnError(retRes1386412)
+		retRes1386012 := (<-this.LoadMarkets())
+		PanicOnError(retRes1386012)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -17007,8 +17003,8 @@ func (this *BinanceCore) repayIsolatedMarginBody(ch chan any, symbol any, code a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1392412 := (<-this.LoadMarkets())
-		PanicOnError(retRes1392412)
+		retRes1392012 := (<-this.LoadMarkets())
+		PanicOnError(retRes1392012)
 	}
 	var currency any = this.Currency(code)
 	var market any = this.Market(symbol)
@@ -17057,8 +17053,8 @@ func (this *BinanceCore) borrowCrossMarginBody(ch chan any, code any, amount any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1395912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1395912)
+		retRes1395512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1395512)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -17115,8 +17111,8 @@ func (this *BinanceCore) borrowIsolatedMarginBody(ch chan any, symbol any, code 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1399812 := (<-this.LoadMarkets())
-		PanicOnError(retRes1399812)
+		retRes1399412 := (<-this.LoadMarkets())
+		PanicOnError(retRes1399412)
 	}
 	var currency any = this.Currency(code)
 	var market any = this.Market(symbol)
@@ -17208,8 +17204,8 @@ func (this *BinanceCore) fetchOpenInterestHistoryBody(ch chan any, symbol any, o
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1406912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1406912)
+		retRes1406512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1406512)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
@@ -17217,9 +17213,9 @@ func (this *BinanceCore) fetchOpenInterestHistoryBody(ch chan any, symbol any, o
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes1407419 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
-		PanicOnError(retRes1407419)
-		ch <- retRes1407419
+		retRes1407019 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+		PanicOnError(retRes1407019)
+		ch <- retRes1407019
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -17298,8 +17294,8 @@ func (this *BinanceCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1413612 := (<-this.LoadMarkets())
-		PanicOnError(retRes1413612)
+		retRes1413212 := (<-this.LoadMarkets())
+		PanicOnError(retRes1413212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
@@ -17435,8 +17431,8 @@ func (this *BinanceCore) fetchMyLiquidationsBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1424512 := (<-this.LoadMarkets())
-		PanicOnError(retRes1424512)
+		retRes1424112 := (<-this.LoadMarkets())
+		PanicOnError(retRes1424112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
@@ -17444,9 +17440,9 @@ func (this *BinanceCore) fetchMyLiquidationsBody(ch chan any, optionalArgs ...an
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes1425019 := (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
-		PanicOnError(retRes1425019)
-		ch <- retRes1425019
+		retRes1424619 := (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+		PanicOnError(retRes1424619)
+		ch <- retRes1424619
 		return nil
 	}
 	var market any = nil
@@ -17719,8 +17715,8 @@ func (this *BinanceCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1448912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1448912)
+		retRes1448512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1448512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -17758,7 +17754,7 @@ func (this *BinanceCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs .
  * @see https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+ * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
 func (this *BinanceCore) FetchAllGreeks(optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -17774,8 +17770,8 @@ func (this *BinanceCore) fetchAllGreeksBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1452712 := (<-this.LoadMarkets())
-		PanicOnError(retRes1452712)
+		retRes1452312 := (<-this.LoadMarkets())
+		PanicOnError(retRes1452312)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
@@ -17970,8 +17966,8 @@ func (this *BinanceCore) fetchMarginModesBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1467212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1467212)
+		retRes1466812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1466812)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -18026,8 +18022,8 @@ func (this *BinanceCore) fetchMarginModeBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1476812 := (<-this.LoadMarkets())
-		PanicOnError(retRes1476812)
+		retRes1476412 := (<-this.LoadMarkets())
+		PanicOnError(retRes1476412)
 	}
 	var market any = this.Market(symbol)
 	var subType any = nil
@@ -18101,8 +18097,8 @@ func (this *BinanceCore) fetchOptionBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1483212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1483212)
+		retRes1482812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1482812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -18224,8 +18220,8 @@ func (this *BinanceCore) fetchMarginAdjustmentHistoryBody(ch chan any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1492912 := (<-this.LoadMarkets())
-		PanicOnError(retRes1492912)
+		retRes1492512 := (<-this.LoadMarkets())
+		PanicOnError(retRes1492512)
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
@@ -18304,8 +18300,8 @@ func (this *BinanceCore) fetchConvertCurrenciesBody(ch chan any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1499212 := (<-this.LoadMarkets())
-		PanicOnError(retRes1499212)
+		retRes1498812 := (<-this.LoadMarkets())
+		PanicOnError(retRes1498812)
 	}
 
 	response := (<-this.SapiGetConvertAssetInfo(params))
@@ -18389,8 +18385,8 @@ func (this *BinanceCore) fetchConvertQuoteBody(ch chan any, fromCode any, toCode
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1506012 := (<-this.LoadMarkets())
-		PanicOnError(retRes1506012)
+		retRes1505612 := (<-this.LoadMarkets())
+		PanicOnError(retRes1505612)
 	}
 	var request map[string]any = map[string]any{
 		"fromAsset":  fromCode,
@@ -18446,8 +18442,8 @@ func (this *BinanceCore) createConvertTradeBody(ch chan any, id any, fromCode an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1510012 := (<-this.LoadMarkets())
-		PanicOnError(retRes1510012)
+		retRes1509612 := (<-this.LoadMarkets())
+		PanicOnError(retRes1509612)
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -18502,8 +18498,8 @@ func (this *BinanceCore) fetchConvertTradeBody(ch chan any, id any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1515012 := (<-this.LoadMarkets())
-		PanicOnError(retRes1515012)
+		retRes1514612 := (<-this.LoadMarkets())
+		PanicOnError(retRes1514612)
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -18579,8 +18575,8 @@ func (this *BinanceCore) fetchConvertTradeHistoryBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1523512 := (<-this.LoadMarkets())
-		PanicOnError(retRes1523512)
+		retRes1523112 := (<-this.LoadMarkets())
+		PanicOnError(retRes1523112)
 	}
 	var request map[string]any = map[string]any{}
 	var msInThirtyDays any = 2592000000
@@ -18751,8 +18747,8 @@ func (this *BinanceCore) fetchFundingIntervalsBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1542512 := (<-this.LoadMarkets())
-		PanicOnError(retRes1542512)
+		retRes1542112 := (<-this.LoadMarkets())
+		PanicOnError(retRes1542112)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -18826,8 +18822,8 @@ func (this *BinanceCore) fetchLongShortRatioHistoryBody(ch chan any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1547312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1547312)
+		retRes1546912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1546912)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(timeframe, nil)) {
@@ -18924,8 +18920,8 @@ func (this *BinanceCore) fetchADLRankBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1557112 := (<-this.LoadMarkets())
-		PanicOnError(retRes1557112)
+		retRes1556712 := (<-this.LoadMarkets())
+		PanicOnError(retRes1556712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -18978,8 +18974,8 @@ func (this *BinanceCore) fetchPositionsADLRankBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1561312 := (<-this.LoadMarkets())
-		PanicOnError(retRes1561312)
+		retRes1560912 := (<-this.LoadMarkets())
+		PanicOnError(retRes1560912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)

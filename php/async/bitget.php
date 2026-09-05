@@ -1944,7 +1944,7 @@ class bitget extends Exchange {
             // use the api to determine if the account is $uta or not
             $accountIsUTa = false;
             try {
-                Async\await($this->privateUtaGetV3AccountSettings($params));
+                Async\await($this->privateUtaGetV3AccountSettings());
                 $accountIsUTa = true;
             } catch (Exception $e) {
                 $accountIsUTa = false;

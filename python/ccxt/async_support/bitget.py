@@ -1943,7 +1943,7 @@ class bitget(Exchange, ImplicitAPI):
             # use the api to determine if the account is uta or not
             accountIsUTa = False
             try:
-                await self.privateUtaGetV3AccountSettings(params)
+                await self.privateUtaGetV3AccountSettings()
                 accountIsUTa = True
             except Exception as e:
                 accountIsUTa = False

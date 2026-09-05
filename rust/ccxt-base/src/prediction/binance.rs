@@ -389,14 +389,14 @@ impl BinanceCore {
             let mut queryMarkets: Value = Value::List(vec![]);
             {
                                 let mut ei: Value = Value::Int(0);
-                let mut __for_first_1155: bool = true;
-                while { if !__for_first_1155 { ei = add(&ei, &Value::Int(1)); } __for_first_1155 = false; is_less_than(&ei, &eventsLength) } {
+                let mut __for_first_1157: bool = true;
+                while { if !__for_first_1157 { ei = add(&ei, &Value::Int(1)); } __for_first_1157 = false; is_less_than(&ei, &eventsLength) } {
                 let mut eventMarkets: Value = self.safe_list_k(get_value(&events, &ei), "markets", &[Value::List(vec![])]);
                 let mut eventMarketsLength: Value = get_array_length(&eventMarkets);
                 {
                                         let mut mi: Value = Value::Int(0);
-                    let mut __for_first_1154: bool = true;
-                    while { if !__for_first_1154 { mi = add(&mi, &Value::Int(1)); } __for_first_1154 = false; is_less_than(&mi, &eventMarketsLength) } {
+                    let mut __for_first_1156: bool = true;
+                    while { if !__for_first_1156 { mi = add(&mi, &Value::Int(1)); } __for_first_1156 = false; is_less_than(&mi, &eventMarketsLength) } {
                     append_to_array(&mut queryMarkets, get_value(&eventMarkets, &mi));
                 }
                 }
@@ -412,16 +412,16 @@ impl BinanceCore {
         let mut rawTopicsLength: Value = get_array_length(&rawTopics);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1157: bool = true;
-            while { if !__for_first_1157 { i = add(&i, &Value::Int(1)); } __for_first_1157 = false; is_less_than(&i, &rawTopicsLength) } {
+            let mut __for_first_1159: bool = true;
+            while { if !__for_first_1159 { i = add(&i, &Value::Int(1)); } __for_first_1159 = false; is_less_than(&i, &rawTopicsLength) } {
             let mut parsedEvent: Value = self.parse_event(get_value(&rawTopics, &i));
             append_to_array(&mut parsedEvents, parsedEvent.clone());
             let mut eventMarkets: Value = self.safe_list_k(parsedEvent.clone(), "markets", &[Value::List(vec![])]);
             let mut eventMarketsLength: Value = get_array_length(&eventMarkets);
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1156: bool = true;
-                while { if !__for_first_1156 { mi = add(&mi, &Value::Int(1)); } __for_first_1156 = false; is_less_than(&mi, &eventMarketsLength) } {
+                let mut __for_first_1158: bool = true;
+                while { if !__for_first_1158 { mi = add(&mi, &Value::Int(1)); } __for_first_1158 = false; is_less_than(&mi, &eventMarketsLength) } {
                 append_to_array(&mut flatMarkets, get_value(&eventMarkets, &mi));
             }
             }
@@ -511,8 +511,8 @@ impl BinanceCore {
             let mut pageTopicsLength: Value = get_array_length(&pageTopics);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1158: bool = true;
-                while { if !__for_first_1158 { i = add(&i, &Value::Int(1)); } __for_first_1158 = false; is_less_than(&i, &pageTopicsLength) } {
+                let mut __for_first_1160: bool = true;
+                while { if !__for_first_1160 { i = add(&i, &Value::Int(1)); } __for_first_1160 = false; is_less_than(&i, &pageTopicsLength) } {
                 append_to_array(&mut collected, get_value(&pageTopics, &i));
             }
             }
@@ -565,8 +565,8 @@ impl BinanceCore {
         let mut rawTopicsLength: Value = get_array_length(&rawTopics);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1159: bool = true;
-            while { if !__for_first_1159 { i = add(&i, &Value::Int(1)); } __for_first_1159 = false; is_less_than(&i, &rawTopicsLength) } {
+            let mut __for_first_1161: bool = true;
+            while { if !__for_first_1161 { i = add(&i, &Value::Int(1)); } __for_first_1161 = false; is_less_than(&i, &rawTopicsLength) } {
             let mut rawTopic: Value = get_value(&rawTopics, &i);
             let mut rawTopic: Value = get_value(&rawTopics, &i);
             let mut rawMarkets: Value = self.safe_list_k(rawTopic.clone(), "markets", &[Value::List(vec![])]);
@@ -632,15 +632,15 @@ impl BinanceCore {
         let mut allQueries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1160: bool = true;
-            while { if !__for_first_1160 { i = add(&i, &Value::Int(1)); } __for_first_1160 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            let mut __for_first_1162: bool = true;
+            while { if !__for_first_1162 { i = add(&i, &Value::Int(1)); } __for_first_1162 = false; is_less_than(&i, &get_array_length(&queries)) } {
             append_to_array(&mut allQueries, get_value(&queries, &i));
         }
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1161: bool = true;
-            while { if !__for_first_1161 { i = add(&i, &Value::Int(1)); } __for_first_1161 = false; is_less_than(&i, &tagsLength) } {
+            let mut __for_first_1163: bool = true;
+            while { if !__for_first_1163 { i = add(&i, &Value::Int(1)); } __for_first_1163 = false; is_less_than(&i, &tagsLength) } {
             append_to_array(&mut allQueries, get_value(&tags, &i));
         }
         }
@@ -699,16 +699,16 @@ impl BinanceCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1163: bool = true;
-            while { if !__for_first_1163 { i = add(&i, &Value::Int(1)); } __for_first_1163 = false; is_less_than(&i, &rawTopicsLength) } {
+            let mut __for_first_1165: bool = true;
+            while { if !__for_first_1165 { i = add(&i, &Value::Int(1)); } __for_first_1165 = false; is_less_than(&i, &rawTopicsLength) } {
             let mut parsedEvent: Value = self.parse_event(get_value(&rawTopics, &i));
             append_to_array(&mut result, parsedEvent.clone());
             let mut parsedMarkets: Value = self.safe_list_k(parsedEvent.clone(), "markets", &[Value::List(vec![])]);
             let mut parsedMarketsLength: Value = get_array_length(&parsedMarkets);
             {
                                 let mut mi: Value = Value::Int(0);
-                let mut __for_first_1162: bool = true;
-                while { if !__for_first_1162 { mi = add(&mi, &Value::Int(1)); } __for_first_1162 = false; is_less_than(&mi, &parsedMarketsLength) } {
+                let mut __for_first_1164: bool = true;
+                while { if !__for_first_1164 { mi = add(&mi, &Value::Int(1)); } __for_first_1164 = false; is_less_than(&mi, &parsedMarketsLength) } {
                 let mut m: Value = get_value(&parsedMarkets, &mi);
                 let mut m: Value = get_value(&parsedMarkets, &mi);
                 // prediction market rows are keyed by the unified 'market' handle
@@ -759,8 +759,8 @@ impl BinanceCore {
         }
         {
                         let mut qi: Value = Value::Int(0);
-            let mut __for_first_1165: bool = true;
-            while { if !__for_first_1165 { qi = add(&qi, &Value::Int(1)); } __for_first_1165 = false; is_less_than(&qi, &queriesLength) } {
+            let mut __for_first_1167: bool = true;
+            while { if !__for_first_1167 { qi = add(&qi, &Value::Int(1)); } __for_first_1167 = false; is_less_than(&qi, &queriesLength) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("query".to_string(), get_value(&queries, &qi));
@@ -784,8 +784,8 @@ impl BinanceCore {
             let mut responseLength: Value = get_array_length(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1164: bool = true;
-                while { if !__for_first_1164 { i = add(&i, &Value::Int(1)); } __for_first_1164 = false; is_less_than(&i, &responseLength) } {
+                let mut __for_first_1166: bool = true;
+                while { if !__for_first_1166 { i = add(&i, &Value::Int(1)); } __for_first_1166 = false; is_less_than(&i, &responseLength) } {
                 let mut rawTopic: Value = get_value(&response, &i);
                 let mut rawTopic: Value = get_value(&response, &i);
                 let mut topicId: Value = self.safe_string_k(rawTopic.clone(), "marketTopicId", &[]);
@@ -878,8 +878,8 @@ impl BinanceCore {
         let mut rawMarketsLength: Value = get_array_length(&rawMarkets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1166: bool = true;
-            while { if !__for_first_1166 { i = add(&i, &Value::Int(1)); } __for_first_1166 = false; is_less_than(&i, &rawMarketsLength) } {
+            let mut __for_first_1168: bool = true;
+            while { if !__for_first_1168 { i = add(&i, &Value::Int(1)); } __for_first_1168 = false; is_less_than(&i, &rawMarketsLength) } {
             let mut parsed: Value = self.parse_topic_market(get_value(&rawMarkets, &i), rawTopic.clone());
             append_to_array(&mut marketsList, parsed.clone());
             if is_true(&self.safe_bool_k(parsed.clone(), "active", &[Value::Bool(false)])) {
@@ -988,8 +988,8 @@ impl BinanceCore {
         let mut rawOutcomesLength: Value = get_array_length(&rawOutcomes);
         {
                         let mut oi: Value = Value::Int(0);
-            let mut __for_first_1167: bool = true;
-            while { if !__for_first_1167 { oi = add(&oi, &Value::Int(1)); } __for_first_1167 = false; is_less_than(&oi, &rawOutcomesLength) } {
+            let mut __for_first_1169: bool = true;
+            while { if !__for_first_1169 { oi = add(&oi, &Value::Int(1)); } __for_first_1169 = false; is_less_than(&oi, &rawOutcomesLength) } {
             let mut rawOutcome: Value = get_value(&rawOutcomes, &oi);
             let mut rawOutcome: Value = get_value(&rawOutcomes, &oi);
             let mut label: Value = self.safe_string_upper(rawOutcome.clone(), Value::Str("name".to_string()), &[]);
@@ -1259,8 +1259,8 @@ impl BinanceCore {
         let mut outcomesLength: Value = get_array_length(&outcomes);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1168: bool = true;
-            while { if !__for_first_1168 { i = add(&i, &Value::Int(1)); } __for_first_1168 = false; is_less_than(&i, &outcomesLength) } {
+            let mut __for_first_1170: bool = true;
+            while { if !__for_first_1170 { i = add(&i, &Value::Int(1)); } __for_first_1170 = false; is_less_than(&i, &outcomesLength) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1374,8 +1374,8 @@ impl BinanceCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1169: bool = true;
-            while { if !__for_first_1169 { i = add(&i, &Value::Int(1)); } __for_first_1169 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1171: bool = true;
+            while { if !__for_first_1171 { i = add(&i, &Value::Int(1)); } __for_first_1171 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut accountType: Value = self.safe_string_k(balance.clone(), "accountType", &[]);
@@ -1719,8 +1719,8 @@ impl BinanceCore {
         if !is_equal(&outcomes, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1170: bool = true;
-                while { if !__for_first_1170 { i = add(&i, &Value::Int(1)); } __for_first_1170 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                let mut __for_first_1172: bool = true;
+                while { if !__for_first_1172 { i = add(&i, &Value::Int(1)); } __for_first_1172 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1795,8 +1795,8 @@ impl BinanceCore {
         let mut positionsLength: Value = get_array_length(&positions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { i = add(&i, &Value::Int(1)); } __for_first_1171 = false; is_less_than(&i, &positionsLength) } {
+            let mut __for_first_1173: bool = true;
+            while { if !__for_first_1173 { i = add(&i, &Value::Int(1)); } __for_first_1173 = false; is_less_than(&i, &positionsLength) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut positionOutcome: Value = self.safe_string_k(position.clone(), "outcome", &[]);
@@ -2145,8 +2145,8 @@ impl BinanceCore {
         let mut walletLength: Value = get_array_length(&wallets);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { i = add(&i, &Value::Int(1)); } __for_first_1172 = false; is_less_than(&i, &walletLength) } {
+            let mut __for_first_1174: bool = true;
+            while { if !__for_first_1174 { i = add(&i, &Value::Int(1)); } __for_first_1174 = false; is_less_than(&i, &walletLength) } {
             let mut w: Value = self.safe_string_k(get_value(&wallets, &i), "walletAddress", &[Value::Str("".to_string())]);
             if is_equal(&w, &walletAddress) {
                 cachedWallet = get_value(&wallets, &i);
@@ -2428,8 +2428,8 @@ impl BinanceCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { i = add(&i, &Value::Int(1)); } __for_first_1173 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1175: bool = true;
+            while { if !__for_first_1175 { i = add(&i, &Value::Int(1)); } __for_first_1175 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut key: Value = add(&add(&Value::Str("cancelInfoList[".to_string()), &self.number_to_string(i.clone())), &Value::Str("].orderId".to_string()));
             add_element_to_object(&mut request, &key, get_value(&ids, &i));
         }
@@ -2457,8 +2457,8 @@ impl BinanceCore {
             let mut failedDetails: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1174: bool = true;
-                while { if !__for_first_1174 { i = add(&i, &Value::Int(1)); } __for_first_1174 = false; is_less_than(&i, &failedOrdersLength) } {
+                let mut __for_first_1176: bool = true;
+                while { if !__for_first_1176 { i = add(&i, &Value::Int(1)); } __for_first_1176 = false; is_less_than(&i, &failedOrdersLength) } {
                 let mut failedOrder: Value = get_value(&failedOrders, &i);
                 let mut failedOrder: Value = get_value(&failedOrders, &i);
                 let mut failedOrderId: Value = self.safe_string_k(failedOrder.clone(), "orderId", &[]);
@@ -2475,8 +2475,8 @@ impl BinanceCore {
         let mut canceledOrdersLength: Value = get_array_length(&canceledOrders);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1175: bool = true;
-            while { if !__for_first_1175 { i = add(&i, &Value::Int(1)); } __for_first_1175 = false; is_less_than(&i, &canceledOrdersLength) } {
+            let mut __for_first_1177: bool = true;
+            while { if !__for_first_1177 { i = add(&i, &Value::Int(1)); } __for_first_1177 = false; is_less_than(&i, &canceledOrdersLength) } {
             let mut status: Value = get_value(&canceledOrders, &i);
             let mut status: Value = get_value(&canceledOrders, &i);
             let mut order: Value = Value::Map({

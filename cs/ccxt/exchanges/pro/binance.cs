@@ -1097,7 +1097,7 @@ public partial class binance : ccxt.binance
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            object snapshot = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
             if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
             {
                 // if the orderbook is dropped before the snapshot is received
@@ -1864,7 +1864,7 @@ public partial class binance : ccxt.binance
             ((IDictionary<string,object>)parameters)["stock"] = true;
         }
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolVar), timeframeVar));
     }
 
@@ -1884,7 +1884,7 @@ public partial class binance : ccxt.binance
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1925,7 +1925,7 @@ public partial class binance : ccxt.binance
                 limit = callDynamically(stockCandles, "getLimit", new object[] {stockSymbol, limit});
             }
             object stockFiltered = this.filterBySinceLimit(stockCandles, since, limit, 0, true);
-            return this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered);
+            return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered));
         }
         object klineType = null;
         var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
@@ -1997,7 +1997,7 @@ public partial class binance : ccxt.binance
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     /**
@@ -2369,9 +2369,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchTickers(new List<object>() {symbolVar}, this.extend(parameters, new Dictionary<string, object>() {
-            { "callerMethodName", "watchTicker" },
-        }));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, this.extend(parameters, new Dictionary<string, object>() { { "callerMethodName", "watchTicker" }, })));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -2394,9 +2392,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = await this.watchMarkPrices(new List<object>() {symbolVar}, this.extend(parameters, new Dictionary<string, object>() {
-            { "callerMethodName", "watchMarkPrice" },
-        }));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, this.extend(parameters, new Dictionary<string, object>() { { "callerMethodName", "watchMarkPrice" }, })));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -2410,7 +2406,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object channelName = null;
@@ -2423,9 +2419,9 @@ public partial class binance : ccxt.binance
         object newTickers = await this.watchMultiTickerHelper("watchMarkPrices", channelName, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newTickers;
+            return ccxt.BaseExchange.ToTickers(newTickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -2444,7 +2440,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.stock] set to true to use the stocks price stream
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object stock = false;
@@ -2461,9 +2457,9 @@ public partial class binance : ccxt.binance
             object stockResult = await this.watchStockMarketStream(new List<object>() {"price"}, new List<object>() {"stock:price"}, parameters);
             if (isTrue(this.newUpdates))
             {
-                return stockResult;
+                return ccxt.BaseExchange.ToTickers(stockResult);
             }
-            return this.filterByArray(this.tickers, "symbol", symbols);
+            return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
         }
         object channelName = null;
         var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
@@ -2476,9 +2472,9 @@ public partial class binance : ccxt.binance
         object newTickers = await this.watchMultiTickerHelper("watchTickers", channelName, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newTickers;
+            return ccxt.BaseExchange.ToTickers(newTickers);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -3712,7 +3708,7 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)parameters)["portfolioMargin"] = true;
         }
-        object response = await this.fetchBalance(parameters);
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
@@ -3737,7 +3733,7 @@ public partial class binance : ccxt.binance
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalanceWs(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3771,7 +3767,7 @@ public partial class binance : ccxt.binance
         object subscription = new Dictionary<string, object>() {
             { "method", ((bool) isTrue((isEqual(method, "account.status")))) ? this.handleAccountStatusWs : this.handleBalanceWs },
         };
-        return await this.watch(url, messageHash, message, messageHash, subscription);
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, message, messageHash, subscription));
     }
 
     public virtual void handleBalanceWs(WebSocketClient client, object message)
@@ -5747,7 +5743,7 @@ public partial class binance : ccxt.binance
         {
             ((IDictionary<string,object>)parameters)["portfolioMargin"] = true;
         }
-        object positions = await this.FetchPositions(null, parameters);
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

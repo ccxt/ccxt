@@ -2772,7 +2772,7 @@ export default class toobit extends Exchange {
         return await this.fetchDepositsOrWithdrawalsHelper ('withdrawals', code, since, limit, params);
     }
 
-    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}) {
+    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

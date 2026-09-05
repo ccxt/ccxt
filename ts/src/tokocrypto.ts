@@ -816,7 +816,6 @@ export default class tokocrypto extends Exchange {
                 'margin': (marginTradingEnable === '1'),
                 'swap': false,
                 'future': false,
-                'delivery': false,
                 'option': false,
                 'active': active,
                 'contract': false,

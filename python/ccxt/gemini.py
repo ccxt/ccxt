@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1847,13 +1847,12 @@ class gemini(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        groupedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
+        indexedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
-        return self.safe_value(networkGroup, code)
+        return self.safe_value(indexedByNetwork, networkCode)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -1878,7 +1877,9 @@ class gemini(Exchange, ImplicitAPI):
         }
         response = self.privatePostV1AddressesNetwork(self.extend(request, params))
         results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
-        return self.group_by(results, 'network')
+        # one address structure per network, like every other venue(the endpoint is scoped to a
+        # single network, so the last address the venue lists for it wins — same)
+        return self.index_by(results, 'network')
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.implode_params(path, params)

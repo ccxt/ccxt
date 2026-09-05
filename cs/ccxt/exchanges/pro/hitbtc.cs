@@ -345,7 +345,7 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object ticker = await this.watchTickers(new List<object>() {symbol}, parameters);
+        object ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbol));
     }
 
@@ -359,7 +359,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} params.speed '1s' (default), or '3s'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -402,10 +402,10 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 object tickers = new Dictionary<string, object>() {};
                 ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
-                return tickers;
+                return ccxt.BaseExchange.ToTickers(tickers);
             }
         }
-        return this.filterByArray(newTickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(newTickers, "symbol", symbols));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)

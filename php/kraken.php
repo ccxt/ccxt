@@ -3276,7 +3276,7 @@ class kraken extends Exchange {
         return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
-    public function fetch_deposit_methods(string $code, $params = array()) {
+    public function fetch_deposit_methods(string $code, $params = array()): array {
         /**
          * fetch deposit methods for a $currency associated with this account
          *

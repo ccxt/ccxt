@@ -175,7 +175,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -197,7 +197,7 @@ public partial class onetrading : ccxt.onetrading
 }} },
         };
         object tickers = await this.watchMany(messageHash, request, subscriptionHash, symbols, parameters);
-        return this.filterByArray(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(tickers, "symbol", symbols));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)

@@ -4019,7 +4019,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    async fetchAccountPositions (symbols: Strings = undefined, params = {}) {
+    async fetchAccountPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');

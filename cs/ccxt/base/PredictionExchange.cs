@@ -370,13 +370,13 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public async virtual Task<object> fetchEvents(object parameters = null)
+    public async virtual Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchEvents() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchEvent(string id, object parameters = null)
+    public async virtual Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchEvent() is not supported yet")) ;
@@ -452,7 +452,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return this.events;
         }
-        object events = await this.fetchEvents(parameters);
+        object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
         return this.setEvents(events);
     }
 
@@ -865,7 +865,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (isTrue(isGreaterThan(missingLength, 0)))
             {
-                await this.fetchOutcomes(missing);
+                ccxt.BaseExchange.FromDict(await this.FetchOutcomes(missing));
             }
             return this.outcomes;
         }
@@ -886,13 +886,13 @@ public partial class PredictionExchange : BaseExchange
      * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
      * @returns {object} the outcome cache
      */
-    public async virtual Task<object> fetchOutcomes(object outcomeSymbols)
+    public async virtual Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
     {
         for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
-            await this.fetchOutcome(getValue(outcomeSymbols, i));
+            ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
         }
-        return this.outcomes;
+        return ccxt.BaseExchange.ToDict(this.outcomes);
     }
 
     public async virtual Task<object> loadOutcome(object outcomeSymbol, object reload = null)
@@ -941,7 +941,7 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
         }
-        return await this.fetchOutcome(outcomeSymbol);
+        return ccxt.BaseExchange.FromDict(await this.FetchOutcome(outcomeSymbol));
     }
 
     public virtual object outcomeSearchQuery(object outcomeSymbol)
@@ -1005,7 +1005,7 @@ public partial class PredictionExchange : BaseExchange
         return String.Join(" ", ((IList<object>)words).ToArray());
     }
 
-    public async virtual Task<object> fetchOutcome(object outcomeSymbol)
+    public async virtual Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
         // fetch just one outcome on demand — never through a bulk listing download. the base has
         // no generic by-id endpoint, so it derives a search query from the handle and resolves it
@@ -1018,10 +1018,7 @@ public partial class PredictionExchange : BaseExchange
             object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
             try
             {
-                await this.fetchEvents(new Dictionary<string, object>() {
-                    { "query", searchQuery },
-                    { "limit", searchLimit },
-                });
+                ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(new Dictionary<string, object>() { { "query", searchQuery }, { "limit", searchLimit }, }));
             } catch(Exception e)
             {
                 // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
@@ -1033,7 +1030,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (isTrue(this.hasOutcome(outcomeSymbol)))
             {
-                return this.safeOutcome(outcomeSymbol);
+                return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
             }
         }
         throw new BadSymbol ((string)add(add(add(this.id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
@@ -1076,7 +1073,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
@@ -1409,7 +1406,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async virtual Task<object> watchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTickers() is not supported yet")) ;
@@ -2112,51 +2109,3 @@ public partial class PredictionExchange : BaseExchange
     }
 }
 
-
-
-public partial class PredictionExchange
-{
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
-    {
-        var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
-    }
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
-    }
-    public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
-    {
-        var res = this.setMarkets(markets, currencies);
-        return ((Dictionary<string, Market>)res);
-    }
-    /// <summary>
-    /// resolves several uncached outcomes. the base has no batch by-id endpoint, so it fetches them one by one through fetchOutcome (which throws BadSymbol for an unresolvable one); venues with a batch endpoint (kalshi, polymarket) override this to collapse the list into one request
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> the outcome cache.</returns>
-    public async Task<Dictionary<string, object>> FetchOutcomes(List<string> outcomeSymbols)
-    {
-        var res = await this.fetchOutcomes(outcomeSymbols);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Dictionary<string, object>> FetchOutcome(string outcomeSymbol)
-    {
-        var res = await this.fetchOutcome(outcomeSymbol);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrderBook(outcome, limit, parameters);
-        return new PredictionOrderBook(res);
-    }
-    public async Task<PredictionTickers> WatchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchTickers(outcomes, parameters);
-        return new PredictionTickers(res);
-    }
-}

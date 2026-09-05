@@ -13,7 +13,7 @@ Taking that at face value: there is no exchange-maintained client library to com
 ## TL;DR
 
 - **Write it yourself** if you need one or two endpoints and want zero dependencies — Bitrue's spot API is Binance-shaped, so an `X-MBX-APIKEY` header and an HMAC-SHA256 signature get you a long way.
-- **Pick CCXT** if you want spot and futures behind one client, weighted rate limiting, typed errors and WebSocket streaming that already work, in seven languages.
+- **Pick CCXT** if you want spot and futures behind one client, weighted rate limiting, typed errors and WebSocket streaming that already work, in eight languages.
 - **Nothing is hidden.** All 65 Bitrue endpoints CCXT models are callable as [implicit methods](/docs/exchanges/bitrue/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -22,7 +22,7 @@ Taking that at face value: there is no exchange-maintained client library to com
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitrue is one of them) | Bitrue only |
 | Official client library | n/a | none — Bitrue states the listed SDKs are "not officially produced" |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Unified market data + trading API | yes — 40 capabilities, same names on every exchange | raw JSON |
 | Spot and futures | one `ccxt.bitrue` instance, selected by symbol or `defaultType` | separate hosts and separate docs sets |
 | Symbols | `'BTC/USDT'`, `'BTC/USDT:USDT'` | `BTCUSDT` |
@@ -195,7 +195,7 @@ amount = exchange.amount_to_precision('BTC/USDT', 0.0012345678)
 price = exchange.price_to_precision('BTC/USDT', 61234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 <!-- tabs:start -->
 
@@ -224,7 +224,7 @@ ticker, err := exchange.FetchTicker("BTC/USDT")
 
 <!-- tabs:end -->
 
-Bitrue's two demo repositories are one in Java and one in PHP. CCXT gives you the same API in seven languages from one source of truth, so the signing code and the futures routing are the same code everywhere.
+Bitrue's two demo repositories are one in Java and one in PHP. CCXT gives you the same API in eight languages from one source of truth, so the signing code and the futures routing are the same code everywhere.
 
 ### Nothing is hidden — the implicit API
 

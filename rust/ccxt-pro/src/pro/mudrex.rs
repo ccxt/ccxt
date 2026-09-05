@@ -342,8 +342,8 @@ impl MudrexCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_500: bool = true;
-                while { if !__for_first_500 { i = add(&i, &Value::Int(1)); } __for_first_500 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_499: bool = true;
+                while { if !__for_first_499 { i = add(&i, &Value::Int(1)); } __for_first_499 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
                 let mut baseIdString: Value = ternary(is_true(&(!is_equal(&get_value(&market, &Value::Str("baseId".to_string())), &Value::Null))), get_value(&market, &Value::Str("baseId".to_string())), Value::Str("".to_string()));
@@ -496,8 +496,8 @@ impl MudrexCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_501: bool = true;
-            while { if !__for_first_501 { i = add(&i, &Value::Int(1)); } __for_first_501 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_500: bool = true;
+            while { if !__for_first_500 { i = add(&i, &Value::Int(1)); } __for_first_500 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut t: Value = get_value(&data, &i);
             let mut t: Value = get_value(&data, &i);
             let mut s: Value = self.safe_string_k(t.clone(), "s", &[]);

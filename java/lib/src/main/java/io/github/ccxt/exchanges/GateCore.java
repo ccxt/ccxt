@@ -4378,24 +4378,19 @@ public class GateCore extends GateApi
                 Object entry = Helpers.GetValue(data, i);
                 if (Helpers.isTrue(isolated))
                 {
-                    Object marketId = this.safeString(entry, "currency_pair");
-                    Object symbolInner = this.safeSymbol(marketId, null, "_", "margin");
                     Object base = this.safeValue(entry, "base", new java.util.HashMap<String, Object>() {{}});
                     Object quote = this.safeValue(entry, "quote", new java.util.HashMap<String, Object>() {{}});
                     Object baseCode = this.safeCurrencyCode(this.safeString(base, "currency"));
                     Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                    Object subResult = new java.util.HashMap<String, Object>() {{}};
-                    Helpers.addElementToObject(subResult, ((String)baseCode), this.parseBalanceHelper(base));
-                    Helpers.addElementToObject(subResult, ((String)quoteCode), this.parseBalanceHelper(quote));
-                    Helpers.addElementToObject(result, symbolInner, this.safeBalance(subResult));
+                    result = this.mergeBalanceAccount(result, ((String)baseCode), this.parseBalanceHelper(base));
+                    result = this.mergeBalanceAccount(result, ((String)quoteCode), this.parseBalanceHelper(quote));
                 } else
                 {
                     Object code = this.safeCurrencyCode(this.safeString(entry, "currency"));
                     Helpers.addElementToObject(result, ((String)code), this.parseBalanceHelper(entry));
                 }
             }
-            Object returnResult = ((Helpers.isTrue(isolated))) ? result : this.safeBalance(result);
-            return returnResult;
+            return this.safeBalance(result);
         });
 
     }

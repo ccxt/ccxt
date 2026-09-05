@@ -907,7 +907,6 @@ public class TokocryptoCore extends TokocryptoApi
                     put( "margin", (Helpers.isEqual(finalMarginTradingEnable, "1")) );
                     put( "swap", false );
                     put( "future", false );
-                    put( "delivery", false );
                     put( "option", false );
                     put( "active", finalActive );
                     put( "contract", false );

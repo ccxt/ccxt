@@ -25,7 +25,7 @@ Same account as KuCoin spot, but a genuinely different API — different host, d
 | WebSocket `watch*` methods | 22 |
 | Raw endpoints as implicit methods | 351 |
 | Testnet via `setSandboxMode` | no |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust |
 | Licence | MIT |
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, read from the source tree with `build/comparisons-facts.cjs`. Counts include everything inherited from `kucoin`.</sub>
