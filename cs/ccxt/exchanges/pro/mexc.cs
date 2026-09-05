@@ -182,7 +182,7 @@ public partial class mexc : ccxt.mexc
         this.handleBidAsk(client as WebSocketClient, message);
         object rawTicker = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"});
         string? marketId = this.safeString2(message, "s", "symbol");
-        object timestamp = this.safeInteger2(message, "t", "sendTime");
+        Int64? timestamp = this.safeInteger2(message, "t", "sendTime");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object ticker = null;
@@ -844,7 +844,7 @@ public partial class mexc : ccxt.mexc
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
-        object firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
+        Int64? firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
         if (isTrue(isTrue((isEqual(nonce, null))) || isTrue((isEqual(firstDeltaNonce, null)))))
         {
             return -1;
@@ -856,7 +856,7 @@ public partial class mexc : ccxt.mexc
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
+            Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
             if (isTrue(isEqual(deltaNonce, null)))
             {
                 continue;
@@ -964,7 +964,7 @@ public partial class mexc : ccxt.mexc
         try
         {
             this.handleDelta(storedOrderBook, data);
-            object timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
+            Int64? timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
         } catch(Exception e)
@@ -1007,7 +1007,7 @@ public partial class mexc : ccxt.mexc
     public override void handleDelta(object orderbook, object delta)
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
-        object deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
+        Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
         if (isTrue(isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((!isEqual(existingNonce, null)))) && isTrue((isLessThan(deltaNonce, existingNonce)))))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
@@ -1319,7 +1319,7 @@ public partial class mexc : ccxt.mexc
         //        time: 1736417034280
         //      }
         //
-        object timestamp = this.safeInteger2(trade, "T", "time");
+        Int64? timestamp = this.safeInteger2(trade, "T", "time");
         string? tradeId = this.safeString2(trade, "t", "tradeId");
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -1586,7 +1586,7 @@ public partial class mexc : ccxt.mexc
         string? side = this.safeString(order, "tradeType");
         string? status = this.safeString2(order, "status", "state");
         string? type = this.safeString(order, "orderType");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString(order, "N");
         if (isTrue(!isEqual(feeCurrency, null)))
         {
@@ -1738,8 +1738,8 @@ public partial class mexc : ccxt.mexc
         object type = ((bool) isTrue((isEqual(channel, "spot@private.account.v3.api.pb")))) ? "spot" : "swap";
         object messageHash = add("balance:", type);
         object data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
-        object futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
-        object timestamp = this.safeInteger2(data, "time", futuresTimestamp);
+        Int64? futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
+        Int64? timestamp = this.safeInteger2(data, "time", futuresTimestamp);
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};

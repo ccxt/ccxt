@@ -609,7 +609,7 @@ public partial class hibachi : Exchange
         Int64? timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         string? cost = Precise.stringMul(price, amount);
         string? side = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? orderType = null;
         string? orderId = null;
         string? takerOrMaker = null;
@@ -2041,7 +2041,7 @@ public partial class hibachi : Exchange
         object type = null;
         string? direction = null;
         object amount = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? referenceId = null;
         string? referenceAccount = null;
         object status = null;

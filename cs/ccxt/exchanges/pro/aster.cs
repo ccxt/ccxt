@@ -959,7 +959,7 @@ public partial class aster : ccxt.aster
             }
             takerOrMaker = ((bool) isTrue((isEqual(getValue(trade, "m"), true)))) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2228,7 +2228,7 @@ public partial class aster : ccxt.aster
             lastTradeTimestamp = T;
         }
         object lastUpdateTimestamp = T;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "n");
         if (isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((Precise.stringGt(feeCost, "0")))))
         {

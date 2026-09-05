@@ -1597,8 +1597,8 @@ public partial class htx : ccxt.htx
         //         "amend_result": ""
         //     }
         //
-        object lastTradeTimestamp = this.safeIntegerN(order, new List<object>() {"lastActTime", "updated_time", "ts"});
-        object created = this.safeInteger2(order, "orderCreateTime", "created_time");
+        Int64? lastTradeTimestamp = this.safeIntegerN(order, new List<object>() {"lastActTime", "updated_time", "ts"});
+        Int64? created = this.safeInteger2(order, "orderCreateTime", "created_time");
         string? marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = this.safeSymbol(marketId, market);
@@ -1610,7 +1610,7 @@ public partial class htx : ccxt.htx
         string? filled = this.safeString2(order, "execAmt", "trade_volume");
         string? typeSide = this.safeString(order, "type");
         string? feeCost = this.safeString(order, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             string? feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
@@ -3092,7 +3092,7 @@ public partial class htx : ccxt.htx
         string? price = this.safeString2(trade, "tradePrice", "trade_price");
         string? amount = this.safeString2(trade, "tradeVolume", "trade_volume");
         string? order = this.safeString2(trade, "orderId", "order_id");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"tradeTime", "updated_time", "created_time"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"tradeTime", "updated_time", "created_time"});
         string? orderType = this.safeString2(trade, "orderType", "type");
         object aggressor = this.safeValue(trade, "aggressor");
         string? takerOrMaker = null;
@@ -3110,7 +3110,7 @@ public partial class htx : ccxt.htx
             orderTypeParts = ((string)orderType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             type = this.safeString(orderTypeParts, 1, orderType);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new List<object>() {"feeCurrency", "fee_currency", "fee_asset"}));
         if (isTrue(!isEqual(feeCurrency, null)))
         {
@@ -3249,7 +3249,7 @@ public partial class htx : ccxt.htx
             { "params", parameters },
         };
         Dictionary<string, object> extendedSubsription = this.extend(subscription, subscriptionParams);
-        object request = null;
+        Dictionary<string, object> request = null;
         if (isTrue(isEqual(type, "spot")))
         {
             request = new Dictionary<string, object>() {
@@ -3296,7 +3296,7 @@ public partial class htx : ccxt.htx
         if (isTrue(isEqual(authenticated, null)))
         {
             string timestamp = this.ymdhms(this.milliseconds(), "T");
-            object signatureParams = null;
+            Dictionary<string, object> signatureParams = null;
             if (isTrue(isEqual(type, "spot")))
             {
                 signatureParams = new Dictionary<string, object>() {
@@ -3318,7 +3318,7 @@ public partial class htx : ccxt.htx
             string auth = this.urlencode(signatureParams, true); // true required in go
             string payload = String.Join("\n", ((IList<object>)new List<object>() {"GET", hostname, relativePath, auth}).ToArray()); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
-            object request = null;
+            Dictionary<string, object> request = null;
             if (isTrue(isEqual(type, "spot")))
             {
                 Dictionary<string, object> newParams = new Dictionary<string, object>() {

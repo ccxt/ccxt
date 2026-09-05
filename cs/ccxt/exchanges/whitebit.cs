@@ -2140,7 +2140,7 @@ public partial class whitebit : Exchange
         {
             takerOrMaker = ((bool) isTrue((isEqual(role, 1)))) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -3041,7 +3041,7 @@ public partial class whitebit : Exchange
             amount = filled;
         }
         string? dealFee = this.safeString(order, "dealFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(dealFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -4833,7 +4833,7 @@ public partial class whitebit : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
-            object secret = this.encode(this.secret);
+            string? secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((IList<object>) nonceWindowrequestParamsVariable)[0];

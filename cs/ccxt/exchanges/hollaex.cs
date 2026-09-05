@@ -907,7 +907,7 @@ public partial class hollaex : Exchange
         string? amountString = this.safeString(trade, "size");
         string? feeCostString = this.safeString(trade, "fee");
         string? feeCoin = this.safeString(trade, "fee_coin");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1989,7 +1989,7 @@ public partial class hollaex : Exchange
         string? feeCurrencyId = this.safeString(transaction, "fee_coin");
         object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2226,7 +2226,7 @@ public partial class hollaex : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
+            Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
             object expires = this.sum(this.seconds(), defaultExpires);
             string expiresString = ((object)expires).ToString();
             object auth = add(add(method, path), expiresString);

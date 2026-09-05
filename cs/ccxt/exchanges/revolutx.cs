@@ -519,7 +519,7 @@ public partial class revolutx : Exchange
         string? priceChange = this.safeString(ticker, "price_change_24h");
         string? baseVolume = this.safeString(ticker, "volume_24h");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
-        object open = null;
+        string? open = null;
         if (isTrue(isTrue(!isEqual(last, null)) && isTrue(!isEqual(priceChange, null))))
         {
             open = Precise.stringSub(last, priceChange);
@@ -756,7 +756,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["until"] = until;
@@ -858,7 +858,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_date"] = until;
@@ -999,7 +999,7 @@ public partial class revolutx : Exchange
         string? timeInForce = this.safeStringUpper(order, "time_in_force");
         Int64? createdDate = this.safeInteger(order, "created_date");
         Int64? updatedDate = this.safeInteger(order, "updated_date");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(totalFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1335,7 +1335,7 @@ public partial class revolutx : Exchange
             ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
         }
         object thirtyDays = 2592000000;
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
@@ -1419,7 +1419,7 @@ public partial class revolutx : Exchange
         object price = this.safeNumber(trade, "p");
         object amount = this.safeNumber(trade, "q");
         string? side = this.safeStringLower(trade, "s");
-        object timestamp = this.safeInteger2(trade, "tdt", "pdt");
+        Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
         object isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
         object cost = null;
@@ -1475,7 +1475,7 @@ public partial class revolutx : Exchange
             { "symbol", getValue(market, "id") },
         };
         object thirtyDays = 2592000000;
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;

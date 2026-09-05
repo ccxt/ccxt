@@ -636,14 +636,14 @@ public partial class binance : PredictionExchange
         string? slug = this.safeString(rawTopic, "slug");
         string? title = this.safeString(rawTopic, "title");
         Int64? endDate = this.safeInteger(rawTopic, "endDate");
-        object created = this.safeInteger2(rawTopic, "publishedAt", "startDate");
+        Int64? created = this.safeInteger2(rawTopic, "publishedAt", "startDate");
         string? status = this.safeString(rawTopic, "status");
         object active = anyActive;
         if (isTrue(isEqual(rawMarketsLength, 0)))
         {
             active = isTrue((isEqual(status, "REGISTERED"))) || isTrue((isEqual(status, "OPEN")));
         }
-        object resolved = null;
+        bool? resolved = null;
         if (isTrue(!isEqual(status, null)))
         {
             resolved = isTrue((isEqual(status, "RESOLVED"))) || isTrue((isEqual(status, "SETTLED")));
@@ -736,8 +736,8 @@ public partial class binance : PredictionExchange
             string? tokenId = this.safeString(rawOutcome, "tokenId");
             object outcomeHandle = add(add(marketSymbol, ":"), label);
             string? price = this.safeString(rawOutcome, "price");
-            object winnerRaw = null;
-            object settleFractionRaw = null;
+            bool? winnerRaw = null;
+            int? settleFractionRaw = null;
             if (isTrue(isTrue(resolved) && isTrue((!isEqual(price, null)))))
             {
                 winnerRaw = Precise.stringEq(price, "1");
@@ -1714,7 +1714,7 @@ public partial class binance : PredictionExchange
         string? cost = this.safeString(trade, "filledUsdtAmount");
         string? price = this.safeString(trade, "price");
         string? orderType = this.safeStringLower(trade, "orderType");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(isTrue(isTrue(isTrue((isEqual(orderType, "market"))) && isTrue((!isEqual(cost, null)))) && isTrue((!isEqual(price, null)))) && isTrue((!isEqual(filled, null)))))
         {
             // buys pay cost above price*filled, sells receive proceeds net of the fee —
@@ -1858,7 +1858,7 @@ public partial class binance : PredictionExchange
     {
         object market = this.market(outcome);
         object prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "price", 0.0001);
-        object decimals = 4;
+        int decimals = 4;
         if (isTrue(isTrue((!isEqual(prec, null))) && isTrue((isGreaterThan(prec, 0)))))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
@@ -1870,7 +1870,7 @@ public partial class binance : PredictionExchange
     {
         object market = this.market(outcome);
         object prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "amount", 0.01);
-        object decimals = 2;
+        int decimals = 2;
         if (isTrue(isTrue((!isEqual(prec, null))) && isTrue((isGreaterThan(prec, 0)))))
         {
             decimals = this.precisionFromString(this.numberToString(prec));

@@ -1633,7 +1633,7 @@ public partial class kraken : Exchange
         string? amount = null;
         object id = null;
         string? orderId = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object symbol = null;
         if (isTrue(((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -2278,7 +2278,7 @@ public partial class kraken : Exchange
         object timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
         string? filled = this.safeString(order, "vol_exec");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
         price = this.safeString(description, "price", price);
@@ -4098,9 +4098,9 @@ public partial class kraken : Exchange
                     { "nonce", nonce },
                 }, parameters));
             }
-            object auth = this.encode(add(nonce, body));
+            string? auth = this.encode(add(nonce, body));
             object hash = this.hash(auth, sha256, "binary");
-            object binary = this.encode(url);
+            string? binary = this.encode(url);
             object binhash = this.binaryConcat(binary, hash);
             object secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(binhash, secret, sha512, "base64");

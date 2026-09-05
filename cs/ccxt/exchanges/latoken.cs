@@ -1028,7 +1028,7 @@ public partial class latoken : Exchange
         string? id = this.safeString(trade, "id");
         string? orderId = this.safeString(trade, "order");
         string? feeCost = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

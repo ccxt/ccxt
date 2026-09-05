@@ -1691,7 +1691,7 @@ public partial class alpaca : Exchange
         string? alpacaStatus = this.safeString(order, "status");
         object status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeValue, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2191,7 +2191,7 @@ public partial class alpaca : Exchange
         object status = null;
         object comment = null;
         bool? intern = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(activityType, null)))
         {
             string? netAmount = this.safeString(transaction, "net_amount");

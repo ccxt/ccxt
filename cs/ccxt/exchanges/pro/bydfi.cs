@@ -656,7 +656,7 @@ public partial class bydfi : ccxt.bydfi
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbols = null;
+        List<object> symbols = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             symbols = new List<object>() {symbol};
@@ -785,7 +785,7 @@ public partial class bydfi : ccxt.bydfi
         market = this.safeMarket(marketId, market);
         string? rawStatus = this.safeString(order, "st");
         string? rawType = this.safeString(order, "t");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

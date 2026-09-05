@@ -1396,7 +1396,7 @@ public partial class kraken : ccxt.kraken
         {
             symbol = getValue(market, "symbol");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "fees")))
         {
             object fees = this.safeList(trade, "fees", new List<object>() {});

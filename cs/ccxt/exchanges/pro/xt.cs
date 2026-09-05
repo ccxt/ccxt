@@ -153,7 +153,7 @@ public partial class xt : ccxt.xt
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
-        object firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
+        Int64? firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
         if (isTrue(isTrue(isTrue((!isEqual(nonce, null))) && isTrue((!isEqual(firstDeltaNonce, null)))) && isTrue((isLessThan(nonce, subtract(firstDeltaNonce, 1))))))
         {
             return -1;
@@ -161,7 +161,7 @@ public partial class xt : ccxt.xt
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaNonce = this.safeInteger2(delta, "i", "u");
+            Int64? deltaNonce = this.safeInteger2(delta, "i", "u");
             if (isTrue(isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((!isEqual(nonce, null)))) && isTrue((isGreaterThanOrEqual(deltaNonce, nonce)))))
             {
                 return i;
@@ -1479,7 +1479,7 @@ public partial class xt : ccxt.xt
         string? marketId = this.safeString2(order, "s", "symbol");
         string tradeType = ((bool) isTrue((inOp(order, "symbol")))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
-        object timestamp = this.safeInteger2(order, "ct", "createTime");
+        Int64? timestamp = this.safeInteger2(order, "ct", "createTime");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString2(order, "i", "orderId") },

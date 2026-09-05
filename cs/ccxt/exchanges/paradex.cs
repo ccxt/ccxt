@@ -1058,7 +1058,7 @@ public partial class paradex : Exchange
         };
         Int64 now = this.milliseconds();
         int duration = this.parseTimeframe(timeframeVar);
-        object until = this.safeInteger2(parameters, "until", "till", now);
+        Int64? until = this.safeInteger2(parameters, "until", "till", now);
         string? price = this.safeString(parameters, "price");
         if (isTrue(!isEqual(price, null)))
         {

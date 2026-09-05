@@ -559,7 +559,7 @@ public partial class whitebit : ccxt.whitebit
         string? amount = this.safeString(trade, 5);
         string? marketId = this.safeString(trade, 2);
         market = this.safeMarket(marketId, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, 6);
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -740,7 +740,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? rawSide = this.safeInteger(order, "side");
         string side = ((bool) isTrue((isEqual(rawSide, 1)))) ? "sell" : "buy";
         string? dealFee = this.safeString(order, "deal_fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(dealFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1006,7 +1006,7 @@ public partial class whitebit : ccxt.whitebit
         object url = getValue(getValue(this.urls, "api"), "ws");
         object id = this.nonce();
         var client = this.safeValue(this.clients, url);
-        object request = null;
+        Dictionary<string, object> request = null;
         List<object> marketIds = new List<object>() {};
         if (isTrue(isEqual(client as WebSocketClient, null)))
         {

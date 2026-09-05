@@ -3456,7 +3456,7 @@ public partial class bybit : Exchange
         }
         object code = this.safeStringN(parameters, new List<object>() {"code", "currency", "baseCoin"});
         object market = null;
-        object parsedSymbols = null;
+        List<object> parsedSymbols = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             parsedSymbols = new List<object>() {};
@@ -4175,7 +4175,7 @@ public partial class bybit : Exchange
         string? amountString = this.safeStringN(trade, new List<object>() {"execQty", "orderQty", "size"});
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
         string? costString = this.safeString(trade, "execValue");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"time", "execTime", "tradeTime"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"time", "execTime", "tradeTime"});
         string? side = this.safeStringLower(trade, "side");
         if (isTrue(isEqual(side, null)))
         {
@@ -4214,7 +4214,7 @@ public partial class bybit : Exchange
             orderType = null;
         }
         string? feeCostString = this.safeString(trade, "execFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeRateString = this.safeString(trade, "feeRate");
@@ -4958,7 +4958,7 @@ public partial class bybit : Exchange
         }
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(order, "createdTime", "createdAt");
+        Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
         // see https://github.com/ccxt/ccxt/issues/27725
@@ -4980,10 +4980,10 @@ public partial class bybit : Exchange
         }
         string? filled = this.safeString(order, "cumExecQty");
         string? remaining = this.safeString(order, "leavesQty");
-        object lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
+        Int64? lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
         string? rawStatus = this.safeString(order, "orderStatus");
         object status = this.parseOrderStatus(rawStatus);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new Dictionary<string, object>() {});
         List<object> feeCoins = new List<object>(((IDictionary<string,object>)cumFeeDetail).Keys);
         string? feeCoinId = this.safeString(feeCoins, 0);
@@ -7481,12 +7481,12 @@ public partial class bybit : Exchange
         //
         string? currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "createTime", "successAt");
+        Int64? timestamp = this.safeInteger2(transaction, "createTime", "successAt");
         Int64? updated = this.safeInteger(transaction, "updateTime");
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         string type = ((bool) isTrue((inOp(transaction, "depositFee")))) ? "deposit" : "withdrawal";
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -8273,8 +8273,8 @@ public partial class bybit : Exchange
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         string? initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         string? maintenanceMarginString = this.safeString(position, "positionMM");
-        object timestamp = this.safeInteger2(position, "createdTime", "createdAt");
-        object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
+        Int64? timestamp = this.safeInteger2(position, "createdTime", "createdAt");
+        Int64? lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
         if (isTrue(isEqual(lastUpdateTimestamp, null)))
         {
             lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
@@ -11264,7 +11264,7 @@ public partial class bybit : Exchange
         //         "createdAt": "1727257904726"
         //     }
         //
-        object timestamp = this.safeInteger2(conversion, "expiredTime", "createdAt");
+        Int64? timestamp = this.safeInteger2(conversion, "expiredTime", "createdAt");
         string? fromCoin = this.safeString(conversion, "fromCoin");
         object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         string? to = this.safeString(conversion, "toCoin");

@@ -3189,7 +3189,7 @@ public partial class BaseExchange
             // average
             if (isTrue(isTrue(isEqual(average, null)) && isTrue(!isEqual(close, null))))
             {
-                object precision = 18;
+                int precision = 18;
                 if (isTrue(isTrue(!isEqual(market, null)) && isTrue(this.isTickPrecision())))
                 {
                     object marketPrecision = this.safeDict(market, "precision");
@@ -4281,7 +4281,7 @@ public partial class BaseExchange
 
     public virtual object handleParamInteger2(object parameters, object paramName1, object paramName2, object defaultValue = null)
     {
-        object value = this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
+        Int64? value = this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
         if (isTrue(!isEqual(value, null)))
         {
             parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
@@ -4464,7 +4464,7 @@ public partial class BaseExchange
         var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
-        object fetchData = null;
+        Dictionary<string, object> fetchData = null;
         bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
         for (object i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
         {
@@ -6868,7 +6868,7 @@ public partial class BaseExchange
         object calls = 0;
         object result = new List<object>() {};
         object errors = 0;
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
+        Int64? until = this.safeIntegerN(parameters, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
         var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
@@ -7026,7 +7026,7 @@ public partial class BaseExchange
         object time = multiply(this.parseTimeframe(timeframe), 1000);
         maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
         object step = multiply(time, maxEntriesPerRequest);
-        object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
+        Int64? until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
         object currentSince = subtract(subtract(current, (multiply(maxCalls, step))), 1);
         if (isTrue(!isEqual(since, null)))
         {
@@ -7339,7 +7339,7 @@ public partial class BaseExchange
     public virtual object handleUntilOption(object key, object request, object parameters, object multiplier = null)
     {
         multiplier ??= 1;
-        object until = this.safeInteger2(parameters, "until", "till");
+        Int64? until = this.safeInteger2(parameters, "until", "till");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)[(string)key] = this.parseToInt(multiply(until, multiplier));

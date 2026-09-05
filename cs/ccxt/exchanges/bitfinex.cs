@@ -1716,7 +1716,7 @@ public partial class bitfinex : Exchange
         string? orderId = null;
         string? takerOrMaker = null;
         string? type = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object symbol = this.safeSymbol(null, market);
         int timestampIndex = ((bool) isTrue(isPrivate)) ? 2 : 1;
         Int64? timestamp = this.safeInteger(tradeList, timestampIndex);
@@ -4544,7 +4544,7 @@ public partial class bitfinex : Exchange
         string? timeInForce = this.safeString(parameters, "timeInForce");
         object postOnlyParam = this.safeBool(parameters, "postOnly", false);
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object clientOrderId = this.safeInteger2(parameters, "cid", "clientOrderId");
+        Int64? clientOrderId = this.safeInteger2(parameters, "cid", "clientOrderId");
         if (isTrue(!isEqual(trailingAmount, null)))
         {
             ((IDictionary<string,object>)request)["price_trailing"] = trailingAmount;
@@ -4580,7 +4580,7 @@ public partial class bitfinex : Exchange
         {
             ((IDictionary<string,object>)request)["cid"] = clientOrderId;
         }
-        object leverage = this.safeInteger2(parameters, "leverage", "lev");
+        Int64? leverage = this.safeInteger2(parameters, "leverage", "lev");
         if (isTrue(!isEqual(leverage, null)))
         {
             ((IDictionary<string,object>)request)["lev"] = leverage;

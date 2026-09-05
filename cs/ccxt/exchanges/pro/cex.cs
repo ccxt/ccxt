@@ -1104,7 +1104,7 @@ public partial class cex : ccxt.cex
         string? pair = this.safeString(data, "pair");
         object symbol = this.pairToSymbol(pair);
         object messageHash = add("orderbook:", symbol);
-        object timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
+        Int64? timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
         Int64? incrementalId = this.safeInteger(data, "id");
         object orderbook = this.orderBook(new Dictionary<string, object>() {});
         object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");

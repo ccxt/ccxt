@@ -545,7 +545,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? direction = this.safeString(trade, "D");
         object timestamp = this.safeTimestamp2(trade, "TT", "T");
         string? matchRole = this.safeString(trade, "m");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "F");
         if (isTrue(!isEqual(feeCost, null)))
         {

@@ -1083,7 +1083,7 @@ public partial class cryptomus : Exchange
         string? side = this.safeString(order, "direction");
         object price = this.safeNumber(order, "price");
         object transaction = this.safeList(deal, "transactions", new List<object>() {});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object firstTx = this.safeDict(transaction, 0);
         string? feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (isTrue(!isEqual(feeCurrency, null)))

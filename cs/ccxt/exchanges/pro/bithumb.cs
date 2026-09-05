@@ -1144,7 +1144,7 @@ public partial class bithumb : ccxt.bithumb
         string? filled = this.safeString(order, "executed_volume");
         string? cost = this.safeString(order, "executed_funds");
         string? feeCost = this.safeString(order, "paid_fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             object marketForFee = this.safeMarket(marketId, market);

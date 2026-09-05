@@ -1281,7 +1281,7 @@ public partial class poloniex : Exchange
         //                "iPx": "2.1834"
         //            },
         //
-        object timestamp = this.safeInteger2(ticker, "ts", "cT");
+        Int64? timestamp = this.safeInteger2(ticker, "ts", "cT");
         string? marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
         string? baseVolume = this.safeString2(ticker, "quantity", "qty");
@@ -1659,12 +1659,12 @@ public partial class poloniex : Exchange
         //
         string? id = this.safeStringN(trade, new List<object>() {"id", "tradeID", "trdId"});
         string? orderId = this.safeString2(trade, "orderId", "ordId");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "createTime", "cT", "cTime"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "createTime", "cT", "cTime"});
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         object symbol = getValue(market, "symbol");
         string? side = this.safeStringLower2(trade, "side", "takerSide");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? priceString = this.safeString2(trade, "price", "px");
         string? amountString = this.safeString2(trade, "quantity", "qty");
         string? costString = this.safeString2(trade, "amount", "amt");
@@ -1987,7 +1987,7 @@ public partial class poloniex : Exchange
         //        "clOrdId":"polo418876147745775616"
         //    }
         //
-        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "createTime", "cTime"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "createTime", "cTime"});
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(order, "date"));
@@ -2011,7 +2011,7 @@ public partial class poloniex : Exchange
         string? rawType = this.safeString(order, "type");
         object type = this.parseOrderType(rawType);
         string? id = this.safeStringN(order, new List<object>() {"orderNumber", "id", "orderId", "ordId"});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString2(order, "tokenFeeCurrency", "feeCcy");
         string? feeCost = null;
         object feeCurrencyCode = null;

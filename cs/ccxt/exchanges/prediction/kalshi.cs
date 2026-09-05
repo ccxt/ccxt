@@ -1759,7 +1759,7 @@ public partial class kalshi : PredictionExchange
         object isTaker = this.safeBool(fill, "is_taker", true);
         string takerOrMaker = ((bool) isTrue((isEqual(isTaker, true)))) ? "taker" : "maker";
         object feeCost = this.safeNumber(fill, "fee_cost");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2214,7 +2214,7 @@ public partial class kalshi : PredictionExchange
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
         string? action = this.safeStringLower(order, "action");
-        object side = null;
+        string? side = null;
         if (isTrue(isEqual(action, "buy")))
         {
             side = "buy";

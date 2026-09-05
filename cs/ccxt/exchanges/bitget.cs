@@ -3408,7 +3408,7 @@ public partial class bitget : Exchange
             Int64? expiry = null;
             string? expiryDatetime = null;
             string? symbolType = this.safeString(market, "symbolType");
-            object marginModes = null;
+            Dictionary<string, object> marginModes = null;
             bool isMarginTradingAllowed = false;
             if (isTrue(isEqual(symbolType, null)))
             {
@@ -3682,7 +3682,7 @@ public partial class bitget : Exchange
             Int64? expiry = null;
             string? expiryDatetime = null;
             string? symbolType = this.safeString(market, "type");
-            object marginModes = null;
+            Dictionary<string, object> marginModes = null;
             bool isMarginTradingAllowed = false;
             bool isUtaMargin = (isEqual(category, "MARGIN"));
             if (isTrue(isTrue(isUtaMargin) || isTrue((isEqual(category, "SPOT")))))
@@ -4554,7 +4554,7 @@ public partial class bitget : Exchange
         //
         string? currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
+        Int64? timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
         string? networkId = this.safeString(transaction, "chain");
         string? status = this.safeString(transaction, "status");
         string? tag = this.safeString(transaction, "tag");
@@ -4573,7 +4573,7 @@ public partial class bitget : Exchange
         {
             feeCostAbsString = Precise.stringAbs(feeCostString);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? amountString = this.safeString(transaction, "size");
         if (isTrue(!isEqual(feeCostAbsString, null)))
         {
@@ -5457,8 +5457,8 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"cTime", "ts", "createdTime"});
-        object fee = null;
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"cTime", "ts", "createdTime"});
+        Dictionary<string, object> fee = null;
         object feeDetail = this.safeValue(trade, "feeDetail");
         string? posMode = this.safeString(trade, "posMode");
         string? category = this.safeString(trade, "category");
@@ -6699,10 +6699,10 @@ public partial class bitget : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
-        object timestamp = this.safeIntegerN(order, new List<object>() {"cTime", "ctime", "createdTime"});
-        object updateTimestamp = this.safeInteger2(order, "uTime", "updatedTime");
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"cTime", "ctime", "createdTime"});
+        Int64? updateTimestamp = this.safeInteger2(order, "uTime", "updatedTime");
         string? rawStatus = this.safeStringN(order, new List<object>() {"status", "state", "orderStatus", "planStatus"});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -9259,7 +9259,7 @@ public partial class bitget : Exchange
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                 }
-                object endTime = this.safeInteger2(parameters, "endTime", "until");
+                Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
                 if (isTrue(isEqual(sinceVar, null)))
                 {
@@ -10624,7 +10624,7 @@ public partial class bitget : Exchange
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
+        Int64? timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         string? marginMode = this.safeString(position, "marginMode");
         string? collateral = null;
         object initialMargin = null;
@@ -10828,7 +10828,7 @@ public partial class bitget : Exchange
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
             object symbolInner = this.safeSymbol(marketId, market);
-            object timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
+            Int64? timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
@@ -11080,7 +11080,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
-        object fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
+        Int64? fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
         object interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         Int64? timestamp = this.safeInteger(contract, "ts");
         object markPrice = this.safeNumber(contract, "markPrice");
@@ -11224,7 +11224,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(contract, "symbol");
         string? currencyId = this.safeString(contract, "coin");
-        object timestamp = this.safeInteger2(contract, "cTime", "ts");
+        Int64? timestamp = this.safeInteger2(contract, "cTime", "ts");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },

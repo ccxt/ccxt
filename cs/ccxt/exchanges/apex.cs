@@ -1079,7 +1079,7 @@ public partial class apex : Exchange
         string? marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
         string? id = this.safeString2(trade, "i", "id");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "v", "size");
         string? side = this.safeStringLower2(trade, "S", "side");
@@ -1202,7 +1202,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["page"] = page;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             ((IDictionary<string,object>)request)["endTimeExclusive"] = endTimeExclusive;
@@ -1902,7 +1902,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             ((IDictionary<string,object>)request)["endTimeExclusive"] = endTimeExclusive;
@@ -1986,7 +1986,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             ((IDictionary<string,object>)request)["endTimeExclusive"] = endTimeExclusive;
@@ -2034,7 +2034,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});

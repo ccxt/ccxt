@@ -871,7 +871,7 @@ public partial class luno : Exchange
         object baseFee = this.safeNumber(order, "fee_base");
         string? filled = this.safeString(order, "base");
         string? cost = this.safeString(order, "counter");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(quoteFee, null)))
         {
             fee = new Dictionary<string, object>() {

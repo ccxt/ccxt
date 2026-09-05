@@ -2859,7 +2859,7 @@ public partial class cryptocom : Exchange
         //         "create_time_ns": "1686941992887207066"
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "t", "create_time");
+        Int64? timestamp = this.safeInteger2(trade, "t", "create_time");
         string? marketId = this.safeString2(trade, "i", "instrument_name");
         market = this.safeMarket(marketId, market, "_");
         string? feeCurrency = this.safeString(trade, "fee_instrument_name");
@@ -3115,7 +3115,7 @@ public partial class cryptocom : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "create_time");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

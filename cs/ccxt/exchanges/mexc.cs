@@ -1933,7 +1933,7 @@ public partial class mexc : Exchange
         object trades = new List<object>() {};
         if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
-            object until = this.safeInteger2(parameters, "endTime", "until");
+            Int64? until = this.safeInteger2(parameters, "endTime", "until");
             if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
@@ -1993,10 +1993,10 @@ public partial class mexc : Exchange
     public override object parseTrade(object trade, object market = null)
     {
         object id = null;
-        object timestamp = null;
+        Int64? timestamp = null;
         string? orderId = null;
         object symbol = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object type = null;
         object side = null;
         string? takerOrMaker = null;
@@ -2192,7 +2192,7 @@ public partial class mexc : Exchange
             { "interval", timeframeValue },
         };
         object candles = new List<object>() {};
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         object start = since;
         if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isEqual(since, null)))))
         {
@@ -4067,8 +4067,8 @@ public partial class mexc : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "transactTime"});
-        object fee = null;
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "transactTime"});
+        Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString(order, "feeCurrency");
         if (isTrue(!isEqual(feeCurrency, null)))
         {
@@ -5617,7 +5617,7 @@ public partial class mexc : Exchange
         //
         string? id = this.safeString2(transaction, "id", "tranId");
         string type = ((bool) isTrue((isEqual(id, null)))) ? "deposit" : "withdrawal";
-        object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
+        Int64? timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         Int64? updated = this.safeInteger(transaction, "updateTime");
         object currencyId = null;
         string? currencyWithNetwork = this.safeString(transaction, "coin");
@@ -5636,7 +5636,7 @@ public partial class mexc : Exchange
         string? amountString = this.safeString(transaction, "amount");
         string? address = this.safeString(transaction, "address");
         string? txid = this.safeString2(transaction, "transHash", "txId");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(transaction, "transactionFee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -6177,7 +6177,7 @@ public partial class mexc : Exchange
         //
         string? currencyId = this.safeString2(transfer, "currency", "asset");
         string? id = this.safeStringN(transfer, new List<object>() {"transact_id", "txid", "tranId"});
-        object timestamp = this.safeInteger2(transfer, "createTime", "timestamp");
+        Int64? timestamp = this.safeInteger2(transfer, "createTime", "timestamp");
         string? datetime = ((bool) isTrue((!isEqual(timestamp, null)))) ? this.iso8601(timestamp) : null;
         string? direction = this.safeString(transfer, "type");
         object accountFrom = null;

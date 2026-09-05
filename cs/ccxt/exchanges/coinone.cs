@@ -919,7 +919,7 @@ public partial class coinone : Exchange
         string? amountString = this.safeString(trade, "qty");
         string? orderId = this.safeString(trade, "orderId");
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             feeCostString = Precise.stringAbs(feeCostString);
@@ -1211,7 +1211,7 @@ public partial class coinone : Exchange
             }
         }
         status = this.parseOrderStatus(status);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {

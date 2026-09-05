@@ -806,8 +806,8 @@ public partial class btse : Exchange
         string? amountPrecision = this.safeString(market, "minSizeIncrement");
         object active = this.safeBool(market, "active");
         string type = "spot";
-        object expiry = null;
-        object contractSize = null;
+        Int64? expiry = null;
+        string? contractSize = null;
         if (!isTrue(isSpot))
         {
             symbol = add(symbol, add(":", quote));
@@ -2036,7 +2036,7 @@ public partial class btse : Exchange
         string? marketId = this.safeString2(trade, "positionId", "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(trade, "feeAmount");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -3353,7 +3353,7 @@ public partial class btse : Exchange
         //
         string? currencyId = this.safeString2(transaction, "currency", "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "timestamp", "transactionTime");
+        Int64? timestamp = this.safeInteger2(transaction, "timestamp", "transactionTime");
         string? networkId = this.safeString2(transaction, "currencyNetwork", "cryptoNetwork");
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -3482,7 +3482,7 @@ public partial class btse : Exchange
     {
         string? currencyId = this.safeString2(item, "currency", "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(item, "timestamp", "transactionTime");
+        Int64? timestamp = this.safeInteger2(item, "timestamp", "transactionTime");
         string? type = this.safeString(item, "type");
         return new Dictionary<string, object>() {
             { "info", item },
@@ -4038,7 +4038,7 @@ public partial class btse : Exchange
         };
         object longLeverage = null;
         object shortLeverage = null;
-        object marginMode = null;
+        string? marginMode = null;
         for (object i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
         {
             object entrty = getValue(safeResponse, i);

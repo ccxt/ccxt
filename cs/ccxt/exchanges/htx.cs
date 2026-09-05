@@ -2101,8 +2101,8 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object status = null;
-        object eta = null;
+        string? status = null;
+        Int64? eta = null;
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -2852,7 +2852,7 @@ public partial class htx : Exchange
         string? marketId = this.safeString2(ticker, "symbol", "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         symbol = this.tryGetSymbolFromFutureMarkets(symbol);
-        object timestamp = this.safeInteger2(ticker, "ts", "quoteTime");
+        Int64? timestamp = this.safeInteger2(ticker, "ts", "quoteTime");
         string? bid = null;
         string? bidVolume = null;
         string? ask = null;
@@ -3414,7 +3414,7 @@ public partial class htx : Exchange
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
         object type = this.safeString(trade, "type");
@@ -3429,7 +3429,7 @@ public partial class htx : Exchange
         string? amountString = this.safeString2(trade, "filled-amount", "amount");
         amountString = this.safeString(trade, "trade_volume", amountString);
         string? costString = this.safeString(trade, "trade_turnover");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeString(trade, "filled-fees");
         if (isTrue(isEqual(feeCost, null)))
         {
@@ -6034,7 +6034,7 @@ public partial class htx : Exchange
                 }
             }
         }
-        object timestamp = this.safeIntegerN(order, new List<object>() {"created_at", "created-at", "create_date", "created_time"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"created_at", "created-at", "create_date", "created_time"});
         string? clientOrderId = this.safeStringN(order, new List<object>() {"client_order_id", add("client-or", "der-id"), "algo_client_order_id"}); // transpiler regex trick for php issue
         string? cost = null;
         string? amount = null;
@@ -6050,7 +6050,7 @@ public partial class htx : Exchange
         string? price = this.safeString2(order, "price", "order_price");
         string? feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled feeSide
         feeCost = this.safeString(order, "fee", feeCost);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((!isEqual(feeCost, "0")))) && isTrue((!isEqual(feeCost, "0.0")))))
         {
             object feeCurrency = null;
@@ -6454,7 +6454,7 @@ public partial class htx : Exchange
         bool isTrigger = !isEqual(triggerPrice, null);
         bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
+        Int64? clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
         if (isTrue(isTrue(isLinear) && isTrue((isTrue(isTrue(isTrue(isTrailingPercentOrder) || isTrue(isTrigger)) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))))
         {
             if (isTrue(!isEqual(clientOrderId, null)))
@@ -9338,7 +9338,7 @@ public partial class htx : Exchange
         string? marketId = this.safeString(income, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         object amount = this.safeNumber(income, "amount");
-        object timestamp = this.safeInteger2(income, "ts", "created_time");
+        Int64? timestamp = this.safeInteger2(income, "ts", "created_time");
         string? id = this.safeString(income, "id");
         string? currencyId = this.safeStringN(income, new List<object>() {"symbol", "asset", "currency"});
         object code = this.safeCurrencyCode(currencyId);
@@ -9935,7 +9935,7 @@ public partial class htx : Exchange
             { "1d", "1day" },
         };
         object market = this.market(symbol);
-        object amountType = this.safeInteger2(parameters, "amount_type", "amountType", 2);
+        Int64? amountType = this.safeInteger2(parameters, "amount_type", "amountType", 2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", getValue(timeframes, timeframe) },
             { "amount_type", amountType },
@@ -10708,7 +10708,7 @@ public partial class htx : Exchange
             string? withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = null;
-            object withdrawResult = null;
+            Dictionary<string, object> withdrawResult = null;
             if (isTrue(isEqual(withdrawFeeType, "fixed")))
             {
                 withdrawFee = this.safeNumber(chainEntry, "transactFeeWithdraw");
@@ -10888,7 +10888,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
+        Int64? tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(getValue(market, "linear"), true)))
         {
@@ -10986,7 +10986,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString(liquidation, "contract_code");
-        object timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
+        Int64? timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },

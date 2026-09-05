@@ -1858,7 +1858,7 @@ public partial class coinex : Exchange
         string? marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(trade, "fee_ccy");
@@ -4343,7 +4343,7 @@ public partial class coinex : Exchange
         //     }
         //
         string? marketId = this.safeString(data, "market");
-        object timestamp = this.safeInteger2(data, "updated_at", "created_at");
+        Int64? timestamp = this.safeInteger2(data, "updated_at", "created_at");
         string? change = this.safeString(data, "margin_change");
         return new Dictionary<string, object>() {
             { "info", data },
@@ -6168,7 +6168,7 @@ public partial class coinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory() requires a symbol argument")) ;
         }
-        object positionId = this.safeInteger2(parameters, "positionId", "position_id");
+        Int64? positionId = this.safeInteger2(parameters, "positionId", "position_id");
         parameters = this.omit(parameters, "positionId");
         if (isTrue(isEqual(positionId, null)))
         {

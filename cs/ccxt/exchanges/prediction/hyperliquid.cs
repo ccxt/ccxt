@@ -2063,7 +2063,7 @@ public partial class hyperliquid : PredictionExchange
         object fee = this.safeNumber(trade, "fee");
         string? feeCurrency = this.safeString(trade, "feeToken", "USDC");
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome");
-        object feeObject = null;
+        Dictionary<string, object> feeObject = null;
         if (isTrue(!isEqual(fee, null)))
         {
             feeObject = new Dictionary<string, object>() {
@@ -2294,7 +2294,7 @@ public partial class hyperliquid : PredictionExchange
         object market = this.market(outcome);
         object prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
         // Convert precision to decimal places
-        object decimals = 4;
+        int decimals = 4;
         if (isTrue(isEqual(prec, null)))
         {
             throw new ExchangeError ((string)add(this.id, " amountToPrecision() missing prec")) ;
@@ -2310,7 +2310,7 @@ public partial class hyperliquid : PredictionExchange
     {
         object market = this.market(outcome);
         object prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
-        object decimals = 4;
+        int decimals = 4;
         if (isTrue(isEqual(prec, null)))
         {
             throw new ExchangeError ((string)add(this.id, " priceToPrecision() missing prec")) ;

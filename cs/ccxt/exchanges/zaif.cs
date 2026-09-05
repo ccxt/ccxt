@@ -886,7 +886,7 @@ public partial class zaif : Exchange
         //     }
         //
         currency = this.safeCurrency(null, currency);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeValue(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

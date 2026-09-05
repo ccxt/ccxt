@@ -1120,7 +1120,7 @@ public partial class bittrade : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeInteger2(trade, "ts", "created-at");
+        Int64? timestamp = this.safeInteger2(trade, "ts", "created-at");
         string? order = this.safeString(trade, "order-id");
         object side = this.safeString(trade, "direction");
         object type = this.safeString(trade, "type");
@@ -1134,7 +1134,7 @@ public partial class bittrade : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "filled-amount", "amount");
         string? cost = Precise.stringMul(price, amount);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeString(trade, "filled-fees");
         object feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
         string? filledPoints = this.safeString(trade, "filled-points");
@@ -1818,7 +1818,7 @@ public partial class bittrade : Exchange
         string? price = this.safeString(order, "price");
         string? cost = this.safeString2(order, "filled-cash-amount", "field-cash-amount"); // same typo
         string? feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled fees
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             object feeCurrency = ((bool) isTrue((isEqual(side, "sell")))) ? getValue(market, "quote") : getValue(market, "base");

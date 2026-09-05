@@ -1498,7 +1498,7 @@ public partial class nado : ccxt.nado
             takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";
         }
         object feeCost = this.parseX18(this.safeString(trade, "fee"));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

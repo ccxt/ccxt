@@ -852,7 +852,7 @@ public partial class bitflyer : Exchange
         string? side = this.safeStringLower(order, "side");
         string? marketId = this.safeString(order, "product_code");
         object symbol = this.safeSymbol(marketId, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(order, "total_commission");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1286,7 +1286,7 @@ public partial class bitflyer : Exchange
         string? rawStatus = this.safeString(transaction, "status");
         string? type = null;
         object status = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(transaction, "fee")))
         {
             type = "withdrawal";

@@ -921,7 +921,7 @@ public partial class blockchaincom : Exchange
         string? datetime = this.iso8601(timestamp);
         market = this.safeMarket(marketId, market, "-");
         object symbol = getValue(market, "symbol");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -1071,7 +1071,7 @@ public partial class blockchaincom : Exchange
             id = this.safeString(transaction, "withdrawalId");
         }
         object feeCost = ((bool) isTrue((isEqual(type, "withdrawal")))) ? this.safeNumber(transaction, "fee") : null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

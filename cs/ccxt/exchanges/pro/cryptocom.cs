@@ -319,7 +319,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         object orderbook = getValue(this.orderbooks, symbol);
         string? channel = this.safeString(message, "channel");
-        object nonce = this.safeInteger2(data, "u", "s");
+        Int64? nonce = this.safeInteger2(data, "u", "s");
         object books = data;
         if (isTrue(isEqual(channel, "book")))
         {

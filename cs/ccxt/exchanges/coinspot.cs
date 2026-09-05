@@ -938,7 +938,7 @@ public partial class coinspot : Exchange
         //     }
         object timestamp = null;
         string? priceString = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? audTotal = this.safeString(trade, "audtotal");
         string? costString = this.safeString(trade, "total", audTotal);
         string? side = this.safeString(trade, "side");

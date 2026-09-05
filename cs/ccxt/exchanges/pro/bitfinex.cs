@@ -587,7 +587,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
         object symbol = this.safeSymbol(marketId, market);
         string? feeValue = this.safeString(trade, 9);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeValue, null)))
         {
             string? currencyId = this.safeString(trade, 10);
@@ -1368,7 +1368,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? trimmedStatus = this.safeString(stateParts, 0);
         object status = this.parseWsOrderStatus(trimmedStatus);
         string? price = this.safeString(order, 16);
-        object timestamp = this.safeInteger2(order, 5, 4);
+        Int64? timestamp = this.safeInteger2(order, 5, 4);
         string? average = this.safeString(order, 17);
         object stopPrice = this.omitZero(this.safeString(order, 18));
         return this.safeOrder(new Dictionary<string, object>() {

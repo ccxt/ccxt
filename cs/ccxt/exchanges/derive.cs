@@ -1448,7 +1448,7 @@ public partial class derive : Exchange
 
     public virtual object hashMessage(object message)
     {
-        object binaryMessage = this.encode(message);
+        string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
@@ -2283,7 +2283,7 @@ public partial class derive : Exchange
         {
             order = rawOrder;
         }
-        object timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
+        Int64? timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
         string? orderId = this.safeString(order, "order_id");
         string? marketId = this.safeString(order, "instrument_name");
         if (isTrue(!isEqual(marketId, null)))

@@ -519,7 +519,7 @@ public partial class bitbank : Exchange
         string? amountString = this.safeString(trade, "amount");
         string? id = this.safeString2(trade, "transaction_id", "trade_id");
         string? takerOrMaker = this.safeString(trade, "maker_taker");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee_amount_quote");
         if (isTrue(!isEqual(feeCostString, null)))
         {

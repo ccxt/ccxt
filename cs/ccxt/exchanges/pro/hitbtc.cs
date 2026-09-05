@@ -1118,7 +1118,7 @@ public partial class hitbtc : ccxt.hitbtc
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         string? tradeId = this.safeString(order, "trade_id");
-        object trades = null;
+        List<object> trades = null;
         if (isTrue(!isEqual(tradeId, null)))
         {
             object trade = this.parseWsOrderTrade(order, market);

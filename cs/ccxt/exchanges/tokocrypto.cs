@@ -1025,7 +1025,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1692262634599
         //     }
         object data = this.safeValue(response, "data", response);
-        object timestamp = this.safeInteger2(response, "T", "timestamp");
+        Int64? timestamp = this.safeInteger2(response, "T", "timestamp");
         object orderbook = this.parseOrderBook(data, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
@@ -1126,7 +1126,7 @@ public partial class tokocrypto : Exchange
         //       "tradeId": "1234",
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "T", "time");
+        Int64? timestamp = this.safeInteger2(trade, "T", "time");
         string? price = this.safeString2(trade, "p", "price");
         string? amount = this.safeString2(trade, "q", "qty");
         string? cost = this.safeString2(trade, "quoteQty", "baseQty"); // inverse futures
@@ -1152,7 +1152,7 @@ public partial class tokocrypto : Exchange
                 side = ((bool) isTrue((isEqual(getValue(trade, "isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "commission")))
         {
             fee = new Dictionary<string, object>() {
@@ -2387,7 +2387,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object endTime = this.safeInteger2(parameters, "until", "endTime");
+        Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -2711,7 +2711,7 @@ public partial class tokocrypto : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         object timestamp = null;
         Int64? insertTime = this.safeInteger(transaction, "insertTime");
-        object createTime = this.safeInteger2(transaction, "createTime", "timestamp");
+        Int64? createTime = this.safeInteger2(transaction, "createTime", "timestamp");
         string? type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, null)))
         {

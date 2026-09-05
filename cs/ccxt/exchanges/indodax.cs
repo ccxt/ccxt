@@ -1480,7 +1480,7 @@ public partial class indodax : Exchange
         object timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
         string? depositId = this.safeString(transaction, "deposit_id");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

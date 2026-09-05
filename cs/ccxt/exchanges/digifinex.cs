@@ -1630,7 +1630,7 @@ public partial class digifinex : Exchange
             object isMaker = this.safeValue(trade, "is_maker");
             takerOrMaker = ((bool) isTrue((isEqual(isMaker, true)))) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -3469,7 +3469,7 @@ public partial class digifinex : Exchange
         object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         object amount = this.safeNumber(transaction, "amount");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

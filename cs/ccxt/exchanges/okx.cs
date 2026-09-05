@@ -3428,7 +3428,7 @@ public partial class okx : Exchange
         string? side = this.safeString(trade, "side");
         string? orderId = this.safeString(trade, "ordId");
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCostSigned = Precise.stringNeg(feeCostString);
@@ -5441,7 +5441,7 @@ public partial class okx : Exchange
             // "sz" refers to the trade currency amount
             amount = this.safeString(order, "sz");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCostSigned = Precise.stringNeg(feeCostString);
@@ -6518,7 +6518,7 @@ public partial class okx : Exchange
         currency = this.safeCurrency(currencyId, currency);
         Int64? timestamp = this.safeInteger(item, "ts");
         string? feeCostString = this.safeString(item, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -8555,7 +8555,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object lever = this.safeInteger2(parameters, "lever", "leverage");
+        Int64? lever = this.safeInteger2(parameters, "lever", "leverage");
         if (isTrue(isTrue(isTrue((isEqual(lever, null))) || isTrue((isLessThan(lever, 1)))) || isTrue((isGreaterThan(lever, 125)))))
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
@@ -10626,7 +10626,7 @@ public partial class okx : Exchange
         //         "ts": "1646188520000"
         //     }
         //
-        object timestamp = this.safeInteger2(conversion, "quoteTime", "ts");
+        Int64? timestamp = this.safeInteger2(conversion, "quoteTime", "ts");
         string? fromCoin = this.safeString(conversion, "baseCcy");
         object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         string? to = this.safeString(conversion, "quoteCcy");

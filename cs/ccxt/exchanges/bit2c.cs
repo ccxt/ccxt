@@ -1042,7 +1042,7 @@ public partial class bit2c : Exchange
         object price = null;
         string? amount = null;
         object orderId = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object side = null;
         string? makerOrTaker = null;
         string? reference = this.safeString(trade, "reference");

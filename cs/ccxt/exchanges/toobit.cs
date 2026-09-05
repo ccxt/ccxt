@@ -1340,7 +1340,7 @@ public partial class toobit : Exchange
         //            "realizedPnl": "0",                      // only in CONTRACT
         //        },
         //
-        object timestamp = this.safeInteger2(trade, "t", "time");
+        Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
         object isBuyer = this.safeBool(trade, "isBuyer");
@@ -1375,7 +1375,7 @@ public partial class toobit : Exchange
         }
         string? feeCurrencyId = this.safeString(trade, "feeCoinId");
         string? feeAmount = this.safeString(trade, "feeAmount");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeAmount, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2174,7 +2174,7 @@ public partial class toobit : Exchange
         //        "activeStatus": "0"                  // only in CONTRACT fetchClosedOrders
         //    }
         //
-        object timestamp = this.safeInteger2(order, "transactTime", "time");
+        Int64? timestamp = this.safeInteger2(order, "transactTime", "time");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         string? rawType = this.safeString(order, "type");
@@ -3033,7 +3033,7 @@ public partial class toobit : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         string? feeString = this.safeString(transaction, "fee");
         string? feeCoin = this.safeString(transaction, "feeCoinName");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeString, null)))
         {
             fee = new Dictionary<string, object>() {

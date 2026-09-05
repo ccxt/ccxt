@@ -1134,7 +1134,7 @@ public partial class hashkey : Exchange
         string? status = this.safeString(market, "status");
         bool active = isEqual(status, "TRADING");
         bool? isLinear = null;
-        object subType = null;
+        string? subType = null;
         object isInverse = this.safeBool(market, "inverse");
         if (isTrue(!isEqual(isInverse, null)))
         {
@@ -1579,7 +1579,7 @@ public partial class hashkey : Exchange
         //         "realizedPnl": "0",
         //         "isMarker": false
         //     }
-        object timestamp = this.safeInteger2(trade, "t", "time");
+        Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         string? side = this.safeStringLower(trade, "side"); // swap trades have side param
@@ -1608,7 +1608,7 @@ public partial class hashkey : Exchange
         string? feeCost = this.safeString(trade, "commission");
         string? feeCurrncyId = this.safeString(trade, "commissionAsset");
         object feeInfo = this.safeDict(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeInfo, null)))
         {
             feeCost = this.safeString(feeInfo, "fee");
@@ -2354,7 +2354,7 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(transaction, "time");
         object amount = this.safeNumber(transaction, "quantity");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -3753,7 +3753,7 @@ public partial class hashkey : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "transactTime", "time");
+        Int64? timestamp = this.safeInteger2(order, "transactTime", "time");
         string? status = this.safeString(order, "status");
         object type = this.safeString(order, "type");
         string? priceType = this.safeString(order, "priceType");

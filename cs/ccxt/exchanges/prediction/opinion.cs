@@ -308,8 +308,8 @@ public partial class opinion : PredictionExchange
             object label = getValue(outcomeLabels, i);
             object tokenId = getValue(outcomeTokenIds, i);
             object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
-            object winner = null;
-            object settleFraction = null;
+            bool? winner = null;
+            int? settleFraction = null;
             if (isTrue(hasResult))
             {
                 winner = (isEqual(tokenId, resultTokenId));

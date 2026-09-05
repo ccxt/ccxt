@@ -1538,7 +1538,7 @@ public partial class deribit : Exchange
         //         "ask_price": 0.021
         //     },
         //
-        object timestamp = this.safeInteger2(ticker, "timestamp", "creation_timestamp");
+        Int64? timestamp = this.safeInteger2(ticker, "timestamp", "creation_timestamp");
         string? marketId = this.safeString(ticker, "instrument_name");
         object symbol = this.safeSymbol(marketId, market);
         string? last = this.safeString2(ticker, "last_price", "last");
@@ -1888,7 +1888,7 @@ public partial class deribit : Exchange
             takerOrMaker = ((bool) isTrue((isEqual(liquidity, "M")))) ? "maker" : "taker";
         }
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(trade, "fee_currency");
@@ -1948,7 +1948,7 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // default 10
         }
-        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -2294,7 +2294,7 @@ public partial class deribit : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "order_state"));
         string? side = this.safeStringLower(order, "direction");
         string? feeCostString = this.safeString(order, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             feeCostString = Precise.stringAbs(feeCostString);
@@ -3089,13 +3089,13 @@ public partial class deribit : Exchange
         //
         string? currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "created_timestamp", "received_timestamp");
+        Int64? timestamp = this.safeInteger2(transaction, "created_timestamp", "received_timestamp");
         Int64? updated = this.safeInteger(transaction, "updated_timestamp");
         object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         string? address = this.safeString(transaction, "address");
         object feeCost = this.safeNumber(transaction, "fee");
         string type = "deposit";
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             type = "withdrawal";
@@ -3752,7 +3752,7 @@ public partial class deribit : Exchange
             { "instrument_name", getValue(market, "id") },
             { "start_timestamp", subtract(sinceVar, 1) },
         };
-        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});

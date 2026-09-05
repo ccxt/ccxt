@@ -885,7 +885,7 @@ public partial class bydfi : Exchange
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "time");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? rawType = this.safeString(trade, "type");
         string? feeCost = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCost, null)))
@@ -1121,7 +1121,7 @@ public partial class bydfi : Exchange
         //
         string? marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(ticker, "time", "E");
+        Int64? timestamp = this.safeInteger2(ticker, "time", "E");
         string? last = this.safeString2(ticker, "last", "c");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
@@ -2101,7 +2101,7 @@ public partial class bydfi : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "createTime", "ctime");
+        Int64? timestamp = this.safeInteger2(order, "createTime", "ctime");
         string? rawType = this.safeString(order, "orderType");
         string? stopPrice = this.safeStringN(order, new List<object>() {"stopPrice", "activatePrice", "triggerPrice"});
         bool isStopLossOrder = isTrue(isTrue((isEqual(rawType, "STOP"))) || isTrue((isEqual(rawType, "STOP_MARKET")))) || isTrue((isEqual(rawType, "TRAILING_STOP_MARKET")));
@@ -3296,7 +3296,7 @@ public partial class bydfi : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         string? rawStatus = this.safeStringLower(transaction, "status");
         Int64? timestamp = this.safeInteger(transaction, "createTime");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

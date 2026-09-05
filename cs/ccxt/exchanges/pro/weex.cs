@@ -1381,7 +1381,7 @@ public partial class weex : ccxt.weex
         object marketResolved = this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
         string? side = this.safeStringLower(trade, "orderSide");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "fillFee");
         if (isTrue(!isEqual(commission, null)))
         {
@@ -1684,7 +1684,7 @@ public partial class weex : ccxt.weex
         object marketResolved = this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
         string? side = this.safeStringLower(order, "orderSide");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? commission = this.safeString(order, "cumFillFee");
         if (isTrue(!isEqual(commission, null)))
         {

@@ -1263,7 +1263,7 @@ public partial class backpack : ccxt.backpack
         string? amount = this.safeString(order, "q");
         string? cost = this.safeString(order, "Z");
         string? filled = this.safeString(order, "l");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString(order, "N");
         if (isTrue(!isEqual(feeCurrency, null)))
         {

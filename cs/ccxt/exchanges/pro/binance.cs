@@ -1769,7 +1769,7 @@ public partial class binance : ccxt.binance
             }
             takerOrMaker = ((bool) isTrue((isEqual(getValue(trade, "m"), true)))) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2944,7 +2944,7 @@ public partial class binance : ccxt.binance
                 { "indexPrice", this.safeString(message, "i") },
             });
         }
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(isEqual(eventVar, "bookTicker")))
         {
             // take the event timestamp, if available, for spot tickers it is not
@@ -5258,7 +5258,7 @@ public partial class binance : ccxt.binance
             lastTradeTimestamp = T;
         }
         object lastUpdateTimestamp = T;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "n");
         if (isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((Precise.stringGt(feeCost, "0")))))
         {
@@ -5504,7 +5504,7 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        object timestamp = this.safeInteger2(message, "E", "T");
+        Int64? timestamp = this.safeInteger2(message, "E", "T");
         object parsed = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },

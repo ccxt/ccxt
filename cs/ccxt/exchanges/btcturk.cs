@@ -630,7 +630,7 @@ public partial class btcturk : Exchange
         //       "tax": "0"
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "date", "timestamp");
+        Int64? timestamp = this.safeInteger2(trade, "date", "timestamp");
         string? id = this.safeString2(trade, "tid", "id");
         string? order = this.safeString(trade, "orderId");
         string? priceString = this.safeString(trade, "price");
@@ -638,7 +638,7 @@ public partial class btcturk : Exchange
         string? marketId = this.safeString(trade, "pair");
         object symbol = this.safeSymbol(marketId, market);
         string? side = this.safeString2(trade, "side", "orderType");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmountString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeAmountString, null)))
         {
@@ -1069,7 +1069,7 @@ public partial class btcturk : Exchange
         string? side = this.safeString(order, "type");
         string? type = this.safeString(order, "method");
         string? clientOrderId = this.safeString(order, "orderClientId");
-        object timestamp = this.safeInteger2(order, "updateTime", "datetime");
+        Int64? timestamp = this.safeInteger2(order, "updateTime", "datetime");
         string? rawStatus = this.safeString(order, "status");
         object status = this.parseOrderStatus(rawStatus);
         return this.safeOrder(new Dictionary<string, object>() {

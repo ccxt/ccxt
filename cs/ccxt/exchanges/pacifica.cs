@@ -2961,7 +2961,7 @@ public partial class pacifica : Exchange
         string? marketId = this.safeString2(order, "symbol", "s");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(order, "created_at", "ct");
+        Int64? timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         string? side = this.safeString(order, "side", "d");
         if (isTrue(!isEqual(side, null)))
@@ -3988,7 +3988,7 @@ public partial class pacifica : Exchange
     public virtual object signMessage(object header, object payload, object privateKey)
     {
         object message = this.prepareMessage(header, payload);
-        object messageBytes = this.encode(message);
+        string? messageBytes = this.encode(message);
         object secretBytes = this.base58ToBinary(privateKey);
         object seed = this.arraySlice(secretBytes, 0, 32);
         object signatureBase64 = eddsa(messageBytes, seed, ed25519);

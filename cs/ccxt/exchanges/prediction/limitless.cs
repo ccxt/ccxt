@@ -2139,7 +2139,7 @@ public partial class limitless : PredictionExchange
         }
         string? rawStatus = this.safeString(rawOrder, "status");
         object execution = this.safeDict(data, "execution");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? filled = null;
         string? cost = null;
         if (isTrue(!isEqual(execution, null)))
