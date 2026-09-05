@@ -22,6 +22,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -32,6 +33,7 @@ namespace statictests {
 struct Report {
     int passed = 0;
     int failed = 0;
+    int skipped = 0;   // fixture entries marked `disabled`
 };
 
 inline std::string readFile (const std::string& path) {
@@ -70,57 +72,98 @@ inline std::string describeEntry (Exchange& exchange, const std::any& entry) {
     return description.has_value () ? str (description) : std::string ("<no description>");
 }
 
-// Query strings are compared as sets of key=value pairs: the fixture was captured from
-// another language whose dict ordering may differ, and ccxt only guarantees the order
-// within a single implementation. The path before '?' is compared literally.
-inline bool sameUrl (const std::string& expected, const std::string& actual,
-                     const std::vector<std::string>& skipKeys) {
-    const auto split = [] (const std::string& url, std::string& path,
-                           std::vector<std::string>& params) {
-        const std::size_t at = url.find ('?');
-        path = (at == std::string::npos) ? url : url.substr (0, at);
-        if (at == std::string::npos) {
-            return;
-        }
-        std::string rest = url.substr (at + 1);
-        std::size_t start = 0;
-        while (start <= rest.size ()) {
-            const std::size_t amp = rest.find ('&', start);
-            const std::string pair = rest.substr (start, (amp == std::string::npos)
-                                                         ? std::string::npos : amp - start);
-            if (!pair.empty ()) {
-                params.push_back (pair);
+// The reference harness (assertStaticRequestOutput in ts/src/test/tests.ts) strips the
+// hostname before comparing and asserts only on path + query. That is deliberate: many
+// fixtures were captured against testnet or demo hosts (testnet.binance.vision,
+// demo-fapi.binance.com), and the host is not what the request builder is being tested
+// on. Comparing full urls made 108 perfectly correct requests look wrong.
+inline std::string stripHost (const std::string& url) {
+    const std::size_t scheme = url.find ("://");
+    if (scheme == std::string::npos) {
+        return url;
+    }
+    const std::size_t slash = url.find ('/', scheme + 3);
+    return (slash == std::string::npos) ? std::string ("/") : url.substr (slash);
+}
+
+inline std::string pathOf (const std::string& url) {
+    const std::size_t at = url.find ('?');
+    return (at == std::string::npos) ? url : url.substr (0, at);
+}
+
+// key=value pairs of a query string or an urlencoded body, minus the keys the fixture
+// says are not reproducible (signature, timestamp, ...)
+inline std::vector<std::string> paramPairs (const std::string& text,
+                                            const std::vector<std::string>& skipKeys) {
+    std::vector<std::string> out;
+    std::size_t start = 0;
+    while (start <= text.size ()) {
+        const std::size_t amp = text.find ('&', start);
+        const std::string pair = text.substr (start, (amp == std::string::npos)
+                                                     ? std::string::npos : amp - start);
+        if (!pair.empty ()) {
+            const std::size_t eq = pair.find ('=');
+            const std::string key = (eq == std::string::npos) ? pair : pair.substr (0, eq);
+            bool skip = false;
+            for (const auto& s : skipKeys) {
+                if (key == s) { skip = true; break; }
             }
-            if (amp == std::string::npos) {
-                break;
+            if (!skip) {
+                out.push_back (pair);
             }
-            start = amp + 1;
         }
-    };
-    std::string expectedPath, actualPath;
-    std::vector<std::string> expectedParams, actualParams;
-    split (expected, expectedPath, expectedParams);
-    split (actual, actualPath, actualParams);
+        if (amp == std::string::npos) {
+            break;
+        }
+        start = amp + 1;
+    }
+    std::sort (out.begin (), out.end ());
+    return out;
+}
+
+inline std::string queryOf (const std::string& url) {
+    const std::size_t at = url.find ('?');
+    return (at == std::string::npos) ? std::string () : url.substr (at + 1);
+}
+
+// Mirrors assertStaticRequestOutput: compare the host-stripped path, then either the
+// query (when the fixture records no body) or the urlencoded body.
+inline bool sameRequest (const std::string& expectedUrl, const std::string& actualUrl,
+                         const std::any& expectedBody, const std::any& actualBody,
+                         const std::vector<std::string>& skipKeys, std::string& why) {
+    const std::string expectedPath = pathOf (stripHost (expectedUrl));
+    const std::string actualPath = pathOf (stripHost (actualUrl));
     if (expectedPath != actualPath) {
+        why = "path: " + expectedPath + " != " + actualPath;
         return false;
     }
-    // signature/timestamp style keys are not reproducible, so the fixture lists them
-    const auto skipped = [&skipKeys] (const std::string& pair) {
-        const std::size_t eq = pair.find ('=');
-        const std::string key = (eq == std::string::npos) ? pair : pair.substr (0, eq);
-        for (const auto& skip : skipKeys) {
-            if (key == skip) {
-                return true;
-            }
+    const bool haveBody = expectedBody.has_value () || actualBody.has_value ();
+    if (!haveBody) {
+        const auto expectedParams = paramPairs (queryOf (expectedUrl), skipKeys);
+        const auto actualParams = paramPairs (queryOf (actualUrl), skipKeys);
+        if (expectedParams != actualParams) {
+            why = "query";
+            return false;
         }
-        return (key == "signature") || (key == "timestamp") || (key == "recvWindow");
-    };
-    std::vector<std::string> left, right;
-    for (const auto& pair : expectedParams) if (!skipped (pair)) left.push_back (pair);
-    for (const auto& pair : actualParams)   if (!skipped (pair)) right.push_back (pair);
-    std::sort (left.begin (), left.end ());
-    std::sort (right.begin (), right.end ());
-    return left == right;
+        return true;
+    }
+    // outputType for binance is "urlencoded"; a json body is compared as text
+    const std::string expectedText = expectedBody.has_value () ? str (expectedBody) : std::string ();
+    const std::string actualText = actualBody.has_value () ? str (actualBody) : std::string ();
+    if (!expectedText.empty () && (expectedText[0] == '{' || expectedText[0] == '[')) {
+        if (expectedText != actualText) {
+            why = "json body";
+            return false;
+        }
+        return true;
+    }
+    const auto expectedParams = paramPairs (expectedText, skipKeys);
+    const auto actualParams = paramPairs (actualText, skipKeys);
+    if (expectedParams != actualParams) {
+        why = "body";
+        return false;
+    }
+    return true;
 }
 
 } // namespace statictests

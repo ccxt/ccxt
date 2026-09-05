@@ -107,3 +107,4 @@ rust/BUILD_OPTIMIZATION.md
 PR_RESPONSE.md
 
 cpp/build/
+cpp/build-asan/

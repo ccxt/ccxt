@@ -543,10 +543,40 @@ class CppTranspilerDriver {
         return this.buildDispatchTable (id, scanned);
     }
 
+    // Counts top-level commas in the parameter list that starts just after `openAt`
+    // (i.e. immediately following the '('), ignoring anything nested in parentheses,
+    // braces, angle brackets or string literals.
+    countParameters (content: string, openAt: number): number {
+        let depth = 0;
+        let parameters = 1;
+        let inString = false;
+        for (let i = openAt; i < content.length; i++) {
+            const c = content[i];
+            if (inString) {
+                if (c === '\\') { i++; } else if (c === '"') { inString = false; }
+                continue;
+            }
+            if (c === '"') { inString = true; continue; }
+            if (c === '(' || c === '{' || c === '<') { depth++; continue; }
+            if (c === ')' && depth === 0) {
+                // empty parameter list
+                return (content.slice (openAt, i).trim ().length === 0) ? 0 : parameters;
+            }
+            if (c === ')' || c === '}' || c === '>') { depth--; continue; }
+            if (c === ',' && depth === 0) { parameters++; }
+        }
+        return parameters;
+    }
+
     buildDispatchTable (id: string, content: string): string {
         // `virtual` is optional: the backend emits it on some methods and only
-        // `override` on others
-        const signature = /^\s*(?:virtual )?std::shared_future<std::any> (\w+)\(([^)]*)\)/gm;
+        // `override` on others. Only the NAME is matched here -- the parameter list is
+        // scanned by hand below, because a default value can itself contain parentheses
+        // and commas (`std::any timeframe = std::string("1m")`), and a `[^)]*` capture
+        // truncates there. That silently gave fetchOHLCV an arity of 2 instead of 5, so
+        // the dispatcher dropped timeframe/since/limit and every OHLCV fixture built a
+        // request with default values.
+        const signature = /^[ \t]*(?:virtual )?std::shared_future<std::any> (\w+)\(/gm;
         const seen = new Set<string> ();
         const branches: string[] = [];
         let match: RegExpExecArray | null;
@@ -556,8 +586,7 @@ class CppTranspilerDriver {
                 continue;
             }
             seen.add (name);
-            const args = match[2].trim ();
-            const arity = args.length ? args.split (',').length : 0;
+            const arity = this.countParameters (content, signature.lastIndex);
             const passed: string[] = [];
             for (let i = 0; i < arity; i++) {
                 passed.push (`::getValue(args, ${i})`);
