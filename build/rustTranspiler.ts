@@ -3747,6 +3747,166 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Narrow `let mut X: Value = Value::Bool(<expr>);` locals to a native
+     * `let mut X: bool = <expr>;` when every use of `X` in the enclosing
+     * `fn` body accepts a `bool`.
+     *
+     * The ast-transpiler prints every local as `Value` (see
+     * `printVariableDeclarationList` in its rustTranspiler.ts — there is
+     * no INFER_VAR_TYPE hook for Rust), and `getRustRegexes` then boxes
+     * boolean initializers in `Value::Bool(...)`. That box is pure
+     * overhead for the common `const isSpot = market['spot']; if (isSpot)`
+     * shape: `is_true(&x)` is generic over `IsTruthy`, which `bool`
+     * implements, so the reader side needs no change.
+     *
+     * Runs as the LAST pass over a file so the scan sees the final shape
+     * of every sink. Conservative allow-list, matching the Go printer
+     * change in ast-transpiler#68 — anything not on the list keeps `Value`:
+     *
+     *   allowed sink       reason
+     *   ------------------ ----------------------------------------------
+     *   `is_true(&x)`      generic `IsTruthy`, `bool` impl exists
+     *   `x = Value::Bool(e)` re-assignment of the same concrete type;
+     *                      rewritten to `x = e`
+     *
+     * Rejected (kept as `Value`):
+     *   - any other use — `x.clone()` into a `Value` slot (`m.insert`,
+     *     `self.<method>(x.clone())`), `is_equal(&x, …)` (takes `&Value`),
+     *     `&x`, `return x`, `x = Value::Null` / any non-bool RHS.
+     *   - a use whose surrounding text we cannot classify.
+     *
+     * The scan is scoped to the enclosing `fn` by brace depth and skips
+     * string literals and line comments, so `"swap"` map keys never count
+     * as uses of a local named `swap`. The `x = Value::Bool(e)` rewrite
+     * only fires for locals that were narrowed, and only inside that
+     * same scope — a sibling `let mut swap: Value` in another fn is
+     * untouched (each declaration is classified on its own).
+     *
+     * `Value::Bool(<expr>)` in the declaration must span the whole RHS
+     * (bracket-balanced): `Value::Bool(a) || b` is not a narrowable
+     * initializer even though it starts with the marker.
+     */
+    narrowBoolLocals(content: string): string {
+        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Bool\(/gm;
+        // Returns the index just past the `)` that closes the paren at `open`,
+        // or -1 if unbalanced. String-literal aware.
+        const closeOf = (src: string, open: number): number => {
+            let depth = 0; let inStr = false; let esc = false;
+            for (let k = open; k < src.length; k++) {
+                const c = src[k];
+                if (inStr) {
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; continue; }
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+                else if (c === '\n') return -1;
+            }
+            return -1;
+        };
+        // End of the enclosing fn body: from `from`, walk braces until the
+        // depth goes below zero (the fn's closing `}`).
+        const scopeEnd = (src: string, from: number): number => {
+            let depth = 0; let inStr = false; let esc = false; let inLineComment = false;
+            for (let k = from; k < src.length; k++) {
+                const c = src[k];
+                if (inLineComment) { if (c === '\n') inLineComment = false; continue; }
+                if (inStr) {
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; continue; }
+                if (c === '/' && src[k + 1] === '/') { inLineComment = true; continue; }
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth < 0) return k; }
+            }
+            return src.length;
+        };
+
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(content)) !== null) {
+            const declStart = m.index;
+            const name = m[2];
+            const boolOpen = declStart + m[0].length - 1;       // index of `(` after Value::Bool
+            const boolClose = closeOf(content, boolOpen);        // index just past matching `)`
+            if (boolClose < 0) continue;
+            // Whole-RHS check: `Value::Bool(<expr>);` must end the statement.
+            if (content.slice(boolClose, boolClose + 1) !== ';') continue;
+            const inner = content.slice(boolOpen + 1, boolClose - 1);
+            const stmtEnd = boolClose + 1;
+            const end = scopeEnd(content, stmtEnd);
+            const body = content.slice(stmtEnd, end);
+
+            // Scan uses of `name` in the scope; classify each one.
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            let ok = true;
+            const assigns: Array<{ start: number, end: number, expr: string }> = [];
+            let inStr = false; let esc = false; let inLineComment = false;
+            // Mask strings + line comments so the identifier scan cannot see
+            // them (map keys like `"swap"`, `// swap` doc lines).
+            let masked = '';
+            for (let k = 0; k < body.length; k++) {
+                const c = body[k];
+                if (inLineComment) { masked += c === '\n' ? '\n' : ' '; if (c === '\n') inLineComment = false; continue; }
+                if (inStr) {
+                    masked += ' ';
+                    if (esc) esc = false;
+                    else if (c === '\\') esc = true;
+                    else if (c === '"') inStr = false;
+                    continue;
+                }
+                if (c === '"') { inStr = true; masked += ' '; continue; }
+                if (c === '/' && body[k + 1] === '/') { inLineComment = true; masked += ' '; continue; }
+                masked += c;
+            }
+            let u: RegExpExecArray | null;
+            while ((u = useRe.exec(masked)) !== null) {
+                const s = u.index; const e = s + name.length;
+                const before = masked.slice(Math.max(0, s - 9), s);
+                const after = masked.slice(e);
+                if (before.endsWith('is_true(&')) continue;
+                // `x = Value::Bool(<expr>);` — same-type reassignment.
+                const asg = /^\s*=\s*Value::Bool\(/.exec(after);
+                if (asg) {
+                    const open = e + asg[0].length - 1;
+                    const close = closeOf(masked, open);
+                    if (close > 0 && masked[close] === ';') {
+                        assigns.push({
+                            start: stmtEnd + e,
+                            end: stmtEnd + close,
+                            expr: body.slice(open + 1, close - 1),
+                        });
+                        continue;
+                    }
+                }
+                ok = false;
+                break;
+            }
+            if (!ok) continue;
+            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let mut ${name}: bool = ${inner};` });
+            for (const a of assigns) {
+                rewrites.push({ start: a.start, end: a.end, text: ` = ${a.expr}` });
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue; // overlapping — should not happen; keep the first
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
+    /**
      * Rewrites every `<name>(args)` call by parsing args and calling
      * `transform(args)` to get a new arg list. Paren-balanced and
      * string-aware. The `name` is matched as a word boundary so e.g.
@@ -6449,6 +6609,9 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
                 rustContent = this.rewriteJavaReqAliases(rustContent);
+                // Last: narrow `Value::Bool` locals whose every sink takes
+                // a `bool`. Must see the final shape of the file.
+                rustContent = this.narrowBoolLocals(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -7134,6 +7297,7 @@ impl std::ops::DerefMut for ${coreName} {
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.rewriteJavaReqAliases(finalFile);
+        finalFile = this.narrowBoolLocals(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
