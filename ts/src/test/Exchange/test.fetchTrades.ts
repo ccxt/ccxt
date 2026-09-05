@@ -8,13 +8,17 @@ import Precise from '../../base/Precise.js';
 async function testFetchTrades (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchTrades';
     const trades = await exchange.fetchTrades (symbol, undefined, 12000); // lets test with unrealistically high amount
-    await testFetchTradesResponseHelper (exchange, skippedProperties, symbol, method, trades);
+    return await testFetchTradesResponseHelper (exchange, skippedProperties, symbol, method, trades);
 }
 
 async function testFetchTradesResponseHelper (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, trades);
     await testFetchTradesStructureHelper (exchange, skippedProperties, symbol, method, trades);
-    if (!('requireBothSides' in skippedProperties) && trades.length > 50) {
+    // a market that legitimately traded only one side within the fetched window is common in
+    // thin markets, so this needs a sample large enough that a real "only one side" bug (rather
+    // than a quiet market) is the more likely explanation
+    const minTradesForBothSidesCheck = 300;
+    if (!('requireBothSides' in skippedProperties) && trades.length > minTradesForBothSidesCheck) {
         await testFetchTradesSidesHelper (exchange, skippedProperties, symbol, method, trades);
     }
     if (!('timestampSort' in skippedProperties)) {
@@ -23,6 +27,7 @@ async function testFetchTradesResponseHelper (exchange: Exchange, skippedPropert
     if (!('sideSequence' in skippedProperties)) {
         await testFetchTradesSideSequenceHelper (exchange, skippedProperties, symbol, method, trades);
     }
+    return true;
 }
 
 async function testFetchTradesStructureHelper (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
@@ -35,7 +40,8 @@ async function testFetchTradesStructureHelper (exchange: Exchange, skippedProper
 
 async function testFetchTradesSidesHelper (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     //
-    //    Check whether both "buy" and "sell" are returned from trades, when there are more than 50 trades
+    //    Check whether both "buy" and "sell" are returned from trades, when there are enough trades
+    //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
     //
     const grouped = exchange.groupBy (trades, 'side');
     const msg = 'Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue' + testSharedMethods.logTemplate (exchange, method, trades);
@@ -60,11 +66,16 @@ async function testFetchTradesSideSequenceHelper (exchange: Exchange, skippedPro
     //   otherwie (if such rare event happens ever, the test can be restarted and
     //   the new run would not meet such exceptional case)
     //
+    //     the heuristic only holds for ascending-by-timestamp input, which is not guaranteed by
+    //   every exchange (see the `timestampSort` skip), so scan a locally-sorted copy instead of
+    //   relying on the order `trades` was actually returned in
+    //
+    const sortedTrades = exchange.sortBy (trades.slice (), 'timestamp');
     let lastTs = undefined;
     let lastPrice = undefined;
     let lastSide = undefined;
-    for (let i = 0; i < trades.length; i++) {
-        const trade = trades[i];
+    for (let i = 0; i < sortedTrades.length; i++) {
+        const trade = sortedTrades[i];
         const ts = trade['timestamp'];
         const price = exchange.safeString (trade, 'price');
         const side = trade['side'];

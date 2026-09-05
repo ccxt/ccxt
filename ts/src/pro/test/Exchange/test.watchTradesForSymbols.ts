@@ -8,10 +8,13 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    // hard ceiling on top of `ends`, so waiting for full symbol coverage cannot spin indefinitely
+    // when one symbol streams briskly while another stays quiet without ever tripping `idle`
+    const hardEnds = ends + 15000;
     const maxIdleTime = 5000;
     let idle = false;
     const returnedSymbols: string[] = [];
-    while ((now < ends || returnedSymbols.length < symbols.length) && !idle) {
+    while (((now < ends) || (returnedSymbols.length < symbols.length && now < hardEnds)) && !idle) {
         let response: Trade[] | undefined = undefined;
         let success = true;
         const startTime = exchange.milliseconds ();
@@ -28,7 +31,8 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
             assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
-                const symbol: string = trade['symbol'] as string;
+                const symbol = trade['symbol'];
+                assert (symbol !== undefined, exchange.id + ' ' + method + ' returned a trade without a symbol ' + exchange.json (trade));
                 testTrade (exchange, skippedProperties, method, trade, symbol, now, true);
                 testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
                 if (!exchange.inArray (symbol, returnedSymbols)) {
