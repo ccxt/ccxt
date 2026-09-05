@@ -1008,7 +1008,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def fetch_inverse_swap_markets(self, params: object):
+    def fetch_inverse_swap_markets(self, params: object) -> list[Market]:
         response = self.cswapV1PublicGetMarketContracts(params)
         #
         #     {

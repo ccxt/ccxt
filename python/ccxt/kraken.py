@@ -1335,7 +1335,7 @@ class kraken(Exchange, ImplicitAPI):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params={}):
+    def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params={}) -> list[LedgerEntry]:
         # https://www.kraken.com/features/api#query-ledgers
         if self.markets is None:
             self.load_markets()

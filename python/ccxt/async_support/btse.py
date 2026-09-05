@@ -2216,7 +2216,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(priceTypes, priceType, priceType)
 
-    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an open order made by the user
 

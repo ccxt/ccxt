@@ -854,7 +854,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch sells
@@ -876,7 +876,7 @@ class coinbase(Exchange, ImplicitAPI):
         sellsData = self.safe_list(sells, 'data', [])
         return self.parse_trades(sellsData, None, since, limit)
 
-    async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch buys
@@ -898,7 +898,7 @@ class coinbase(Exchange, ImplicitAPI):
         buysData = self.safe_list(buys, 'data', [])
         return self.parse_trades(buysData, None, since, limit)
 
-    async def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         request = None
         request, params = await self.prepare_account_request_with_currency_code(code, limit, params)
         if self.markets is None:
@@ -4224,7 +4224,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tag': self.safe_string(addressInfo, 'destination_tag'),
         }
 
-    async def deposit(self, code: str, amount: float, id: str, params={}):
+    async def deposit(self, code: str, amount: float, id: str, params={}) -> Transaction:
         """
         make a deposit
 
@@ -4295,7 +4295,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
 
@@ -4396,7 +4396,7 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'payment_methods', [])
         return self.parse_deposit_method_ids(result)
 
-    async def fetch_deposit_method_id(self, id: str, params={}):
+    async def fetch_deposit_method_id(self, id: str, params={}) -> dict:
         """
         fetch the deposit id for a fiat currency associated with self account
 

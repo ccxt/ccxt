@@ -2613,7 +2613,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}):
+    def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None

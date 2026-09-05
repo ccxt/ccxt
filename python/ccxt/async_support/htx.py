@@ -1545,7 +1545,7 @@ class htx(Exchange, ImplicitAPI):
             allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
-    async def fetch_markets_by_type_and_sub_type(self, type: Str, subType: Str, params={}):
+    async def fetch_markets_by_type_and_sub_type(self, type: Str, subType: Str, params={}) -> list[Market]:
         """
  @ignore
         retrieves data on all markets of a certain type and/or subtype
@@ -2549,7 +2549,7 @@ class htx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrderTrades() is only supported for spot markets')
         return await self.fetch_spot_order_trades(id, symbol, since, limit, params)
 
-    async def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch all the trades made from a single order
@@ -3687,7 +3687,7 @@ class htx(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    async def fetch_spot_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_orders_by_states(self, states: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
@@ -3761,7 +3761,7 @@ class htx(Exchange, ImplicitAPI):
     async def fetch_closed_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         return await self.fetch_spot_orders_by_states('filled', symbol, since, limit, params)
 
-    async def fetch_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchContractOrders() requires a symbol argument')
         if self.markets is None:
@@ -6019,7 +6019,7 @@ class htx(Exchange, ImplicitAPI):
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
         return self.safe_value(indexedAddresses, selectedNetworkCode)
 
-    async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params={}):
+    async def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params={}) -> list[DepositAddress]:
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
