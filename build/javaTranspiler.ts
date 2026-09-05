@@ -268,6 +268,9 @@ const DIRECT_ACCESSORS: { [name: string]: string } = {
 // `BaseExchange.parseNumber` is HAND-WRITTEN `static Double` on every return path
 // (`(Double) defaultValue` either is a Double or throws), so the value is
 // Double-or-null whatever the default is: `defaultIndex: -1` = no default check.
+const MAP_TYPE = 'java.util.Map<String, Object>';
+const LIST_TYPE = 'java.util.List<Object>';
+
 const CAST_ACCESSORS: { [name: string]: { type: string, defaultIndex: number } } = {
     'safeStringUpper': { type: 'String', defaultIndex: 2 }, 'safeStringLower': { type: 'String', defaultIndex: 2 },
     'safeStringUpper2': { type: 'String', defaultIndex: 3 }, 'safeStringLower2': { type: 'String', defaultIndex: 3 },
@@ -283,7 +286,26 @@ const CAST_ACCESSORS: { [name: string]: { type: string, defaultIndex: number } }
     'safeNumber': { type: 'Double', defaultIndex: -1 },
     'safeNumber2': { type: 'Double', defaultIndex: -1 },
     'safeNumberN': { type: 'Double', defaultIndex: -1 },
+    // safeDict*: TRANSPILED — `this.isDictionary(value) ? value : defaultValue`
+    // where isDictionary is `value instanceof java.util.Map && !isArray(value)`.
+    // The `(java.util.Map<String, Object>)` cast erases to a checkcast against
+    // java.util.Map — exactly the guard — so it can never throw; the default must
+    // be `{}` (prints a HashMap), null/undefined or a same-family local.
+    'safeDict': { type: MAP_TYPE, defaultIndex: 2 },
+    'safeDict2': { type: MAP_TYPE, defaultIndex: 3 },
+    'safeDictN': { type: MAP_TYPE, defaultIndex: 2 },
+    // safeList* is deliberately NOT mapped: its guard is `Helpers.isArray(value)`,
+    // which also admits a raw Java array (`value.getClass().isArray()`) that today
+    // flows through Helpers.getArrayLength / GetValue untouched — a `(List<Object>)`
+    // checkcast at the declaration would turn that into a ClassCastException.
+    // Reachable through a user-supplied array inside params/options, so not
+    // provably safe. (LIST_TYPE and the `.join` / `as string[]` rejects below
+    // are kept for when the guard is tightened.)
 };
+
+// the box types: a ternary arm or a `delete obj[x]` key of one of these can
+// unbox / miscast (see isSafeToNarrow); a Map/List local is a plain reference
+const BOX_TYPES = new Set([ 'Long', 'Double', 'Boolean' ]);
 
 // hand-written base methods declared with a String return in Java
 // (BaseExchange.iso8601 / numberToString) — used only to prove a later
@@ -302,6 +324,16 @@ const LONG_RETURNING_BASE_METHODS = new Set([
 // hand-written base methods declared `Double` in Java (BaseExchange.parseNumber)
 const DOUBLE_RETURNING_BASE_METHODS = new Set([
     'parseNumber',
+]);
+
+// hand-written base methods declared `java.util.Map<String, Object>` in Java
+const MAP_RETURNING_BASE_METHODS = new Set([
+    'extend', 'deepExtend', 'keysort', 'indexBy', 'indexBySafe', 'groupBy',
+]);
+
+// hand-written base methods declared `java.util.List<Object>` in Java
+const LIST_RETURNING_BASE_METHODS = new Set([
+    'sortBy', 'sortBy2', 'filterBy', 'toArray', 'aggregate', 'extractParams',
 ]);
 
 // Precise.string* statics are declared `public static String` in Precise.java
@@ -384,6 +416,10 @@ function isProvablyOfType (printer: any, node: any, selfName: string | undefined
         case ts.SyntaxKind.TrueKeyword:
         case ts.SyntaxKind.FalseKeyword:
             return javaType === 'Boolean'; // `Boolean x = true` boxes in an assignment context
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return javaType === MAP_TYPE; // prints `new java.util.HashMap<String, Object>() {{ ... }}`
+        case ts.SyntaxKind.ArrayLiteralExpression:
+            return javaType === LIST_TYPE; // prints `new java.util.ArrayList<Object>(java.util.Arrays.asList(...))`
         case ts.SyntaxKind.NumericLiteral:
             // the Java printer emits an integer literal as `int` (or `long` past
             // 2^31-1) and a fractional one as `double`; only the exact box fits:
@@ -424,6 +460,12 @@ function isProvablyOfType (printer: any, node: any, selfName: string | undefined
                 }
                 if (javaType === 'Double') {
                     return DOUBLE_RETURNING_BASE_METHODS.has (method);
+                }
+                if (javaType === MAP_TYPE) {
+                    return MAP_RETURNING_BASE_METHODS.has (method);
+                }
+                if (javaType === LIST_TYPE) {
+                    return LIST_RETURNING_BASE_METHODS.has (method);
                 }
                 return false;
             }
@@ -622,10 +664,21 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, jav
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
-        if (javaType !== 'String' && isDeleteKey (n)) {
+        if (BOX_TYPES.has (javaType) && isDeleteKey (n)) {
             return false; // `delete obj[x]` prints `.remove((String)x)`: inconvertible for a Long/Double
         }
-        if (javaType !== 'String') {
+        if (javaType === LIST_TYPE) {
+            // `x.join(sep)` prints `String.join(sep, (java.util.List<String>)x)` and
+            // `x as string[]` prints `(java.util.List<String>)(x)`: legal from Object,
+            // an inconvertible generic cast from List<Object>
+            if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.escapedText === 'join') {
+                return false;
+            }
+            if (ts.isAsExpression (parent) && ts.isArrayTypeNode (parent.type)) {
+                return false;
+            }
+        }
+        if (BOX_TYPES.has (javaType)) {
             // `c ? x : 0` with a Long `x` is a NUMERIC conditional in Java (JLS 15.25:
             // binary numeric promotion unboxes `x` — NPE on null, and the result
             // box changes from Integer to Long). Keep the local `Object` unless the
