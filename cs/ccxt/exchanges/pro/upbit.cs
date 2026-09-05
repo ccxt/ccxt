@@ -568,7 +568,7 @@ public partial class upbit : ccxt.upbit
         object status = this.parseWsOrderStatus(this.safeString(order, "state"));
         string? marketId = this.safeString(order, "code");
         market = this.safeMarket(marketId, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "paid_fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -617,7 +617,7 @@ public partial class upbit : ccxt.upbit
         Int64? timestamp = this.parse8601(this.safeString(trade, "trade_timestamp"));
         string? marketId = this.safeString(trade, "code");
         market = this.safeMarket(marketId, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "paid_fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

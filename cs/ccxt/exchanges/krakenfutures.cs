@@ -1330,7 +1330,7 @@ public partial class krakenfutures : Exchange
                 takerOrMaker = "taker";
             }
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
         {
             string? feeRate = this.safeString(market, takerOrMaker);

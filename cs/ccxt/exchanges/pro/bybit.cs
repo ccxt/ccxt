@@ -1374,7 +1374,7 @@ public partial class bybit : ccxt.bybit
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(trade, "t", "T");
+        Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
         object m = this.safeValue(trade, "m");
@@ -2024,7 +2024,7 @@ public partial class bybit : ccxt.bybit
         //
         string? marketId = this.safeString2(liquidation, "symbol", "s");
         market = this.safeMarket(marketId, market, "", "contract");
-        object timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
+        Int64? timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },

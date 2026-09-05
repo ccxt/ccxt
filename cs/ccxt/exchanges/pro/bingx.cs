@@ -792,7 +792,7 @@ public partial class bingx : ccxt.bingx
         }
         orderbook = getValue(this.orderbooks, symbol);
         object snapshot = null;
-        object timestamp = this.safeInteger2(message, "timestamp", "ts");
+        Int64? timestamp = this.safeInteger2(message, "timestamp", "ts");
         timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
         if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
@@ -1119,7 +1119,7 @@ public partial class bingx : ccxt.bingx
         }
         string uuid = this.uuid();
         object baseUrl = null;
-        object request = null;
+        Dictionary<string, object> request = null;
         if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isEqual(subType, "inverse")))
@@ -1262,7 +1262,7 @@ public partial class bingx : ccxt.bingx
         string swapMessageHash = "swap:balance";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
-        object request = null;
+        Dictionary<string, object> request = null;
         object baseUrl = null;
         string uuid = this.uuid();
         if (isTrue(isEqual(type, "swap")))
@@ -1955,7 +1955,7 @@ public partial class bingx : ccxt.bingx
         //
         object a = this.safeDict(message, "a", new Dictionary<string, object>() {});
         object data = this.safeList(a, "B", new List<object>() {});
-        object timestamp = this.safeInteger2(message, "T", "E");
+        Int64? timestamp = this.safeInteger2(message, "T", "E");
         string? spotUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "spot");
         bool isSpot = isTrue((!isEqual(spotUrl, null))) && isTrue((isEqual(getIndexOf(client.url, spotUrl), 0)));
         object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";

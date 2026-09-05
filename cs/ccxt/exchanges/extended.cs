@@ -1327,7 +1327,7 @@ public partial class extended : Exchange
         //
         string? marketId = this.safeString2(trade, "m", "market");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(trade, "T", "createdTime");
+        Int64? timestamp = this.safeInteger2(trade, "T", "createdTime");
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
         string? sideRaw = this.safeString2(trade, "S", "side");
@@ -1874,7 +1874,7 @@ public partial class extended : Exchange
         {
             direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2298,7 +2298,7 @@ public partial class extended : Exchange
         object code = this.getExtendedCurrencyCodeById(assetId, currency);
         string? amountString = this.safeString(transaction, "amount");
         object amount = ((bool) isTrue((isEqual(amountString, null)))) ? null : this.parseNumber(Precise.stringAbs(amountString));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2702,8 +2702,8 @@ public partial class extended : Exchange
         //
         string? marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(position, "createdAt", "createdTime");
-        object lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
+        Int64? timestamp = this.safeInteger2(position, "createdAt", "createdTime");
+        Int64? lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         string? side = this.safeStringLower(position, "side");
         string? margin = this.safeString(position, "margin");
@@ -3714,7 +3714,7 @@ public partial class extended : Exchange
         //
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "createdTime", "timestamp");
+        Int64? timestamp = this.safeInteger2(order, "createdTime", "timestamp");
         Int64? lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeStringLower(order, "side");

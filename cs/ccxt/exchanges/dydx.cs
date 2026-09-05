@@ -2182,8 +2182,8 @@ public partial class dydx : Exchange
         object credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-        object payload = null;
-        object signingPayload = null;
+        Dictionary<string, object> payload = null;
+        Dictionary<string, object> signingPayload = null;
         if (isTrue(isEqual(fromAccount, "main")))
         {
             // deposit to subaccount

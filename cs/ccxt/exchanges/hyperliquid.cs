@@ -4814,7 +4814,7 @@ public partial class hyperliquid : Exchange
         //
         Int64? timestamp = this.safeInteger(transaction, "time");
         object delta = this.safeDict(transaction, "delta", new Dictionary<string, object>() {});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         Int64? feeCost = this.safeInteger(delta, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -5039,7 +5039,7 @@ public partial class hyperliquid : Exchange
         //
         Int64? timestamp = this.safeInteger(item, "time");
         object delta = this.safeDict(item, "delta", new Dictionary<string, object>() {});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         Int64? feeCost = this.safeInteger(delta, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

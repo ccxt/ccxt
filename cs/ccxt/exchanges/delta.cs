@@ -1667,7 +1667,7 @@ public partial class delta : Exchange
             type = ((string)type).Replace((string)"_order", (string)"");
         }
         string? feeCostString = this.safeString(trade, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object settlingAsset = this.safeDict(product, "settling_asset", new Dictionary<string, object>() {});
@@ -2125,7 +2125,7 @@ public partial class delta : Exchange
         string? amount = this.safeString(order, "size");
         string? remaining = this.safeString(order, "unfilled_size");
         string? average = this.safeString(order, "average_fill_price");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(order, "paid_commission");
         if (isTrue(!isEqual(feeCostString, null)))
         {

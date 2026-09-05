@@ -1160,7 +1160,7 @@ public partial class lbank : Exchange
         //          "tradeType":"sell_market"
         //      }
         //
-        object timestamp = this.safeInteger2(trade, "date_ms", "time");
+        Int64? timestamp = this.safeInteger2(trade, "date_ms", "time");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(trade, "dealTime");
@@ -1208,7 +1208,7 @@ public partial class lbank : Exchange
         }
         string? order = this.safeString(trade, "orderUuid");
         object symbol = this.safeSymbol(null, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "tradeFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2043,7 +2043,7 @@ public partial class lbank : Exchange
         //
         string? id = this.safeString2(order, "orderId", "order_id");
         string? clientOrderId = this.safeString2(order, "clientOrderId", "custom_id");
-        object timestamp = this.safeInteger2(order, "time", "create_time");
+        Int64? timestamp = this.safeInteger2(order, "time", "create_time");
         string? rawStatus = this.safeString(order, "status");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -2761,7 +2761,7 @@ public partial class lbank : Exchange
             type = "withdrawal";
         }
         string? txid = this.safeString(transaction, "txId");
-        object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
+        Int64? timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         string? address = this.safeString(transaction, "address");
         object addressFrom = null;
         object addressTo = null;
@@ -2776,7 +2776,7 @@ public partial class lbank : Exchange
         string? currencyId = this.safeString2(transaction, "coin", "coid");
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"), type);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -3404,7 +3404,7 @@ public partial class lbank : Exchange
                 { "signature_method", finalSig },
                 { "timestamp", timestamp },
             }, query)));
-            object encoded = this.encode(auth);
+            string? encoded = this.encode(auth);
             object hash = this.hash(encoded, md5);
             string uppercaseHash = ((string)hash).ToUpper();
             object sign = null;

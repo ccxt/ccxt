@@ -1433,7 +1433,7 @@ public partial class bitteam : Exchange
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "executed");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeRaw, null)))
         {
             string? feeCost = this.safeString(feeRaw, "amount");

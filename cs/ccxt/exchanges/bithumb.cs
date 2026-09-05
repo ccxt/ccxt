@@ -858,7 +858,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         object data = null;
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["markets"] = this.getGen2MarketId(market);
@@ -1026,7 +1026,7 @@ public partial class bithumb : Exchange
         //         "stream_type": "REALTIME"
         //     }
         //
-        object timestamp = this.safeInteger2(ticker, "date", "trade_timestamp");
+        Int64? timestamp = this.safeInteger2(ticker, "date", "trade_timestamp");
         string? marketId = this.safeString(ticker, "market");
         object symbol = this.safeSymbol(marketId, market);
         string? close = this.safeString2(ticker, "closing_price", "trade_price");
@@ -1414,7 +1414,7 @@ public partial class bithumb : Exchange
         //         "unit": 1
         //     }
         //
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
@@ -1656,7 +1656,7 @@ public partial class bithumb : Exchange
             amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
         }
         string? costString = this.safeString(trade, "total");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -1865,7 +1865,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", this.getGen2MarketId(market) },
         };
-        object sideRequest = null;
+        string? sideRequest = null;
         if (isTrue(isEqual(side, "buy")))
         {
             sideRequest = "bid";
@@ -1907,7 +1907,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["order_type"] = "limit";
         } else
         {
-            object typeRequest = null;
+            string? typeRequest = null;
             if (isTrue(isEqual(side, "buy")))
             {
                 typeRequest = "price";
@@ -1998,7 +1998,7 @@ public partial class bithumb : Exchange
             if (isTrue(isEqual(type, "limit")))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-                object typeRequest = null;
+                string? typeRequest = null;
                 if (isTrue(isEqual(side, "buy")))
                 {
                     typeRequest = "bid";
@@ -2095,7 +2095,7 @@ public partial class bithumb : Exchange
         {
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount); // required for sale
         }
-        object sideRequest = null;
+        string? sideRequest = null;
         if (isTrue(isEqual(side, "buy")))
         {
             sideRequest = "bid";
@@ -2433,7 +2433,7 @@ public partial class bithumb : Exchange
             datetime = this.iso8601(timestamp);
         }
         string? sideProperty = this.safeString2(order, "type", "side");
-        object side = null;
+        string? side = null;
         if (isTrue(isEqual(sideProperty, "bid")))
         {
             side = "buy";
@@ -2485,7 +2485,7 @@ public partial class bithumb : Exchange
         string? id = this.safeStringN(order, new List<object>() {"order_id", "uuid", "algo_order_id"});
         object rawTrades = this.safeList2(order, "contract", "trades", new List<object>() {});
         object feeCost = this.safeNumber(order, "reserved_fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             object currency = null;
@@ -2499,7 +2499,7 @@ public partial class bithumb : Exchange
                 { "rate", null },
             };
         }
-        object postOnly = null;
+        bool? postOnly = null;
         string? timeInForce = this.safeStringUpper(order, "time_in_force");
         if (isTrue(isEqual(timeInForce, "POST_ONLY")))
         {
@@ -2835,7 +2835,7 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
             }
-            object side = null;
+            string? side = null;
             if (isTrue(isEqual(getValue(parameters, "side"), "buy")))
             {
                 side = "bid";

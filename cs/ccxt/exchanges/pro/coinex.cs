@@ -1045,7 +1045,7 @@ public partial class coinex : ccxt.coinex
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object messageHash = "orders";
         object market = null;
-        object marketList = null;
+        List<object> marketList = null;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             market = this.market(symbolVar);
@@ -1331,7 +1331,7 @@ public partial class coinex : ccxt.coinex
         bool isSpot = (inOp(order, "margin_market"));
         string defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
         if (isTrue(!isEqual(feeCost, null)))
         {

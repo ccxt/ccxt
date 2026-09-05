@@ -1550,7 +1550,7 @@ public partial class coinbaseexchange : Exchange
         string? amount = this.safeString(order, "size", filled);
         string? cost = this.safeString(order, "executed_value");
         object feeCost = this.safeNumber(order, "fill_fees");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

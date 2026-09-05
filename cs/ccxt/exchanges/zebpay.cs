@@ -853,7 +853,7 @@ public partial class zebpay : Exchange
                 ((IDictionary<string,object>)request)["since"] = since;
             }
         }
-        object until = this.safeInteger2(parameters, "until", "endtime");
+        Int64? until = this.safeInteger2(parameters, "until", "endtime");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
@@ -1086,7 +1086,7 @@ public partial class zebpay : Exchange
         //
         string? id = this.safeString2(trade, "id", "aggregateTradeId");
         string? orderId = this.safeString2(trade, "id", "order");
-        object timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
+        Int64? timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         object symbol = getValue(market, "symbol");
@@ -2094,7 +2094,7 @@ public partial class zebpay : Exchange
         //        }
         //     ]
         //
-        object timestamp = this.safeInteger2(ticker, "timestamp", "ts");
+        Int64? timestamp = this.safeInteger2(ticker, "timestamp", "ts");
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId);
         string? close = this.safeString(ticker, "close");

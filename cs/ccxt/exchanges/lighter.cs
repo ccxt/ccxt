@@ -730,7 +730,7 @@ public partial class lighter : Exchange
 
     public virtual object hashMessage(object message)
     {
-        object binaryMessage = this.encode(message);
+        string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
@@ -978,7 +978,7 @@ public partial class lighter : Exchange
         object priceScale = this.pow("10", getValue(marketInfo, "price_decimals"));
         object triggerPriceStr = "0"; // default is 0
         object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
-        object clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
+        Int64? clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"});
         if (isTrue(isConditional))
         {

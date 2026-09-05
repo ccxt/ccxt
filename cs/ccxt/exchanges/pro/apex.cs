@@ -182,7 +182,7 @@ public partial class apex : ccxt.apex
         string? marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? side = this.safeStringLower2(trade, "S", "side");
         string? price = this.safeString2(trade, "p", "price");
         string? amount = this.safeStringN(trade, new List<object>() {"q", "v", "size"});
@@ -282,7 +282,7 @@ public partial class apex : ccxt.apex
                 newTopicsCount = add(newTopicsCount, 1);
             }
         }
-        object message = null;
+        Dictionary<string, object> message = null;
         if (isTrue(isGreaterThan(newTopicsCount, 0)))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {

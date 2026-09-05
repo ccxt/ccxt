@@ -1649,7 +1649,7 @@ public partial class phemex : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object until = this.safeInteger2(parameters, "until", "to");
+        Int64? until = this.safeInteger2(parameters, "until", "to");
         parameters = this.omit(parameters, new List<object>() {"until"});
         bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         bool usesSpecialFromToEndpoint = isTrue(((isTrue((isEqual(getValue(market, "linear"), true))) || isTrue(isStableSettled)))) && isTrue((isTrue((!isEqual(sinceVar, null))) || isTrue((!isEqual(until, null)))));
@@ -2192,7 +2192,7 @@ public partial class phemex : Exchange
         object side = null;
         object costString = null;
         object type = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCostString = null;
         object feeRateString = null;
         object feeCurrencyCode = null;
@@ -2756,7 +2756,7 @@ public partial class phemex : Exchange
         string? side = this.safeStringLower(order, "side");
         object type = this.parseOrderType(this.safeString(order, "ordType"));
         object timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), market);
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2949,7 +2949,7 @@ public partial class phemex : Exchange
         string? stopLoss = this.safeString(order, "stopLossRp");
         object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
         object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeValue, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -4267,14 +4267,14 @@ public partial class phemex : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
         string? networkId = this.safeString(transaction, "chainName");
-        object timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
+        Int64? timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
         string? type = this.safeStringLower(transaction, "type");
         object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
         if (isTrue(isEqual(feeCost, null)))
         {
             feeCost = this.safeNumber(transaction, "feeRv");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             type = "withdrawal";

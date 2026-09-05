@@ -2001,7 +2001,7 @@ public partial class xt : Exchange
         //     }
         //
         object orderBook = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger2(orderBook, "timestamp", "t");
+        Int64? timestamp = this.safeInteger2(orderBook, "timestamp", "t");
         if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             object ob = this.parseOrderBook(orderBook, symbol, timestamp);
@@ -2758,7 +2758,7 @@ public partial class xt : Exchange
                 }
             }
         }
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "time", "timestamp"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "time", "timestamp"});
         string? quantity = this.safeString2(trade, "q", "quantity");
         object amount = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -4547,7 +4547,7 @@ public partial class xt : Exchange
         string marketType = ((bool) isTrue(isTrue((inOp(order, "result"))) || isTrue((inOp(order, "positionSide"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = this.safeSymbol(marketId, market, null, marketType);
-        object timestamp = this.safeInteger2(order, "time", "createdTime");
+        Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
         object quantity = this.safeNumber(order, "origQty");
         object amount = ((bool) isTrue((isEqual(marketType, "spot")))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(getValue(market, "contractSize")));
         object filledQuantity = this.safeNumber(order, "executedQty");

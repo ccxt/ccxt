@@ -2028,7 +2028,7 @@ public partial class polymarket : PredictionExchange
         string? rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
         object takerOrMaker = ((bool) isTrue((isTrue(isEqual(rawTakerOrMaker, "taker")) || isTrue(isEqual(rawTakerOrMaker, "maker"))))) ? rawTakerOrMaker : null;
         string? feeRateBps = this.safeString(trade, "fee_rate_bps");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeRateBps, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2070,7 +2070,7 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         // the collateral balance is tied to the signature type / funder that holds the USDC
-        object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
+        Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_type", "COLLATERAL" },
@@ -2540,7 +2540,7 @@ public partial class polymarket : PredictionExchange
         // maker-only: the CLOB rejects the order if it would immediately take
         object postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
-        object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
+        Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         object eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         object funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));

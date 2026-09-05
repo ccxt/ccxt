@@ -978,7 +978,7 @@ public partial class blofin : Exchange
         string? side = this.safeString(trade, "side");
         string? orderId = this.safeString(trade, "orderId");
         string? feeCost = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCurrency = this.safeString(trade, "feeCurrency");
         bool isSpot = !isEqual(feeCurrency, null);
         if (isTrue(isEqual(feeCurrency, null)))
@@ -1647,7 +1647,7 @@ public partial class blofin : Exchange
             cost = Precise.stringMul(average, baseAmount);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCostSigned = Precise.stringAbs(feeCostString);

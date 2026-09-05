@@ -3226,7 +3226,7 @@ public partial class coinbase : Exchange
         //     }
         //     let txid = undefined;
         //
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object networkInfo = this.safeDict(item, "network", new Dictionary<string, object>() {});
         // txid = network['hash']; // txid does not belong to the unified ledger structure
         object feeInfo = this.safeDict(networkInfo, "transaction_fee");
@@ -4349,7 +4349,7 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "granularity", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object until = this.safeInteger2(parameters, "until", "end");
+        Int64? until = this.safeInteger2(parameters, "until", "end");
         parameters = this.omit(parameters, new List<object>() {"until"});
         int duration = this.parseTimeframe(timeframeVar);
         object requestedDuration = multiply(limitVar, duration);

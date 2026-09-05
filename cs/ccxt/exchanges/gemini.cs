@@ -2145,7 +2145,7 @@ public partial class gemini : Exchange
         string? type = this.safeStringLower(transaction, "type");
         // if status field is available, then it's complete
         string? statusRaw = this.safeString(transaction, "status");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeAmount = this.safeNumber(transaction, "feeAmount");
         if (isTrue(!isEqual(feeAmount, null)))
         {

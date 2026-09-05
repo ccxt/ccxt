@@ -1231,7 +1231,7 @@ public partial class woo : Exchange
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKeys, object feeAmountKeys)
     {
         string? feeCost = this.safeStringN(item, feeAmountKeys);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             string? feeCurrencyId = this.safeStringN(item, feeTokenKeys);
@@ -3909,7 +3909,7 @@ public partial class woo : Exchange
         //
         string? symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
-        object nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
+        Int64? nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         Int64? estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         Int64? lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
         object intervalString = this.safeString(fundingRate, "estFundingIntervalHours");
@@ -4810,7 +4810,7 @@ public partial class woo : Exchange
         //         "createdTime": ""
         //     }
         //
-        object timestamp = this.safeInteger2(conversion, "expireTimestamp", "createdTime");
+        Int64? timestamp = this.safeInteger2(conversion, "expireTimestamp", "createdTime");
         string? fromCurr = this.safeString2(conversion, "sellToken", "buyAsset");
         object fromCode = this.safeCurrencyCode(fromCurr, fromCurrency);
         string? to = this.safeString2(conversion, "buyToken", "sellAsset");

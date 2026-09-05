@@ -57,30 +57,53 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeStringUpper2': 'string?',
     'safeStringUpperN': 'string?',
     'safeInteger': 'Int64?',
+    'safeInteger2': 'Int64?',
+    'safeIntegerN': 'Int64?',
     'safeIntegerProduct': 'Int64?',
     'safeFloat': 'double?',
     'safeFloat2': 'double?',
     'safeFloatN': 'double?',
-    // Exchange.Time.cs (iso8601 is declared `string` but returns null for a null input)
+    // Exchange.Time.cs (iso8601/ymd* are declared `string` but return null for a null input)
     'parse8601': 'Int64?',
     'iso8601': 'string?',
+    'ymdhms': 'string?',
+    'yyyymmdd': 'string?',
+    'yymmdd': 'string?',
+    'microseconds': 'Int64',
+    // Exchange.cs
+    'seconds': 'Int64',
+    'parseTimeframe': 'int',
+    'isEmpty': 'bool',
     // Exchange.Number.cs (numberToString is declared `string` but returns null for null)
     'numberToString': 'string?',
     'decimalToPrecision': 'string',
+    'precisionFromString': 'int',
     // Exchange.Encode.cs
     'urlencode': 'string',
+    'urlencodeWithArrayRepeat': 'string',
+    'urlencodeNested': 'string',
     'rawencode': 'string',
     'intToBase16': 'string',
     'stringToBase64': 'string',
-    // Exchange.cs
-    'parseTimeframe': 'int',
+    'binaryToBase64': 'string',
+    'binaryToString': 'string',
+    'encode': 'string?', // `(string)data` pass-through: null in, null out
+    'decode': 'string?',
+    // Exchange.String.cs
+    'uuid': 'string',
+    'uuid16': 'string',
+    'uuid22': 'string',
+    'capitalize': 'string',
     // Exchange.Functions.cs / Exchange.Generic.cs
     'keysort': 'Dictionary<string, object>',
     'sortBy': 'List<object>',
     'sortBy2': 'List<object>',
     'filterBy': 'List<object>',
+    'extractParams': 'List<object>',
     'toArray': 'IList<object>',
     'isArray': 'bool',
+    'inArray': 'bool',
+    'isJsonEncodedObject': 'bool',
 };
 
 // <Identifier>.<name>(...) -> C# type, keyed on the full callee text
@@ -128,6 +151,11 @@ const LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 
 function isNullable (type) {
     return type.endsWith ('?') || type.startsWith ('Dictionary<') || type.startsWith ('List<') || type.startsWith ('IList<');
+}
+
+// the nullable spelling of a C# type (a `= null` / `= undefined` declaration needs one)
+function nullableOf (type) {
+    return isNullable (type) ? type : type + '?';
 }
 
 // can a value of `source` be stored in a local declared `target` WITHOUT changing the
@@ -481,18 +509,53 @@ export function csharpLocalType (csharp, declaration) {
         return undefined;
     }
     const sourceName = declaration.name.escapedText;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer);
     if (csharpType === 'null') {
-        csharpType = annotationType (declaration);
+        csharpType = annotationType (declaration) ?? typeFromLaterWrites (csharp, scope, declaration, sourceName);
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
         return undefined;
     }
-    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, csharpType)) {
         return undefined;
     }
     return csharpType;
+}
+
+// `let x = undefined; ... x = <a>; ... x = <b>;` — the nullable type of the writes when
+// every plain `x = ...` in the method has the same provable C# type (null writes are fine,
+// an unprovable or divergent write is not). The declaration is `= null`, so the result is
+// always the nullable spelling; csharpLocalIsSafeToRetype() re-checks every write and every
+// read afterwards exactly as for an initialised local.
+function typeFromLaterWrites (csharp, scope, declaration, varName) {
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    let type = undefined;
+    for (const n of (index.identifiers.get (varName) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== n || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            continue;
+        }
+        const written = csharpTypeOfValue (csharp, parent.right);
+        if (written === undefined) {
+            return undefined;
+        }
+        if (written === 'null') {
+            continue;
+        }
+        if (type === undefined) {
+            type = written;
+        } else if (type !== written) {
+            return undefined;
+        }
+    }
+    return (type === undefined) ? undefined : nullableOf (type);
 }
 
 // wrap printVariableDeclarationList on a Transpiler's C# printer. Idempotent. Everything

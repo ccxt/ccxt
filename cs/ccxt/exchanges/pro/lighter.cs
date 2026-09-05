@@ -748,7 +748,7 @@ public partial class lighter : ccxt.lighter
         {
             side = ((bool) isTrue((isEqual(isMakerAsk, true)))) ? "buy" : "sell";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(takerOrMaker, null)))
         {
             string? feeRateRaw = ((bool) isTrue((isEqual(takerOrMaker, "maker")))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");

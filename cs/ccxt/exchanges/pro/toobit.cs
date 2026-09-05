@@ -991,7 +991,7 @@ public partial class toobit : ccxt.toobit
             orderType = rawOrderType;
         }
         object feeCost = this.safeNumber(order, "n");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

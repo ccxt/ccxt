@@ -1765,7 +1765,7 @@ public partial class bitstamp : Exchange
         {
             costString = Precise.stringAbs(costString);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {

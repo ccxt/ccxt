@@ -1010,7 +1010,7 @@ public partial class bitvavo : Exchange
             takerOrMaker = ((bool) isTrue((isEqual(taker, true)))) ? "taker" : "maker";
         }
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(trade, "feeCurrency");
@@ -2357,7 +2357,7 @@ public partial class bitvavo : Exchange
             string? amountQuoteRemaining = this.safeString(order, "amountQuoteRemaining");
             cost = Precise.stringSub(amountQuote, amountQuoteRemaining);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(order, "feePaid");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2568,7 +2568,7 @@ public partial class bitvavo : Exchange
         object code = this.safeCurrencyCode(currencyId);
         currency = this.safeCurrency(currencyId, currency);
         Int64? timestamp = this.parse8601(this.safeString(item, "executedAt"));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(item, "feesAmount");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2834,7 +2834,7 @@ public partial class bitvavo : Exchange
         object amount = this.safeNumber(transaction, "amount");
         string? address = this.safeString(transaction, "address");
         string? txid = this.safeString(transaction, "txId");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

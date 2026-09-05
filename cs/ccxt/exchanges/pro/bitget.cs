@@ -1402,10 +1402,10 @@ public partial class bitget : ccxt.bitget
         {
             market = this.safeMarket(instId, null, null, defaultType);
         }
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts", "T", "execTime"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts", "T", "execTime"});
         object feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
         object first = this.safeDict(feeDetail, 0);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(first, null)))
         {
             string? feeCurrencyId = this.safeString(first, "feeCoin");
@@ -1678,7 +1678,7 @@ public partial class bitget : ccxt.bitget
         });
         string? hedgedId = this.safeString2(position, "posMode", "holdMode");
         bool hedged = ((bool) isTrue((isEqual(hedgedId, "hedge_mode")))) ? true : false;
-        object timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "uTime", "cTime", "createdTime"});
+        Int64? timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "uTime", "cTime", "createdTime"});
         string? percentageDecimal = this.safeString2(position, "unrealizedPLR", "profitRate");
         string? percentage = Precise.stringMul(percentageDecimal, "100");
         object contractSize = null;
@@ -2192,13 +2192,13 @@ public partial class bitget : ccxt.bitget
         }
         string? marketId = this.safeString2(order, "instId", "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "cTime", "createdTime");
+        Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
         object symbol = getValue(market, "symbol");
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
         object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
         object fee = this.safeValue(orderFee, 0);
         string? feeAmount = this.safeString(fee, "fee");
-        object feeObject = null;
+        Dictionary<string, object> feeObject = null;
         if (isTrue(!isEqual(feeAmount, null)))
         {
             string? feeCurrency = this.safeString(fee, "feeCoin");

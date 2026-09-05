@@ -511,7 +511,7 @@ public partial class mercado : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "amount", "quantity");
         string? feeCost = this.safeString(trade, "fee_rate");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

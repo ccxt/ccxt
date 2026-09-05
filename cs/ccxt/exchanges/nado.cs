@@ -2443,7 +2443,7 @@ public partial class nado : Exchange
         {
             feeCost = this.parseNumber(feeString);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2949,7 +2949,7 @@ public partial class nado : Exchange
         object remaining = null;
         object cost = null;
         string? average = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object lastTradeTimestamp = null;
         object lastUpdateTimestamp = null;
         string? status = null;

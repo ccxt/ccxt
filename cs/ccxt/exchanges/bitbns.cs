@@ -1036,7 +1036,7 @@ public partial class bitbns : Exchange
             costString = this.safeString(trade, "quote_volume");
         }
         object symbol = getValue(market, "symbol");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -1329,7 +1329,7 @@ public partial class bitbns : Exchange
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         object amount = this.safeNumber(transaction, "amount");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

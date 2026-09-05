@@ -1055,8 +1055,8 @@ public partial class coinmate : Exchange
         string? type = this.safeStringLower(trade, "orderType");
         string? orderId = this.safeString(trade, "orderId");
         string? id = this.safeString(trade, "transactionId");
-        object timestamp = this.safeInteger2(trade, "timestamp", "createdTimestamp");
-        object fee = null;
+        Int64? timestamp = this.safeInteger2(trade, "timestamp", "createdTimestamp");
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {

@@ -4511,7 +4511,7 @@ public partial class gate : Exchange
         var requestqueryVariable = this.prepareRequest(market, null, parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
-        object until = this.safeInteger2(parameters, "to", "until");
+        Int64? until = this.safeInteger2(parameters, "to", "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -5586,7 +5586,7 @@ public partial class gate : Exchange
                 amount = parseInt(((string)signedAmount));
             }
         }
-        object request = null;
+        Dictionary<string, object> request = null;
         bool nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         if (isTrue(nonTriggerOrder))
         {

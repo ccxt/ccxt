@@ -4650,7 +4650,7 @@ public partial class binance : Exchange
         }
         object results = await promiseAll(promises);
         object responseCurrencies = getValue(results, 0);
-        object marginablesById = null;
+        Dictionary<string, object> marginablesById = null;
         if (isTrue(isEqual(fetchMargins, true)))
         {
             object responseMarginables = getValue(results, 1);
@@ -5268,7 +5268,7 @@ public partial class binance : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         string? contractType = this.safeString(market, "contractType");
         bool contract = (inOp(market, "contractType"));
-        object expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
+        Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
         object settleId = this.safeString(market, "marginAsset");
         if (isTrue(isTrue((isEqual(contractType, "PERPETUAL"))) || isTrue((isEqual(expiry, 4133404800000)))))
         {
@@ -5327,7 +5327,7 @@ public partial class binance : Exchange
             }
         }
         object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
-        object marginModes = null;
+        Dictionary<string, object> marginModes = null;
         if (isTrue(spot))
         {
             bool hasCrossMargin = this.inArray(id, getValue(this.options, "crossMarginPairsData"));
@@ -5343,7 +5343,7 @@ public partial class binance : Exchange
                 { "isolated", true },
             };
         }
-        object unifiedType = null;
+        string? unifiedType = null;
         if (isTrue(spot))
         {
             unifiedType = "spot";
@@ -6185,7 +6185,7 @@ public partial class binance : Exchange
         //         "askSize": 90
         //     }
         //
-        object timestamp = this.safeInteger2(ticker, "closeTime", "time");
+        Int64? timestamp = this.safeInteger2(ticker, "closeTime", "time");
         string? marketType = null;
         if (isTrue((inOp(ticker, "time"))))
         {
@@ -7111,7 +7111,7 @@ public partial class binance : Exchange
         //         "updatedAt": 1785936601012
         //     }
         //
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"T", "time", "executionAt"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"T", "time", "executionAt"});
         string? amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
         string? marketId = this.safeString(trade, "symbol");
@@ -7135,7 +7135,7 @@ public partial class binance : Exchange
                 side = ((bool) isTrue((isEqual(getValue(trade, "isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "commission")))
         {
             fee = new Dictionary<string, object>() {
@@ -8559,11 +8559,11 @@ public partial class binance : Exchange
         string marketType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         string? filled = this.safeString2(order, "executedQty", "filledQty", "0");
-        object timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"}); // order of the keys matters here
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"}); // order of the keys matters here
         object lastTradeTimestamp = null;
         if (isTrue(isTrue(isTrue((inOp(order, "transactTime"))) || isTrue((inOp(order, "updateTime")))) || isTrue((inOp(order, "updatedAt")))))
         {
-            object timestampValue = this.safeIntegerN(order, new List<object>() {"updateTime", "transactTime", "updatedAt"});
+            Int64? timestampValue = this.safeIntegerN(order, new List<object>() {"updateTime", "transactTime", "updatedAt"});
             if (isTrue(isEqual(status, "open")))
             {
                 if (isTrue(Precise.stringGt(filled, "0")))
@@ -8575,7 +8575,7 @@ public partial class binance : Exchange
                 lastTradeTimestamp = timestampValue;
             }
         }
-        object lastUpdateTimestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "updateTime", "updatedAt"});
+        Int64? lastUpdateTimestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "updateTime", "updatedAt"});
         string? average = this.safeString2(order, "avgPrice", "avgFilledPrice");
         string? price = this.safeString2(order, "price", "limitPrice");
         string? amount = this.safeStringN(order, new List<object>() {"origQty", "quantity", "qty"});
@@ -8597,7 +8597,7 @@ public partial class binance : Exchange
         string? stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         object feeCost = this.safeNumber(order, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -9676,7 +9676,7 @@ public partial class binance : Exchange
         bool isOptionType = isEqual(type, "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "till", "endTime"});
+        Int64? until = this.safeIntegerN(parameters, new List<object>() {"until", "till", "endTime"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional", "until", "till", "endTime"});
         if (isTrue(!isEqual(since, null)))
         {
@@ -11774,13 +11774,13 @@ public partial class binance : Exchange
         }
         string? currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = null;
+        Int64? timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "createTime");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(transaction, "applyTime"));
         }
-        object updated = this.safeInteger2(transaction, "successTime", "updateTime");
+        Int64? updated = this.safeInteger2(transaction, "successTime", "updateTime");
         string? type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, null)))
         {
@@ -11795,7 +11795,7 @@ public partial class binance : Exchange
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amount = this.safeNumber(transaction, "amount");
         object feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -11935,7 +11935,7 @@ public partial class binance : Exchange
             fromAccount = this.safeString(payer, "accountId");
             toAccount = this.safeString(receiver, "accountId");
         }
-        object timestamp = this.safeInteger2(transfer, "timestamp", "transactionTime");
+        Int64? timestamp = this.safeInteger2(transfer, "timestamp", "transactionTime");
         object status = this.parseTransferStatus(this.safeString(transfer, "status"));
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -13496,7 +13496,7 @@ public partial class binance : Exchange
                 string? rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            object pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
+            int pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
             object pricePrecisionPlusOne = add(pricePrecision, 1);
             string pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
@@ -13697,7 +13697,7 @@ public partial class binance : Exchange
                     }
                     string? inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     string? leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    int quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (isTrue(!isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -13717,7 +13717,7 @@ public partial class binance : Exchange
                     }
                     string? leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     string? rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    int basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (isTrue(!isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -15102,7 +15102,7 @@ public partial class binance : Exchange
         //         "quoteAsset": "USDT"
         //     }
         //
-        object timestamp = this.safeInteger2(settlement, "expiryDate", "createDate");
+        Int64? timestamp = this.safeInteger2(settlement, "expiryDate", "createDate");
         string? marketId = this.safeString(settlement, "symbol");
         return new Dictionary<string, object>() {
             { "info", settlement },
@@ -15372,7 +15372,7 @@ public partial class binance : Exchange
         string? currencyId = this.safeString(item, "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object timestamp = this.safeInteger2(item, "createDate", "time");
+        Int64? timestamp = this.safeInteger2(item, "createDate", "time");
         string? type = this.safeString2(item, "type", "incomeType");
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
@@ -16788,7 +16788,7 @@ public partial class binance : Exchange
 
     public override object parseOpenInterest(object interest, object market = null)
     {
-        object timestamp = this.safeInteger2(interest, "timestamp", "time");
+        Int64? timestamp = this.safeInteger2(interest, "timestamp", "time");
         string? id = this.safeString(interest, "symbol");
         object amount = this.safeNumber2(interest, "sumOpenInterest", "openInterest");
         object value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
@@ -17083,7 +17083,7 @@ public partial class binance : Exchange
         //     }
         //
         string? marketId = this.safeString(liquidation, "symbol");
-        object timestamp = this.safeInteger2(liquidation, "updatedTime", "updateTime");
+        Int64? timestamp = this.safeInteger2(liquidation, "updatedTime", "updateTime");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -17840,7 +17840,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInThirtyDays);
         }
-        object endTime = this.safeInteger2(parameters, "endTime", "until");
+        Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -17956,7 +17956,7 @@ public partial class binance : Exchange
         //         "createTime": 1624248872184
         //     }
         //
-        object timestamp = this.safeIntegerN(conversion, new List<object>() {"time", "validTimestamp", "createTime"});
+        Int64? timestamp = this.safeIntegerN(conversion, new List<object>() {"time", "validTimestamp", "createTime"});
         string? fromCur = this.safeString2(conversion, "deductedAsset", "fromAsset");
         object fromCode = this.safeCurrencyCode(fromCur, fromCurrency);
         string? to = this.safeString2(conversion, "targetAsset", "toAsset");
@@ -18281,7 +18281,7 @@ public partial class binance : Exchange
             }
         }
         string? marketId = this.safeString(info, "symbol");
-        object timestamp = this.safeInteger2(info, "timestamp", "updateTime");
+        Int64? timestamp = this.safeInteger2(info, "timestamp", "updateTime");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },

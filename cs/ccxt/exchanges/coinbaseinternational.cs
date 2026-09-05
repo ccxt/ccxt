@@ -619,7 +619,7 @@ public partial class coinbaseinternational : Exchange
         }
         object market = this.market(symbol);
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", getValue(market, "id") },
             { "result_offset", offSet },
@@ -1124,7 +1124,7 @@ public partial class coinbaseinternational : Exchange
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest));
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
         };
@@ -2096,7 +2096,7 @@ public partial class coinbaseinternational : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         object feeCost = this.safeNumber(order, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2406,7 +2406,7 @@ public partial class coinbaseinternational : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest));
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
             { "result_offset", offSet },
@@ -2507,7 +2507,7 @@ public partial class coinbaseinternational : Exchange
             market = this.market(symbol);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
         };

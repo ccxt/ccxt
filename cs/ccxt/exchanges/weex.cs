@@ -1423,7 +1423,7 @@ public partial class weex : Exchange
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
-        object timestamp = this.safeInteger2(ticker, "closeTime", "time");
+        Int64? timestamp = this.safeInteger2(ticker, "closeTime", "time");
         string? percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -1960,7 +1960,7 @@ public partial class weex : Exchange
         {
             isSpot = getValue(market, "spot");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "commission");
         if (isTrue(!isEqual(commission, null)))
         {
@@ -3615,7 +3615,7 @@ public partial class weex : Exchange
             string marketType = ((bool) isTrue((isEqual(positionSide, null)))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
-        object timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         string? rawType = this.safeStringUpper2(order, "type", "orderType");
@@ -4010,7 +4010,7 @@ public partial class weex : Exchange
         string? currencyId = this.safeString2(item, "coinName", "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object timestamp = this.safeInteger2(item, "cTime", "time");
+        Int64? timestamp = this.safeInteger2(item, "cTime", "time");
         string? amountRaw = this.safeString2(item, "deltaAmount", "income");
         string? after = this.safeString2(item, "afterAmount", "balance");
         string? before = Precise.stringSub(after, amountRaw);

@@ -668,7 +668,7 @@ public partial class coincheck : Exchange
         string? amountString = null;
         string? costString = null;
         string? side = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? orderId = null;
         if (isTrue(inOp(trade, "liquidity")))
         {
@@ -1098,7 +1098,7 @@ public partial class coincheck : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Int64? updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {

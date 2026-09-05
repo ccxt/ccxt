@@ -1296,7 +1296,7 @@ public partial class bullish : Exchange
         object currency = getValue(market, "quote");
         object code = this.safeCurrencyCode(currency);
         object feeCost = this.safeNumber(trade, "quoteFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

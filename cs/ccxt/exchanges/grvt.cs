@@ -1325,7 +1325,7 @@ public partial class grvt : Exchange
             takerOrMaker = ((bool) isTrue(isTaker)) ? "taker" : "maker";
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeString, null)))
         {
@@ -2545,7 +2545,7 @@ public partial class grvt : Exchange
             object leg = getValue(orderLegs, i);
             object market = this.market(getValue(leg, "instrument"));
             object bigInt10 = this.convertToBigIntCustom("10");
-            object precisionValue = this.precisionFromString(this.safeString(getValue(market, "precision"), "base"));
+            int precisionValue = this.precisionFromString(this.safeString(getValue(market, "precision"), "base"));
             string precisionValueStr = ((object)precisionValue).ToString();
             object sizeMultiplier = Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(precisionValueStr)));
             object size = getValue(leg, "size");
@@ -3692,7 +3692,7 @@ public partial class grvt : Exchange
     public virtual object handleUntilOptionString(object key, object request, object parameters, object multiplier = null)
     {
         multiplier ??= 1;
-        object until = this.safeInteger2(parameters, "until", "till");
+        Int64? until = this.safeInteger2(parameters, "until", "till");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)[(string)key] = this.numberToString(this.parseToInt(multiply(until, multiplier)));

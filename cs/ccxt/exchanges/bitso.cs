@@ -477,7 +477,7 @@ public partial class bitso : Exchange
         object balanceUpdates = this.safeValue(item, "balance_updates", new List<object>() {});
         object firstBalance = this.safeValue(balanceUpdates, 0, new Dictionary<string, object>() {});
         string? direction = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? amount = this.safeString(firstBalance, "amount");
         string? currencyId = this.safeString(firstBalance, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
@@ -1095,7 +1095,7 @@ public partial class bitso : Exchange
         {
             amount = Precise.stringAbs(amount);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "fees_amount");
         if (isTrue(!isEqual(feeCost, null)))
         {

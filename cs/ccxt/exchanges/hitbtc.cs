@@ -1517,7 +1517,7 @@ public partial class hitbtc : Exchange
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         object taker = this.safeValue(trade, "taker");
         object takerOrMaker = null;

@@ -831,7 +831,7 @@ public partial class backpack : Exchange
         object maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
         object minQuantity = this.safeNumber(quantityFilter, "minQuantity");
         object amountPrecision = this.safeNumber(quantityFilter, "stepSize");
-        object type = null;
+        string? type = null;
         object typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
         bool? linear = null;
         bool? inverse = null;
@@ -1468,7 +1468,7 @@ public partial class backpack : Exchange
             side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
         }
         string? orderId = this.safeString(trade, "orderId");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         if (isTrue(!isEqual(feeAmount, null)))
@@ -1819,7 +1819,7 @@ public partial class backpack : Exchange
         string? tag = this.safeString(transaction, "platformMemo");
         object feeCost = this.safeNumber(transaction, "fee");
         object intern = this.safeBool(transaction, "isInternal", false);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

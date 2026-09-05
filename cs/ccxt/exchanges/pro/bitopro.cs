@@ -326,7 +326,7 @@ public partial class bitopro : ccxt.bitopro
             }
         }
         string? amount = this.safeString(trade, "volume");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
         object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
         if (isTrue(!isEqual(feeAmount, null)))

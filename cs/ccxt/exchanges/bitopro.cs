@@ -755,7 +755,7 @@ public partial class bitopro : Exchange
         {
             amount = this.safeString(trade, "baseAmount");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
         object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (isTrue(!isEqual(feeAmount, null)))
@@ -1170,7 +1170,7 @@ public partial class bitopro : Exchange
         //         }
         //
         string? id = this.safeString2(order, "id", "orderId");
-        object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
+        Int64? timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
         string? side = this.safeString(order, "action");
         if (isTrue(isEqual(side, null)))
         {
@@ -1194,7 +1194,7 @@ public partial class bitopro : Exchange
         {
             postOnly = true;
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(order, "fee");
         object feeSymbol = this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
         if (isTrue(Precise.stringGt(feeAmount, "0")))

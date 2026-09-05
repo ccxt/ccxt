@@ -993,7 +993,7 @@ public partial class bitmex : Exchange
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         string? typ = this.safeString(market, "typ"); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        object type = null;
+        string? type = null;
         bool swap = false;
         bool spot = false;
         bool future = false;
@@ -1392,7 +1392,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1493,7 +1493,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(500, limit);
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1639,7 +1639,7 @@ public partial class bitmex : Exchange
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2168,7 +2168,7 @@ public partial class bitmex : Exchange
         string? order = this.safeString(trade, "orderID");
         string? side = this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -2385,7 +2385,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // api maximum 1000
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});

@@ -1504,7 +1504,7 @@ public partial class gate : ccxt.gate
             object account = this.account();
             string? currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             object code = this.safeCurrencyCode(currencyId);
-            object timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
+            Int64? timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
             ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");

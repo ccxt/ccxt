@@ -1220,7 +1220,7 @@ public partial class onetrading : Exchange
         object symbol = this.safeSymbol(marketId, market, "_");
         string? feeCostString = this.safeString(feeInfo, "fee_amount");
         string? takerOrMaker = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(feeInfo, "fee_currency");

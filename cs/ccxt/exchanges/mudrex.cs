@@ -1535,7 +1535,7 @@ public partial class mudrex : Exchange
         {
             takerOrMaker = "maker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(trade, "fee_amount");
         if (isTrue(!isEqual(feeCost, null)))
         {

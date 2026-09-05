@@ -1335,7 +1335,7 @@ public partial class bitrue : Exchange
         //         "time": 1699338305000
         //     }
         //
-        object timestamp = this.safeInteger2(response, "time", "lastUpdateId");
+        Int64? timestamp = this.safeInteger2(response, "time", "lastUpdateId");
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
@@ -1868,7 +1868,7 @@ public partial class bitrue : Exchange
         //         "ctime":1678426306000
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "ctime", "time");
+        Int64? timestamp = this.safeInteger2(trade, "ctime", "time");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");
         string? marketId = this.safeString2(trade, "symbol", "contractName");
@@ -1886,7 +1886,7 @@ public partial class bitrue : Exchange
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell"; // this is a true side
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "commission")))
         {
             fee = new Dictionary<string, object>() {
@@ -3061,7 +3061,7 @@ public partial class bitrue : Exchange
         }
         object code = this.safeCurrencyCode(currencyId, currency);
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

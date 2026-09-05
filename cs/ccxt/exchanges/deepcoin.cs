@@ -1048,7 +1048,7 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? side = this.safeString(trade, "side");
         string? execType = this.safeString(trade, "execType");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2829,7 +2829,7 @@ public partial class deepcoin : Exchange
             average = null;
         }
         string? feeCurrencyId = this.safeString(order, "feeCcy");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCurrencyId, null)))
         {
             string? feeCost = this.safeString(order, "fee");

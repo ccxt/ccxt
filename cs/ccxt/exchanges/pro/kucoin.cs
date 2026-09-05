@@ -1496,7 +1496,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeIntegerProduct2(trade, "M", "E", 0.000001);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "f");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1863,7 +1863,7 @@ public partial class kucoin : ccxt.kucoin
             }
             object orderbook = getValue(this.orderbooks, symbol);
             Int64? nonce = this.safeInteger(orderbook, "nonce");
-            object deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
+            Int64? deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (isTrue(isEqual(nonce, null)))
             {
                 int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
@@ -1965,7 +1965,7 @@ public partial class kucoin : ccxt.kucoin
     {
         object firstDelta = this.safeValue(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        object firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
+        Int64? firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
         if (isTrue(isLessThan(nonce, subtract(firstDeltaStart, 1))))
         {
             return -1;
@@ -1973,8 +1973,8 @@ public partial class kucoin : ccxt.kucoin
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
-            object deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
+            Int64? deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
+            Int64? deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
             if (isTrue(isTrue((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1)))) && isTrue((isLessThan(nonce, deltaEnd)))))
             {
                 return i;
@@ -1985,7 +1985,7 @@ public partial class kucoin : ccxt.kucoin
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
+        Int64? timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger2(delta, "time", "timestamp");
@@ -2322,7 +2322,7 @@ public partial class kucoin : ccxt.kucoin
         //
         string? rawType = this.safeString(order, "type");
         object status = this.parseWsOrderStatus(rawType);
-        object timestamp = this.safeInteger2(order, "orderTime", "createdAt");
+        Int64? timestamp = this.safeInteger2(order, "orderTime", "createdAt");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         if (isTrue(isEqual(getValue(market, "contract"), true)))
@@ -3065,7 +3065,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.balance)[(string)uniformType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["info"] = data;
-        object timestamp = this.safeInteger2(data, "time", "timestamp");
+        Int64? timestamp = this.safeInteger2(data, "time", "timestamp");
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["datetime"] = this.iso8601(timestamp);
         object code = this.safeCurrencyCode(currencyId);

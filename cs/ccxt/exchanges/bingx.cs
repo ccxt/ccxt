@@ -1602,7 +1602,7 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = requestLimit;
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1919,7 +1919,7 @@ public partial class bingx : Exchange
         //         "tradeTime": 1722146730000
         //     }
         //
-        object time = this.safeIntegerN(trade, new List<object>() {"time", "filledTm", "T", "tradeTime"});
+        Int64? time = this.safeIntegerN(trade, new List<object>() {"time", "filledTm", "T", "tradeTime"});
         string? datetimeId = this.safeString(trade, "filledTm");
         if (isTrue(!isEqual(datetimeId, null)))
         {
@@ -2119,7 +2119,7 @@ public partial class bingx : Exchange
         //
         object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? nonce = this.safeInteger(orderbook, "lastUpdateId");
-        object timestamp = this.safeInteger2(orderbook, "T", "ts");
+        Int64? timestamp = this.safeInteger2(orderbook, "T", "ts");
         object result = this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)result)["nonce"] = nonce;
         return ccxt.BaseExchange.ToOrderBook(result);
@@ -2386,7 +2386,7 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -2528,7 +2528,7 @@ public partial class bingx : Exchange
         //         "timestamp": 1720310400000
         //     }
         //
-        object timestamp = this.safeInteger2(interest, "time", "timestamp");
+        Int64? timestamp = this.safeInteger2(interest, "time", "timestamp");
         string? id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
@@ -4352,8 +4352,8 @@ public partial class bingx : Exchange
             market = this.safeMarket(marketId, null, null, marketType);
         }
         string? side = this.safeStringLower2(order, "side", "S");
-        object timestamp = this.safeIntegerN(order, new List<object>() {"time", "transactTime", "E", "createdTime"});
-        object lastTradeTimestamp = this.safeInteger2(order, "updateTime", "T");
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "transactTime", "E", "createdTime"});
+        Int64? lastTradeTimestamp = this.safeInteger2(order, "updateTime", "T");
         string? statusId = this.safeStringUpperN(order, new List<object>() {"status", "X", "orderStatus"});
         object feeCurrencyCode = this.safeString2(order, "feeAsset", "N");
         string? feeCost = this.safeStringN(order, new List<object>() {"fee", "commission", "n"});
@@ -5815,7 +5815,7 @@ public partial class bingx : Exchange
         string? id = this.safeString(transaction, "id", dataId);
         string? address = this.safeString(transaction, "address");
         string? tag = this.safeString(transaction, "addressTag");
-        object timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
+        Int64? timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
         string? datetime = this.iso8601(timestamp);
         if (isTrue(isEqual(timestamp, null)))
         {

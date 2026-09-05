@@ -1044,7 +1044,7 @@ public partial class upbit : Exchange
         string? amount = this.safeString2(trade, "trade_volume", "volume");
         string? marketId = this.safeString2(trade, "market", "code");
         market = this.safeMarket(marketId, market, "-");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, add(askOrBid, "_fee"));
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2106,7 +2106,7 @@ public partial class upbit : Exchange
             price = null;
         }
         string? average = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "paid_fee");
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);

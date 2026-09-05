@@ -1077,7 +1077,7 @@ public partial class poloniex : ccxt.poloniex
         string? timestamp = this.safeString(order, "ts");
         string? filledAmount = this.safeString(order, "filledAmount");
         string? status = this.safeString(order, "state");
-        object trades = null;
+        List<object> trades = null;
         if (!isTrue(Precise.stringEq(filledAmount, "0")))
         {
             trades = new List<object>() {};

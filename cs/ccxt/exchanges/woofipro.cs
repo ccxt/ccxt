@@ -1016,7 +1016,7 @@ public partial class woofipro : Exchange
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
     {
         string? feeCost = this.safeString(item, feeAmountKey);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             string? feeCurrencyId = this.safeString(item, feeTokenKey);
@@ -1993,7 +1993,7 @@ public partial class woofipro : Exchange
         //       "updatedTime": "1686149903.362"
         //   }
         //
-        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
         string? orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
         object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
@@ -2033,7 +2033,7 @@ public partial class woofipro : Exchange
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
         }
-        object lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
+        Int64? lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },

@@ -1948,7 +1948,7 @@ public partial class coinsph : Exchange
         string? id = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "time", "transactTime");
+        Int64? timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills");
         string? triggerPrice = this.safeString(order, "stopPrice");
         if (isTrue(Precise.stringEq(triggerPrice, "0")))
@@ -2409,7 +2409,7 @@ public partial class coinsph : Exchange
         string? txid = this.safeString(transaction, "txId");
         string? currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = null;
+        Int64? timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         object updated = null;
         string? type = null;
@@ -2425,7 +2425,7 @@ public partial class coinsph : Exchange
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object amount = this.safeNumber(transaction, "amount");
         object feeCost = this.safeNumber(transaction, "transactionFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
