@@ -208,7 +208,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 1e-05,
+                            "amount": 0.00001,
                             "price": 0.1
                         },
                         "limits": {
@@ -315,7 +315,7 @@
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 1e-05,
+                            "amount": 0.00001,
                             "price": 0.1
                         },
                         "limits": {
@@ -878,7 +878,7 @@
                         "estimatedSettlePrice": null,
                         "timestamp": 1788546972857,
                         "datetime": "2026-09-04T18:36:12.857Z",
-                        "fundingRate": 6.25e-06,
+                        "fundingRate": 0.00000625,
                         "fundingTimestamp": null,
                         "fundingDatetime": null,
                         "nextFundingRate": null,
@@ -989,7 +989,7 @@
                     "estimatedSettlePrice": null,
                     "timestamp": 1788546972857,
                     "datetime": "2026-09-04T18:36:12.857Z",
-                    "fundingRate": 1.25e-05,
+                    "fundingRate": 0.0000125,
                     "fundingTimestamp": null,
                     "fundingDatetime": null,
                     "nextFundingRate": null,
@@ -1029,7 +1029,7 @@
                             "timestamp": 1788541200037
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 6.25e-06,
+                        "fundingRate": 0.00000625,
                         "timestamp": 1788541200037,
                         "datetime": "2026-09-04T17:00:00.037Z"
                     },
@@ -1039,7 +1039,7 @@
                             "timestamp": 1788544800063
                         },
                         "symbol": "SP500/USD:PUSD",
-                        "fundingRate": 6.25e-06,
+                        "fundingRate": 0.00000625,
                         "timestamp": 1788544800063,
                         "datetime": "2026-09-04T18:00:00.063Z"
                     }
@@ -3186,10 +3186,10 @@
                         "id": "BTC",
                         "numericId": null,
                         "code": "BTC",
-                        "precision": 1e-05,
-                        "type": null,
+                        "precision": 0.00001,
+                        "type": "crypto",
                         "name": "BTC",
-                        "active": null,
+                        "active": true,
                         "deposit": false,
                         "withdraw": false,
                         "fee": null,
@@ -3207,14 +3207,14 @@
                         }
                     },
                     "USD": {
-                        "info": null,
+                        "info": {},
                         "id": "USD",
                         "numericId": null,
                         "code": "USD",
                         "precision": 0.01,
                         "type": "fiat",
                         "name": "USD",
-                        "active": null,
+                        "active": true,
                         "deposit": false,
                         "withdraw": false,
                         "fee": null,
@@ -3248,14 +3248,14 @@
                 ],
                 "parsedResponse": {
                     "USD": {
-                        "info": null,
+                        "info": {},
                         "id": "USD",
                         "numericId": null,
                         "code": "USD",
                         "precision": 0.01,
                         "type": "fiat",
                         "name": "USD",
-                        "active": null,
+                        "active": true,
                         "deposit": false,
                         "withdraw": false,
                         "fee": null,
@@ -3283,12 +3283,12 @@
                         "id": "pUSD",
                         "numericId": null,
                         "code": "PUSD",
-                        "precision": 1e-06,
+                        "precision": 0.000001,
                         "type": "crypto",
                         "name": "pUSD",
-                        "active": null,
-                        "deposit": null,
-                        "withdraw": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
                         "fee": 0,
                         "fees": {},
                         "networks": {},
