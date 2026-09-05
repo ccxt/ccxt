@@ -2,16 +2,19 @@
 import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange, Str, Trade } from '../../../../ccxt.js';
+import { Exchange, Trade } from '../../../../ccxt.js';
 
 async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    // hard ceiling on top of `ends`, so waiting for full symbol coverage cannot spin indefinitely
+    // when one symbol streams briskly while another stays quiet without ever tripping `idle`
+    const hardEnds = ends + 15000;
     const maxIdleTime = 5000;
     let idle = false;
     const returnedSymbols: string[] = [];
-    while ((now < ends) && !idle) {
+    while (((now < ends) || (returnedSymbols.length < symbols.length && now < hardEnds)) && !idle) {
         let response: Trade[] | undefined = undefined;
         let success = true;
         const startTime = exchange.milliseconds ();
@@ -26,14 +29,11 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
         now = exchange.milliseconds ();
         if ((success === true) && (response !== undefined)) {
             assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
-            let symbol: Str = undefined;
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
-                symbol = trade['symbol'];
-                if (symbol === undefined) {
-                    continue;
-                }
-                testTrade (exchange, skippedProperties, method, trade, symbol, now);
+                const symbol = trade['symbol'];
+                assert (symbol !== undefined, exchange.id + ' ' + method + ' returned a trade without a symbol ' + exchange.json (trade));
+                testTrade (exchange, skippedProperties, method, trade, symbol, now, true);
                 testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
                 if (!exchange.inArray (symbol, returnedSymbols)) {
                     returnedSymbols.push (symbol);
