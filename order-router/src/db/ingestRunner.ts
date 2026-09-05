@@ -1,69 +1,54 @@
 #!/usr/bin/env node
 // Runs the audit ingester and the key projection. This is the process that legitimately holds the
 // database credential — the router deliberately does not, so that authentication can never be made
-// to wait on a query.
+// to wait on a query. The body lives in runner.ts so it is testable without a live Postgres.
 import { config } from '../config.js';
 import { logger } from '../logger.js';
 import { installCrashHandlers } from '../crashHandlers.js';
-import { createPool, ensurePartitions } from './pool.js';
-import { startIngest } from './ingest.js';
-import { startKeyProjection } from './keyProjection.js';
+import { createPool } from './pool.js';
+import { startRunner, startPartitionMaintenance } from './runner.js';
 
 installCrashHandlers(logger, 'ingest');
 
 const pool = createPool(logger);
-const auditPath = config.auditLogFile;
-if (auditPath === undefined) {
-    logger.error('ORDER_ROUTER_AUDIT_LOG_FILE is not set; nothing to ingest');
-    process.exit(1);
-}
 
-// Daily, so next month's partitions exist well before the first insert that needs them.
-//
-// Deliberately not fatal, and deliberately not a bare top-level await. Postgres being unreachable
-// at boot is a transient this process is expected to ride out: dying here instead would restart on
-// a tight loop, and systemd's StartLimitBurst then disables the unit PERMANENTLY — turning a
-// two-minute database blip into an ingester that never comes back. So the first attempt retries on
-// a short timer until it lands, and only then falls back to the daily cadence.
-let partitionsReady = false;
-const ensurePartitionsSafely = async (): Promise<void> => {
-    try {
-        await ensurePartitions(pool, new Date(), logger);
-        if (!partitionsReady) {
-            partitionsReady = true;
-            clearInterval(partitionRetry);
-        }
-    } catch (err) {
-        logger.error({ err }, 'partition maintenance failed');
-    }
-};
-const partitionRetry = setInterval(() => void ensurePartitionsSafely(), 30_000);
-partitionRetry.unref();
-await ensurePartitionsSafely();
-setInterval(() => void ensurePartitionsSafely(), 24 * 60 * 60 * 1000).unref();
+const stopPartitions = startPartitionMaintenance(pool, logger);
 
-const stopIngest = startIngest(pool, auditPath, 'router-audit', config.ingestIntervalMs, logger);
-const stopProjection = startKeyProjection(pool, config.keysFile, config.keyProjectionIntervalMs, logger);
+// Read here rather than from config.ts because config.ts is the router's module and this listener
+// belongs to the ingest process alone. Default 9109: loopback only, see startHealthServer.
+const healthPortRaw = process.env['ORDER_ROUTER_INGEST_HEALTH_PORT'];
+const healthPort = healthPortRaw === undefined ? 9109 : Number(healthPortRaw);
+
+const runner = startRunner(pool, {
+    auditLogFile: config.auditLogFile,
+    keysFile: config.keysFile,
+    ingestIntervalMs: config.ingestIntervalMs,
+    keyProjectionIntervalMs: config.keyProjectionIntervalMs,
+    healthPort: Number.isFinite(healthPort) && healthPort > 0 ? healthPort : undefined,
+}, logger);
 
 // The one ref'd handle in this process, and the reason it exists: every timer inside startIngest,
-// startKeyProjection and the partition maintenance above is unref'd, so nothing those functions
-// create keeps the event loop alive. What kept this process running in practice was the pg pool's
-// idle client socket — which exists only while Postgres is REACHABLE. Lose the database and the
-// last ref'd handle goes with it, the loop empties, and node exits **0**. A clean exit is not a
-// failure, so `Restart=on-failure` does not fire, and the ingester stays dead until a human
-// notices that the audit table stopped growing. Both loops already treat a Postgres outage as
+// startKeyProjection and the partition maintenance above is unref'd, and so is the health server,
+// so nothing they create keeps the event loop alive. What kept this process running in practice was
+// the pg pool's idle client socket — which exists only while Postgres is REACHABLE. Lose the
+// database and the last ref'd handle goes with it, the loop empties, and node exits **0**. A clean
+// exit is not a failure, so `Restart=on-failure` does not fire, and the ingester stays dead until a
+// human notices that the audit table stopped growing. Both loops already treat a Postgres outage as
 // survivable and retry forever; this makes the process survive it too.
 const heartbeat = setInterval(() => {
     logger.debug('ingest runner alive');
 }, 60_000);
 
-logger.info({ auditPath, keysFile: config.keysFile }, 'ingest runner started');
+logger.info(
+    { auditPath: config.auditLogFile, keysFile: config.keysFile, healthPort },
+    'ingest runner started',
+);
 
 const shutdown = async (signal: string): Promise<void> => {
     logger.info({ signal }, 'ingest runner shutting down');
     clearInterval(heartbeat);
-    stopIngest();
-    stopProjection();
+    stopPartitions();
+    runner.stop();
     await pool.end();
     process.exit(0);
 };

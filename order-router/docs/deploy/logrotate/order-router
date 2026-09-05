@@ -1,0 +1,73 @@
+# /etc/logrotate.d/order-router
+#
+# This rotates ONE file: the audit log. The diagnostic stream (connector chatter, reconnects,
+# warnings) goes to stdout and is journald's problem — see the journald note at the bottom, which
+# is the half of this that actually protects the 7.5 GB disk.
+#
+# `create`, NOT `copytruncate`, and that is not a style preference:
+#
+#   - Under copytruncate the file is copied and then truncated in place. The inode is unchanged and
+#     the size drops to 0, so the ingest runner's committed byte offset is now past the end of the
+#     file. src/db/ingest.ts reads `size <= offset` as "nothing new" and the cursor never advances
+#     again: ingest stops silently, forever, while every process involved reports healthy.
+#   - Under `create` the file is RENAMED and a new one opened at the same path. The rotated file
+#     keeps its inode, and src/db/ingest.ts (findRotatedFile) looks the old file up BY INODE, drains
+#     it to the end, and only then follows the new one. Rotation is handled by design on the reader
+#     side.
+#
+# The writer side is the part that is not finished, so read the postrotate block before installing.
+
+/var/log/order-router/audit.log {
+    # Small by design — 12 audit lines out of 1,952,180 log lines on the live box — so this is a
+    # safety net against a runaway, not a routine event. monthly + the size guard means an ordinary
+    # month never rotates at all and never costs a restart.
+    monthly
+    size 64M
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    # 0640 root:order-router would stop the service writing its own log. The service owns the file;
+    # log readers get in via the group.
+    create 0640 order-router adm
+    su root adm
+
+    postrotate
+        # THE OPEN PROBLEM, stated plainly: pino opens the audit destination once, at process
+        # start, and holds the fd. After `create` renames the file the router and console keep
+        # appending to the RENAMED inode — the new audit.log stays empty and the rotated file goes
+        # on growing. Rotation only completes if the writers reopen.
+        #
+        # There is no reopen signal today. SIGHUP is taken: src/index.ts handles it as "re-read
+        # keys.json" and does not touch the log destination, so sending it here would succeed and
+        # do nothing, which is the worst of the three outcomes. So the only thing that works on the
+        # code as it stands is a restart, and a router restart rebuilds the whole order-book cache
+        # and degrades /route for minutes. That is why the schedule above is deliberately rare.
+        #
+        # Replace both lines below with a SIGUSR2 kill once src/logger.ts wires
+        # `auditLogger.reopen()` to a signal — see docs/deploy/README.md, "Known gap: log reopen".
+        systemctl restart order-router-web >/dev/null 2>&1 || true
+        systemctl restart order-router >/dev/null 2>&1 || true
+    endscript
+}
+
+# ---------------------------------------------------------------------------------------------
+# journald, which is where the volume actually is.
+#
+# LOG_LEVEL=warn exists because one misbehaving exchange wrote 930MB of retry chatter. That went to
+# stdout, which means journald, which by default takes up to 10% of the filesystem — on a 7.5 GB box
+# shared with two other production deploys, that is a disk-full incident that takes all three down.
+# Cap it per-unit rather than trusting the default:
+#
+#   # /etc/systemd/system/order-router.service.d/journal.conf
+#   [Service]
+#   LogRateLimitIntervalSec=30s
+#   LogRateLimitBurst=2000
+#
+#   # /etc/systemd/journald.conf
+#   SystemMaxUse=512M
+#   SystemKeepFree=1G
+#
+# `systemctl daemon-reload && systemctl restart systemd-journald` to apply. The disk-usage alert in
+# ../prometheus/order-router.rules.yml is the backstop for when this is wrong anyway.

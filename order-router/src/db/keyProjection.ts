@@ -128,18 +128,28 @@ export async function projectKeys (pool: Pool, path: string, logger: Logger): Pr
 // Both are deliberately short because revocation latency is a security property, not a
 // convenience: the gap between "the operator clicked revoke" and "the key stops working" is a
 // window in which a known-compromised credential still routes.
+// Reported after every projection. A projector that stops is a security event — revocations stop
+// taking effect and new keys never go live — and it is silent by construction, because the router
+// keeps authenticating from the last file it wrote. See ingestHealth.ts.
+export interface ProjectionObserver {
+    onSuccess?: (result: ProjectionResult) => void;
+    onError?: (err: unknown) => void;
+}
+
 export function startKeyProjection (
     pool: Pool, path: string, intervalMs: number, logger: Logger,
+    observer: ProjectionObserver = {},
 ): () => void {
     let stopped = false;
     const tick = async (): Promise<void> => {
         if (stopped) return;
         try {
-            await projectKeys(pool, path, logger);
+            observer.onSuccess?.(await projectKeys(pool, path, logger));
         } catch (err) {
             // Deliberately not fatal and deliberately not clearing the file. A Postgres outage
             // must not de-authenticate every existing customer.
             logger.error({ err }, 'key projection failed; the router keeps its previous snapshot');
+            observer.onError?.(err);
         }
     };
     void tick();

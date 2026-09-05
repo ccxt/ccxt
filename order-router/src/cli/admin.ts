@@ -8,12 +8,15 @@
 //   create-admin  — the first account, before any login exists to create it with
 //   create-key    — the first key, before the dashboard exists to mint it with
 //   project       — force a key projection, for debugging the router's snapshot
+//   erase-user    — GDPR erasure; a multi-table transaction no dashboard button should own
 import { parseArgs } from 'node:util';
 import { randomUUID, scryptSync, randomBytes } from 'node:crypto';
 import { config } from '../config.js';
 import { logger } from '../logger.js';
 import { createPool } from '../db/pool.js';
 import { projectKeys } from '../db/keyProjection.js';
+import { eraseUser } from '../db/erasure.js';
+import { recordAdminAction } from '../db/adminAudit.js';
 import { generateKey, hashKey } from '../api/keyStore.js';
 
 // scrypt N=16384, not 2**15: on Node 22, 128*N*r at N=2**15 is exactly one byte over the 32 MiB
@@ -94,7 +97,50 @@ async function main (): Promise<number> {
             return 0;
         }
 
-        process.stderr.write('usage: admin <create-admin|create-key|project> [...]\n');
+        if (command === 'erase-user') {
+            const { values } = parseArgs({
+                args: rest, options: { email: { type: 'string' }, yes: { type: 'boolean' } },
+            });
+            if (!values.email) {
+                process.stderr.write('usage: admin erase-user --email <e> --yes\n');
+                return 2;
+            }
+            const user = await pool.query<{ id: string }>(
+                'SELECT id FROM users WHERE email = $1', [values.email]);
+            const userId = user.rows[0]?.id;
+            if (userId === undefined) {
+                process.stderr.write(`no user with email ${values.email}\n`);
+                return 1;
+            }
+            if (values.yes !== true) {
+                // Erasure is irreversible and there is no undo anywhere in this system, so the
+                // confirmation is a flag rather than a prompt: a piped or scripted invocation must
+                // never be able to erase an account by inheriting a stdin that happens to say yes.
+                process.stderr.write(
+                    `refusing to erase ${values.email} (${userId}) without --yes\n`);
+                return 2;
+            }
+            const result = await eraseUser(pool, logger, userId);
+            // The audit row is written AFTER the erasure transaction commits, with a NULL actor:
+            // inside it, the row would reference a user the same transaction is deleting.
+            await recordAdminAction(pool, logger, {
+                actorUserId: null, action: 'user_erased', subject: userId,
+                detail: { keysDeleted: result.keysDeleted, requestsScrubbed: result.requestsScrubbed },
+            });
+            // The deleted keys must leave the router's snapshot, or they keep authenticating for as
+            // long as the file is not rewritten — erasure that leaves the credentials live is not
+            // erasure. A refusal here (the last account in the database) is logged by the projector.
+            await projectKeys(pool, config.keysFile, logger);
+            process.stdout.write(
+                `  erased ${userId}\n`
+                + `  keys deleted        ${result.keysDeleted}\n`
+                + `  sessions deleted    ${result.sessionsDeleted}\n`
+                + `  requests scrubbed   ${result.requestsScrubbed}\n`
+                + `  admin_audit scrubbed ${result.adminAuditScrubbed}\n`);
+            return 0;
+        }
+
+        process.stderr.write('usage: admin <create-admin|create-key|project|erase-user> [...]\n');
         return 2;
     } finally {
         await pool.end();

@@ -3,6 +3,16 @@ name: Order Router
 # Scoped to the order-router service only. It is a standalone Node/TypeScript app that depends on
 # the published ccxt package — it is not part of the transpile pipeline, so it deliberately does
 # not run on changes elsewhere in the repo, and nothing here touches ts/src or generated output.
+#
+# The two ts/src paths are the ONE exception, and they are here on purpose. The six-language
+# `OrderRouter` clients (ts/src/base/OrderRouter.ts and its five hand-written ports) talk to THIS
+# service, and their shared fixture ts/src/test/base/fixtures/orderRouter.json is a hand-written
+# snapshot of what the service returns — nothing regenerated it and nothing checked it. The
+# language workflows all `paths-ignore: order-router/**` and this one only fired on
+# `order-router/**`, so the two halves of the contract were path-exclusive by construction: a
+# service-side field rename and a fixture edit could each go green while the pair disagreed. The
+# `fixture-contract` job below is the cheap half of closing that — it runs on both path sets and
+# asserts the fixture against the service's own OpenAPI schema.
 on:
   workflow_dispatch:
   push:
@@ -10,10 +20,14 @@ on:
     paths:
       - 'order-router/**'
       - '.github/workflows/order-router.yml'
+      - 'ts/src/base/OrderRouter.ts'
+      - 'ts/src/test/base/fixtures/orderRouter.json'
   pull_request:
     paths:
       - 'order-router/**'
       - '.github/workflows/order-router.yml'
+      - 'ts/src/base/OrderRouter.ts'
+      - 'ts/src/test/base/fixtures/orderRouter.json'
 
 permissions:
   contents: read
@@ -48,8 +62,17 @@ jobs:
           POSTGRES_DB: orderrouter
         ports:
           - 5432:5432
+        # `-U orderrouter -d orderrouter` is load-bearing, do not "simplify" it back to a bare
+        # `pg_isready`. The health command runs as root INSIDE the postgres container, and
+        # pg_isready with no user defaults to the OS user — role `root`, which does not exist here
+        # because POSTGRES_USER is `orderrouter`. postgres:18 rejects that connection, so the probe
+        # can never pass: the server logged "ready to accept connections" nine seconds before the
+        # first retry, then all five retries logged `FATAL: role "root" does not exist`, the
+        # container was declared unhealthy and the whole job died at "Initialize containers" before
+        # a single step ran. Deterministic, not a race. Quoted so the folded block keeps the two
+        # flags attached to --health-cmd instead of handing them to the health command's shell.
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U orderrouter -d orderrouter"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -128,7 +151,25 @@ jobs:
           if [ "$code" != "401" ]; then echo "::error::expected 401, got $code"; exit 1; fi
 
           # The endpoint the whole service exists for. Booting cleanly and answering /symbols says
-          # nothing about whether routing still works, so exercise it against a real cached book.
+          # nothing about whether routing still works, so exercise it against a real cached book —
+          # but do NOT make a third party's uptime a deploy gate.
+          #
+          # This assertion used to hard-fail when no book arrived within 60s. The only source of a
+          # book here is a live websocket to Kraken from a GitHub runner, so a Kraken outage, a
+          # venue-side block on runner IPs or an egress hiccup failed `build-and-test`, and
+          # `deploy` needs it — meaning a third-party exchange being down blocked every deploy,
+          # including the fix for an in-progress incident. The step's own comment above ("tolerates
+          # exchange unreachability from the runner") had stopped being true.
+          #
+          # What replaces it is a conditional assertion, which is the honest one: routing is only
+          # testable here if a book actually arrived, so ASK first. /orderbook/kraken/BTC/USDT is
+          # 404 until one has. If a book IS cached and /route still cannot produce legs from it,
+          # that is a routing regression and it fails hard, exactly as before. If no book ever
+          # arrived, the venue — not this commit — is the reason, and the step says so loudly and
+          # moves on. The offline suite covers the same path deterministically against a seeded
+          # cache (src/api/server.test.ts: "GET /route derives pair and direction from the asset
+          # pair" and its neighbours), and it runs in the `npm test` step above, so /route is never
+          # unasserted — only its live-venue variant is best-effort.
           echo "--- /route must answer with a route once a book has arrived ---"
           for i in $(seq 1 30); do
             body=$(curl -s -H 'x-api-key: ci-smoke-key' \
@@ -136,14 +177,24 @@ jobs:
             if echo "$body" | grep -q '"legs":\[{'; then break; fi
             sleep 2
           done
-          echo "$body" | grep -q '"pair":"BTC/USDT"' \
-            || { echo "::error::/route did not return a BTC/USDT hop"; echo "$body"; cat /tmp/router.log; exit 1; }
-          echo "$body" | grep -q '"legs":\[{' \
-            || { echo "::error::/route returned no legs"; echo "$body"; exit 1; }
-          echo "$body" | grep -q '"impactBps"' \
-            || { echo "::error::/route response is missing impactBps"; echo "$body"; exit 1; }
-          echo "$body" | grep -q '"requestId"' \
-            || { echo "::error::/route response is missing requestId"; echo "$body"; exit 1; }
+          book_code=$(curl -s -o /dev/null -w '%{http_code}' -H 'x-api-key: ci-smoke-key' \
+            'http://localhost:8080/orderbook/kraken/BTC%2FUSDT')
+          if echo "$body" | grep -q '"legs":\[{'; then
+            echo "$body" | grep -q '"pair":"BTC/USDT"' \
+              || { echo "::error::/route did not return a BTC/USDT hop"; echo "$body"; cat /tmp/router.log; exit 1; }
+            echo "$body" | grep -q '"impactBps"' \
+              || { echo "::error::/route response is missing impactBps"; echo "$body"; exit 1; }
+            echo "$body" | grep -q '"requestId"' \
+              || { echo "::error::/route response is missing requestId"; echo "$body"; exit 1; }
+            echo "/route answered from a live Kraken book"
+          elif [ "$book_code" = "200" ]; then
+            echo "::error::a BTC/USDT book IS cached for kraken and /route still returned no legs"
+            echo "$body"; cat /tmp/router.log; exit 1
+          else
+            echo "::warning::no live Kraken book reached this runner (/orderbook was ${book_code}),"
+            echo "::warning::so the live-venue /route check was skipped. This is NOT an assertion"
+            echo "::warning::about the commit: /route is covered offline in src/api/server.test.ts."
+          fi
 
           # These need no market data, so they assert the contract deterministically.
           echo "--- /route request-shape errors must be distinguishable ---"
@@ -224,6 +275,90 @@ jobs:
           echo "MCP smoke test passed"
 
   # ---------------------------------------------------------------------------------------------
+  # The one job that sees BOTH halves of the OrderRouter contract.
+  #
+  # `ts/src/test/base/fixtures/orderRouter.json` is the shared fixture for the six hand-written
+  # `OrderRouter` client ports. It is a hand-written snapshot of what THIS service returns, and
+  # until now nothing regenerated it and nothing checked it: the language workflows skip
+  # `order-router/**` and this workflow skipped `ts/src/**`, so the client expectations and the
+  # service contract were never in the same run. A field renamed in the service and a fixture that
+  # kept the old name both went green.
+  #
+  # Deliberately NOT a live end-to-end contract job. Booting the service and diffing a real /route
+  # response against the fixture would reintroduce exactly the dependency on a live venue that
+  # item 42 above removes from `build-and-test`. This asserts the fixture against the service's own
+  # published schema instead — `order-router/openapi/openapi.yaml`, which is what the clients are
+  # written against — so it is offline, deterministic and finishes in seconds. It checks shape, not
+  # values: an extra field in the fixture is a client expecting something the service never
+  # promises, and a missing required one is a client that would break on a response the service is
+  # entitled to send.
+  # ---------------------------------------------------------------------------------------------
+  fixture-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: The shared client fixture matches the service's OpenAPI route schema
+        run: |
+          python3 -c 'import yaml' 2>/dev/null || pip install --quiet pyyaml
+          python3 - <<'PYEOF'
+          import json, os, sys, yaml
+
+          root = os.environ['GITHUB_WORKSPACE']
+          schemas = yaml.safe_load(
+              open(os.path.join(root, 'order-router/openapi/openapi.yaml'), encoding='utf-8')
+          )['components']['schemas']
+          fixture = json.load(
+              open(os.path.join(root, 'ts/src/test/base/fixtures/orderRouter.json'), encoding='utf-8')
+          )
+
+          routes = fixture.get('routes') or {}
+          # A fixture emptied of routes would satisfy every check below vacuously.
+          if len(routes) < 4:
+              print('::error::the fixture carries %d routes; it is supposed to be the shared '
+                    'cross-language corpus' % len(routes))
+              sys.exit(1)
+
+          def props (name):
+              return set(schemas[name].get('properties') or {})
+
+          def required (name):
+              return set(schemas[name].get('required') or [])
+
+          problems = []
+
+          def check (where, obj, schema):
+              extra = sorted(set(obj) - props(schema))
+              missing = sorted(required(schema) - set(obj))
+              for field in extra:
+                  problems.append('%s: fixture field "%s" is not in the %s schema — either the '
+                                  'service dropped/renamed it or the fixture invented it'
+                                  % (where, field, schema))
+              for field in missing:
+                  problems.append('%s: the %s schema requires "%s" and the fixture does not carry '
+                                  'it — the clients are not asserting a field the service always '
+                                  'sends' % (where, schema, field))
+
+          for name, route in routes.items():
+              check('routes.%s' % name, route, 'RouteResult')
+              for i, hop in enumerate(route.get('hops') or []):
+                  check('routes.%s.hops[%d]' % (name, i), hop, 'RouteHop')
+                  for j, leg in enumerate(hop.get('legs') or []):
+                      check('routes.%s.hops[%d].legs[%d]' % (name, i, j), leg, 'RouteLeg')
+
+          if problems:
+              for problem in problems:
+                  print('::error::%s' % problem)
+              print('')
+              print('The six OrderRouter client ports assert against this fixture. Reconcile it '
+                    'with order-router/openapi/openapi.yaml, then run `npm run test-order-router`.')
+              sys.exit(1)
+
+          print('%d fixture routes agree with RouteResult/RouteHop/RouteLeg' % len(routes))
+          PYEOF
+
+  # ---------------------------------------------------------------------------------------------
   # Ships the built tree to the VM behind docs.ccxt.com and restarts the systemd unit.
   #
   # `needs: build-and-test` is load-bearing: nothing reaches the box that has not type-checked,
@@ -235,8 +370,82 @@ jobs:
   # installed on the box either, so tar over an ssh pipe is what is actually available — it needs
   # nothing on the far end but ssh and tar, and it lands the tree in one stream.
   # ---------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------
+  # Who owns the deploy, and what happens in a repository that does not.
+  #
+  # `deploy`, `live-integration` and `rollback` are gated on `github.repository`, and that gate
+  # STAYS: a fork must never hold a deploy key for someone else's box (see closed item 9). But the
+  # gate had the failure mode of every silent conditional — merged into a repository that is not
+  # the owner, the three jobs simply never run, GitHub reports the workflow green, and nothing
+  # anywhere says that no deploy happened or who to ask. Someone reads a green tick on master and
+  # believes the router is running their commit.
+  #
+  # This job is the gate, made loud. It is the single place the owning repository is named (the
+  # three jobs below consume its output instead of repeating the string), it runs on exactly the
+  # events that would otherwise deploy, and when it is not the owner it says so in the job log AND
+  # in the run summary, names the owner, and points at the manual procedure. It exits 0 either way:
+  # "this repository does not deploy the router" is a correct state, not a broken build — the bug
+  # was that it was an invisible one.
+  # ---------------------------------------------------------------------------------------------
+  deploy-gate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # The repository that holds ORDER_ROUTER_DEPLOY_* and reaches the box. Change this in ONE
+      # place to move the deploy; do not re-add the literal to the jobs below.
+      DEPLOY_REPOSITORY: pcriadoperez/ccxt
+      # A person, not a team alias, because there is no team. Whoever changes this owns the box.
+      DEPLOY_OWNER: '@pcriadoperez'
+    outputs:
+      # 'true' only in the owning repository. Consumed by deploy, live-integration and rollback.
+      should-deploy: ${{ steps.gate.outputs.should-deploy }}
+    steps:
+      - name: Decide whether this repository deploys the router
+        id: gate
+        # No checkout in this job — it reads nothing from the tree. That makes the workflow-level
+        # `defaults.run.working-directory: order-router` fatal (bash cannot start in a directory
+        # that does not exist), so point this step at the workspace root instead. See the same
+        # trap, solved the other way, in the `rollback` job below.
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ "${GITHUB_REPOSITORY}" = "${DEPLOY_REPOSITORY}" ]; then
+            echo "should-deploy=true" >> "$GITHUB_OUTPUT"
+            echo "${GITHUB_REPOSITORY} is the deploy owner; the deploy jobs will run."
+            exit 0
+          fi
+          echo "should-deploy=false" >> "$GITHUB_OUTPUT"
+          echo "::warning title=order-router was NOT deployed::This run built and tested the"
+          echo "::warning::service but deployed nothing. ${GITHUB_REPOSITORY} is not the deploy"
+          echo "::warning::owner (${DEPLOY_REPOSITORY} is), so it holds no deploy credentials and"
+          echo "::warning::cannot reach the box. A green run here does NOT mean the deployed"
+          echo "::warning::router is running this commit. Owner: ${DEPLOY_OWNER}. Manual"
+          echo "::warning::procedure: order-router/README.md, 'Deploying by hand'."
+          {
+            echo "## order-router: no deploy from this repository"
+            echo
+            echo "This run **built and tested** the service and **deployed nothing**."
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| This repository | \`${GITHUB_REPOSITORY}\` |"
+            echo "| Deploy owner repository | \`${DEPLOY_REPOSITORY}\` |"
+            echo "| Deploy owner | ${DEPLOY_OWNER} |"
+            echo
+            echo "The deploy jobs are gated on the owning repository on purpose: a fork must not"
+            echo "hold a deploy key for a box it does not own. Nothing here is broken — but a"
+            echo "green run on this repository says nothing about what the deployed router is"
+            echo "running."
+            echo
+            echo "To ship this commit: ask ${DEPLOY_OWNER} to run **Order Router →"
+            echo "\`workflow_dispatch\`** on \`${DEPLOY_REPOSITORY}\`, or follow the manual"
+            echo "procedure in \`order-router/README.md\` (\"Deploying by hand\")."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy:
-    needs: build-and-test
+    needs: [ build-and-test, deploy-gate ]
     # Deploys must never overlap or be cancelled midway: the swap is a symlink move followed by a
     # systemd restart, and a run killed between the two leaves the box pointing at a release nothing
     # is serving. Queue instead. Scoped to this job (and `rollback`, which mutates the same symlink)
@@ -247,12 +456,9 @@ jobs:
     # THE guard. This workflow triggers on `pull_request`, so without this every PR — including one
     # from a fork — would reach a job holding the deploy key. GitHub already withholds secrets from
     # fork PRs, but that is a property of the platform, not of this file; this is the explicit belt.
-    # Note the repository name: copying `ccxt/ccxt` from the sibling deploy workflows would make the
-    # job silently never run in this fork.
-    if: >-
-      github.repository == 'pcriadoperez/ccxt' &&
-      (github.event_name == 'workflow_dispatch' ||
-       (github.event_name == 'push' && github.ref == 'refs/heads/master'))
+    # The repository check itself lives in `deploy-gate`, which is also where its ABSENCE is
+    # announced — a repository that is not the owner used to skip this job in total silence.
+    if: needs.deploy-gate.outputs.should-deploy == 'true'
     runs-on: ubuntu-24.04-arm        # arm64 — same box as docs.ccxt.com, so node_modules ships as-is
     timeout-minutes: 30
     # Optional hardening: create an environment named `order-router-prod` with a required reviewer
@@ -500,11 +706,9 @@ jobs:
   # privileged caller here: it passes the same two env vars and gets the same output.
   # ---------------------------------------------------------------------------------------------
   live-integration:
-    needs: deploy
-    if: >-
-      github.repository == 'pcriadoperez/ccxt' &&
-      (github.event_name == 'workflow_dispatch' ||
-       (github.event_name == 'push' && github.ref == 'refs/heads/master'))
+    needs: [ deploy, deploy-gate ]
+    # Same single-sourced gate as `deploy`; see the `deploy-gate` job.
+    if: needs.deploy-gate.outputs.should-deploy == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # What this job learned, as distinct from whether it passed. `rollback` keys on this rather than
@@ -577,10 +781,10 @@ jobs:
   # exists to stop rolling back on. The run is still red; roll back by hand if the deploy is suspect.
   # ---------------------------------------------------------------------------------------------
   rollback:
-    needs: [ deploy, live-integration ]
+    needs: [ deploy, live-integration, deploy-gate ]
     if: >-
       always() &&
-      github.repository == 'pcriadoperez/ccxt' &&
+      needs.deploy-gate.outputs.should-deploy == 'true' &&
       needs.deploy.result == 'success' &&
       needs.live-integration.result == 'failure' &&
       needs.live-integration.outputs.verdict == 'failed'

@@ -1,0 +1,34 @@
+# The console at /router: homepage, docs, self-serve signup, login, key minting and revocation, and
+# the operator-only admin page. Listens on loopback:8090 and serves its own `/router` prefix, so
+# nginx passes the path through unchanged (contrast the API, which is mounted at root and needs the
+# prefix stripped).
+#
+# This is a SEPARATE process from the router on purpose, twice over: a restart here must not cost
+# the router its warm order-book cache, and this is the process that legitimately holds
+# DATABASE_URL. The router deliberately does not have it.
+
+[Unit]
+Description=CCXT order router web console
+Documentation=https://github.com/ccxt/ccxt/tree/master/order-router
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=order-router
+Group=order-router
+WorkingDirectory=/opt/order-router/current
+ExecStart=/usr/bin/node /opt/order-router/current/dist/web/index.js
+EnvironmentFile=/opt/order-router/env
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/order-router /var/log/order-router
+
+[Install]
+WantedBy=multi-user.target

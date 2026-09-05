@@ -1,0 +1,39 @@
+# Audit ingest AND key projection. This is the unit that makes a minted key work and a revoked key
+# stop working: the console writes rows to Postgres, this process projects them into keys.json, and
+# the router reads only that file. A box built from order-router.service alone answers 401 to every
+# caller and nothing in the logs explains why.
+#
+# It also tails the audit log into Postgres for the dashboard's usage view. Note the coupling that
+# makes ordering matter: src/db/ingestRunner.ts exits(1) when ORDER_ROUTER_AUDIT_LOG_FILE is unset,
+# which takes the key projector down with it (open finding #11) — so the env file must set it even
+# on a box where nobody looks at usage.
+
+[Unit]
+Description=CCXT order router audit ingest and key projection
+Documentation=https://github.com/ccxt/ccxt/tree/master/order-router
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=order-router
+Group=order-router
+WorkingDirectory=/opt/order-router/current
+ExecStart=/usr/bin/node /opt/order-router/current/dist/db/ingestRunner.js
+EnvironmentFile=/opt/order-router/env
+
+# `on-failure` is not enough here. The runner exits 1 on a missing audit path and on a fatal
+# Postgres error, and either way an un-projected keys.json is a silent authentication outage:
+# every key minted after it died 401s, and the only symptom is a support ticket. Restart always,
+# and let the liveness alert in ../prometheus/order-router.rules.yml catch a crash loop.
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/order-router /var/log/order-router
+
+[Install]
+WantedBy=multi-user.target

@@ -22,9 +22,11 @@
     "bench:load": "node benchmark/load-test.mjs",
     "bench:multi-connect": "node benchmark/multi-exchange-connect.mjs",
     "test": "tsx --test \"src/**/*.test.ts\"",
-    "copy-assets": "node -e \"const{cpSync,mkdirSync}=require('node:fs');mkdirSync('dist/db',{recursive:true});cpSync('src/db/schema.sql','dist/db/schema.sql');cpSync('src/web/public','dist/web/public',{recursive:true});cpSync('src/web/content','dist/web/content',{recursive:true});cpSync('openapi/openapi.yaml','dist/web/public/openapi.yaml')\"",
+    "copy-assets": "node -e \"const{cpSync,mkdirSync}=require('node:fs');mkdirSync('dist/db',{recursive:true});cpSync('src/db/schema.sql','dist/db/schema.sql');cpSync('src/db/migrations','dist/db/migrations',{recursive:true});cpSync('src/web/public','dist/web/public',{recursive:true});cpSync('src/web/content','dist/web/content',{recursive:true});cpSync('openapi/openapi.yaml','dist/web/public/openapi.yaml')\"",
     "db:migrate": "node dist/db/migrate.js",
     "admin": "node dist/cli/admin.js",
+    "db:backup": "node dist/cli/backup.js backup",
+    "db:backup:verify": "node dist/cli/backup.js verify",
     "ingest": "node dist/db/ingestRunner.js",
     "web": "node dist/web/index.js"
   },

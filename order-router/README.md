@@ -430,11 +430,26 @@ CPU-amplification lever. Unsalted digests are what make the lookup one hash and 
 constant-time by construction, flat in key count, and ~3x cheaper than the single-key `safeCompare`
 it replaced (0.334µs vs 1.006µs).
 
-**Why a CLI and not an admin endpoint.** An admin endpoint has no non-circular answer to its own
-credential: guard it with an admin-flagged key and that key still has to be bootstrapped out of
-band; guard it with a separate static secret and you've rebuilt the shared-secret design this
-replaces, now protecting key *creation*. Either way it's permanent privilege-escalation surface on
-:443. The operator already has SSH.
+**Why there is a CLI *and* an HTTP console.** This section used to argue that key creation must
+never be an HTTP endpoint — that an admin endpoint has no non-circular answer to its own credential,
+and is permanent privilege-escalation surface on :443. The console shipped anyway, and the argument
+was answered rather than ignored, so here is what actually resolves it.
+
+The circularity is broken by keeping exactly one credential out of band: `npm run admin --
+create-admin` over SSH mints the first operator account, and every subsequent privilege comes from
+a session on that account. Nothing on :443 can create an admin. The escalation surface is real and
+is bounded deliberately: `/router/dashboard` mints and revokes keys **scoped by the `user_id` on the
+session**, never by anything in the request body — taking the owner from the form would be a
+textbook IDOR — and `/router/admin` is gated on `is_admin`, which only the CLI can set. Both
+mutating routes are CSRF-checked and Origin-checked, and both write to `admin_audit`, because
+minting a credential is one of the two events an incident review starts from.
+
+The CLI is still the break-glass path and is the only way in when the database is reachable but the
+console is not: `create-admin`, `create-key`, `project` (force a key projection) and `erase-user`.
+The honest cost of the console existing is that a stolen operator session cookie now mints API keys,
+where before it needed SSH. Session cookies carry the `__Host-` prefix and the admin page is gated
+separately for that reason, but this is a trade the beta made in exchange for self-serve signup, not
+a risk that was designed away.
 
 Per-key overrides: `--rate-limit N` (own rate-limit bucket size) and `--ws-max N` (own concurrent
 stream cap). Rate-limit buckets are keyed by the stable key id, never by the secret, so the secret
@@ -496,10 +511,17 @@ cardinality trap the codebase already avoids for `/orderbook/:exchange/:symbol`.
 
 ### Still not an identity system
 
-No scopes, no expiry, no quotas. (Signup *is* self-serve — see the web console — but an account
-is still one undifferentiated level of access.) Every endpoint is read-only, so there is
-nothing to separate yet; a stored-but-unenforced `scopes` field would be worse than none, and the
-loader rejects one outright rather than ignoring it. See `docs/product-plan.md` for the design the
+No scopes, no expiry, no quotas. Signup is self-serve, and an account is one undifferentiated
+level of access with exactly one exception: `is_admin`, which only the CLI can grant.
+
+The *API* is read-only — every endpoint an API key reaches is a GET that computes a recommendation
+and places no orders — so there is nothing for key scopes to separate yet, and a
+stored-but-unenforced `scopes` field would be worse than none (the loader rejects one outright
+rather than ignoring it). The *console* is not read-only: a session cookie mints and revokes API
+keys at `/router/dashboard`, and an admin session reads every user's email, plan and usage at
+`/router/admin`. Those are session-authenticated routes, not key-authenticated ones, which is why
+key scopes would not constrain them anyway — the missing granularity there is a role model, and
+there are two roles. See `docs/product-plan.md` for the design the
 service actually implements, and `docs/auth-plan.md` for the reasoning behind the key format and
 the lookup path — its storage decisions were replaced by product-plan §3, and its header says so.
 
@@ -639,6 +661,11 @@ file that exists — so a new area cannot be added without a row.
 | Key projection | `src/db/keyProjection.test.ts` | revocation vs. a lost database, Postgres outages leaving the snapshot intact |
 | Usage ingest | `src/db/ingest.test.ts` | cursor handling, unparseable addresses, partition rollover, paired records |
 | Admin audit | `src/db/adminAudit.test.ts` | what is written, `inet` safety, a failed write never failing the action |
+| Schema migrations | `src/db/migrations.test.ts` | numbering, an edited migration refused, a database ahead of the build refused, rollback on failure |
+| Ingest/projector runner | `src/db/runner.test.ts` | the key projector still running with no audit log configured, a throwing projection counted rather than swallowed |
+| Ingest health | `src/db/ingestHealth.test.ts` | staleness budgets, a stopped projector reported while ingest succeeds, `/health` 503 naming the stale loop |
+| Erasure | `src/db/erasure.test.ts` | scrub-then-delete ordering across the event tables, all-or-nothing rollback |
+| Backup pruning | `src/cli/backup.test.ts` | dump naming, the retention floor, never deleting another service's dumps |
 | Web console | `src/web/home.test.ts`, `src/web/reveal.test.ts`, `src/web/keyAudit.test.ts`, `src/web/authGuards.test.ts` | security and cache headers, the one-time key reveal, key-lifecycle audit rows, cookie prefixes |
 | Metrics | `src/metrics.test.ts` | every gauge's label set and collect path |
 | Config | `src/config.test.ts`, `src/config.docs.test.ts` | parsing and defaults, and that every env var is documented |
@@ -655,8 +682,34 @@ that requires spawning real subprocesses with real network access).
 
 ## Deploying behind nginx on a VPS
 
-nginx terminates TLS, so the service does not do TLS itself and there is no certificate handling
-in this codebase. Three things must be configured or the deployment is subtly broken.
+nginx terminates TLS, so the service does not do TLS itself and there is no certificate handling in
+this codebase.
+
+**The config that runs is [`docs/deploy/nginx/docs.ccxt.com-router.conf`](docs/deploy/nginx/docs.ccxt.com-router.conf).**
+Read that file rather than reconstructing a server block from the prose below: it is the real path
+layout, with the comments explaining why each location is shaped the way it is. What was here
+before was a plausible-looking `server_name router.example.com` block with `location /` and
+`location /stream/`, and production has never had that shape — an operator who pasted it got a
+router on a hostname that does not exist, proxying paths the app does not serve.
+
+The service does not own a hostname. It lives under `docs.ccxt.com`, on a VM whose nginx also
+fronts CCXT's own site and two other deploy pipelines, so the router's config is an **include**
+inside that shared server block, not a server block of its own. The practical consequence is worth
+stating plainly: `nginx -t` failing on the router's snippet takes those two unrelated deploys down
+with it. Test before every reload.
+
+The paths, per [`docs/product-plan.md`](docs/product-plan.md) §2:
+
+| Public path | Upstream | Prefix handling |
+|---|---|---|
+| `docs.ccxt.com/router/` | console, `127.0.0.1:8090` | passed through — the app serves its own `/router` prefix (`ORDER_ROUTER_WEB_BASE`) |
+| `docs.ccxt.com/router/api/` | router, `127.0.0.1:8080` | **stripped** — the API is mounted at the root of its process |
+| `docs.ccxt.com/router/api/stream/` | router, `127.0.0.1:8080` | stripped, plus the WS upgrade headers |
+
+Getting those two prefix rules backwards is the easy mistake, and it fails asymmetrically: every
+console link 404s while every API route quietly resolves one segment deep.
+
+Three things must be configured or the deployment is subtly broken.
 
 **1. Bind to loopback.** Set `HOST=127.0.0.1` (default is `0.0.0.0`). Otherwise the service is
 reachable directly on port 8080, bypassing nginx and therefore bypassing TLS — the API key would
@@ -678,59 +731,26 @@ number of proxies you actually control: `1` for nginx alone, `2` for a CDN in fr
 (the default) when nothing is in front. `true` is still accepted and means `1`.
 
 nginx must also overwrite the header rather than pass a client value through
-(`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`, as below).
+(`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for`, as the shipped config does).
 
 **3. Keep the WS heartbeat under `proxy_read_timeout`.** nginx closes an idle upstream connection
 on its own timer (default 60s). `ORDER_ROUTER_WS_IDLE_TIMEOUT_MS` now defaults to 30s for that
-reason. If you raise one, raise the other. This bug hides on liquid pairs — a busy book keeps the
-connection full of real data — and only appears on quiet symbols, where the stream silently drops
-about once a minute.
+reason, and the shipped config sets `proxy_read_timeout 120s` on the stream location. If you raise
+one, raise the other. This bug hides on liquid pairs — a busy book keeps the connection full of
+real data — and only appears on quiet symbols, where the stream silently drops about once a minute.
 
-```nginx
-upstream order_router { server 127.0.0.1:8080; }
+**No IP allowlist on `/metrics`.** This section used to suggest one (`allow 10.0.0.0/8; deny all;`)
+and it cannot be used as written: `/metrics` is authenticated in the app like every other
+non-`/health` route, the CI live-integration job asserts against it from GitHub-hosted runners with
+no fixed egress range, and there is no scraper network on this box to allow. The key is the access
+control. Add the allowlist if and when a scraper runs off-box from a stable address — one that has
+to be widened to `0.0.0.0/0` during the first incident is worse than none, because it reads like
+protection.
 
-server {
-    listen 443 ssl http2;
-    server_name router.example.com;
-
-    ssl_certificate     /etc/letsencrypt/live/router.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/router.example.com/privkey.pem;
-
-    location / {
-        proxy_pass http://order_router;
-        proxy_set_header Host              $host;
-        # $proxy_add_x_forwarded_for appends the real peer; it does not trust what the client sent.
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # /stream/route needs the upgrade headers; without them the handshake 400s.
-    location /stream/ {
-        proxy_pass http://order_router;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade    $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host       $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        # Must exceed ORDER_ROUTER_WS_IDLE_TIMEOUT_MS or nginx reaps quiet streams first.
-        proxy_read_timeout 120s;
-        proxy_send_timeout 120s;
-    }
-
-    # /metrics is authenticated, but there is no reason to expose it publicly as well.
-    location /metrics {
-        allow 10.0.0.0/8;   # scraper network
-        deny  all;
-        proxy_pass http://order_router;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}
-```
-
-nginx also gives you a second, IP-level rate limit (`limit_req_zone`) in front of the app's
-per-key limit, and can enforce client certificates or IP allowlists if you want a second factor
-alongside the shared API key. What it does **not** solve: the API key is still a single shared
-secret with no rotation or revocation, so per-client identity remains an open gap.
+nginx also gives you a second, IP-level rate limit (`limit_req_zone`, commented into the shipped
+config) in front of the app's per-key limit, and can enforce client certificates if you want a
+second factor. What it does **not** solve is anything about identity inside the app: see
+"Still not an identity system" for what per-key auth does and does not give you.
 
 ## Deploying from CI
 
@@ -825,6 +845,21 @@ in the workflow in the clear, because it is the address customers already use.
 
 ### One-time setup on the box
 
+**The files are in the repo: [`docs/deploy/`](docs/deploy/).** The three units, an env-file
+template, the nginx snippet, the logrotate config and the Prometheus scrape and rules all live
+there as real files. What follows quotes the load-bearing lines of them inline, because an operator
+pasting a unit onto a box should not have to open a second file to learn which lines matter — but
+`docs/deploy/` is the source of truth, and the copies here are checked against it by
+`src/docs.test.ts`.
+
+Be clear about what versioning them does and does not buy. It makes a config change reviewable: it
+gets a diff and a reviewer instead of being an ssh session nobody saw. It does **not** make a
+rollback restore config — the release tarball is still code only, and the activate step still
+installs nothing — so a rollback restores `dist` and leaves whatever is in `/etc/systemd/system`
+untouched, and a change made directly on the box still drifts silently from what is here.
+[`docs/deploy/README.md`](docs/deploy/README.md) has the exact workflow change that would close
+that.
+
 The deploy assumes a release-dir layout and a `current` symlink. Create it once, **before** the
 first CI deploy, or the swap and the rollback have nothing to swap:
 
@@ -902,6 +937,12 @@ systemctl enable --now order-router order-router-web order-router-ingest
 
 Then confirm `curl -H "x-api-key: …" localhost:8080/version` answers. The deploy keeps the last five releases, so
 a manual rollback is `ln -sfn /opt/order-router/releases/<sha> /opt/order-router/current && systemctl restart order-router`.
+
+Two things the bootstrap above does not install, and should be done in the same sitting rather than
+after the first incident: `docs/deploy/logrotate/order-router` into `/etc/logrotate.d/` (this box
+has 7.5 GB and two other production deploys on it), and `docs/deploy/nginx/docs.ccxt.com-router.conf`
+into the shared nginx config — `nginx -t` before reloading, because that reload is not only yours.
+See "Metrics" for the scrape and alert rules, which are the third.
 
 ### Post-deploy live tests
 
@@ -1005,9 +1046,59 @@ Histogram labels use the **route template** (`/orderbook/:exchange/:symbol`), ne
 Labelling by concrete symbol would mint one series per symbol across a ~10k routable universe and
 blow up Prometheus cardinality.
 
-Suggested alerts: `order_router_exchange_last_update_age_seconds > 60` (dead subscription),
-`order_router_stale_books / order_router_cached_books > 0.2` (widespread staleness),
-`rate(order_router_exchange_reconnects_total[5m])` above a per-exchange baseline (reconnect storm).
+### Scraping and alerting
+
+Nothing scraped this endpoint for as long as it has existed, so the instrumentation was real and
+the monitoring was not: a dead exchange subscription was found by a caller, not by us. The scrape
+config and the alert rules are now in the repo —
+[`docs/deploy/prometheus/scrape.yml`](docs/deploy/prometheus/scrape.yml) and
+[`docs/deploy/prometheus/order-router.rules.yml`](docs/deploy/prometheus/order-router.rules.yml).
+
+Two things about them worth knowing before you install them.
+
+**The scraper needs a key of its own.** `/metrics` is authenticated like everything else, and the
+API accepts `Authorization: Bearer <key>`, which is what Prometheus can express natively. Mint a
+dedicated key (`npm run admin -- create-key --email ops@example.com --name prometheus`) rather than
+reusing the CI smoke key: they rotate on different schedules, and a scraper that goes dark because
+someone rotated a CI secret is an outage you learn about from the *absence* of alerts.
+
+**No threshold in that file has been validated against real series**, because there are none yet.
+They are written against the semantics in `src/metrics.ts`, have not been through `promtool check
+rules` (run it before installing), and every constant should be treated as a starting point for the
+first fortnight. One correction is already in
+there: the suggestion this section used to carry, `stale_books / cached_books > 0.2`, was wrong by
+construction — that ratio reads about **0.75 on a healthy system**, because the cache is dominated
+by an illiquid tail that legitimately does not tick, as the `shard_event_loop_utilization` row
+above says two paragraphs earlier. It would have fired from the first scrape and been silenced
+within a day. The shipped rule uses `> 0.9` sustained for 15 minutes, which is a guess with the
+right shape rather than a measured baseline; the honest long-term form is a deviation from a
+rolling median, which cannot be written before the median exists.
+
+The rules file also names what it *cannot* cover: the ingest runner has no HTTP listener at all, so
+a stopped ingest runner — which is a silent authentication outage, since it is the process that
+projects `keys.json` — is invisible to Prometheus. `systemctl status order-router-ingest` on the
+box is the only check today, which is to say there is no check.
+
+### Log volume and rotation
+
+`/metrics` is not the only thing that goes unwatched on a 7.5 GB box shared with two other
+production deploys. The audit log is a file (`ORDER_ROUTER_AUDIT_LOG_FILE`) that nothing rotated;
+the diagnostic stream goes to journald, which defaults to taking 10% of the filesystem — and
+`LOG_LEVEL=warn` exists precisely because one misbehaving exchange wrote 930MB of retry chatter.
+
+[`docs/deploy/logrotate/order-router`](docs/deploy/logrotate/order-router) rotates the audit log and
+carries the journald caps as comments. It uses `create`, never `copytruncate`: under
+`copytruncate` the file keeps its inode and drops to zero length, which puts the ingest runner's
+committed byte offset past the end of the file — `src/db/ingest.ts` reads that as "nothing new" and
+the cursor never advances again, silently, forever. Under `create` the rotated file keeps its inode
+and the ingest runner looks it up *by* inode, drains it, and only then follows the new one.
+
+The writer side is not finished, and the config says so where an operator will see it: pino opens
+the audit destination once and holds the fd, so after rotation the router keeps appending to the
+renamed inode. `SIGHUP` is already the key-reload signal, so the postrotate block restarts the
+units instead — which for the router costs a full book-cache rebuild, which is why the schedule is
+monthly-with-a-size-guard rather than daily. `docs/deploy/README.md` has the small `SIGUSR2`
+reopen handler that would replace it.
 
 ## Continuous integration
 
@@ -1149,7 +1240,14 @@ Coinbase streams close to the full book.
 
 ## Production readiness
 
-Not ready to expose publicly. Honest status of the blockers:
+**It is exposed publicly**, at `https://docs.ccxt.com/router/`, with self-serve signup, on the
+same VM as CCXT's docs and two other deploy pipelines. This section used to open with "Not ready to
+expose publicly", which stayed there through the deploy that exposed it — so the table below was
+read as a list of reasons it had not shipped, when it is a list of things that are true of
+something serving real traffic.
+
+Read it as the beta's risk register. Nothing in the Open rows is a blocker anybody is waiting on;
+they are the known ways this can fail in production right now:
 
 | Blocker | Status |
 |---|---|
@@ -1159,10 +1257,12 @@ Not ready to expose publicly. Honest status of the blockers:
 | Never run against many exchanges at once | **Closed for connection concurrency** — 28 simultaneous live exchanges verified. **Still open for full symbol load** (55k subscriptions) |
 | Not in CI | **Closed** — build + tests + boot/auth smoke tests on every change |
 | Binance/Bybit/OKX never live-tested | **Open** — geo-blocked from every environment available here |
-| No TLS, runs plain HTTP | **Closed for a proxied deployment** — nginx terminates TLS; config, loopback binding, `trustProxy` and WS timeout pitfalls documented above. Still no TLS if run without a proxy. |
+| No TLS, runs plain HTTP | **Closed** — nginx terminates TLS on `docs.ccxt.com`; the real snippet is `docs/deploy/nginx/`, with loopback binding, `trustProxy` and the WS timeout pitfall documented above. Still no TLS if run without a proxy. |
 | No soak testing | **Open** — longest continuous run is minutes, not hours/days |
-| No metrics/alerting | **Closed for instrumentation** — Prometheus `/metrics` with staleness, reconnect, throughput and event-loop-lag signals. **Still open:** nothing scrapes it and no alerts are wired up; the suggested rules above are untested. |
+| No metrics/alerting | **Closed for instrumentation and for the config** — Prometheus `/metrics`, plus a scrape config and alert rules in `docs/deploy/prometheus/`. **Still open:** nothing has installed them on the box yet, so nothing scrapes it in production; and no threshold in the rules has been validated against real series, because there are none. The ingest runner exports no metrics at all, so its liveness is uncovered. |
 | No HA/failover | **Open** — a dead process is an outage |
+| Deploy restores code but not config | **Open** — `docs/deploy/` versions the units, env template, nginx snippet, logrotate and Prometheus rules, so a config change is now reviewable. The release tarball is still code only and the activate step installs none of it, so a rollback does not roll config back and on-box edits still drift. `docs/deploy/README.md` has the workflow change. |
+| No log rotation | **Closed for the config, open on the box** — `docs/deploy/logrotate/order-router`, `create` not `copytruncate` for the reasons in Metrics. It is not installed yet, and completing a rotation currently costs a service restart until an audit-log reopen signal exists. |
 | Unbounded WS connections (finding #4b) | **Closed** — per-key concurrency cap + heartbeat reaper, regression-tested |
 
 ## Known gaps / next steps

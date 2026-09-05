@@ -1,0 +1,168 @@
+# Alerting rules for the order router.
+#
+# HONEST STATUS: these are written against the metric names and semantics in src/metrics.ts, and
+# but nothing here has been run: no threshold has been validated against real series (nothing has
+# ever scraped this endpoint), and `promtool` is not available in this checkout, so run
+# `promtool check rules` yourself before installing. Treat every `for:` and every constant as
+# a starting point to tune in the first fortnight, not as a researched limit. The two that are most
+# likely wrong are marked.
+#
+# Where they are wrong is also predictable: this box has one router process, so anything phrased as
+# a ratio over the whole cache is dominated by the illiquid tail.
+#
+# Install: /etc/prometheus/rules/order-router.rules.yml, add to `rule_files`, `promtool check rules`
+# it, then reload Prometheus. Delivery target is set per-alert via the `channel` label; a rule with
+# no route in alertmanager.yml is a rule that fires into nothing, which is indistinguishable from
+# a healthy service.
+
+groups:
+  - name: order-router-availability
+    rules:
+      - alert: OrderRouterDown
+        # The first rule to write and the one people forget: every other alert here is silent when
+        # the target is gone, because the series simply stop. `up == 0` is what notices.
+        expr: up{job="order-router"} == 0
+        for: 2m
+        labels: { severity: page, channel: ops }
+        annotations:
+          summary: "order-router is not answering /metrics"
+          description: >-
+            Either the process is down, nginx is broken, or the scrape key was revoked. Check
+            `systemctl status order-router` first, then `nginx -t` — that config is shared with two
+            other deploy pipelines, so a bad reload elsewhere takes this down too.
+
+      - alert: OrderRouterMetricsAbsent
+        # `up` stays 1 while a target answers 200 with an empty or partial body. A collect()-based
+        # exporter that throws mid-render does exactly that.
+        expr: absent(order_router_cached_books)
+        for: 5m
+        labels: { severity: page, channel: ops }
+        annotations:
+          summary: "order-router answers /metrics but the cache gauges are missing"
+
+  - name: order-router-data-quality
+    rules:
+      - alert: OrderRouterExchangeStale
+        # The most important alert in the file. An exchange can hold an open socket while its
+        # subscription is silently dead: `connected` stays 1, nothing errors, and the router keeps
+        # ranking on rotting data and answering with confidence. Connection state alone never
+        # catches this.
+        #
+        # An exchange that has NEVER updated reports process uptime rather than 0, so this also
+        # catches a connector that produced no message at all — which is why the threshold is well
+        # above any plausible quiet-book interval rather than a few seconds.
+        expr: order_router_exchange_last_update_age_seconds > 60
+        for: 5m
+        labels: { severity: page, channel: ops }
+        annotations:
+          summary: "{{ $labels.exchange }} order books are {{ $value | humanizeDuration }} old"
+          description: >-
+            Ranking is running on stale data for this venue. Restarting the router clears it but
+            costs a full book-cache rebuild; check the connector logs for a silent resubscribe
+            failure first.
+
+      - alert: OrderRouterCacheWidelyStale
+        # NOT `stale_books / cached_books > 0.2`, which is what the README used to suggest and what
+        # this rule replaces. That ratio reads about 0.75 on a HEALTHY system — the cache is
+        # dominated by illiquid symbols that legitimately do not tick — so 0.2 would have fired
+        # permanently from the first scrape and been silenced within a day.
+        #
+        # 0.9 is a guess with the right shape, not a measured baseline. Tune it once there are two
+        # weeks of series: the honest long-term form of this rule is a deviation from a rolling
+        # median, which cannot be written before the median exists.
+        expr: order_router_stale_books / order_router_cached_books > 0.9
+        for: 15m
+        labels: { severity: warn, channel: ops }
+        annotations:
+          summary: "{{ $value | humanizePercentage }} of cached books are too old to rank with"
+
+      - alert: OrderRouterReconnectStorm
+        # Reconnect storms were a real observed failure in live testing — 1,000 to 2,500 reconnects
+        # in 15 seconds. This is the signal that they are back. Per-exchange, because the storms
+        # were per-exchange and a whole-service rate buries one bad venue in 27 good ones.
+        expr: rate(order_router_exchange_reconnects_total[5m]) > 1
+        for: 10m
+        labels: { severity: warn, channel: ops }
+        annotations:
+          summary: "{{ $labels.exchange }} is reconnecting {{ $value | printf \"%.1f\" }}/s"
+          description: >-
+            Usually ORDER_ROUTER_MAX_SYMBOLS_PER_EXCHANGE is too high for this venue. The value used
+            in testing (coinbase:25) was a stabilising starting point, not a researched limit.
+
+      - alert: OrderRouterCoverageDropped
+        # Discovery or subscriptions regressed. A drop is invisible in every other signal: a router
+        # tracking half the symbols it did yesterday is perfectly healthy by liveness, latency and
+        # staleness, and simply answers "no route" more often.
+        expr: >-
+          order_router_cached_symbols
+            < 0.5 * avg_over_time(order_router_cached_symbols[6h] offset 6h)
+        for: 30m
+        labels: { severity: warn, channel: ops }
+        annotations:
+          summary: "routable symbol coverage halved ({{ $value }} symbols)"
+
+  - name: order-router-saturation
+    rules:
+      - alert: OrderRouterShardSaturated
+        # The saturation signal. Starvation is otherwise invisible: a saturated shard keeps its
+        # sockets open, logs nothing, and just stops delivering updates. CPU%, load average and
+        # stale_books all fail to show it cleanly.
+        expr: order_router_shard_event_loop_utilization > 0.9
+        for: 10m
+        labels: { severity: warn, channel: ops }
+        annotations:
+          summary: "shard {{ $labels.shard }} loop utilisation {{ $value | humanizePercentage }}"
+
+      - alert: OrderRouterShardGone
+        # Distinguishes "shard is busy" from "shard is gone" — a dead shard reports nothing at all,
+        # so utilisation above cannot fire for it.
+        expr: order_router_shards_reporting < order_router_shards_expected
+        for: 5m
+        labels: { severity: page, channel: ops }
+        annotations:
+          summary: "{{ $value }} shards reporting, fewer than expected"
+
+  - name: order-router-host
+    rules:
+      # REQUIRES node_exporter, which is not installed on this box today. Without it these two are
+      # inert — they will never fire and never error, which is the failure mode this whole file
+      # exists to avoid. Install node_exporter or delete this group; do not leave it as decoration.
+      - alert: OrderRouterDiskFilling
+        # 7.5 GB, shared with two other production deploys. The realistic consumers are journald
+        # (LOG_LEVEL=warn exists because one exchange wrote 930MB of retry chatter), Postgres — whose
+        # retention during the beta is explicitly FOREVER — and the five retained release trees,
+        # each carrying its own node_modules.
+        expr: >-
+          node_filesystem_avail_bytes{mountpoint="/"}
+            / node_filesystem_size_bytes{mountpoint="/"} < 0.15
+        for: 15m
+        labels: { severity: page, channel: ops }
+        annotations:
+          summary: "root filesystem {{ $value | humanizePercentage }} free"
+          description: >-
+            Check journald usage (`journalctl --disk-usage`), the Postgres data directory, and
+            /opt/order-router/releases before deleting anything. A disk-full here takes down the
+            two unrelated deploys on this VM as well.
+
+      - alert: OrderRouterDiskWillFill
+        # Slope, not level. The level alert above fires with hours of warning at best when something
+        # is writing fast; this one fires with days of warning when something is writing steadily.
+        expr: >-
+          predict_linear(node_filesystem_avail_bytes{mountpoint="/"}[6h], 4 * 24 * 3600) < 0
+        for: 1h
+        labels: { severity: warn, channel: ops }
+        annotations:
+          summary: "root filesystem projected full within 4 days"
+
+  # NOT COVERED, because the metrics do not exist yet, not because the risk is smaller:
+  #
+  #   - Ingest liveness. src/db/ingestRunner.ts has no HTTP listener at all — no /health, no
+  #     /metrics — so a stopped ingest runner is invisible here. It is also the process that
+  #     projects keys.json, which makes its death a silent AUTHENTICATION outage: every key minted
+  #     afterwards 401s. This is open finding #27, and the alert to write once the endpoint exists
+  #     is `time() - order_router_ingest_last_success_timestamp_seconds > 300`.
+  #   - Console liveness. Same shape: dist/web/index.js serves /router/health, but nothing scrapes
+  #     it and it exports no metrics.
+  #
+  # Until then, `systemctl status order-router-ingest` on the box is the only check, which is to
+  # say there is no check.

@@ -1,0 +1,42 @@
+# Scrape config for the order router. Merge the `scrape_configs` entry into prometheus.yml and add
+# order-router.rules.yml to `rule_files`.
+#
+# Nothing scrapes /metrics today — the endpoint has existed and been unread since it shipped, which
+# is why every alert in order-router.rules.yml is untested against real series. This file is the
+# missing half.
+
+# rule_files:
+#   - /etc/prometheus/rules/order-router.rules.yml
+
+scrape_configs:
+  - job_name: order-router
+    # /metrics is DERIVED from cache state at scrape time (a collect() callback over the book
+    # cache), not incremented alongside it. That makes it slightly more expensive than a counter
+    # read and makes a very tight interval pointless: nothing in it changes faster than the book
+    # staleness window.
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /router/api/metrics
+    scheme: https
+    static_configs:
+      - targets: ['docs.ccxt.com']
+        labels:
+          service: order-router
+          env: prod
+
+    # /metrics is authenticated like every other non-/health route, deliberately: it exposes the
+    # venue list, traffic volume and internal health — exactly the reconnaissance an attacker
+    # wants. The API accepts `Authorization: Bearer <key>` as well as `x-api-key`, and Bearer is
+    # the one Prometheus can express without http_headers (2.49+).
+    #
+    # Mint a dedicated key for this — `npm run admin -- create-key --email ops@example.com --name prometheus` — never reuse
+    # the CI smoke key. They get revoked on different schedules, and a scraper that goes dark
+    # because someone rotated a CI secret is an outage you find out about from the absence of
+    # alerts.
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/order-router.key   # 0600, owned by prometheus
+
+    # The router runs on loopback:8080 behind nginx. Scraping through nginx (rather than the
+    # loopback port) is deliberate here — unlike the deploy smoke test, an alerting scraper SHOULD
+    # go dark when the proxy is broken, because from a caller's point of view the service is down.

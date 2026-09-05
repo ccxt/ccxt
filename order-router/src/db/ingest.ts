@@ -21,6 +21,11 @@ export interface IngestStats {
     linesRead: number;
     requestsInserted: number;
     batches: number;
+    // Byte offset the cursor was committed at, and the size of the live file when the pass ended.
+    // Reported so the runner can publish `size - cursorOffset` as cursor lag: a wedged ingester is
+    // otherwise indistinguishable from an idle one, since both insert zero rows.
+    cursorOffset: number;
+    fileSize: number;
 }
 
 interface AuditLine {
@@ -241,6 +246,7 @@ async function drainFile (
     logger: Logger, stats: IngestStats,
 ): Promise<void> {
     let offset = startOffset;
+    stats.cursorOffset = startOffset;
     for (;;) {
         const read = readLines(filePath, offset);
         const { lines, size } = read;
@@ -423,6 +429,7 @@ async function drainFile (
             client.release();
         }
         offset = nextOffset;
+        stats.cursorOffset = offset;
     }
 
 }
@@ -430,11 +437,15 @@ async function drainFile (
 export async function ingestOnce (
     pool: Pool, path: string, stream: string, logger: Logger,
 ): Promise<IngestStats> {
-    const stats: IngestStats = { linesRead: 0, requestsInserted: 0, batches: 0 };
+    const stats: IngestStats = {
+        linesRead: 0, requestsInserted: 0, batches: 0, cursorOffset: 0, fileSize: 0,
+    };
 
     let inode: number;
     try {
-        inode = statSync(path).ino;
+        const st = statSync(path);
+        inode = st.ino;
+        stats.fileSize = st.size;
     } catch {
         return stats;   // the router has not written anything yet
     }
@@ -479,12 +490,22 @@ export async function ingestOnce (
     }
 
     await drainFile(pool, path, stream, offset, inode, logger, stats);
+    stats.fileSize = statSync(path).size;
 
     return stats;
 }
 
+// Reported after every pass, successful or not. The ingest process has no other way to say it is
+// alive: a healthy pass inserts zero rows most of the time, so "no error in the log" and "the
+// process died an hour ago" look identical from outside. See ingestHealth.ts.
+export interface IngestObserver {
+    onSuccess?: (stats: IngestStats) => void;
+    onError?: (err: unknown) => void;
+}
+
 export function startIngest (
     pool: Pool, path: string, stream: string, intervalMs: number, logger: Logger,
+    observer: IngestObserver = {},
 ): () => void {
     let running = false;
     let stopped = false;
@@ -496,8 +517,10 @@ export function startIngest (
             if (stats.requestsInserted > 0) {
                 logger.info({ ...stats }, 'ingested audit records');
             }
+            observer.onSuccess?.(stats);
         } catch (err) {
             logger.error({ err }, 'audit ingest failed; the cursor did not advance');
+            observer.onError?.(err);
         } finally {
             running = false;
         }

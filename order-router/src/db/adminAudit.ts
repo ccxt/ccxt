@@ -17,7 +17,10 @@ import type { Pool } from './pool.js';
 export type AdminAction =
     | 'key_created'
     | 'key_revoked'
-    | 'key_revoked_by_admin';
+    | 'key_revoked_by_admin'
+    // Erasure leaves a trail deliberately: the record of WHICH account was erased and when is the
+    // only thing left afterwards, and a deletion nobody can account for is its own incident.
+    | 'user_erased';
 
 export interface AdminAuditEntry {
     actorUserId: string | null;
