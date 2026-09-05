@@ -178,6 +178,8 @@ int runResponseTests (const std::string& only) {
     auto bootstrap = newExchange<binance> ();
     const std::any fixture = bootstrap->parseJson (readFile (path));
     const std::any options = ::getValue (fixture, std::string ("options"));
+    const std::vector<std::string> skipKeys =
+        stringList (::getValue (fixture, std::string ("skipKeys")));
     const std::any methods = ::getValue (fixture, std::string ("methods"));
     if (!isDict (methods)) {
         std::cout << "[TEST_FAILURE] fixture has no methods block" << std::endl;
@@ -195,14 +197,45 @@ int runResponseTests (const std::string& only) {
         for (const auto& entryAny : std::any_cast<list> (kv.second).items ()) {
             std::string label = methodName;
             try {
+                const std::any disabledFlag = ::getValue (entryAny, std::string ("disabled"));
+                if (disabledFlag.has_value ()
+                    && (isTrue (disabledFlag) || (isStr (disabledFlag) && !str (disabledFlag).empty ()))) {
+                    report.skipped++;
+                    continue;
+                }
                 auto exchange = offlineExchange (options);
                 label = methodName + " [" + describeEntry (*exchange, entryAny) + "]";
-                // Feeding the canned body into the method requires the http layer to
-                // be mockable, which it is not yet: fetch() is a hard stub rather than
-                // a swappable transport. Reported, not silently skipped.
-                std::cout << "[SKIP][STATIC_RESPONSE][binance][" << label
-                          << "] needs a mockable fetch(); the C++ transport is still a stub"
-                          << std::endl;
+                const std::any entryOptions = ::getValue (entryAny, std::string ("options"));
+                if (isDict (entryOptions)) {
+                    exchange->options = exchange->deepExtend (exchange->options, entryOptions);
+                }
+                // install the canned body as the transport, the C++ counterpart of
+                // setFetchResponse(); everything above it -- sign, request, the parse*
+                // chain -- runs unmodified
+                const std::any httpResponse = ::getValue (entryAny, std::string ("httpResponse"));
+                exchange->fetchImpl = [httpResponse] (std::any, std::any, std::any, std::any) {
+                    return httpResponse;
+                };
+                const std::any input = ::getValue (entryAny, std::string ("input"));
+                const std::any expected = ::getValue (entryAny, std::string ("parsedResponse"));
+                std::any actual;
+                try {
+                    actual = exchange->callMethod (std::string (methodName),
+                                                   input.has_value () ? input : std::any (list {}));
+                } catch (const std::exception& e) {
+                    std::cout << "[TEST_FAILURE][STATIC_RESPONSE][binance][" << label << "] "
+                              << e.what () << std::endl;
+                    report.failed++;
+                    continue;
+                }
+                std::string why;
+                if (sameAny (expected, actual, skipKeys, why)) {
+                    report.passed++;
+                } else {
+                    std::cout << "[TEST_FAILURE][STATIC_RESPONSE][binance][" << label << "] "
+                              << why << std::endl;
+                    report.failed++;
+                }
             } catch (const std::exception& e) {
                 std::cout << "[TEST_FAILURE][STATIC_RESPONSE][binance][" << label << "] "
                           << e.what () << std::endl;
@@ -211,8 +244,7 @@ int runResponseTests (const std::string& only) {
         }
     }
     std::cout << "static response tests: " << report.passed << " passed, "
-              << report.failed << " failed (all skipped pending a mockable transport)"
-              << std::endl;
+              << report.failed << " failed, " << report.skipped << " skipped" << std::endl;
     return report.failed ? 1 : 0;
 }
 

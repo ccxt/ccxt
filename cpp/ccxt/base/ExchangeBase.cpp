@@ -955,10 +955,34 @@ std::any ExchangeBase::seconds () {
 }
 
 std::any ExchangeBase::iso8601 (std::any timestamp) {
-    if (!timestamp.has_value () || !isNum (timestamp)) {
+    long long ms = 0;
+    if (isNum (timestamp)) {
+        ms = static_cast<long long> (std::floor (toDouble (timestamp)));
+    } else if (isStr (timestamp)) {
+        // only plain-integer strings are accepted, e.g. "1755432123456"
+        const std::string text = std::any_cast<std::string> (timestamp);
+        if (text.empty ()) {
+            return std::any {};
+        }
+        for (char c : text) {
+            if (!std::isdigit (static_cast<unsigned char> (c))) {
+                return std::any {};
+            }
+        }
+        try {
+            ms = std::stoll (text);
+        } catch (const std::exception&) {
+            return std::any {};
+        }
+    } else {
         return std::any {};
     }
-    const long long ms = toLong (timestamp);
+    // TS rejects negatives outright, and anything past the Date range. Without the
+    // negative guard the millisecond field came out as ".-01" (C++ % truncates toward
+    // zero), producing strings like "1970-01-01T00:00:00.-01Z".
+    if (ms < 0 || ms > 8640000000000000LL) {
+        return std::any {};
+    }
     const std::time_t whole = static_cast<std::time_t> (ms / 1000);
     std::tm utc {};
     gmtime_r (&whole, &utc);
@@ -1138,6 +1162,13 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
     this->last_request_headers = headers;
     const std::string target = str (url);
     const std::string verb = method.has_value () ? str (method) : std::string ("GET");
+    if (this->fetchImpl) {
+        const auto impl = this->fetchImpl;
+        return std::async (std::launch::deferred,
+                           [impl, url, method, headers, body] () -> std::any {
+            return impl (url, method, headers, body);
+        }).share ();
+    }
     return std::async (std::launch::deferred, [target, verb] () -> std::any {
         throw NotSupported ("HTTP transport is not implemented in the C++ port yet: "
                             + verb + " " + target);
