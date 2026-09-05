@@ -2863,7 +2863,7 @@ public class BackpackCore extends BackpackApi
             } else
             {
                 Object queryString = this.urlencode(sortedParams);
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(queryString), 0)))
+                if (Helpers.isTrue(Helpers.isGreaterThan(((String)queryString).length(), 0)))
                 {
                     queryString = Helpers.add(queryString, "&");
                 }
@@ -2888,7 +2888,7 @@ public class BackpackCore extends BackpackApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(sortedParams);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", query));
             }

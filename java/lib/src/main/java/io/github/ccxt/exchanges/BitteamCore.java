@@ -2730,7 +2730,7 @@ public class BitteamCore extends BitteamApi
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
                 body = this.json(request);
-            } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            } else if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
@@ -2741,7 +2741,7 @@ public class BitteamCore extends BitteamApi
                 put( "Authorization", signature );
                 put( "Content-Type", "application/json" );
             }};
-        } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+        } else if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
         {
             url = Helpers.add(url, Helpers.add("?", query));
         }

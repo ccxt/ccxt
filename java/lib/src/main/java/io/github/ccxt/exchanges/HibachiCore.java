@@ -2180,7 +2180,7 @@ public class HibachiCore extends HibachiApi
         {
             Object request = this.omit(parameters, this.extractParams(path));
             Object query = this.urlencode(request);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }

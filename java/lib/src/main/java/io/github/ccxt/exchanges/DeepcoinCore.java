@@ -3808,7 +3808,7 @@ public class DeepcoinCore extends DeepcoinApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(parameters);
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 requestPath = Helpers.add(requestPath, Helpers.add("?", query));
             }
