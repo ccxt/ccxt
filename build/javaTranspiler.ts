@@ -261,6 +261,13 @@ const DIRECT_ACCESSORS: { [name: string]: string } = {
 // safeStringUpper* / safeStringLower*: `.toUpperCase()`d String, default untouched.
 // safeTimestamp* / safeIntegerProduct2 / safeIntegerProductN: `(long)` product,
 // default untouched (SafeMethods.safeTimestampN / safeIntegerProduct2 / N).
+// safeBool*: TRANSPILED (ts/src/base/Exchange.ts) — `value instanceof Boolean ?
+// value : defaultValue`, default untouched; a `true`/`false` literal default
+// prints as a Java boolean literal and boxes to Boolean through the varargs.
+// safeNumber*: TRANSPILED — `return this.parseNumber(value, default)`, and
+// `BaseExchange.parseNumber` is HAND-WRITTEN `static Double` on every return path
+// (`(Double) defaultValue` either is a Double or throws), so the value is
+// Double-or-null whatever the default is: `defaultIndex: -1` = no default check.
 const CAST_ACCESSORS: { [name: string]: { type: string, defaultIndex: number } } = {
     'safeStringUpper': { type: 'String', defaultIndex: 2 }, 'safeStringLower': { type: 'String', defaultIndex: 2 },
     'safeStringUpper2': { type: 'String', defaultIndex: 3 }, 'safeStringLower2': { type: 'String', defaultIndex: 3 },
@@ -270,6 +277,12 @@ const CAST_ACCESSORS: { [name: string]: { type: string, defaultIndex: number } }
     'safeTimestampN': { type: 'Long', defaultIndex: 2 },
     'safeIntegerProduct2': { type: 'Long', defaultIndex: 4 },
     'safeIntegerProductN': { type: 'Long', defaultIndex: 3 },
+    'safeBool': { type: 'Boolean', defaultIndex: 2 },
+    'safeBool2': { type: 'Boolean', defaultIndex: 3 },
+    'safeBoolN': { type: 'Boolean', defaultIndex: 2 },
+    'safeNumber': { type: 'Double', defaultIndex: -1 },
+    'safeNumber2': { type: 'Double', defaultIndex: -1 },
+    'safeNumberN': { type: 'Double', defaultIndex: -1 },
 };
 
 // hand-written base methods declared with a String return in Java
@@ -286,13 +299,21 @@ const LONG_RETURNING_BASE_METHODS = new Set([
     'milliseconds', 'seconds', 'parse8601',
 ]);
 
+// hand-written base methods declared `Double` in Java (BaseExchange.parseNumber)
+const DOUBLE_RETURNING_BASE_METHODS = new Set([
+    'parseNumber',
+]);
+
 // Precise.string* statics are declared `public static String` in Precise.java
 const PRECISE_STRING_STATICS = new Set([
     'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringAbs',
     'stringNeg', 'stringMax', 'stringMin', 'stringOr',
 ]);
 
-const ACCESSOR_DECLARATION_FILE = /[\\/]base[\\/]functions[\\/]type\.ts$/;
+// the accessor must resolve to its BASE declaration — ts/src/base/functions/type.ts
+// for the hand-written families, ts/src/base/Exchange.ts for safeBool*/safeNumber*
+// (an exchange override would be transpiled with an `Object` return)
+const ACCESSOR_DECLARATION_FILE = /[\\/]base[\\/](?:functions[\\/]type|Exchange)\.ts$/;
 
 function isThisCall (node: any): boolean {
     return node !== undefined && ts.isCallExpression (node)
@@ -307,9 +328,8 @@ function isThisOrSuperCall (node: any): boolean {
         && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
 
-// the Java type of `this.safeX(...)` when it resolves to a base accessor in
-// ts/src/base/functions/type.ts (an exchange override would be transpiled with an
-// `Object` return, so it must not classify), else undefined
+// the Java type of `this.safeX(...)` when it resolves to a base accessor (see
+// ACCESSOR_DECLARATION_FILE), else undefined
 function baseAccessorType (printer: any, node: any): string | undefined {
     if (!isThisCall (node)) {
         return undefined;
@@ -327,7 +347,8 @@ function baseAccessorType (printer: any, node: any): string | undefined {
     if (direct !== undefined) {
         return direct;
     }
-    if (node.arguments.length > cast.defaultIndex && !isProvablyOfType (printer, node.arguments[cast.defaultIndex], undefined, cast.type)) {
+    if (cast.defaultIndex >= 0 && node.arguments.length > cast.defaultIndex
+        && !isProvablyOfType (printer, node.arguments[cast.defaultIndex], undefined, cast.type)) {
         return undefined;
     }
     return cast.type;
@@ -360,6 +381,9 @@ function isProvablyOfType (printer: any, node: any, selfName: string | undefined
         case ts.SyntaxKind.StringLiteral:
         case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
             return javaType === 'String';
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            return javaType === 'Boolean'; // `Boolean x = true` boxes in an assignment context
         case ts.SyntaxKind.NumericLiteral:
             // the Java printer emits an integer literal as `int` (or `long` past
             // 2^31-1) and a fractional one as `double`; only the exact box fits:
@@ -397,6 +421,9 @@ function isProvablyOfType (printer: any, node: any, selfName: string | undefined
                 }
                 if (javaType === 'Long') {
                     return LONG_RETURNING_BASE_METHODS.has (method);
+                }
+                if (javaType === 'Double') {
+                    return DOUBLE_RETURNING_BASE_METHODS.has (method);
                 }
                 return false;
             }
@@ -464,15 +491,19 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
 }
 
 // hand-written base methods reachable as `this.x(...)` whose Java return is NOT
-// `Object`: a primitive (`int`/`long`) or a boxed numeric. As a ternary sibling
-// of a boxed local either one can turn the conditional numeric (JLS 15.25),
-// which unboxes the local — NPE on null. Every other `this.x(...)` prints as
+// `Object`: a primitive (`int`/`long`/`boolean`) or a box. As a ternary sibling
+// of a boxed local, a primitive or a DIFFERENT box turns the conditional numeric/
+// boolean (JLS 15.25), which unboxes the local — NPE on null; the SAME box keeps
+// it a reference conditional of that box. Every other `this.x(...)` prints as
 // Object (transpiled) or String (a reference conditional either way).
 const NON_OBJECT_RETURNING_BASE_METHODS: { [name: string]: string } = {
     'microseconds': 'long', 'parseTimeframe': 'int', 'precisionFromString': 'int',
     'binaryLength': 'int', 'randNumber': 'int', 'calculateWsBackoffDelay': 'int',
     'milliseconds': 'Long', 'seconds': 'Long', 'parse8601': 'Long', 'toDydxLong': 'Long',
     'parseNumber': 'Double',
+    // `boolean` next to a `Boolean` local also unboxes (JLS 15.25 boolean conditional)
+    'isHttpMethod': 'boolean', 'isJsonEncodedObject': 'boolean', 'inArray': 'boolean',
+    'isArray': 'boolean', 'valueIsDefined': 'boolean', 'isBinaryMessage': 'boolean', 'isEmpty': 'boolean',
 };
 
 // the other arm of `c ? x : <sibling>` when `x` is a Long/Double local. Safe only
