@@ -50,7 +50,6 @@ spl_autoload_register(function ($class) {
     $class_name = str_replace('Web3\\', 'web3.php/src/', $class);
     $class_name = str_replace('Lighter\\', 'lighter/', $class_name);
     $class_name = str_replace('StarkNet\\', 'starknet.php/src/', $class_name);
-    $class_name = str_replace('Sop\\', 'Sop/', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';

@@ -41,7 +41,7 @@ use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
-use Sop\ASN1\Type\UnspecifiedType;
+use phpseclib\File\ASN1;
 use Exception;
 
 // import global functions so unqualified calls bind directly to the root
@@ -1555,17 +1555,25 @@ class BaseExchange {
         }
         if (preg_match('/^-----BEGIN EC PRIVATE KEY-----\s([\w\d+=\/\s]+)\s-----END EC PRIVATE KEY-----/', $secret, $match) >= 1) {
             $pemKey = $match[1];
-            $decodedPemKey = UnspecifiedType::fromDER(base64_decode($pemKey))->asSequence();
-            $secret = bin2hex($decodedPemKey->at(1)->asOctetString()->string());
-            if ($decodedPemKey->hasTagged(0)) {
-                $params = $decodedPemKey->getTagged(0)->asExplicit();
-                $oid = $params->asObjectIdentifier()->oid();
-                $supportedCurve = array(
-                    '1.3.132.0.10' => 'secp256k1',
-                    '1.2.840.10045.3.1.7' => 'p256',
-                );
-                if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
-                $algorithm = $supportedCurve[$oid];
+            // SEC1 ECPrivateKey ::= SEQUENCE { version INTEGER, privateKey OCTET STRING,
+            //   parameters [0] EXPLICIT ECParameters OPTIONAL, publicKey [1] EXPLICIT BIT STRING OPTIONAL }
+            $decodedPemKey = (new ASN1())->decodeBER(base64_decode($pemKey))[0] ?? null;
+            if (!is_array($decodedPemKey) || $decodedPemKey['type'] !== ASN1::TYPE_SEQUENCE || !isset($decodedPemKey['content'][1]) || $decodedPemKey['content'][1]['type'] !== ASN1::TYPE_OCTET_STRING) {
+                throw new Exception('Invalid EC private key');
+            }
+            $secret = bin2hex($decodedPemKey['content'][1]['content']);
+            foreach ($decodedPemKey['content'] as $element) {
+                if (isset($element['constant']) && $element['constant'] === 0) {
+                    $params = $element['content'][0] ?? null;
+                    if (!is_array($params) || $params['type'] !== ASN1::TYPE_OBJECT_IDENTIFIER) throw new Exception('Unsupported curve');
+                    $oid = $params['content'];
+                    $supportedCurve = array(
+                        '1.3.132.0.10' => 'secp256k1',
+                        '1.2.840.10045.3.1.7' => 'p256',
+                    );
+                    if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
+                    $algorithm = $supportedCurve[$oid];
+                }
             }
         }
         $ec = new EC(strtolower($algorithm));
