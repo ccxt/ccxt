@@ -1101,8 +1101,14 @@ class BaseExchange(object):
     def extend(*args):
         if not args:
             return {}
+        # fast path: the overwhelming majority of call sites (parseTicker/parseTrade/
+        # parseOrder/... merging a parsed dict on top of `market`) pass exactly 2 plain
+        # dicts; dict-literal unpacking is measurably cheaper here than a loop of .update()
+        arg_type = type(args[0])
+        if len(args) == 2 and arg_type is dict:
+            return {**args[0], **args[1]}
         # after dropping 3.7 py, we can use result = {}
-        result = collections.OrderedDict() if type(args[0]) is collections.OrderedDict else {}
+        result = collections.OrderedDict() if arg_type is collections.OrderedDict else {}
         for arg in args:
             result.update(arg)
         return result
