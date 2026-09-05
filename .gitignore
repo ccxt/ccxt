@@ -99,7 +99,6 @@ mcp/mcpb/staging/
 # rust/tests/exchange_ws/*.rs
 # rust/ccxt/src/exchanges/mod.rs
 # rust/ccxt-prediction/src/prediction/mod.rs
-
 # CI-only prebuilt rust test binary (see rust.yml)
 rust/tests.bin
 
@@ -107,3 +106,4 @@ rust/tests.bin
 rust/BUILD_OPTIMIZATION.md
 PR_RESPONSE.md
 
+cpp/build/

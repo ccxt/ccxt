@@ -3483,7 +3483,7 @@
                         retry = add(retry, 1);
                         if (isTrue(isEqual(retry, maxRetries)))
                         {
-                            throw e;
+                            throw;
                         }
                     }
                     if (isTrue(shouldBreak))
@@ -4564,11 +4564,11 @@
                             }
                         } else
                         {
-                            throw e;
+                            throw;
                         }
                     } else
                     {
-                        throw e;
+                        throw;
                     }
                 }
             }
@@ -7054,7 +7054,7 @@
                     errors = add(errors, 1);
                     if (isTrue(isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw;
                     }
                 }
             }
@@ -7092,12 +7092,12 @@
                 {
                     if (isTrue(isInstanceOf<RateLimitExceeded>(e)))
                     {
-                        throw e;
+                        throw;
                     }
                     errors = add(errors, 1);
                     if (isTrue(isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw;
                     }
                 }
             }
@@ -7290,7 +7290,7 @@
                     errors = add(errors, 1);
                     if (isTrue(isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw;
                     }
                 }
                 i = add(i, 1);
@@ -7342,7 +7342,7 @@
                     errors = add(errors, 1);
                     if (isTrue(isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw;
                     }
                 }
                 i = add(i, 1);

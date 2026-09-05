@@ -11,6 +11,8 @@
 // The member list here is not guesswork: it is what the generated fragment actually
 // references, enumerated by compiling the fragment against an empty base.
 
+#include "Crypto.h"
+#include "Number.h"
 #include "Errors.h"
 #include "Precise.h"
 #include "helpers.h"
@@ -79,6 +81,18 @@ public:
     std::any commonCurrencies;
     std::any exceptions;
     std::any twofa;
+
+    // -- credentials ------------------------------------------------------------------
+    // The set an exchange actually needs is declared in its describe().requiredCredentials;
+    // they all live here so sign() can read whichever ones apply.
+    std::any apiKey;
+    std::any secret;
+    std::any password;
+    std::any uid;
+    std::any login;
+    std::any walletAddress;
+    std::any privateKey;
+    std::any token;
     std::any verbose;
     std::any number;
     // fields in TS, not methods - the transpiled code reads and assigns them
@@ -95,6 +109,11 @@ public:
     std::any rollingWindowSize;
 
     // -- market and currency state --------------------------------------------------
+    // what the last sign() produced -- the static request tests assert against these
+    // rather than performing the request (mirrors exchange.last_request_url/body in TS)
+    std::any last_request_url;
+    std::any last_request_body;
+
     std::any markets;
     std::any markets_by_id;
     std::any currencies;
@@ -221,8 +240,34 @@ public:
     virtual std::any stringToBase64 (std::any value);
     virtual std::any base64ToBinary (std::any value);
     virtual std::any binaryToBase16 (std::any value);
+    virtual std::any base16ToBinary (std::any value);
+    virtual std::any binaryToBase64 (std::any value);
+    virtual std::any base58ToBinary (std::any value);
+    virtual std::any binaryToBase58 (std::any value);
+    virtual std::any binaryConcat (std::any a, std::any b);
+    virtual std::any binaryLength (std::any value);
+    virtual std::any isBinaryMessage (std::any value);
+    // TS encode()/decode() are utf8 decode/encode -- string <-> raw octets
+    virtual std::any encode (std::any value);
+    virtual std::any decode (std::any value);
+
+    // -- crypto -----------------------------------------------------------------------
+    virtual std::any hash (std::any payload, std::any algorithm = std::any {},
+                           std::any digest = std::any {});
+    virtual std::any hmac (std::any payload, std::any key, std::any algorithm = std::any {},
+                           std::any digest = std::any {});
+    virtual std::any crc32 (std::any value, std::any signed32 = std::any {});
+    // Asymmetric signing is not wired yet: binance only needs these for RSA/ed25519 API
+    // keys, while the hmac path -- what every static request fixture exercises -- is
+    // real. They throw rather than returning a plausible-looking wrong signature.
+    virtual std::any rsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
+    virtual std::any eddsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
+    virtual std::any jwt (std::any data, std::any secretKey, std::any algorithm = std::any {},
+                          std::any isRsa = std::any {});
     virtual std::any strip (std::any value);
     virtual std::any uuid ();
+    virtual std::any uuid16 ();
+    virtual std::any uuid22 ();
 
     // -- numbers --------------------------------------------------------------------
     virtual std::any parseNumber (std::any value, std::any def = std::any {});
@@ -255,6 +300,10 @@ public:
     virtual std::any iso8601 (std::any timestamp);
     virtual std::any parseTimeframe (std::any timeframe);
     virtual std::any parse8601 (std::any datetime);
+    virtual std::any yymmdd (std::any timestamp, std::any infix = std::any {});
+    virtual std::any yyyymmdd (std::any timestamp, std::any infix = std::any {});
+    virtual std::any ymd (std::any timestamp, std::any infix = std::any {});
+    virtual std::any ymdhms (std::any timestamp, std::any infix = std::any {});
     virtual std::any roundTimeframe (std::any timeframe, std::any timestamp,
                                      std::any direction = std::any {});
     virtual std::shared_future<std::any> sleep (std::any ms);
@@ -287,6 +336,11 @@ public:
     virtual std::shared_future<std::any> fetch (std::any url, std::any method = std::any {},
                                                 std::any headers = std::any {},
                                                 std::any body = std::any {});
+    // Declared here so a derived exchange's generated `fetchMarkets(...) override`
+    // actually has something to override -- describe().has lists them, but the base
+    // methods themselves sit above the transpile delimiter.
+    virtual std::shared_future<std::any> fetchMarkets (std::any params = std::any {});
+    virtual std::shared_future<std::any> fetchCurrencies (std::any params = std::any {});
     virtual std::shared_future<std::any> loadMarkets (std::any reload = std::any {},
                                                       std::any params = std::any {});
 
@@ -299,6 +353,11 @@ public:
     virtual std::any getProperty (ExchangeBase* self, std::any name);
     virtual void setProperty (ExchangeBase* self, std::any name, std::any value);
     virtual std::any callDynamically (ExchangeBase* self, std::any name, std::any args);
+
+    // Call a unified method by name with a positional argument list. Each generated
+    // exchange overrides this with a table built from its own signatures (see
+    // createDispatchTable in build/cppTranspiler.ts); the base has no methods to offer.
+    virtual std::any callMethod (std::any name, std::any args);
 };
 
 } // namespace ccxt
