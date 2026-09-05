@@ -4712,6 +4712,40 @@ export class BaseExchange {
         return superWithRestDescribe;
     }
 
+    isBalanceChanged (cachedBalance: Balances, balance: Balances): boolean {
+        /**
+         * @ignore
+         * @method
+         * @description checks whether a balance update changes any account values
+         * @param {object} cachedBalance the balance stored in the cache
+         * @param {object} balance the incoming balance update
+         * @returns {boolean} true if the balance update changes the cached balance
+         */
+        const cachedAccounts = this.omit (cachedBalance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
+        const cachedCodes = Object.keys (cachedAccounts);
+        if (cachedCodes.length === 0) {
+            return true;
+        }
+        const balanceAccounts = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt' ]);
+        const balanceCodes = Object.keys (balanceAccounts);
+        const accountKeys = [ 'free', 'used', 'total', 'debt' ];
+        for (let i = 0; i < balanceCodes.length; i++) {
+            const code = balanceCodes[i];
+            const cachedAccount = this.safeDict (cachedBalance, code);
+            const account = this.safeDict (balance, code, {});
+            if (cachedAccount === undefined) {
+                return true;
+            }
+            for (let j = 0; j < accountKeys.length; j++) {
+                const key = accountKeys[j];
+                if (this.safeString (cachedAccount, key) !== this.safeString (account, key)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     safeBalance (balance: Dict): Balances {
         const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
