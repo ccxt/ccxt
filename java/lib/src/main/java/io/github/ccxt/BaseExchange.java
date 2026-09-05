@@ -838,8 +838,7 @@ public class BaseExchange {
         try {
             String cleanKey = (String) this.remove0xPrefix(privateKey);
             java.math.BigInteger privKeyBigInt = new java.math.BigInteger(cleanKey, 16);
-            java.math.BigInteger publicKey = org.web3j.crypto.Sign.publicKeyFromPrivate(privKeyBigInt);
-            return "0x" + org.web3j.crypto.Keys.getAddress(publicKey);
+            return "0x" + Crypto.secp256k1EthAddress(privKeyBigInt);
         } catch (Exception e) {
             throw new RuntimeException("ethGetAddressFromPrivateKey failed: " + e.getMessage(), e);
         }
