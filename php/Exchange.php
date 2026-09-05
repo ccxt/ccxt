@@ -472,21 +472,6 @@ class BaseExchange {
         return trim($string);
     }
 
-    public static function decimal($number) {
-        return '' + $number;
-    }
-
-    public static function valid_string($string) {
-        return isset($string) && $string !== '';
-    }
-
-    public static function valid_object_value($object, $key) {
-        if ($key === null) {
-            return false;
-        }
-        return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
-    }
-
     public static function safe_float($object, $key, $default_value = null) {
         if ($key === null) {
             return $default_value;
@@ -1188,10 +1173,6 @@ class BaseExchange {
         return $time;
     }
 
-    public static function dmy($timestamp, $infix = '-') {
-        return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
-    }
-
     public static function ymd($timestamp, $infix = '-', $fullYear = true) {
         $yearFormat = $fullYear ? 'Y' : 'y';
         return gmdate($yearFormat . $infix . 'm' . $infix . 'd', (int) round($timestamp / 1000));
@@ -1711,10 +1692,6 @@ class BaseExchange {
 
     public function extended_starknet_compute_poseidon_hash_on_elements($data) {
         return Hash::computePoseidonHashOnElements($data);
-    }
-
-    public function is_lighter_library_path_required() {
-        return true;
     }
 
     public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
@@ -2665,21 +2642,13 @@ class BaseExchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    public static function has_web3() {
-        // PHP version of this function does nothing, as most of its
-        // dependencies are lightweight and don't eat a lot
-        return true;
-    }
-
     // returns the version of the ccxt library, e.g. "4.5.54"
     public function get_ccxt_version() {
         return static::VERSION;
     }
 
     public function check_required_dependencies() {
-        if (!static::has_web3()) {
-            throw new ExchangeError($this->id . ' requires web3 dependencies');
-        }
+        // no-op, mirrors ts/src/base/Exchange.ts checkRequiredDependencies()
     }
 
     public static function hashMessage($message) {
@@ -2700,11 +2669,6 @@ class BaseExchange {
 
     public static function signMessage($message, $privateKey) {
         return static::signHash(static::hashMessage($message), $privateKey);
-    }
-
-    public function sign_message_string($message, $privateKey) {
-        $signature = static::signMessage($message, $privateKey);
-        return $signature['r'] . $this->remove0x_prefix($signature['s']) . dechex($signature['v']);
     }
 
     public static function base32_decode($s) {
