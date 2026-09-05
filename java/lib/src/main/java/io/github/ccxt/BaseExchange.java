@@ -694,18 +694,6 @@ public class BaseExchange {
         return unsigned;
     }
 
-    // public Object md5() {
-    //     return Crypto.md5();
-    // }
-
-    // public Object sha256() {
-    //     return Crypto.sha256();
-    // }
-
-    // public Object sha512() {
-    //     return Crypto.sha512();
-    // }
-
     // =======================
     // Encode
     // =======================
@@ -764,18 +752,9 @@ public class BaseExchange {
         return Encode.urlencodeNested(parameters);
     }
 
-    // public String base64ToString(Object b64) {
-    //     return Encode.base64ToString(b64);
-    // }
     public String stringToBase64(Object s) {
         return Encode.StringToBase64(s);
     }
-    // public String bytesToHex(Object bytes) {
-    //     return Encode.bytesToHex(bytes);
-    // }
-    // public Object hexToBytes(Object hex) {
-    //     return Encode.hexToBytes(hex);
-    // }
 
     public String rawencode(Object parameters) {
         return Encode.rawencode(parameters, false);
@@ -1044,10 +1023,6 @@ public class BaseExchange {
 
     public String numberToString(Object number) {
         return NumberHelpers.NumberToString(number);
-    }
-
-    public String numberToString2(Object number) {
-        return NumberHelpers.NumberToString2(number);
     }
 
     // =======================

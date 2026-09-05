@@ -71,11 +71,6 @@ public final class Encode {
         return Base64.getEncoder().encodeToString(buff);
     }
 
-    public static byte[] stringToBinary(String buff) { return StringToBinary(buff); }
-    public static byte[] StringToBinary(String buff) {
-        return buff.getBytes(StandardCharsets.UTF_8);
-    }
-
     public static String Base64ToBase64Url(String base64, boolean stripPadding) {
         String base64Url = base64.replace('+', '-').replace('/', '_');
         if (stripPadding) base64Url = trimRight(base64Url, '=');
@@ -246,27 +241,6 @@ public final class Encode {
     public static String intToBase16(Object number) {
         long n = Long.parseLong(String.valueOf(number));
         return Long.toHexString(n);
-    }
-
-    // ----------------------------
-    // encode/decode (stubs, like C#)
-    // ----------------------------
-
-    public static String encode(Object data) {
-        return (String) data;
-    }
-
-    public static String decode(Object data) {
-        return (String) data;
-    }
-
-    // ----------------------------
-    // msgpack stub
-    // ----------------------------
-
-    public static Object packb(Object data) {
-        // MiniMessagePack not available here; make it explicit.
-        throw new UnsupportedOperationException("packb: MessagePack encoder not available in this runtime.");
     }
 
     // ----------------------------
