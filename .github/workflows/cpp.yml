@@ -1,0 +1,70 @@
+name: C++
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') }}
+    timeout-minutes: 90
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+        clean: false
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Install C++ toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev
+    - name: Transpile base methods and base tests
+      run: |
+        npm run transpileCppBaseClass
+        npm run transpileCppBaseTests
+    - name: Emit implicit API and transpile binance
+      # The port currently validates one exchange (binance) end to end.
+      # Extend this list as more exchanges pass the static gates locally.
+      run: |
+        npm run emitAPI -- --cpp
+        npm run transpileCppSingle -- binance
+    - name: Configure and build
+      # Generated exchange TUs are heavy; keep parallelism low to stay
+      # within runner memory.
+      run: |
+        cmake -S cpp -B cpp/build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+        cmake --build cpp/build --parallel 1
+    - name: Base tests
+      run: npm run test-base-rest-cpp
+    - name: binance smoke test
+      run: cpp/build/ccxt-smoke-binance
+    - name: binance static request tests
+      run: cpp/build/ccxt-static-binance --requestTests
+    - name: binance static response tests
+      run: cpp/build/ccxt-static-binance --responseTests
