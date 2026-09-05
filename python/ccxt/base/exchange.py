@@ -47,10 +47,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 # -----------------------------------------------------------------------------
 
 
-# lighter
 import os
-
-# import ctypes
 
 # -----------------------------------------------------------------------------
 
@@ -68,7 +65,6 @@ import calendar
 import collections
 import datetime
 from email.utils import parsedate
-# import functools
 import hashlib
 import hmac
 import tempfile
@@ -94,9 +90,7 @@ import re
 from requests import Session
 from requests.utils import default_user_agent
 from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
-# import socket
 from ssl import SSLError
-# import sys
 import time
 import uuid
 from decimal import Decimal
@@ -382,11 +376,6 @@ class BaseExchange(object):
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
-
-        # version = '.'.join(map(str, sys.version_info[:3]))
-        # self.userAgent = {
-        #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
-        # }
 
         self.origin = self.uuid()
         self.userAgent = default_user_agent()
@@ -2060,14 +2049,6 @@ class BaseExchange(object):
 
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
-
-    # def delete_key_from_dictionary(self, dictionary, key):
-    #     newDictionary = self.clone(dictionary)
-    #     del newDictionary[key]
-    #     return newDictionary
-
-    # def set_object_property(obj, prop, value):
-    #     obj[prop] = value
 
     def convert_to_big_int(self, value):
         return int(value, 16) if isinstance(value, str) and value.startswith('0x') else int(value) if isinstance(value, str) else value
