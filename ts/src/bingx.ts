@@ -1040,8 +1040,8 @@ export default class bingx extends Exchange {
         let currency = this.safeString (market, 'currency');
         let checkIsInverse = false;
         let checkIsLinear = true;
-        const minTickSize = this.safeNumber (market, 'minTickSize');
-        if (minTickSize !== undefined) {
+        const inverseContractSize = this.safeNumber (market, 'minTickSize');
+        if (inverseContractSize !== undefined) {
             // inverse swap market
             currency = baseId;
             checkIsInverse = true;
@@ -1064,7 +1064,10 @@ export default class bingx extends Exchange {
             symbol += ':' + settle;
         }
         const fees = this.safeDict (this.fees, type, {});
-        const contractSize = (swap) ? this.parseNumber ('1') : undefined;
+        let contractSize: Num = undefined;
+        if (swap) {
+            contractSize = (checkIsInverse) ? inverseContractSize : this.parseNumber ('1');
+        }
         let isActive = false;
         if ((this.safeString (market, 'apiStateOpen') === 'true') && (this.safeString (market, 'apiStateClose') === 'true')) {
             isActive = true; // swap active
@@ -1124,7 +1127,7 @@ export default class bingx extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': minTickSize,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {

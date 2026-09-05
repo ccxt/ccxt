@@ -1065,7 +1065,7 @@
         "subType": "inverse",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 1,
+        "contractSize": 100,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -1084,7 +1084,7 @@
                 "max": null
             },
             "price": {
-                "min": 100,
+                "min": null,
                 "max": null
             },
             "cost": {
@@ -1135,7 +1135,7 @@
         "subType": "inverse",
         "taker": 0.0005,
         "maker": 0.0002,
-        "contractSize": 1,
+        "contractSize": 10,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -1154,7 +1154,7 @@
                 "max": null
             },
             "price": {
-                "min": 10,
+                "min": null,
                 "max": null
             },
             "cost": {
