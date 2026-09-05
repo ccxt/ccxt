@@ -1284,7 +1284,9 @@ export default class bitfinex extends Exchange {
             bid = this.safeString (ticker, 2 - minusIndex);
             ask = this.safeString (ticker, 5 - minusIndex);
             change = this.safeString (ticker, 8 - minusIndex);
-            percentage = this.safeString (ticker, 9 - minusIndex);
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = Precise.stringMul (this.safeString (ticker, 9 - minusIndex), '100');
             volume = this.safeString (ticker, 11 - minusIndex);
             high = this.safeString (ticker, 12 - minusIndex);
             low = this.safeString (ticker, 13 - minusIndex);
