@@ -507,18 +507,53 @@ export function csharpLocalType (csharp, declaration) {
         return undefined;
     }
     const sourceName = declaration.name.escapedText;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer);
     if (csharpType === 'null') {
-        csharpType = annotationType (declaration);
+        csharpType = annotationType (declaration) ?? typeFromLaterWrites (csharp, scope, declaration, sourceName);
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
         return undefined;
     }
-    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, csharpType)) {
         return undefined;
     }
     return csharpType;
+}
+
+// `let x = undefined; ... x = <a>; ... x = <b>;` — the nullable type of the writes when
+// every plain `x = ...` in the method has the same provable C# type (null writes are fine,
+// an unprovable or divergent write is not). The declaration is `= null`, so the result is
+// always the nullable spelling; csharpLocalIsSafeToRetype() re-checks every write and every
+// read afterwards exactly as for an initialised local.
+function typeFromLaterWrites (csharp, scope, declaration, varName) {
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    let type = undefined;
+    for (const n of (index.identifiers.get (varName) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== n || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            continue;
+        }
+        const written = csharpTypeOfValue (csharp, parent.right);
+        if (written === undefined) {
+            return undefined;
+        }
+        if (written === 'null') {
+            continue;
+        }
+        if (type === undefined) {
+            type = written;
+        } else if (type !== written) {
+            return undefined;
+        }
+    }
+    return (type === undefined) ? undefined : nullableOf (type);
 }
 
 // wrap printVariableDeclarationList on a Transpiler's C# printer. Idempotent. Everything
