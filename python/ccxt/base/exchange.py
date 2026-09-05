@@ -1104,6 +1104,9 @@ class BaseExchange(object):
         # fast path: the overwhelming majority of call sites (parseTicker/parseTrade/
         # parseOrder/... merging a parsed dict on top of `market`) pass exactly 2 plain
         # dicts; dict-literal unpacking is measurably cheaper here than a loop of .update()
+        # note: unlike dict.update(), this only accepts mappings for the second argument,
+        # not iterables of key/value pairs - fine for every in-tree call site, but stricter
+        # for third-party subclasses that may have relied on the looser dict.update() contract
         arg_type = type(args[0])
         if len(args) == 2 and arg_type is dict:
             return {**args[0], **args[1]}
