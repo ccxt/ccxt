@@ -70,55 +70,6 @@
                 }
             }
         ],
-        "fetchCurrencies": [
-            {
-                "description": "parse the collateral assets",
-                "method": "fetchCurrencies",
-                "input": [],
-                "httpResponse": [
-                    {
-                        "asset": "pUSD",
-                        "address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
-                        "decimals": 6,
-                        "collateral_ratio": "1.00",
-                        "withdrawal_fee": "0.000000"
-                    }
-                ],
-                "parsedResponse": {
-                    "PUSD": {
-                        "info": {
-                            "asset": "pUSD",
-                            "address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
-                            "decimals": 6,
-                            "collateral_ratio": "1.00",
-                            "withdrawal_fee": "0.000000"
-                        },
-                        "id": "pUSD",
-                        "numericId": null,
-                        "code": "PUSD",
-                        "precision": 1e-06,
-                        "type": "crypto",
-                        "name": "pUSD",
-                        "active": null,
-                        "deposit": null,
-                        "withdraw": null,
-                        "fee": 0,
-                        "fees": {},
-                        "networks": {},
-                        "limits": {
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "withdraw": {
-                                "min": null,
-                                "max": null
-                            }
-                        }
-                    }
-                }
-            }
-        ],
         "fetchMarkets": [
             {
                 "description": "parse instruments",
@@ -3168,6 +3119,190 @@
                     "status": "ok",
                     "timestamp": null,
                     "datetime": null
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "parse base currencies from the instruments payload, the same mock answers both parallel requests so the collateral loop skips these rows",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "instrument_id": 6,
+                        "instrument_type": "perpetual",
+                        "category": "crypto",
+                        "isolated_only": false,
+                        "symbol": "BTC-USD",
+                        "base_asset": "BTC",
+                        "quote_asset": "pUSD",
+                        "funding_interval": "1h",
+                        "quantity_decimals": 5,
+                        "price_decimals": 0,
+                        "price_bounds": "0.05",
+                        "liquidation_fee": "0.005",
+                        "max_order_count": 200,
+                        "min_notional": "10",
+                        "max_market_notional": "1000000",
+                        "max_limit_notional": "5000000",
+                        "max_leverage": 20,
+                        "risk_tiers": [
+                            {
+                                "lower_bound": "0",
+                                "max_leverage": 20
+                            }
+                        ],
+                        "ui_live_time": 1785542400000
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "instrument_id": 6,
+                            "instrument_type": "perpetual",
+                            "category": "crypto",
+                            "isolated_only": false,
+                            "symbol": "BTC-USD",
+                            "base_asset": "BTC",
+                            "quote_asset": "pUSD",
+                            "funding_interval": "1h",
+                            "quantity_decimals": 5,
+                            "price_decimals": 0,
+                            "price_bounds": "0.05",
+                            "liquidation_fee": "0.005",
+                            "max_order_count": 200,
+                            "min_notional": "10",
+                            "max_market_notional": "1000000",
+                            "max_limit_notional": "5000000",
+                            "max_leverage": 20,
+                            "risk_tiers": [
+                                {
+                                    "lower_bound": "0",
+                                    "max_leverage": 20
+                                }
+                            ],
+                            "ui_live_time": 1785542400000
+                        },
+                        "id": "BTC",
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": 1e-05,
+                        "type": null,
+                        "name": "BTC",
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USD": {
+                        "info": null,
+                        "id": "USD",
+                        "numericId": null,
+                        "code": "USD",
+                        "precision": 0.01,
+                        "type": "fiat",
+                        "name": "USD",
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "description": "parse the collateral asset metadata from the assets payload, the instrument loop skips these rows",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "asset": "pUSD",
+                        "address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+                        "decimals": 6,
+                        "collateral_ratio": "1.00",
+                        "withdrawal_fee": "0.000000"
+                    }
+                ],
+                "parsedResponse": {
+                    "USD": {
+                        "info": null,
+                        "id": "USD",
+                        "numericId": null,
+                        "code": "USD",
+                        "precision": 0.01,
+                        "type": "fiat",
+                        "name": "USD",
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "PUSD": {
+                        "info": {
+                            "asset": "pUSD",
+                            "address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+                            "decimals": 6,
+                            "collateral_ratio": "1.00",
+                            "withdrawal_fee": "0.000000"
+                        },
+                        "id": "pUSD",
+                        "numericId": null,
+                        "code": "PUSD",
+                        "precision": 1e-06,
+                        "type": "crypto",
+                        "name": "pUSD",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
                 }
             }
         ]

@@ -198,6 +198,14 @@ export default class polymarket extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'chainId': 137,
+                // the collateral token metadata from GET /v1/info/assets,
+                // declared here so users can track a venue migration without
+                // waiting for a release
+                'collateral': {
+                    'asset': 'pUSD',
+                    'address': '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+                    'decimals': 6,
+                },
                 // the session credentials issued by POST /v1/account/proxy - a
                 // dict of proxy, privateKey, secret and expires - users can
                 // persist a session across processes by supplying it here
@@ -391,49 +399,74 @@ export default class polymarket extends Exchange {
     /**
      * @method
      * @name polymarket#fetchCurrencies
-     * @description fetches all available currencies on an exchange
+     * @description fetches all available currencies on an exchange - every instrument base, the usd quote and the collateral asset
      * @see https://docs.polymarket.com/perps/market-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     override async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetInfoAssets (params);
-        //
-        //     [
-        //         {
-        //             "asset": "pUSD",
-        //             "address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
-        //             "decimals": 6,
-        //             "collateral_ratio": "1.00",
-        //             "withdrawal_fee": "0.000000"
-        //         }
-        //     ]
-        //
+        const promises = [
+            this.publicGetInfoInstruments (params),
+            this.publicGetInfoAssets (params),
+        ];
+        const responses = await Promise.all (promises);
+        const instruments = responses[0];
+        const assets = responses[1];
         const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const currencyId = this.safeString (currency, 'asset');
+        for (let i = 0; i < instruments.length; i++) {
+            const instrument = instruments[i];
+            const baseId = this.safeString (instrument, 'base_asset');
+            if (baseId === undefined) {
+                continue;
+            }
+            const code = this.safeCurrencyCode (baseId);
+            if (!((code as string) in result)) {
+                result[code as string] = this.safeCurrencyStructure ({
+                    'id': baseId,
+                    'code': code,
+                    'name': baseId,
+                    'info': instrument,
+                    'active': undefined,
+                    'deposit': false,
+                    'withdraw': false,
+                    'fee': undefined,
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (instrument, 'quantity_decimals'))),
+                    'type': undefined,
+                    'networks': {},
+                });
+            }
+        }
+        // every instrument quotes using usd
+        result['USD'] = this.safeCurrencyStructure ({
+            'id': 'USD',
+            'code': 'USD',
+            'name': 'USD',
+            'info': undefined,
+            'active': undefined,
+            'deposit': false,
+            'withdraw': false,
+            'fee': undefined,
+            'precision': this.parseNumber ('0.01'),
+            'type': 'fiat',
+            'networks': {},
+        });
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            const currencyId = this.safeString (asset, 'asset');
+            if (currencyId === undefined) {
+                continue;
+            }
             const code = this.safeCurrencyCode (currencyId);
             result[code as string] = this.safeCurrencyStructure ({
                 'id': currencyId,
                 'code': code,
                 'name': currencyId,
-                'info': currency,
+                'info': asset,
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'fee': this.safeNumber (currency, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
+                'fee': this.safeNumber (asset, 'withdrawal_fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (asset, 'decimals'))),
                 'type': 'crypto',
                 'networks': {},
             });
@@ -2267,10 +2300,13 @@ export default class polymarket extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const owner = this.ethGetAddressFromPrivateKey (this.privateKey);
-        const tokenAddress = this.safeString (currency['info'], 'address');
+        const collateral = this.safeDict (this.options, 'collateral', {});
+        const tokenAddress = this.safeString (collateral, 'address');
+        const decimals = this.safeString (collateral, 'decimals', '6');
+        const precision = this.parsePrecision (decimals);
         // the signed amount is denominated using raw base units of the token
-        const precised = this.currencyToPrecision (code, amount);
-        const baseUnits = Precise.stringDiv (precised, this.numberToString (currency['precision']));
+        const precised = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, this.parseNumber (precision), TICK_SIZE);
+        const baseUnits = Precise.stringDiv (precised, precision);
         const ts = this.seconds ();
         const salt = this.randNumber (9);
         const chainId = this.safeInteger (this.options, 'chainId', 137);
@@ -2477,7 +2513,10 @@ export default class polymarket extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const instrumentId = this.parseToInt (market['id']);
-        let amountString = this.currencyToPrecision (market['settle'], amount);
+        const collateral = this.safeDict (this.options, 'collateral', {});
+        const decimals = this.safeString (collateral, 'decimals', '6');
+        const precision = this.parsePrecision (decimals);
+        let amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, this.parseNumber (precision), TICK_SIZE);
         if (type === 'reduce') {
             amountString = '-' + amountString;
         }

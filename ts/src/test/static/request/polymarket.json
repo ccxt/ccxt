@@ -43,15 +43,6 @@
                 "output": null
             }
         ],
-        "fetchCurrencies": [
-            {
-                "description": "fetch the collateral assets",
-                "method": "fetchCurrencies",
-                "url": "https://api.perpetuals.polymarket.com/v1/info/assets",
-                "input": [],
-                "output": null
-            }
-        ],
         "fetchTradingFees": [
             {
                 "description": "fetch the default fee schedule",
