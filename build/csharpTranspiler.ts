@@ -2944,7 +2944,7 @@ class NewTranspiler {
         const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'csharp-worker.js'),
+                filename: resolve(__dirname, 'csharp-worker.ts'),
                 maxThreads,
             });
         }
@@ -2952,7 +2952,7 @@ class NewTranspiler {
         const configKey = JSON.stringify (parserConfig);
 
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {

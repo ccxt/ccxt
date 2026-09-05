@@ -1068,15 +1068,15 @@ public class BaseExchange {
     }
 
     // SafeString / SafeStringN
-    public Object safeString(Object obj, Object key, Object... defaultValue) {
+    public String safeString(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.SafeString(obj, key, defaultValue);
     }
 
-    public Object safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public String safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.safeString2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeStringN(Object obj, Object keys, Object... defaultValue) {
+    public String safeStringN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeStringN(obj, keys, defaultValue);
     }
 
