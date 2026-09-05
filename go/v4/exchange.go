@@ -749,10 +749,6 @@ func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
 
-func (this *BaseExchange) callDynamically(name2 any, args ...any) <-chan any {
-	return this.callInternal(name2.(string), args...)
-}
-
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
