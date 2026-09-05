@@ -212,9 +212,9 @@ Capture a request/response fixture as soon as a method works once. Re-run on eve
 
 ```bash
 # request fixture (URL/body assertion) — NO HTTP
-node cli.js <id> fetchTicker BTC/USDT --report
+npm run cli.ts -- <id> fetchTicker BTC/USDT --request
 # response fixture (parser assertion) — NO HTTP
-node cli.js <id> fetchTicker BTC/USDT --response
+npm run cli.ts -- <id> fetchTicker BTC/USDT --response
 ```
 
 Paste each `methods.<methodName>` entry into `ts/src/test/static/request/<id>.json` or `ts/src/test/static/response/<id>.json`. Then run:

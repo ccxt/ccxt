@@ -44,8 +44,10 @@ const exchangeSpecificFlags = {
     '--sandbox': false,
     '--useProxy': false,
     '--verbose': false,
+    '--debug': false,
     '--private': false,
     '--privateOnly': false,
+    '--loadKeys': false,
     '--request': false,
     '--response': false,
     // force the prediction-markets namespace for ids present in both ccxt and ccxt.prediction

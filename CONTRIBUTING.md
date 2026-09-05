@@ -969,7 +969,7 @@ Folder: `ts/src/test/static/request/`
 You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+npm run cli.js -- binance fetchTrades "BTC/USDT:USDT" --request
 ````
 
 The `output` field holds the expected HTTP body. When that body is itself JSON, store it
