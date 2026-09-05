@@ -19,8 +19,8 @@ $keys = array(
     'markets_by_id',
     'currencies',
     'currencies_by_id',
-    'base_currencies',
-    'quote_currencies',
+    'baseCurrencies',
+    'quoteCurrencies',
     'symbols',
 );
 

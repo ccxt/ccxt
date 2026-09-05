@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -110,6 +110,7 @@ export default class blofin extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
@@ -176,100 +177,100 @@ export default class blofin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'market/instruments': 1,
-                        'market/tickers': 1,
-                        'market/books': 1,
-                        'market/trades': 1,
-                        'market/mark-price': 1,
-                        'market/funding-rate': 1,
-                        'market/funding-rate-history': 1,
-                        'market/candles': 1,
-                        'market/index-candles': 1,
-                        'market/mark-price-candles': 1,
-                        'market/position-tiers': 1,
+                        'market/instruments': { 'cost': 1 },
+                        'market/tickers': { 'cost': 1 },
+                        'market/books': { 'cost': 1 },
+                        'market/trades': { 'cost': 1 },
+                        'market/mark-price': { 'cost': 1 },
+                        'market/funding-rate': { 'cost': 1 },
+                        'market/funding-rate-history': { 'cost': 1 },
+                        'market/candles': { 'cost': 1 },
+                        'market/index-candles': { 'cost': 1 },
+                        'market/mark-price-candles': { 'cost': 1 },
+                        'market/position-tiers': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // account
-                        'asset/balances': 1,
-                        'asset/bills': 1,
-                        'asset/withdrawal-history': 1,
-                        'asset/deposit-history': 1,
-                        'account/config': 1,
-                        'asset/currencies': 1,
+                        'asset/balances': { 'cost': 1 },
+                        'asset/bills': { 'cost': 1 },
+                        'asset/withdrawal-history': { 'cost': 1 },
+                        'asset/deposit-history': { 'cost': 1 },
+                        'account/config': { 'cost': 1 },
+                        'asset/currencies': { 'cost': 1 },
                         // trading
-                        'account/balance': 1,
-                        'account/positions': 1,
-                        'account/positions-history': 1,
-                        'account/margin-mode': 1,
-                        'account/position-mode': 1,
-                        'account/leverage-info': 1,
-                        'account/batch-leverage-info': 1,
-                        'trade/orders-pending': 1,
-                        'trade/order-detail': 1,
-                        'trade/orders-tpsl-pending': 1,
-                        'trade/order-tpsl-detail': 1,
-                        'trade/orders-algo-pending': 1,
-                        'trade/orders-history': 1,
-                        'trade/orders-tpsl-history': 1,
-                        'trade/orders-algo-history': 1, // todo new
-                        'trade/fills-history': 1,
-                        'trade/order/price-range': 1,
+                        'account/balance': { 'cost': 1 },
+                        'account/positions': { 'cost': 1 },
+                        'account/positions-history': { 'cost': 1 },
+                        'account/margin-mode': { 'cost': 1 },
+                        'account/position-mode': { 'cost': 1 },
+                        'account/leverage-info': { 'cost': 1 },
+                        'account/batch-leverage-info': { 'cost': 1 },
+                        'trade/orders-pending': { 'cost': 1 },
+                        'trade/order-detail': { 'cost': 1 },
+                        'trade/orders-tpsl-pending': { 'cost': 1 },
+                        'trade/order-tpsl-detail': { 'cost': 1 },
+                        'trade/orders-algo-pending': { 'cost': 1 },
+                        'trade/orders-history': { 'cost': 1 },
+                        'trade/orders-tpsl-history': { 'cost': 1 },
+                        'trade/orders-algo-history': { 'cost': 1 }, // todo new
+                        'trade/fills-history': { 'cost': 1 },
+                        'trade/order/price-range': { 'cost': 1 },
                         // affiliate
-                        'affiliate/basic': 1,
-                        'affiliate/referral-code': 1,
-                        'affiliate/invitees': 1,
-                        'affiliate/sub-invitees': 1,
-                        'affiliate/sub-affiliates': 1,
-                        'affiliate/invitees/daily/info': 1,
+                        'affiliate/basic': { 'cost': 1 },
+                        'affiliate/referral-code': { 'cost': 1 },
+                        'affiliate/invitees': { 'cost': 1 },
+                        'affiliate/sub-invitees': { 'cost': 1 },
+                        'affiliate/sub-affiliates': { 'cost': 1 },
+                        'affiliate/invitees/daily/info': { 'cost': 1 },
                         // copy trading
-                        'copytrading/instruments': 1,
-                        'copytrading/config': 1,
-                        'copytrading/account/balance': 1,
-                        'copytrading/account/positions-by-order': 1,
-                        'copytrading/account/positions-details-by-order': 1,
-                        'copytrading/account/positions-by-contract': 1,
-                        'copytrading/account/position-mode': 1,
-                        'copytrading/account/leverage-info': 1,
-                        'copytrading/trade/orders-pending': 1,
-                        'copytrading/trade/pending-tpsl-by-contract': 1,
-                        'copytrading/trade/position-history-by-order': 1,
-                        'copytrading/trade/orders-history': 1,
-                        'copytrading/trade/pending-tpsl-by-order': 1,
+                        'copytrading/instruments': { 'cost': 1 },
+                        'copytrading/config': { 'cost': 1 },
+                        'copytrading/account/balance': { 'cost': 1 },
+                        'copytrading/account/positions-by-order': { 'cost': 1 },
+                        'copytrading/account/positions-details-by-order': { 'cost': 1 },
+                        'copytrading/account/positions-by-contract': { 'cost': 1 },
+                        'copytrading/account/position-mode': { 'cost': 1 },
+                        'copytrading/account/leverage-info': { 'cost': 1 },
+                        'copytrading/trade/orders-pending': { 'cost': 1 },
+                        'copytrading/trade/pending-tpsl-by-contract': { 'cost': 1 },
+                        'copytrading/trade/position-history-by-order': { 'cost': 1 },
+                        'copytrading/trade/orders-history': { 'cost': 1 },
+                        'copytrading/trade/pending-tpsl-by-order': { 'cost': 1 },
                         // user
-                        'user/query-apikey': 1,
+                        'user/query-apikey': { 'cost': 1 },
                         // tax
-                        'spot/trade/fills-history': 1,
+                        'spot/trade/fills-history': { 'cost': 1 },
                     },
                     'post': {
                         // account
-                        'asset/transfer': 1,
-                        'asset/demo-apply-money': 1,
+                        'asset/transfer': { 'cost': 1 },
+                        'asset/demo-apply-money': { 'cost': 1 },
                         // trading
-                        'account/set-margin-mode': 1,
-                        'account/set-position-mode': 1,
-                        'account/set-leverage': 1,
-                        'trade/order': 1,
-                        'trade/batch-orders': 1,
-                        'trade/order-tpsl': 1,
-                        'trade/order-algo': 1,
-                        'trade/cancel-order': 1,
-                        'trade/cancel-batch-orders': 1,
-                        'trade/cancel-tpsl': 1,
-                        'trade/cancel-algo': 1,
-                        'trade/close-position': 1,
+                        'account/set-margin-mode': { 'cost': 1 },
+                        'account/set-position-mode': { 'cost': 1 },
+                        'account/set-leverage': { 'cost': 1 },
+                        'trade/order': { 'cost': 1 },
+                        'trade/batch-orders': { 'cost': 1 },
+                        'trade/order-tpsl': { 'cost': 1 },
+                        'trade/order-algo': { 'cost': 1 },
+                        'trade/cancel-order': { 'cost': 1 },
+                        'trade/cancel-batch-orders': { 'cost': 1 },
+                        'trade/cancel-tpsl': { 'cost': 1 },
+                        'trade/cancel-algo': { 'cost': 1 },
+                        'trade/close-position': { 'cost': 1 },
                         // copy trading
-                        'copytrading/account/set-position-mode': 1,
-                        'copytrading/account/set-leverage': 1,
-                        'copytrading/trade/place-order': 1,
-                        'copytrading/trade/cancel-order': 1,
-                        'copytrading/trade/place-tpsl-by-contract': 1,
-                        'copytrading/trade/cancel-tpsl-by-contract': 1,
-                        'copytrading/trade/place-tpsl-by-order': 1,
-                        'copytrading/trade/cancel-tpsl-by-order': 1,
-                        'copytrading/trade/close-position-by-order': 1,
-                        'copytrading/trade/close-position-by-contract': 1,
+                        'copytrading/account/set-position-mode': { 'cost': 1 },
+                        'copytrading/account/set-leverage': { 'cost': 1 },
+                        'copytrading/trade/place-order': { 'cost': 1 },
+                        'copytrading/trade/cancel-order': { 'cost': 1 },
+                        'copytrading/trade/place-tpsl-by-contract': { 'cost': 1 },
+                        'copytrading/trade/cancel-tpsl-by-contract': { 'cost': 1 },
+                        'copytrading/trade/place-tpsl-by-order': { 'cost': 1 },
+                        'copytrading/trade/cancel-tpsl-by-order': { 'cost': 1 },
+                        'copytrading/trade/close-position-by-order': { 'cost': 1 },
+                        'copytrading/trade/close-position-by-contract': { 'cost': 1 },
                     },
                 },
             },
@@ -429,7 +430,6 @@ export default class blofin extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -469,28 +469,13 @@ export default class blofin extends Exchange {
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC', // UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -533,7 +518,7 @@ export default class blofin extends Exchange {
         const contract = swap || future;
         const baseId = this.safeString(market, 'baseCurrency');
         const quoteId = this.safeString(market, 'quoteCurrency');
-        const settleId = this.safeString(market, 'quoteCurrency');
+        const settleId = this.safeString(market, 'settleCurrency', quoteId);
         const settle = this.safeCurrencyCode(settleId);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -552,6 +537,9 @@ export default class blofin extends Exchange {
         maxLeverage = Precise.stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
         const isMargin = spot && (Precise.stringGt(maxLeverage, '1'));
+        const contractType = this.safeString(market, 'contractType');
+        const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
+        const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -571,8 +559,8 @@ export default class blofin extends Exchange {
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? (contractType === 'linear') : undefined,
+            'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber(market, 'contractValue') : undefined,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -590,7 +578,7 @@ export default class blofin extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber(market, 'minSize'),
-                    'max': undefined,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': undefined,
@@ -598,7 +586,7 @@ export default class blofin extends Exchange {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -612,7 +600,7 @@ export default class blofin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -680,7 +668,7 @@ export default class blofin extends Exchange {
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(market, 'spot', false);
-        const quoteVolume = spot ? this.safeString(ticker, 'volCurrency24h') : undefined;
+        const quoteVolume = (spot === true) ? this.safeString(ticker, 'volCurrency24h') : undefined;
         const baseVolume = this.safeString(ticker, 'vol24h');
         const high = this.safeString(ticker, 'high24h');
         const low = this.safeString(ticker, 'low24h');
@@ -1089,7 +1077,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -1251,6 +1239,12 @@ export default class blofin extends Exchange {
         return this.parseBalanceByType(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -1266,7 +1260,7 @@ export default class blofin extends Exchange {
         const triggerPriceSlTp = this.safeString2(params, 'stopLossPrice', 'takeProfitPrice');
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
         const isHedged = this.safeBool(params, 'hedged', false);
-        if (isHedged) {
+        if (isHedged === true) {
             request['positionSide'] = (side === 'buy') ? 'long' : 'short';
         }
         const isMarketOrder = type === 'market';
@@ -1396,13 +1390,11 @@ export default class blofin extends Exchange {
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
         const amount = this.safeString(order, 'size');
-        const leverage = this.safeString(order, 'leverage', '1');
         const contractSize = this.safeString(market, 'contractSize');
         const baseAmount = Precise.stringMul(contractSize, filled);
         let cost = undefined;
         if (average !== undefined) {
             cost = Precise.stringMul(average, baseAmount);
-            cost = Precise.stringDiv(cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         let fee = undefined;
@@ -1528,7 +1520,7 @@ export default class blofin extends Exchange {
         const market = this.market(symbol);
         const hedged = this.safeBool(params, 'hedged', false);
         let positionSide = 'net';
-        if (hedged) {
+        if (hedged === true) {
             positionSide = (side === 'buy') ? 'short' : 'long';
         }
         const request = {
@@ -1603,30 +1595,30 @@ export default class blofin extends Exchange {
         const request = {
             'instId': market['id'],
         };
-        const isTrigger = this.safeBoolN(params, ['trigger'], false);
+        const isTrigger = this.safeBool(params, 'trigger', false);
         const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
         else {
-            if (!isTrigger && !isTpsl) {
+            if ((isTrigger !== true) && (isTpsl !== true)) {
                 request['orderId'] = id.toString();
             }
-            else if (isTpsl) {
+            else if (isTpsl === true) {
                 request['tpslId'] = id.toString();
             }
-            else if (isTrigger) {
+            else if (isTrigger === true) {
                 request['algoId'] = id.toString();
             }
         }
         const query = this.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl']);
-        if (isTpsl) {
+        if (isTpsl === true) {
             const tpslResponse = await this.cancelOrders([id], symbol, params);
             const first = this.safeDict(tpslResponse, 0);
             return first;
         }
-        else if (isTrigger) {
+        else if (isTrigger === true) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
             return this.parseOrder(triggerData, market);
@@ -1705,10 +1697,10 @@ export default class blofin extends Exchange {
         [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
+        if ((isTpSl === true) || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
         }
-        else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
+        else if ((isTrigger === true) || (method === 'privateGetTradeOrdersAlgoPending')) {
             request['orderType'] = 'trigger';
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
         }
@@ -2084,13 +2076,11 @@ export default class blofin extends Exchange {
         }
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeDict(this.options, 'cancelOrders', {});
-        const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
-        let method = this.safeString(params, 'method', defaultMethod);
+        let method = this.handleOption('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
         const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
-        if (trigger) {
+        if (trigger === true) {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
@@ -2104,7 +2094,7 @@ export default class blofin extends Exchange {
                 }
             }
             for (let i = 0; i < ids.length; i++) {
-                if (trigger) {
+                if (trigger === true) {
                     request.push({
                         'tpslId': ids[i],
                         'instId': market['id'],
@@ -2202,7 +2192,7 @@ export default class blofin extends Exchange {
         const data = this.safeList(response, 'data', []);
         const position = this.safeDict(data, 0);
         if (position === undefined) {
-            return undefined;
+            throw new NullResponse(this.id + ' fetchPosition() returned empty position');
         }
         return this.parsePosition(position, market);
     }
@@ -2234,7 +2224,7 @@ export default class blofin extends Exchange {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2367,7 +2357,7 @@ export default class blofin extends Exchange {
         const contractSizeString = this.numberToString(contractSize);
         const markPriceString = this.safeString(position, 'markPrice');
         let notionalString = this.safeString(position, 'notionalUsd');
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber(notionalString);
@@ -2393,7 +2383,8 @@ export default class blofin extends Exchange {
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -2591,7 +2582,7 @@ export default class blofin extends Exchange {
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2656,10 +2647,10 @@ export default class blofin extends Exchange {
         }
         const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        [method, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
-        if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
+        if ((isTrigger === true) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         }
         else {
@@ -2735,7 +2726,7 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseMarginMode(data, market); // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
+        return this.parseMarginMode(data, market); // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
     }
     /**
      * @method
@@ -2770,7 +2761,7 @@ export default class blofin extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

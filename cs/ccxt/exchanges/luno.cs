@@ -45,6 +45,8 @@ public partial class luno : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositWithdrawFee", true },
+                { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -120,63 +122,151 @@ public partial class luno : Exchange
                     { "exchangePrivate", "https://api.luno.com/api/exchange" },
                 } },
                 { "www", "https://www.luno.com" },
-                { "doc", new List<object>() {"https://www.luno.com/en/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx"} },
+                { "doc", new List<object>() {"https://www.luno.com/en/developers/api", "https://npmjs.org/package/bitx", "https://github.com/bausmeier/node-bitx"} },
             } },
             { "api", new Dictionary<string, object>() {
                 { "exchange", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "markets", 1 },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "exchangePrivate", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "candles", 1 },
+                        { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move/list_moves", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "convert", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "move", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "orderbook", 1 },
-                        { "orderbook_top", 1 },
-                        { "ticker", 1 },
-                        { "tickers", 1 },
-                        { "trades", 1 },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook_top", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accounts/{id}/pending", 1 },
-                        { "accounts/{id}/transactions", 1 },
-                        { "balance", 1 },
-                        { "beneficiaries", 1 },
-                        { "send/networks", 1 },
-                        { "fee_info", 1 },
-                        { "funding_address", 1 },
-                        { "listorders", 1 },
-                        { "listtrades", 1 },
-                        { "send_fee", 1 },
-                        { "orders/{id}", 1 },
-                        { "withdrawals", 1 },
-                        { "withdrawals/{id}", 1 },
-                        { "transfers", 1 },
+                        { "accounts/{id}/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{id}/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send/networks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fee_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listtrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/linked", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "accounts", 1 },
-                        { "address/validate", 1 },
-                        { "postorder", 1 },
-                        { "marketorder", 1 },
-                        { "stoporder", 1 },
-                        { "funding_address", 1 },
-                        { "withdrawals", 1 },
-                        { "send", 1 },
-                        { "oauth2/grant", 1 },
-                        { "beneficiaries", 1 },
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address/validate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "postorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "marketorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stoporder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding_address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oauth2/grant", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "accounts/{id}/name", 1 },
+                        { "accounts/{id}/name", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "withdrawals/{id}", 1 },
-                        { "beneficiaries/{id}", 1 },
+                        { "withdrawals/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "beneficiaries/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -196,8 +286,110 @@ public partial class luno : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "taker", this.parseNumber("0.001") },
-                    { "maker", this.parseNumber("0") },
+                    { "taker", this.parseNumber("0.006") },
+                    { "maker", this.parseNumber("0.004") },
+                    { "tiers", new Dictionary<string, object>() {
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("0.0005")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("40000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("80000000"), this.parseNumber("-0.0001")}, new List<object> {this.parseNumber("120000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("160000000"), this.parseNumber("-0.0002")}, new List<object> {this.parseNumber("300000000"), this.parseNumber("-0.0002")}} },
+                    } },
+                } },
+            } },
+            { "exceptions", new Dictionary<string, object>() {
+                { "exact", new Dictionary<string, object>() {
+                    { "ErrAccountIsMigrating", typeof(OperationRejected) },
+                    { "ErrAccountLimit", typeof(OperationRejected) },
+                    { "ErrAccountNotFound", typeof(ExchangeError) },
+                    { "ErrAccountsNotDifferent", typeof(BadRequest) },
+                    { "ErrActiveCryptoRequestExists", typeof(OperationRejected) },
+                    { "ErrAddressCreateRateLimitReached", typeof(RateLimitExceeded) },
+                    { "ErrAddressLimitReached", typeof(OperationRejected) },
+                    { "ErrAmountTooBig", typeof(BadRequest) },
+                    { "ErrAmountTooSmall", typeof(BadRequest) },
+                    { "ErrApiKeyRevoked", typeof(AuthenticationError) },
+                    { "ErrBeneficiaryNotFound", typeof(ExchangeError) },
+                    { "ErrBlockedSendsCurrency", typeof(OperationRejected) },
+                    { "ErrCannotStopUnknownOrNonPendingOrder", typeof(InvalidOrder) },
+                    { "ErrCannotTradeWhileQuoteActive", typeof(OperationRejected) },
+                    { "ErrConvertPairNotSupported", typeof(BadRequest) },
+                    { "ErrConvertRateLimited", typeof(RateLimitExceeded) },
+                    { "ErrCounterDenominationNotAllowed", typeof(InvalidOrder) },
+                    { "ErrCreditAccountNotTransactional", typeof(BadRequest) },
+                    { "ErrCustomRefNotAllowed", typeof(BadRequest) },
+                    { "ErrDeadlineExceeded", typeof(RequestTimeout) },
+                    { "ErrDebitAccountNotTransactional", typeof(BadRequest) },
+                    { "ErrDescriptionTooLong", typeof(BadRequest) },
+                    { "ErrDifferentCurrencies", typeof(BadRequest) },
+                    { "ErrDisallowedTarget", typeof(InvalidAddress) },
+                    { "ErrDuplicateClientMoveID", typeof(OperationRejected) },
+                    { "ErrDuplicateClientOrderID", typeof(DuplicateOrderId) },
+                    { "ErrDuplicateExternalID", typeof(OperationRejected) },
+                    { "ErrERC20AddressAlreadyAssigned", typeof(OperationRejected) },
+                    { "ErrERC20AssignNonDefault", typeof(BadRequest) },
+                    { "ErrFundsMoveNotFound", typeof(ExchangeError) },
+                    { "ErrIdempotencyKeyConflict", typeof(OperationRejected) },
+                    { "ErrIdempotencyKeyRequestMismatch", typeof(BadRequest) },
+                    { "ErrIncompatibleBeneficiary", typeof(BadRequest) },
+                    { "ErrIncorrectPin", typeof(AuthenticationError) },
+                    { "ErrInsufficientBalance", typeof(InsufficientFunds) },
+                    { "ErrInsufficientFunds", typeof(InsufficientFunds) },
+                    { "ErrInsufficientPerms", typeof(PermissionDenied) },
+                    { "ErrInternal", typeof(ExchangeNotAvailable) },
+                    { "ErrInvalidAccount", typeof(BadRequest) },
+                    { "ErrInvalidAccountID", typeof(BadRequest) },
+                    { "ErrInvalidAccountNumber", typeof(BadRequest) },
+                    { "ErrInvalidAmount", typeof(BadRequest) },
+                    { "ErrInvalidArguments", typeof(BadRequest) },
+                    { "ErrInvalidBaseVolume", typeof(InvalidOrder) },
+                    { "ErrInvalidBranchCode", typeof(BadRequest) },
+                    { "ErrInvalidClientOrderId", typeof(InvalidOrder) },
+                    { "ErrInvalidCounterVolume", typeof(InvalidOrder) },
+                    { "ErrInvalidCurrency", typeof(BadRequest) },
+                    { "ErrInvalidDetails", typeof(BadRequest) },
+                    { "ErrInvalidMarketPair", typeof(BadSymbol) },
+                    { "ErrInvalidOrderRef", typeof(InvalidOrder) },
+                    { "ErrInvalidOrderSide", typeof(InvalidOrder) },
+                    { "ErrInvalidParameters", typeof(BadRequest) },
+                    { "ErrInvalidPrice", typeof(InvalidOrder) },
+                    { "ErrInvalidRequestType", typeof(BadRequest) },
+                    { "ErrInvalidSourceAccount", typeof(BadRequest) },
+                    { "ErrInvalidStopDirection", typeof(InvalidOrder) },
+                    { "ErrInvalidStopPrice", typeof(InvalidOrder) },
+                    { "ErrInvalidVolume", typeof(InvalidOrder) },
+                    { "ErrLimitOutOfRange", typeof(BadRequest) },
+                    { "ErrMarketNotAllowed", typeof(PermissionDenied) },
+                    { "ErrMarketUnavailable", typeof(ExchangeError) },
+                    { "ErrMaxActiveFiatRequestsExists", typeof(OperationRejected) },
+                    { "ErrMissingIdempotencyKey", typeof(BadRequest) },
+                    { "ErrNoAddressesAssigned", typeof(InvalidAddress) },
+                    { "ErrNoTradesToInferStopDirection", typeof(InvalidOrder) },
+                    { "ErrNotEnoughLiquidity", typeof(InvalidOrder) },
+                    { "ErrNotFound", typeof(ExchangeError) },
+                    { "ErrOrderCanceled", typeof(InvalidOrder) },
+                    { "ErrOrderNotFound", typeof(OrderNotFound) },
+                    { "ErrPostOnlyMode", typeof(InvalidOrder) },
+                    { "ErrPostOnlyNotAllowed", typeof(InvalidOrder) },
+                    { "ErrPriceDenominationNotAllowed", typeof(InvalidOrder) },
+                    { "ErrPriceTooHigh", typeof(InvalidOrder) },
+                    { "ErrPriceTooLow", typeof(InvalidOrder) },
+                    { "ErrRejectedBeneficiary", typeof(OperationRejected) },
+                    { "ErrRequestTypeDoesNotSupportFastWithdrawals", typeof(BadRequest) },
+                    { "ErrStopPriceTooHigh", typeof(InvalidOrder) },
+                    { "ErrStopPriceTooLow", typeof(InvalidOrder) },
+                    { "ErrTooManyRequests", typeof(RateLimitExceeded) },
+                    { "ErrTooManyRowsRequested", typeof(BadRequest) },
+                    { "ErrTravelRule", typeof(ManualInteractionNeeded) },
+                    { "ErrUnauthorised", typeof(AuthenticationError) },
+                    { "ErrUnderMaintenance", typeof(OnMaintenance) },
+                    { "ErrUpdateRequired", typeof(ExchangeError) },
+                    { "ErrUserBlockedForCancelWithdrawal", typeof(PermissionDenied) },
+                    { "ErrUserNotVerifiedForCurrency", typeof(AccountNotEnabled) },
+                    { "ErrValueTooHigh", typeof(InvalidOrder) },
+                    { "ErrVerificationLevelTooLow", typeof(AccountNotEnabled) },
+                    { "ErrVolumeDenominationNotAllowed", typeof(InvalidOrder) },
+                    { "ErrVolumeTooHigh", typeof(InvalidOrder) },
+                    { "ErrVolumeTooLow", typeof(InvalidOrder) },
+                    { "ErrWithdrawalBlocked", typeof(PermissionDenied) },
+                    { "ErrWithdrawalNotFound", typeof(ExchangeError) },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -290,6 +482,7 @@ public partial class luno : Exchange
      * @method
      * @name luno#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/ListSupportedNetworks
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
@@ -314,41 +507,44 @@ public partial class luno : Exchange
         //     }
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
-        object grouped = this.groupBy(currenciesData, "native_currency");
-        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        Dictionary<string, object> grouped = this.groupBy(currenciesData, "native_currency");
+        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
         return this.parseCurrencies(values);
     }
 
     public override object parseCurrency(object rawCurrency)
     {
-        object id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
+        string? id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
         object code = this.safeCurrencyCode(id);
-        object networks = new Dictionary<string, object>() {};
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
             object networkEntry = getValue(rawCurrency, i);
-            object networkId = this.safeString(networkEntry, "name");
+            string? networkId = this.safeString(networkEntry, "name");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "info", networkEntry },
-            };
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "info", networkEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -383,7 +579,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.exchangeGetMarkets(parameters);
@@ -406,20 +602,52 @@ public partial class luno : Exchange
         //         ]
         //     }
         //
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         object markets = this.safeValue(response, "markets", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object id = this.safeString(market, "market_id");
-            object baseId = this.safeString(market, "base_currency");
-            object quoteId = this.safeString(market, "counter_currency");
+            string? id = this.safeString(market, "market_id");
+            string? baseId = this.safeString(market, "base_currency");
+            string? quoteId = this.safeString(market, "counter_currency");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object status = this.safeString(market, "trading_status");
+            string? status = this.safeString(market, "trading_status");
+            // Luno's published schedule is categorical, not a single pair. Entry-tier
+            // rates below are read from Luno's own Help Centre fee article for the ZAR
+            // market; markets quoted in other fiat currencies are left on the
+            // exchange-wide default until their schedules are verified the same way.
+            List<object> fiats = new List<object>() {"ZAR"};
+            // live-but-unverified counters, kept on the exchange-wide default; the market
+            // list is geo-filtered so this is a superset of any one region's view, and
+            // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
+            List<object> unverifiedQuotes = new List<object>() {"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"};
+            List<object> stablecoins = new List<object>() {"USDT", "USDC"};
+            object taker = null;
+            object maker = null;
+            if (isTrue(this.inArray(quote, fiats)))
+            {
+                if (isTrue(this.inArray(bs, stablecoins)))
+                {
+                    taker = this.parseNumber("0.002");
+                    maker = this.parseNumber("-0.0001"); // a rebate, not a charge
+                } else
+                {
+                    taker = this.parseNumber("0.006");
+                    maker = this.parseNumber("0.004");
+                }
+            } else if (!isTrue(this.inArray(quote, unverifiedQuotes)))
+            {
+                // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
+                // are both in Luno's crypto/crypto column
+                taker = this.parseNumber("0.001");
+                maker = this.parseNumber("0.0008");
+            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
+                { "taker", taker },
+                { "maker", maker },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -467,7 +695,7 @@ public partial class luno : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     /**
@@ -478,32 +706,32 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async override Task<object> fetchAccounts(object parameters = null)
+    public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.privateGetBalance(parameters);
         object wallets = this.safeValue(response, "balance", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
         {
             object account = getValue(wallets, i);
-            object accountId = this.safeString(account, "account_id");
-            object currencyId = this.safeString(account, "asset");
+            string? accountId = this.safeString(account, "account_id");
+            string? currencyId = this.safeString(account, "asset");
             object code = this.safeCurrencyCode(currencyId);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
-                { "currency", code },
+                { "code", code },
                 { "info", account },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToAccountList(result);
     }
 
     public override object parseBalance(object response)
     {
         object wallets = this.safeValue(response, "balance", new List<object>() {});
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
@@ -511,18 +739,18 @@ public partial class luno : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
         {
             object wallet = getValue(wallets, i);
-            object currencyId = this.safeString(wallet, "asset");
+            string? currencyId = this.safeString(wallet, "asset");
             object code = this.safeCurrencyCode(currencyId);
-            object reserved = this.safeString(wallet, "reserved");
-            object unconfirmed = this.safeString(wallet, "unconfirmed");
-            object balance = this.safeString(wallet, "balance");
-            object reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
-            object balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
-            if (isTrue(inOp(result, code)))
+            string? reserved = this.safeString(wallet, "reserved");
+            string? unconfirmed = this.safeString(wallet, "unconfirmed");
+            string? balance = this.safeString(wallet, "balance");
+            string? reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
+            string? balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(result, code)))))
             {
                 ((IDictionary<string,object>)getValue(result, code))["used"] = Precise.stringAdd(getValue(getValue(result, code), "used"), reservedUnconfirmed);
                 ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringAdd(getValue(getValue(result, code), "total"), balanceUnconfirmed);
-            } else
+            } else if (isTrue(!isEqual(code, null)))
             {
                 object account = this.account();
                 ((IDictionary<string,object>)account)["used"] = reservedUnconfirmed;
@@ -541,7 +769,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -559,7 +787,7 @@ public partial class luno : Exchange
         //         ]
         //     }
         //
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -571,9 +799,9 @@ public partial class luno : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -581,7 +809,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         object response = null;
@@ -592,13 +820,13 @@ public partial class luno : Exchange
         {
             response = await this.publicGetOrderbook(this.extend(request, parameters));
         }
-        object timestamp = this.safeInteger(response, "timestamp");
-        return this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
+        Int64? timestamp = this.safeInteger(response, "timestamp");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume"));
     }
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "open" },
         };
         return this.safeString(statuses, status, status);
@@ -623,11 +851,11 @@ public partial class luno : Exchange
         //         "type": "BID"
         //     }
         //
-        object timestamp = this.safeInteger(order, "creation_timestamp");
+        Int64? timestamp = this.safeInteger(order, "creation_timestamp");
         object status = this.parseOrderStatus(this.safeString(order, "state"));
         status = ((bool) isTrue((isEqual(status, "open")))) ? status : status;
-        object side = null;
-        object orderType = this.safeString(order, "type");
+        string? side = null;
+        string? orderType = this.safeString(order, "type");
         if (isTrue(isTrue((isEqual(orderType, "ASK"))) || isTrue((isEqual(orderType, "SELL")))))
         {
             side = "sell";
@@ -635,14 +863,14 @@ public partial class luno : Exchange
         {
             side = "buy";
         }
-        object marketId = this.safeString(order, "pair");
+        string? marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
-        object price = this.safeString(order, "limit_price");
-        object amount = this.safeString(order, "limit_volume");
+        string? price = this.safeString(order, "limit_price");
+        string? amount = this.safeString(order, "limit_volume");
         object quoteFee = this.safeNumber(order, "fee_counter");
         object baseFee = this.safeNumber(order, "fee_base");
-        object filled = this.safeString(order, "base");
-        object cost = this.safeString(order, "counter");
+        string? filled = this.safeString(order, "base");
+        string? cost = this.safeString(order, "counter");
         object fee = null;
         if (isTrue(!isEqual(quoteFee, null)))
         {
@@ -657,7 +885,7 @@ public partial class luno : Exchange
                 { "currency", getValue(market, "base") },
             };
         }
-        object id = this.safeString(order, "order_id");
+        string? id = this.safeString(order, "order_id");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -693,28 +921,28 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
         object response = await this.privateGetOrdersId(this.extend(request, parameters));
-        return this.parseOrder(response);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
-    public async virtual Task<object> fetchOrdersByState(object state, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(state, null)))
         {
@@ -727,7 +955,7 @@ public partial class luno : Exchange
         }
         object response = await this.privateGetListorders(this.extend(request, parameters));
         object orders = this.safeList(response, "orders", new List<object>() {});
-        return this.parseOrders(orders, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
     /**
@@ -741,10 +969,10 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByState(null, symbol, since, limit, parameters);
+        return await this.FetchOrdersByState(null, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -758,10 +986,10 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByState("PENDING", symbol, since, limit, parameters);
+        return await this.FetchOrdersByState("PENDING", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -775,10 +1003,10 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrdersByState("COMPLETE", symbol, since, limit, parameters);
+        return await this.FetchOrdersByState("COMPLETE", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -792,10 +1020,10 @@ public partial class luno : Exchange
         //     "rolling_24_hour_volume":"1.89510000",
         //     "status":"ACTIVE"
         // }
-        object timestamp = this.safeInteger(ticker, "timestamp");
-        object marketId = this.safeString(ticker, "pair");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
+        string? marketId = this.safeString(ticker, "pair");
         object symbol = this.safeSymbol(marketId, market);
-        object last = this.safeString(ticker, "last_trade");
+        string? last = this.safeString(ticker, "last_trade");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -829,7 +1057,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -838,9 +1066,10 @@ public partial class luno : Exchange
         }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetTickers(parameters);
-        object tickers = this.indexBy(getValue(response, "tickers"), "pair");
-        object ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        object result = new Dictionary<string, object>() {};
+        object rawTickers = this.safeList(response, "tickers", new List<object>() {});
+        Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
+        List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -849,7 +1078,7 @@ public partial class luno : Exchange
             object ticker = getValue(tickers, id);
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     /**
@@ -861,7 +1090,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -869,7 +1098,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetTicker(this.extend(request, parameters));
@@ -882,7 +1111,7 @@ public partial class luno : Exchange
         //     "rolling_24_hour_volume":"1.89510000",
         //     "status":"ACTIVE"
         // }
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -919,13 +1148,13 @@ public partial class luno : Exchange
         // For public trade data (is_buy === True) indicates 'buy' side but for private trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
         // Private trade data includes ID field which public trade data does not.
-        object orderId = this.safeString(trade, "order_id");
-        object id = this.safeString(trade, "sequence");
-        object takerOrMaker = null;
-        object side = null;
+        string? orderId = this.safeString(trade, "order_id");
+        string? id = this.safeString(trade, "sequence");
+        string? takerOrMaker = null;
+        string? side = null;
         if (isTrue(!isEqual(orderId, null)))
         {
-            object type = this.safeString(trade, "type");
+            string? type = this.safeString(trade, "type");
             if (isTrue(isTrue((isEqual(type, "ASK"))) || isTrue((isEqual(type, "SELL")))))
             {
                 side = "sell";
@@ -933,10 +1162,10 @@ public partial class luno : Exchange
             {
                 side = "buy";
             }
-            if (isTrue(isTrue(isEqual(side, "sell")) && isTrue(getValue(trade, "is_buy"))))
+            if (isTrue(isTrue((isEqual(side, "sell"))) && isTrue((isEqual(getValue(trade, "is_buy"), true)))))
             {
                 takerOrMaker = "maker";
-            } else if (isTrue(isTrue(isEqual(side, "buy")) && !isTrue(getValue(trade, "is_buy"))))
+            } else if (isTrue(isTrue((isEqual(side, "buy"))) && isTrue((!isEqual(getValue(trade, "is_buy"), true)))))
             {
                 takerOrMaker = "maker";
             } else
@@ -945,11 +1174,11 @@ public partial class luno : Exchange
             }
         } else
         {
-            side = ((bool) isTrue(getValue(trade, "is_buy"))) ? "buy" : "sell";
+            side = ((bool) isTrue((isEqual(getValue(trade, "is_buy"), true)))) ? "buy" : "sell";
         }
-        object feeBaseString = this.safeString(trade, "fee_base");
-        object feeCounterString = this.safeString(trade, "fee_counter");
-        object feeCurrency = null;
+        string? feeBaseString = this.safeString(trade, "fee_base");
+        string? feeCounterString = this.safeString(trade, "fee_counter");
+        string? feeCurrency = null;
         object feeCost = null;
         if (isTrue(!isEqual(feeBaseString, null)))
         {
@@ -966,7 +1195,7 @@ public partial class luno : Exchange
                 feeCost = feeCounterString;
             }
         }
-        object timestamp = this.safeInteger(trade, "timestamp");
+        Int64? timestamp = this.safeInteger(trade, "timestamp");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -998,7 +1227,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1006,7 +1235,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         if (isTrue(!isEqual(since, null)))
@@ -1028,7 +1257,7 @@ public partial class luno : Exchange
         //      }
         //
         object trades = this.safeList(response, "trades", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -1040,20 +1269,21 @@ public partial class luno : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} params extra parameters specific to the luno api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "duration", this.safeValue(this.timeframes, timeframe, timeframe) },
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "duration", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
             { "pair", getValue(market, "id") },
         };
         if (isTrue(!isEqual(since, null)))
@@ -1061,7 +1291,7 @@ public partial class luno : Exchange
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(since);
         } else
         {
-            object duration = multiply(multiply(1000, 1000), this.parseTimeframe(timeframe));
+            object duration = multiply(multiply(1000, 1000), this.parseTimeframe(timeframeVar));
             ((IDictionary<string,object>)request)["since"] = subtract(this.milliseconds(), duration);
         }
         object response = await this.exchangePrivateGetCandles(this.extend(request, parameters));
@@ -1082,7 +1312,7 @@ public partial class luno : Exchange
         //     }
         //
         object ohlcvs = this.safeList(response, "candles", new List<object>() {});
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market, timeframeVar, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1109,7 +1339,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1121,7 +1351,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         if (isTrue(!isEqual(since, null)))
@@ -1155,7 +1385,7 @@ public partial class luno : Exchange
         //      }
         //
         object trades = this.safeList(response, "trades", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -1167,7 +1397,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1175,7 +1405,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         object response = await this.privateGetFeeInfo(this.extend(request, parameters));
@@ -1186,14 +1416,7 @@ public partial class luno : Exchange
         //          "thirty_day_volume": "0"
         //     }
         //
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "symbol", symbol },
-            { "maker", this.safeNumber(response, "maker_fee") },
-            { "taker", this.safeNumber(response, "taker_fee") },
-            { "percentage", null },
-            { "tierBased", null },
-        };
+        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "maker", this.safeNumber(response, "maker_fee") },             { "taker", this.safeNumber(response, "taker_fee") },             { "percentage", null },             { "tierBased", null },         });
     }
 
     /**
@@ -1210,7 +1433,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1218,10 +1441,14 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
         object response = null;
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         if (isTrue(isEqual(type, "market")))
         {
             ((IDictionary<string,object>)request)["type"] = ((string)side).ToUpper();
@@ -1241,10 +1468,11 @@ public partial class luno : Exchange
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "BID" : "ASK";
             response = await this.privatePostPostorder(this.extend(request, parameters));
         }
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-            { "id", getValue(response, "order_id") },
-        }, market);
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " createOrder() returned empty response")) ;
+        }
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(response, "order_id") },         }, market));
     }
 
     /**
@@ -1257,14 +1485,14 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
         object response = await this.privatePostStoporder(this.extend(request, parameters));
@@ -1273,29 +1501,28 @@ public partial class luno : Exchange
         //        "success": true
         //    }
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
-    public async virtual Task<object> fetchLedgerByEntries(object code = null, object entry = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit = null, object parameters = null)
     {
-        // by default without entry number or limit number, return most recent entry
+        object limitVar = limit;
+        // by default without entry number or limitVar number, return most recent entry
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(entry, null)))
         {
             entry = -1;
         }
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 1;
+            limitVar = 1;
         }
         object since = null;
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "min_row", entry },
-            { "max_row", this.sum(entry, limit) },
+            { "max_row", this.sum(entry, limitVar) },
         };
-        return await this.fetchLedger(code, since, limit, this.extend(request, parameters));
+        return await this.FetchLedger(((string)code),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), this.extend(request, parameters));
     }
 
     /**
@@ -1309,7 +1536,7 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1328,7 +1555,7 @@ public partial class luno : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " fetchLedger() requires a currency code argument if no account id specified in params")) ;
             }
             currency = this.currency(code);
-            object accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
+            Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
             object account = this.safeValue(accountsByCurrencyCode, code);
             if (isTrue(isEqual(account, null)))
             {
@@ -1358,20 +1585,20 @@ public partial class luno : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
             { "min_row", min_row },
             { "max_row", max_row },
         };
         object response = await this.privateGetAccountsIdTransactions(this.extend(parameters, request));
         object entries = this.safeValue(response, "transactions", new List<object>() {});
-        return this.parseLedger(entries, currency, since, limit);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
     }
 
     public virtual object parseLedgerComment(object comment)
     {
-        object words = ((string)comment).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        object types = new Dictionary<string, object>() {
+        List<object> words = ((string)comment).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "Withdrawal", "fee" },
             { "Trading", "fee" },
             { "Payment", "transaction" },
@@ -1384,11 +1611,11 @@ public partial class luno : Exchange
             { "Bought", "trade" },
             { "Failure", "failed" },
         };
-        object referenceId = null;
-        object firstWord = this.safeString(words, 0);
-        object thirdWord = this.safeString(words, 2);
-        object fourthWord = this.safeString(words, 3);
-        object type = this.safeString(types, firstWord);
+        string? referenceId = null;
+        string? firstWord = this.safeString(words, 0);
+        string? thirdWord = this.safeString(words, 2);
+        string? fourthWord = this.safeString(words, 3);
+        string? type = this.safeString(types, firstWord);
         if (isTrue(isTrue((isEqual(type, null))) && isTrue((isEqual(thirdWord, "fee")))))
         {
             type = "fee";
@@ -1406,23 +1633,23 @@ public partial class luno : Exchange
     public override object parseLedgerEntry(object entry, object currency = null)
     {
         // const details = this.safeValue (entry, 'details', {});
-        object id = this.safeString(entry, "row_index");
-        object account_id = this.safeString(entry, "account_id");
-        object timestamp = this.safeInteger(entry, "timestamp");
-        object currencyId = this.safeString(entry, "currency");
+        string? id = this.safeString(entry, "row_index");
+        string? account_id = this.safeString(entry, "account_id");
+        Int64? timestamp = this.safeInteger(entry, "timestamp");
+        string? currencyId = this.safeString(entry, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object available_delta = this.safeString(entry, "available_delta");
-        object balance_delta = this.safeString(entry, "balance_delta");
-        object after = this.safeString(entry, "balance");
-        object comment = this.safeString(entry, "description");
+        string? available_delta = this.safeString(entry, "available_delta");
+        string? balance_delta = this.safeString(entry, "balance_delta");
+        string? after = this.safeString(entry, "balance");
+        string? comment = this.safeString(entry, "description");
         object before = after;
         object amount = "0.0";
         object result = this.parseLedgerComment(comment);
         object type = getValue(result, "type");
         object referenceId = getValue(result, "referenceId");
-        object direction = null;
-        object status = null;
+        string? direction = null;
+        string? status = null;
         if (!isTrue(Precise.stringEquals(balance_delta, "0.0")))
         {
             before = Precise.stringSub(after, balance_delta);
@@ -1472,9 +1699,10 @@ public partial class luno : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] an optional name for the new address
      * @param {int} [params.account_id] an optional account id for the new address
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1482,7 +1710,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
         };
         object response = await this.privatePostFundingAddress(this.extend(request, parameters));
@@ -1506,7 +1734,7 @@ public partial class luno : Exchange
         //         "total_unconfirmed": "string"
         //     }
         //
-        return this.parseDepositAddress(response, currency);
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
     /**
@@ -1517,9 +1745,10 @@ public partial class luno : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.address] a specific cryptocurrency address to retrieve
+     * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1527,7 +1756,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
         };
         object response = await this.privateGetFundingAddress(this.extend(request, parameters));
@@ -1551,7 +1780,7 @@ public partial class luno : Exchange
         //         "total_unconfirmed": "string"
         //     }
         //
-        return this.parseDepositAddress(response, currency);
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -1576,7 +1805,7 @@ public partial class luno : Exchange
         //         "total_unconfirmed": "string"
         //     }
         //
-        object currencyId = this.safeStringUpper(depositAddress, "currency");
+        string? currencyId = this.safeStringUpper(depositAddress, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
@@ -1587,6 +1816,42 @@ public partial class luno : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name luno#fetchDepositWithdrawFee
+     * @description fetch the fee for sending (withdrawing) a currency to a specific address; luno quotes the network fee per destination, so an address is required, see https://github.com/ccxt/ccxt/issues/25830
+     * @see https://www.luno.com/en/developers/api#tag/Send/operation/SendFee
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    public async override Task<ccxt.DepositWithdrawFee> FetchDepositWithdrawFee(string code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? address = this.safeString(parameters, "address");
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+        }
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privateGetSendFee(this.extend(request, parameters));
+        //
+        //     {
+        //         "currency": "XBT",
+        //         "fee": "0.00015"
+        //     }
+        //
+        object result = this.depositWithdrawFee(response);
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(response, "fee");
+        ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+        return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1594,7 +1859,7 @@ public partial class luno : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
         {
             url = add(url, add("?", this.urlencode(query)));
         }
@@ -1623,7 +1888,10 @@ public partial class luno : Exchange
         object error = this.safeValue(response, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
+            object feedback = add(add(this.id, " "), this.json(response));
+            string? errorCode = this.safeString(response, "error_code");
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

@@ -7,12 +7,12 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchMarginModes(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchMarginModes(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchMarginModes";
-        object marginModes = await exchange.fetchMarginModes(new List<object>() {"symbol"});
-        assert(exchange.isDictionary(marginModes), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(marginModes)));
-        object marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
+        string method = "fetchMarginModes";
+        object marginModes = await invokeExchangeDynamically(exchange, "fetchMarginModes", new List<object>() {symbol});
+        testSharedMethods.assertDictionaryResponse(exchange, method, marginModes, symbol);
+        List<object> marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(marginModeKeys)); postFixIncrement(ref i))
         {

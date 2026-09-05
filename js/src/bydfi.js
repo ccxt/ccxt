@@ -134,7 +134,7 @@ export default class bydfi extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -200,57 +200,57 @@ export default class bydfi extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
-                        'v1/fapi/market/exchange_info': 1,
-                        'v1/fapi/market/depth': 1,
-                        'v1/fapi/market/trades': 1,
-                        'v1/fapi/market/klines': 1,
-                        'v1/fapi/market/ticker/24hr': 1,
-                        'v1/fapi/market/ticker/price': 1, // https://developers.bydfi.com/en/futures/market#latest-price
-                        'v1/fapi/market/mark_price': 1, // https://developers.bydfi.com/en/futures/market#mark-price
-                        'v1/fapi/market/funding_rate': 1,
-                        'v1/fapi/market/funding_rate_history': 1,
-                        'v1/fapi/market/risk_limit': 1, // https://developers.bydfi.com/en/futures/market#risk-limit
+                        'v1/public/api_limits': { 'cost': 1 }, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
+                        'v1/fapi/market/exchange_info': { 'cost': 1 },
+                        'v1/fapi/market/depth': { 'cost': 1 },
+                        'v1/fapi/market/trades': { 'cost': 1 },
+                        'v1/fapi/market/klines': { 'cost': 1 },
+                        'v1/fapi/market/ticker/24hr': { 'cost': 1 },
+                        'v1/fapi/market/ticker/price': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/market#mark-price
+                        'v1/fapi/market/funding_rate': { 'cost': 1 },
+                        'v1/fapi/market/funding_rate_history': { 'cost': 1 },
+                        'v1/fapi/market/risk_limit': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/market#risk-limit
                     },
                 },
                 'private': {
                     'get': {
-                        'v1/account/assets': 1,
-                        'v1/account/transfer_records': 1,
-                        'v1/spot/deposit_records': 1,
-                        'v1/spot/withdraw_records': 1,
-                        'v1/fapi/trade/open_order': 1,
-                        'v1/fapi/trade/plan_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/history_order': 1,
-                        'v1/fapi/trade/history_trade': 1,
-                        'v1/fapi/trade/position_history': 1,
-                        'v1/fapi/trade/positions': 1,
-                        'v1/fapi/account/balance': 1,
-                        'v1/fapi/user_data/assets_margin': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
-                        'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
-                        'v1/agent/regular_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
-                        'v1/agent/agent_sub_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
-                        'v1/agent/partener_user_deposit': 1, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
-                        'v1/agent/partener_users_data': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
-                        'v1/agent/affiliate_uids': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
-                        'v1/agent/affiliate_commission': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
-                        'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
+                        'v1/account/assets': { 'cost': 1 },
+                        'v1/account/transfer_records': { 'cost': 1 },
+                        'v1/spot/deposit_records': { 'cost': 1 },
+                        'v1/spot/withdraw_records': { 'cost': 1 },
+                        'v1/fapi/trade/open_order': { 'cost': 1 },
+                        'v1/fapi/trade/plan_order': { 'cost': 1 },
+                        'v1/fapi/trade/leverage': { 'cost': 1 },
+                        'v1/fapi/trade/history_order': { 'cost': 1 },
+                        'v1/fapi/trade/history_trade': { 'cost': 1 },
+                        'v1/fapi/trade/position_history': { 'cost': 1 },
+                        'v1/fapi/trade/positions': { 'cost': 1 },
+                        'v1/fapi/account/balance': { 'cost': 1 },
+                        'v1/fapi/user_data/assets_margin': { 'cost': 1 },
+                        'v1/fapi/user_data/position_side/dual': { 'cost': 1 },
+                        'v1/agent/teams': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
+                        'v1/agent/internal_withdrawal_status': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
-                        'v1/account/transfer': 1,
-                        'v1/fapi/trade/place_order': 1,
-                        'v1/fapi/trade/batch_place_order': 1,
-                        'v1/fapi/trade/edit_order': 1,
-                        'v1/fapi/trade/batch_edit_order': 1,
-                        'v1/fapi/trade/cancel_all_order': 1,
-                        'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
-                        'v1/fapi/user_data/margin_type': 1,
-                        'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
+                        'v1/account/transfer': { 'cost': 1 },
+                        'v1/fapi/trade/place_order': { 'cost': 1 },
+                        'v1/fapi/trade/batch_place_order': { 'cost': 1 },
+                        'v1/fapi/trade/edit_order': { 'cost': 1 },
+                        'v1/fapi/trade/batch_edit_order': { 'cost': 1 },
+                        'v1/fapi/trade/cancel_all_order': { 'cost': 1 },
+                        'v1/fapi/trade/leverage': { 'cost': 1 },
+                        'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 }, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v1/fapi/user_data/margin_type': { 'cost': 1 },
+                        'v1/fapi/user_data/position_side/dual': { 'cost': 1 },
+                        'v1/agent/internal_withdrawal': { 'cost': 1 }, // https://developers.bydfi.com/en/agent/#internal-withdrawal
                     },
                 },
             },
@@ -518,7 +518,7 @@ export default class bydfi extends Exchange {
             'option': false,
             'active': status === 'NORMAL',
             'contract': true,
-            'linear': !inverse,
+            'linear': inverse !== true,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -563,7 +563,7 @@ export default class bydfi extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -613,6 +613,9 @@ export default class bydfi extends Exchange {
         const limits = [5, 10, 20, 50, 100, 500, 1000];
         let result = 1000;
         for (let i = 0; i < limits.length; i++) {
+            if (limit === undefined) {
+                throw new ArgumentsRequired(this.id + ' getClosestLimit() requires a limit argument');
+            }
             if (limit <= limits[i]) {
                 result = limits[i];
                 break;
@@ -684,7 +687,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets();
         }
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
             params = this.omit(params, 'paginate');
             params = this.extend(params, { 'paginationDirection': 'backward' });
@@ -817,7 +820,7 @@ export default class bydfi extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (max 500)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -838,7 +841,7 @@ export default class bydfi extends Exchange {
             'interval': interval,
         };
         let startTime = since;
-        const numberOfCandles = limit ? limit : maxLimit;
+        const numberOfCandles = (limit !== undefined && limit !== null && limit !== 0) ? limit : maxLimit;
         let until = undefined;
         [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
         const now = this.milliseconds();
@@ -849,6 +852,9 @@ export default class bydfi extends Exchange {
             until = now;
         }
         else if (until === undefined) {
+            if (startTime === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a since or until argument');
+            }
             until = startTime + timeDelta;
             if (until > now) {
                 until = now;
@@ -1214,7 +1220,16 @@ export default class bydfi extends Exchange {
         return this.parseOrder(data, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -1287,14 +1302,14 @@ export default class bydfi extends Exchange {
         if (hedged) {
             params = this.omit(params, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = reduceOnly ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly === true) ? 'SHORT' : 'LONG';
             }
             else if (side === 'sell') {
-                request['positionSide'] = reduceOnly ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly === true) ? 'LONG' : 'SHORT';
             }
         }
         const closePosition = this.safeBool(params, 'closePosition', false);
-        if (!closePosition) {
+        if (closePosition !== true) {
             params = this.omit(params, 'closePosition');
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
@@ -1658,7 +1673,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets();
         }
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 500;
             params = this.omit(params, 'paginate');
             params = this.extend(params, { 'paginationDirection': 'backward' });
@@ -2181,7 +2196,7 @@ export default class bydfi extends Exchange {
      * @param {string} symbol a unified market symbol
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2193,7 +2208,7 @@ export default class bydfi extends Exchange {
         }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
+        [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionHistory', 'contractType', contractType);
         const request = {
             'symbol': market['id'],
             'contractType': contractType,
@@ -2217,7 +2232,7 @@ export default class bydfi extends Exchange {
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2357,9 +2372,9 @@ export default class bydfi extends Exchange {
         }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
-        [contractType, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'contractType', contractType);
+        [contractType, params] = this.handleOptionAndParams(params, 'setMarginMode', 'contractType', contractType);
         let wallet = 'W001';
-        [wallet, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'wallet', wallet);
+        [wallet, params] = this.handleOptionAndParams(params, 'setMarginMode', 'wallet', wallet);
         const request = {
             'contractType': contractType,
             'symbol': market['id'],
@@ -2374,7 +2389,7 @@ export default class bydfi extends Exchange {
      * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
      * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} [symbol] not used by bydfi setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2561,7 +2576,9 @@ export default class bydfi extends Exchange {
             const account = this.account();
             account['total'] = this.safeString2(balance, 'total', 'balance');
             account['free'] = this.safeString2(balance, 'available', 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2602,7 +2619,7 @@ export default class bydfi extends Exchange {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             const timestamp = this.milliseconds();
             transfer['timestamp'] = timestamp;
             transfer['datetime'] = this.iso8601(timestamp);
@@ -2634,7 +2651,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
             params = this.omit(params, 'paginate');
             params = this.extend(params, { 'paginationDirection': 'backward' });
@@ -2767,7 +2784,7 @@ export default class bydfi extends Exchange {
         }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
-        if (paginate) {
+        if (paginate === true) {
             const maxLimit = 50;
             params = this.omit(params, 'paginate');
             params = this.extend(params, { 'paginationDirection': 'backward' });

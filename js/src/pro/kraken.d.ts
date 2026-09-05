@@ -1,5 +1,5 @@
 import krakenRest from '../kraken.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Fee, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): any;
@@ -8,7 +8,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#createOrderWs
      * @description create a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -18,12 +18,12 @@ export default class kraken extends krakenRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    handleCreateEditOrder(client: any, message: any): void;
+    handleCreateEditOrder(client: Client, message: any): void;
     /**
      * @method
      * @name kraken#editOrderWs
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -38,7 +38,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#cancelOrdersWs
      * @description cancel multiple orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -49,25 +49,25 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#cancelOrderWs
      * @description cancels an open order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    handleCancelOrder(client: any, message: any): void;
+    handleCancelOrder(client: Client, message: any): void;
     /**
      * @method
      * @name kraken#cancelAllOrdersWs
      * @description cancel all open orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    handleCancelAllOrders(client: any, message: any): void;
+    handleCancelAllOrders(client: Client, message: any): void;
     handleTicker(client: any, message: any): void;
     handleTrades(client: Client, message: any): void;
     handleOHLCV(client: Client, message: any): void;
@@ -76,7 +76,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -86,7 +86,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -96,17 +96,17 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name kraken#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -118,7 +118,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -130,7 +130,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -141,18 +141,18 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name kraken#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -161,8 +161,8 @@ export default class kraken extends krakenRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    loadMarkets(reload?: boolean, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").MarketInterface>>;
-    ping(client: Client): {};
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("../base/types.js").Dictionary<Market>>;
+    ping(client: Client): Dict;
     handlePong(client: Client, message: any): any;
     watchHeartbeat(params?: {}): Promise<any>;
     handleHeartbeat(client: Client, message: any): void;
@@ -170,41 +170,41 @@ export default class kraken extends krakenRest {
     customHandleDeltas(bookside: any, deltas: any): void;
     formatNumber(data: any): string;
     handleSystemStatus(client: Client, message: any): any;
-    authenticate(params?: {}): Promise<string>;
+    authenticate(params?: {}): Promise<Str>;
     watchPrivate(name: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     /**
      * @method
      * @name kraken#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: any): void;
-    parseWsTrade(trade: any, market?: any): {
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsTrade(trade: any, market?: Market): {
         info: any;
-        id: string;
-        order: string;
-        timestamp: number;
-        datetime: string;
-        symbol: string;
-        type: string;
-        side: string;
+        id: Str;
+        order: Str;
+        timestamp: number | undefined;
+        datetime: Str;
+        symbol: Str;
+        type: Str;
+        side: Str;
         takerOrMaker: string;
-        price: number;
-        amount: number;
-        cost: number;
-        fee: any;
+        price: Num;
+        amount: Num;
+        cost: Num;
+        fee: Fee;
     };
     /**
      * @method
      * @name kraken#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -212,14 +212,14 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any, subscription?: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    handleOrders(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsOrder(order: any, market?: Market): Order;
     watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
     /**
      * @method
      * @name kraken#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */

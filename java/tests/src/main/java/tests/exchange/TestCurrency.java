@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestCurrency extends BaseTest {
-    public static void testCurrency(Exchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testCurrency(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
         if (Helpers.isTrue(Helpers.isEqual(entry, null)))
         {
@@ -23,9 +24,9 @@ public class TestCurrency extends BaseTest {
         // todo: remove fee from empty
         Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("name", "fee"));
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-        Object isNative = Helpers.isTrue(Helpers.GetValue(exchange.has, "fetchCurrencies")) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated"));
+        Object isNative = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), false)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated")));
         Object currencyType = exchange.safeString(entry, "type");
-        if (Helpers.isTrue(isNative))
+        if (Helpers.isTrue(Helpers.isEqual(isNative, true)))
         {
             Helpers.addElementToObject(format, "info", new java.util.HashMap<String, Object>() {{}});
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters

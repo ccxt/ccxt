@@ -1,4 +1,3 @@
-import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testDepositWithdrawal from './base/test.depositWithdrawal.js';
 import testSharedMethods from './base/test.sharedMethods.js';

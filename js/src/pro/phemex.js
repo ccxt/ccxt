@@ -24,7 +24,7 @@ export default class phemex extends phemexRest {
                 'watchOrderBook': true,
                 'watchOHLCV': true,
                 'watchPositions': undefined, // TODO
-                // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                // multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': false,
                 'watchTradesForSymbols': false,
                 'watchOHLCVForSymbols': false,
@@ -99,8 +99,9 @@ export default class phemex extends phemexRest {
         //     }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp(this.safeString(ticker, 'close'), market);
         const last = this.parseNumber(lastString);
@@ -159,8 +160,9 @@ export default class phemex extends phemexRest {
         //    ]
         //
         const marketId = this.safeString(ticker, 0);
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const lastString = this.fromEp(this.safeString(ticker, 4), market);
         const last = this.parseNumber(lastString);
         const quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
@@ -390,7 +392,9 @@ export default class phemex extends phemexRest {
             }
             account['used'] = used;
             account['total'] = total;
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
         const messageHash = type + ':balance';
@@ -484,7 +488,7 @@ export default class phemex extends phemexRest {
             const messageHash = 'kline:' + timeframe + ':' + symbol;
             const ohlcvs = this.parseOHLCVs(candles, market);
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
@@ -517,7 +521,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap) {
+        if (isSwap === true) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -554,7 +558,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap) {
+        if (isSwap === true) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -601,7 +605,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'trade_p' : 'trade';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
         const subscribe = {
@@ -629,7 +634,7 @@ export default class phemex extends phemexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -641,7 +646,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
         const subscribe = {
@@ -679,7 +685,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = (isSwap && settleIsUSDT) ? 'kline_p' : 'kline';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
         const subscribe = {
@@ -936,7 +943,9 @@ export default class phemex extends phemexRest {
             if (type === undefined) {
                 type = (market['settle'] === 'USDT') ? 'perpetual' : market['type'];
             }
-            marketIds[symbol] = true;
+            if (symbol !== undefined) {
+                marketIds[symbol] = true;
+            }
         }
         const keys = Object.keys(marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -1334,8 +1343,9 @@ export default class phemex extends phemexRest {
             clientOrderId = undefined;
         }
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const side = this.safeStringLower(order, 'side');
         const type = this.parseOrderType(this.safeString(order, 'ordType'));
@@ -1473,9 +1483,9 @@ export default class phemex extends phemexRest {
         //       }
         //     ]
         // }
-        const id = this.safeString(message, 'id');
+        const id = this.safeString(message, 'id', '');
         if (id in client.subscriptions) {
-            const method = client.subscriptions[id];
+            const method = this.safeValue(client.subscriptions, id);
             delete client.subscriptions[id];
             if (method !== true) {
                 method.call(this, client, message);

@@ -100,8 +100,10 @@ class alpaca extends alpaca$1["default"] {
         const ticker = this.parseTicker(message);
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve(this.tickers[symbol], messageHash);
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
+        client.resolve(ticker, messageHash);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -207,7 +209,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
@@ -256,7 +258,7 @@ class alpaca extends alpaca$1["default"] {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        if (isSnapshot) {
+        if (isSnapshot === true) {
             const snapshot = this.parseOrderBook(message, symbol, timestamp, 'b', 'a', 'p', 's');
             orderbook.reset(snapshot);
         }
@@ -527,6 +529,9 @@ class alpaca extends alpaca$1["default"] {
             myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
         const trade = this.parseMyTrade(rawOrder);
+        if (trade === undefined) {
+            return;
+        }
         myTrades.append(trade);
         let messageHash = 'myTrades:' + trade['symbol'];
         client.resolve(myTrades, messageHash);
@@ -574,6 +579,9 @@ class alpaca extends alpaca$1["default"] {
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'filled_at');
         let type = this.safeString(trade, 'type');
+        if (type === undefined) {
+            return undefined;
+        }
         if (type.indexOf('limit') >= 0) {
             // might be limit or stop-limit
             type = 'limit';

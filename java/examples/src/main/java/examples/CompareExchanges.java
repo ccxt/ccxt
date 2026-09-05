@@ -1,5 +1,6 @@
 package examples;
 
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 
 import java.util.Map;
@@ -27,7 +28,9 @@ public class CompareExchanges {
 
         for (String id : exchangeIds) {
             try {
-                Exchange exchange = Exchange.dynamicallyCreateInstance(id, null);
+                // Trading methods (fetchTicker/createOrder/...) live on the Exchange tier,
+                // not BaseExchange, so use Exchange here (every crypto venue is an Exchange).
+                Exchange exchange = (Exchange) BaseExchange.dynamicallyCreateInstance(id, null);
                 exchange.loadMarkets(false).join();
 
                 // Untyped: fetchTicker returns CompletableFuture<Object>

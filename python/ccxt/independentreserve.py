@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction
 from ccxt.base.errors import BadRequest
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -15,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class independentreserve(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
@@ -129,51 +128,51 @@ class independentreserve(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'GetValidPrimaryCurrencyCodes',
-                        'GetValidSecondaryCurrencyCodes',
-                        'GetValidLimitOrderTypes',
-                        'GetValidMarketOrderTypes',
-                        'GetValidOrderTypes',
-                        'GetValidTransactionTypes',
-                        'GetMarketSummary',
-                        'GetOrderBook',
-                        'GetAllOrders',
-                        'GetTradeHistorySummary',
-                        'GetRecentTrades',
-                        'GetFxRates',
-                        'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',  # deprecated - replaced by GetCryptoWithdrawalFees2(docs removed)
-                        'GetCryptoWithdrawalFees2',
-                        'GetNetworks',
-                        'GetPrimaryCurrencyConfig2',
-                    ],
+                    'get': {
+                        'GetValidPrimaryCurrencyCodes': {'cost': 1},
+                        'GetValidSecondaryCurrencyCodes': {'cost': 1},
+                        'GetValidLimitOrderTypes': {'cost': 1},
+                        'GetValidMarketOrderTypes': {'cost': 1},
+                        'GetValidOrderTypes': {'cost': 1},
+                        'GetValidTransactionTypes': {'cost': 1},
+                        'GetMarketSummary': {'cost': 1},
+                        'GetOrderBook': {'cost': 1},
+                        'GetAllOrders': {'cost': 1},
+                        'GetTradeHistorySummary': {'cost': 1},
+                        'GetRecentTrades': {'cost': 1},
+                        'GetFxRates': {'cost': 1},
+                        'GetOrderMinimumVolumes': {'cost': 1},
+                        'GetCryptoWithdrawalFees': {'cost': 1},
+                        'GetCryptoWithdrawalFees2': {'cost': 1},
+                        'GetNetworks': {'cost': 1},
+                        'GetPrimaryCurrencyConfig2': {'cost': 1},
+                    },
                 },
                 'private': {
-                    'post': [
-                        'GetOpenOrders',
-                        'GetClosedOrders',
-                        'GetClosedFilledOrders',
-                        'GetOrderDetails',
-                        'GetAccounts',
-                        'GetTransactions',
-                        'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',  # deprecated - replaced by GetDigitalCurrencyDepositAddress2(docs removed)
-                        'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses',  # deprecated - replaced by GetDigitalCurrencyDepositAddresses2(docs removed)
-                        'GetDigitalCurrencyDepositAddresses2',
-                        'GetTrades',
-                        'GetBrokerageFees',
-                        'GetDigitalCurrencyWithdrawal',
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'RequestFiatWithdrawal',
-                        'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',  # deprecated - replaced by WithdrawCrypto(docs removed)
-                        'WithdrawCrypto',
-                    ],
+                    'post': {
+                        'GetOpenOrders': {'cost': 1},
+                        'GetClosedOrders': {'cost': 1},
+                        'GetClosedFilledOrders': {'cost': 1},
+                        'GetOrderDetails': {'cost': 1},
+                        'GetAccounts': {'cost': 1},
+                        'GetTransactions': {'cost': 1},
+                        'GetFiatBankAccounts': {'cost': 1},
+                        'GetDigitalCurrencyDepositAddress': {'cost': 1},
+                        'GetDigitalCurrencyDepositAddress2': {'cost': 1},
+                        'GetDigitalCurrencyDepositAddresses': {'cost': 1},
+                        'GetDigitalCurrencyDepositAddresses2': {'cost': 1},
+                        'GetTrades': {'cost': 1},
+                        'GetBrokerageFees': {'cost': 1},
+                        'GetDigitalCurrencyWithdrawal': {'cost': 1},
+                        'PlaceLimitOrder': {'cost': 1},
+                        'PlaceMarketOrder': {'cost': 1},
+                        'CancelOrder': {'cost': 1},
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain': {'cost': 1},
+                        'RequestFiatWithdrawal': {'cost': 1},
+                        'WithdrawFiatCurrency': {'cost': 1},
+                        'WithdrawDigitalCurrency': {'cost': 1},
+                        'WithdrawCrypto': {'cost': 1},
+                    },
                 },
             },
             'fees': {
@@ -313,7 +312,7 @@ class independentreserve(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for independentreserve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -334,12 +333,14 @@ class independentreserve(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        for i in range(0, len(baseCurrencies)):
-            baseId = baseCurrencies[i]
+        baseCurrencyIds = self.to_array(baseCurrencies)
+        quoteCurrencyIds = self.to_array(quoteCurrencies)
+        for i in range(0, len(baseCurrencyIds)):
+            baseId = baseCurrencyIds[i]
             base = self.safe_currency_code(baseId)
             minAmount = self.safe_number(limits, baseId)
-            for j in range(0, len(quoteCurrencies)):
-                quoteId = quoteCurrencies[j]
+            for j in range(0, len(quoteCurrencyIds)):
+                quoteId = quoteCurrencyIds[j]
                 quote = self.safe_currency_code(quoteId)
                 id = baseId + '/' + quoteId
                 result.append({
@@ -393,7 +394,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -402,7 +403,8 @@ class independentreserve(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'AvailableBalance')
             account['total'] = self.safe_string(balance, 'TotalBalance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -422,7 +424,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -659,7 +661,7 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -684,7 +686,7 @@ class independentreserve(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -731,7 +733,8 @@ class independentreserve(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        return self.parse_trades(response['Data'], market, since, limit)
+        data = self.safe_list(response, 'Data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
@@ -770,7 +773,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -788,7 +791,8 @@ class independentreserve(Exchange, ImplicitAPI):
             'numberOfRecentTradesToRetrieve': 50,  # max = 50
         }
         response = self.publicGetGetRecentTrades(self.extend(request, params))
-        return self.parse_trades(response['Trades'], market, since, limit)
+        trades = self.safe_list(response, 'Trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
@@ -809,18 +813,21 @@ class independentreserve(Exchange, ImplicitAPI):
         #     ]
         #
         fees = {}
-        for i in range(0, len(response)):
-            fee = response[i]
+        rows = self.to_array(response)
+        for i in range(0, len(rows)):
+            fee = rows[i]
             currencyId = self.safe_string(fee, 'CurrencyCode')
             code = self.safe_currency_code(currencyId)
             tradingFee = self.safe_number(fee, 'Fee')
-            fees[code] = {
-                'info': fee,
-                'fee': tradingFee,
-            }
+            if code is not None:
+                fees[code] = {
+                    'info': fee,
+                    'fee': tradingFee,
+                }
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = self.safe_value(fees, market['base'], {})
             result[symbol] = {
@@ -927,7 +934,7 @@ class independentreserve(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        Tag: '3307446684',
@@ -1049,10 +1056,10 @@ class independentreserve(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()

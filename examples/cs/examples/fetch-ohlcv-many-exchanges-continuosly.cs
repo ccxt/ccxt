@@ -27,7 +27,7 @@ partial class Examples
     // start exchanges and fetch OHLCV loop
     async public Task startExchange(string exchangeName, List<string> symbols)
     {
-        var ex = Exchange.DynamicallyCreateInstance(exchangeName);
+        var ex = (Exchange)Exchange.DynamicallyCreateInstance(exchangeName);
         var promises = new List<Task>() { };
         for (var i = 0; i < symbols.Count; i++)
         {

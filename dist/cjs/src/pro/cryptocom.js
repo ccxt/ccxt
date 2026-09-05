@@ -81,8 +81,8 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -95,8 +95,8 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook(symbol, params = {}) {
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+    unWatchOrderBook(symbol, params = {}) {
+        return this.unWatchOrderBookForSymbols([symbol], params);
     }
     /**
      * @method
@@ -108,7 +108,7 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -117,7 +117,7 @@ class cryptocom extends cryptocom$1["default"] {
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
+        if ((limit === undefined) || (limit === 0)) {
             limit = 50;
         }
         const topicParams = this.safeValue(params, 'params');
@@ -289,7 +289,7 @@ class cryptocom extends cryptocom$1["default"] {
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
                 const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-                if (checksum) {
+                if (checksum === true) {
                     throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 }
             }
@@ -312,8 +312,8 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -324,8 +324,8 @@ class cryptocom extends cryptocom$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        return await this.unWatchTradesForSymbols([symbol], params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unWatchTradesForSymbols([symbol], params);
     }
     /**
      * @method
@@ -407,6 +407,9 @@ class cryptocom extends cryptocom$1["default"] {
         // }
         //
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const marketId = this.safeString(message, 'instrument_name');
         const symbolSpecificMessageHash = this.safeString(message, 'subscription');
         const market = this.safeMarket(marketId);
@@ -589,7 +592,9 @@ class cryptocom extends cryptocom$1["default"] {
             const ticker = data[i];
             const parsed = this.parseWsTicker(ticker, market);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = parsed;
+            }
             client.resolve(parsed, messageHash);
         }
     }
@@ -683,7 +688,9 @@ class cryptocom extends cryptocom$1["default"] {
         const ticker = this.safeDict(data, 0, {});
         const parsedTicker = this.parseWsBidAsk(ticker);
         const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = parsedTicker;
+        }
         const messageHash = 'bidask.' + symbol;
         client.resolve(parsedTicker, messageHash);
     }
@@ -771,11 +778,13 @@ class cryptocom extends cryptocom$1["default"] {
         const interval = this.safeString(message, 'interval');
         const timeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         const data = this.safeValue(message, 'data');
         for (let i = 0; i < data.length; i++) {
@@ -892,13 +901,16 @@ class cryptocom extends cryptocom$1["default"] {
         let messageHash = 'positions';
         symbols = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
-            messageHash = '::' + symbols.join(',');
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+            }
+            messageHash = 'positions::' + symbols.join(',');
         }
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
@@ -910,7 +922,7 @@ class cryptocom extends cryptocom$1["default"] {
     }
     setPositionsCache(client, type, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -928,7 +940,7 @@ class cryptocom extends cryptocom$1["default"] {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -1062,7 +1074,9 @@ class cryptocom extends cryptocom$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
         client.resolve(this.balance, messageHash);
@@ -1283,7 +1297,7 @@ class cryptocom extends cryptocom$1["default"] {
         const id = this.safeString(message, 'id');
         const errorCode = this.safeString(message, 'code');
         try {
-            if (errorCode && errorCode !== '0') {
+            if ((errorCode !== undefined && errorCode !== '') && errorCode !== '0') {
                 const feedback = this.id + ' ' + this.json(message);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue(message, 'message');
@@ -1369,7 +1383,7 @@ class cryptocom extends cryptocom$1["default"] {
         // handle unsubscribe
         // {"id":1725448572836,"method":"unsubscribe","code":0}
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const method = this.safeString(message, 'method');

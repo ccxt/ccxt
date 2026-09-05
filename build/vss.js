@@ -63,28 +63,34 @@ async function vssEverything () {
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",                                                   version)
     vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",                                                   version)
+    vss ('./python/ccxt/prediction/__init__.py',         "__version__ = '{version}'",                                                   version)
     vss ('./cs/ccxt/base/Exchange.MetaData.cs',          "public static string ccxtVersion = \"{version}\";",                           version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<PackageVersion>{version}</PackageVersion>",                                 version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<AssemblyVersion>{version}</AssemblyVersion>",                               version)
     vss ('./cs/ccxt/ccxt.csproj',                         "<FileVersion>{version}</FileVersion>",                                       version)
     vss ('./go/v4/exchange_metadata.go',                 "var Version string = \"{version}\"",                                          version)
     vss ('./go/v4/pro/exchange_metadata.go',                 "var Version string = \"{version}\"",                                      version)
+    vss ('./go/v4/prediction/exchange_metadata.go',          "var Version string = \"{version}\"",                                      version)
     vss ('./java/lib/src/main/java/io/github/ccxt/Version.java', "public static final String VERSION = \"{version}\";",                 version)
     vss ('./java/gradle.properties',                          "version={version}",                                                      version)
+
+    // Rust crates. The package version is the FIRST `version = "x.y.z"` in each
+    // manifest (it sits in [package]), and the inter-crate path dependencies
+    // carry a version too — cargo publish rejects a path dependency without
+    // one, so these must move together or a release goes out pinned to the
+    // previous version.
+    vss ('./rust/ccxt-base/Cargo.toml',       'version = "{version}"',                                        version)
+    vss ('./rust/ccxt/Cargo.toml',            'version = "{version}"',                                        version)
+    vss ('./rust/ccxt-pro/Cargo.toml',        'version = "{version}"',                                        version)
+    vss ('./rust/ccxt-prediction/Cargo.toml', 'version = "{version}"',                                        version)
+    vss ('./rust/ccxt/Cargo.toml',            'path = "../ccxt-base", version = "{version}"',                 version)
+    vss ('./rust/ccxt-pro/Cargo.toml',        'path = "../ccxt-base", version = "{version}"',                 version)
+    vss ('./rust/ccxt-prediction/Cargo.toml', 'path = "../ccxt-base", version = "{version}"',                 version)
 
     // vss ('./python/ccxt/pro/base/exchange.py',           "__version__ = '{version}'",   version)
 
     vss ('./README.md',       "ccxt@{version}", version, true)
     vss ('./wiki/Install.md', "ccxt@{version}", version, true)
-
-    const pythonFiles = [
-        'package.json',
-        'LICENSE.txt',
-        'keys.json',
-        'README.md',
-    ]
-
-    pythonFiles.forEach ((fileName) => copyFile ('./' + fileName, './python/' + fileName))
 
     log.bright.green ('Version single-sourced successfully.')
 }

@@ -1,7 +1,6 @@
 import { IOrderBookSide } from './OrderBookSide.js';
 import { Int, Str } from '../types.js';
 interface CustomOrderBookProp {
-    cache: any[];
 }
 declare class OrderBook implements CustomOrderBookProp {
     cache: any[];
@@ -15,6 +14,7 @@ declare class OrderBook implements CustomOrderBookProp {
     limit(): this;
     update(snapshot: any): this;
     reset(snapshot?: {}): this;
+    copy(): any;
 }
 declare class CountedOrderBook extends OrderBook {
     constructor(snapshot?: {}, depth?: Int);

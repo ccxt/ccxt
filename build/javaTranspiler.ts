@@ -1,5 +1,6 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -10,10 +11,12 @@ import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import { Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
+import { Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
+import os from 'os';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
@@ -34,8 +37,9 @@ function overwriteFileAndFolder(path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder(path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
     overwriteFile(path, content);
-    fs.writeFileSync(path, content);
 }
 
 // User-facing typed-wrapper methods that ship BOTH a typed sync overload
@@ -149,9 +153,16 @@ const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
-const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
+// Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
+// methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
+// TS `export default class Exchange extends BaseExchange` block and are injected here,
+// NOT into BaseExchange — so the prediction tier (extends BaseExchange) does not
+// inherit them and can declare its own standalone-typed versions.
+const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
+const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
 const GENERATED_TESTS_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE = './java/tests/src/main/java/tests/exchange/TestMain.java';
@@ -161,11 +172,439 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
 
+// every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide
+// which Exchange-tier methods get injected into PredictionExchange.java, so they are real
+// inputs of the prediction base stage. Computed once per process.
+let cachedPredictionSourceFiles: string[] | undefined = undefined;
+function predictionSourceFiles () {
+    if (cachedPredictionSourceFiles === undefined) {
+        const dir = './ts/src/prediction/';
+        try {
+            cachedPredictionSourceFiles = fs.readdirSync (dir).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => dir + f);
+        } catch (e) {
+            cachedPredictionSourceFiles = [] as string[];
+        }
+    }
+    return cachedPredictionSourceFiles;
+}
+
+// ============================================================================
+// Java local-variable typing for the ast-transpiler Java printer.
+//
+// The Java printer declares every body local as `Object` (VAR_TOKEN) because its
+// generic INFER_VAR_TYPE branch would also type Safe*/GetValue/ternary/Add results,
+// which are genuinely `Object` at runtime. patchJavaLocalTypes narrows ONLY the
+// locals whose initializer is a whole call to a hand-written base accessor with a
+// known concrete runtime type:
+//
+//     Object price = this.safeString(ticker, "price");
+// becomes
+//     String price = this.safeString(ticker, "price");
+//
+// `BaseExchange.safeString / safeString2 / safeStringN` are hand-written, delegate
+// to `SafeMethods`, and are DECLARED `String` (their bodies return a `String` or
+// null on every path), so the narrowed declaration needs no cast. The
+// `safeStringUpper* / safeStringLower*` family is still declared `Object` (it hands
+// a non-String default back untouched), so those keep a `(String)` cast — a
+// checkcast on a String/null is free. Boxed `String`, never a primitive: an absent
+// key yields null.
+//
+// It is applied as a monkey-patch on `transpiler.javaTranspiler` from BOTH the
+// main-thread Transpiler (setupTranspiler below) and the piscina worker
+// (build/java-worker.ts, which imports it from this module) — same precedent as
+// patchJavaPropertyTypes(), and it keeps the ast-transpiler pin untouched.
+//
+// Uses `typescript6` — the same 6.x line that ast-transpiler bundles — so SyntaxKind
+// values agree with the AST nodes the printer hands us.
+// ============================================================================
+
+
+// helper → Java type. Every entry MUST be a hand-written Java base method whose
+// runtime value is always an instance of that type (or null). Transpiled base
+// methods (safeBool/safeDict/safeList/safeNumber...) do NOT qualify: their Java
+// bodies return whatever the TS default argument was, boxed as Object.
+//
+// SafeMethods.SafeStringTyped / safeString2 / SafeStringN coerce the found value to
+// String and drop a non-String default (`instanceof String s ? s : null`), so they
+// are String-or-null unconditionally — and `BaseExchange` declares them `String`.
+const STRING_ACCESSORS = new Set([
+    'safeString', 'safeString2', 'safeStringN',
+]);
+
+// SafeMethods.safeStringUpper* / safeStringLower* return the found value
+// `.toUpperCase()`d, but hand the DEFAULT back untouched (`Object`), so they stay
+// declared `Object` in Java and a narrowed local needs a `(String)` cast. They
+// classify only when the default is absent or provably a String; index of that
+// argument:
+const STRING_CASE_ACCESSORS: { [name: string]: number } = {
+    'safeStringUpper': 2, 'safeStringLower': 2,
+    'safeStringUpper2': 3, 'safeStringLower2': 3,
+    'safeStringUpperN': 2, 'safeStringLowerN': 2,
+};
+
+// hand-written base methods declared with a String return in Java
+// (BaseExchange.iso8601 / numberToString) — used only to prove a later
+// reassignment keeps the local a String
+const STRING_RETURNING_BASE_METHODS = new Set([
+    'iso8601', 'numberToString',
+]);
+
+// Precise.string* statics are declared `public static String` in Precise.java
+const PRECISE_STRING_STATICS = new Set([
+    'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringAbs',
+    'stringNeg', 'stringMax', 'stringMin', 'stringOr',
+]);
+
+const ACCESSOR_DECLARATION_FILE = /[\\/]base[\\/]functions[\\/]type\.ts$/;
+
+function isThisCall (node: any): boolean {
+    return node !== undefined && ts.isCallExpression (node)
+        && ts.isPropertyAccessExpression (node.expression)
+        && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
+}
+
+// `this.x(...)` or `super.x(...)`: both resolve against the class hierarchy
+function isThisOrSuperCall (node: any): boolean {
+    return node !== undefined && ts.isCallExpression (node)
+        && ts.isPropertyAccessExpression (node.expression)
+        && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
+}
+
+// `this.safeString(...)` resolving to the base accessor in ts/src/base/functions/type.ts
+// (an exchange override would be transpiled with an `Object` return, so it must not classify)
+function isBaseStringAccessorCall (printer: any, node: any): boolean {
+    if (!isThisCall (node)) {
+        return false;
+    }
+    const name = node.expression.name.escapedText;
+    const defaultIndex = STRING_CASE_ACCESSORS[name];
+    if (!STRING_ACCESSORS.has (name) && defaultIndex === undefined) {
+        return false;
+    }
+    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    if (declaration === undefined || !ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName)) {
+        return false;
+    }
+    if (defaultIndex !== undefined && node.arguments.length > defaultIndex) {
+        return isProvablyStringExpression (printer, node.arguments[defaultIndex], undefined);
+    }
+    return true;
+}
+
+// the Java cast a narrowed `safeString*` initializer/reassignment needs: none for
+// the String-declared accessors, `(String)` for the Object-declared case family
+function accessorCast (node: any): string {
+    return (STRING_CASE_ACCESSORS[node.expression.name.escapedText] !== undefined) ? '(String)' : '';
+}
+
+// true when the printed Java for `node` is statically a String (or null).
+// `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
+// is consistent with whatever type that local ends up with.
+//
+// A bare base accessor call is only accepted at the TOP level (`nested` false):
+// the declaration/reassignment hooks below handle exactly that shape (adding the
+// cast the case family needs). Inside a ternary arm a case-family call would print
+// uncast and javac rejects the conditional; the String-declared accessors would be
+// fine there, but that refinement is deliberately not made here so the set of
+// narrowed locals stays unchanged.
+function isProvablyStringExpression (printer: any, node: any, selfName: string | undefined, nested = false): boolean {
+    if (node === undefined) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case ts.SyntaxKind.NullKeyword:
+            return true;
+        case ts.SyntaxKind.Identifier:
+            return node.escapedText === 'undefined' || node.escapedText === selfName;
+        case ts.SyntaxKind.ParenthesizedExpression:
+            return isProvablyStringExpression (printer, node.expression, selfName, nested);
+        case ts.SyntaxKind.ConditionalExpression:
+            return isProvablyStringExpression (printer, node.whenTrue, selfName, true) && isProvablyStringExpression (printer, node.whenFalse, selfName, true);
+        case ts.SyntaxKind.BinaryExpression:
+            // `'lit' + x` prints Helpers.add(String, Object) → String
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && (node.left.kind === ts.SyntaxKind.StringLiteral || node.left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+        case ts.SyntaxKind.CallExpression: {
+            if (isBaseStringAccessorCall (printer, node)) {
+                return !nested;
+            }
+            const callee = node.expression;
+            if (!ts.isPropertyAccessExpression (callee)) {
+                return false;
+            }
+            // escapedText is a branded `__String` on the typed node; it is a plain string at runtime
+            const method = String (callee.name.escapedText);
+            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
+                return STRING_RETURNING_BASE_METHODS.has (method);
+            }
+            return callee.expression.kind === ts.SyntaxKind.Identifier
+                && (callee.expression as any).escapedText === 'Precise'
+                && PRECISE_STRING_STATICS.has (method);
+        }
+        default:
+            return false;
+    }
+}
+
+function enclosingFunction (node: any): any {
+    let current = node?.parent;
+    while (current) {
+        switch (current.kind) {
+            case ts.SyntaxKind.MethodDeclaration:
+            case ts.SyntaxKind.FunctionDeclaration:
+            case ts.SyntaxKind.FunctionExpression:
+            case ts.SyntaxKind.ArrowFunction:
+            case ts.SyntaxKind.Constructor:
+            case ts.SyntaxKind.SourceFile:
+                return current;
+        }
+        current = current.parent;
+    }
+    return undefined;
+}
+
+// every Identifier node in `scope`, by source name. Not cached: the Java printer
+// renames identifiers inside object literals in place (`x` → `finalX`) while a
+// function body is being printed, so the walk must read the live AST each time.
+function identifierIndex (scope: any): Map<string, any[]> {
+    const index = new Map<string, any[]> ();
+    const visit = (n: any) => {
+        if (n.kind === ts.SyntaxKind.Identifier) {
+            const name = n.escapedText;
+            let list = index.get (name);
+            if (list === undefined) {
+                list = [];
+                index.set (name, list);
+            }
+            list.push (n);
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    return index;
+}
+
+// resolves to an `async` method (or one declared to return a Promise — an overload
+// signature carries the return type but not the modifier)
+function isAsyncMethodCall (printer: any, callNode: any): boolean {
+    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    if (declaration === undefined) {
+        return false;
+    }
+    if (ts.canHaveModifiers (declaration) && (ts.getModifiers (declaration) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+        return true;
+    }
+    const returnType = declaration.type;
+    return returnType !== undefined && ts.isTypeReferenceNode (returnType)
+        && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
+}
+
+// reject the refinement when a later use needs the local to stay `Object`
+function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean): boolean {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (sourceName) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (parent) && parent.name === n) {
+            continue; // a sibling block-scoped declaration gets its own type
+        }
+        if (ts.isPropertyAccessExpression (parent) && parent.name === n) {
+            continue; // `obj.<name>` is a member, not this local
+        }
+        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
+            const op = parent.operator;
+            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
+                return false;
+            }
+        }
+        if (ts.isSpreadElement (parent)) {
+            return false;
+        }
+        if (ts.isTypeOfExpression (parent)) {
+            return false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
+        }
+        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.EqualsToken) {
+                if (!isProvablyStringExpression (printer, parent.right, sourceName)) {
+                    return false;
+                }
+            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                return false;
+            }
+        }
+        // A pro core extends the REST *wrapper* class, whose typed overloads
+        // (`Ticker fetchTicker(String symbol)`) would win Java overload resolution
+        // over the `Object...` core once an argument expression is a String. Keep
+        // any local that feeds such a call `Object` (directly or nested — e.g.
+        // `Helpers.add(String, String)` also returns String) so the call keeps
+        // binding to the core.
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// is `n` an argument of a `this.<async>()` call, either directly or through the
+// expression forms whose printed Java type is String whenever an operand is
+// (`(x)`, `x + y` → Helpers.add(String, ..) → String, `c ? x : y`). Anything else
+// in between (another call, an element access) prints as Object and breaks the chain.
+function feedsInheritedAsyncCall (printer: any, n: any, scope: any): boolean {
+    let child = n;
+    let current = n.parent;
+    while (current !== undefined && current !== scope) {
+        if (ts.isCallExpression (current)) {
+            return current.arguments.indexOf (child) !== -1 && isThisOrSuperCall (current) && isAsyncMethodCall (printer, current);
+        }
+        const propagates = ts.isParenthesizedExpression (current)
+            || (ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken)
+            || (ts.isConditionalExpression (current) && current.condition !== child);
+        if (!propagates) {
+            return false;
+        }
+        child = current;
+        current = current.parent;
+    }
+    return false;
+}
+
+function javaLocalType (printer: any, declaration: any): string | undefined {
+    let initializer = declaration.initializer;
+    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
+        initializer = initializer.expression;
+    }
+    if (!isBaseStringAccessorCall (printer, initializer)) {
+        return undefined;
+    }
+    if (!ts.isIdentifier (declaration.name)) {
+        return undefined;
+    }
+    // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
+    const sourceName = declaration.name.escapedText;
+    const fileName = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile)) {
+        return undefined;
+    }
+    return 'String';
+}
+
+export function patchJavaLocalTypes (transpiler: any): void {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._localTypesPatched) {
+        return;
+    }
+    // declaration node → narrowed Java type, filled as declarations are printed.
+    // Java statements print in source order, so by the time a reassignment is
+    // printed its declaration has already been classified.
+    const narrowed = new WeakMap<any, string> ();
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node: any, identation: number) {
+        const printed = original (node, identation);
+        const declaration = node.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined) {
+            return printed;
+        }
+        const javaType = javaLocalType (printer, declaration);
+        if (javaType === undefined) {
+            return printed;
+        }
+        // the original emits `<finalVars><iden>Object <name> = <value>`; retype the
+        // declaration line only (finalVars above it, if any, are left untouched)
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        const value = printed.slice (at + marker.length);
+        if (!value.startsWith ('this.')) {
+            return printed; // unexpected shape — leave it as the printer emitted it
+        }
+        narrowed.set (declaration, javaType);
+        let initializer = declaration.initializer;
+        while (ts.isParenthesizedExpression (initializer)) {
+            initializer = initializer.expression;
+        }
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${accessorCast (initializer)}${value}`;
+    };
+    // `x = this.safeStringUpper(...)` on a narrowed local: the case family is
+    // declared `Object` in Java, so the reassignment needs the same cast the
+    // declaration got (a String-declared accessor needs none)
+    const originalBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node: any, identation: number) {
+        const printed = originalBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let right = node.right;
+        while (ts.isParenthesizedExpression (right)) {
+            right = right.expression;
+        }
+        if (!isBaseStringAccessorCall (printer, right)) {
+            return printed;
+        }
+        const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
+        const declaration = symbol?.valueDeclaration;
+        const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
+        if (javaType === undefined) {
+            return printed;
+        }
+        const cast = accessorCast (right);
+        if (cast === '') {
+            return printed;
+        }
+        const marker = `${printer.printNode (node.left, 0)} = this.`;
+        const at = printed.indexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        const head = at + marker.length - 'this.'.length;
+        return printed.slice (0, head) + cast + printed.slice (head);
+    };
+    printer._localTypesPatched = true;
+}
+
+// default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
+function javaWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
+    }
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
+}
+
 class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
+    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
+    // lazily created in webworkerTranspile and kept alive for the lifetime of the
+    // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
+    // are reused across every stage instead of paying a cold pool per call
+    piscina: Piscina | undefined;
+    // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62
+    // trading methods), reused by both the Exchange.java injection and the
+    // PredictionExchange.java convenience-method injection.
+    _exchangeTierBody: string | undefined;
 
     constructor() {
 
@@ -250,6 +689,8 @@ class NewTranspiler {
             [/new ArrayCacheByTimestamp\(\)/gm, 'new ArrayCache.ArrayCacheByTimestamp()'],
             [/new ArrayCacheBySymbolById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolById(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolById\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolById()'],
+            [/new ArrayCacheByOutcomeById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById(((Number)$1).intValue())'],
+            [/new ArrayCacheByOutcomeById\(\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById()'],
             [/new ArrayCacheBySymbolBySide\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolBySide\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide()'],
         ]
@@ -403,6 +844,43 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchJavaPropertyTypes();
+        // narrows `Object x = this.safeString(...)` locals to `String` — see
+        // patchJavaLocalTypes above (also applied per worker thread in java-worker.ts)
+        patchJavaLocalTypes(this.transpiler);
+    }
+
+    // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
+    // TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)
+    // WITHOUT consulting `VariableTypeReplacements` — the very map it already applies to locals,
+    // parameters and return types. Java has no `Dict`/`Str`/`Num` class, so a TS field declared
+    //     skippedMethods: Dict = {};
+    // was emitted verbatim as
+    //     public Dict skippedMethods = new java.util.HashMap<String, Object>() {{}};
+    // and javac failed with "cannot find symbol". Untyped fields were unaffected (they fall back
+    // to the initializer-inferred type), which is why this only surfaced once ts/src was annotated
+    // for noImplicitAny.
+    //
+    // Scope: within JavaTranspiler, getType() is called from exactly ONE site —
+    // printPropertyAccessModifiers() — so routing its result through VariableTypeReplacements
+    // fixes class-field declarations only, and cannot perturb parameters, locals or return types
+    // (those already go through ArgTypeReplacements / the Dict special-cases and are correct).
+    // The map is applied by exact key, so a type name it does not know is passed through unchanged.
+    patchJavaPropertyTypes() {
+        const javaTranspiler = (this.transpiler as any)?.javaTranspiler;
+        if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
+        javaTranspiler.getType = (node: any) => {
+            const type = originalGetType(node);
+            const replacements = javaTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        javaTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -413,11 +891,26 @@ class NewTranspiler {
         ]
     }
 
-    getJavaImports(file: any, ws = false) {
+    getJavaImports(file: any, ws = false, prediction = false) {
         if (ws) {
             // For WS pro exchanges — no import of REST parent (use FQN to avoid name clash)
             return [
-                'package io.github.ccxt.exchanges.pro;',
+                prediction ? 'package io.github.ccxt.exchanges.prediction.pro;' : 'package io.github.ccxt.exchanges.pro;',
+                'import io.github.ccxt.base.Precise;',
+                'import io.github.ccxt.errors.*;',
+                'import io.github.ccxt.Helpers;',
+                'import io.github.ccxt.ws.*;',
+                'import io.github.ccxt.Client;',
+            ];
+        }
+        // Prediction-market REST exchanges live in their own package and extend
+        // their own implicit-API class under io.github.ccxt.api.prediction.
+        if (prediction) {
+            // prediction exchanges merge REST + WS in one class, so they also need
+            // the WS infrastructure imports (Client, ArrayCache, IOrderBookSide, ...)
+            return [
+                'package io.github.ccxt.exchanges.prediction;',
+                `import io.github.ccxt.api.prediction.${this.capitalize(file)}Api;`,
                 'import io.github.ccxt.base.Precise;',
                 'import io.github.ccxt.errors.*;',
                 'import io.github.ccxt.Helpers;',
@@ -556,7 +1049,7 @@ class NewTranspiler {
         let paramType: any = undefined;
 
         if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'Exchange';
+            paramType = 'BaseExchange';
         } else if (param.type == undefined) {
             paramType = 'Object';
         } else {
@@ -717,7 +1210,8 @@ class NewTranspiler {
     }
 
     createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
@@ -807,10 +1301,25 @@ class NewTranspiler {
     }
 
 
-    transpileErrorHierarchy() {
+    transpileErrorHierarchy(force = true) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+
+        // this stage writes one Errors/<Name>.java per node of the hierarchy, so the output
+        // list has to be derived from errorHierarchy itself — same pre-order walk the
+        // intellisense() generator below does (BaseError first, then every descendant)
+        const errorNames = [ 'BaseError' ];
+        const walkErrorHierarchy = (map: any) => {
+            for (const key in map) {
+                errorNames.push (key);
+                walkErrorHierarchy (map[key]);
+            }
+        };
+        walkErrorHierarchy ((errorHierarchy as any)['BaseError']);
+        if (skipUpToDateStage ('java', 'error hierarchy', force, [ errorHierarchyFilename ], errorNames.map ((name) => ERRORS_FOLDER + this.capitalize (name) + '.java'))) {
+            return;
+        }
 
         let js = fs.readFileSync(errorHierarchyPath, 'utf8')
 
@@ -886,25 +1395,24 @@ class NewTranspiler {
         // log.bright.cyan (message, (ERRORS_FILE as any).yellow)
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
-        const javaExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
-
-        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
-        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
-        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
-        let baseClass = baseFile.content as any;// remove this later
-
-        // custom transformations needed for Java
-        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1Exchange.$2");
+    // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts
+    // output (both the BaseExchange class and the trailing Exchange class). Factored
+    // out so the Exchange-tier body can be re-derived identically from either the
+    // base transpile or a standalone prediction transpile.
+    applyExchangeTierJavaFixes(baseClass: string): string {
+        // the transpiled base methods live on `BaseExchange` (Exchange is a thin subclass), so
+        // the qualified-this used inside anonymous-class initializers must name the enclosing class
+        // BaseExchange, not Exchange. (The Exchange-tier trading methods have no such put(...,this.X)
+        // initializers, so this is a no-op there.)
+        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1BaseExchange.$2");
         baseClass = this.regexAll(baseClass, [
             [/\(Object client, /g, '(Client client, '],
             [/Object client = (.+)/g, 'Client client = (Client)$1'],
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
-            [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
+            [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
 
-            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1Exchange.$2"],
-            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(Exchange sourceExchange)"]
+            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1BaseExchange.$2"],
+            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"]
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
         baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
@@ -920,20 +1428,224 @@ class NewTranspiler {
         // Pattern 2: if/else where the else throws, followed by return null before });
         // Only safe when else contains throw (not return) — throw always terminates
         baseClass = this.removeUnreachableReturnNull(baseClass);
-        // Pattern 2: } closing an if/else where both branches terminate, followed by return null
-        // This is unreachable but the lambda requires a return — Java compiler sees it as error
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
+        return baseClass;
+    }
 
-        // // WS fixes
-        // baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+    // Return the transpiled+fixed body (no outer braces) of the TS `Exchange extends
+    // BaseExchange` class — the 62 symbol-based trading methods. Cached on first call.
+    getExchangeTierBody(baseExchangeFile = './ts/src/base/Exchange.ts'): string {
+        if (this._exchangeTierBody !== undefined) {
+            return this._exchangeTierBody;
+        }
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
+        const baseClass = this.applyExchangeTierJavaFixes(baseFile.content as string);
+        const match = baseClass.match(/(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{([\s\S]*)\}\s*$/);
+        this._exchangeTierBody = match ? match[1] : '';
+        return this._exchangeTierBody;
+    }
+
+    // Method names the prediction layer actually implements — PredictionExchange.ts plus every
+    // ts/src/prediction/*.ts venue. Used to keep only the prediction unified surface when injecting
+    // Exchange-tier methods into PredictionExchange.java: symbol-based trading methods no prediction
+    // venue implements (closePosition, fetchGreeks, createLimitOrder, ...) are dropped, not injected,
+    // so prediction instances never carry them (true parity with the other languages).
+    getPredictionImplementedNames(): Set<string> {
+        const names = new Set<string>();
+        const files = [ './ts/src/base/PredictionExchange.ts' ];
+        const dir = './ts/src/prediction';
+        if (fs.existsSync(dir)) {
+            for (const f of fs.readdirSync(dir)) {
+                if (f.endsWith('.ts')) {
+                    files.push(dir + '/' + f);
+                }
+            }
+        }
+        const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
+        for (const file of files) {
+            for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+                const m = line.match(re);
+                if (m) {
+                    names.add(m[1]);
+                }
+            }
+        }
+        return names;
+    }
+
+    // Names of every method declared directly in a transpiled Java class body
+    // (indentation level 1, e.g. `    public ... foo(...)`).
+    extractJavaMethodNames(classBody: string): Set<string> {
+        const names = new Set<string>();
+        const re = /\n {4}(?:@[\w.]+\s*(?:\([^)]*\))?\s*)*(?:public|private|protected)\b[^\n(]*?([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+        let m;
+        while ((m = re.exec(classBody)) !== null) {
+            names.add(m[1]);
+        }
+        return names;
+    }
+
+    // Remove a whole method (signature + brace-matched body) from a transpiled Java
+    // class body, by method name (first match only — the base tier has no overloaded
+    // trading-method names).
+    removeJavaMethod(classBody: string, methodName: string): string {
+        const declRe = new RegExp('\\n {4}(?:@[\\w.]+\\s*(?:\\([^)]*\\))?\\s*)*(?:public|private|protected)\\b[^\\n(]*?\\b' + methodName + '\\s*\\(');
+        const m = declRe.exec(classBody);
+        if (!m) {
+            return classBody;
+        }
+        const start = m.index; // the '\n' before the declaration
+        let i = classBody.indexOf('{', m.index + m[0].length);
+        if (i < 0) {
+            return classBody;
+        }
+        let depth = 0;
+        let inStr: string | null = null;
+        let j = i;
+        for (; j < classBody.length; j++) {
+            const ch = classBody[j];
+            if (inStr) {
+                if (ch === '\\') { j++; continue; }
+                if (ch === inStr) inStr = null;
+                continue;
+            }
+            if (ch === '"' || ch === '\'') { inStr = ch; continue; }
+            if (ch === '{') depth++;
+            else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
+        }
+        return classBody.slice(0, start) + classBody.slice(j);
+    }
+
+    // String-safe file replace: unlike replaceInFile, the replacement is supplied via a
+    // callback so `$`-sequences in transpiled Java are treated literally.
+    replaceInFileLiteral(filename: string, regex: RegExp, replacement: string) {
+        const contents = fs.readFileSync(filename, 'utf8');
+        const newContents = contents.replace(regex, () => replacement);
+        fs.writeFileSync(filename, newContents);
+    }
+
+    transpileBaseMethods(baseExchangeFile: string, force = true) {
+        // both generated base files come out of this one pass; `exchanges.json` is listed
+        // as an input too — the wrapper generators keyed off the exchange list live in this
+        // stage, so adding an exchange must invalidate it even when Exchange.ts did not change
+        if (skipUpToDateStage ('java', 'base methods', force, [
+            baseExchangeFile,
+            './ts/src/base/types.ts',
+            './exchanges.json',
+        ], [
+            BASE_METHODS_FILE,
+            EXCHANGE_METHODS_FILE,
+        ])) {
+            return;
+        }
+        const javaExchangeBase = BASE_METHODS_FILE;
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
+        let baseClass = this.applyExchangeTierJavaFixes(baseFile.content as string);
 
         const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
         if (parts.length > 1) {
+            // ts/src/base/Exchange.ts declares two classes — `class BaseExchange { ... }` and the
+            // `export default class Exchange extends BaseExchange { ...62 trading methods... }` — so
+            // the ast-transpiler appends the whole Exchange class after BaseExchange's closing brace.
+            // Java allows only one public top-level class per file, so the trading methods are injected
+            // into the hand-written Exchange.java below; strip the emitted Exchange class from the
+            // BaseExchange output (keeping BaseExchange's closing brace).
+            let baseMethods = parts[1];
+            baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
             log.magenta('→', (javaExchangeBase as any).yellow)
-            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + parts[1].trim() + '\n')
+            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + baseMethods.trim() + '\n')
+        }
+
+        // Inject the Exchange-tier (62 trading methods) into Exchange.java below its delimiter.
+        const match = baseClass.match(/(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{([\s\S]*)\}\s*$/);
+        if (match) {
+            let exchangeBody = match[1];
+            this._exchangeTierBody = exchangeBody;
+            // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
+            // drop the transpiled CompletableFuture version to avoid a redundant overload.
+            exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
+            log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
+            this.replaceInFileLiteral(EXCHANGE_METHODS_FILE, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + exchangeBody.trim() + '\n}\n');
+        }
+    }
+
+    transpilePredictionBaseMethods(predictionBaseFile = './ts/src/base/PredictionExchange.ts', force = true) {
+        // PredictionExchange is the base for prediction-market exchanges; it lives in
+        // io.github.ccxt (like Exchange) and is transpiled the same way as the base.
+        const javaPredictionBase = './java/lib/src/main/java/io/github/ccxt/PredictionExchange.java';
+        // hidden inputs: the injected Exchange-tier body comes from ts/src/base/Exchange.ts
+        // (via getExchangeTierBody), the typed surface from types.ts, and the kept-method
+        // filter from getPredictionImplementedNames() which reads every ts/src/prediction/*.ts
+        if (skipUpToDateStage ('java', 'prediction base methods', force, [
+            predictionBaseFile,
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ].concat (predictionSourceFiles ()), [ javaPredictionBase ])) {
+            return;
+        }
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+        const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
+        let baseClass = baseFile.content as any;
+        // qualified-this inside anonymous-class initializers names the lexically enclosing class,
+        // which for these methods is PredictionExchange (not Exchange/BaseExchange).
+        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1PredictionExchange.$2");
+        baseClass = this.regexAll(baseClass, [
+            [/\(Object client, /g, '(Client client, '],
+            [/Object client = (.+)/g, 'Client client = (Client)$1'],
+            [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
+        ]);
+        baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
+        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
+        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
+        baseClass = this.removeUnreachableReturnNull(baseClass);
+        baseClass = this.addDeprecatedAnnotations(baseClass);
+        const javaDelimiter = '// ' + delimiter + '\n';
+        const restOfFile = '([^\n]*\n)+'
+        const parts = baseClass.split(javaDelimiter)
+        if (parts.length > 1) {
+            // PredictionExchange extends BaseExchange (NOT Exchange), so it does not inherit the 62
+            // trading methods that were moved to the Exchange tier. PredictionExchange.ts freshly
+            // (re)defines the prediction-specific ones (createOrder/fetchTicker/... → Prediction* types),
+            // but the convenience/fallback methods (editOrder, createLimitOrder, createStopLossOrder,
+            // fetchL2OrderBook, ...) are not re-declared there. The prediction typed wrappers still call
+            // `super.<method>(...)` for the full trading surface, so inject those non-overlapping
+            // Exchange-tier methods here. Each delegates to prediction's own createOrder/cancelOrder/etc.
+            let predictionBody = parts[1].trim();
+            const predictionOwnNames = this.extractJavaMethodNames('\n' + predictionBody);
+            let extras = this.getExchangeTierBody();
+            // The ast-transpiler qualifies `this` inside anonymous-class initializers with the
+            // lexically-enclosing TS class name (`Exchange.this.sortBy(...)`). Re-home those to
+            // PredictionExchange, which is where these methods now physically live.
+            extras = extras.replace(/\bExchange\.this\b/g, 'PredictionExchange.this');
+            // loadOrderBook is WS-snapshot infra prediction never invokes; drop it (mirrors Exchange.java).
+            extras = this.removeJavaMethod(extras, 'loadOrderBook');
+            // Drop every Exchange-tier method PredictionExchange already declares (avoids duplicate defs).
+            for (const name of predictionOwnNames) {
+                extras = this.removeJavaMethod(extras, name);
+            }
+            // Keep only the tier methods the prediction layer actually implements (createOrder,
+            // fetchTicker, ...); drop the symbol-based surface no prediction venue supports so
+            // PredictionExchange.java doesn't carry (and leak) closePosition/fetchGreeks/etc.
+            const predImplemented = this.getPredictionImplementedNames();
+            for (const name of this.extractJavaMethodNames('\n' + extras)) {
+                if (!predImplemented.has(name)) {
+                    extras = this.removeJavaMethod(extras, name);
+                }
+            }
+            // predictionBody ends with the class's closing brace — splice the extras in before it.
+            const withoutClose = predictionBody.replace(/\}\s*$/, '');
+            const merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
+            log.magenta('→', (javaPredictionBase as any).yellow)
+            this.replaceInFileLiteral(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + merged);
         }
     }
 
@@ -1003,6 +1715,7 @@ class NewTranspiler {
         const tsFolder = './ts/src/pro/';
 
         let inputExchanges: string[] =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (!inputExchanges || inputExchanges.length === 0) {
             // REST transpile writes `<Exchange>Core.java`; only Binance.java and
             // Bybit.java exist as plain names (tracked in git). Match against
@@ -1021,19 +1734,37 @@ class NewTranspiler {
             log.blue('[java-ws] Filtering to exchanges with REST parents:', inputExchanges);
         }
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true)
+        if (scopedRun) {
+            force = true; // a scoped run (CI `transpileJavaSingle -- --ws <exchange>`) always writes, same as the REST path
+        }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true)
     }
 
-    async transpileEverything(force = false, child = false, baseOnly = false, examplesOnly = false) {
+    async transpilePrediction(force = false) {
+        // Prediction-market exchanges (ts/src/prediction/) transpile to Core classes
+        // under io.github.ccxt.exchanges.prediction. REST + WS are merged into one
+        // class (no separate prediction/pro package).
+        this.transpilePredictionBaseMethods('./ts/src/base/PredictionExchange.ts', force);
+        const tsFolder = './ts/src/prediction/';
+        const outputFolder = EXCHANGES_PREDICTION_FOLDER;
+
+        let inputExchanges: string[] = process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        if (!inputExchanges || inputExchanges.length === 0) {
+            inputExchanges = (exchanges as any).prediction;
+        }
+        createFolderRecursively(outputFolder);
+        const options = { csharpFolder: outputFolder, exchanges: inputExchanges }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, false, true)
+    }
+
+    async transpileEverything(force = false, baseOnly = false, examplesOnly = false) {
 
         const exchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
             , javaFolder = EXCHANGES_FOLDER
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
-        if (!child) {
-            createFolderRecursively(javaFolder)
-        }
+        createFolderRecursively(javaFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
@@ -1041,26 +1772,23 @@ class NewTranspiler {
         const options = { csharpFolder: javaFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force)
         }
 
         if (transpilingSingleExchange) {
             return;
         }
-        if (child) {
-            return;
-        }
 
-        this.transpileBaseMethods(exchangeBase)
+        this.transpileBaseMethods(exchangeBase, force)
 
         if (baseOnly) {
             return;
         }
 
 
-        this.transpileTests()
+        await this.transpileTests(force)
 
-        this.transpileErrorHierarchy()
+        this.transpileErrorHierarchy(force)
 
         // Fix Api classes that extend other exchanges (not Exchange) to use Core suffix
         this.fixApiExtendsForCore()
@@ -1070,55 +1798,97 @@ class NewTranspiler {
 
     async webworkerTranspile(allFiles: any[], parserConfig: any) {
 
-        // create worker
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'java-worker.js')
-        });
+        // one shared pool, created lazily and kept alive for the lifetime of the
+        // transpiler: the per-thread Transpiler and its sticky ts.Program batch (see
+        // build/worker-program-batch.ts) only pay off if the threads survive across
+        // calls — a REST run calls this three times (exchanges, then two test stages),
+        // so a fresh pool per call would cold-start the Transpilers every time.
+        // Piscina unrefs idle workers, so the pool never holds the process open.
+        // Threads default to min(2, AP); CCXT_TRANSPILE_PROCESSES overrides.
+        const maxThreads = javaWorkerThreads ();
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'java-worker.ts'),
+                maxThreads
+            });
+        }
+        const piscina = this.piscina;
+        const configKey = JSON.stringify(parserConfig);
 
-        const chunkSize = 20;
+        // One file per task (load-balances; a slow file can't stall others). `roots` is
+        // the FULL stage list on every task so each worker builds ONE sticky ts.Program
+        // (see build/worker-program-batch.ts) and prints each file off that checker.
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({ transpilerConfig: parserConfig, files: chunk }));
+        for (const file of allFiles) {
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file] }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
-        log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
+        log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms (webworkerTranspile @ javaTranspiler.ts)');
+        // Order-preserving flatten: Promise.all resolves in input order; each task returns
+        // one result, so flat() matches allFiles order.
         const flatResult = workerResult.flat();
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
+    async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = []
         try {
-            ids = (exchanges as any).ids
+            ids = prediction ? (exchanges as any).prediction : (exchanges as any).ids
         } catch (e) {
         }
 
         const regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which transpileWS reads `.ws` off of. Assigning to it worked
+        // only because each stage ran in its own process; --rest-and-ws reuses one.
+        let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map((x: string) => x + pattern)
+            exchangeFiles = options.exchanges.map((x: string) => x + pattern)
         } else {
-            exchanges = fs.readdirSync(jsFolder).filter(file => file.match(regex) && (!ids || ids.includes(basename(file, '.ts'))))
+            exchangeFiles = fs.readdirSync(jsFolder).filter(file => file.match(regex) && (!ids || ids.includes(basename(file, '.ts'))))
+        }
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose generated <Name>Core.java is newer than their ts
+        // source. This has to happen BEFORE the pool is fed, because `allFilesPath`
+        // doubles as the sticky ts.Program root list (see build/worker-program-batch.ts)
+        // — leaving a clean exchange in it would transpile and rewrite it anyway.
+        // `--force` (and any single-exchange run) keeps everything.
+        exchangeFiles = filterDirtyExchangeFiles('java', exchangeFiles, force, (file: string) => {
+            const fileNameNoExt = basename(file, pattern);
+            const outputs: string[] = [];
+            if (options.csharpFolder) {
+                // REST and WS both emit the Core-suffixed class, see transpileDerivedExchangeFile
+                outputs.push(options.csharpFolder + this.capitalize(fileNameNoExt) + 'Core.java');
+            }
+            return { 'tsPath': jsFolder + file, 'outputs': outputs };
+        })
+
+        if (!exchangeFiles.length) {
+            return {}
         }
 
         // transpile using webworker
-        const allFilesPath = exchanges.map((file: string) => jsFolder + file);
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
-        log.blue('[java] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles = allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
+        const allFilesPath = exchangeFiles.map((file: string) => jsFolder + file);
+        log.blue('[java] Transpiling [', exchangeFiles.join(', '), ']');
+        // Pool the exchange fan-out across worker threads (one file per task, each
+        // worker reusing a cached Transpiler). A single exchange stays on the main
+        // thread — pooling one file just adds pool-boot latency for no parallelism.
+        const transpiledFiles = (allFilesPath.length > 1)
+            ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
+                const exchangeName = exchangeFiles[i].replace('.ts','');
                 const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
                 // this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
                 // break;
@@ -1132,15 +1902,15 @@ class NewTranspiler {
                 // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws))
+        exchangeFiles.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
         return classes
     }
 
-    createJavaClass(name: string, javaVersion: any, ws = false) {
-        const javaImports = this.getJavaImports(name, ws).join("\n") + "\n\n";
+    createJavaClass(name: string, javaVersion: any, ws = false, prediction = false) {
+        const javaImports = this.getJavaImports(name, ws, prediction).join("\n") + "\n\n";
         let content = javaVersion.content;
 
         // Append "Core" suffix so the typed wrapper can take the clean name.
@@ -1173,6 +1943,18 @@ class NewTranspiler {
         content = content.replace(new RegExp(`${origName}\\.this`, 'g'), `${className}.this`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public Object describe\(\))/g, `${constructor}$1`)
+        // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
+        // initializer is a bare identifier (an Object-typed local, e.g. a running
+        // index reassigned from this.sum(...)), Java's `var` infers Object and
+        // `i++` fails ("bad operand type Object"). Declare such loop vars as a
+        // primitive `long` (coerced via Helpers.parseInt). Loops whose init is a
+        // numeric literal (`var i = 0`) are left untouched — `var` infers int and
+        // `i++` works. The boxed `long` still satisfies Helpers.isLessThan/GetValue
+        // via autoboxing.
+        content = content.replace(
+            /for \(var (\w+) = ([A-Za-z_]\w*); (Helpers\.isLessThan(?:OrEqual)?)\(\1,/g,
+            'for (long $1 = Helpers.toInt64($2); $3($1,'
+        );
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
         // Null-safe Array.isArray rewrite. ast-transpiler emits the bare
@@ -1219,10 +2001,17 @@ class NewTranspiler {
             content = content.replace(/extends\s(\w+)Rest/g, `extends io.github.ccxt.exchanges.$1`);
             content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
             content = this.postProcessWsJava(content, name);
+        } else if (prediction) {
+            // prediction merges REST + WS in one class — apply the WS regexes + post-processing
+            // (orderbook/side casts, watch(), resolve/append, ...) so the watch* methods compile,
+            // but keep the REST `extends <Id>Api` (which extends PredictionExchange) and skip the
+            // effectively-final pass (it conflicts with the REST parse* methods, which the
+            // ast-transpiler already handles).
+            content = this.regexAll (content, this.getJavaWsRegexes());
+            content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
-        content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return javaImports + content;
+        return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
     /**
@@ -1673,7 +2462,7 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    postProcessWsJava(content: string, name: string, isCore = true): string {
+    postProcessWsJava(content: string, name: string, isCore = true, skipEffectivelyFinal = false): string {
         const cap = this.capitalize(name) + (isCore ? 'Core' : ''); // WS classes are now named *Core
 
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
@@ -1708,9 +2497,13 @@ class NewTranspiler {
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
 
-        // ── Pattern 3: (String) cast on messageHash for client.future() / reusableFuture() ──
-        // client.future(messageHash) where messageHash is Object
-        content = content.replace(/client\.(future|reusableFuture)\(messageHash\)/gm, 'client.$1((String)messageHash)');
+        // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
+        // client.future(hash) where the hash local is Object-typed. any
+        // identifier is accepted, not just `messageHash`, so a renamed hash
+        // local cannot silently fall out of the cast
+        content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm, 'client.$1((String)$2)');
+        // idempotence guard: never cast an already-cast argument
+        content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)
@@ -2000,13 +2793,18 @@ class NewTranspiler {
             '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
 
         // ── Fix effectively final for anonymous inner class captures ──
-        content = this.fixEffectivelyFinal(content);
-
-        // ── Fix effectively final for lambda captures in spawn/delay ──
-        content = this.fixEffectivelyFinalLambda(content);
+        // (skipped for prediction REST+WS files: the ast-transpiler already handles
+        // effectively-final there, and this pass mis-scopes vars across the REST parse* methods)
+        if (!skipEffectivelyFinal) {
+            content = this.fixEffectivelyFinal(content);
+            // ── Fix effectively final for lambda captures in spawn/delay ──
+            content = this.fixEffectivelyFinalLambda(content);
+        }
 
         // ── Remove duplicate final variable declarations in same method ──
-        content = this.removeTrueDuplicateFinals(content);
+        if (!skipEffectivelyFinal) {
+            content = this.removeTrueDuplicateFinals(content);
+        }
 
         // ── Void supplyAsync return null insertion ──
         content = this.insertReturnNullInSupplyAsync(content);
@@ -2478,7 +3276,7 @@ class NewTranspiler {
         return result;
     }
 
-    transpileDerivedExchangeFile(tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false) {
+    transpileDerivedExchangeFile(tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false, prediction = false) {
 
         const tsPath = tsFolder + filename
 
@@ -2490,7 +3288,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
-        let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws)
+        let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = routeWhitelistedInternalCallsToAsync(javaSource)
 
         if (javaFolder) {
@@ -2582,10 +3380,14 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToJava(outDir: string) {
+    transpileCryptoTestsToJava(outDir: string, force = true) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/TestCryptography.java`;
+
+        if (skipUpToDateStage ('java', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta('[java] Transpiling from', (jsFile as any).yellow)
 
@@ -2668,15 +3470,15 @@ class NewTranspiler {
         await Promise.all(transpiledFiles.map((file, idx) => writeFile(outDir + file[0] + '.java', file[1])))
     }
 
-    transpileBaseTestsToJava() {
+    transpileBaseTestsToJava(force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToJava(outDir);
+        this.transpileBaseTests(outDir, force);
+        this.transpileCryptoTestsToJava(outDir, force);
         // this.transpileWsCacheTestsToCSharp(outDir);
         // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
-    transpileBaseTests(outDir: string) {
+    transpileBaseTests(outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -2684,12 +3486,16 @@ class NewTranspiler {
 
         let baseFunctionTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        for (const testName of baseFunctionTests) {
+        // the AUTO_TRANSPILE_ENABLED filter is hoisted out of the write loop below so the
+        // whole-stage gate can name the exact set of files this stage writes
+        const eligible = baseFunctionTests.filter ((testName) => fs.readFileSync (baseFolders.ts + testName + '.ts').toString ().includes ('// AUTO_TRANSPILE_ENABLED'));
+
+        if (skipUpToDateStage ('java', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/Test${this.capitalize (testName.replace ('test.', '').replace ('tests.', ''))}.java`))) {
+            return;
+        }
+
+        for (const testName of eligible) {
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes('// AUTO_TRANSPILE_ENABLED')) {
-                continue;
-            }
 
             const correctedTestName = 'Test' + this.capitalize(testName.replace('test.', '').replace('tests.', ''))
             const javaFile = `${outDir}/${correctedTestName}.java`;
@@ -2777,15 +3583,28 @@ class NewTranspiler {
         // ad-hoc fixes
         contentIndentend = this.regexAll(contentIndentend, [
             [/Object mockedExchange =/gm, 'var mockedExchange ='],
-            [/public Object initOfflineExchange/g, 'public Exchange initOfflineExchange'],
-            [/Object exchange(?=[,)])/g, 'Exchange exchange'],
-            [/Object exchange =/g, 'Exchange exchange ='],
+            // The shared static-test harness holds either a regular Exchange or a prediction
+            // PredictionExchange (both extend BaseExchange, as siblings), so type the shared `exchange`
+            // variable as the common base and drive the tested method by reflection. The legacy
+            // request-builders that call a symbol-trading method (createOrder/fetchTicker) directly are
+            // cast back to Exchange below — they run only against regular venues.
+            [/public Object initOfflineExchange/g, 'public BaseExchange initOfflineExchange'],
+            [/Object exchange(?=[,)])/g, 'BaseExchange exchange'],
+            [/Object exchange =/g, 'BaseExchange exchange ='],
+            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
+            // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
+            [/BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
+            [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
+            [/testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)'],
             [/throw new Error/g, 'throw new Exception'],
             [/public class TestMainClass/g, 'public class TestMain extends BaseTest'],
             [/assert/gm, 'Assert'],
             [/TestMainClass\.this/gm, 'TestMain.this'],
             [/throw new Exception/g, 'throw new RuntimeException'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
+            // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
+            [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
+            [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
@@ -2795,6 +3614,7 @@ class NewTranspiler {
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
             'import io.github.ccxt.Exchange;',
+            'import io.github.ccxt.BaseExchange;',
             'import tests.BaseTest;',
             'import io.github.ccxt.errors.*;',
             '',
@@ -2805,12 +3625,7 @@ class NewTranspiler {
         overwriteFileAndFolder(files.javaFile, file);
     }
 
-    transpileExchangeTests() {
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'javaFile': BASE_TESTS_FILE,
-        });
-
+    async transpileExchangeTests(force = true) {
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -2845,10 +3660,22 @@ class NewTranspiler {
             });
         });
 
-        this.transpileAndSaveJavaExchangeTests(tests);
+        // whole-stage gate — TestMain.java is included because transpileMainTest below writes
+        // it from ./ts/src/test/tests.ts, which is part of testStageInputs(). The tests[] list
+        // is built above the gate only so the output paths are available here.
+        if (skipUpToDateStage ('java', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.javaFile)))) {
+            return;
+        }
+
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/tests.ts',
+            'javaFile': BASE_TESTS_FILE,
+        });
+
+        await this.transpileAndSaveJavaExchangeTests(tests);
     }
 
-    transpileWsExchangeTests() {
+    async transpileWsExchangeTests(force = true) {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -2873,6 +3700,10 @@ class NewTranspiler {
             });
         });
 
+        if (skipUpToDateStage ('java', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.javaFile))) {
+            return;
+        }
+
         this.transpileAndSaveJavaExchangeTests(tests, true);
     }
 
@@ -2891,7 +3722,12 @@ class NewTranspiler {
                 [/assert/g, 'Assert'],
                 [/testSharedMethods\./gm, 'TestSharedMethods.'],
                 [/async public/gm, 'public'],
-                [/Object exchange(?=[,)])/g, 'Exchange exchange'],
+                // REST test functions serve BOTH tiers (regular Exchange and prediction
+                // PredictionExchange are siblings under BaseExchange), so type the exchange
+                // param as the common base; the awaited unified-method calls are late-bound
+                // below through Helpers.callDynamically. WS tests only run against regular
+                // venues, keep them statically typed.
+                [/Object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange'],
                 [/throw new Exception/g, 'throw new RuntimeException'],
                 [/throw e/gm, 'throw new RuntimeException(e)'],
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
@@ -3001,6 +3837,16 @@ class NewTranspiler {
             }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
             contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
+            if (!isWs) {
+                // late-bind awaited unified-method calls: the exchange param is BaseExchange
+                // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
+                // so `(exchange.fetchX(args)).join()` must dispatch reflectively on the runtime
+                // type. Helpers.callDynamically throws unchecked, so no try/catch is needed.
+                contentIndentend = contentIndentend.replace(/\(exchange\.(\w+)\((.*)\)\)\.join\(\)/g, (match: string, name: string, callArgs: string) => {
+                    const argsArray = callArgs.trim() === '' ? 'new Object[]{}' : `new Object[]{${callArgs}}`;
+                    return `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "${name}", ${argsArray})).join()`;
+                });
+            }
             // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
@@ -3010,6 +3856,7 @@ class NewTranspiler {
                 'import tests.BaseTest;',
                 'import io.github.ccxt.Helpers;',
                 'import io.github.ccxt.Exchange;',
+                ...(isWs ? [] : ['import io.github.ccxt.BaseExchange;']),
                 'import io.github.ccxt.errors.*;',
                 ...(isWs ? ['import tests.exchange.*;'] : []),
                 preciseImport,
@@ -3022,7 +3869,7 @@ class NewTranspiler {
             if (filename === 'test.sharedMethods') {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/public void /g, 'public static void '], // make tests static
-                    [/public java.util.concurrent.CompletableFuture<Object> /g, 'public static java.util.concurrent.CompletableFuture<Object> '], // make tests static
+                    [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
                 // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
@@ -3047,44 +3894,64 @@ class NewTranspiler {
         });
     }
 
-    transpileTests() {
+    async transpileTests(force = true) {
         if (!shouldTranspileTests) {
             log.bright.yellow('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToJava();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        // each stage is awaited: transpileAndSaveJavaExchangeTests is async, and leaving the
+        // promises floating meant transpileEverything logged "Transpiled successfully" and
+        // runMain started transpileWS with ~84 test files still in flight — three root sets
+        // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
+        await this.transpileBaseTestsToJava(force);
+        const baseTestsOnly = process.argv.includes('--baseTests')
+        if (baseTestsOnly) return;
+        await this.transpileExchangeTests(force);
+        await this.transpileWsExchangeTests(force);
     }
 }
 
 async function runMain() {
     const ws = process.argv.includes('--ws')
-    const baseOnly = process.argv.includes('--baseTests')
+    // bare prediction-only ids (e.g. `javaTranspiler.ts kalshi`) auto-route to the
+    // prediction namespace so scoped CI steps don't need to know it
+    const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
+    const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
+    const prediction = process.argv.includes('--prediction') || allArePredictionOnly
+    const baseTestsOnly = process.argv.includes('--baseTests')
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
-    const child = process.argv.includes('--child')
-    const multiprocess = process.argv.includes('--multiprocess') || process.argv.includes('--multi')
     const baseClassOnly = process.argv.includes('--baseClass')
+    // single-process REST+WS (default via npm run transpileJava / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
+    const restAndWs = process.argv.includes('--rest-and-ws')
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
-    if (!child && !multiprocess) {
-        log.bright.green({ force })
-    }
+    log.bright.green({ force })
     const transpiler = new NewTranspiler();
     if (baseClassOnly) {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
+        transpiler.transpilePredictionBaseMethods();
+    } else if (restAndWs) {
+        await transpiler.transpileEverything(force, false, examples)
+        await transpiler.transpileWS(force)
+    } else if (prediction) {
+        await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
-    } else if (test) {
-        transpiler.transpileTests()
-    } else if (multiprocess) {
-        await parallelizeTranspiling(exchangeIds)
+    } else if (test || baseTestsOnly) {
+        await transpiler.transpileTests()
     } else {
-        await transpiler.transpileEverything(force, child, baseOnly, examples)
+        await transpiler.transpileEverything(force, false, examples)
     }
 }
 
 if (isMainEntry(metaUrl)) {
-    await runMain();
+    // Deliberately not `await runMain()`: build/java-worker.ts imports this module
+    // for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS
+    // require hook, whose esbuild transform rejects top-level await ("not supported
+    // with the cjs output format"). A rejection is still fatal here — an unhandled
+    // rejection exits 1, exactly like the awaited form did.
+    runMain();
 }

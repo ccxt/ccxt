@@ -119,7 +119,7 @@ class apex extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
@@ -155,39 +155,39 @@ class apex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v3/symbols' => 1,
-                        'v3/history-funding' => 1,
-                        'v3/ticker' => 1,
-                        'v3/klines' => 1,
-                        'v3/trades' => 1,
-                        'v3/depth' => 1,
-                        'v3/time' => 1,
-                        'v3/data/all-ticker-info' => 1,
+                        'v3/symbols' => array( 'cost' => 1 ),
+                        'v3/history-funding' => array( 'cost' => 1 ),
+                        'v3/ticker' => array( 'cost' => 1 ),
+                        'v3/klines' => array( 'cost' => 1 ),
+                        'v3/trades' => array( 'cost' => 1 ),
+                        'v3/depth' => array( 'cost' => 1 ),
+                        'v3/time' => array( 'cost' => 1 ),
+                        'v3/data/all-ticker-info' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v3/account' => 1,
-                        'v3/account-balance' => 1,
-                        'v3/fills' => 1,
-                        'v3/order-fills' => 1,
-                        'v3/order' => 1,
-                        'v3/history-orders' => 1,
-                        'v3/order-by-client-order-id' => 1,
-                        'v3/funding' => 1,
-                        'v3/historical-pnl' => 1,
-                        'v3/open-orders' => 1,
-                        'v3/transfers' => 1,
-                        'v3/transfer' => 1,
+                        'v3/account' => array( 'cost' => 1 ),
+                        'v3/account-balance' => array( 'cost' => 1 ),
+                        'v3/fills' => array( 'cost' => 1 ),
+                        'v3/order-fills' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/history-orders' => array( 'cost' => 1 ),
+                        'v3/order-by-client-order-id' => array( 'cost' => 1 ),
+                        'v3/funding' => array( 'cost' => 1 ),
+                        'v3/historical-pnl' => array( 'cost' => 1 ),
+                        'v3/open-orders' => array( 'cost' => 1 ),
+                        'v3/transfers' => array( 'cost' => 1 ),
+                        'v3/transfer' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'v3/delete-open-orders' => 1,
-                        'v3/delete-client-order-id' => 1,
-                        'v3/delete-order' => 1,
-                        'v3/order' => 1,
-                        'v3/set-initial-margin-rate' => 1,
-                        'v3/transfer-out' => 1,
-                        'v3/contract-transfer-out' => 1,
+                        'v3/delete-open-orders' => array( 'cost' => 1 ),
+                        'v3/delete-client-order-id' => array( 'cost' => 1 ),
+                        'v3/delete-order' => array( 'cost' => 1 ),
+                        'v3/order' => array( 'cost' => 1 ),
+                        'v3/set-initial-margin-rate' => array( 'cost' => 1 ),
+                        'v3/transfer-out' => array( 'cost' => 1 ),
+                        'v3/contract-transfer-out' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -228,7 +228,6 @@ class apex extends Exchange {
             'commonCurrencies' => array(),
             'options' => array(
                 'defaultType' => 'swap',
-                'defaultSlippage' => 0.05,
                 'brokerId' => '6956',
             ),
             'features' => array(
@@ -321,7 +320,7 @@ class apex extends Exchange {
         return $this->safe_integer($data, 'time');
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // {
         //     "totalEquityValue" => "100.000000",
@@ -519,26 +518,28 @@ class apex extends Exchange {
                 if ($tokenName === $currencyId) {
                     $networkId = $this->safe_string($chain, 'chainId');
                     $networkCode = $this->network_id_to_code($networkId, $code);
-                    $networks[$networkCode] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => !$this->safe_bool($chain, 'depositDisable'),
-                        'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
-                        'fee' => $this->safe_number($token, 'minFee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($token, 'minWithdraw'),
-                                'max' => null,
+                    if ($networkCode !== null) {
+                        $networks[$networkCode] = array(
+                            'info' => $chain,
+                            'id' => $networkId,
+                            'network' => $networkCode,
+                            'active' => null,
+                            'deposit' => ($this->safe_bool($chain, 'depositDisable') !== true),
+                            'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                            'fee' => $this->safe_number($token, 'minFee'),
+                            'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
+                            'limits' => array(
+                                'withdraw' => array(
+                                    'min' => $this->safe_number($token, 'minWithdraw'),
+                                    'max' => null,
+                                ),
+                                'deposit' => array(
+                                    'min' => $this->safe_number($chain, 'minDeposit'),
+                                    'max' => null,
+                                ),
                             ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($chain, 'minDeposit'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
+                        );
+                    }
                 }
             }
         }
@@ -782,7 +783,7 @@ class apex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id2'],
+            'symbol' => $this->safe_string($market, 'id2'),
         );
         $response = $this->publicGetV3Ticker($this->extend($request, $params));
         $tickers = $this->safe_list($response, 'data', array());
@@ -828,7 +829,7 @@ class apex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'symbol' => $market['id2'],
+            'symbol' => $this->safe_string($market, 'id2'),
         );
         if ($limit === null) {
             $limit = 200; // default is 200 when requested with `$since`
@@ -840,11 +841,11 @@ class apex extends Exchange {
         }
         $response = $this->publicGetV3Klines($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());
-        $OHLCVs = $this->safe_list($data, $market['id2'], array());
+        $OHLCVs = $this->safe_list($data, $this->safe_string($market, 'id2'), array());
         return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //  {
         //     "start" => 1647511440000,
@@ -859,12 +860,12 @@ class apex extends Exchange {
         //  } array("s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466")
         //
         return array(
-            $this->safe_integer_n($ohlcv, array( 'start', 't' )),
-            $this->safe_number_n($ohlcv, array( 'open', 'o' )),
-            $this->safe_number_n($ohlcv, array( 'high', 'h' )),
-            $this->safe_number_n($ohlcv, array( 'low', 'l' )),
-            $this->safe_number_n($ohlcv, array( 'close', 'c' )),
-            $this->safe_number_n($ohlcv, array( 'volume', 'v' )),
+            $this->safe_integer_2($ohlcv, 'start', 't'),
+            $this->safe_number_2($ohlcv, 'open', 'o'),
+            $this->safe_number_2($ohlcv, 'high', 'h'),
+            $this->safe_number_2($ohlcv, 'low', 'l'),
+            $this->safe_number_2($ohlcv, 'close', 'c'),
+            $this->safe_number_2($ohlcv, 'volume', 'v'),
         );
     }
 
@@ -877,14 +878,14 @@ class apex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id2'],
+            'symbol' => $this->safe_string($market, 'id2'),
         );
         if ($limit === null) {
             $limit = 100; // default is 200 when requested with `since`
@@ -943,7 +944,7 @@ class apex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id2'],
+            'symbol' => $this->safe_string($market, 'id2'),
         );
         if ($limit === null) {
             $limit = 500; // default is 50
@@ -987,15 +988,15 @@ class apex extends Exchange {
         //  }
         //  )
         //
-        $marketId = $this->safe_string_n($trade, array( 's', 'symbol' ));
+        $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $id = $this->safe_string_n($trade, array( 'i', 'id' ));
+        $id = $this->safe_string_2($trade, 'i', 'id');
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
-        $priceString = $this->safe_string_n($trade, array( 'p', 'price' ));
-        $amountString = $this->safe_string_n($trade, array( 'v', 'size' ));
-        $side = $this->safe_string_lower_n($trade, array( 'S', 'side' ));
-        $type = $this->safe_string_n($trade, array( 'type' ));
-        $fee = $this->safe_string_n($trade, array( 'fee' ));
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 'v', 'size');
+        $side = $this->safe_string_lower_2($trade, 'S', 'side');
+        $type = $this->safe_string($trade, 'type');
+        $fee = $this->safe_string($trade, 'fee');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
@@ -1028,7 +1029,7 @@ class apex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $market['id2'],
+            'symbol' => $this->safe_string($market, 'id2'),
         );
         $response = $this->publicGetV3Ticker($this->extend($request, $params));
         $tickers = $this->safe_list($response, 'data', array());
@@ -1036,7 +1037,7 @@ class apex extends Exchange {
         return $this->parse_open_interest($rawTicker, $market);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // {
         //     "symbol" => "BTCUSDT",
@@ -1069,7 +1070,7 @@ class apex extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1280,18 +1281,20 @@ class apex extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         if ($market === null && $marketId !== null) {
-            if (is_array($this->markets) && array_key_exists($marketId, $this->markets)) {
-                $market = $this->markets[$marketId];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
+            $marketsMap = $this->markets;
+            $marketsById = $this->markets_by_id;
+            if (($marketsMap !== null) && (is_array($marketsMap) && array_key_exists($marketId ?? '', $marketsMap))) {
+                $market = $marketsMap[$marketId];
+            } elseif (($marketsById !== null) && (is_array($marketsById) && array_key_exists($marketId ?? '', $marketsById))) {
+                $market = $marketsById[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($newMarketId, $this->markets_by_id)) {
-                    $markets = $this->markets_by_id[$newMarketId];
+                if (($marketsById !== null) && (is_array($marketsById) && array_key_exists($newMarketId ?? '', $marketsById))) {
+                    $markets = $marketsById[$newMarketId];
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
-                        if ($this->markets_by_id[$newMarketId][0]['id2'] === $marketId) {
-                            $market = $this->markets_by_id[$newMarketId][0];
+                        if ($marketsById[$newMarketId][0]['id2'] === $marketId) {
+                            $market = $marketsById[$newMarketId][0];
                         }
                     }
                 }
@@ -1300,8 +1303,9 @@ class apex extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function generate_random_client_id_omni(string $_accountId) {
-        $accountId = $_accountId || (string) $this->rand_number(12);
+    public function generate_random_client_id_omni(?string $_accountId) {
+        $hasAccountId = ($_accountId !== null) && ($_accountId !== '');
+        $accountId = $hasAccountId ? $_accountId : (string) $this->rand_number(12);
         return 'apexomni-' . $accountId . '-' . (string) $this->milliseconds() . '-' . (string) $this->rand_number(6);
     }
 
@@ -1358,6 +1362,9 @@ class apex extends Exchange {
         }
         $market = $this->market($symbol);
         $orderType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $orderSize = $this->amount_to_precision($symbol, $amount);
         $orderPrice = '0';
@@ -1493,7 +1500,8 @@ class apex extends Exchange {
         }
         $tokenId = $this->safe_string($currency, 'tokenId', '');
         $decimalsNum = $this->safe_number($currency, 'decimals', 0);
-        $mathPowResult = (pow(10, $decimalsNum));
+        $decimalsNumber = ($decimalsNum === null) ? 0 : $decimalsNum;
+        $mathPowResult = (pow(10, $decimalsNumber));
         $amountNumber = $this->parse_to_int($amount * $mathPowResult);
         $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
         $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
@@ -1589,7 +1597,7 @@ class apex extends Exchange {
         $toAccount = $this->safe_string($transfer, 'toAccount');
         return array(
             'info' => $transfer,
-            'id' => $this->safe_string_n($transfer, array( 'transferId', 'id' )),
+            'id' => $this->safe_string_2($transfer, 'transferId', 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code($currencyId, $currency),
@@ -1606,7 +1614,7 @@ class apex extends Exchange {
          *
          * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
          *
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1858,7 +1866,7 @@ class apex extends Exchange {
         return $this->parse_incomes($fundingValues, $market, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "id" => "1234",
@@ -1960,7 +1968,7 @@ class apex extends Exchange {
         $quantity = $this->safe_string($position, 'size');
         $timestamp = $this->safe_integer($position, 'updatedTime');
         $leverage = 20;
-        $customInitialMarginRate = $this->safe_string_n($position, array( 'customInitialMarginRate', 'customImr' ), '0');
+        $customInitialMarginRate = $this->safe_string_2($position, 'customInitialMarginRate', 'customImr', '0');
         if ($this->precision_from_string($customInitialMarginRate) !== 0) {
             $leverage = $this->parse_to_int(Precise::string_div('1', $customInitialMarginRate, 4));
         }
@@ -1968,7 +1976,7 @@ class apex extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'entryPrice'),
+            'entryPrice' => $this->safe_number($position, 'entryPrice'),
             'markPrice' => null,
             'notional' => null,
             'collateral' => null,
@@ -1991,7 +1999,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $headers = array(
             'User-Agent' => 'apex-CCXT',
@@ -2001,7 +2009,7 @@ class apex extends Exchange {
         $signPath = '/api/' . $path;
         $signBody = $body;
         if (strtoupper($method) !== 'POST') {
-            if ($params) {
+            if (count($params) > 0) {
                 $signPath .= '?' . $this->rawencode($params);
                 $url .= '?' . $this->rawencode($params);
             }
@@ -2025,7 +2033,7 @@ class apex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         // array("code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":array("price":"0"))
         // array("code":400,"msg":"strconv.ParseInt => parsing \"dsfdfsd\" => invalid syntax","timeCost":5320995)

@@ -1,6 +1,6 @@
 Every endpoint in `woofipro`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/woofipro) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `v1PublicGetPublicVolumeStats`); the snake_case alias (`v1_public_get_public_volume_stats`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PublicGetPublicVolumeStats`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v1PublicGetPublicVolumeStats`); the snake_case alias (`v1_public_get_public_volume_stats`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PublicGetPublicVolumeStats`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,9 +53,9 @@ response := <-woofipro.V1PublicGetPublicVolumeStats(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official woofipro API documentation:** [orderly.network](https://orderly.network/docs/build-on-omnichain/building-on-evm)
+📚 **Official woofipro API documentation:** [orderly.network](https://orderly.network/docs/build-on-omnichain/building-on-omnichain)
 
-> 115 implicit endpoints across 1 access group.
+> 118 implicit endpoints across 1 access group.
 
 ## v1
 
@@ -141,6 +141,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateGetBrokerUserInfo` | GET | `broker/user_info` | 10 |
 | `v1PrivateGetOrderbookSymbol` | GET | `orderbook/{symbol}` | 1 |
 | `v1PrivateGetKline` | GET | `kline` | 1 |
+| `v1PrivateGetClientMarginModes` | GET | `client/margin_modes` | 1 |
 | `v1PrivatePostOrderlyKey` | POST | `orderly_key` | 1 |
 | `v1PrivatePostClientSetOrderlyKeyIpRestriction` | POST | `client/set_orderly_key_ip_restriction` | 6 |
 | `v1PrivatePostClientResetOrderlyKeyIpRestriction` | POST | `client/reset_orderly_key_ip_restriction` | 6 |
@@ -154,6 +155,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivatePostNotificationInboxMarkRead` | POST | `notification/inbox/mark_read` | 60 |
 | `v1PrivatePostNotificationInboxMarkReadAll` | POST | `notification/inbox/mark_read_all` | 60 |
 | `v1PrivatePostClientLeverage` | POST | `client/leverage` | 120 |
+| `v1PrivatePostClientMarginMode` | POST | `client/margin_mode` | 1 |
+| `v1PrivatePostPositionMargin` | POST | `position_margin` | 1 |
 | `v1PrivatePostClientMaintenanceConfig` | POST | `client/maintenance_config` | 60 |
 | `v1PrivatePostDelegateSigner` | POST | `delegate_signer` | 10 |
 | `v1PrivatePostDelegateOrderlyKey` | POST | `delegate_orderly_key` | 10 |

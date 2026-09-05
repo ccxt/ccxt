@@ -7,9 +7,9 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testFundingRateHistory(Exchange exchange, object skippedProperties, object method, object entry, object symbol)
+    public static void testFundingRateHistory(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "BTC/USDT:USDT" },
             { "timestamp", 1638230400000 },

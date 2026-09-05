@@ -145,71 +145,71 @@ class dydx extends Exchange {
             'api' => array(
                 'indexer' => array(
                     'get' => array(
-                        'addresses/{address}' => 1,
-                        'addresses/{address}/parentSubaccountNumber/{number}' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}' => 1,
-                        'assetPositions' => 1,
-                        'assetPositions/parentSubaccountNumber' => 1,
-                        'candles/perpetualMarkets/{market}' => 1,
-                        'compliance/screen/{address}' => 1,
-                        'fills' => 1,
-                        'fills/parentSubaccountNumber' => 1,
-                        'fundingPayments' => 1,
-                        'fundingPayments/parentSubaccount' => 1,
-                        'height' => 0.1,
-                        'historical-pnl' => 1,
-                        'historical-pnl/parentSubaccountNumber' => 1,
-                        'historicalBlockTradingRewards/{address}' => 1,
-                        'historicalFunding/{market}' => 1,
-                        'historicalTradingRewardAggregations/{address}' => 1,
-                        'orderbooks/perpetualMarket/{market}' => 1,
-                        'orders' => 1,
-                        'orders/parentSubaccountNumber' => 1,
-                        'orders/{orderId}' => 1,
-                        'perpetualMarkets' => 1,
-                        'perpetualPositions' => 1,
-                        'perpetualPositions/parentSubaccountNumber' => 1,
-                        'screen' => 1,
-                        'sparklines' => 1,
-                        'time' => 1,
-                        'trades/perpetualMarket/{market}' => 1,
-                        'transfers' => 1,
-                        'transfers/between' => 1,
-                        'transfers/parentSubaccountNumber' => 1,
-                        'vault/v1/megavault/historicalPnl' => 1,
-                        'vault/v1/megavault/positions' => 1,
-                        'vault/v1/vaults/historicalPnl' => 1,
+                        'addresses/{address}' => array( 'cost' => 1 ),
+                        'addresses/{address}/parentSubaccountNumber/{number}' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}' => array( 'cost' => 1 ),
+                        'assetPositions' => array( 'cost' => 1 ),
+                        'assetPositions/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'candles/perpetualMarkets/{market}' => array( 'cost' => 1 ),
+                        'compliance/screen/{address}' => array( 'cost' => 1 ),
+                        'fills' => array( 'cost' => 1 ),
+                        'fills/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'fundingPayments' => array( 'cost' => 1 ),
+                        'fundingPayments/parentSubaccount' => array( 'cost' => 1 ),
+                        'height' => array( 'cost' => 0.1 ),
+                        'historical-pnl' => array( 'cost' => 1 ),
+                        'historical-pnl/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'historicalBlockTradingRewards/{address}' => array( 'cost' => 1 ),
+                        'historicalFunding/{market}' => array( 'cost' => 1 ),
+                        'historicalTradingRewardAggregations/{address}' => array( 'cost' => 1 ),
+                        'orderbooks/perpetualMarket/{market}' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'orders/{orderId}' => array( 'cost' => 1 ),
+                        'perpetualMarkets' => array( 'cost' => 1 ),
+                        'perpetualPositions' => array( 'cost' => 1 ),
+                        'perpetualPositions/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'screen' => array( 'cost' => 1 ),
+                        'sparklines' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
+                        'trades/perpetualMarket/{market}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'transfers/between' => array( 'cost' => 1 ),
+                        'transfers/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'vault/v1/megavault/historicalPnl' => array( 'cost' => 1 ),
+                        'vault/v1/megavault/positions' => array( 'cost' => 1 ),
+                        'vault/v1/vaults/historicalPnl' => array( 'cost' => 1 ),
                         //
-                        'perpetualMarketSparklines' => 1,
-                        'perpetualMarkets/{ticker}' => 1,
-                        'perpetualMarkets/{ticker}/orderbook' => 1,
-                        'trades/perpetualMarket/{ticker}' => 1,
-                        'historicalFunding/{ticker}' => 1,
-                        'candles/{ticker}/{resolution}' => 1,
-                        'addresses/{address}/subaccounts' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions' => 1,
-                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => 1,
-                        'fills/parentSubaccount' => 1,
-                        'historical-pnl/parentSubaccount' => 1,
+                        'perpetualMarketSparklines' => array( 'cost' => 1 ),
+                        'perpetualMarkets/{ticker}' => array( 'cost' => 1 ),
+                        'perpetualMarkets/{ticker}/orderbook' => array( 'cost' => 1 ),
+                        'trades/perpetualMarket/{ticker}' => array( 'cost' => 1 ),
+                        'historicalFunding/{ticker}' => array( 'cost' => 1 ),
+                        'candles/{ticker}/{resolution}' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccounts' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/assetPositions' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/perpetualPositions' => array( 'cost' => 1 ),
+                        'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => array( 'cost' => 1 ),
+                        'fills/parentSubaccount' => array( 'cost' => 1 ),
+                        'historical-pnl/parentSubaccount' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRpc' => array(
                     'get' => array(
-                        'abci_info' => 1,
-                        'block' => 1,
-                        'broadcast_tx_async' => 1,
-                        'broadcast_tx_sync' => 1,
-                        'tx' => 1,
+                        'abci_info' => array( 'cost' => 1 ),
+                        'block' => array( 'cost' => 1 ),
+                        'broadcast_tx_async' => array( 'cost' => 1 ),
+                        'broadcast_tx_sync' => array( 'cost' => 1 ),
+                        'tx' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRest' => array(
                     'get' => array(
-                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => 1,
+                        'cosmos/auth/v1beta1/account_info/{dydxAddress}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'cosmos/tx/v1beta1/encode' => 1,
-                        'cosmos/tx/v1beta1/simulate' => 1,
+                        'cosmos/tx/v1beta1/encode' => array( 'cost' => 1 ),
+                        'cosmos/tx/v1beta1/simulate' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -497,6 +497,9 @@ class dydx extends Exchange {
         //
         $quoteId = 'USDC';
         $marketId = $this->safe_string($market, 'ticker');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
         $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
@@ -693,7 +696,7 @@ class dydx extends Exchange {
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
         //     "startedAt" => "2025-07-25T09:47:00.000Z",
@@ -842,7 +845,7 @@ class dydx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function handle_public_address(string $methodName, array $params) {
+    public function handle_public_address(?string $methodName, array $params): array {
         $userAux = null;
         list($userAux, $params) = $this->handle_option_and_params($params, $methodName, 'user');
         $user = $userAux;
@@ -1156,7 +1159,7 @@ class dydx extends Exchange {
         $userAddress = null;
         $subAccountNumber = null;
         list($userAddress, $params) = $this->handle_public_address('fetchPositions', $params);
-        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'subAccountNumber', '0');
+        list($subAccountNumber, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'subAccountNumber', '0');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1194,11 +1197,11 @@ class dydx extends Exchange {
         return $this->parse_positions($rows, $symbols);
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1209,7 +1212,7 @@ class dydx extends Exchange {
         );
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1233,7 +1236,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(string $privateKey, mixed $message, string $memo, string $chainId, mixed $account, mixed $authenticators, $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, mixed $account, mixed $authenticators, mixed $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         return $this->encode_dydx_tx_raw($signDoc, $signature['r'] . $signature['s']);
@@ -1266,7 +1269,7 @@ class dydx extends Exchange {
         if ($this->walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
         }
-        if (str_starts_with(!$this->walletAddress, 'dydx')) {
+        if (!str_starts_with($this->walletAddress, 'dydx')) {
             throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
         }
         $request = array(
@@ -1295,7 +1298,7 @@ class dydx extends Exchange {
         return $account;
     }
 
-    public function pow(string $n, string $m) {
+    public function pow(string $n, ?string $m) {
         $r = Precise::string_mul($n, '1');
         $c = $this->parse_to_int($m);
         // TODO => cap
@@ -1305,10 +1308,19 @@ class dydx extends Exchange {
         return $r;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $subaccountId = 0;
         list($subaccountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'subAccountId', $subaccountId);
@@ -1382,6 +1394,9 @@ class dydx extends Exchange {
         if ($orderFlag === 0) {
             if ($goodTillBlock === null) {
                 // short term order
+                if ($latestBlockHeight === null) {
+                    throw new ExchangeError($this->id . ' method() missing latestBlockHeight');
+                }
                 $goodTillBlock = $latestBlockHeight + 20;
             }
         } else {
@@ -1422,7 +1437,13 @@ class dydx extends Exchange {
             'value' => $orderPayload,
         );
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ));
-        $orderId = $this->create_order_id_from_parts($this->get_wallet_address(), $subaccountId, $clientOrderId, $orderFlag, $marketInfo['clobPairId']);
+        $walletAddress = $this->get_wallet_address();
+        $clobPairId = $this->safe_integer($marketInfo, 'clobPairId', 0);
+        $subaccountIdValue = ($subaccountId === null) ? 0 : $subaccountId;
+        $clientOrderIdValue = ($clientOrderId === null) ? 0 : $clientOrderId;
+        $orderFlagValue = ($orderFlag === null) ? 0 : $orderFlag;
+        $clobPairIdValue = ($clobPairId === null) ? 0 : $clobPairId;
+        $orderId = $this->create_order_id_from_parts($walletAddress, $subaccountIdValue, $clientOrderIdValue, $orderFlagValue, $clobPairIdValue);
         return array( $orderId, $this->extend($signingPayload, $params) );
     }
 
@@ -1452,7 +1473,11 @@ class dydx extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         $info = $this->safe_dict($result, 'response');
-        return $this->safe_integer($info, 'last_block_height');
+        $height = $this->safe_integer($info, 'last_block_height');
+        if ($height === null) {
+            throw new ExchangeError($this->id . ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return $height;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1536,7 +1561,7 @@ class dydx extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        if (!$isTrigger && ($symbol === null)) {
+        if (($isTrigger !== true) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         if ($this->markets === null) {
@@ -1555,7 +1580,7 @@ class dydx extends Exchange {
         $goodTillBlockTimeInSeconds = 2592000;
         list($goodTillBlockTimeInSeconds, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'goodTillBlockTimeInSeconds', $goodTillBlockTimeInSeconds); // default is 30 days
         $goodTillBlockTime = null;
-        $defaultOrderFlags = ($isTrigger) ? 32 : 64;
+        $defaultOrderFlags = ($isTrigger === true) ? 32 : 64;
         $orderFlags = $this->safe_integer($params, 'orderFlags', $defaultOrderFlags);
         $subAccountId = 0;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'subAccountId', $subAccountId);
@@ -1637,7 +1662,7 @@ class dydx extends Exchange {
         }
         $market = $this->market($symbol);
         $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
-        if (!$clientOrderIds) {
+        if ($clientOrderIds === null) {
             throw new NotSupported($this->id . ' $cancelOrders only support $clientOrderIds->');
         }
         $subAccountId = 0;
@@ -1701,7 +1726,7 @@ class dydx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1785,7 +1810,7 @@ class dydx extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRANSFER_IN' => 'transfer',
             'TRANSFER_OUT' => 'transfer',
@@ -1820,7 +1845,7 @@ class dydx extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function estimate_tx_fee(mixed $message, string $memo, mixed $account): mixed {
+    public function estimate_tx_fee(mixed $message, ?string $memo, mixed $account): mixed {
         $txBytes = $this->encode_dydx_tx_for_simulation($message, $memo, $account['sequence'], $account['pub_key']);
         $request = array(
             'txBytes' => $txBytes,
@@ -1856,6 +1881,9 @@ class dydx extends Exchange {
         }
         $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
         $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
+        if ($feeAmount === null) {
+            throw new ExchangeError($this->id . ' estimateTxFee() missing feeAmount');
+        }
         if (mb_strpos($feeAmount, '.') !== false) {
             $feeAmount = $this->number_to_string((int) ceil($this->parse_to_numeric($feeAmount)));
         }
@@ -1889,7 +1917,7 @@ class dydx extends Exchange {
         $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
         $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
         if ($fromAccount !== 'main') {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is null
             if ($fromAccount === null) {
                 throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
@@ -2233,7 +2261,7 @@ class dydx extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $methodName = $this->safe_string($params, 'methodName');
         $params = $this->omit($params, 'methodName');
         $userAddress = null;
@@ -2360,9 +2388,9 @@ class dydx extends Exchange {
             $this->load_markets();
         }
         $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
+        list($userAddress, $params) = $this->handle_public_address('fetchBalance', $params);
         $subaccountNumber = null;
-        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'subaccountNumber', 0);
+        list($subaccountNumber, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'subaccountNumber', 0);
         $request = array(
             'address' => $userAddress,
             'subaccountNumber' => $subaccountNumber,
@@ -2432,7 +2460,7 @@ class dydx extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $account = $this->account();
         $account['free'] = $this->safe_string($response, 'freeCollateral');
         $result = array(
@@ -2461,14 +2489,14 @@ class dydx extends Exchange {
         throw new ArgumentsRequired($this->id . ' getWalletAddress() requires a $wallet address. Set `walletAddress` or `$dydxAccount` in exchange options.');
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$section]);
+        $url = $this->urls['api'][$section];
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -2480,8 +2508,8 @@ class dydx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+        if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }
         //
@@ -2493,10 +2521,10 @@ class dydx extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         $errorCode = $this->safe_string($result, 'code');
-        if (!$errorCode) {
+        if (($errorCode === null) || ($errorCode === '')) {
             $errorCode = $this->safe_string($response, 'code');
         }
-        if ($errorCode) {
+        if (($errorCode !== null) && ($errorCode !== '')) {
             $errorCodeNum = $this->parse_to_numeric($errorCode);
             if ($errorCodeNum > 0) {
                 $feedback = $this->id . ' ' . $this->json($response);

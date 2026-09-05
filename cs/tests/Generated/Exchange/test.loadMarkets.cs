@@ -7,22 +7,51 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testLoadMarkets(Exchange exchange, object skippedProperties)
+    async static public Task<object> testLoadMarkets(BaseExchange exchange, object skippedProperties)
     {
-        object method = "loadMarkets";
-        object markets = await exchange.loadMarkets();
+        string method = "loadMarkets";
+        object markets = await invokeExchangeDynamically(exchange, "loadMarkets");
         assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         assert(((exchange.symbols is IList<object>) || (exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ".symbols is not an array");
-        object symbolsLength = getArrayLength(exchange.symbols);
-        object marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
-        object marketKeysLength = getArrayLength(marketKeys);
+        int symbolsLength = getArrayLength(exchange.symbols);
+        assert(!isEqual(exchange.markets, null), ".markets is undefined");
+        List<object> marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
+        int marketKeysLength = getArrayLength(marketKeys);
         assert(isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         assert(isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         assert(isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        object marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
+        List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
+        }
+        // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
+        List<object> marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
+        List<object> collectedTypes = new List<object>() {};
+        List<object> allMarkets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
+        for (object i = 0; isLessThan(i, getArrayLength(allMarkets)); postFixIncrement(ref i))
+        {
+            object market = getValue(allMarkets, i);
+            if (!isTrue(exchange.inArray(getValue(market, "type"), collectedTypes)))
+            {
+                ((IList<object>)collectedTypes).Add(getValue(market, "type"));
+            }
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(marketTypes)); postFixIncrement(ref i))
+        {
+            object mType = getValue(marketTypes, i);
+            if (isTrue(isTrue(!isEqual(getValue(exchange.has, mType), null)) && isTrue(!isEqual(getValue(exchange.has, mType), false))))
+            {
+                bool skipMarketTypes = isTrue((inOp(skippedProperties, "optionsNotLoadedByDefault"))) && isTrue(isEqual(mType, "option"));
+                assert(isTrue(exchange.inArray(mType, collectedTypes)) || isTrue(skipMarketTypes), add(add(add(add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"));
+            } else if (isTrue(isEqual(getValue(exchange.has, mType), false)))
+            {
+                // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
+                // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
+                // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
+                bool isKnownException = (inOp(skippedProperties, mType));
+                assert(!isTrue(exchange.inArray(mType, collectedTypes)) || isTrue(isKnownException), add(add(add(add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"));
+            }
         }
         return true;
     }

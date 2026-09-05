@@ -1,6 +1,6 @@
 Every endpoint in `woo`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/woo) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `v1PubGetHistKline`); the snake_case alias (`v1_pub_get_hist_kline`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PubGetHistKline`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v1PubGetHistKline`); the snake_case alias (`v1_pub_get_hist_kline`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PubGetHistKline`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,9 +53,9 @@ response := <-woo.V1PubGetHistKline(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official woo API documentation:** [docs.woox.io](https://docs.woox.io/)
+📚 **Official woo API documentation:** [developer.woox.io](https://developer.woox.io/) · [docs.woox.io](https://docs.woox.io/)
 
-> 134 implicit endpoints across 3 access groups.
+> 133 implicit endpoints across 2 access groups.
 
 ## v1
 
@@ -116,12 +116,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateDeleteClientOrder` | DELETE | `client/order` | 1 |
 | `v1PrivateDeleteOrders` | DELETE | `orders` | 1 |
 | `v1PrivateDeleteAssetWithdraw` | DELETE | `asset/withdraw` | 120 |
-
-## v2
-
-| Method | HTTP | Endpoint | Cost |
-| --- | --- | --- | --- |
-| `v2PrivateGetClientHolding` | GET | `client/holding` | 1 |
 
 ## v3
 

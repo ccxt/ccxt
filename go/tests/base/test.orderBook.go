@@ -6,7 +6,13 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method any, orderbook any, symbol any) {
-	var format any = map[string]any{
+	// prediction-market structures are keyed by an outcome handle, not a `symbol`
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol": true,
+		}, skippedProperties)
+	}
+	var format map[string]any = map[string]any{
 		"symbol":    "ETH/BTC",
 		"asks":      []any{[]any{exchange.ParseNumber("1.24"), exchange.ParseNumber("0.453")}, []any{exchange.ParseNumber("1.25"), exchange.ParseNumber("0.157")}},
 		"bids":      []any{[]any{exchange.ParseNumber("1.23"), exchange.ParseNumber("0.123")}, []any{exchange.ParseNumber("1.22"), exchange.ParseNumber("0.543")}},
@@ -14,16 +20,14 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		"datetime":  "2017-09-01T00:00:00",
 		"nonce":     134234234,
 	}
-	var emptyAllowedFor any = []any{"nonce"}
-	// turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-	orderbook = exchange.DeepExtend(map[string]any{}, orderbook)
+	var emptyAllowedFor []any = []any{"nonce"}
 	AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook)
 	AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol)
 	var logText any = LogTemplate(exchange, method, orderbook)
 	// todo: check non-emtpy arrays for bids/asks for toptier exchanges
 	var bids any = GetValue(orderbook, "bids")
-	var bidsLength any = GetArrayLength(bids)
+	var bidsLength int = GetArrayLength(bids)
 	for i := 0; IsLessThan(i, bidsLength); i++ {
 		var currentBidString any = exchange.SafeString(GetValue(bids, i), 0)
 		if !IsTrue((InOp(skippedProperties, "compareToNextItem"))) {
@@ -40,7 +44,7 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		}
 	}
 	var asks any = GetValue(orderbook, "asks")
-	var asksLength any = GetArrayLength(asks)
+	var asksLength int = GetArrayLength(asks)
 	for i := 0; IsLessThan(i, asksLength); i++ {
 		var currentAskString any = exchange.SafeString(GetValue(asks, i), 0)
 		if !IsTrue((InOp(skippedProperties, "compareToNextItem"))) {
@@ -57,7 +61,7 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		}
 	}
 	if !IsTrue((InOp(skippedProperties, "spread"))) {
-		if IsTrue(IsTrue(bidsLength) && IsTrue(asksLength)) {
+		if IsTrue(IsTrue((IsGreaterThan(bidsLength, 0))) && IsTrue((IsGreaterThan(asksLength, 0)))) {
 			var firstBid any = exchange.SafeString(GetValue(bids, 0), 0)
 			var firstAsk any = exchange.SafeString(GetValue(asks, 0), 0)
 			// check bid-ask spread

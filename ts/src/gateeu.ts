@@ -6,7 +6,7 @@ import gate from './gate.js';
 //  ---------------------------------------------------------------------------
 
 export default class gateeu extends gate {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'gateeu',
             'name': 'Gate EU',

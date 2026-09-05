@@ -24,10 +24,12 @@ public partial class BaseTest
             testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
+            testIsDictionary();
             testNumberToString();
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testMergeBalanceAccount();
             testBase58ToBinary();
             testToArray();
             testBinaryToBase58();

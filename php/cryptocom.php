@@ -24,7 +24,7 @@ class cryptocom extends Exchange {
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
-                'option' => true,
+                'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -153,167 +153,167 @@ class cryptocom extends Exchange {
                 'base' => array(
                     'public' => array(
                         'get' => array(
-                            'v1/public/get-announcements' => 1, // no description of rate limit
+                            'v1/public/get-announcements' => array( 'cost' => 1 ), // no description of rate limit
                         ),
                     ),
                 ),
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'public/auth' => 10 / 3,
-                            'public/get-instruments' => 10 / 3,
-                            'public/get-book' => 1,
-                            'public/get-candlestick' => 1,
-                            'public/get-trades' => 1,
-                            'public/get-tickers' => 1,
-                            'public/get-valuations' => 1,
-                            'public/get-expired-settlement-price' => 10 / 3,
-                            'public/get-insurance' => 1,
-                            'public/get-announcements' => 1,
-                            'public/get-risk-parameters' => 1,
+                            'public/auth' => array( 'cost' => 10 / 3 ),
+                            'public/get-instruments' => array( 'cost' => 10 / 3 ),
+                            'public/get-book' => array( 'cost' => 1 ),
+                            'public/get-candlestick' => array( 'cost' => 1 ),
+                            'public/get-trades' => array( 'cost' => 1 ),
+                            'public/get-tickers' => array( 'cost' => 1 ),
+                            'public/get-valuations' => array( 'cost' => 1 ),
+                            'public/get-expired-settlement-price' => array( 'cost' => 10 / 3 ),
+                            'public/get-insurance' => array( 'cost' => 1 ),
+                            'public/get-announcements' => array( 'cost' => 1 ),
+                            'public/get-risk-parameters' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'public/staking/get-conversion-rate' => 2,
+                            'public/staking/get-conversion-rate' => array( 'cost' => 2 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'private/set-cancel-on-disconnect' => 10 / 3,
-                            'private/get-cancel-on-disconnect' => 10 / 3,
-                            'private/user-balance' => 10 / 3,
-                            'private/user-balance-history' => 10 / 3,
-                            'private/get-positions' => 10 / 3,
-                            'private/create-order' => 2 / 3,
-                            'private/amend-order' => 4 / 3, // no description of rate limit
-                            'private/create-order-list' => 10 / 3,
-                            'private/cancel-order' => 2 / 3,
-                            'private/cancel-order-list' => 10 / 3,
-                            'private/cancel-all-orders' => 2 / 3,
-                            'private/close-position' => 10 / 3,
-                            'private/get-order-history' => 100,
-                            'private/get-open-orders' => 10 / 3,
-                            'private/get-order-detail' => 1 / 3,
-                            'private/get-trades' => 100,
-                            'private/change-account-leverage' => 10 / 3,
-                            'private/get-transactions' => 10 / 3,
-                            'private/create-subaccount-transfer' => 10 / 3,
-                            'private/get-subaccount-balances' => 10 / 3,
-                            'private/get-order-list' => 10 / 3,
-                            'private/create-withdrawal' => 10 / 3,
-                            'private/get-currency-networks' => 10 / 3,
-                            'private/get-deposit-address' => 10 / 3,
-                            'private/get-accounts' => 10 / 3,
-                            'private/get-withdrawal-history' => 10 / 3,
-                            'private/get-deposit-history' => 10 / 3,
-                            'private/get-fee-rate' => 2,
-                            'private/get-instrument-fee-rate' => 2,
-                            'private/fiat/fiat-deposit-info' => 10 / 3,
-                            'private/fiat/fiat-deposit-history' => 10 / 3,
-                            'private/fiat/fiat-withdraw-history' => 10 / 3,
-                            'private/fiat/fiat-create-withdraw' => 10 / 3,
-                            'private/fiat/fiat-transaction-quota' => 10 / 3,
-                            'private/fiat/fiat-transaction-limit' => 10 / 3,
-                            'private/fiat/fiat-get-bank-accounts' => 10 / 3,
-                            'private/staking/stake' => 2,
-                            'private/staking/unstake' => 2,
-                            'private/staking/get-staking-position' => 2,
-                            'private/staking/get-staking-instruments' => 2,
-                            'private/staking/get-open-stake' => 2,
-                            'private/staking/get-stake-history' => 2,
-                            'private/staking/get-reward-history' => 2,
-                            'private/staking/convert' => 2,
-                            'private/staking/get-open-convert' => 2,
-                            'private/staking/get-convert-history' => 2,
-                            'private/create-isolated-margin-transfer' => 10 / 3,
-                            'private/change-isolated-margin-leverage' => 10 / 3,
+                            'private/set-cancel-on-disconnect' => array( 'cost' => 10 / 3 ),
+                            'private/get-cancel-on-disconnect' => array( 'cost' => 10 / 3 ),
+                            'private/user-balance' => array( 'cost' => 10 / 3 ),
+                            'private/user-balance-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-positions' => array( 'cost' => 10 / 3 ),
+                            'private/create-order' => array( 'cost' => 2 / 3 ),
+                            'private/amend-order' => array( 'cost' => 4 / 3 ), // no description of rate limit
+                            'private/create-order-list' => array( 'cost' => 10 / 3 ),
+                            'private/cancel-order' => array( 'cost' => 2 / 3 ),
+                            'private/cancel-order-list' => array( 'cost' => 10 / 3 ),
+                            'private/cancel-all-orders' => array( 'cost' => 2 / 3 ),
+                            'private/close-position' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-history' => array( 'cost' => 100 ),
+                            'private/get-open-orders' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-detail' => array( 'cost' => 1 / 3 ),
+                            'private/get-trades' => array( 'cost' => 100 ),
+                            'private/change-account-leverage' => array( 'cost' => 10 / 3 ),
+                            'private/get-transactions' => array( 'cost' => 10 / 3 ),
+                            'private/create-subaccount-transfer' => array( 'cost' => 10 / 3 ),
+                            'private/get-subaccount-balances' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-list' => array( 'cost' => 10 / 3 ),
+                            'private/create-withdrawal' => array( 'cost' => 10 / 3 ),
+                            'private/get-currency-networks' => array( 'cost' => 10 / 3 ),
+                            'private/get-deposit-address' => array( 'cost' => 10 / 3 ),
+                            'private/get-accounts' => array( 'cost' => 10 / 3 ),
+                            'private/get-withdrawal-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-deposit-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-fee-rate' => array( 'cost' => 2 ),
+                            'private/get-instrument-fee-rate' => array( 'cost' => 2 ),
+                            'private/fiat/fiat-deposit-info' => array( 'cost' => 10 / 3 ),
+                            'private/fiat/fiat-deposit-history' => array( 'cost' => 10 / 3 ),
+                            'private/fiat/fiat-withdraw-history' => array( 'cost' => 10 / 3 ),
+                            'private/fiat/fiat-create-withdraw' => array( 'cost' => 10 / 3 ),
+                            'private/fiat/fiat-transaction-quota' => array( 'cost' => 10 / 3 ),
+                            'private/fiat/fiat-transaction-limit' => array( 'cost' => 10 / 3 ),
+                            'private/fiat/fiat-get-bank-accounts' => array( 'cost' => 10 / 3 ),
+                            'private/staking/stake' => array( 'cost' => 2 ),
+                            'private/staking/unstake' => array( 'cost' => 2 ),
+                            'private/staking/get-staking-position' => array( 'cost' => 2 ),
+                            'private/staking/get-staking-instruments' => array( 'cost' => 2 ),
+                            'private/staking/get-open-stake' => array( 'cost' => 2 ),
+                            'private/staking/get-stake-history' => array( 'cost' => 2 ),
+                            'private/staking/get-reward-history' => array( 'cost' => 2 ),
+                            'private/staking/convert' => array( 'cost' => 2 ),
+                            'private/staking/get-open-convert' => array( 'cost' => 2 ),
+                            'private/staking/get-convert-history' => array( 'cost' => 2 ),
+                            'private/create-isolated-margin-transfer' => array( 'cost' => 10 / 3 ),
+                            'private/change-isolated-margin-leverage' => array( 'cost' => 10 / 3 ),
                         ),
                     ),
                 ),
                 'v2' => array(
                     'public' => array(
                         'get' => array(
-                            'public/auth' => 1,
-                            'public/get-instruments' => 1,
-                            'public/get-book' => 1,
-                            'public/get-candlestick' => 1,
-                            'public/get-ticker' => 1,
-                            'public/get-trades' => 1,
-                            'public/margin/get-transfer-currencies' => 1,
-                            'public/margin/get-load-currenices' => 1,
-                            'public/respond-heartbeat' => 1,
+                            'public/auth' => array( 'cost' => 1 ),
+                            'public/get-instruments' => array( 'cost' => 1 ),
+                            'public/get-book' => array( 'cost' => 1 ),
+                            'public/get-candlestick' => array( 'cost' => 1 ),
+                            'public/get-ticker' => array( 'cost' => 1 ),
+                            'public/get-trades' => array( 'cost' => 1 ),
+                            'public/margin/get-transfer-currencies' => array( 'cost' => 1 ),
+                            'public/margin/get-load-currenices' => array( 'cost' => 1 ),
+                            'public/respond-heartbeat' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'private/set-cancel-on-disconnect' => 10 / 3,
-                            'private/get-cancel-on-disconnect' => 10 / 3,
-                            'private/create-withdrawal' => 10 / 3,
-                            'private/get-withdrawal-history' => 10 / 3,
-                            'private/get-currency-networks' => 10 / 3,
-                            'private/get-deposit-history' => 10 / 3,
-                            'private/get-deposit-address' => 10 / 3,
-                            'private/export/create-export-request' => 10 / 3,
-                            'private/export/get-export-requests' => 10 / 3,
-                            'private/export/download-export-output' => 10 / 3,
-                            'private/get-account-summary' => 10 / 3,
-                            'private/create-order' => 2 / 3,
-                            'private/cancel-order' => 2 / 3,
-                            'private/cancel-all-orders' => 2 / 3,
-                            'private/create-order-list' => 10 / 3,
-                            'private/get-order-history' => 10 / 3,
-                            'private/get-open-orders' => 10 / 3,
-                            'private/get-order-detail' => 1 / 3,
-                            'private/get-trades' => 100,
-                            'private/get-accounts' => 10 / 3,
-                            'private/get-subaccount-balances' => 10 / 3,
-                            'private/create-subaccount-transfer' => 10 / 3,
-                            'private/otc/get-otc-user' => 10 / 3,
-                            'private/otc/get-instruments' => 10 / 3,
-                            'private/otc/request-quote' => 100,
-                            'private/otc/accept-quote' => 100,
-                            'private/otc/get-quote-history' => 10 / 3,
-                            'private/otc/get-trade-history' => 10 / 3,
-                            'private/otc/create-order' => 10 / 3,
+                            'private/set-cancel-on-disconnect' => array( 'cost' => 10 / 3 ),
+                            'private/get-cancel-on-disconnect' => array( 'cost' => 10 / 3 ),
+                            'private/create-withdrawal' => array( 'cost' => 10 / 3 ),
+                            'private/get-withdrawal-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-currency-networks' => array( 'cost' => 10 / 3 ),
+                            'private/get-deposit-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-deposit-address' => array( 'cost' => 10 / 3 ),
+                            'private/export/create-export-request' => array( 'cost' => 10 / 3 ),
+                            'private/export/get-export-requests' => array( 'cost' => 10 / 3 ),
+                            'private/export/download-export-output' => array( 'cost' => 10 / 3 ),
+                            'private/get-account-summary' => array( 'cost' => 10 / 3 ),
+                            'private/create-order' => array( 'cost' => 2 / 3 ),
+                            'private/cancel-order' => array( 'cost' => 2 / 3 ),
+                            'private/cancel-all-orders' => array( 'cost' => 2 / 3 ),
+                            'private/create-order-list' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-open-orders' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-detail' => array( 'cost' => 1 / 3 ),
+                            'private/get-trades' => array( 'cost' => 100 ),
+                            'private/get-accounts' => array( 'cost' => 10 / 3 ),
+                            'private/get-subaccount-balances' => array( 'cost' => 10 / 3 ),
+                            'private/create-subaccount-transfer' => array( 'cost' => 10 / 3 ),
+                            'private/otc/get-otc-user' => array( 'cost' => 10 / 3 ),
+                            'private/otc/get-instruments' => array( 'cost' => 10 / 3 ),
+                            'private/otc/request-quote' => array( 'cost' => 100 ),
+                            'private/otc/accept-quote' => array( 'cost' => 100 ),
+                            'private/otc/get-quote-history' => array( 'cost' => 10 / 3 ),
+                            'private/otc/get-trade-history' => array( 'cost' => 10 / 3 ),
+                            'private/otc/create-order' => array( 'cost' => 10 / 3 ),
                         ),
                     ),
                 ),
                 'derivatives' => array(
                     'public' => array(
                         'get' => array(
-                            'public/auth' => 10 / 3,
-                            'public/get-instruments' => 10 / 3,
-                            'public/get-book' => 1,
-                            'public/get-candlestick' => 1,
-                            'public/get-trades' => 1,
-                            'public/get-tickers' => 1,
-                            'public/get-valuations' => 1,
-                            'public/get-expired-settlement-price' => 10 / 3,
-                            'public/get-insurance' => 1,
+                            'public/auth' => array( 'cost' => 10 / 3 ),
+                            'public/get-instruments' => array( 'cost' => 10 / 3 ),
+                            'public/get-book' => array( 'cost' => 1 ),
+                            'public/get-candlestick' => array( 'cost' => 1 ),
+                            'public/get-trades' => array( 'cost' => 1 ),
+                            'public/get-tickers' => array( 'cost' => 1 ),
+                            'public/get-valuations' => array( 'cost' => 1 ),
+                            'public/get-expired-settlement-price' => array( 'cost' => 10 / 3 ),
+                            'public/get-insurance' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'post' => array(
-                            'private/set-cancel-on-disconnect' => 10 / 3,
-                            'private/get-cancel-on-disconnect' => 10 / 3,
-                            'private/user-balance' => 10 / 3,
-                            'private/user-balance-history' => 10 / 3,
-                            'private/get-positions' => 10 / 3,
-                            'private/create-order' => 2 / 3,
-                            'private/create-order-list' => 10 / 3,
-                            'private/cancel-order' => 2 / 3,
-                            'private/cancel-order-list' => 10 / 3,
-                            'private/cancel-all-orders' => 2 / 3,
-                            'private/close-position' => 10 / 3,
-                            'private/convert-collateral' => 10 / 3,
-                            'private/get-order-history' => 100,
-                            'private/get-open-orders' => 10 / 3,
-                            'private/get-order-detail' => 1 / 3,
-                            'private/get-trades' => 100,
-                            'private/change-account-leverage' => 10 / 3,
-                            'private/get-transactions' => 10 / 3,
-                            'private/create-subaccount-transfer' => 10 / 3,
-                            'private/get-subaccount-balances' => 10 / 3,
-                            'private/get-order-list' => 10 / 3,
+                            'private/set-cancel-on-disconnect' => array( 'cost' => 10 / 3 ),
+                            'private/get-cancel-on-disconnect' => array( 'cost' => 10 / 3 ),
+                            'private/user-balance' => array( 'cost' => 10 / 3 ),
+                            'private/user-balance-history' => array( 'cost' => 10 / 3 ),
+                            'private/get-positions' => array( 'cost' => 10 / 3 ),
+                            'private/create-order' => array( 'cost' => 2 / 3 ),
+                            'private/create-order-list' => array( 'cost' => 10 / 3 ),
+                            'private/cancel-order' => array( 'cost' => 2 / 3 ),
+                            'private/cancel-order-list' => array( 'cost' => 10 / 3 ),
+                            'private/cancel-all-orders' => array( 'cost' => 2 / 3 ),
+                            'private/close-position' => array( 'cost' => 10 / 3 ),
+                            'private/convert-collateral' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-history' => array( 'cost' => 100 ),
+                            'private/get-open-orders' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-detail' => array( 'cost' => 1 / 3 ),
+                            'private/get-trades' => array( 'cost' => 100 ),
+                            'private/change-account-leverage' => array( 'cost' => 10 / 3 ),
+                            'private/get-transactions' => array( 'cost' => 10 / 3 ),
+                            'private/create-subaccount-transfer' => array( 'cost' => 10 / 3 ),
+                            'private/get-subaccount-balances' => array( 'cost' => 10 / 3 ),
+                            'private/get-order-list' => array( 'cost' => 10 / 3 ),
                         ),
                     ),
                 ),
@@ -366,6 +366,7 @@ class cryptocom extends Exchange {
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
+                    'ARBITRUM' => 'ARB',
                 ),
                 'broker' => 'CCXT',
             ),
@@ -626,22 +627,24 @@ class cryptocom extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'network_id');
             $network = $this->network_id_to_code($networkId, $code);
-            $networks[$network] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $network,
-                'active' => null,
-                'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
-                'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
-                'fee' => $this->safe_number($chain, 'withdrawal_fee'),
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                        'max' => null,
+            if ($network !== null) {
+                $networks[$network] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'active' => null,
+                    'deposit' => $this->safe_bool($chain, 'deposit_enabled', false),
+                    'withdraw' => $this->safe_bool($chain, 'withdraw_enabled', false),
+                    'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $currency,
@@ -781,7 +784,7 @@ class cryptocom extends Exchange {
             $strike = $this->safe_string($market, 'strike');
             $marginBuyEnabled = $this->safe_bool($market, 'margin_buy_enabled');
             $marginSellEnabled = $this->safe_bool($market, 'margin_sell_enabled');
-            $expiryString = $this->omit_zero(($this->safe_string($market, 'expiry_timestamp_ms')));
+            $expiryString = $this->omit_zero($this->safe_string($market, 'expiry_timestamp_ms'));
             $expiry = ($expiryString !== null) ? intval($expiryString) : null;
             $symbol = $base . '/' . $quote;
             $type = null;
@@ -803,8 +806,8 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
                 $contract = true;
             }
-            $isLinear = ($contract) ? true : null;
-            $isInverse = ($contract) ? false : null;
+            $isLinear = ($contract === true) ? true : null;
+            $isInverse = ($contract === true) ? false : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
@@ -816,7 +819,7 @@ class cryptocom extends Exchange {
                 'settleId' => $settleId,
                 'type' => $type,
                 'spot' => $spot,
-                'margin' => (($marginBuyEnabled) || ($marginSellEnabled)),
+                'margin' => (($marginBuyEnabled === true) || ($marginSellEnabled === true)),
                 'swap' => $swap,
                 'future' => $future,
                 'option' => $option,
@@ -1167,7 +1170,7 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the number of order book entries to return, max 50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1176,7 +1179,7 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
-        if ($limit) {
+        if (($limit !== null) && ($limit !== 0)) {
             $request['depth'] = min($limit, 50); // max 50
         }
         $response = $this->v1PublicGetPublicGetBook($this->extend($request, $params));
@@ -1205,7 +1208,7 @@ class cryptocom extends Exchange {
         return $this->parse_order_book($orderBook, $symbol, $timestamp);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $responseResult = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($responseResult, 'data', array());
         $positionBalances = $this->safe_value($data[0], 'position_balances', array());
@@ -1217,7 +1220,9 @@ class cryptocom extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'quantity');
             $account['used'] = $this->safe_string($balance, 'reserved_qty');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1340,7 +1345,13 @@ class cryptocom extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
         $request = array(
@@ -1375,7 +1386,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly) || ($timeInForce === 'PO')) {
+        if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1560,7 +1571,13 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result);
     }
 
-    public function create_advanced_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_advanced_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -1589,7 +1606,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly) || ($timeInForce === 'PO')) {
+        if (($postOnly === true) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1699,7 +1716,7 @@ class cryptocom extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function edit_order_request(string $id, string $symbol, float $amount, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, ?float $amount, ?float $price = null, $params = array()) {
         $request = array();
         if ($id !== null) {
             $request['order_id'] = $id;
@@ -1726,7 +1743,7 @@ class cryptocom extends Exchange {
          *
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          *
-         * @param {string} $symbol unified $market $symbol of the orders to cancel
+         * @param {string} [$symbol] unified $market $symbol of the orders to cancel
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/?id=order-structure)
          */
@@ -1989,7 +2006,7 @@ class cryptocom extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_address($addressString) {
+    public function parse_address(mixed $addressString) {
         $address = null;
         $tag = null;
         $rawTag = null;
@@ -2109,13 +2126,15 @@ class cryptocom extends Exchange {
             $this->check_address($address);
             $networkId = $this->safe_string($value, 'network');
             $network = $this->network_id_to_code($networkId, $responseCode);
-            $result[$network] = array(
-                'info' => $value,
-                'currency' => $responseCode,
-                'network' => $network,
-                'address' => $address,
-                'tag' => $tag,
-            );
+            if ($network !== null) {
+                $result[$network] = array(
+                    'info' => $value,
+                    'currency' => $responseCode,
+                    'network' => $network,
+                    'address' => $address,
+                    'tag' => $tag,
+                );
+            }
         }
         return $result;
     }
@@ -2132,8 +2151,9 @@ class cryptocom extends Exchange {
          */
         $network = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, array( 'network' ));
-        $depositAddresses = $this->fetch_deposit_addresses_by_network($code, $params);
-        if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
+        $depositAddressesRaw = $this->fetch_deposit_addresses_by_network($code, $params);
+        $depositAddresses = $depositAddressesRaw;
+        if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
             return $depositAddresses[$network];
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
@@ -2302,7 +2322,6 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
-        $quote = $this->safe_string($market, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -2323,7 +2342,7 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
+            'quoteVolume' => ($market['quote'] === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
         ), $market);
     }
@@ -2388,7 +2407,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "o" => "26949.89",
@@ -2528,7 +2547,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_deposit_status($status) {
+    public function parse_deposit_status(mixed $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -2538,7 +2557,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_withdrawal_status($status) {
+    public function parse_withdrawal_status(mixed $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'pending',
@@ -2598,7 +2617,7 @@ class cryptocom extends Exchange {
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = null;
-        if (is_array($transaction) && array_key_exists('client_wid', $transaction)) {
+        if (is_array($transaction) && array_key_exists('client_wid' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
         } else {
@@ -2639,7 +2658,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function custom_handle_margin_mode_and_params($methodName, $params = array()): array {
+    public function custom_handle_margin_mode_and_params(mixed $methodName, $params = array()): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -2663,7 +2682,7 @@ class cryptocom extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //        "full_name" => "Alchemix",
@@ -2700,10 +2719,12 @@ class cryptocom extends Exchange {
                 $networkId = $this->safe_string($networkInfo, 'network_id');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-                $result['networks'][$networkCode] = array(
-                    'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
-                );
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'deposit' => array( 'fee' => null, 'percentage' => null ),
+                        'withdraw' => array( 'fee' => $this->safe_number($networkInfo, 'withdrawal_fee'), 'percentage' => false ),
+                    );
+                }
                 if ($networkListLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($networkInfo, 'withdrawal_fee');
                     $result['withdraw']['percentage'] = false;
@@ -2713,7 +2734,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -2854,7 +2875,7 @@ class cryptocom extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRADING' => 'trade',
             'TRADE_FEE' => 'fee',
@@ -2932,7 +2953,7 @@ class cryptocom extends Exchange {
         return $this->parse_accounts($accounts, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
@@ -2966,7 +2987,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records
          *
@@ -3020,7 +3041,7 @@ class cryptocom extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
         //         "i" => "BTCUSD-230526",
@@ -3040,7 +3061,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         //
         //     array(
         //         {
@@ -3072,7 +3093,7 @@ class cryptocom extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3103,7 +3124,7 @@ class cryptocom extends Exchange {
         return $this->parse_funding_rate($entry, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //                 array(
         //                     "v" => "-0.000001884",
@@ -3163,7 +3184,7 @@ class cryptocom extends Exchange {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
         $request = array(
@@ -3353,8 +3374,8 @@ class cryptocom extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
-            'side' => Precise::string_gt($amount, '0') ? 'buy' : 'sell',
-            'contracts' => Precise::string_abs($amount),
+            'side' => Precise::string_gt($amount, '0') ? 'long' : 'short',
+            'contracts' => $this->parse_number(Precise::string_abs($amount)),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,
@@ -3379,7 +3400,7 @@ class cryptocom extends Exchange {
         return $this->milliseconds();
     }
 
-    public function params_to_string($object, $level) {
+    public function params_to_string(mixed $object, mixed $level) {
         $maxLevel = 3;
         if ($level >= $maxLevel) {
             return (string) $object;
@@ -3420,7 +3441,7 @@ class cryptocom extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by cryptocom.closePositions
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->type] LIMIT or MARKET
@@ -3528,7 +3549,7 @@ class cryptocom extends Exchange {
         return $this->parse_trading_fees($result);
     }
 
-    public function parse_trading_fees($response) {
+    public function parse_trading_fees(mixed $response) {
         //
         // {
         //         "spot_tier" => "3",
@@ -3541,12 +3562,12 @@ class cryptocom extends Exchange {
         //
         $result = array();
         $result['info'] = $response;
-        for ($i = 0; $i < count(($this->symbols)); $i++) {
-            $symbol = ($this->symbols)[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
-            $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
-            $makerFeeKey = $isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            $takerFeeKey = ($isSwap === true) ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            $makerFeeKey = ($isSwap === true) ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
             $tradingFee = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -3580,13 +3601,13 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -3623,7 +3644,7 @@ class cryptocom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;

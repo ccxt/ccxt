@@ -13,13 +13,13 @@ public partial class BaseTest
                 { "id", "regirock" },
             });
             // Test: object
-            object obj = new Dictionary<string, object>() {
+            Dictionary<string, object> obj = new Dictionary<string, object>() {
                 { "k", "v" },
             };
             object objJson = exchange.json(obj);
             Assert(isEqual(objJson, "{\"k\":\"v\"}"));
             // Test: list
-            object list = new List<object>() {1, 2};
+            List<object> list = new List<object>() {1, 2};
             object listJson = exchange.json(list);
             Assert(isEqual(listJson, "[1,2]"));
         }

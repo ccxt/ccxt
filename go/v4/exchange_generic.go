@@ -8,7 +8,49 @@ import (
 	"sync"
 )
 
-func (this *Exchange) SortBy(array any, value1 any, desc2 ...any) []any {
+func numericSortValue(v any) (float64, bool) {
+	switch t := v.(type) {
+	case int:
+		return float64(t), true
+	case int8:
+		return float64(t), true
+	case int16:
+		return float64(t), true
+	case int32:
+		return float64(t), true
+	case int64:
+		return float64(t), true
+	case uint:
+		return float64(t), true
+	case uint8:
+		return float64(t), true
+	case uint16:
+		return float64(t), true
+	case uint32:
+		return float64(t), true
+	case uint64:
+		return float64(t), true
+	case float32:
+		return float64(t), true
+	case float64:
+		return t, true
+	}
+	return 0, false
+}
+
+// numeric values must sort numerically: the previous fmt.Sprintf comparison ordered
+// int64 tiers as 1, 10, 2, ... which scrambled leverage tier ladders and any other
+// sortBy over a numeric field once it crossed a digit-count boundary
+func compareSortValues(a any, b any) bool {
+	aF, aOk := numericSortValue(a)
+	bF, bOk := numericSortValue(b)
+	if aOk && bOk {
+		return aF < bF
+	}
+	return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+}
+
+func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	var desc bool
 	var defaultValue any = "a"
 	if len(desc2) > 0 {
@@ -20,7 +62,7 @@ func (this *Exchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		sort.Slice(list, func(i, j int) bool {
 			a := list[i].(map[string]any)[str]
 			b := list[j].(map[string]any)[str]
-			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+			return compareSortValues(a, b)
 		})
 		if desc {
 			for i := len(list)/2 - 1; i >= 0; i-- {
@@ -43,24 +85,7 @@ func (this *Exchange) SortBy(array any, value1 any, desc2 ...any) []any {
 			} else {
 				b = defaultValue
 			}
-			// return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
-			switch aVal := a.(type) {
-			case int:
-				if bVal, ok := b.(int); ok {
-					return aVal < bVal
-				}
-			case float64:
-				if bVal, ok := b.(float64); ok {
-					return aVal < bVal
-				}
-			case string:
-				if bVal, ok := b.(string); ok {
-					return aVal < bVal
-				}
-			}
-
-			// Fallback to string comparison
-			return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+			return compareSortValues(a, b)
 		})
 		if desc {
 			// for i := len(list)/2 - 1; i >= 0; i-- {
@@ -76,7 +101,7 @@ func (this *Exchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	}
 }
 
-func (this *Exchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any {
+func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any {
 	var desc bool
 	if len(desc2) > 0 {
 		desc = desc2[0].(bool)
@@ -90,10 +115,10 @@ func (this *Exchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any
 			a2 := list[i].(map[string]any)[key2Str]
 			b1 := list[j].(map[string]any)[str]
 			b2 := list[j].(map[string]any)[key2Str]
-			if a1 == b1 {
-				return fmt.Sprintf("%v", a2) < fmt.Sprintf("%v", b2)
+			if !compareSortValues(a1, b1) && !compareSortValues(b1, a1) {
+				return compareSortValues(a2, b2)
 			}
-			return fmt.Sprintf("%v", a1) < fmt.Sprintf("%v", b1)
+			return compareSortValues(a1, b1)
 		})
 		if desc {
 			for i := len(list)/2 - 1; i >= 0; i-- {
@@ -106,7 +131,7 @@ func (this *Exchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any
 	return nil
 }
 
-// func (this *Exchange) FilterBy(aa any, key any, value any) []any {
+// func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 // 	var targetA []any
 // 	if aaArr, ok := aa.([]any); ok {
 // 		targetA = aaArr
@@ -124,7 +149,7 @@ func (this *Exchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any
 // 	return outList
 // }
 
-func (this *Exchange) FilterBy(aa any, key any, value any) []any {
+func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 	var targetA []any
 
 	switch v := aa.(type) {
@@ -155,7 +180,7 @@ func (this *Exchange) FilterBy(aa any, key any, value any) []any {
 	return outList
 }
 
-func (this *Exchange) Extend(aa any, bb ...any) map[string]any {
+func (this *BaseExchange) Extend(aa any, bb ...any) map[string]any {
 	return ExtendMap(aa, bb...)
 }
 
@@ -214,7 +239,7 @@ func ExtendMap(aa any, bb ...any) map[string]any {
 	return outDict
 }
 
-func (this *Exchange) DeepExtend2(objs ...any) any {
+func (this *BaseExchange) DeepExtend2(objs ...any) any {
 	outDict := make(map[string]any)
 	for _, obj := range objs {
 		if obj == nil {
@@ -239,7 +264,7 @@ func (this *Exchange) DeepExtend2(objs ...any) any {
 	return outDict
 }
 
-// func (this *Exchange) DeepExtend(objs ...any) map[string]any {
+// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 // 	var outObj any
 // 	for _, x := range objs {
 // 		if x == nil {
@@ -270,7 +295,7 @@ func (this *Exchange) DeepExtend2(objs ...any) any {
 // 	return outObj.(map[string]any)
 // }
 
-func (this *Exchange) DeepExtend(objs ...any) map[string]any {
+func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	var outObj any
 
 	// Helper function to convert *sync.Map to map[string]any
@@ -334,7 +359,7 @@ func (this *Exchange) DeepExtend(objs ...any) map[string]any {
 	return outObj.(map[string]any)
 }
 
-// func (this *Exchange) DeepExtend(objs ...any) map[string]any {
+// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 // 	var outObj map[string]any
 
 // 	for _, x := range objs {
@@ -369,7 +394,7 @@ func (this *Exchange) DeepExtend(objs ...any) map[string]any {
 // 	return outObj
 // }
 
-// func (this *Exchange) DeepExtend(objs ...any) map[string]any {
+// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 // 	var outObj any
 // 	for _, x := range objs {
 // 		if x == nil {
@@ -408,7 +433,7 @@ func (this *Exchange) DeepExtend(objs ...any) map[string]any {
 // 	return outObj.(map[string]any)
 // }
 
-// func (this *Exchange) DeepExtend(objs ...any) map[string]any {
+// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 // 	var outObj any
 // 	for _, x := range objs {
 // 		if x == nil {
@@ -447,7 +472,7 @@ func (this *Exchange) DeepExtend(objs ...any) map[string]any {
 // 	return outObj.(map[string]any)
 // }
 
-// func (this *Exchange) InArray(elem any, list2 any) bool {
+// func (this *BaseExchange) InArray(elem any, list2 any) bool {
 // 	if list2 == nil {
 // 		return false
 // 	}
@@ -462,7 +487,7 @@ func (this *Exchange) DeepExtend(objs ...any) map[string]any {
 // 	return false
 // }
 
-func (this *Exchange) InArray(elem any, list any) bool {
+func (this *BaseExchange) InArray(elem any, list any) bool {
 	// Ensure the list is not nil and is of a slice type
 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
@@ -494,7 +519,7 @@ func (this *Exchange) InArray(elem any, list any) bool {
 	return false
 }
 
-// func (this *Exchange) InArray(elem any, list any) bool {
+// func (this *BaseExchange) InArray(elem any, list any) bool {
 // 	// Ensure the list is not nil and is of a slice type
 // 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 // 		return false
@@ -511,7 +536,7 @@ func (this *Exchange) InArray(elem any, list any) bool {
 // 	return false
 // }
 
-func (this *Exchange) IsArray(a any) bool {
+func (this *BaseExchange) IsArray(a any) bool {
 	// return reflect.TypeOf(a).Kind() == reflect.Slice
 	switch a.(type) {
 	case []any:
@@ -530,7 +555,7 @@ func (this *Exchange) IsArray(a any) bool {
 	return false
 }
 
-func (this *Exchange) IndexBy(a any, key any) map[string]any {
+func (this *BaseExchange) IndexBy(a any, key any) map[string]any {
 	outDict := make(map[string]any)
 	var targetX []any
 
@@ -593,7 +618,7 @@ func (this *Exchange) IndexBy(a any, key any) map[string]any {
 	return outDict
 }
 
-func (this *Exchange) IndexBySafe(a any, key any) *sync.Map {
+func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 	outDict := &sync.Map{}
 	var targetX []any
 
@@ -642,7 +667,7 @@ func (this *Exchange) IndexBySafe(a any, key any) *sync.Map {
 	return outDict
 }
 
-// func (this *Exchange) IndexBy(a any, key2 any) map[string]any {
+// func (this *BaseExchange) IndexBy(a any, key2 any) map[string]any {
 // 	outDict := make(map[string]any)
 // 	var targetX []any
 // 	if aArr, ok := a.([]any); ok {
@@ -669,7 +694,7 @@ func (this *Exchange) IndexBySafe(a any, key any) *sync.Map {
 // 	return outDict
 // }
 
-func (this *Exchange) GroupBy(trades any, key2 any) map[string]any {
+func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	key := key2.(string)
 	outDict := make(map[string]any)
 	list := trades.([]any)
@@ -691,7 +716,7 @@ func (this *Exchange) GroupBy(trades any, key2 any) map[string]any {
 	return outDict
 }
 
-func (this *Exchange) OmitZero(value any) any {
+func (this *BaseExchange) OmitZero(value any) any {
 	switch v := value.(type) {
 	case float64:
 		if v == 0.0 {
@@ -715,7 +740,7 @@ func (this *Exchange) OmitZero(value any) any {
 	return value
 }
 
-func (this *Exchange) Sum(args ...any) any {
+func (this *BaseExchange) Sum(args ...any) any {
 	var res any = 0.0
 	for _, arg := range args {
 		res = this.sumValues(res, arg)
@@ -723,6 +748,6 @@ func (this *Exchange) Sum(args ...any) any {
 	return res
 }
 
-func (this *Exchange) sumValues(a, b any) any {
+func (this *BaseExchange) sumValues(a, b any) any {
 	return Add(a, b)
 }

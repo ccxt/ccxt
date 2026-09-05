@@ -170,30 +170,30 @@ class cryptomus extends cryptomus$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'v2/user-api/exchange/markets': 1, // done
-                        'v2/user-api/exchange/market/price': 1, // not used
-                        'v1/exchange/market/assets': 1, // done
-                        'v1/exchange/market/order-book/{currencyPair}': 1, // done
-                        'v1/exchange/market/tickers': 1, // done
-                        'v1/exchange/market/trades/{currencyPair}': 1, // done
+                        'v2/user-api/exchange/markets': { 'cost': 1 }, // done
+                        'v2/user-api/exchange/market/price': { 'cost': 1 }, // not used
+                        'v1/exchange/market/assets': { 'cost': 1 }, // done
+                        'v1/exchange/market/order-book/{currencyPair}': { 'cost': 1 }, // done
+                        'v1/exchange/market/tickers': { 'cost': 1 }, // done
+                        'v1/exchange/market/trades/{currencyPair}': { 'cost': 1 }, // done
                     },
                 },
                 'private': {
                     'get': {
-                        'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/history': 1, // done
-                        'v2/user-api/exchange/account/balance': 1, // done
-                        'v2/user-api/exchange/account/tariffs': 1, // done
-                        'v2/user-api/payment/services': 1,
-                        'v2/user-api/payout/services': 1,
-                        'v2/user-api/transaction/list': 1,
+                        'v2/user-api/exchange/orders': { 'cost': 1 }, // done
+                        'v2/user-api/exchange/orders/history': { 'cost': 1 }, // done
+                        'v2/user-api/exchange/account/balance': { 'cost': 1 }, // done
+                        'v2/user-api/exchange/account/tariffs': { 'cost': 1 }, // done
+                        'v2/user-api/payment/services': { 'cost': 1 },
+                        'v2/user-api/payout/services': { 'cost': 1 },
+                        'v2/user-api/transaction/list': { 'cost': 1 },
                     },
                     'post': {
-                        'v2/user-api/exchange/orders': 1, // done
-                        'v2/user-api/exchange/orders/market': 1, // done
+                        'v2/user-api/exchange/orders': { 'cost': 1 }, // done
+                        'v2/user-api/exchange/orders/market': { 'cost': 1 }, // done
                     },
                     'delete': {
-                        'v2/user-api/exchange/orders/{orderId}': 1, // done
+                        'v2/user-api/exchange/orders/{orderId}': { 'cost': 1 }, // done
                     },
                 },
             },
@@ -211,7 +211,7 @@ class cryptomus extends cryptomus$1["default"] {
                     'BEP20': 'bsc',
                     'DASH': 'dash',
                     'POLYGON': 'polygon',
-                    'ARB': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'SOL': 'sol',
                     'TON': 'ton',
                     'ERC20': 'eth',
@@ -228,7 +228,7 @@ class cryptomus extends cryptomus$1["default"] {
                     'bsc': 'BEP20',
                     'dash': 'DASH',
                     'polygon': 'POLYGON',
-                    'arbitrum': 'ARB',
+                    'arbitrum': 'ARBITRUM',
                     'sol': 'SOL',
                     'ton': 'TON',
                     'eth': 'ERC20',
@@ -314,6 +314,9 @@ class cryptomus extends cryptomus$1["default"] {
         //     }
         //
         const marketId = this.safeString(market, 'symbol');
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('_');
         const baseId = parts[0];
         const quoteId = parts[1];
@@ -411,7 +414,7 @@ class cryptomus extends cryptomus$1["default"] {
     }
     parseCurrency(rawCurrency) {
         // currency here is array of networks
-        let id = undefined; // all entried have same id, as they were grouped by
+        let id = undefined; // all entries have same id, as they were grouped by
         let code = undefined;
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
@@ -423,26 +426,28 @@ class cryptomus extends cryptomus$1["default"] {
             }
             const networkId = this.safeString(networkEntry, 'network_code');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw'),
-                        'max': this.safeNumber(networkEntry, 'max_withdraw'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min_withdraw'),
+                            'max': this.safeNumber(networkEntry, 'max_withdraw'),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'min_deposit'),
+                            'max': this.safeNumber(networkEntry, 'max_deposit'),
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit'),
-                        'max': this.safeNumber(networkEntry, 'max_deposit'),
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(networkEntry, 'can_deposit'),
-                'withdraw': this.safeBool(networkEntry, 'can_withdraw'),
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool(networkEntry, 'can_deposit'),
+                    'withdraw': this.safeBool(networkEntry, 'can_withdraw'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -526,7 +531,7 @@ class cryptomus extends cryptomus$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -598,7 +603,11 @@ class cryptomus extends cryptomus$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTrades(data, market, since, limit);
+        let dataList = [];
+        if (data !== undefined) {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -677,7 +686,9 @@ class cryptomus extends cryptomus$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balanceEntry, 'available');
             account['used'] = this.safeString(balanceEntry, 'held');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -731,7 +742,7 @@ class cryptomus extends cryptomus$1["default"] {
                     }
                 }
                 else {
-                    cost = cost ? cost : amountToString;
+                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
                 }
                 request['value'] = cost;
             }

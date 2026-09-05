@@ -11,2169 +11,3126 @@ public partial class myokx : okx
 {
     public myokx (object args = null): base(args) {}
 
-    public async Task<object> publicGetMarketTickers (object parameters = null)
+    /// <summary>Calls the publicGetMarketTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketTickers (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketTickers",parameters);
     }
 
-    public async Task<object> publicGetMarketTicker (object parameters = null)
+    /// <summary>Calls the publicGetMarketTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketTicker",parameters);
     }
 
-    public async Task<object> publicGetMarketBooks (object parameters = null)
+    /// <summary>Calls the publicGetMarketBooks endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBooks (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketBooks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBooks",parameters);
     }
 
-    public async Task<object> publicGetMarketBooksFull (object parameters = null)
+    /// <summary>Calls the publicGetMarketBooksFull endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBooksFull (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketBooksFull",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBooksFull",parameters);
     }
 
-    public async Task<object> publicGetMarketCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketHistoryCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketHistoryCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketHistoryCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketHistoryCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketHistoryCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketTrades (object parameters = null)
+    /// <summary>Calls the publicGetMarketTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketTrades",parameters);
     }
 
-    public async Task<object> publicGetMarketHistoryTrades (object parameters = null)
+    /// <summary>Calls the publicGetMarketHistoryTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketHistoryTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketHistoryTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketHistoryTrades",parameters);
     }
 
-    public async Task<object> publicGetMarketOptionInstrumentFamilyTrades (object parameters = null)
+    /// <summary>Calls the publicGetMarketOptionInstrumentFamilyTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketOptionInstrumentFamilyTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketOptionInstrumentFamilyTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketOptionInstrumentFamilyTrades",parameters);
     }
 
-    public async Task<object> publicGetMarketPlatform24Volume (object parameters = null)
+    /// <summary>Calls the publicGetMarketPlatform24Volume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketPlatform24Volume (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketPlatform24Volume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketPlatform24Volume",parameters);
     }
 
-    public async Task<object> publicGetMarketCallAuctionDetail (object parameters = null)
+    /// <summary>Calls the publicGetMarketCallAuctionDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketCallAuctionDetail (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketCallAuctionDetail",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketCallAuctionDetail",parameters);
     }
 
-    public async Task<object> publicGetMarketCallAuctionDetails (object parameters = null)
+    /// <summary>Calls the publicGetMarketCallAuctionDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketCallAuctionDetails (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketCallAuctionDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketCallAuctionDetails",parameters);
     }
 
-    public async Task<object> publicGetMarketBooksSbe (object parameters = null)
+    /// <summary>Calls the publicGetMarketBooksSbe endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBooksSbe (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketBooksSbe",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBooksSbe",parameters);
     }
 
-    public async Task<object> publicGetMarketBlockTickers (object parameters = null)
+    /// <summary>Calls the publicGetMarketBlockTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBlockTickers (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketBlockTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBlockTickers",parameters);
     }
 
-    public async Task<object> publicGetMarketBlockTicker (object parameters = null)
+    /// <summary>Calls the publicGetMarketBlockTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBlockTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketBlockTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBlockTicker",parameters);
     }
 
-    public async Task<object> publicGetMarketSprdTicker (object parameters = null)
+    /// <summary>Calls the publicGetMarketSprdTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketSprdTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketSprdTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketSprdTicker",parameters);
     }
 
-    public async Task<object> publicGetMarketSprdCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketSprdCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketSprdCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketSprdCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketSprdCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketSprdHistoryCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketSprdHistoryCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketSprdHistoryCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketSprdHistoryCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketSprdHistoryCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketIndexTickers (object parameters = null)
+    /// <summary>Calls the publicGetMarketIndexTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketIndexTickers (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketIndexTickers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketIndexTickers",parameters);
     }
 
-    public async Task<object> publicGetMarketIndexCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketIndexCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketIndexCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketIndexCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketIndexCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketHistoryIndexCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketHistoryIndexCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketHistoryIndexCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketHistoryIndexCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketHistoryIndexCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketMarkPriceCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketMarkPriceCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketMarkPriceCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketMarkPriceCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketMarkPriceCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketHistoryMarkPriceCandles (object parameters = null)
+    /// <summary>Calls the publicGetMarketHistoryMarkPriceCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketHistoryMarkPriceCandles (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketHistoryMarkPriceCandles",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketHistoryMarkPriceCandles",parameters);
     }
 
-    public async Task<object> publicGetMarketExchangeRate (object parameters = null)
+    /// <summary>Calls the publicGetMarketExchangeRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketExchangeRate (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketExchangeRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketExchangeRate",parameters);
     }
 
-    public async Task<object> publicGetMarketIndexComponents (object parameters = null)
+    /// <summary>Calls the publicGetMarketIndexComponents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketIndexComponents (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketIndexComponents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketIndexComponents",parameters);
     }
 
-    public async Task<object> publicGetMarketOpenOracle (object parameters = null)
+    /// <summary>Calls the publicGetMarketOpenOracle endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketOpenOracle (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketOpenOracle",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketOpenOracle",parameters);
     }
 
-    public async Task<object> publicGetMarketBooksLite (object parameters = null)
+    /// <summary>Calls the publicGetMarketBooksLite endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBooksLite (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketBooksLite",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBooksLite",parameters);
     }
 
-    public async Task<object> publicGetPublicOptionTrades (object parameters = null)
+    /// <summary>Calls the publicGetPublicOptionTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicOptionTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicOptionTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicOptionTrades",parameters);
     }
 
-    public async Task<object> publicGetPublicBlockTrades (object parameters = null)
+    /// <summary>Calls the publicGetPublicBlockTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicBlockTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicBlockTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicBlockTrades",parameters);
     }
 
-    public async Task<object> publicGetPublicInstruments (object parameters = null)
+    /// <summary>Calls the publicGetPublicInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicInstruments (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicInstruments",parameters);
     }
 
-    public async Task<object> publicGetPublicEstimatedPrice (object parameters = null)
+    /// <summary>Calls the publicGetPublicEstimatedPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicEstimatedPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicEstimatedPrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicEstimatedPrice",parameters);
     }
 
-    public async Task<object> publicGetPublicDeliveryExerciseHistory (object parameters = null)
+    /// <summary>Calls the publicGetPublicDeliveryExerciseHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicDeliveryExerciseHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicDeliveryExerciseHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicDeliveryExerciseHistory",parameters);
     }
 
-    public async Task<object> publicGetPublicEstimatedSettlementInfo (object parameters = null)
+    /// <summary>Calls the publicGetPublicEstimatedSettlementInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicEstimatedSettlementInfo (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicEstimatedSettlementInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicEstimatedSettlementInfo",parameters);
     }
 
-    public async Task<object> publicGetPublicSettlementHistory (object parameters = null)
+    /// <summary>Calls the publicGetPublicSettlementHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicSettlementHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicSettlementHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicSettlementHistory",parameters);
     }
 
-    public async Task<object> publicGetPublicFundingRate (object parameters = null)
+    /// <summary>Calls the publicGetPublicFundingRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicFundingRate (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicFundingRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicFundingRate",parameters);
     }
 
-    public async Task<object> publicGetPublicFundingRateHistory (object parameters = null)
+    /// <summary>Calls the publicGetPublicFundingRateHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicFundingRateHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicFundingRateHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicFundingRateHistory",parameters);
     }
 
-    public async Task<object> publicGetPublicOpenInterest (object parameters = null)
+    /// <summary>Calls the publicGetPublicOpenInterest endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicOpenInterest (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicOpenInterest",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicOpenInterest",parameters);
     }
 
-    public async Task<object> publicGetPublicPriceLimit (object parameters = null)
+    /// <summary>Calls the publicGetPublicPriceLimit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicPriceLimit (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicPriceLimit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicPriceLimit",parameters);
     }
 
-    public async Task<object> publicGetPublicOptSummary (object parameters = null)
+    /// <summary>Calls the publicGetPublicOptSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicOptSummary (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicOptSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicOptSummary",parameters);
     }
 
-    public async Task<object> publicGetPublicDiscountRateInterestFreeQuota (object parameters = null)
+    /// <summary>Calls the publicGetPublicDiscountRateInterestFreeQuota endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicDiscountRateInterestFreeQuota (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicDiscountRateInterestFreeQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicDiscountRateInterestFreeQuota",parameters);
     }
 
-    public async Task<object> publicGetPublicTime (object parameters = null)
+    /// <summary>Calls the publicGetPublicTime endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicTime (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicTime",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicTime",parameters);
     }
 
-    public async Task<object> publicGetPublicMarkPrice (object parameters = null)
+    /// <summary>Calls the publicGetPublicMarkPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicMarkPrice (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicMarkPrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicMarkPrice",parameters);
     }
 
-    public async Task<object> publicGetPublicPositionTiers (object parameters = null)
+    /// <summary>Calls the publicGetPublicPositionTiers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicPositionTiers (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicPositionTiers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicPositionTiers",parameters);
     }
 
-    public async Task<object> publicGetPublicInterestRateLoanQuota (object parameters = null)
+    /// <summary>Calls the publicGetPublicInterestRateLoanQuota endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicInterestRateLoanQuota (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicInterestRateLoanQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicInterestRateLoanQuota",parameters);
     }
 
-    public async Task<object> publicGetPublicUnderlying (object parameters = null)
+    /// <summary>Calls the publicGetPublicUnderlying endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicUnderlying (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicUnderlying",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicUnderlying",parameters);
     }
 
-    public async Task<object> publicGetPublicInsuranceFund (object parameters = null)
+    /// <summary>Calls the publicGetPublicInsuranceFund endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicInsuranceFund (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicInsuranceFund",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicInsuranceFund",parameters);
     }
 
-    public async Task<object> publicGetPublicConvertContractCoin (object parameters = null)
+    /// <summary>Calls the publicGetPublicConvertContractCoin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicConvertContractCoin (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicConvertContractCoin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicConvertContractCoin",parameters);
     }
 
-    public async Task<object> publicGetPublicInstrumentTickBands (object parameters = null)
+    /// <summary>Calls the publicGetPublicInstrumentTickBands endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicInstrumentTickBands (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicInstrumentTickBands",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicInstrumentTickBands",parameters);
     }
 
-    public async Task<object> publicGetPublicPremiumHistory (object parameters = null)
+    /// <summary>Calls the publicGetPublicPremiumHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicPremiumHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicPremiumHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicPremiumHistory",parameters);
     }
 
-    public async Task<object> publicGetPublicEconomicCalendar (object parameters = null)
+    /// <summary>Calls the publicGetPublicEconomicCalendar endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicEconomicCalendar (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicEconomicCalendar",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicEconomicCalendar",parameters);
     }
 
-    public async Task<object> publicGetPublicMarketDataHistory (object parameters = null)
+    /// <summary>Calls the publicGetPublicMarketDataHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicMarketDataHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicMarketDataHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicMarketDataHistory",parameters);
     }
 
-    public async Task<object> publicGetPublicEventContractEvents (object parameters = null)
+    /// <summary>Calls the publicGetPublicEventContractEvents endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicEventContractEvents (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicEventContractEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicEventContractEvents",parameters);
     }
 
-    public async Task<object> publicGetPublicEventContractMarkets (object parameters = null)
+    /// <summary>Calls the publicGetPublicEventContractMarkets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicEventContractMarkets (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicEventContractMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicEventContractMarkets",parameters);
     }
 
-    public async Task<object> publicGetPublicEventContractSeries (object parameters = null)
+    /// <summary>Calls the publicGetPublicEventContractSeries endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicEventContractSeries (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicEventContractSeries",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicEventContractSeries",parameters);
     }
 
-    public async Task<object> publicGetPublicVipInterestRateLoanQuota (object parameters = null)
+    /// <summary>Calls the publicGetPublicVipInterestRateLoanQuota endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicVipInterestRateLoanQuota (object parameters = null)
     {
-        return await this.callAsync ("publicGetPublicVipInterestRateLoanQuota",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicVipInterestRateLoanQuota",parameters);
     }
 
-    public async Task<object> publicGetRubikStatTradingDataSupportCoin (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatTradingDataSupportCoin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatTradingDataSupportCoin (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatTradingDataSupportCoin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatTradingDataSupportCoin",parameters);
     }
 
-    public async Task<object> publicGetRubikStatContractsOpenInterestHistory (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatContractsOpenInterestHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatContractsOpenInterestHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatContractsOpenInterestHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatContractsOpenInterestHistory",parameters);
     }
 
-    public async Task<object> publicGetRubikStatTakerVolume (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatTakerVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatTakerVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatTakerVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatTakerVolume",parameters);
     }
 
-    public async Task<object> publicGetRubikStatTakerVolumeContract (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatTakerVolumeContract endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatTakerVolumeContract (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatTakerVolumeContract",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatTakerVolumeContract",parameters);
     }
 
-    public async Task<object> publicGetRubikStatMarginLoanRatio (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatMarginLoanRatio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatMarginLoanRatio (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatMarginLoanRatio",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatMarginLoanRatio",parameters);
     }
 
-    public async Task<object> publicGetRubikStatContractsLongShortAccountRatioContractTopTrader (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatContractsLongShortAccountRatioContractTopTrader endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatContractsLongShortAccountRatioContractTopTrader (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatioContractTopTrader",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatContractsLongShortAccountRatioContractTopTrader",parameters);
     }
 
-    public async Task<object> publicGetRubikStatContractsLongShortPositionRatioContractTopTrader (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatContractsLongShortPositionRatioContractTopTrader endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatContractsLongShortPositionRatioContractTopTrader (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatContractsLongShortPositionRatioContractTopTrader",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatContractsLongShortPositionRatioContractTopTrader",parameters);
     }
 
-    public async Task<object> publicGetRubikStatContractsLongShortAccountRatioContract (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatContractsLongShortAccountRatioContract endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatContractsLongShortAccountRatioContract (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatioContract",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatContractsLongShortAccountRatioContract",parameters);
     }
 
-    public async Task<object> publicGetRubikStatContractsLongShortAccountRatio (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatContractsLongShortAccountRatio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatContractsLongShortAccountRatio (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatio",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatContractsLongShortAccountRatio",parameters);
     }
 
-    public async Task<object> publicGetRubikStatContractsOpenInterestVolume (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatContractsOpenInterestVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatContractsOpenInterestVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatContractsOpenInterestVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatContractsOpenInterestVolume",parameters);
     }
 
-    public async Task<object> publicGetRubikStatOptionOpenInterestVolume (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatOptionOpenInterestVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatOptionOpenInterestVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatOptionOpenInterestVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatOptionOpenInterestVolume",parameters);
     }
 
-    public async Task<object> publicGetRubikStatOptionOpenInterestVolumeRatio (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatOptionOpenInterestVolumeRatio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatOptionOpenInterestVolumeRatio (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatOptionOpenInterestVolumeRatio",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatOptionOpenInterestVolumeRatio",parameters);
     }
 
-    public async Task<object> publicGetRubikStatOptionOpenInterestVolumeExpiry (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatOptionOpenInterestVolumeExpiry endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatOptionOpenInterestVolumeExpiry (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatOptionOpenInterestVolumeExpiry",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatOptionOpenInterestVolumeExpiry",parameters);
     }
 
-    public async Task<object> publicGetRubikStatOptionOpenInterestVolumeStrike (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatOptionOpenInterestVolumeStrike endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatOptionOpenInterestVolumeStrike (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatOptionOpenInterestVolumeStrike",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatOptionOpenInterestVolumeStrike",parameters);
     }
 
-    public async Task<object> publicGetRubikStatOptionTakerBlockVolume (object parameters = null)
+    /// <summary>Calls the publicGetRubikStatOptionTakerBlockVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetRubikStatOptionTakerBlockVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetRubikStatOptionTakerBlockVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetRubikStatOptionTakerBlockVolume",parameters);
     }
 
-    public async Task<object> publicGetSystemStatus (object parameters = null)
+    /// <summary>Calls the publicGetSystemStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSystemStatus (object parameters = null)
     {
-        return await this.callAsync ("publicGetSystemStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSystemStatus",parameters);
     }
 
-    public async Task<object> publicGetSprdSpreads (object parameters = null)
+    /// <summary>Calls the publicGetSprdSpreads endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSprdSpreads (object parameters = null)
     {
-        return await this.callAsync ("publicGetSprdSpreads",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSprdSpreads",parameters);
     }
 
-    public async Task<object> publicGetSprdBooks (object parameters = null)
+    /// <summary>Calls the publicGetSprdBooks endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSprdBooks (object parameters = null)
     {
-        return await this.callAsync ("publicGetSprdBooks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSprdBooks",parameters);
     }
 
-    public async Task<object> publicGetSprdPublicTrades (object parameters = null)
+    /// <summary>Calls the publicGetSprdPublicTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSprdPublicTrades (object parameters = null)
     {
-        return await this.callAsync ("publicGetSprdPublicTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSprdPublicTrades",parameters);
     }
 
-    public async Task<object> publicGetSprdTicker (object parameters = null)
+    /// <summary>Calls the publicGetSprdTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSprdTicker (object parameters = null)
     {
-        return await this.callAsync ("publicGetSprdTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSprdTicker",parameters);
     }
 
-    public async Task<object> publicGetTradingBotGridAiParam (object parameters = null)
+    /// <summary>Calls the publicGetTradingBotGridAiParam endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTradingBotGridAiParam (object parameters = null)
     {
-        return await this.callAsync ("publicGetTradingBotGridAiParam",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTradingBotGridAiParam",parameters);
     }
 
-    public async Task<object> publicGetTradingBotGridMinInvestment (object parameters = null)
+    /// <summary>Calls the publicGetTradingBotGridMinInvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTradingBotGridMinInvestment (object parameters = null)
     {
-        return await this.callAsync ("publicGetTradingBotGridMinInvestment",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTradingBotGridMinInvestment",parameters);
     }
 
-    public async Task<object> publicGetTradingBotPublicRsiBackTesting (object parameters = null)
+    /// <summary>Calls the publicGetTradingBotPublicRsiBackTesting endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTradingBotPublicRsiBackTesting (object parameters = null)
     {
-        return await this.callAsync ("publicGetTradingBotPublicRsiBackTesting",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTradingBotPublicRsiBackTesting",parameters);
     }
 
-    public async Task<object> publicGetTradingBotGridGridQuantity (object parameters = null)
+    /// <summary>Calls the publicGetTradingBotGridGridQuantity endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTradingBotGridGridQuantity (object parameters = null)
     {
-        return await this.callAsync ("publicGetTradingBotGridGridQuantity",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTradingBotGridGridQuantity",parameters);
     }
 
-    public async Task<object> publicGetAssetExchangeList (object parameters = null)
+    /// <summary>Calls the publicGetAssetExchangeList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetAssetExchangeList (object parameters = null)
     {
-        return await this.callAsync ("publicGetAssetExchangeList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetAssetExchangeList",parameters);
     }
 
-    public async Task<object> publicGetFinanceStakingDefiEthApyHistory (object parameters = null)
+    /// <summary>Calls the publicGetFinanceStakingDefiEthApyHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceStakingDefiEthApyHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceStakingDefiEthApyHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceStakingDefiEthApyHistory",parameters);
     }
 
-    public async Task<object> publicGetFinanceStakingDefiSolApyHistory (object parameters = null)
+    /// <summary>Calls the publicGetFinanceStakingDefiSolApyHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceStakingDefiSolApyHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceStakingDefiSolApyHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceStakingDefiSolApyHistory",parameters);
     }
 
-    public async Task<object> publicGetFinanceSavingsLendingRateSummary (object parameters = null)
+    /// <summary>Calls the publicGetFinanceSavingsLendingRateSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceSavingsLendingRateSummary (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceSavingsLendingRateSummary",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceSavingsLendingRateSummary",parameters);
     }
 
-    public async Task<object> publicGetFinanceSavingsLendingRateHistory (object parameters = null)
+    /// <summary>Calls the publicGetFinanceSavingsLendingRateHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceSavingsLendingRateHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceSavingsLendingRateHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceSavingsLendingRateHistory",parameters);
     }
 
-    public async Task<object> publicGetFinanceFixedLoanLendingOffers (object parameters = null)
+    /// <summary>Calls the publicGetFinanceFixedLoanLendingOffers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceFixedLoanLendingOffers (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceFixedLoanLendingOffers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceFixedLoanLendingOffers",parameters);
     }
 
-    public async Task<object> publicGetFinanceFixedLoanLendingApyHistory (object parameters = null)
+    /// <summary>Calls the publicGetFinanceFixedLoanLendingApyHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceFixedLoanLendingApyHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceFixedLoanLendingApyHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceFixedLoanLendingApyHistory",parameters);
     }
 
-    public async Task<object> publicGetFinanceFixedLoanPendingLendingVolume (object parameters = null)
+    /// <summary>Calls the publicGetFinanceFixedLoanPendingLendingVolume endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceFixedLoanPendingLendingVolume (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceFixedLoanPendingLendingVolume",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceFixedLoanPendingLendingVolume",parameters);
     }
 
-    public async Task<object> publicGetFinanceSfpDcdProducts (object parameters = null)
+    /// <summary>Calls the publicGetFinanceSfpDcdProducts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetFinanceSfpDcdProducts (object parameters = null)
     {
-        return await this.callAsync ("publicGetFinanceSfpDcdProducts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetFinanceSfpDcdProducts",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicConfig (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicConfig (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicConfig",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicLeadTraders (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicLeadTraders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicLeadTraders (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicLeadTraders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicLeadTraders",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicWeeklyPnl (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicWeeklyPnl endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicWeeklyPnl (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicWeeklyPnl",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicWeeklyPnl",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicPnl (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicPnl endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicPnl (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicPnl",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicPnl",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicStats (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicStats endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicStats (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicStats",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicStats",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicPreferenceCurrency (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicPreferenceCurrency endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicPreferenceCurrency (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicPreferenceCurrency",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicPreferenceCurrency",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicCurrentSubpositions (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicCurrentSubpositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicCurrentSubpositions (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicCurrentSubpositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicCurrentSubpositions",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicSubpositionsHistory (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicSubpositionsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicSubpositionsHistory (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicSubpositionsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicSubpositionsHistory",parameters);
     }
 
-    public async Task<object> publicGetCopytradingPublicCopyTraders (object parameters = null)
+    /// <summary>Calls the publicGetCopytradingPublicCopyTraders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetCopytradingPublicCopyTraders (object parameters = null)
     {
-        return await this.callAsync ("publicGetCopytradingPublicCopyTraders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetCopytradingPublicCopyTraders",parameters);
     }
 
-    public async Task<object> publicGetSupportAnnouncements (object parameters = null)
+    /// <summary>Calls the publicGetSupportAnnouncements endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSupportAnnouncements (object parameters = null)
     {
-        return await this.callAsync ("publicGetSupportAnnouncements",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSupportAnnouncements",parameters);
     }
 
-    public async Task<object> publicGetSupportAnnouncementsTypes (object parameters = null)
+    /// <summary>Calls the publicGetSupportAnnouncementsTypes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSupportAnnouncementsTypes (object parameters = null)
     {
-        return await this.callAsync ("publicGetSupportAnnouncementsTypes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSupportAnnouncementsTypes",parameters);
     }
 
-    public async Task<object> publicGetSupportAnnouncementTypes (object parameters = null)
+    /// <summary>Calls the publicGetSupportAnnouncementTypes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSupportAnnouncementTypes (object parameters = null)
     {
-        return await this.callAsync ("publicGetSupportAnnouncementTypes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSupportAnnouncementTypes",parameters);
     }
 
-    public async Task<object> publicPostTradingBotGridMinInvestment (object parameters = null)
+    /// <summary>Calls the publicPostTradingBotGridMinInvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicPostTradingBotGridMinInvestment (object parameters = null)
     {
-        return await this.callAsync ("publicPostTradingBotGridMinInvestment",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("publicPostTradingBotGridMinInvestment",parameters);
     }
 
-    public async Task<object> privateGetRfqCounterparties (object parameters = null)
+    /// <summary>Calls the privateGetRfqCounterparties endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqCounterparties (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqCounterparties",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqCounterparties",parameters);
     }
 
-    public async Task<object> privateGetRfqMakerInstrumentSettings (object parameters = null)
+    /// <summary>Calls the privateGetRfqMakerInstrumentSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqMakerInstrumentSettings (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqMakerInstrumentSettings",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqMakerInstrumentSettings",parameters);
     }
 
-    public async Task<object> privateGetRfqMmpConfig (object parameters = null)
+    /// <summary>Calls the privateGetRfqMmpConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqMmpConfig (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqMmpConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqMmpConfig",parameters);
     }
 
-    public async Task<object> privateGetRfqRfqs (object parameters = null)
+    /// <summary>Calls the privateGetRfqRfqs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqRfqs (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqRfqs",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqRfqs",parameters);
     }
 
-    public async Task<object> privateGetRfqQuotes (object parameters = null)
+    /// <summary>Calls the privateGetRfqQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqQuotes (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqQuotes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqQuotes",parameters);
     }
 
-    public async Task<object> privateGetRfqTrades (object parameters = null)
+    /// <summary>Calls the privateGetRfqTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqTrades (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqTrades",parameters);
     }
 
-    public async Task<object> privateGetRfqPublicTrades (object parameters = null)
+    /// <summary>Calls the privateGetRfqPublicTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqPublicTrades (object parameters = null)
     {
-        return await this.callAsync ("privateGetRfqPublicTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqPublicTrades",parameters);
     }
 
-    public async Task<object> privateGetSprdOrder (object parameters = null)
+    /// <summary>Calls the privateGetSprdOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSprdOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetSprdOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSprdOrder",parameters);
     }
 
-    public async Task<object> privateGetSprdOrdersPending (object parameters = null)
+    /// <summary>Calls the privateGetSprdOrdersPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSprdOrdersPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetSprdOrdersPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSprdOrdersPending",parameters);
     }
 
-    public async Task<object> privateGetSprdOrdersHistory (object parameters = null)
+    /// <summary>Calls the privateGetSprdOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSprdOrdersHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetSprdOrdersHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSprdOrdersHistory",parameters);
     }
 
-    public async Task<object> privateGetSprdOrdersHistoryArchive (object parameters = null)
+    /// <summary>Calls the privateGetSprdOrdersHistoryArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSprdOrdersHistoryArchive (object parameters = null)
     {
-        return await this.callAsync ("privateGetSprdOrdersHistoryArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSprdOrdersHistoryArchive",parameters);
     }
 
-    public async Task<object> privateGetSprdTrades (object parameters = null)
+    /// <summary>Calls the privateGetSprdTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSprdTrades (object parameters = null)
     {
-        return await this.callAsync ("privateGetSprdTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSprdTrades",parameters);
     }
 
-    public async Task<object> privateGetTradeOrder (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrder (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrder",parameters);
     }
 
-    public async Task<object> privateGetTradeOrdersPending (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrdersPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrdersPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrdersPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrdersPending",parameters);
     }
 
-    public async Task<object> privateGetTradeOrdersHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrdersHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrdersHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrdersHistory",parameters);
     }
 
-    public async Task<object> privateGetTradeOrdersHistoryArchive (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrdersHistoryArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrdersHistoryArchive (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrdersHistoryArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrdersHistoryArchive",parameters);
     }
 
-    public async Task<object> privateGetTradeFills (object parameters = null)
+    /// <summary>Calls the privateGetTradeFills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeFills (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeFills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeFills",parameters);
     }
 
-    public async Task<object> privateGetTradeFillsHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradeFillsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeFillsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeFillsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeFillsHistory",parameters);
     }
 
-    public async Task<object> privateGetTradeFillsArchive (object parameters = null)
+    /// <summary>Calls the privateGetTradeFillsArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeFillsArchive (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeFillsArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeFillsArchive",parameters);
     }
 
-    public async Task<object> privateGetTradeOrderAlgo (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrderAlgo",parameters);
     }
 
-    public async Task<object> privateGetTradeOrdersAlgoPending (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrdersAlgoPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrdersAlgoPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrdersAlgoPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrdersAlgoPending",parameters);
     }
 
-    public async Task<object> privateGetTradeOrdersAlgoHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradeOrdersAlgoHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOrdersAlgoHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOrdersAlgoHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOrdersAlgoHistory",parameters);
     }
 
-    public async Task<object> privateGetTradeEasyConvertCurrencyList (object parameters = null)
+    /// <summary>Calls the privateGetTradeEasyConvertCurrencyList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeEasyConvertCurrencyList (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeEasyConvertCurrencyList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeEasyConvertCurrencyList",parameters);
     }
 
-    public async Task<object> privateGetTradeEasyConvertHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradeEasyConvertHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeEasyConvertHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeEasyConvertHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeEasyConvertHistory",parameters);
     }
 
-    public async Task<object> privateGetTradeOneClickRepayCurrencyList (object parameters = null)
+    /// <summary>Calls the privateGetTradeOneClickRepayCurrencyList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOneClickRepayCurrencyList (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOneClickRepayCurrencyList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOneClickRepayCurrencyList",parameters);
     }
 
-    public async Task<object> privateGetTradeOneClickRepayCurrencyListV2 (object parameters = null)
+    /// <summary>Calls the privateGetTradeOneClickRepayCurrencyListV2 endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOneClickRepayCurrencyListV2 (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOneClickRepayCurrencyListV2",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOneClickRepayCurrencyListV2",parameters);
     }
 
-    public async Task<object> privateGetTradeOneClickRepayHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradeOneClickRepayHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOneClickRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOneClickRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOneClickRepayHistory",parameters);
     }
 
-    public async Task<object> privateGetTradeOneClickRepayHistoryV2 (object parameters = null)
+    /// <summary>Calls the privateGetTradeOneClickRepayHistoryV2 endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeOneClickRepayHistoryV2 (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeOneClickRepayHistoryV2",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeOneClickRepayHistoryV2",parameters);
     }
 
-    public async Task<object> privateGetTradeAccountRateLimit (object parameters = null)
+    /// <summary>Calls the privateGetTradeAccountRateLimit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradeAccountRateLimit (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeAccountRateLimit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradeAccountRateLimit",parameters);
     }
 
-    public async Task<object> privateGetAssetCurrencies (object parameters = null)
+    /// <summary>Calls the privateGetAssetCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetCurrencies (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetCurrencies",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetCurrencies",parameters);
     }
 
-    public async Task<object> privateGetAssetBalances (object parameters = null)
+    /// <summary>Calls the privateGetAssetBalances endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetBalances (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetBalances",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetBalances",parameters);
     }
 
-    public async Task<object> privateGetAssetNonTradableAssets (object parameters = null)
+    /// <summary>Calls the privateGetAssetNonTradableAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetNonTradableAssets (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetNonTradableAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetNonTradableAssets",parameters);
     }
 
-    public async Task<object> privateGetAssetAssetValuation (object parameters = null)
+    /// <summary>Calls the privateGetAssetAssetValuation endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetAssetValuation (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetAssetValuation",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetAssetValuation",parameters);
     }
 
-    public async Task<object> privateGetAssetTransferState (object parameters = null)
+    /// <summary>Calls the privateGetAssetTransferState endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetTransferState (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetTransferState",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetTransferState",parameters);
     }
 
-    public async Task<object> privateGetAssetBills (object parameters = null)
+    /// <summary>Calls the privateGetAssetBills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetBills (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetBills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetBills",parameters);
     }
 
-    public async Task<object> privateGetAssetBillsHistory (object parameters = null)
+    /// <summary>Calls the privateGetAssetBillsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetBillsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetBillsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetBillsHistory",parameters);
     }
 
-    public async Task<object> privateGetAssetDepositLightning (object parameters = null)
+    /// <summary>Calls the privateGetAssetDepositLightning endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetDepositLightning (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetDepositLightning",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositLightning",parameters);
     }
 
-    public async Task<object> privateGetAssetDepositAddress (object parameters = null)
+    /// <summary>Calls the privateGetAssetDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetDepositAddress (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetDepositAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositAddress",parameters);
     }
 
-    public async Task<object> privateGetAssetDepositHistory (object parameters = null)
+    /// <summary>Calls the privateGetAssetDepositHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetDepositHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetDepositHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositHistory",parameters);
     }
 
-    public async Task<object> privateGetAssetWithdrawalHistory (object parameters = null)
+    /// <summary>Calls the privateGetAssetWithdrawalHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetWithdrawalHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetWithdrawalHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetWithdrawalHistory",parameters);
     }
 
-    public async Task<object> privateGetAssetDepositWithdrawStatus (object parameters = null)
+    /// <summary>Calls the privateGetAssetDepositWithdrawStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetDepositWithdrawStatus (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetDepositWithdrawStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositWithdrawStatus",parameters);
     }
 
-    public async Task<object> privateGetAssetMonthlyStatement (object parameters = null)
+    /// <summary>Calls the privateGetAssetMonthlyStatement endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetMonthlyStatement (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetMonthlyStatement",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetMonthlyStatement",parameters);
     }
 
-    public async Task<object> privateGetAssetConvertCurrencies (object parameters = null)
+    /// <summary>Calls the privateGetAssetConvertCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetConvertCurrencies (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetConvertCurrencies",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetConvertCurrencies",parameters);
     }
 
-    public async Task<object> privateGetAssetConvertCurrencyPair (object parameters = null)
+    /// <summary>Calls the privateGetAssetConvertCurrencyPair endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetConvertCurrencyPair (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetConvertCurrencyPair",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetConvertCurrencyPair",parameters);
     }
 
-    public async Task<object> privateGetAssetConvertHistory (object parameters = null)
+    /// <summary>Calls the privateGetAssetConvertHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetConvertHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetConvertHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetConvertHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountInstruments (object parameters = null)
+    /// <summary>Calls the privateGetFiatDepositPaymentMethods endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatDepositPaymentMethods (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatDepositPaymentMethods",parameters);
     }
 
-    public async Task<object> privateGetAccountBalance (object parameters = null)
+    /// <summary>Calls the privateGetFiatWithdrawalPaymentMethods endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatWithdrawalPaymentMethods (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatWithdrawalPaymentMethods",parameters);
     }
 
-    public async Task<object> privateGetAccountPositions (object parameters = null)
+    /// <summary>Calls the privateGetFiatDepositOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatDepositOrderHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatDepositOrderHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountPositionsHistory (object parameters = null)
+    /// <summary>Calls the privateGetFiatDeposit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatDeposit (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountPositionsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatDeposit",parameters);
     }
 
-    public async Task<object> privateGetAccountAccountPositionRisk (object parameters = null)
+    /// <summary>Calls the privateGetFiatWithdrawalOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatWithdrawalOrderHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountAccountPositionRisk",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatWithdrawalOrderHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountBills (object parameters = null)
+    /// <summary>Calls the privateGetFiatWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountBills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatWithdrawal",parameters);
     }
 
-    public async Task<object> privateGetAccountBillsArchive (object parameters = null)
+    /// <summary>Calls the privateGetFiatBuySellCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatBuySellCurrencies (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountBillsArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatBuySellCurrencies",parameters);
     }
 
-    public async Task<object> privateGetAccountBillsHistoryArchive (object parameters = null)
+    /// <summary>Calls the privateGetFiatBuySellCurrencyPair endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatBuySellCurrencyPair (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountBillsHistoryArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatBuySellCurrencyPair",parameters);
     }
 
-    public async Task<object> privateGetAccountConfig (object parameters = null)
+    /// <summary>Calls the privateGetFiatBuySellHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFiatBuySellHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFiatBuySellHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountSubtypes (object parameters = null)
+    /// <summary>Calls the privateGetAccountInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountInstruments (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSubtypes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountInstruments",parameters);
     }
 
-    public async Task<object> privateGetAccountMaxSize (object parameters = null)
+    /// <summary>Calls the privateGetAccountBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountMaxSize",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountBalance",parameters);
     }
 
-    public async Task<object> privateGetAccountMaxAvailSize (object parameters = null)
+    /// <summary>Calls the privateGetAccountPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountPositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountMaxAvailSize",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountPositions",parameters);
     }
 
-    public async Task<object> privateGetAccountLeverageInfo (object parameters = null)
+    /// <summary>Calls the privateGetAccountPositionsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountPositionsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountLeverageInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountPositionsHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountAdjustLeverageInfo (object parameters = null)
+    /// <summary>Calls the privateGetAccountAccountPositionRisk endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountAccountPositionRisk (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountAdjustLeverageInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountAccountPositionRisk",parameters);
     }
 
-    public async Task<object> privateGetAccountMaxLoan (object parameters = null)
+    /// <summary>Calls the privateGetAccountBills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountBills (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountMaxLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountBills",parameters);
     }
 
-    public async Task<object> privateGetAccountTradeFee (object parameters = null)
+    /// <summary>Calls the privateGetAccountBillsArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountBillsArchive (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountTradeFee",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountBillsArchive",parameters);
     }
 
-    public async Task<object> privateGetAccountInterestAccrued (object parameters = null)
+    /// <summary>Calls the privateGetAccountBillsHistoryArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountBillsHistoryArchive (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountInterestAccrued",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountBillsHistoryArchive",parameters);
     }
 
-    public async Task<object> privateGetAccountInterestRate (object parameters = null)
+    /// <summary>Calls the privateGetAccountConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountConfig (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountInterestRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountConfig",parameters);
     }
 
-    public async Task<object> privateGetAccountMaxWithdrawal (object parameters = null)
+    /// <summary>Calls the privateGetAccountSubtypes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSubtypes (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountMaxWithdrawal",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSubtypes",parameters);
     }
 
-    public async Task<object> privateGetAccountRiskState (object parameters = null)
+    /// <summary>Calls the privateGetAccountMaxSize endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountMaxSize (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountRiskState",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountMaxSize",parameters);
     }
 
-    public async Task<object> privateGetAccountInterestLimits (object parameters = null)
+    /// <summary>Calls the privateGetAccountMaxAvailSize endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountMaxAvailSize (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountInterestLimits",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountMaxAvailSize",parameters);
     }
 
-    public async Task<object> privateGetAccountSpotBorrowRepayHistory (object parameters = null)
+    /// <summary>Calls the privateGetAccountLeverageInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountLeverageInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSpotBorrowRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountLeverageInfo",parameters);
     }
 
-    public async Task<object> privateGetAccountGreeks (object parameters = null)
+    /// <summary>Calls the privateGetAccountAdjustLeverageInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountAdjustLeverageInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountGreeks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountAdjustLeverageInfo",parameters);
     }
 
-    public async Task<object> privateGetAccountPositionTiers (object parameters = null)
+    /// <summary>Calls the privateGetAccountMaxLoan endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountMaxLoan (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountPositionTiers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountMaxLoan",parameters);
     }
 
-    public async Task<object> privateGetAccountSetAccountSwitchPrecheck (object parameters = null)
+    /// <summary>Calls the privateGetAccountTradeFee endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountTradeFee (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSetAccountSwitchPrecheck",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountTradeFee",parameters);
     }
 
-    public async Task<object> privateGetAccountCollateralAssets (object parameters = null)
+    /// <summary>Calls the privateGetAccountInterestAccrued endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountInterestAccrued (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountCollateralAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountInterestAccrued",parameters);
     }
 
-    public async Task<object> privateGetAccountMmpConfig (object parameters = null)
+    /// <summary>Calls the privateGetAccountInterestRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountInterestRate (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountMmpConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountInterestRate",parameters);
     }
 
-    public async Task<object> privateGetAccountMovePositionsHistory (object parameters = null)
+    /// <summary>Calls the privateGetAccountMaxWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountMaxWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountMovePositionsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountMaxWithdrawal",parameters);
     }
 
-    public async Task<object> privateGetAccountPrecheckSetDeltaNeutral (object parameters = null)
+    /// <summary>Calls the privateGetAccountRiskState endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountRiskState (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountPrecheckSetDeltaNeutral",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountRiskState",parameters);
     }
 
-    public async Task<object> privateGetAccountQuickMarginBorrowRepayHistory (object parameters = null)
+    /// <summary>Calls the privateGetAccountInterestLimits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountInterestLimits (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountQuickMarginBorrowRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountInterestLimits",parameters);
     }
 
-    public async Task<object> privateGetAccountBorrowRepayHistory (object parameters = null)
+    /// <summary>Calls the privateGetAccountSpotBorrowRepayHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSpotBorrowRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountBorrowRepayHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSpotBorrowRepayHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountVipInterestAccrued (object parameters = null)
+    /// <summary>Calls the privateGetAccountGreeks endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountGreeks (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountVipInterestAccrued",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountGreeks",parameters);
     }
 
-    public async Task<object> privateGetAccountVipInterestDeducted (object parameters = null)
+    /// <summary>Calls the privateGetAccountPositionTiers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountPositionTiers (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountVipInterestDeducted",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountPositionTiers",parameters);
     }
 
-    public async Task<object> privateGetAccountVipLoanOrderList (object parameters = null)
+    /// <summary>Calls the privateGetAccountSetAccountSwitchPrecheck endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSetAccountSwitchPrecheck (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountVipLoanOrderList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSetAccountSwitchPrecheck",parameters);
     }
 
-    public async Task<object> privateGetAccountVipLoanOrderDetail (object parameters = null)
+    /// <summary>Calls the privateGetAccountCollateralAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountCollateralAssets (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountVipLoanOrderDetail",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountCollateralAssets",parameters);
     }
 
-    public async Task<object> privateGetAccountFixedLoanBorrowingLimit (object parameters = null)
+    /// <summary>Calls the privateGetAccountMmpConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountMmpConfig (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountFixedLoanBorrowingLimit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountMmpConfig",parameters);
     }
 
-    public async Task<object> privateGetAccountFixedLoanBorrowingQuote (object parameters = null)
+    /// <summary>Calls the privateGetAccountMovePositionsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountMovePositionsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountFixedLoanBorrowingQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountMovePositionsHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountFixedLoanBorrowingOrdersList (object parameters = null)
+    /// <summary>Calls the privateGetAccountPrecheckSetDeltaNeutral endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountPrecheckSetDeltaNeutral (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountPrecheckSetDeltaNeutral",parameters);
     }
 
-    public async Task<object> privateGetAccountSpotManualBorrowRepay (object parameters = null)
+    /// <summary>Calls the privateGetAccountQuickMarginBorrowRepayHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountQuickMarginBorrowRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSpotManualBorrowRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountQuickMarginBorrowRepayHistory",parameters);
     }
 
-    public async Task<object> privateGetAccountSetAutoRepay (object parameters = null)
+    /// <summary>Calls the privateGetAccountBorrowRepayHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountBorrowRepayHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSetAutoRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountBorrowRepayHistory",parameters);
     }
 
-    public async Task<object> privateGetUsersSubaccountList (object parameters = null)
+    /// <summary>Calls the privateGetAccountVipInterestAccrued endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountVipInterestAccrued (object parameters = null)
     {
-        return await this.callAsync ("privateGetUsersSubaccountList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountVipInterestAccrued",parameters);
     }
 
-    public async Task<object> privateGetAccountSubaccountBalances (object parameters = null)
+    /// <summary>Calls the privateGetAccountVipInterestDeducted endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountVipInterestDeducted (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSubaccountBalances",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountVipInterestDeducted",parameters);
     }
 
-    public async Task<object> privateGetAssetSubaccountBalances (object parameters = null)
+    /// <summary>Calls the privateGetAccountVipLoanOrderList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountVipLoanOrderList (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetSubaccountBalances",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountVipLoanOrderList",parameters);
     }
 
-    public async Task<object> privateGetAccountSubaccountMaxWithdrawal (object parameters = null)
+    /// <summary>Calls the privateGetAccountVipLoanOrderDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountVipLoanOrderDetail (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSubaccountMaxWithdrawal",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountVipLoanOrderDetail",parameters);
     }
 
-    public async Task<object> privateGetAssetSubaccountBills (object parameters = null)
+    /// <summary>Calls the privateGetAccountFixedLoanBorrowingLimit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountFixedLoanBorrowingLimit (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetSubaccountBills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountFixedLoanBorrowingLimit",parameters);
     }
 
-    public async Task<object> privateGetAssetSubaccountManagedSubaccountBills (object parameters = null)
+    /// <summary>Calls the privateGetAccountFixedLoanBorrowingQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountFixedLoanBorrowingQuote (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetSubaccountManagedSubaccountBills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountFixedLoanBorrowingQuote",parameters);
     }
 
-    public async Task<object> privateGetUsersEntrustSubaccountList (object parameters = null)
+    /// <summary>Calls the privateGetAccountFixedLoanBorrowingOrdersList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountFixedLoanBorrowingOrdersList (object parameters = null)
     {
-        return await this.callAsync ("privateGetUsersEntrustSubaccountList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
     }
 
-    public async Task<object> privateGetAccountSubaccountInterestLimits (object parameters = null)
+    /// <summary>Calls the privateGetAccountSpotManualBorrowRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSpotManualBorrowRepay (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountSubaccountInterestLimits",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSpotManualBorrowRepay",parameters);
     }
 
-    public async Task<object> privateGetUsersSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privateGetAccountSetAutoRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSetAutoRepay (object parameters = null)
     {
-        return await this.callAsync ("privateGetUsersSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSetAutoRepay",parameters);
     }
 
-    public async Task<object> privateGetTradingBotGridOrdersAlgoPending (object parameters = null)
+    /// <summary>Calls the privateGetUsersSubaccountList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersSubaccountList (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotGridOrdersAlgoPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersSubaccountList",parameters);
     }
 
-    public async Task<object> privateGetTradingBotGridOrdersAlgoHistory (object parameters = null)
+    /// <summary>Calls the privateGetAccountSubaccountBalances endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSubaccountBalances (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotGridOrdersAlgoHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSubaccountBalances",parameters);
     }
 
-    public async Task<object> privateGetTradingBotGridOrdersAlgoDetails (object parameters = null)
+    /// <summary>Calls the privateGetAssetSubaccountBalances endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetSubaccountBalances (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotGridOrdersAlgoDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetSubaccountBalances",parameters);
     }
 
-    public async Task<object> privateGetTradingBotGridSubOrders (object parameters = null)
+    /// <summary>Calls the privateGetAccountSubaccountMaxWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSubaccountMaxWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotGridSubOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSubaccountMaxWithdrawal",parameters);
     }
 
-    public async Task<object> privateGetTradingBotGridPositions (object parameters = null)
+    /// <summary>Calls the privateGetAssetSubaccountBills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetSubaccountBills (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotGridPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetSubaccountBills",parameters);
     }
 
-    public async Task<object> privateGetTradingBotGridAiParam (object parameters = null)
+    /// <summary>Calls the privateGetAssetSubaccountManagedSubaccountBills endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetSubaccountManagedSubaccountBills (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotGridAiParam",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetSubaccountManagedSubaccountBills",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalSignals (object parameters = null)
+    /// <summary>Calls the privateGetUsersEntrustSubaccountList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersEntrustSubaccountList (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalSignals",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersEntrustSubaccountList",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalOrdersAlgoDetails (object parameters = null)
+    /// <summary>Calls the privateGetAccountSubaccountInterestLimits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountSubaccountInterestLimits (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalOrdersAlgoDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountSubaccountInterestLimits",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalOrdersAlgoPending (object parameters = null)
+    /// <summary>Calls the privateGetUsersSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersSubaccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalOrdersAlgoPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersSubaccountApikey",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalOrdersAlgoHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotGridOrdersAlgoPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotGridOrdersAlgoPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalOrdersAlgoHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotGridOrdersAlgoPending",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalPositions (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotGridOrdersAlgoHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotGridOrdersAlgoHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotGridOrdersAlgoHistory",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalPositionsHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotGridOrdersAlgoDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotGridOrdersAlgoDetails (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalPositionsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotGridOrdersAlgoDetails",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalSubOrders (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotGridSubOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotGridSubOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalSubOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotGridSubOrders",parameters);
     }
 
-    public async Task<object> privateGetTradingBotSignalEventHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotGridPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotGridPositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotSignalEventHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotGridPositions",parameters);
     }
 
-    public async Task<object> privateGetTradingBotRecurringOrdersAlgoPending (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotGridAiParam endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotGridAiParam (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotRecurringOrdersAlgoPending",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotGridAiParam",parameters);
     }
 
-    public async Task<object> privateGetTradingBotRecurringOrdersAlgoHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalSignals endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalSignals (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotRecurringOrdersAlgoHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalSignals",parameters);
     }
 
-    public async Task<object> privateGetTradingBotRecurringOrdersAlgoDetails (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalOrdersAlgoDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalOrdersAlgoDetails (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotRecurringOrdersAlgoDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalOrdersAlgoDetails",parameters);
     }
 
-    public async Task<object> privateGetTradingBotRecurringSubOrders (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalOrdersAlgoPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalOrdersAlgoPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotRecurringSubOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalOrdersAlgoPending",parameters);
     }
 
-    public async Task<object> privateGetTradingBotDcaOngoingList (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalOrdersAlgoHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalOrdersAlgoHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotDcaOngoingList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalOrdersAlgoHistory",parameters);
     }
 
-    public async Task<object> privateGetTradingBotDcaHistoryList (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalPositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotDcaHistoryList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalPositions",parameters);
     }
 
-    public async Task<object> privateGetTradingBotDcaOrders (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalPositionsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalPositionsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotDcaOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalPositionsHistory",parameters);
     }
 
-    public async Task<object> privateGetTradingBotDcaPositionDetails (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalSubOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalSubOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotDcaPositionDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalSubOrders",parameters);
     }
 
-    public async Task<object> privateGetTradingBotDcaCycleList (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotSignalEventHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotSignalEventHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradingBotDcaCycleList",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotSignalEventHistory",parameters);
     }
 
-    public async Task<object> privateGetFinanceSavingsBalance (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotRecurringOrdersAlgoPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotRecurringOrdersAlgoPending (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSavingsBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotRecurringOrdersAlgoPending",parameters);
     }
 
-    public async Task<object> privateGetFinanceSavingsLendingHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotRecurringOrdersAlgoHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotRecurringOrdersAlgoHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSavingsLendingHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotRecurringOrdersAlgoHistory",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiOffers (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotRecurringOrdersAlgoDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotRecurringOrdersAlgoDetails (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiOffers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotRecurringOrdersAlgoDetails",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiOrdersActive (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotRecurringSubOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotRecurringSubOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiOrdersActive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotRecurringSubOrders",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiOrdersHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotDcaOngoingList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotDcaOngoingList (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiOrdersHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotDcaOngoingList",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiEthProductInfo (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotDcaHistoryList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotDcaHistoryList (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiEthProductInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotDcaHistoryList",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiEthBalance (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotDcaOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotDcaOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiEthBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotDcaOrders",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiEthPurchaseRedeemHistory (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotDcaPositionDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotDcaPositionDetails (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiEthPurchaseRedeemHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotDcaPositionDetails",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiSolProductInfo (object parameters = null)
+    /// <summary>Calls the privateGetTradingBotDcaCycleList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetTradingBotDcaCycleList (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiSolProductInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetTradingBotDcaCycleList",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiSolBalance (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSavingsBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSavingsBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiSolBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSavingsBalance",parameters);
     }
 
-    public async Task<object> privateGetFinanceStakingDefiSolPurchaseRedeemHistory (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSavingsLendingHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSavingsLendingHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceStakingDefiSolPurchaseRedeemHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSavingsLendingHistory",parameters);
     }
 
-    public async Task<object> privateGetFinanceFlexibleLoanBorrowCurrencies (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiOffers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiOffers (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceFlexibleLoanBorrowCurrencies",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiOffers",parameters);
     }
 
-    public async Task<object> privateGetFinanceFlexibleLoanCollateralAssets (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiOrdersActive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiOrdersActive (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceFlexibleLoanCollateralAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiOrdersActive",parameters);
     }
 
-    public async Task<object> privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiOrdersHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiOrdersHistory",parameters);
     }
 
-    public async Task<object> privateGetFinanceFlexibleLoanLoanInfo (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiEthProductInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiEthProductInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceFlexibleLoanLoanInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiEthProductInfo",parameters);
     }
 
-    public async Task<object> privateGetFinanceFlexibleLoanLoanHistory (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiEthBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiEthBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceFlexibleLoanLoanHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiEthBalance",parameters);
     }
 
-    public async Task<object> privateGetFinanceFlexibleLoanInterestAccrued (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiEthPurchaseRedeemHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiEthPurchaseRedeemHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceFlexibleLoanInterestAccrued",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiEthPurchaseRedeemHistory",parameters);
     }
 
-    public async Task<object> privateGetCopytradingCurrentSubpositions (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiSolProductInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiSolProductInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingCurrentSubpositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiSolProductInfo",parameters);
     }
 
-    public async Task<object> privateGetCopytradingSubpositionsHistory (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiSolBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiSolBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingSubpositionsHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiSolBalance",parameters);
     }
 
-    public async Task<object> privateGetCopytradingInstruments (object parameters = null)
+    /// <summary>Calls the privateGetFinanceStakingDefiSolPurchaseRedeemHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceStakingDefiSolPurchaseRedeemHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceStakingDefiSolPurchaseRedeemHistory",parameters);
     }
 
-    public async Task<object> privateGetCopytradingProfitSharingDetails (object parameters = null)
+    /// <summary>Calls the privateGetFinanceFlexibleLoanBorrowCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceFlexibleLoanBorrowCurrencies (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingProfitSharingDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceFlexibleLoanBorrowCurrencies",parameters);
     }
 
-    public async Task<object> privateGetCopytradingTotalProfitSharing (object parameters = null)
+    /// <summary>Calls the privateGetFinanceFlexibleLoanCollateralAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceFlexibleLoanCollateralAssets (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingTotalProfitSharing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceFlexibleLoanCollateralAssets",parameters);
     }
 
-    public async Task<object> privateGetCopytradingUnrealizedProfitSharingDetails (object parameters = null)
+    /// <summary>Calls the privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingUnrealizedProfitSharingDetails",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount",parameters);
     }
 
-    public async Task<object> privateGetCopytradingTotalUnrealizedProfitSharing (object parameters = null)
+    /// <summary>Calls the privateGetFinanceFlexibleLoanLoanInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceFlexibleLoanLoanInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingTotalUnrealizedProfitSharing",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceFlexibleLoanLoanInfo",parameters);
     }
 
-    public async Task<object> privateGetCopytradingConfig (object parameters = null)
+    /// <summary>Calls the privateGetFinanceFlexibleLoanLoanHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceFlexibleLoanLoanHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceFlexibleLoanLoanHistory",parameters);
     }
 
-    public async Task<object> privateGetCopytradingCopySettings (object parameters = null)
+    /// <summary>Calls the privateGetFinanceFlexibleLoanInterestAccrued endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceFlexibleLoanInterestAccrued (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingCopySettings",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceFlexibleLoanInterestAccrued",parameters);
     }
 
-    public async Task<object> privateGetCopytradingCurrentLeadTraders (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingCurrentSubpositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingCurrentSubpositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingCurrentLeadTraders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingCurrentSubpositions",parameters);
     }
 
-    public async Task<object> privateGetCopytradingBatchLeverageInfo (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingSubpositionsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingSubpositionsHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingBatchLeverageInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingSubpositionsHistory",parameters);
     }
 
-    public async Task<object> privateGetCopytradingLeadTradersHistory (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingInstruments (object parameters = null)
     {
-        return await this.callAsync ("privateGetCopytradingLeadTradersHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingInstruments",parameters);
     }
 
-    public async Task<object> privateGetBrokerDmaSubaccountInfo (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingProfitSharingDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingProfitSharingDetails (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerDmaSubaccountInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingProfitSharingDetails",parameters);
     }
 
-    public async Task<object> privateGetBrokerDmaSubaccountTradeFee (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingTotalProfitSharing endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingTotalProfitSharing (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerDmaSubaccountTradeFee",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingTotalProfitSharing",parameters);
     }
 
-    public async Task<object> privateGetBrokerDmaSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingUnrealizedProfitSharingDetails endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingUnrealizedProfitSharingDetails (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerDmaSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingUnrealizedProfitSharingDetails",parameters);
     }
 
-    public async Task<object> privateGetBrokerDmaRebatePerOrders (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingTotalUnrealizedProfitSharing endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingTotalUnrealizedProfitSharing (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerDmaRebatePerOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingTotalUnrealizedProfitSharing",parameters);
     }
 
-    public async Task<object> privateGetBrokerFdRebatePerOrders (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingConfig (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerFdRebatePerOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingConfig",parameters);
     }
 
-    public async Task<object> privateGetBrokerFdIfRebate (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingCopySettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingCopySettings (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerFdIfRebate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingCopySettings",parameters);
     }
 
-    public async Task<object> privateGetBrokerNdInfo (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingCurrentLeadTraders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingCurrentLeadTraders (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerNdInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingCurrentLeadTraders",parameters);
     }
 
-    public async Task<object> privateGetBrokerNdSubaccountInfo (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingBatchLeverageInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingBatchLeverageInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerNdSubaccountInfo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingBatchLeverageInfo",parameters);
     }
 
-    public async Task<object> privateGetBrokerNdSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privateGetCopytradingLeadTradersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCopytradingLeadTradersHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerNdSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCopytradingLeadTradersHistory",parameters);
     }
 
-    public async Task<object> privateGetAssetBrokerNdSubaccountDepositAddress (object parameters = null)
+    /// <summary>Calls the privateGetBrokerDmaSubaccountInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerDmaSubaccountInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetBrokerNdSubaccountDepositAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerDmaSubaccountInfo",parameters);
     }
 
-    public async Task<object> privateGetAssetBrokerNdSubaccountDepositHistory (object parameters = null)
+    /// <summary>Calls the privateGetBrokerDmaSubaccountTradeFee endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerDmaSubaccountTradeFee (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetBrokerNdSubaccountDepositHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerDmaSubaccountTradeFee",parameters);
     }
 
-    public async Task<object> privateGetAssetBrokerNdSubaccountWithdrawalHistory (object parameters = null)
+    /// <summary>Calls the privateGetBrokerDmaSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerDmaSubaccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privateGetAssetBrokerNdSubaccountWithdrawalHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerDmaSubaccountApikey",parameters);
     }
 
-    public async Task<object> privateGetBrokerNdRebateDaily (object parameters = null)
+    /// <summary>Calls the privateGetBrokerDmaRebatePerOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerDmaRebatePerOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerNdRebateDaily",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerDmaRebatePerOrders",parameters);
     }
 
-    public async Task<object> privateGetBrokerNdRebatePerOrders (object parameters = null)
+    /// <summary>Calls the privateGetBrokerFdRebatePerOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerFdRebatePerOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetBrokerNdRebatePerOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerFdRebatePerOrders",parameters);
     }
 
-    public async Task<object> privateGetFinanceSfpDcdOrder (object parameters = null)
+    /// <summary>Calls the privateGetBrokerFdIfRebate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerFdIfRebate (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSfpDcdOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerFdIfRebate",parameters);
     }
 
-    public async Task<object> privateGetFinanceSfpDcdOrders (object parameters = null)
+    /// <summary>Calls the privateGetBrokerNdInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerNdInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSfpDcdOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerNdInfo",parameters);
     }
 
-    public async Task<object> privateGetFinanceSfpDcdCurrencyPair (object parameters = null)
+    /// <summary>Calls the privateGetBrokerNdSubaccountInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerNdSubaccountInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSfpDcdCurrencyPair",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerNdSubaccountInfo",parameters);
     }
 
-    public async Task<object> privateGetFinanceSfpDcdOrderStatus (object parameters = null)
+    /// <summary>Calls the privateGetBrokerNdSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerNdSubaccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSfpDcdOrderStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerNdSubaccountApikey",parameters);
     }
 
-    public async Task<object> privateGetFinanceSfpDcdOrderHistory (object parameters = null)
+    /// <summary>Calls the privateGetAssetBrokerNdSubaccountDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetBrokerNdSubaccountDepositAddress (object parameters = null)
     {
-        return await this.callAsync ("privateGetFinanceSfpDcdOrderHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetBrokerNdSubaccountDepositAddress",parameters);
     }
 
-    public async Task<object> privateGetAffiliateInviteeDetail (object parameters = null)
+    /// <summary>Calls the privateGetAssetBrokerNdSubaccountDepositHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetBrokerNdSubaccountDepositHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetAffiliateInviteeDetail",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetBrokerNdSubaccountDepositHistory",parameters);
     }
 
-    public async Task<object> privateGetUsersPartnerIfRebate (object parameters = null)
+    /// <summary>Calls the privateGetAssetBrokerNdSubaccountWithdrawalHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetBrokerNdSubaccountWithdrawalHistory (object parameters = null)
     {
-        return await this.callAsync ("privateGetUsersPartnerIfRebate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetBrokerNdSubaccountWithdrawalHistory",parameters);
     }
 
-    public async Task<object> privateGetSupportAnnouncements (object parameters = null)
+    /// <summary>Calls the privateGetBrokerNdRebateDaily endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerNdRebateDaily (object parameters = null)
     {
-        return await this.callAsync ("privateGetSupportAnnouncements",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerNdRebateDaily",parameters);
     }
 
-    public async Task<object> privatePostRfqCreateRfq (object parameters = null)
+    /// <summary>Calls the privateGetBrokerNdRebatePerOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetBrokerNdRebatePerOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCreateRfq",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetBrokerNdRebatePerOrders",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelRfq (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSfpDcdOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSfpDcdOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelRfq",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSfpDcdOrder",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelBatchRfqs (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSfpDcdOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSfpDcdOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelBatchRfqs",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSfpDcdOrders",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelAllRfqs (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSfpDcdCurrencyPair endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSfpDcdCurrencyPair (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelAllRfqs",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSfpDcdCurrencyPair",parameters);
     }
 
-    public async Task<object> privatePostRfqExecuteQuote (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSfpDcdOrderStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSfpDcdOrderStatus (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqExecuteQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSfpDcdOrderStatus",parameters);
     }
 
-    public async Task<object> privatePostRfqMakerInstrumentSettings (object parameters = null)
+    /// <summary>Calls the privateGetFinanceSfpDcdOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFinanceSfpDcdOrderHistory (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqMakerInstrumentSettings",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFinanceSfpDcdOrderHistory",parameters);
     }
 
-    public async Task<object> privatePostRfqMmpReset (object parameters = null)
+    /// <summary>Calls the privateGetAffiliateInviteeDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAffiliateInviteeDetail (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqMmpReset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAffiliateInviteeDetail",parameters);
     }
 
-    public async Task<object> privatePostRfqMmpConfig (object parameters = null)
+    /// <summary>Calls the privateGetUsersPartnerIfRebate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUsersPartnerIfRebate (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqMmpConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUsersPartnerIfRebate",parameters);
     }
 
-    public async Task<object> privatePostRfqCreateQuote (object parameters = null)
+    /// <summary>Calls the privateGetSupportAnnouncements endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSupportAnnouncements (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCreateQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSupportAnnouncements",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelQuote (object parameters = null)
+    /// <summary>Calls the privatePostRfqCreateRfq endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCreateRfq (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCreateRfq",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelBatchQuotes (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelRfq endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelRfq (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelBatchQuotes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelRfq",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelAllQuotes (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelBatchRfqs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelBatchRfqs (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelAllQuotes",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelBatchRfqs",parameters);
     }
 
-    public async Task<object> privatePostRfqCancelAllAfter (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelAllRfqs endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelAllRfqs (object parameters = null)
     {
-        return await this.callAsync ("privatePostRfqCancelAllAfter",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelAllRfqs",parameters);
     }
 
-    public async Task<object> privatePostSprdOrder (object parameters = null)
+    /// <summary>Calls the privatePostRfqExecuteQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqExecuteQuote (object parameters = null)
     {
-        return await this.callAsync ("privatePostSprdOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqExecuteQuote",parameters);
     }
 
-    public async Task<object> privatePostSprdCancelOrder (object parameters = null)
+    /// <summary>Calls the privatePostRfqMakerInstrumentSettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqMakerInstrumentSettings (object parameters = null)
     {
-        return await this.callAsync ("privatePostSprdCancelOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqMakerInstrumentSettings",parameters);
     }
 
-    public async Task<object> privatePostSprdMassCancel (object parameters = null)
+    /// <summary>Calls the privatePostRfqMmpReset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqMmpReset (object parameters = null)
     {
-        return await this.callAsync ("privatePostSprdMassCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqMmpReset",parameters);
     }
 
-    public async Task<object> privatePostSprdAmendOrder (object parameters = null)
+    /// <summary>Calls the privatePostRfqMmpConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqMmpConfig (object parameters = null)
     {
-        return await this.callAsync ("privatePostSprdAmendOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqMmpConfig",parameters);
     }
 
-    public async Task<object> privatePostSprdCancelAllAfter (object parameters = null)
+    /// <summary>Calls the privatePostRfqCreateQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCreateQuote (object parameters = null)
     {
-        return await this.callAsync ("privatePostSprdCancelAllAfter",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCreateQuote",parameters);
     }
 
-    public async Task<object> privatePostTradeOrder (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelQuote (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelQuote",parameters);
     }
 
-    public async Task<object> privatePostTradeBatchOrders (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelBatchQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelBatchQuotes (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeBatchOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelBatchQuotes",parameters);
     }
 
-    public async Task<object> privatePostTradeCancelOrder (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelAllQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelAllQuotes (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeCancelOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelAllQuotes",parameters);
     }
 
-    public async Task<object> privatePostTradeCancelBatchOrders (object parameters = null)
+    /// <summary>Calls the privatePostRfqCancelAllAfter endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCancelAllAfter (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeCancelBatchOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCancelAllAfter",parameters);
     }
 
-    public async Task<object> privatePostTradeAmendOrder (object parameters = null)
+    /// <summary>Calls the privatePostSprdOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSprdOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeAmendOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSprdOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeAmendBatchOrders (object parameters = null)
+    /// <summary>Calls the privatePostSprdCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSprdCancelOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeAmendBatchOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSprdCancelOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeClosePosition (object parameters = null)
+    /// <summary>Calls the privatePostSprdMassCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSprdMassCancel (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeClosePosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSprdMassCancel",parameters);
     }
 
-    public async Task<object> privatePostTradeFillsArchive (object parameters = null)
+    /// <summary>Calls the privatePostSprdAmendOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSprdAmendOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeFillsArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSprdAmendOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeCancelAdvanceAlgos (object parameters = null)
+    /// <summary>Calls the privatePostSprdCancelAllAfter endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSprdCancelAllAfter (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeCancelAdvanceAlgos",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSprdCancelAllAfter",parameters);
     }
 
-    public async Task<object> privatePostTradeEasyConvert (object parameters = null)
+    /// <summary>Calls the privatePostTradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeEasyConvert",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeOneClickRepay (object parameters = null)
+    /// <summary>Calls the privatePostTradeBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeOneClickRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeBatchOrders",parameters);
     }
 
-    public async Task<object> privatePostTradeOneClickRepayV2 (object parameters = null)
+    /// <summary>Calls the privatePostTradeCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeCancelOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeOneClickRepayV2",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancelOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeMassCancel (object parameters = null)
+    /// <summary>Calls the privatePostTradeCancelBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeCancelBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeMassCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancelBatchOrders",parameters);
     }
 
-    public async Task<object> privatePostTradeCancelAllAfter (object parameters = null)
+    /// <summary>Calls the privatePostTradeAmendOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeCancelAllAfter",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendOrder",parameters);
     }
 
-    public async Task<object> privatePostTradeOrderPrecheck (object parameters = null)
+    /// <summary>Calls the privatePostTradeAmendBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendBatchOrders (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeOrderPrecheck",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendBatchOrders",parameters);
     }
 
-    public async Task<object> privatePostTradeOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradeClosePosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeClosePosition (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeClosePosition",parameters);
     }
 
-    public async Task<object> privatePostTradeCancelAlgos (object parameters = null)
+    /// <summary>Calls the privatePostTradeFillsArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeFillsArchive (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeCancelAlgos",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeFillsArchive",parameters);
     }
 
-    public async Task<object> privatePostTradeAmendAlgos (object parameters = null)
+    /// <summary>Calls the privatePostTradeCancelAdvanceAlgos endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeCancelAdvanceAlgos (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradeAmendAlgos",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancelAdvanceAlgos",parameters);
     }
 
-    public async Task<object> privatePostAssetTransfer (object parameters = null)
+    /// <summary>Calls the privatePostTradeEasyConvert endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeEasyConvert (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeEasyConvert",parameters);
     }
 
-    public async Task<object> privatePostAssetWithdrawal (object parameters = null)
+    /// <summary>Calls the privatePostTradeOneClickRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeOneClickRepay (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetWithdrawal",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeOneClickRepay",parameters);
     }
 
-    public async Task<object> privatePostAssetWithdrawalLightning (object parameters = null)
+    /// <summary>Calls the privatePostTradeOneClickRepayV2 endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeOneClickRepayV2 (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetWithdrawalLightning",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeOneClickRepayV2",parameters);
     }
 
-    public async Task<object> privatePostAssetCancelWithdrawal (object parameters = null)
+    /// <summary>Calls the privatePostTradeMassCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeMassCancel (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetCancelWithdrawal",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeMassCancel",parameters);
     }
 
-    public async Task<object> privatePostAssetConvertDustAssets (object parameters = null)
+    /// <summary>Calls the privatePostTradeCancelAllAfter endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeCancelAllAfter (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetConvertDustAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancelAllAfter",parameters);
     }
 
-    public async Task<object> privatePostAssetMonthlyStatement (object parameters = null)
+    /// <summary>Calls the privatePostTradeOrderPrecheck endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeOrderPrecheck (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetMonthlyStatement",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeOrderPrecheck",parameters);
     }
 
-    public async Task<object> privatePostAssetConvertEstimateQuote (object parameters = null)
+    /// <summary>Calls the privatePostTradeOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetConvertEstimateQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostAssetConvertTrade (object parameters = null)
+    /// <summary>Calls the privatePostTradeCancelAlgos endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeCancelAlgos (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetConvertTrade",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancelAlgos",parameters);
     }
 
-    public async Task<object> privatePostAccountBillsHistoryArchive (object parameters = null)
+    /// <summary>Calls the privatePostTradeAmendAlgos endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendAlgos (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountBillsHistoryArchive",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendAlgos",parameters);
     }
 
-    public async Task<object> privatePostAccountSetPositionMode (object parameters = null)
+    /// <summary>Calls the privatePostAssetTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetTransfer (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetPositionMode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetTransfer",parameters);
     }
 
-    public async Task<object> privatePostAccountSetLeverage (object parameters = null)
+    /// <summary>Calls the privatePostAssetWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetWithdrawal",parameters);
     }
 
-    public async Task<object> privatePostAccountPositionMarginBalance (object parameters = null)
+    /// <summary>Calls the privatePostAssetWithdrawalLightning endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetWithdrawalLightning (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountPositionMarginBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetWithdrawalLightning",parameters);
     }
 
-    public async Task<object> privatePostAccountSetFeeType (object parameters = null)
+    /// <summary>Calls the privatePostAssetCancelWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetCancelWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetFeeType",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetCancelWithdrawal",parameters);
     }
 
-    public async Task<object> privatePostAccountSetGreeks (object parameters = null)
+    /// <summary>Calls the privatePostAssetConvertDustAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetConvertDustAssets (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetGreeks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetConvertDustAssets",parameters);
     }
 
-    public async Task<object> privatePostAccountSetIsolatedMode (object parameters = null)
+    /// <summary>Calls the privatePostAssetMonthlyStatement endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetMonthlyStatement (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetIsolatedMode",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetMonthlyStatement",parameters);
     }
 
-    public async Task<object> privatePostAccountSpotManualBorrowRepay (object parameters = null)
+    /// <summary>Calls the privatePostAssetConvertEstimateQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetConvertEstimateQuote (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSpotManualBorrowRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetConvertEstimateQuote",parameters);
     }
 
-    public async Task<object> privatePostAccountSetAutoRepay (object parameters = null)
+    /// <summary>Calls the privatePostAssetConvertTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetConvertTrade (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetAutoRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetConvertTrade",parameters);
     }
 
-    public async Task<object> privatePostAccountQuickMarginBorrowRepay (object parameters = null)
+    /// <summary>Calls the privatePostFiatCreateWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatCreateWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountQuickMarginBorrowRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatCreateWithdrawal",parameters);
     }
 
-    public async Task<object> privatePostAccountBorrowRepay (object parameters = null)
+    /// <summary>Calls the privatePostFiatCancelWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatCancelWithdrawal (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountBorrowRepay",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatCancelWithdrawal",parameters);
     }
 
-    public async Task<object> privatePostAccountSimulatedMargin (object parameters = null)
+    /// <summary>Calls the privatePostFiatBuySellQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatBuySellQuote (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSimulatedMargin",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatBuySellQuote",parameters);
     }
 
-    public async Task<object> privatePostAccountPositionBuilder (object parameters = null)
+    /// <summary>Calls the privatePostFiatBuySellTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFiatBuySellTrade (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountPositionBuilder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFiatBuySellTrade",parameters);
     }
 
-    public async Task<object> privatePostAccountPositionBuilderGraph (object parameters = null)
+    /// <summary>Calls the privatePostAccountBillsHistoryArchive endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountBillsHistoryArchive (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountPositionBuilderGraph",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountBillsHistoryArchive",parameters);
     }
 
-    public async Task<object> privatePostAccountSetRiskOffsetType (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetPositionMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetPositionMode (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetRiskOffsetType",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetPositionMode",parameters);
     }
 
-    public async Task<object> privatePostAccountSetRiskOffsetAmt (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetLeverage (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetRiskOffsetAmt",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetLeverage",parameters);
     }
 
-    public async Task<object> privatePostAccountActivateOption (object parameters = null)
+    /// <summary>Calls the privatePostAccountPositionMarginBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountPositionMarginBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountActivateOption",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountPositionMarginBalance",parameters);
     }
 
-    public async Task<object> privatePostAccountSetAutoLoan (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetFeeType endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetFeeType (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetAutoLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetFeeType",parameters);
     }
 
-    public async Task<object> privatePostAccountAccountLevelSwitchPreset (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetGreeks endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetGreeks (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountAccountLevelSwitchPreset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetGreeks",parameters);
     }
 
-    public async Task<object> privatePostAccountSetAccountLevel (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetIsolatedMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetIsolatedMode (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetAccountLevel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetIsolatedMode",parameters);
     }
 
-    public async Task<object> privatePostAccountSetCollateralAssets (object parameters = null)
+    /// <summary>Calls the privatePostAccountSpotManualBorrowRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSpotManualBorrowRepay (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetCollateralAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSpotManualBorrowRepay",parameters);
     }
 
-    public async Task<object> privatePostAccountMmpReset (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetAutoRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetAutoRepay (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountMmpReset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetAutoRepay",parameters);
     }
 
-    public async Task<object> privatePostAccountMmpConfig (object parameters = null)
+    /// <summary>Calls the privatePostAccountQuickMarginBorrowRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountQuickMarginBorrowRepay (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountMmpConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountQuickMarginBorrowRepay",parameters);
     }
 
-    public async Task<object> privatePostAccountFixedLoanBorrowingOrder (object parameters = null)
+    /// <summary>Calls the privatePostAccountBorrowRepay endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountBorrowRepay (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountFixedLoanBorrowingOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountBorrowRepay",parameters);
     }
 
-    public async Task<object> privatePostAccountFixedLoanAmendBorrowingOrder (object parameters = null)
+    /// <summary>Calls the privatePostAccountSimulatedMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSimulatedMargin (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountFixedLoanAmendBorrowingOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSimulatedMargin",parameters);
     }
 
-    public async Task<object> privatePostAccountFixedLoanManualReborrow (object parameters = null)
+    /// <summary>Calls the privatePostAccountPositionBuilder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountPositionBuilder (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountFixedLoanManualReborrow",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountPositionBuilder",parameters);
     }
 
-    public async Task<object> privatePostAccountFixedLoanRepayBorrowingOrder (object parameters = null)
+    /// <summary>Calls the privatePostAccountPositionBuilderGraph endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountPositionBuilderGraph (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountFixedLoanRepayBorrowingOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountPositionBuilderGraph",parameters);
     }
 
-    public async Task<object> privatePostAccountMovePositions (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetRiskOffsetType endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetRiskOffsetType (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountMovePositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetRiskOffsetType",parameters);
     }
 
-    public async Task<object> privatePostAccountSetAutoEarn (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetRiskOffsetAmt endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetRiskOffsetAmt (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetAutoEarn",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetRiskOffsetAmt",parameters);
     }
 
-    public async Task<object> privatePostAccountSetSettleCurrency (object parameters = null)
+    /// <summary>Calls the privatePostAccountActivateOption endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountActivateOption (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetSettleCurrency",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountActivateOption",parameters);
     }
 
-    public async Task<object> privatePostAccountSetTradingConfig (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetAutoLoan endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetAutoLoan (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSetTradingConfig",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetAutoLoan",parameters);
     }
 
-    public async Task<object> privatePostAccountDemoAdjustBalance (object parameters = null)
+    /// <summary>Calls the privatePostAccountAccountLevelSwitchPreset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountAccountLevelSwitchPreset (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountDemoAdjustBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountAccountLevelSwitchPreset",parameters);
     }
 
-    public async Task<object> privatePostAssetSubaccountTransfer (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetAccountLevel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetAccountLevel (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetSubaccountTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetAccountLevel",parameters);
     }
 
-    public async Task<object> privatePostAccountSubaccountSetLoanAllocation (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetCollateralAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetCollateralAssets (object parameters = null)
     {
-        return await this.callAsync ("privatePostAccountSubaccountSetLoanAllocation",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetCollateralAssets",parameters);
     }
 
-    public async Task<object> privatePostUsersSubaccountCreateSubaccount (object parameters = null)
+    /// <summary>Calls the privatePostAccountMmpReset endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountMmpReset (object parameters = null)
     {
-        return await this.callAsync ("privatePostUsersSubaccountCreateSubaccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountMmpReset",parameters);
     }
 
-    public async Task<object> privatePostUsersSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privatePostAccountMmpConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountMmpConfig (object parameters = null)
     {
-        return await this.callAsync ("privatePostUsersSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountMmpConfig",parameters);
     }
 
-    public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)
+    /// <summary>Calls the privatePostAccountFixedLoanBorrowingOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountFixedLoanBorrowingOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostUsersSubaccountModifyApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountFixedLoanBorrowingOrder",parameters);
     }
 
-    public async Task<object> privatePostUsersSubaccountSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privatePostAccountFixedLoanAmendBorrowingOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountFixedLoanAmendBorrowingOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostUsersSubaccountSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountFixedLoanAmendBorrowingOrder",parameters);
     }
 
-    public async Task<object> privatePostUsersSubaccountDeleteApikey (object parameters = null)
+    /// <summary>Calls the privatePostAccountFixedLoanManualReborrow endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountFixedLoanManualReborrow (object parameters = null)
     {
-        return await this.callAsync ("privatePostUsersSubaccountDeleteApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountFixedLoanManualReborrow",parameters);
     }
 
-    public async Task<object> privatePostUsersSubaccountSetTransferOut (object parameters = null)
+    /// <summary>Calls the privatePostAccountFixedLoanRepayBorrowingOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountFixedLoanRepayBorrowingOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostUsersSubaccountSetTransferOut",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountFixedLoanRepayBorrowingOrder",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostAccountMovePositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountMovePositions (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountMovePositions",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridCopyOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetAutoEarn endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetAutoEarn (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridCopyOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetAutoEarn",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridAmendAlgoBasicParam (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetSettleCurrency endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetSettleCurrency (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridAmendAlgoBasicParam",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetSettleCurrency",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridAmendOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostAccountSetTradingConfig endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSetTradingConfig (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridAmendOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSetTradingConfig",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridStopOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostAccountDemoAdjustBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountDemoAdjustBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridStopOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountDemoAdjustBalance",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridClosePosition (object parameters = null)
+    /// <summary>Calls the privatePostAssetSubaccountTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetSubaccountTransfer (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridClosePosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetSubaccountTransfer",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridCancelCloseOrder (object parameters = null)
+    /// <summary>Calls the privatePostAccountSubaccountSetLoanAllocation endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAccountSubaccountSetLoanAllocation (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridCancelCloseOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAccountSubaccountSetLoanAllocation",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridOrderInstantTrigger (object parameters = null)
+    /// <summary>Calls the privatePostUsersSubaccountCreateSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersSubaccountCreateSubaccount (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridOrderInstantTrigger",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersSubaccountCreateSubaccount",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridWithdrawIncome (object parameters = null)
+    /// <summary>Calls the privatePostUsersSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersSubaccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridWithdrawIncome",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersSubaccountApikey",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridComputeMarginBalance (object parameters = null)
+    /// <summary>Calls the privatePostUsersSubaccountModifyApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersSubaccountModifyApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridComputeMarginBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersSubaccountModifyApikey",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridMarginBalance (object parameters = null)
+    /// <summary>Calls the privatePostUsersSubaccountSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersSubaccountSubaccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridMarginBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersSubaccountSubaccountApikey",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridMinInvestment (object parameters = null)
+    /// <summary>Calls the privatePostUsersSubaccountDeleteApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersSubaccountDeleteApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridMinInvestment",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersSubaccountDeleteApikey",parameters);
     }
 
-    public async Task<object> privatePostTradingBotGridAdjustInvestment (object parameters = null)
+    /// <summary>Calls the privatePostUsersSubaccountSetTransferOut endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostUsersSubaccountSetTransferOut (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotGridAdjustInvestment",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostUsersSubaccountSetTransferOut",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalCreateSignal (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalCreateSignal",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridCopyOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridCopyOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridCopyOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalStopOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridAmendAlgoBasicParam endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridAmendAlgoBasicParam (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalStopOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridAmendAlgoBasicParam",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalMarginBalance (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridAmendOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridAmendOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalMarginBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridAmendOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalAmendTPSL (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridStopOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridStopOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalAmendTPSL",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridStopOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalSetInstruments (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridClosePosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridClosePosition (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalSetInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridClosePosition",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalClosePosition (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridCancelCloseOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridCancelCloseOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalClosePosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridCancelCloseOrder",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalSubOrder (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridOrderInstantTrigger endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridOrderInstantTrigger (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalSubOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridOrderInstantTrigger",parameters);
     }
 
-    public async Task<object> privatePostTradingBotSignalCancelSubOrder (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridWithdrawIncome endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridWithdrawIncome (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotSignalCancelSubOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridWithdrawIncome",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridComputeMarginBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridComputeMarginBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridComputeMarginBalance",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringAmendOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridMarginBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridMarginBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringAmendOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridMarginBalance",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringStopOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridMinInvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridMinInvestment (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringStopOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridMinInvestment",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaCreate (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotGridAdjustInvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotGridAdjustInvestment (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaCreate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotGridAdjustInvestment",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaAmendOrderAlgo (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalCreateSignal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalCreateSignal (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaAmendOrderAlgo",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalCreateSignal",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaStop (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaStop",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaOrdersManualBuy (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalStopOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalStopOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaOrdersManualBuy",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalStopOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaSettingsReinvestment (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalMarginBalance endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalMarginBalance (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaSettingsReinvestment",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalMarginBalance",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaSettingsTakeProfit (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalAmendTPSL endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalAmendTPSL (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaSettingsTakeProfit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalAmendTPSL",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaMarginAdd (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalSetInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalSetInstruments (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaMarginAdd",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalSetInstruments",parameters);
     }
 
-    public async Task<object> privatePostTradingBotDcaMarginReduce (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalClosePosition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalClosePosition (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotDcaMarginReduce",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalClosePosition",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringAddInvestment (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalSubOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalSubOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringAddInvestment",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalSubOrder",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringAmendPriceRange (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotSignalCancelSubOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotSignalCancelSubOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringAmendPriceRange",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotSignalCancelSubOrder",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringAmendRecurringAmount (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringAmendRecurringAmount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringAmendRecurringTime (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringAmendOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringAmendOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringAmendRecurringTime",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringAmendOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringPause (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringStopOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringStopOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringPause",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringStopOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostTradingBotRecurringRestart (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaCreate (object parameters = null)
     {
-        return await this.callAsync ("privatePostTradingBotRecurringRestart",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaCreate",parameters);
     }
 
-    public async Task<object> privatePostFinanceSavingsPurchaseRedempt (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaAmendOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaAmendOrderAlgo (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSavingsPurchaseRedempt",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaAmendOrderAlgo",parameters);
     }
 
-    public async Task<object> privatePostFinanceSavingsSetLendingRate (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaStop endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaStop (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSavingsSetLendingRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaStop",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiPurchase (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaOrdersManualBuy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaOrdersManualBuy (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiPurchase",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaOrdersManualBuy",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiRedeem (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaSettingsReinvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaSettingsReinvestment (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaSettingsReinvestment",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiCancel (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaSettingsTakeProfit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaSettingsTakeProfit (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaSettingsTakeProfit",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiEthPurchase (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaMarginAdd endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaMarginAdd (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiEthPurchase",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaMarginAdd",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiEthRedeem (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotDcaMarginReduce endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotDcaMarginReduce (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiEthRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotDcaMarginReduce",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiEthCancelRedeem (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringAddInvestment endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringAddInvestment (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiEthCancelRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringAddInvestment",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiSolPurchase (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringAmendPriceRange endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringAmendPriceRange (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiSolPurchase",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringAmendPriceRange",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiSolRedeem (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringAmendRecurringAmount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringAmendRecurringAmount (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiSolRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringAmendRecurringAmount",parameters);
     }
 
-    public async Task<object> privatePostFinanceStakingDefiSolCancelRedeem (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringAmendRecurringTime endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringAmendRecurringTime (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceStakingDefiSolCancelRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringAmendRecurringTime",parameters);
     }
 
-    public async Task<object> privatePostFinanceFlexibleLoanMaxLoan (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringPause endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringPause (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceFlexibleLoanMaxLoan",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringPause",parameters);
     }
 
-    public async Task<object> privatePostFinanceFlexibleLoanAdjustCollateral (object parameters = null)
+    /// <summary>Calls the privatePostTradingBotRecurringRestart endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradingBotRecurringRestart (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceFlexibleLoanAdjustCollateral",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradingBotRecurringRestart",parameters);
     }
 
-    public async Task<object> privatePostCopytradingAlgoOrder (object parameters = null)
+    /// <summary>Calls the privatePostFinanceSavingsPurchaseRedempt endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSavingsPurchaseRedempt (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingAlgoOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSavingsPurchaseRedempt",parameters);
     }
 
-    public async Task<object> privatePostCopytradingCloseSubposition (object parameters = null)
+    /// <summary>Calls the privatePostFinanceSavingsSetLendingRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSavingsSetLendingRate (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingCloseSubposition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSavingsSetLendingRate",parameters);
     }
 
-    public async Task<object> privatePostCopytradingSetInstruments (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiPurchase endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiPurchase (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingSetInstruments",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiPurchase",parameters);
     }
 
-    public async Task<object> privatePostCopytradingAmendProfitSharingRatio (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiRedeem (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingAmendProfitSharingRatio",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiRedeem",parameters);
     }
 
-    public async Task<object> privatePostCopytradingFirstCopySettings (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiCancel (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingFirstCopySettings",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiCancel",parameters);
     }
 
-    public async Task<object> privatePostCopytradingAmendCopySettings (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiEthPurchase endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiEthPurchase (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingAmendCopySettings",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiEthPurchase",parameters);
     }
 
-    public async Task<object> privatePostCopytradingStopCopyTrading (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiEthRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiEthRedeem (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingStopCopyTrading",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiEthRedeem",parameters);
     }
 
-    public async Task<object> privatePostCopytradingBatchSetLeverage (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiEthCancelRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiEthCancelRedeem (object parameters = null)
     {
-        return await this.callAsync ("privatePostCopytradingBatchSetLeverage",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiEthCancelRedeem",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdCreateSubaccount (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiSolPurchase endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiSolPurchase (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdCreateSubaccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiSolPurchase",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdDeleteSubaccount (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiSolRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiSolRedeem (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdDeleteSubaccount",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiSolRedeem",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privatePostFinanceStakingDefiSolCancelRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceStakingDefiSolCancelRedeem (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceStakingDefiSolCancelRedeem",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdSubaccountModifyApikey (object parameters = null)
+    /// <summary>Calls the privatePostFinanceFlexibleLoanMaxLoan endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceFlexibleLoanMaxLoan (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdSubaccountModifyApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceFlexibleLoanMaxLoan",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdSubaccountDeleteApikey (object parameters = null)
+    /// <summary>Calls the privatePostFinanceFlexibleLoanAdjustCollateral endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceFlexibleLoanAdjustCollateral (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdSubaccountDeleteApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceFlexibleLoanAdjustCollateral",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdSetSubaccountLevel (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingAlgoOrder (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdSetSubaccountLevel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingAlgoOrder",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdSetSubaccountFeeRate (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingCloseSubposition endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingCloseSubposition (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdSetSubaccountFeeRate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingCloseSubposition",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdSetSubaccountAssets (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingSetInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingSetInstruments (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdSetSubaccountAssets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingSetInstruments",parameters);
     }
 
-    public async Task<object> privatePostAssetBrokerNdSubaccountDepositAddress (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingAmendProfitSharingRatio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingAmendProfitSharingRatio (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetBrokerNdSubaccountDepositAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingAmendProfitSharingRatio",parameters);
     }
 
-    public async Task<object> privatePostAssetBrokerNdModifySubaccountDepositAddress (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingFirstCopySettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingFirstCopySettings (object parameters = null)
     {
-        return await this.callAsync ("privatePostAssetBrokerNdModifySubaccountDepositAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingFirstCopySettings",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdRebatePerOrders (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingAmendCopySettings endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingAmendCopySettings (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdRebatePerOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingAmendCopySettings",parameters);
     }
 
-    public async Task<object> privatePostFinanceSfpDcdQuote (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingStopCopyTrading endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingStopCopyTrading (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSfpDcdQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingStopCopyTrading",parameters);
     }
 
-    public async Task<object> privatePostFinanceSfpDcdOrder (object parameters = null)
+    /// <summary>Calls the privatePostCopytradingBatchSetLeverage endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCopytradingBatchSetLeverage (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSfpDcdOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCopytradingBatchSetLeverage",parameters);
     }
 
-    public async Task<object> privatePostFinanceSfpDcdTrade (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdCreateSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdCreateSubaccount (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSfpDcdTrade",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdCreateSubaccount",parameters);
     }
 
-    public async Task<object> privatePostFinanceSfpDcdRedeemQuote (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdDeleteSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdDeleteSubaccount (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSfpDcdRedeemQuote",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdDeleteSubaccount",parameters);
     }
 
-    public async Task<object> privatePostFinanceSfpDcdRedeem (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdSubaccountApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostFinanceSfpDcdRedeem",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdSubaccountApikey",parameters);
     }
 
-    public async Task<object> privatePostBrokerNdReportSubaccountIp (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdSubaccountModifyApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdSubaccountModifyApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerNdReportSubaccountIp",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdSubaccountModifyApikey",parameters);
     }
 
-    public async Task<object> privatePostBrokerDmaSubaccountApikey (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdSubaccountDeleteApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdSubaccountDeleteApikey (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerDmaSubaccountApikey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdSubaccountDeleteApikey",parameters);
     }
 
-    public async Task<object> privatePostBrokerDmaTrades (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdSetSubaccountLevel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdSetSubaccountLevel (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerDmaTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdSetSubaccountLevel",parameters);
     }
 
-    public async Task<object> privatePostBrokerFdRebatePerOrders (object parameters = null)
+    /// <summary>Calls the privatePostBrokerNdSetSubaccountFeeRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdSetSubaccountFeeRate (object parameters = null)
     {
-        return await this.callAsync ("privatePostBrokerFdRebatePerOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdSetSubaccountFeeRate",parameters);
+    }
+
+    /// <summary>Calls the privatePostBrokerNdSetSubaccountAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdSetSubaccountAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdSetSubaccountAssets",parameters);
+    }
+
+    /// <summary>Calls the privatePostAssetBrokerNdSubaccountDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetBrokerNdSubaccountDepositAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetBrokerNdSubaccountDepositAddress",parameters);
+    }
+
+    /// <summary>Calls the privatePostAssetBrokerNdModifySubaccountDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetBrokerNdModifySubaccountDepositAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetBrokerNdModifySubaccountDepositAddress",parameters);
+    }
+
+    /// <summary>Calls the privatePostBrokerNdRebatePerOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdRebatePerOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdRebatePerOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePostFinanceSfpDcdQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSfpDcdQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSfpDcdQuote",parameters);
+    }
+
+    /// <summary>Calls the privatePostFinanceSfpDcdOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSfpDcdOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSfpDcdOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostFinanceSfpDcdTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSfpDcdTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSfpDcdTrade",parameters);
+    }
+
+    /// <summary>Calls the privatePostFinanceSfpDcdRedeemQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSfpDcdRedeemQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSfpDcdRedeemQuote",parameters);
+    }
+
+    /// <summary>Calls the privatePostFinanceSfpDcdRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostFinanceSfpDcdRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostFinanceSfpDcdRedeem",parameters);
+    }
+
+    /// <summary>Calls the privatePostBrokerNdReportSubaccountIp endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerNdReportSubaccountIp (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerNdReportSubaccountIp",parameters);
+    }
+
+    /// <summary>Calls the privatePostBrokerDmaSubaccountApikey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerDmaSubaccountApikey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerDmaSubaccountApikey",parameters);
+    }
+
+    /// <summary>Calls the privatePostBrokerDmaTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerDmaTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerDmaTrades",parameters);
+    }
+
+    /// <summary>Calls the privatePostBrokerFdRebatePerOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostBrokerFdRebatePerOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostBrokerFdRebatePerOrders",parameters);
     }
 
 }

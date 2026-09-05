@@ -1,6 +1,6 @@
 Every endpoint in `krakenfutures`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/krakenfutures) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetFeeschedules`); the snake_case alias (`public_get_feeschedules`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetFeeschedules`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetFeeschedules`); the snake_case alias (`public_get_feeschedules`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetFeeschedules`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
 
-> 39 implicit endpoints across 4 access groups.
+> 40 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -63,12 +63,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetFeeschedules` | GET | `feeschedules` |  |
-| `publicGetInstruments` | GET | `instruments` |  |
-| `publicGetOrderbook` | GET | `orderbook` |  |
-| `publicGetTickers` | GET | `tickers` |  |
-| `publicGetHistory` | GET | `history` |  |
-| `publicGetHistoricalfundingrates` | GET | `historicalfundingrates` |  |
+| `publicGetFeeschedules` | GET | `feeschedules` | 1 |
+| `publicGetInstruments` | GET | `instruments` | 1 |
+| `publicGetOrderbook` | GET | `orderbook` | 1 |
+| `publicGetTickers` | GET | `tickers` | 1 |
+| `publicGetTickersSymbol` | GET | `tickers/{symbol}` | 1 |
+| `publicGetHistory` | GET | `history` | 1 |
+| `publicGetHistoricalfundingrates` | GET | `historicalfundingrates` | 1 |
 
 ## private
 
@@ -76,31 +77,31 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privateGetFeeschedulesVolumes` | GET | `feeschedules/volumes` |  |
-| `privateGetOpenpositions` | GET | `openpositions` |  |
-| `privateGetNotifications` | GET | `notifications` |  |
-| `privateGetAccounts` | GET | `accounts` |  |
-| `privateGetOpenorders` | GET | `openorders` |  |
-| `privateGetRecentorders` | GET | `recentorders` |  |
-| `privateGetFills` | GET | `fills` |  |
-| `privateGetTransfers` | GET | `transfers` |  |
-| `privateGetLeveragepreferences` | GET | `leveragepreferences` |  |
-| `privateGetPnlpreferences` | GET | `pnlpreferences` |  |
-| `privateGetAssignmentprogramCurrent` | GET | `assignmentprogram/current` |  |
-| `privateGetAssignmentprogramHistory` | GET | `assignmentprogram/history` |  |
-| `privateGetOrdersStatus` | GET | `orders/status` |  |
-| `privatePostSendorder` | POST | `sendorder` |  |
-| `privatePostEditorder` | POST | `editorder` |  |
-| `privatePostCancelorder` | POST | `cancelorder` |  |
-| `privatePostTransfer` | POST | `transfer` |  |
-| `privatePostBatchorder` | POST | `batchorder` |  |
-| `privatePostCancelallorders` | POST | `cancelallorders` |  |
-| `privatePostCancelallordersafter` | POST | `cancelallordersafter` |  |
-| `privatePostWithdrawal` | POST | `withdrawal` |  |
-| `privatePostAssignmentprogramAdd` | POST | `assignmentprogram/add` |  |
-| `privatePostAssignmentprogramDelete` | POST | `assignmentprogram/delete` |  |
-| `privatePutLeveragepreferences` | PUT | `leveragepreferences` |  |
-| `privatePutPnlpreferences` | PUT | `pnlpreferences` |  |
+| `privateGetFeeschedulesVolumes` | GET | `feeschedules/volumes` | 1 |
+| `privateGetOpenpositions` | GET | `openpositions` | 1 |
+| `privateGetNotifications` | GET | `notifications` | 1 |
+| `privateGetAccounts` | GET | `accounts` | 1 |
+| `privateGetOpenorders` | GET | `openorders` | 1 |
+| `privateGetRecentorders` | GET | `recentorders` | 1 |
+| `privateGetFills` | GET | `fills` | 1 |
+| `privateGetTransfers` | GET | `transfers` | 1 |
+| `privateGetLeveragepreferences` | GET | `leveragepreferences` | 1 |
+| `privateGetPnlpreferences` | GET | `pnlpreferences` | 1 |
+| `privateGetAssignmentprogramCurrent` | GET | `assignmentprogram/current` | 1 |
+| `privateGetAssignmentprogramHistory` | GET | `assignmentprogram/history` | 1 |
+| `privateGetOrdersStatus` | GET | `orders/status` | 1 |
+| `privatePostSendorder` | POST | `sendorder` | 1 |
+| `privatePostEditorder` | POST | `editorder` | 1 |
+| `privatePostCancelorder` | POST | `cancelorder` | 1 |
+| `privatePostTransfer` | POST | `transfer` | 1 |
+| `privatePostBatchorder` | POST | `batchorder` | 1 |
+| `privatePostCancelallorders` | POST | `cancelallorders` | 1 |
+| `privatePostCancelallordersafter` | POST | `cancelallordersafter` | 1 |
+| `privatePostWithdrawal` | POST | `withdrawal` | 1 |
+| `privatePostAssignmentprogramAdd` | POST | `assignmentprogram/add` | 1 |
+| `privatePostAssignmentprogramDelete` | POST | `assignmentprogram/delete` | 1 |
+| `privatePutLeveragepreferences` | PUT | `leveragepreferences` | 1 |
+| `privatePutPnlpreferences` | PUT | `pnlpreferences` | 1 |
 
 ## charts
 
@@ -108,7 +109,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `chartsGetPriceTypeSymbolInterval` | GET | `{price_type}/{symbol}/{interval}` |  |
+| `chartsGetPriceTypeSymbolInterval` | GET | `{price_type}/{symbol}/{interval}` | 1 |
 
 ## history
 
@@ -116,11 +117,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `historyGetOrders` | GET | `orders` |  |
-| `historyGetExecutions` | GET | `executions` |  |
-| `historyGetTriggers` | GET | `triggers` |  |
-| `historyGetAccountlogcsv` | GET | `accountlogcsv` |  |
-| `historyGetAccountLog` | GET | `account-log` |  |
-| `historyGetMarketSymbolOrders` | GET | `market/{symbol}/orders` |  |
-| `historyGetMarketSymbolExecutions` | GET | `market/{symbol}/executions` |  |
+| `historyGetOrders` | GET | `orders` | 1 |
+| `historyGetExecutions` | GET | `executions` | 1 |
+| `historyGetTriggers` | GET | `triggers` | 1 |
+| `historyGetAccountlogcsv` | GET | `accountlogcsv` | 1 |
+| `historyGetAccountLog` | GET | `account-log` | 1 |
+| `historyGetMarketSymbolOrders` | GET | `market/{symbol}/orders` | 1 |
+| `historyGetMarketSymbolExecutions` | GET | `market/{symbol}/executions` | 1 |
 

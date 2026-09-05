@@ -10,16 +10,20 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchPositions";
+        string method = "watchPositions";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
-            object success = true;
+            bool success = true;
             try
             {
-                response = await exchange.watchPositions(new List<object>() {symbol});
+                response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -32,6 +36,10 @@ public partial class testMainClass : BaseTest
             }
             if (isTrue(isEqual(success, true)))
             {
+                if (isTrue(isEqual(response, null)))
+                {
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
+                }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -44,10 +52,10 @@ public partial class testMainClass : BaseTest
             // Test with specific symbol
             //
             object positionsForSymbols = null;
-            object success2 = true;
+            bool success2 = true;
             try
             {
-                positionsForSymbols = await exchange.watchPositions(new List<object>() {symbol});
+                positionsForSymbols = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))

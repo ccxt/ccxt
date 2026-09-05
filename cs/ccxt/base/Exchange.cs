@@ -14,12 +14,12 @@ namespace ccxt;
 
 using dict = Dictionary<string, object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     protected readonly object idLock = new object();
 
-    public Exchange(object userConfig2 = null)
+    public BaseExchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
@@ -395,6 +395,66 @@ public partial class Exchange
         throw new Exception("Endpoint not found!");
     }
 
+    /// <summary>
+    /// Calls one implicit API endpoint by its generated name, narrowed to the
+    /// shape that endpoint's api leaf declares.
+    /// </summary>
+    /// <remarks>
+    /// The type argument is the shape the api leaf declares in TypeScript
+    /// (<c>{ 'cost': 1 } as Endpoint&lt;List&gt;</c>). <c>res</c> is already a
+    /// decoded JSON value (Dictionary / List / string / null). Never answers
+    /// default(T) for a useful body that merely fails to match T — that silent
+    /// null emptied balances/tickers under STATIC_RESPONSE; a hard shape
+    /// disagreement throws instead so the leaf can be corrected.
+    /// </remarks>
+    public async virtual Task<T> callAsync<T>(object implicitEndpoint2, object parameters = null)
+    {
+        var res = await this.callAsync(implicitEndpoint2, parameters);
+        return NarrowResponse<T>(this.id + " " + Convert.ToString(implicitEndpoint2), res);
+    }
+
+    /// <summary>
+    /// Narrows one already-decoded implicit API body to the shape its api leaf declares.
+    /// </summary>
+    public static T NarrowResponse<T>(object endpoint, object res)
+    {
+        if (res is T typed)
+        {
+            return typed;
+        }
+        if (res == null)
+        {
+            return default(T);
+        }
+        // declared leaf and body disagree — name both so the Endpoint<> is fixed
+        throw new ExchangeError(
+            "implicit API endpoint " + Convert.ToString(endpoint) + " is declared as " + DescribeShape(typeof(T))
+            + " but answered with " + DescribeShape(res.GetType())
+            + " — correct the Endpoint<...> assertion on its api leaf in ts/src, or call the untyped callAsync overload");
+    }
+
+    // the api-leaf spelling of a runtime/declared type, for the message above
+    private static string DescribeShape(Type type)
+    {
+        if (type == typeof(Dictionary<string, object>) || type == typeof(IDictionary<string, object>))
+        {
+            return "a JSON object (Dict)";
+        }
+        if (type == typeof(List<object>) || type == typeof(IList<object>))
+        {
+            return "a JSON array (List)";
+        }
+        if (type == typeof(string))
+        {
+            return "a JSON scalar (string)";
+        }
+        if (type == typeof(object))
+        {
+            return "a JSON value (object)";
+        }
+        return type.Name;
+    }
+
     public async virtual Task<object> callAsync(object implicitEndpoint2, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -488,7 +548,7 @@ public partial class Exchange
             currencies = await this.fetchCurrencies();
             this.options.TryAdd("cachedCurrencies", currencies);
         }
-        var markets = await this.fetchMarkets();
+        var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
@@ -512,14 +572,14 @@ public partial class Exchange
         return marketsLoading;
     }
 
-    public virtual async Task<object> fetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
     public virtual async Task<object> fetchCurrencies(object parameters = null)
@@ -748,11 +808,24 @@ public partial class Exchange
 
     public object convertToBigInt(object value)
     {
-        if (value.GetType() == typeof(float).GetType())
+        // mirrors TS BigInt(value): produce a real big integer so ABI/eth encoders receive a
+        // numeric value (a decimal string would otherwise be misparsed as hex and overflow)
+        if (value is BigInteger)
         {
-            return Convert.ToInt64(value);
+            return value;
         }
-        return value;
+        if (value is string)
+        {
+            var str = (string)value;
+            if (str.StartsWith("0x") || str.StartsWith("0X"))
+            {
+                // hex strings pass through unchanged — the stark/eth helpers parse hex
+                // themselves (extended's pedersen chain expects the string form)
+                return value;
+            }
+            return BigInteger.Parse(str);
+        }
+        return new BigInteger(Convert.ToInt64(value));
     }
 
     public bool valueIsDefined(object value)
@@ -782,7 +855,23 @@ public partial class Exchange
             return byteArray[firstInt..secondInt2];
         }
 
-        var parsedArray = ((IList<object>)array);
+        // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
+        // List<T> is invariant so none of those IS an IList<object> - re-box through the
+        // non-generic IList instead of throwing InvalidCastException
+        IList<object> parsedArray;
+        if (array is IList<object> objectList)
+        {
+            parsedArray = objectList;
+        }
+        else
+        {
+            var boxed = new List<object>();
+            foreach (var item in (System.Collections.IList)array)
+            {
+                boxed.Add(item);
+            }
+            parsedArray = boxed;
+        }
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
@@ -1077,9 +1166,13 @@ public partial class Exchange
             try
             {
                 var invokedAction = DynamicInvoker.InvokeMethod(action, args);
-                if (invokedAction is Task<object>)
+                // Task<T> is invariant, so a narrowed implicit API method
+                // (Task<Dictionary<string, object>>) is not a Task<object> —
+                // normalize before testing, or its result never resolves.
+                var invokedTask = Exchange.AsTaskOfObject(invokedAction);
+                if (invokedTask != null)
                 {
-                    var res = (Task<object>)invokedAction;
+                    var res = invokedTask;
                     res.Wait();
                     future.resolve(res.Result);
                     return;

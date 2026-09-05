@@ -123,73 +123,73 @@ class bigone extends bigone$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'asset_pairs',
-                        'asset_pairs/{asset_pair_name}/depth',
-                        'asset_pairs/{asset_pair_name}/trades',
-                        'asset_pairs/{asset_pair_name}/ticker',
-                        'asset_pairs/{asset_pair_name}/candles',
-                        'asset_pairs/tickers',
-                    ],
+                    'get': {
+                        'ping': { 'cost': 1 },
+                        'asset_pairs': { 'cost': 1 },
+                        'asset_pairs/{asset_pair_name}/depth': { 'cost': 1 },
+                        'asset_pairs/{asset_pair_name}/trades': { 'cost': 1 },
+                        'asset_pairs/{asset_pair_name}/ticker': { 'cost': 1 },
+                        'asset_pairs/{asset_pair_name}/candles': { 'cost': 1 },
+                        'asset_pairs/tickers': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'fund/accounts',
-                        'assets/{asset_symbol}/address',
-                        'orders',
-                        'orders/{id}',
-                        'orders/multi',
-                        'trades',
-                        'withdrawals',
-                        'deposits',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/{id}/cancel',
-                        'orders/cancel',
-                        'withdrawals',
-                        'transfer',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1 },
+                        'fund/accounts': { 'cost': 1 },
+                        'assets/{asset_symbol}/address': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'orders/multi': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'deposits': { 'cost': 1 },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'orders/{id}/cancel': { 'cost': 1 },
+                        'orders/cancel': { 'cost': 1 },
+                        'withdrawals': { 'cost': 1 },
+                        'transfer': { 'cost': 1 },
+                    },
                 },
                 'contractPublic': {
-                    'get': [
-                        'symbols',
-                        'instruments',
-                        'depth@{symbol}/snapshot',
-                        'instruments/difference',
-                        'instruments/prices',
-                    ],
+                    'get': {
+                        'symbols': { 'cost': 1 },
+                        'instruments': { 'cost': 1 },
+                        'depth@{symbol}/snapshot': { 'cost': 1 },
+                        'instruments/difference': { 'cost': 1 },
+                        'instruments/prices': { 'cost': 1 },
+                    },
                 },
                 'contractPrivate': {
-                    'get': [
-                        'accounts',
-                        'orders/{id}',
-                        'orders',
-                        'orders/opening',
-                        'orders/count',
-                        'orders/opening/count',
-                        'trades',
-                        'trades/count',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/batch',
-                    ],
-                    'put': [
-                        'positions/{symbol}/margin',
-                        'positions/{symbol}/risk-limit',
-                    ],
-                    'delete': [
-                        'orders/{id}',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'accounts': { 'cost': 1 },
+                        'orders/{id}': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'orders/opening': { 'cost': 1 },
+                        'orders/count': { 'cost': 1 },
+                        'orders/opening/count': { 'cost': 1 },
+                        'trades': { 'cost': 1 },
+                        'trades/count': { 'cost': 1 },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                    },
+                    'put': {
+                        'positions/{symbol}/margin': { 'cost': 1 },
+                        'positions/{symbol}/risk-limit': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'orders/{id}': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                    },
                 },
                 'webExchange': {
-                    'get': [
-                        'v3/assets',
-                    ],
+                    'get': {
+                        'v3/assets': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -202,7 +202,9 @@ class bigone extends bigone$1["default"] {
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'fund': 'FUND',
@@ -540,31 +542,33 @@ class bigone extends bigone$1["default"] {
             const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
             const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
             const precision = this.parsePrecision(this.safeString2(chain, 'withdrawal_scale', 'scale'));
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.parseNumber(withdrawalFee),
-                'precision': this.parseNumber(precision),
-                'limits': {
-                    'deposit': {
-                        'min': minDepositAmount,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.parseNumber(withdrawalFee),
+                    'precision': this.parseNumber(precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': minWithdrawalAmount,
-                        'max': undefined,
-                    },
-                },
-                'info': chain,
-            };
+                    'info': chain,
+                };
+            }
         }
         const chainLength = chains.length;
         let type = undefined;
-        if (this.safeBool(rawCurrency, 'is_fiat')) {
+        if (this.safeBool(rawCurrency, 'is_fiat') === true) {
             type = 'fiat';
         }
         else if (chainLength === 0) {
@@ -728,8 +732,9 @@ class bigone extends bigone$1["default"] {
                 'info': market,
             }));
         }
-        for (let i = 0; i < contractResponse.length; i++) {
-            const market = contractResponse[i];
+        const contractMarkets = this.toArray(contractResponse);
+        for (let i = 0; i < contractMarkets.length; i++) {
+            const market = contractMarkets[i];
             const baseId = this.safeString(market, 'baseCurrency');
             const quoteId = this.safeString(market, 'quoteCurrency');
             const settleId = this.safeString(market, 'settleCurrency');
@@ -755,7 +760,7 @@ class bigone extends bigone$1["default"] {
                 'option': false,
                 'active': this.safeBool(market, 'enable'),
                 'contract': true,
-                'linear': !inverse,
+                'linear': (inverse !== true),
                 'inverse': inverse,
                 'contractSize': this.safeNumber(market, 'multiplier'),
                 'expiry': undefined,
@@ -972,7 +977,8 @@ class bigone extends bigone$1["default"] {
             data = this.safeList(response, 'data', []);
         }
         else {
-            data = await this.contractPublicGetInstruments(params);
+            const instruments = await this.contractPublicGetInstruments(params);
+            data = this.toArray(instruments);
             //
             //    [
             //        {
@@ -1021,6 +1027,9 @@ class bigone extends bigone$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'Timestamp');
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         return this.parseToInt(timestamp / 1000000);
     }
     /**
@@ -1031,7 +1040,7 @@ class bigone extends bigone$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1039,7 +1048,7 @@ class bigone extends bigone$1["default"] {
         }
         const market = this.market(symbol);
         let response;
-        if (market['contract']) {
+        if (market['contract'] === true) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1287,7 +1296,7 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new errors.NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
@@ -1356,7 +1365,7 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract']) {
+        if (market['contract'] === true) {
             throw new errors.NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
@@ -1426,7 +1435,9 @@ class bigone extends bigone$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'balance');
             account['used'] = this.safeString(balance, 'locked_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1510,7 +1521,7 @@ class bigone extends bigone$1["default"] {
         }
         const immediateOrCancel = this.safeBool(order, 'immediate_or_cancel');
         let timeInForce = undefined;
-        if (immediateOrCancel) {
+        if (immediateOrCancel === true) {
             timeInForce = 'IOC';
         }
         const type = this.parseType(this.safeString(order, 'type'));
@@ -1564,7 +1575,7 @@ class bigone extends bigone$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1602,7 +1613,7 @@ class bigone extends bigone$1["default"] {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool(params, 'post_only', false);
         let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
+        [postOnly, params] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1620,7 +1631,7 @@ class bigone extends bigone$1["default"] {
                 if (timeInForce === 'IOC') {
                     request['immediate_or_cancel'] = true;
                 }
-                if (postOnly) {
+                if (postOnly === true) {
                     request['post_only'] = true;
                 }
             }
@@ -1628,7 +1639,7 @@ class bigone extends bigone$1["default"] {
         }
         else {
             if (isBuy) {
-                let createMarketBuyOrderRequiresPrice = true;
+                let createMarketBuyOrderRequiresPrice = undefined;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 const cost = this.safeNumber(params, 'cost');
                 params = this.omit(params, 'cost');
@@ -1683,7 +1694,7 @@ class bigone extends bigone$1["default"] {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order, market);
     }
     /**
@@ -1714,7 +1725,7 @@ class bigone extends bigone$1["default"] {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     /**
@@ -1722,7 +1733,7 @@ class bigone extends bigone$1["default"] {
      * @name bigone#cancelAllOrders
      * @description cancel all open orders
      * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1957,7 +1968,7 @@ class bigone extends bigone$1["default"] {
         let url = baseUrl + '/' + this.implodeParams(path, params);
         headers = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1973,7 +1984,7 @@ class bigone extends bigone$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -2286,7 +2297,7 @@ class bigone extends bigone$1["default"] {
         const transfer = this.parseTransfer(response, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
+        if (fillResponseFromRequest === true) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;

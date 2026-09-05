@@ -24,40 +24,42 @@ jobs:
         run: |
           echo "This workflow was triggered manually."
           echo "Input value: ${{ github.event.inputs.example_input }}"
-      - uses: actions/checkout@v4
+      - name: Generate App token
         if: github.ref == 'refs/heads/master'
+        id: app-token
+        uses: actions/create-github-app-token@v3
         with:
-          token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 2
-          fetch-tags: true
-      - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@v6
         with:
+          token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
           fetch-depth: 2
+          clean: false
           fetch-tags: true
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4.6'
+          php-version: '8.5'
           # cache: true
           ini-values: |
             zend.assertions=1
             display_errors=On
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - name: create usr/share/dotnet folder
         run: |
           sudo mkdir -p /usr/share/dotnet
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
-          dotnet-quality: 'preview'
+          dotnet-version: '10.0.x'
           run: |
             sudo mkdir -p /usr/share/dotnet
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'   # or '20' – but match what :lib is targeting
@@ -66,7 +68,7 @@ jobs:
       - name: Composer install
         run: composer install
       - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
+        run: pip install -r build/ci-requirements.txt
       - name: Install Python build tools
         run: pip install build twine
       - name: export exchanges (remove later)
@@ -83,6 +85,8 @@ jobs:
         run: npm run request-tests
       - name: Response tests
         run: npm run response-tests
+      - name: Ws tests
+        run: npm run ws-tests
       - name: CommonJs tests
         run: npm run commonjs-test
       - name: Package Test
@@ -105,29 +109,76 @@ jobs:
           git add -f exchanges.json
       - name: Git status
         run: git status
-      - name: cleanup old tags
-        run: npm run cleanup-old-tags --limit
+      # - name: cleanup old tags
+      #   run: npm run cleanup-old-tags --limit
+      - name: Get App bot user ID
+        if: github.ref == 'refs/heads/master'
+        id: app-user
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+            | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+          echo "id=${id}" >> "$GITHUB_OUTPUT"
       - name: Generate Release Notes
         env:
           COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSION: ${{ env.NPM_VERSION }}
         run: |
                echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
-               git config --global user.name "github-actions[bot]"
-               git config --global user.email "github-actions[bot]@users.noreply.github.com"
+               git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+               git config --global user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
                git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
-               git push origin HEAD:master
+
+               # same retry pattern as the per-language workflows: master can move
+               # while the release builds, so rebase onto it before every attempt
+               pushed=""
+               for attempt in 1 2 3 4 5; do
+                 git fetch origin master
+                 git rebase --autostash origin/master
+                 if git push origin HEAD:master; then
+                   echo "pushed on attempt ${attempt}"
+                   pushed="yes"
+                   break
+                 fi
+                 echo "master moved, retrying (${attempt})..."
+                 sleep $(( (RANDOM % 5) + 2 ))
+               done
+               if [ -z "$pushed" ]; then
+                 echo "push failed after 5 attempts"
+                 exit 1
+               fi
+
                git fetch --tags --depth=1
                PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
                echo "Previous tag: ${PREVIOUS_TAG}"
 
+               # tag names are unique per release so they cannot race with master —
+               # retry transient failures only, and treat an already-present remote
+               # tag (pushed but response lost) as success
+               push_tag () {
+                 for attempt in 1 2 3 4 5; do
+                   if git push origin "$1"; then
+                     return 0
+                   fi
+                   if git ls-remote --exit-code --tags origin "refs/tags/$1" > /dev/null; then
+                     echo "tag $1 already on the remote"
+                     return 0
+                   fi
+                   echo "pushing tag $1 failed, retrying (${attempt})..."
+                   sleep $(( (RANDOM % 5) + 2 ))
+                 done
+                 echo "pushing tag $1 failed after 5 attempts"
+                 return 1
+               }
 
                git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
-               git push origin "go/${VERSION}"
+               push_tag "go/${VERSION}"
 
                git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
-               git push origin "${VERSION}"
+               push_tag "${VERSION}"
 
                echo "Creating GitHub release from ${VERSION}…"
                gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
@@ -165,6 +216,54 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
         run: npm run publishJava
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Generate Rust sources
+        run: npm run transpileRust
+      - name: Publish Rust crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -e
+          # `--allow-dirty` is required, not a shortcut: the transpiled Rust
+          # output is generated at build time and deliberately not committed,
+          # and cargo lists package files from git. Without it the crates would
+          # publish missing every exchange.
+          #
+          # ccxt-base first — the other three depend on it, and crates.io will
+          # reject them until its version is live in the index. `cargo publish`
+          # waits for the index by default; the retry loop covers the window
+          # where propagation is slower than that wait.
+          #
+          # NPM_VERSION comes from `npm version` and is prefixed with a "v"
+          # (v4.5.x); crates.io versions are bare, so strip it before matching
+          # against `cargo search` output.
+          CRATE_VERSION="${NPM_VERSION#v}"
+          publish () {
+            local crate="$1"
+            for attempt in 1 2 3 4 5; do
+              if cargo publish -p "$crate" --allow-dirty --manifest-path rust/Cargo.toml; then
+                echo "published $crate"
+                return 0
+              fi
+              if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
+                echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
+                return 0
+              fi
+              echo "publish $crate failed (attempt $attempt), retrying in 30s…"
+              sleep 30
+            done
+            echo "could not publish $crate"
+            return 1
+          }
+          publish ccxt-base
+          publish ccxt
+          publish ccxt-pro
+          publish ccxt-prediction
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}

@@ -84,7 +84,7 @@
                         "network": "SOL"
                     }
                 ],
-                "output": "{\"currency\":\"USDT\",\"address\":\"Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC\",\"amount\":\"5\",\"chain\":\"SOL\"}"
+                "output": { "currency": "USDT", "address": "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC", "amount": "5", "chain": "SOL" }
             }
         ],
         "createOrder": [
@@ -103,7 +103,7 @@
                         "clientOrderId": "myCustomId"
                     }
                 ],
-                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"51\",\"text\":\"myCustomId\"},\"trigger\":{\"price_type\":0,\"price\":\"50\",\"rule\":2}}"
+                "output": { "initial": { "contract": "LTC_USDT", "size": -1, "price": "51", "text": "myCustomId" }, "trigger": { "price_type": 0, "price": "50", "rule": 2 } }
             },
             {
                 "description": "order with non ascii symbol",
@@ -115,7 +115,7 @@
                     "buy",
                     100
                 ],
-                "output": "{\"contract\":\"人生K线_USDT\",\"size\":100,\"price\":\"0\",\"tif\":\"ioc\"}"
+                "output": { "contract": "人生K线_USDT", "size": 100, "price": "0", "tif": "ioc" }
             },
             {
                 "description": "Spot limit buy order",
@@ -128,7 +128,7 @@
                     0.1,
                     50
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"50\"}"
+                "output": { "currency_pair": "LTC_USDT", "type": "limit", "account": "spot", "side": "buy", "amount": "0.1", "price": "50" }
             },
             {
                 "description": "Swap limit buy order",
@@ -141,7 +141,7 @@
                     1,
                     50
                 ],
-                "output": "{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"50\"}"
+                "output": { "contract": "LTC_USDT", "size": 1, "price": "50" }
             },
             {
                 "description": "Spot market buy with createMarketBuyOrderRequiresPrice set to false",
@@ -157,7 +157,7 @@
                         "createMarketBuyOrderRequiresPrice": false
                     }
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
+                "output": { "currency_pair": "BTC_USDT", "type": "market", "account": "spot", "side": "buy", "amount": "5", "time_in_force": "ioc" }
             },
             {
                 "description": "Spot market buy order using the cost param",
@@ -173,7 +173,7 @@
                         "cost": 5
                     }
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
+                "output": { "currency_pair": "BTC_USDT", "type": "market", "account": "spot", "side": "buy", "amount": "5", "time_in_force": "ioc" }
             },
             {
                 "description": "Spot market sell order",
@@ -186,7 +186,7 @@
                     0.0001,
                     null
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"time_in_force\":\"ioc\"}"
+                "output": { "currency_pair": "BTC_USDT", "type": "market", "account": "spot", "side": "sell", "amount": "0.0001", "time_in_force": "ioc" }
             },
             {
                 "description": "Spot limit sell order",
@@ -199,7 +199,7 @@
                     0.0001,
                     55000
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"sell\",\"amount\":\"0.0001\",\"price\":\"55000\"}"
+                "output": { "currency_pair": "BTC_USDT", "type": "limit", "account": "spot", "side": "sell", "amount": "0.0001", "price": "55000" }
             },
             {
                 "description": "swap limit sell",
@@ -212,7 +212,7 @@
                   1,
                   100
                 ],
-                "output": "{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"100\"}"
+                "output": { "contract": "LTC_USDT", "size": -1, "price": "100" }
             },
             {
                 "description": "swap trigger market buy order",
@@ -228,7 +228,7 @@
                     "triggerPrice": 90
                   }
                 ],
-                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"0\",\"tif\":\"ioc\"},\"trigger\":{\"price_type\":0,\"price\":\"90\",\"rule\":1}}"
+                "output": { "initial": { "contract": "LTC_USDT", "size": 1, "price": "0", "tif": "ioc" }, "trigger": { "price_type": 0, "price": "90", "rule": 1 } }
             },
             {
                 "description": "swap limit trigger order",
@@ -244,7 +244,7 @@
                     "triggerPrice": 90
                   }
                 ],
-                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"70\"},\"trigger\":{\"price_type\":0,\"price\":\"90\",\"rule\":1}}"
+                "output": { "initial": { "contract": "LTC_USDT", "size": 1, "price": "70" }, "trigger": { "price_type": 0, "price": "90", "rule": 1 } }
             },
             {
                 "description": "swap market buy",
@@ -256,7 +256,7 @@
                   "buy",
                   1
                 ],
-                "output": "{\"contract\":\"XRP_USDT\",\"size\":1,\"price\":\"0\",\"tif\":\"ioc\"}"
+                "output": { "contract": "XRP_USDT", "size": 1, "price": "0", "tif": "ioc" }
             },
             {
                 "description": "swap market sell",
@@ -268,7 +268,7 @@
                   "sell",
                   1
                 ],
-                "output": "{\"contract\":\"XRP_USDT\",\"size\":-1,\"price\":\"0\",\"tif\":\"ioc\"}"
+                "output": { "contract": "XRP_USDT", "size": -1, "price": "0", "tif": "ioc" }
             },
             {
                 "description": "unified spot create a limit order",
@@ -284,7 +284,7 @@
                     "unifiedAccount": true
                   }
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"unified\",\"side\":\"buy\",\"amount\":\"0.0001\",\"price\":\"52000\"}"
+                "output": { "currency_pair": "BTC_USDT", "type": "limit", "account": "unified", "side": "buy", "amount": "0.0001", "price": "52000" }
             }
         ],
         "createOrders": [
@@ -310,7 +310,7 @@
                     }
                   ]
                 ],
-                "output": "[{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.1\",\"price\":\"60\",\"text\":\"t-bf834c9f04d59e30\",\"textIsRequired\":true},{\"currency_pair\":\"LTC_USDT\",\"type\":\"limit\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"0.11\",\"price\":\"61\",\"text\":\"t-c3cd85c964249171\",\"textIsRequired\":true}]"
+                "output": [ { "currency_pair": "LTC_USDT", "type": "limit", "account": "spot", "side": "buy", "amount": "0.1", "price": "60", "text": "t-bf834c9f04d59e30", "textIsRequired": true }, { "currency_pair": "LTC_USDT", "type": "limit", "account": "spot", "side": "buy", "amount": "0.11", "price": "61", "text": "t-c3cd85c964249171", "textIsRequired": true } ]
             },
             {
                 "description": "create swap orders",
@@ -334,7 +334,7 @@
                     }
                   ]
                 ],
-                "output": "[{\"contract\":\"LTC_USDT\",\"size\":1,\"settle\":\"usdt\",\"price\":\"60\",\"text\":\"t-a5b9aed2c46ea556\",\"textIsRequired\":true},{\"contract\":\"LTC_USDT\",\"size\":1,\"settle\":\"usdt\",\"price\":\"61\",\"text\":\"t-3976273d648ba9a6\",\"textIsRequired\":true}]"
+                "output": [ { "contract": "LTC_USDT", "size": 1, "settle": "usdt", "price": "60", "text": "t-a5b9aed2c46ea556", "textIsRequired": true }, { "contract": "LTC_USDT", "size": 1, "settle": "usdt", "price": "61", "text": "t-3976273d648ba9a6", "textIsRequired": true } ]
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -346,7 +346,7 @@
                     "BTC/USDT",
                     5
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"market\",\"account\":\"spot\",\"side\":\"buy\",\"amount\":\"5\",\"time_in_force\":\"ioc\"}"
+                "output": { "currency_pair": "BTC_USDT", "type": "market", "account": "spot", "side": "buy", "amount": "5", "time_in_force": "ioc" }
             }
         ],
         "editOrder": [
@@ -362,7 +362,7 @@
                     0.11,
                     null
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"spot\",\"amount\":\"0.11\"}"
+                "output": { "currency_pair": "LTC_USDT", "account": "spot", "amount": "0.11" }
             },
             {
                 "description": "Edit price on swap order",
@@ -376,7 +376,7 @@
                     null,
                     55
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"price\":\"55\"}"
+                "output": { "currency_pair": "LTC_USDT", "account": "futures", "price": "55" }
             },
             {
                 "description": "edit swap amount",
@@ -390,7 +390,7 @@
                   2,
                   54
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":2,\"price\":\"54\"}"
+                "output": { "currency_pair": "LTC_USDT", "account": "futures", "size": 2, "price": "54" }
             },
             {
                 "description": "edit swap sell order",
@@ -404,7 +404,7 @@
                   2,
                   101
                 ],
-                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":-2,\"price\":\"101\"}"
+                "output": { "currency_pair": "LTC_USDT", "account": "futures", "size": -2, "price": "101" }
             },
             {
                 "description": "unified spot edit an order",
@@ -421,7 +421,7 @@
                     "unifiedAccount": true
                   }
                 ],
-                "output": "{\"currency_pair\":\"BTC_USDT\",\"account\":\"unified\",\"price\":\"51000\"}"
+                "output": { "currency_pair": "BTC_USDT", "account": "unified", "price": "51000" }
             }
         ],
         "fetchPositions": [
@@ -1030,7 +1030,7 @@
                     "swap",
                     "spot"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"USDT\"}"
+                "output": { "currency": "USDT", "amount": "1", "from": "futures", "to": "spot", "settle": "USDT" }
             }
         ],
         "fetchFundingHistory": [
@@ -1724,12 +1724,12 @@
                   ],
                   "LTC/USDT"
                 ],
-                "output": "[{\"id\":\"t-bf834c9f04d59e30\",\"currency_pair\":\"LTC_USDT\"},{\"id\":\"t-c3cd85c964249171\",\"currency_pair\":\"LTC_USDT\"}]"
+                "output": [ { "id": "t-bf834c9f04d59e30", "currency_pair": "LTC_USDT" }, { "id": "t-c3cd85c964249171", "currency_pair": "LTC_USDT" } ]
             },
             {
                 "description": "cancel swap orders",
                 "method": "cancelOrders",
-                "url": "https://api.gateio.ws/api/v4/futures/usdt/batch_cancel_orders",
+                "url": "https://api.gateio.ws/api/v4/futures/USDT/batch_cancel_orders",
                 "input": [
                   [
                     "495649711905",
@@ -1737,7 +1737,7 @@
                   ],
                   "LTC/USDT:USDT"
                 ],
-                "output": "[\"495649711905\",\"495649711903\"]"
+                "output": [ "495649711905", "495649711903" ]
             },
             {
                 "description": "unified spot cancel orders",
@@ -1752,7 +1752,7 @@
                     "unifiedAccount": true
                   }
                 ],
-                "output": "[{\"id\":\"707359349827\",\"currency_pair\":\"BTC_USDT\"}]"
+                "output": [ { "id": "707359349827", "currency_pair": "BTC_USDT" } ]
             }
         ],
         "reduceMargin": [
@@ -1804,7 +1804,7 @@
                     "USDT",
                     1
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+                "output": { "currency": "USDT", "amount": "1" }
             },
             {
                 "description": "unified borrow margin",
@@ -1817,7 +1817,7 @@
                     "unifiedAccount": true
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"borrow\"}"
+                "output": { "currency": "USDT", "amount": "5", "type": "borrow" }
             }
         ],
         "repayCrossMargin": [
@@ -1829,7 +1829,7 @@
                     "USDT",
                     1
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+                "output": { "currency": "USDT", "amount": "1" }
             },
             {
                 "description": "unified repay margin",
@@ -1842,7 +1842,7 @@
                     "unifiedAccount": true
                   }
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"repay\"}"
+                "output": { "currency": "USDT", "amount": "5", "type": "repay" }
             }
         ],
         "borrowIsolatedMargin": [
@@ -1855,7 +1855,7 @@
                     "USDT",
                     1
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"borrow\"}"
+                "output": { "currency": "USDT", "amount": "1", "currency_pair": "XRP_USDT", "type": "borrow" }
             }
         ],
         "repayIsolatedMargin": [
@@ -1868,7 +1868,7 @@
                     "USDT",
                     1
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"XRP_USDT\",\"type\":\"repay\"}"
+                "output": { "currency": "USDT", "amount": "1", "currency_pair": "XRP_USDT", "type": "repay" }
             }
         ],
         "closePosition": [
@@ -1879,7 +1879,7 @@
                 "input": [
                     "XRP/USDT:USDT"
                 ],
-                "output": "{\"contract\":\"XRP_USDT\",\"size\":0,\"price\":\"0\",\"tif\":\"ioc\",\"close\":true}"
+                "output": { "contract": "XRP_USDT", "size": 0, "price": "0", "tif": "ioc", "close": true }
             }
         ],
         "fetchMarketLeverageTiers": [

@@ -28,7 +28,7 @@ export default class onetrading extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -164,35 +164,36 @@ export default class onetrading extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'candlesticks/{instrument_code}',
-                        'fees',
-                        'instruments',
-                        'order-book/{instrument_code}',
-                        'market-ticker',
-                        'market-ticker/{instrument_code}',
-                        'time',
-                    ],
+                    'get': {
+                        'currencies': { 'cost': 1 },
+                        'candlesticks/{instrument_code}': { 'cost': 1 },
+                        'fees': { 'cost': 1 },
+                        'instruments': { 'cost': 1 },
+                        'order-book/{instrument_code}': { 'cost': 1 },
+                        'market-ticker': { 'cost': 1 },
+                        'market-ticker/{instrument_code}': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account/balances',
-                        'account/fees',
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/{order_id}/trades',
-                        'account/trades',
-                        'account/trades/{trade_id}',
-                    ],
-                    'post': [
-                        'account/orders',
-                    ],
-                    'delete': [
-                        'account/orders',
-                        'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
-                    ],
+                    'get': {
+                        'account/balances': { 'cost': 1 },
+                        'account/fees': { 'cost': 1 },
+                        'account/orders': { 'cost': 1 },
+                        'account/orders/{order_id}': { 'cost': 1 },
+                        'account/orders/client/{client_id}': { 'cost': 1 },
+                        'account/orders/{order_id}/trades': { 'cost': 1 },
+                        'account/trades': { 'cost': 1 },
+                        'account/trade/{trade_id}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'account/orders': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'account/orders': { 'cost': 1 },
+                        'account/orders/{order_id}': { 'cost': 1 },
+                        'account/orders/client/{client_id}': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -356,7 +357,7 @@ export default class onetrading extends Exchange {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 100000, // todo
-                        'untilDays': 100000, // todo
+                        'untilDays': 30, // days between start-end
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -368,6 +369,7 @@ export default class onetrading extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -378,7 +380,7 @@ export default class onetrading extends Exchange {
                         'limit': 100,
                         'daysBack': 100000, // todo
                         'daysBackCanceled': 1 / 12, // todo
-                        'untilDays': 100000, // todo
+                        'untilDays': 30, // days between start-end
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -538,7 +540,7 @@ export default class onetrading extends Exchange {
         if (isPerp) {
             symbol = symbol + ':' + quote;
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -586,7 +588,7 @@ export default class onetrading extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -671,10 +673,11 @@ export default class onetrading extends Exchange {
         const firstSpotTier = this.safeDict(spotTiers, 0, {});
         const firstFuturesTier = this.safeDict(futuresTiers, 0, {});
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
-            const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
+            const tierObject = (market['spot'] === true) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -737,11 +740,12 @@ export default class onetrading extends Exchange {
         futuresTakerFee = Precise.stringDiv(futuresTakerFee, '100');
         const result = {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
-            const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
-            const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
+            const makerFee = (market['spot'] === true) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (market['spot'] === true) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -898,10 +902,13 @@ export default class onetrading extends Exchange {
         //     ]
         //
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker(response[i]);
+        const rawTickers = this.toArray(response);
+        for (let i = 0; i < rawTickers.length; i++) {
+            const ticker = this.parseTicker(rawTickers[i]);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -913,7 +920,7 @@ export default class onetrading extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1017,10 +1024,16 @@ export default class onetrading extends Exchange {
             'MONTHS': 'M',
         };
         const lowercaseUnit = this.safeString(units, unit);
+        if ((period === undefined) || (lowercaseUnit === undefined)) {
+            throw new ExchangeError(this.id + ' parseOHLCV() missing period/unit');
+        }
         const timeframe = period + lowercaseUnit;
         const durationInSeconds = this.parseTimeframe(timeframe);
         const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601(this.safeString(ohlcv, 'time'));
+        if (timestamp === undefined) {
+            throw new ExchangeError(this.id + ' parseOHLCV() missing timestamp');
+        }
         const alignedTimestamp = duration * this.parseToInt(timestamp / duration);
         const options = this.safeValue(this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString(options, 'volume', 'total_amount');
@@ -1051,6 +1064,9 @@ export default class onetrading extends Exchange {
         }
         const market = this.market(symbol);
         const periodUnit = this.safeString(this.timeframes, timeframe);
+        if (periodUnit === undefined) {
+            throw new ExchangeError(this.id + ' fetchOHLCV() missing periodUnit');
+        }
         const [period, unit] = periodUnit.split('/');
         const durationInSeconds = this.parseTimeframe(timeframe);
         const duration = durationInSeconds * 1000;
@@ -1175,7 +1191,9 @@ export default class onetrading extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1212,16 +1230,17 @@ export default class onetrading extends Exchange {
     }
     parseOrderStatus(status) {
         const statuses = {
-            'FILLED': 'open',
+            'OPEN': 'open',
+            'BOOKED': 'open',
+            'FILL': 'open',
+            'MOVED': 'open',
             'FILLED_FULLY': 'closed',
             'FILLED_CLOSED': 'canceled',
             'FILLED_REJECTED': 'rejected',
-            'OPEN': 'open',
-            'REJECTED': 'rejected',
-            'CLOSED': 'canceled',
-            'FAILED': 'failed',
-            'STOP_TRIGGERED': 'triggered',
-            'DONE': 'closed',
+            'CANCELLED': 'canceled',
+            'INSUFFICIENT_FUNDS': 'rejected',
+            'INSUFFICIENT_LIQUIDITY': 'rejected',
+            'RISK_FAILED_OVER_MAX_POSITION': 'rejected',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1296,8 +1315,7 @@ export default class onetrading extends Exchange {
         const id = this.safeString(rawOrder, 'order_id');
         const clientOrderId = this.safeString(rawOrder, 'client_id');
         const timestamp = this.parse8601(this.safeString(rawOrder, 'time'));
-        const rawStatus = this.parseOrderStatus(this.safeString(rawOrder, 'status'));
-        const status = this.parseOrderStatus(rawStatus);
+        const status = this.parseOrderStatus(this.safeString(rawOrder, 'status'));
         const marketId = this.safeString(rawOrder, 'instrument_code');
         const symbol = this.safeSymbol(marketId, market, '_');
         const price = this.safeString(rawOrder, 'price');
@@ -1316,7 +1334,7 @@ export default class onetrading extends Exchange {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': this.parseOrderType(type),
+            'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -1332,18 +1350,13 @@ export default class onetrading extends Exchange {
             'trades': rawTrades,
         }, market);
     }
-    parseOrderType(type) {
-        const types = {
-            'booked': 'limit',
-        };
-        return this.safeString(types, type, type);
-    }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
             'IMMEDIATE_OR_CANCELLED': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            'POST_ONLY': 'PO',
         };
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
@@ -1367,6 +1380,9 @@ export default class onetrading extends Exchange {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'instrument_code': market['id'],
             'type': uppercaseType, // LIMIT, MARKET, STOP
@@ -1431,7 +1447,7 @@ export default class onetrading extends Exchange {
      * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
      * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
      * @param {string} id order id
-     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1467,7 +1483,7 @@ export default class onetrading extends Exchange {
      * @name onetrading#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1581,9 +1597,10 @@ export default class onetrading extends Exchange {
      * @description fetch all unfilled currently open orders
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [since] the earliest time in ms to fetch open orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1592,11 +1609,11 @@ export default class onetrading extends Exchange {
         }
         const request = {
         // 'from': this.iso8601 (since),
-        // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+        // 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
         // 'instrument_code': market['id'],
         // 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         // 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
-        // 'with_just_orders': false, // do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
+        // 'with_just_orders': false, // do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
         // 'max_page_size': 100,
         // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         };
@@ -1606,11 +1623,12 @@ export default class onetrading extends Exchange {
             request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            const to = this.safeString(params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
-            }
             request['from'] = this.iso8601(since);
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = this.iso8601(until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
@@ -1704,9 +1722,10 @@ export default class onetrading extends Exchange {
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.onetrading.com/rest/trading/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [since] the earliest time in ms to fetch orders for, the maximum window between since and until is 30 days
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1783,9 +1802,10 @@ export default class onetrading extends Exchange {
      * @description fetch all trades made by the user
      * @see https://docs.onetrading.com/rest/trading/get-trades
      * @param {string} symbol unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for, the maximum window between since and until is 30 days, when until is omitted the exchange defaults to 7 days after since
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1794,7 +1814,7 @@ export default class onetrading extends Exchange {
         }
         const request = {
         // 'from': this.iso8601 (since),
-        // 'to': this.iso8601 (this.milliseconds ()), // max range is 100 days
+        // 'to': this.iso8601 (this.milliseconds ()), // max range is 30 days
         // 'instrument_code': market['id'],
         // 'max_page_size': 100,
         // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
@@ -1805,11 +1825,12 @@ export default class onetrading extends Exchange {
             request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            const to = this.safeString(params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
-            }
             request['from'] = this.iso8601(since);
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['to'] = this.iso8601(until);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
@@ -1852,7 +1873,7 @@ export default class onetrading extends Exchange {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1867,7 +1888,7 @@ export default class onetrading extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
             else {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

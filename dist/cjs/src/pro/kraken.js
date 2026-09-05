@@ -129,7 +129,7 @@ class kraken extends kraken$1["default"] {
         const isMarket = (type === 'market');
         let postOnly = undefined;
         [postOnly, params] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly) {
+        if (postOnly === true) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -168,7 +168,7 @@ class kraken extends kraken$1["default"] {
         const priceType = (isTrailingPercentOrder || isTrailingLimitPercentOrder) ? 'pct' : 'quote';
         if (method === 'createOrderWs') {
             const reduceOnly = this.safeBool(params, 'reduceOnly');
-            if (reduceOnly) {
+            if (reduceOnly === true) {
                 request['params']['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower(params, 'timeInForce');
@@ -283,7 +283,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#createOrderWs
      * @description create a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -349,7 +349,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#editOrderWs
      * @description edit a trade order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -381,7 +381,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#cancelOrdersWs
      * @description cancel multiple orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -410,7 +410,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#cancelOrderWs
      * @description cancels an open order
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -455,7 +455,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#cancelAllOrdersWs
      * @description cancel all open orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -621,7 +621,7 @@ class kraken extends kraken$1["default"] {
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -630,16 +630,16 @@ class kraken extends kraken$1["default"] {
         }
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const candle = data[ohlcvsLength - i - 1];
+            const candle = data[i];
             const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
                 timestamp,
-                this.safeString(candle, 'open'),
-                this.safeString(candle, 'high'),
-                this.safeString(candle, 'low'),
-                this.safeString(candle, 'close'),
-                this.safeString(candle, 'volume'),
+                this.safeNumber(candle, 'open'),
+                this.safeNumber(candle, 'high'),
+                this.safeNumber(candle, 'low'),
+                this.safeNumber(candle, 'close'),
+                this.safeNumber(candle, 'volume'),
             ];
             stored.append(parsed);
         }
@@ -657,7 +657,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -672,7 +672,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -692,7 +692,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -713,21 +713,21 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
      * @name kraken#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -747,24 +747,24 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
      * @name kraken#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.kraken.com/api/docs/websocket-v2/book
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const requiredParams = {};
@@ -783,7 +783,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -824,7 +824,7 @@ class kraken extends kraken$1["default"] {
             if (symbols !== undefined) {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
-                    const market = this.markets[symbol];
+                    const market = this.market(symbol);
                     const info = this.safeValue(market, 'info', {});
                     const wsName = this.safeString(info, 'wsname');
                     marketsByWsName[wsName] = market;
@@ -954,7 +954,8 @@ class kraken extends kraken$1["default"] {
                 const key = keys[i];
                 const bookside = orderbook[key];
                 const deltas = this.safeValue(first, key, []);
-                if (deltas.length > 0) {
+                const deltasLength = deltas.length;
+                if (deltasLength > 0) {
                     this.customHandleDeltas(bookside, deltas);
                 }
             }
@@ -963,7 +964,7 @@ class kraken extends kraken$1["default"] {
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
         const checksum = this.handleOption('watchOrderBook', 'checksum', false);
-        if (checksum) {
+        if (checksum === true) {
             const payloadArray = [];
             if (c !== undefined) {
                 const checkAsks = orderbook['asks'];
@@ -1062,20 +1063,59 @@ class kraken extends kraken$1["default"] {
         const start = this.safeInteger(subscription, 'start');
         const expires = this.safeInteger(subscription, 'expires');
         if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
-            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            const response = await this.privatePostGetWebSocketsToken(params);
-            //
-            //     {
-            //         "error":[],
-            //         "result":{
-            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            //             "expires":900
-            //         }
-            //     }
-            //
-            subscription = this.safeDict(response, 'result');
-            subscription['start'] = now;
-            client.subscriptions[authenticated] = subscription;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate token. client.futures is the flight registry
+            // itself, namespaced away from the real subscription keys on the
+            // same client that already caches the token, and settlement goes
+            // through client.resolve () / client.reject () so every write to
+            // that map stays behind the client's own lock
+            const messageHash = 'authenticateFlight';
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the subscriptions bucket
+                await client.future(messageHash);
+                subscription = this.safeDict(client.subscriptions, authenticated);
+                return this.safeString(subscription, 'token');
+            }
+            const future = client.reusableFuture(messageHash);
+            try {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                const response = await this.privatePostGetWebSocketsToken(params);
+                //
+                //     {
+                //         "error":[],
+                //         "result":{
+                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                //             "expires":900
+                //         }
+                //     }
+                //
+                subscription = this.safeDict(response, 'result');
+                const token = this.safeString(subscription, 'token');
+                if (token === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new errors.AuthenticationError(this.id + ' authenticate() received an empty token');
+                }
+                subscription['start'] = now;
+                client.subscriptions[authenticated] = subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                client.resolve(token, messageHash);
+            }
+            catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
+            }
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            await future;
+            subscription = this.safeDict(client.subscriptions, authenticated);
         }
         return this.safeString(subscription, 'token');
     }
@@ -1105,13 +1145,13 @@ class kraken extends kraken$1["default"] {
         if (this.newUpdates) {
             limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
     }
     /**
      * @method
      * @name kraken#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1240,15 +1280,15 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} [params] maximum number of orderic to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.watchPrivate('orders', symbol, since, limit, this.extend(params, { 'snap_orders': true }));
+    watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.watchPrivate('orders', symbol, since, limit, this.extend(params, { 'snap_orders': true }));
     }
     handleOrders(client, message, subscription = undefined) {
         //
@@ -1425,7 +1465,7 @@ class kraken extends kraken$1["default"] {
      * @method
      * @name kraken#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1598,7 +1638,7 @@ class kraken extends kraken$1["default"] {
                 method.call(this, client, message);
             }
         }
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             const event = this.safeString2(message, 'event', 'method');
             const methods = {
                 'heartbeat': this.handleHeartbeat,

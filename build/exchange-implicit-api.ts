@@ -145,7 +145,7 @@ export function renderImplicitApi (ex: any): string {
     // and build/wiki-to-fumadocs.ts adds it. A second H1 would duplicate the heading.
     lines.push (`Every endpoint in \`${id}\`'s \`api\` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/${id}) does not cover.`);
     lines.push ('');
-    lines.push (`These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. \`${sampleNames.camel}\`); the snake_case alias (\`${sampleNames.snake}\`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (\`${samplePascal}\`). Switch tabs for the call in each language:`);
+    lines.push (`These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. \`${sampleNames.camel}\`); the snake_case alias (\`${sampleNames.snake}\`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (\`${samplePascal}\`). Switch tabs for the call in each language:`);
     lines.push ('');
     // docsify-style language tabs — build/wiki-to-fumadocs.ts turns these into Fumadocs
     // code tabs. Each language uses its own idiomatic instantiation + the method-name

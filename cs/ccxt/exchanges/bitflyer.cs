@@ -80,11 +80,119 @@ public partial class bitflyer : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "getmarkets/usa", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getmarkets/eu", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getmarkets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getboard", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getexecutions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gethealth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getboardstate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getchats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getfundingrate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"} },
-                    { "post", new List<object>() {"sendcoin", "withdraw", "sendchildorder", "cancelchildorder", "sendparentorder", "cancelparentorder", "cancelallchildorders"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "getpermissions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbalancehistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateralhistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcollateralaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getaddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcoinins", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getcoinouts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getbankaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getdeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getwithdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getchildorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getparentorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getexecutions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getpositions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "gettradingcommission", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "sendcoin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendchildorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelchildorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelparentorder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelallchildorders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -183,7 +291,7 @@ public partial class bitflyer : Exchange
         object day = slice(expiry, 0, 2);
         object monthName = slice(expiry, 2, 5);
         object year = slice(expiry, 5, 9);
-        object months = new Dictionary<string, object>() {
+        Dictionary<string, object> months = new Dictionary<string, object>() {
             { "JAN", "01" },
             { "FEB", "02" },
             { "MAR", "03" },
@@ -217,7 +325,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object jp_markets = await this.publicGetGetmarkets(parameters);
@@ -251,19 +359,19 @@ public partial class bitflyer : Exchange
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        object markets = this.arrayConcat(jp_markets, us_markets);
-        markets = this.arrayConcat(markets, eu_markets);
-        object result = new List<object>() {};
+        object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object id = this.safeString(market, "product_code");
-            object currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object marketType = this.safeString(market, "market_type");
-            object swap = (isEqual(marketType, "FX"));
-            object future = (isEqual(marketType, "Futures"));
-            object spot = !isTrue(swap) && !isTrue(future);
-            object type = "spot";
+            string? id = this.safeString(market, "product_code");
+            List<object> currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            string? marketType = this.safeString(market, "market_type");
+            bool swap = (isEqual(marketType, "FX"));
+            bool future = (isEqual(marketType, "Futures"));
+            bool spot = !isTrue(swap) && !isTrue(future);
+            string type = "spot";
             object settle = null;
             object baseId = null;
             object quoteId = null;
@@ -279,7 +387,7 @@ public partial class bitflyer : Exchange
                 quoteId = this.safeString(currencies, 2);
             } else if (isTrue(future))
             {
-                object alias = this.safeString(market, "alias");
+                string? alias = this.safeString(market, "alias");
                 if (isTrue(isEqual(alias, null)))
                 {
                     // no alias:
@@ -292,12 +400,12 @@ public partial class bitflyer : Exchange
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
-                    object splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-                    object currencyIds = this.safeString(splitAlias, 0);
+                    List<object> splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                    string? currencyIds = this.safeString(splitAlias, 0);
                     baseId = slice(((string)currencyIds), 0, -3);
                     quoteId = slice(((string)currencyIds), -3, null);
-                    object splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
-                    object expiryDate = this.safeString(splitId, 1);
+                    List<object> splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
+                    string? expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
                 type = "future";
@@ -307,7 +415,7 @@ public partial class bitflyer : Exchange
             object symbol = add(add(bs, "/"), quote);
             object taker = getValue(getValue(this.fees, "trading"), "taker");
             object maker = getValue(getValue(this.fees, "trading"), "maker");
-            object contract = isTrue(swap) || isTrue(future);
+            bool contract = isTrue(swap) || isTrue(future);
             if (isTrue(contract))
             {
                 maker = 0;
@@ -371,23 +479,26 @@ public partial class bitflyer : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
-            object currencyId = this.safeString(balance, "currency_code");
+            string? currencyId = this.safeString(balance, "currency_code");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -400,7 +511,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -427,7 +538,7 @@ public partial class bitflyer : Exchange
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -438,9 +549,9 @@ public partial class bitflyer : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -448,18 +559,18 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
         object orderbook = await this.publicGetGetboard(this.extend(request, parameters));
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "size");
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "size"));
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
         object symbol = this.safeSymbol(null, market);
-        object timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
-        object last = this.safeString(ticker, "ltp");
+        Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
+        string? last = this.safeString(ticker, "ltp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -493,7 +604,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -501,11 +612,11 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
         object response = await this.publicGetGetticker(this.extend(request, parameters));
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -557,10 +668,10 @@ public partial class bitflyer : Exchange
         {
             order = this.safeString(trade, "child_order_acceptance_id");
         }
-        object timestamp = this.parse8601(this.safeString(trade, "exec_date"));
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "size");
-        object id = this.safeString(trade, "id");
+        Int64? timestamp = this.parse8601(this.safeString(trade, "exec_date"));
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "size");
+        string? id = this.safeString(trade, "id");
         market = this.safeMarket(null, market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -590,7 +701,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -598,7 +709,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -619,7 +730,7 @@ public partial class bitflyer : Exchange
         //     },
         //    ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -631,7 +742,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -639,7 +750,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
         object response = await this.privateGetGettradingcommission(this.extend(request, parameters));
@@ -649,14 +760,7 @@ public partial class bitflyer : Exchange
         //   }
         //
         object fee = this.safeNumber(response, "commission_rate");
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "symbol", getValue(market, "symbol") },
-            { "maker", fee },
-            { "taker", fee },
-            { "percentage", null },
-            { "tierBased", null },
-        };
+        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", fee },             { "taker", fee },             { "percentage", null },             { "tierBased", null },         });
     }
 
     /**
@@ -672,14 +776,14 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", this.marketId(symbol) },
             { "child_order_type", ((string)type).ToUpper() },
             { "side", ((string)((string)side)).ToUpper() },
@@ -688,11 +792,8 @@ public partial class bitflyer : Exchange
         };
         object result = await this.privatePostSendchildorder(this.extend(request, parameters));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
-        object id = this.safeString(result, "child_order_acceptance_id");
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "id", id },
-            { "info", result },
-        });
+        string? id = this.safeString(result, "child_order_acceptance_id");
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "info", result },         }));
     }
 
     /**
@@ -705,7 +806,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -716,7 +817,7 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
         };
@@ -724,14 +825,12 @@ public partial class bitflyer : Exchange
         //
         //    200 OK.
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
     }
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ACTIVE", "open" },
             { "COMPLETED", "closed" },
             { "CANCELED", "canceled" },
@@ -743,15 +842,15 @@ public partial class bitflyer : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        object timestamp = this.parse8601(this.safeString(order, "child_order_date"));
-        object price = this.safeString(order, "price");
-        object amount = this.safeString(order, "size");
-        object filled = this.safeString(order, "executed_size");
-        object remaining = this.safeString(order, "outstanding_size");
+        Int64? timestamp = this.parse8601(this.safeString(order, "child_order_date"));
+        string? price = this.safeString(order, "price");
+        string? amount = this.safeString(order, "size");
+        string? filled = this.safeString(order, "executed_size");
+        string? remaining = this.safeString(order, "outstanding_size");
         object status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
-        object type = this.safeStringLower(order, "child_order_type");
-        object side = this.safeStringLower(order, "side");
-        object marketId = this.safeString(order, "product_code");
+        string? type = this.safeStringLower(order, "child_order_type");
+        string? side = this.safeStringLower(order, "side");
+        string? marketId = this.safeString(order, "product_code");
         object symbol = this.safeSymbol(marketId, market);
         object fee = null;
         object feeCost = this.safeNumber(order, "total_commission");
@@ -763,7 +862,7 @@ public partial class bitflyer : Exchange
                 { "rate", null },
             };
         }
-        object id = this.safeString(order, "child_order_acceptance_id");
+        string? id = this.safeString(order, "child_order_acceptance_id");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -800,9 +899,10 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        limit ??= 100;
+        object limitVar = limit;
+        limitVar ??= 100;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -813,17 +913,17 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
-            { "count", limit },
+            { "count", limitVar },
         };
         object response = await this.privateGetGetchildorders(this.extend(request, parameters));
-        object orders = this.parseOrders(response, market, since, limit);
+        object orders = this.parseOrders(response, market, since, limitVar);
         if (isTrue(!isEqual(symbol, null)))
         {
             orders = this.filterBy(orders, "symbol", symbol);
         }
-        return orders;
+        return ccxt.BaseExchange.ToOrderList(orders);
     }
 
     /**
@@ -837,14 +937,15 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        limit ??= 100;
+        object limitVar = limit;
+        limitVar ??= 100;
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "child_order_state", "ACTIVE" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), this.extend(request, parameters));
     }
 
     /**
@@ -858,14 +959,15 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        limit ??= 100;
+        object limitVar = limit;
+        limitVar ??= 100;
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "child_order_state", "COMPLETED" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitVar), this.extend(request, parameters));
     }
 
     /**
@@ -878,18 +980,18 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        object orders = await this.fetchOrders(symbol);
-        object ordersById = this.indexBy(orders, "id");
+        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol)));
+        Dictionary<string, object> ordersById = this.indexBy(orders, "id");
         if (isTrue(inOp(ordersById, id)))
         {
-            return getValue(ordersById, id);
+            return ccxt.BaseExchange.ToOrder(getValue(ordersById, id));
         }
         throw new OrderNotFound ((string)add(add(this.id, " No order found with id "), id)) ;
     }
@@ -905,7 +1007,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -917,7 +1019,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -939,7 +1041,7 @@ public partial class bitflyer : Exchange
         //     },
         //    ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
     /**
@@ -951,7 +1053,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
@@ -962,7 +1064,7 @@ public partial class bitflyer : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", this.marketIds(symbols) },
         };
         object response = await this.privateGetGetpositions(this.extend(request, parameters));
@@ -984,7 +1086,7 @@ public partial class bitflyer : Exchange
         //     ]
         //
         // todo unify parsePosition/parsePositions
-        return response;
+        return ccxt.BaseExchange.ToPositionList(response);
     }
 
     /**
@@ -999,7 +1101,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
@@ -1012,7 +1114,7 @@ public partial class bitflyer : Exchange
             throw new ExchangeError ((string)add(add(add(this.id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")) ;
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency_code", getValue(currency, "id") },
             { "amount", amount },
         };
@@ -1022,7 +1124,7 @@ public partial class bitflyer : Exchange
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     /**
@@ -1036,7 +1138,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1044,7 +1146,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object currency = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
@@ -1068,7 +1170,7 @@ public partial class bitflyer : Exchange
         //         }
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
     /**
@@ -1082,7 +1184,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1090,7 +1192,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object currency = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
@@ -1116,12 +1218,12 @@ public partial class bitflyer : Exchange
         //         }
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
     public virtual object parseDepositStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "pending" },
             { "COMPLETED", "ok" },
         };
@@ -1130,7 +1232,7 @@ public partial class bitflyer : Exchange
 
     public virtual object parseWithdrawalStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "pending" },
             { "COMPLETED", "ok" },
         };
@@ -1174,23 +1276,23 @@ public partial class bitflyer : Exchange
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        object id = this.safeString2(transaction, "id", "message_id");
-        object address = this.safeString(transaction, "address");
-        object currencyId = this.safeString(transaction, "currency_code");
+        string? id = this.safeString2(transaction, "id", "message_id");
+        string? address = this.safeString(transaction, "address");
+        string? currencyId = this.safeString(transaction, "currency_code");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.parse8601(this.safeString(transaction, "event_date"));
+        Int64? timestamp = this.parse8601(this.safeString(transaction, "event_date"));
         object amount = this.safeNumber(transaction, "amount");
-        object txId = this.safeString(transaction, "tx_hash");
-        object rawStatus = this.safeString(transaction, "status");
-        object type = null;
+        string? txId = this.safeString(transaction, "tx_hash");
+        string? rawStatus = this.safeString(transaction, "status");
+        string? type = null;
         object status = null;
         object fee = null;
         if (isTrue(inOp(transaction, "fee")))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
-            object feeCost = this.safeString(transaction, "fee");
-            object additionalFee = this.safeString(transaction, "additional_fee");
+            string? feeCost = this.safeString(transaction, "fee");
+            string? additionalFee = this.safeString(transaction, "additional_fee");
             fee = new Dictionary<string, object>() {
                 { "currency", code },
                 { "cost", this.parseNumber(Precise.stringAdd(feeCost, additionalFee)) },
@@ -1233,7 +1335,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1241,7 +1343,7 @@ public partial class bitflyer : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_code", getValue(market, "id") },
         };
         object response = await this.publicGetGetfundingrate(this.extend(request, parameters));
@@ -1251,7 +1353,7 @@ public partial class bitflyer : Exchange
         //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
         //    }
         //
-        return this.parseFundingRate(response, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -1262,8 +1364,8 @@ public partial class bitflyer : Exchange
         //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
         //    }
         //
-        object nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
-        object nextFundingTimestamp = this.parse8601(nextFundingDatetime);
+        string? nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
+        Int64? nextFundingTimestamp = this.parse8601(nextFundingDatetime);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeString(market, "symbol") },
@@ -1299,7 +1401,7 @@ public partial class bitflyer : Exchange
         request = add(request, path);
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(parameters)));
             }
@@ -1309,10 +1411,10 @@ public partial class bitflyer : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
-            object content = new List<object>() {nonce, method, request};
+            string nonce = ((object)this.nonce()).ToString();
+            List<object> content = new List<object>() {nonce, method, request};
             object auth = String.Join("", ((IList<object>)content).ToArray());
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 if (isTrue(!isEqual(method, "GET")))
                 {
@@ -1343,8 +1445,8 @@ public partial class bitflyer : Exchange
         }
         object feedback = add(add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
-        object errorMessage = this.safeString(response, "error_message");
-        object statusCode = this.safeInteger(response, "status");
+        string? errorMessage = this.safeString(response, "error_message");
+        Int64? statusCode = this.safeInteger(response, "status");
         if (isTrue(!isEqual(errorMessage, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);

@@ -145,7 +145,7 @@ func (this *Myokx) EditOrders(orders []OrderRequest, options ...EditOrdersOption
 func (this *Myokx) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Myokx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Myokx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Myokx) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Myokx) FetchDepositAddress(code string, options ...FetchDepositAddre
 func (this *Myokx) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Myokx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Myokx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Myokx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
@@ -202,10 +202,10 @@ func (this *Myokx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
 func (this *Myokx) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Myokx) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Myokx) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Myokx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Myokx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Myokx) FetchFreeBalance(params ...any) (Balance, error) {
@@ -349,7 +349,7 @@ func (this *Myokx) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Myokx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Myokx) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Myokx) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Myokx) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Myokx) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Myokx) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Myokx) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Myokx) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Myokx) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -502,7 +502,7 @@ func (this *Myokx) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Myokx) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Myokx) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Myokx) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Myokx) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -547,7 +547,7 @@ func (this *Myokx) FetchTradesWs(symbol string, options ...FetchTradesWsOptions)
 func (this *Myokx) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Myokx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Myokx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Myokx) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

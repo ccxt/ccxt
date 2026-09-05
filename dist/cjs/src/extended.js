@@ -178,71 +178,71 @@ class extended extends extended$1["default"] {
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'info/markets',
-                            'info/assets',
-                            'info/assets/{asset}/price',
-                            'info/markets/{market}/stats',
-                            'info/markets/{market}/orderbook',
-                            'info/markets/{market}/trades',
-                            'info/candles/{market}/{candleType}',
-                            'info/{market}/funding',
-                            'info/{market}/open-interests',
-                            'info/builder/dashboard',
-                        ],
+                        'get': {
+                            'info/markets': { 'cost': 1 },
+                            'info/assets': { 'cost': 1 },
+                            'info/assets/{asset}/price': { 'cost': 1 },
+                            'info/markets/{market}/stats': { 'cost': 1 },
+                            'info/markets/{market}/orderbook': { 'cost': 1 },
+                            'info/markets/{market}/trades': { 'cost': 1 },
+                            'info/candles/{market}/{candleType}': { 'cost': 1 },
+                            'info/{market}/funding': { 'cost': 1 },
+                            'info/{market}/open-interests': { 'cost': 1 },
+                            'info/builder/dashboard': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'user/accounts',
-                            'user/account/info',
-                            'user/balance',
-                            'user/spot/balances',
-                            'user/assetOperations',
-                            'user/positions',
-                            'user/positions/history',
-                            'user/orders',
-                            'user/orders/history',
-                            'user/orders/{id}',
-                            'user/orders/external/{externalId}',
-                            'user/trades',
-                            'user/funding/history',
-                            'user/rebates/stats',
-                            'user/leverage',
-                            'user/fees',
-                            'user/bridge/config',
-                            'user/bridge/quote',
-                            'user/affiliate',
-                            'user/referrals/status',
-                            'user/referrals/links',
-                            'user/referrals/dashboard',
-                            'user/rewards/earned',
-                            'user/rewards/leaderboard/stats',
-                            'portfolio/charts/equities',
-                            'portfolio/charts/pnl',
-                            'vault/public/performance',
-                            'vault/public/summary',
-                            'builder/trades',
-                        ],
-                        'post': [
-                            'user/order',
-                            'user/order/massCancel',
-                            'user/deadmanswitch',
-                            'user/bridge/quote',
-                            'user/withdrawal',
-                            'user/transfer',
-                            'user/referrals/use',
-                            'user/referrals',
-                        ],
-                        'put': [
-                            'user/referrals',
-                        ],
-                        'patch': [
-                            'user/leverage',
-                        ],
-                        'delete': [
-                            'user/order/{id}',
-                            'user/order',
-                        ],
+                        'get': {
+                            'user/accounts': { 'cost': 1 },
+                            'user/account/info': { 'cost': 1 },
+                            'user/balance': { 'cost': 1 },
+                            'user/spot/balances': { 'cost': 1 },
+                            'user/assetOperations': { 'cost': 1 },
+                            'user/positions': { 'cost': 1 },
+                            'user/positions/history': { 'cost': 1 },
+                            'user/orders': { 'cost': 1 },
+                            'user/orders/history': { 'cost': 1 },
+                            'user/orders/{id}': { 'cost': 1 },
+                            'user/orders/external/{externalId}': { 'cost': 1 },
+                            'user/trades': { 'cost': 1 },
+                            'user/funding/history': { 'cost': 1 },
+                            'user/rebates/stats': { 'cost': 1 },
+                            'user/leverage': { 'cost': 1 },
+                            'user/fees': { 'cost': 1 },
+                            'user/bridge/config': { 'cost': 1 },
+                            'user/bridge/quote': { 'cost': 1 },
+                            'user/affiliate': { 'cost': 1 },
+                            'user/referrals/status': { 'cost': 1 },
+                            'user/referrals/links': { 'cost': 1 },
+                            'user/referrals/dashboard': { 'cost': 1 },
+                            'user/rewards/earned': { 'cost': 1 },
+                            'user/rewards/leaderboard/stats': { 'cost': 1 },
+                            'portfolio/charts/equities': { 'cost': 1 },
+                            'portfolio/charts/pnl': { 'cost': 1 },
+                            'vault/public/performance': { 'cost': 1 },
+                            'vault/public/summary': { 'cost': 1 },
+                            'builder/trades': { 'cost': 1 },
+                        },
+                        'post': {
+                            'user/order': { 'cost': 1 },
+                            'user/order/massCancel': { 'cost': 1 },
+                            'user/deadmanswitch': { 'cost': 1 },
+                            'user/bridge/quote': { 'cost': 1 },
+                            'user/withdrawal': { 'cost': 1 },
+                            'user/transfer': { 'cost': 1 },
+                            'user/referrals/use': { 'cost': 1 },
+                            'user/referrals': { 'cost': 1 },
+                        },
+                        'put': {
+                            'user/referrals': { 'cost': 1 },
+                        },
+                        'patch': {
+                            'user/leverage': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'user/order/{id}': { 'cost': 1 },
+                            'user/order': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -871,7 +871,7 @@ class extended extends extended$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1486,7 +1486,9 @@ class extended extends extended$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'availableToWithdraw');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2181,7 +2183,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -2552,11 +2554,17 @@ class extended extends extended$1["default"] {
         return settlement;
     }
     async createExtendedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if (market['spot'] && uppercaseType !== 'LIMIT') {
+        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
             throw new errors.BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL'])) {
@@ -3016,7 +3024,11 @@ class extended extends extended$1["default"] {
         const request = {
             'countdownTime': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        const response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return { 'info': response };
     }
     /**
      * @method
@@ -3453,7 +3465,7 @@ class extended extends extended$1["default"] {
         ]);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3491,7 +3503,7 @@ class extended extends extended$1["default"] {
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys(query).length) {
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys(query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat(query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

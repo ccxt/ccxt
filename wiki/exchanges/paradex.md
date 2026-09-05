@@ -230,7 +230,7 @@ paradex.fetchTicker (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-orderbook  
 
@@ -333,7 +333,7 @@ edit an open limit order or TPSL order
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.paradex.trade/api-reference/prod/orders/modify  
+**See**: https://docs.paradex.trade/api/prod/orders/modify  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -414,7 +414,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | No | unified market symbol, not used by paradex cancelOrders() |
+| symbol | <code>string</code> | No | unified market symbol, not used by cancelOrders() |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
 
@@ -822,7 +822,7 @@ paradex.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 

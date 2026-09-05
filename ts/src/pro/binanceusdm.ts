@@ -8,7 +8,7 @@ import { InvalidOrder } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
-    describe (): any {
+    override describe (): any {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceusdmRest ();
         const restDescribe = restInstance.describe ();

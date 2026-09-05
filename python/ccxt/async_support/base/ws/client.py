@@ -83,6 +83,23 @@ class Client(object):
         else:
             self.options = config
         self.connected = Future()
+        # a rejected connection future may end up with no awaiter, e.g. on
+        # already-subscribed watch paths or abandoned dials, retrieving the
+        # exception in a done callback keeps asyncio from dumping
+        # "Future exception was never retrieved" walls at gc
+
+        def _consume_connected_exception(fut):
+            if not fut.cancelled():
+                fut.exception()
+        self.connected.add_done_callback(_consume_connected_exception)
+        # Retry-After from the last failed handshake response, seconds,
+        # consumed by the exchange-level dial backoff
+        self.last_retry_after = None
+        # set by open() when a handshake fails, consumed by the exchange
+        # error callback so that only genuine dial failures grow the dial
+        # backoff, mid-session errors and the ws warn noise floor must not
+        self.dial_failed = False
+        self.last_message_at = None
 
     def future(self, message_hash):
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
@@ -143,6 +160,11 @@ class Client(object):
             task = self.asyncio_loop.create_task(self.receive())
 
             def after_interrupt(resolved: asyncioFuture):
+                if resolved.cancelled():
+                    # the receive task was cancelled, e.g. during shutdown or a
+                    # reconnect, calling exception() on a cancelled task would
+                    # raise CancelledError inside this callback, so just stop
+                    return
                 exception = resolved.exception()
                 if exception is None:
                     self.handle_message(resolved.result())
@@ -180,12 +202,22 @@ class Client(object):
             self.asyncio_loop.call_soon(self.receive_loop)
         except TimeoutError:
             # connection timeout
+            self.dial_failed = True
             error = RequestTimeout('Connection timeout')
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'RequestTimeout', error)
             self.on_error(error)
         except Exception as e:
             # connection failed or rejected (ConnectionRefusedError, ClientConnectorError)
+            self.dial_failed = True
+            headers = getattr(e, 'headers', None)
+            if headers is not None:
+                retry_after = headers.get('Retry-After')
+                if retry_after is not None:
+                    try:
+                        self.last_retry_after = float(retry_after)
+                    except ValueError:
+                        pass
             error = NetworkError(e)
             if self.verbose:
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
@@ -256,6 +288,9 @@ class Client(object):
 
     def handle_message(self, message):
         # self.log(iso8601(milliseconds()), message)
+        # timestamp of the last inbound frame, lets timeout forensics tell a
+        # dead pipe apart from frames arriving that never resolve a future
+        self.last_message_at = milliseconds()
         if message.type == WSMsgType.TEXT:
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
@@ -299,9 +334,14 @@ class Client(object):
         if 'cookies' in self.options:
             for key, value in self.options['cookies'].items():
                 session.cookie_jar.update_cookies({key: value})
+        # offer permessage-deflate (RFC 7692) by default, matching the JS `ws` client and
+        # browsers - some gateways (e.g. nado behind cloudflare) 403 handshakes without the
+        # Sec-WebSocket-Extensions offer; servers that don't support it simply ignore it.
+        # can be disabled per exchange via options['ws'] = {'compress': 0}
+        compress = self.options.get('compress', 15)
         if (self.proxy):
-            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
+            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, proxy=self.proxy, max_msg_size=10485760).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, max_msg_size=10485760).__aenter__()
 
     async def send(self, message):
         if self.verbose:
@@ -323,17 +363,25 @@ class Client(object):
         await self.aiohttp_close()
 
     async def aiohttp_close(self):
-        if not self.closed():
-            await self.connection.close()
-        # these will end automatically once self.closed() = True
-        # so we don't need to cancel them
+        # cancel the keepalive before closing the transport, matching the php
+        # client's teardown ordering, otherwise a ping tick during the close
+        # await writes into the closing transport and raises out of the ping
+        # task as unretrieved noise, see
+        # https://github.com/ccxt/ccxt/issues/22075
         if self.ping_looper:
             self.ping_looper.cancel()
+        if not self.closed():
+            await self.connection.close()
 
     async def ping_loop(self):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
+            # sleep BEFORE the first (and every) ping so the initial subscribe goes out first —
+            # this matches the JS client (setInterval fires after one keepAlive, not immediately).
+            # some servers (e.g. Polymarket) close the connection if a ping arrives before the
+            # subscribe frame, which is why the first ping must not be sent on connect.
+            await sleep(self.keepAlive / 1000)
             now = milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
@@ -349,5 +397,14 @@ class Client(object):
                     except Exception as e:
                         self.on_error(e)
                 else:
-                    await self.connection.ping()
-            await sleep(self.keepAlive / 1000)
+                    try:
+                        await self.connection.ping()
+                    except Exception as e:
+                        # the transport can enter closing between the loop
+                        # condition and the write, a server initiated close or
+                        # a network drop, which raised out of the ping task as
+                        # unretrieved noise, see
+                        # https://github.com/ccxt/ccxt/issues/22075
+                        if not self.closed():
+                            self.on_error(e)
+                        return

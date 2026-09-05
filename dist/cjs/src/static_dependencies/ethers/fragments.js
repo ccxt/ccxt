@@ -2,15 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./utils/base58.js');
 var errors = require('./utils/errors.js');
-var properties = require('./utils/properties.js');
-require('./utils/fixednumber.js');
 var maths = require('./utils/maths.js');
+var properties = require('./utils/properties.js');
 require('./utils/utf8.js');
 require('../../base/functions/platform.js');
 require('../../base/functions/encode.js');
 require('../../base/functions/crypto.js');
+require('../../base/functions/time.js');
 require('../../base/functions/io.js');
 require('@noble/hashes/sha3.js');
 require('@noble/hashes/sha2.js');
@@ -341,9 +340,13 @@ class ParamType {
         if (format === "json") {
             const name = this.name || "";
             if (this.isArray()) {
+                if (this.arrayChildren == null) {
+                    throw new Error("missing array children");
+                }
                 const result = JSON.parse(this.arrayChildren.format("json"));
                 result.name = name;
-                result.type += `[${(this.arrayLength < 0 ? "" : String(this.arrayLength))}]`;
+                const arrayLength = this.arrayLength;
+                result.type += `[${((arrayLength == null || arrayLength < 0) ? "" : String(arrayLength))}]`;
                 return JSON.stringify(result);
             }
             const result = {
@@ -354,6 +357,9 @@ class ParamType {
                 result.indexed = this.indexed;
             }
             if (this.isTuple()) {
+                if (this.components == null) {
+                    throw new Error("missing components");
+                }
                 result.components = this.components.map((c) => JSON.parse(c.format(format)));
             }
             return JSON.stringify(result);
@@ -361,11 +367,18 @@ class ParamType {
         let result = "";
         // Array
         if (this.isArray()) {
+            if (this.arrayChildren == null) {
+                throw new Error("missing array children");
+            }
             result += this.arrayChildren.format(format);
-            result += `[${(this.arrayLength < 0 ? "" : String(this.arrayLength))}]`;
+            const arrayLength = this.arrayLength;
+            result += `[${((arrayLength == null || arrayLength < 0) ? "" : String(arrayLength))}]`;
         }
         else {
             if (this.isTuple()) {
+                if (this.components == null) {
+                    throw new Error("missing components");
+                }
                 result += "(" + this.components.map((comp) => comp.format(format)).join((format === "full") ? ", " : ",") + ")";
             }
             else {
@@ -421,18 +434,24 @@ class ParamType {
             if (this.arrayLength !== -1 && value.length !== this.arrayLength) {
                 throw new Error("array is wrong length");
             }
-            const _this = this;
-            return value.map((v) => (_this.arrayChildren.walk(v, process)));
+            const arrayChildren = this.arrayChildren;
+            if (arrayChildren == null) {
+                throw new Error("missing array children");
+            }
+            return value.map((v) => (arrayChildren.walk(v, process)));
         }
         if (this.isTuple()) {
             if (!Array.isArray(value)) {
                 throw new Error("invalid tuple value");
             }
-            if (value.length !== this.components.length) {
+            const components = this.components;
+            if (components == null) {
+                throw new Error("missing components");
+            }
+            if (value.length !== components.length) {
                 throw new Error("array is wrong length");
             }
-            const _this = this;
-            return value.map((v, i) => (_this.components[i].walk(v, process)));
+            return value.map((v, i) => (components[i].walk(v, process)));
         }
         return process(this.type, value);
     }
@@ -445,6 +464,9 @@ class ParamType {
                 throw new Error("array is wrong length");
             }
             const childType = this.arrayChildren;
+            if (childType == null) {
+                throw new Error("missing array children");
+            }
             const result = value.slice();
             result.forEach((value, index) => {
                 childType.#walkAsync(promises, value, process, (value) => {
@@ -456,6 +478,9 @@ class ParamType {
         }
         if (this.isTuple()) {
             const components = this.components;
+            if (components == null) {
+                throw new Error("missing components");
+            }
             // Convert the object into an array
             let result;
             if (Array.isArray(value)) {
@@ -475,7 +500,7 @@ class ParamType {
                     return value[param.name];
                 });
             }
-            if (result.length !== this.components.length) {
+            if (result.length !== components.length) {
                 throw new Error("array is wrong length");
             }
             result.forEach((value, index) => {

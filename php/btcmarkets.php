@@ -131,51 +131,51 @@ class btcmarkets extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'markets',
-                        'markets/{marketId}/ticker',
-                        'markets/{marketId}/trades',
-                        'markets/{marketId}/orderbook',
-                        'markets/{marketId}/candles',
-                        'markets/tickers',
-                        'markets/orderbooks',
-                        'time',
+                        'markets' => array( 'cost' => 1 ),
+                        'markets/{marketId}/ticker' => array( 'cost' => 1 ),
+                        'markets/{marketId}/trades' => array( 'cost' => 1 ),
+                        'markets/{marketId}/orderbook' => array( 'cost' => 1 ),
+                        'markets/{marketId}/candles' => array( 'cost' => 1 ),
+                        'markets/tickers' => array( 'cost' => 1 ),
+                        'markets/orderbooks' => array( 'cost' => 1 ),
+                        'time' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'orders',
-                        'orders/{id}',
-                        'batchorders/{ids}',
-                        'trades',
-                        'trades/{id}',
-                        'withdrawals',
-                        'withdrawals/{id}',
-                        'deposits',
-                        'deposits/{id}',
-                        'transfers',
-                        'transfers/{id}',
-                        'addresses',
-                        'withdrawal-fees',
-                        'assets',
-                        'accounts/me/trading-fees',
-                        'accounts/me/withdrawal-limits',
-                        'accounts/me/balances',
-                        'accounts/me/transactions',
-                        'reports/{id}',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'batchorders/{ids}' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
+                        'trades/{id}' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'withdrawals/{id}' => array( 'cost' => 1 ),
+                        'deposits' => array( 'cost' => 1 ),
+                        'deposits/{id}' => array( 'cost' => 1 ),
+                        'transfers' => array( 'cost' => 1 ),
+                        'transfers/{id}' => array( 'cost' => 1 ),
+                        'addresses' => array( 'cost' => 1 ),
+                        'withdrawal-fees' => array( 'cost' => 1 ),
+                        'assets' => array( 'cost' => 1 ),
+                        'accounts/me/trading-fees' => array( 'cost' => 1 ),
+                        'accounts/me/withdrawal-limits' => array( 'cost' => 1 ),
+                        'accounts/me/balances' => array( 'cost' => 1 ),
+                        'accounts/me/transactions' => array( 'cost' => 1 ),
+                        'reports/{id}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'orders',
-                        'batchorders',
-                        'withdrawals',
-                        'reports',
+                        'orders' => array( 'cost' => 1 ),
+                        'batchorders' => array( 'cost' => 1 ),
+                        'withdrawals' => array( 'cost' => 1 ),
+                        'reports' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'orders',
-                        'orders/{id}',
-                        'batchorders/{ids}',
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{id}' => array( 'cost' => 1 ),
+                        'batchorders/{ids}' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'orders/{id}',
+                        'orders/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -294,7 +294,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions_with_method($method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -309,7 +309,14 @@ class btcmarkets extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'privateGetTransfers') {
+            $response = $this->privateGetTransfers($this->extend($request, $params));
+        } elseif ($method === 'privateGetDeposits') {
+            $response = $this->privateGetDeposits($this->extend($request, $params));
+        } else {
+            $response = $this->privateGetWithdrawals($this->extend($request, $params));
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -369,7 +376,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $statuses = array(
             'Withdraw' => 'withdrawal',
             'Deposit' => 'deposit',
@@ -450,7 +457,7 @@ class btcmarkets extends Exchange {
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_string($transaction, 'amount');
-        if ($fee) {
+        if (($fee !== null) && ($fee !== '')) {
             $amount = Precise::string_sub($amount, $fee);
         }
         return array(
@@ -524,7 +531,7 @@ class btcmarkets extends Exchange {
         if ($quote === 'AUD') {
             $minPrice = $pricePrecision;
         }
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -574,7 +581,7 @@ class btcmarkets extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_time($params = array()): ?int {
@@ -595,7 +602,7 @@ class btcmarkets extends Exchange {
         return $this->parse8601($this->safe_string($response, 'timestamp'));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -604,7 +611,9 @@ class btcmarkets extends Exchange {
             $account = $this->account();
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -625,7 +634,7 @@ class btcmarkets extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "2020-09-12T18:30:00.000000Z",
@@ -686,7 +695,7 @@ class btcmarkets extends Exchange {
         //         ["2020-09-12T18:03:00.000000Z","14361.37","14361.37","14361.37","14361.37","0.00345221"],
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -698,7 +707,7 @@ class btcmarkets extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -817,7 +826,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker_2(string $symbol, $params = array()) {
+    public function fetch_ticker_2(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1034,7 +1043,7 @@ class btcmarkets extends Exchange {
          * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/{1v3}1batchorders{1}$ids~/delete
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by btcmarkets $cancelOrders ()
+         * @param {string} $symbol not used by $cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1081,7 +1090,7 @@ class btcmarkets extends Exchange {
          * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by btcmarket cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1101,7 +1110,7 @@ class btcmarkets extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
+    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array()) {
         /**
          * calculates the presumptive fee that would be charged for an order
          * @param {string} $symbol unified $market $symbol
@@ -1113,7 +1122,7 @@ class btcmarkets extends Exchange {
          * @param {array} $params
          * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote $currency, for the order
          */
-        $market = $this->markets[$symbol];
+        $market = $this->market($symbol);
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
@@ -1126,13 +1135,17 @@ class btcmarkets extends Exchange {
             $currency = $market['base'];
             $cost = $this->amount_to_precision($symbol, $amount);
         }
-        $rate = $market[$takerOrMaker];
+        $rate = $this->safe_value($market, $takerOrMaker);
         $rateCost = Precise::string_mul($this->number_to_string($rate), $cost);
+        $feeCost = $this->fee_to_precision($symbol, $rateCost);
+        if ($feeCost === null) {
+            $feeCost = '0';
+        }
         return array(
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $rateCost)),
+            'cost' => floatval($feeCost),
         );
     }
 
@@ -1411,7 +1424,7 @@ class btcmarkets extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->keysort($this->omit($params, $this->extract_params($path)));
         if ($api === 'private') {
@@ -1420,7 +1433,7 @@ class btcmarkets extends Exchange {
             $secret = base64_decode($this->secret);
             $auth = $method . $request . $nonce;
             if (($method === 'GET') || ($method === 'DELETE')) {
-                if ($query) {
+                if (count($query) > 0) {
                     $request .= '?' . $this->urlencode($query);
                 }
             } else {
@@ -1437,7 +1450,7 @@ class btcmarkets extends Exchange {
                 'BM-AUTH-SIGNATURE' => $signature,
             );
         } elseif ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }
@@ -1445,7 +1458,7 @@ class btcmarkets extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

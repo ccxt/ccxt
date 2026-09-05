@@ -13,6 +13,10 @@ use ccxt\NetworkError;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class apex extends \ccxt\async\apex {
     public function describe(): mixed {
@@ -60,65 +64,65 @@ class apex extends \ccxt\async\apex {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made in a market
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * watches information on multiple trades made in a market
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a list of $symbols
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            $url = $this->get_ws_public_url();
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $topic = 'recentlyTrade.H.' . $market['id2'];
-                $topics[] = $topic;
-                $messageHash = 'trade:' . $symbol;
-                $messageHashes[] = $messageHash;
-            }
-            $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit($tradeSymbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
     }
 
-    public function handle_trades(Client $client, $message) {
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $url = $this->get_ws_public_url();
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            $topic = 'recentlyTrade.H.' . $market['id2'];
+            $topics[] = $topic;
+            $messageHash = 'trade:' . $symbol;
+            $messageHashes[] = $messageHash;
+        }
+        $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        if ($this->newUpdates) {
+            $first = $this->safe_value($trades, 0);
+            $tradeSymbol = $this->safe_string($first, 'symbol');
+            $limit = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "recentlyTrade.H.BTCUSDT",
@@ -162,7 +166,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // public
         //    {
@@ -177,12 +181,12 @@ class apex extends \ccxt\async\apex {
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'i', 'id', 'v' ));
-        $marketId = $this->safe_string_n($trade, array( 's', 'symbol' ));
+        $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $market = $this->safe_market($marketId, $market, null);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
-        $side = $this->safe_string_lower_n($trade, array( 'S', 'side' ));
-        $price = $this->safe_string_n($trade, array( 'p', 'price' ));
+        $side = $this->safe_string_lower_2($trade, 'S', 'side');
+        $price = $this->safe_string_2($trade, 'p', 'price');
         $amount = $this->safe_string_n($trade, array( 'q', 'v', 'size' ));
         return $this->safe_trade(array(
             'id' => $id,
@@ -202,86 +206,88 @@ class apex extends \ccxt\async\apex {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
-            }
-            $symbols = $this->market_symbols($symbols);
-            $url = $this->get_ws_public_url();
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                if ($limit === null) {
-                    $limit = 25;
-                }
-                $topic = 'orderBook' . (string) $limit . '.H.' . $market['id2'];
-                $topics[] = $topic;
-                $messageHash = 'orderbook:' . $symbol;
-                $messageHashes[] = $messageHash;
-            }
-            $orderbook = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
     }
 
-    public function watch_topics($url, $messageHashes, $topics, $params = array()) {
-        return Async\async(function () use ($url, $messageHashes, $topics, $params) {
-            // apex's server rejects a subscribe whose args include any
-            // already-subscribed topic ("topic:already subscribed ..."). Since the
-            // connection is now reused across watch* calls, filter to only the
-            // $topics whose messageHash isn't yet tracked on this $client; if all
-            // are already subscribed, skip the subscribe entirely.
-            $client = $this->client($url);
-            $newTopics = array();
-            $newTopicsCount = 0;
-            for ($i = 0; $i < count($topics); $i++) {
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i], $client->subscriptions))) {
-                    $newTopics[] = $topics[$i];
-                    $newTopicsCount = $newTopicsCount + 1;
-                }
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsLength = count($symbols);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        $symbols = $this->market_symbols($symbols);
+        $url = $this->get_ws_public_url();
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 25;
             }
-            $message = null;
-            if ($newTopicsCount > 0) {
-                $request = array(
-                    'op' => 'subscribe',
-                    'args' => $newTopics,
-                );
-                $message = $this->extend($request, $params);
+            $topic = 'orderBook' . (string) $limit . '.H.' . $market['id2'];
+            $topics[] = $topic;
+            $messageHash = 'orderbook:' . $symbol;
+            $messageHashes[] = $messageHash;
+        }
+        $orderbook = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        return $orderbook->limit();
+    }
+
+    public function watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+        return Async\async(self::do_watch_topics(...))($url, $messageHashes, $topics, $params);
+    }
+
+    private function do_watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+        // apex's server rejects a subscribe whose args include any
+        // already-subscribed topic ("topic:already subscribed ..."). Since the
+        // connection is now reused across watch* calls, filter to only the
+        // $topics whose messageHash isn't yet tracked on this $client; if all
+        // are already subscribed, skip the subscribe entirely.
+        $client = $this->client($url);
+        $newTopics = array();
+        $newTopicsCount = 0;
+        for ($i = 0; $i < count($topics); $i++) {
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i] ?? '', $client->subscriptions))) {
+                $newTopics[] = $topics[$i];
+                $newTopicsCount = $newTopicsCount + 1;
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
-        })();
+        }
+        $message = null;
+        if ($newTopicsCount > 0) {
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $newTopics,
+            );
+            $message = $this->extend($request, $params);
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
     public function get_ws_public_url() {
@@ -308,7 +314,7 @@ class apex extends \ccxt\async\apex {
         return $url;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "orderbook25.H.BTCUSDT",
@@ -349,7 +355,7 @@ class apex extends \ccxt\async\apex {
         $market = $this->safe_market($marketId, null, null);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($message, 'ts', 0.001);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -369,78 +375,82 @@ class apex extends \ccxt\async\apex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $url = $this->get_ws_public_url();
-            $messageHash = 'ticker:' . $symbol;
-            $topic = 'instrumentInfo' . '.H.' . $market['id2'];
-            $topics = array( $topic );
-            return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $url = $this->get_ws_public_url();
+        $messageHash = 'ticker:' . $symbol;
+        $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+        $topics = array( $topic );
+        return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols, null, false);
-            $messageHashes = array();
-            $url = $this->get_ws_public_url();
-            $topics = array();
-            for ($i = 0; $i < count(($symbols)); $i++) {
-                $symbol = ($symbols)[$i];
-                $market = $this->market($symbol);
-                $topic = 'instrumentInfo' . '.H.' . $market['id2'];
-                $topics[] = $topic;
-                $messageHash = 'ticker:' . $symbol;
-                $messageHashes[] = $messageHash;
-            }
-            $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
-            if ($this->newUpdates) {
-                $result = array();
-                $result[$ticker['symbol']] = $ticker;
-                return $result;
-            }
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        })();
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols, null, false);
+        $messageHashes = array();
+        $url = $this->get_ws_public_url();
+        $topics = array();
+        for ($i = 0; $i < count(($symbols)); $i++) {
+            $symbol = ($symbols)[$i];
+            $market = $this->market($symbol);
+            $topic = 'instrumentInfo' . '.H.' . $market['id2'];
+            $topics[] = $topic;
+            $messageHash = 'ticker:' . $symbol;
+            $messageHashes[] = $messageHash;
+        }
+        $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+    }
+
+    public function handle_ticker(Client $client, mixed $message) {
         // "topic":"instrumentInfo.H.BTCUSDT",
         //     "type":"snapshot",
         //     "data":array(
@@ -490,64 +500,68 @@ class apex extends \ccxt\async\apex {
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $params['callerMethodName'] = 'watchOHLCV';
-            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $result[$symbol][$timeframe];
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        $params['callerMethodName'] = 'watchOHLCV';
+        $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+        return $result[$symbol][$timeframe];
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $url = $this->get_ws_public_url();
-            $rawHashes = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $data = $symbolsAndTimeframes[$i];
-                $symbolString = $this->safe_string($data, 0);
-                $market = $this->market($symbolString);
-                $symbolString = $market['id2'];
-                $unfiedTimeframe = $this->safe_string($data, 1, '1');
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
-                $rawHashes[] = 'candle.' . $timeframeId . '.' . $symbolString;
-                $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
-            }
-            list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
-            if ($this->newUpdates) {
-                $limit = $stored->getLimit($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        })();
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $url = $this->get_ws_public_url();
+        $rawHashes = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $data = $symbolsAndTimeframes[$i];
+            $symbolString = $this->safe_string($data, 0);
+            $market = $this->market($symbolString);
+            $symbolString = $market['id2'];
+            $unfiedTimeframe = $this->safe_string($data, 1, '1');
+            $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+            $rawHashes[] = 'candle.' . $timeframeId . '.' . $symbolString;
+            $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $unfiedTimeframe;
+        }
+        list($symbol, $timeframe, $stored) = Async\await($this->watch_topics($url, $messageHashes, $rawHashes, $params));
+        if ($this->newUpdates) {
+            $limit = $stored->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+    }
+
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "candle.5.BTCUSDT",
@@ -581,10 +595,10 @@ class apex extends \ccxt\async\apex {
         $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -598,7 +612,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "start" => 1670363160000,
@@ -625,110 +639,116 @@ class apex extends \ccxt\async\apex {
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://api-docs.pro.apex.exchange/#private-websocket
-             *
-             * @param {string} $symbol unified market $symbol of the market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $messageHash = 'myTrades';
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $url = $this->get_ws_private_url();
-            Async\await($this->authenticate($url));
-            $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( 'myTrades' ), $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://api-docs.pro.apex.exchange/#private-websocket
+         *
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unifiedMargin] use unified margin account
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $messageHash = 'myTrades';
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
+        }
+        $url = $this->get_ws_private_url();
+        Async\await($this->authenticate($url));
+        $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( 'myTrades' ), $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://api-docs.pro.apex.exchange/#private-websocket
-             *
-             * watch all open positions
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {int} [$since] the earliest time in ms to fetch positions for
-             * @param {int} [$limit] the maximum number of positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = '';
-            if (!$this->is_empty($symbols)) {
-                $symbols = $this->market_symbols($symbols);
-                $messageHash = '::' . implode(',', ($symbols));
-            }
-            $url = $this->get_ws_private_url();
-            $messageHash = 'positions' . $messageHash;
-            $client = $this->client($url);
-            Async\await($this->authenticate($url));
-            $this->set_positions_cache($client, $symbols);
-            $cache = $this->positions;
-            if ($cache === null) {
-                $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
-                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
-            }
-            $topics = array( 'positions' );
-            $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-            if ($this->newUpdates) {
-                return $newPositions;
-            }
-            return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://api-docs.pro.apex.exchange/#private-websocket
+         *
+         * watch all open positions
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {int} [$since] the earliest time in ms to fetch positions for
+         * @param {int} [$limit] the maximum number of positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = '';
+        if (!$this->is_empty($symbols)) {
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = '::' . implode(',', ($symbols));
+        }
+        $url = $this->get_ws_private_url();
+        $messageHash = 'positions' . $messageHash;
+        $client = $this->client($url);
+        Async\await($this->authenticate($url));
+        $this->set_positions_cache($client, $symbols);
+        $cache = $this->positions;
+        if ($cache === null) {
+            $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
+            return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+        }
+        $topics = array( 'positions' );
+        $newPositions = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        if ($this->newUpdates) {
+            return $newPositions;
+        }
+        return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://api-docs.pro.apex.exchange/#private-websocket
-             *
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'orders';
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $url = $this->get_ws_private_url();
-            Async\await($this->authenticate($url));
-            $topics = array( 'orders' );
-            $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_my_trades(Client $client, $lists) {
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://api-docs.pro.apex.exchange/#private-websocket
+         *
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'orders';
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
+        }
+        $url = $this->get_ws_private_url();
+        Async\await($this->authenticate($url));
+        $topics = array( 'orders' );
+        $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_my_trades(Client $client, mixed $lists) {
         // array(
         //     {
         //         "symbol":"ETH-USDT",
@@ -769,7 +789,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($trades, $messageHash);
     }
 
-    public function handle_order(Client $client, $lists) {
+    public function handle_order(Client $client, mixed $lists) {
         // array(
         //     {
         //         "symbol":"ETH-USDT",
@@ -825,38 +845,40 @@ class apex extends \ccxt\async\apex {
             return;
         }
         $messageHash = 'fetchPositionsSnapshot';
-        if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+        if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
             $client->future($messageHash);
             $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
-        return Async\async(function () use ($client, $messageHash) {
-            // one ws channel gives $positions for all types, for snapshot must load all $positions
-            $fetchFunctions = array(
-                $this->fetch_positions(),
-            );
-            $promises = Async\await(Promise\all($fetchFunctions));
-            $this->positions = new ArrayCacheBySymbolBySide();
-            $cache = $this->positions;
-            for ($i = 0; $i < count($promises); $i++) {
-                $positions = $promises[$i];
-                for ($ii = 0; $ii < count($positions); $ii++) {
-                    $position = $positions[$ii];
-                    $cache->append($position);
-                }
-            }
-            // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
-                $future = $client->futures[$messageHash];
-                $future->resolve($cache);
-                $client->resolve($cache, 'positions');
-            }
-        })();
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+        return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    public function handle_positions($client, $lists) {
+    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+        // one ws channel gives $positions for all types, for snapshot must load all $positions
+        $fetchFunctions = array(
+            $this->fetch_positions(),
+        );
+        $promises = Async\await(Promise\all($fetchFunctions));
+        $this->positions = new ArrayCacheBySymbolBySide();
+        $cache = $this->positions;
+        for ($i = 0; $i < count($promises); $i++) {
+            $positions = $promises[$i];
+            for ($ii = 0; $ii < count($positions); $ii++) {
+                $position = $positions[$ii];
+                $cache->append($position);
+            }
+        }
+        // don't remove the $future from the .futures $cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve($cache);
+            $client->resolve($cache, 'positions');
+        }
+    }
+
+    public function handle_positions(mixed $client, mixed $lists) {
         //
         // array(
         //     {
@@ -918,41 +940,43 @@ class apex extends \ccxt\async\apex {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function authenticate($url, $params = array()) {
-        return Async\async(function () use ($url, $params) {
-            $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
-            $request_path = '/ws/accounts';
-            $http_method = 'GET';
-            $messageString = ($timestamp . $http_method . $request_path);
-            $signature = $this->hmac($this->encode($messageString), $this->encode(base64_encode($this->secret)), 'sha256', 'base64');
-            $messageHash = 'authenticated';
-            $client = $this->client($url);
-            $future = $client->reusableFuture($messageHash);
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                // auth sign
-                $request = array(
-                    'type' => 'login',
-                    'topics' => array( 'ws_zk_accounts_v3' ),
-                    'httpMethod' => $http_method,
-                    'requestPath' => $request_path,
-                    'apiKey' => $this->apiKey,
-                    'passphrase' => $this->password,
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
-                );
-                $message = array(
-                    'op' => 'login',
-                    'args' => array( json_encode($request) ),
-                );
-                $this->watch($url, $messageHash, $message, $messageHash);
-            }
-            return Async\await($future);
-        })();
+    public function authenticate(mixed $url, $params = array()) {
+        return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    private function do_authenticate(mixed $url, $params = array()) {
+        $this->check_required_credentials();
+        $timestamp = (string) $this->milliseconds();
+        $request_path = '/ws/accounts';
+        $http_method = 'GET';
+        $messageString = ($timestamp . $http_method . $request_path);
+        $signature = $this->hmac($this->encode($messageString), $this->encode(base64_encode($this->secret)), 'sha256', 'base64');
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $client->reusableFuture($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            // auth sign
+            $request = array(
+                'type' => 'login',
+                'topics' => array( 'ws_zk_accounts_v3' ),
+                'httpMethod' => $http_method,
+                'requestPath' => $request_path,
+                'apiKey' => $this->apiKey,
+                'passphrase' => $this->password,
+                'timestamp' => $timestamp,
+                'signature' => $signature,
+            );
+            $message = array(
+                'op' => 'login',
+                'args' => array( json_encode($request) ),
+            );
+            $this->watch($url, $messageHash, $message, $messageHash);
+        }
+        return Async\await($future);
+    }
+
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //   {
         //       "success" => false,
@@ -1006,7 +1030,7 @@ class apex extends \ccxt\async\apex {
                 throw new ExchangeError($feedback);
             }
             $success = $this->safe_value($message, 'success');
-            if ($success !== null && !$success) {
+            if (($success !== null) && ($success !== true)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
@@ -1030,7 +1054,7 @@ class apex extends \ccxt\async\apex {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -1041,8 +1065,8 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function handle_message(Client $client, $message) {
-        if ($this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, mixed $message) {
+        if ($this->handle_error_message($client, $message) === true) {
             return;
         }
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
@@ -1090,22 +1114,24 @@ class apex extends \ccxt\async\apex {
         );
     }
 
-    public function pong($client, $message) {
-        return Async\async(function () use ($client, $message) {
-            //
-            //     array("op" => "ping", "args" => ["1761069137485"])
-            //
-            $timeStamp = $this->milliseconds();
-            try {
-                Async\await($client->send(array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
-            } catch (Exception $e) {
-                $error = new NetworkError($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
-                $client->reset($error);
-            }
-        })();
+    public function pong(Client $client, mixed $message) {
+        return Async\async(self::do_pong(...))($client, $message);
     }
 
-    public function handle_pong(Client $client, $message) {
+    private function do_pong(Client $client, mixed $message) {
+        //
+        //     array("op" => "ping", "args" => ["1761069137485"])
+        //
+        $timeStamp = $this->milliseconds();
+        try {
+            Async\await($client->send(array( 'args' => array( (string) $timeStamp ), 'op' => 'pong' )));
+        } catch (Exception $e) {
+            $error = new NetworkError($this->id . ' handlePing failed with $error ' . $this->exception_message($e));
+            $client->reset($error);
+        }
+    }
+
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "success" => true,
@@ -1120,11 +1146,11 @@ class apex extends \ccxt\async\apex {
         return $message;
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_account(Client $client, $message) {
+    public function handle_account(Client $client, mixed $message) {
         $contents = $this->safe_dict($message, 'contents', array());
         $fills = $this->safe_list($contents, 'fills', array());
         if ($fills !== null) {
@@ -1140,7 +1166,7 @@ class apex extends \ccxt\async\apex {
         }
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         //    {
         //        "success" => true,
@@ -1152,20 +1178,20 @@ class apex extends \ccxt\async\apex {
         $success = $this->safe_value($message, 'success');
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
-        if ($success || $code === 0) {
+        if (($success === true) || ($code === 0)) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //        "topic" => "kline",

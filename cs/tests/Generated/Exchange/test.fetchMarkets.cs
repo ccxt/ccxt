@@ -7,12 +7,12 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchMarkets(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchMarkets(BaseExchange exchange, object skippedProperties)
     {
-        object method = "fetchMarkets";
-        object markets = await exchange.fetchMarkets();
-        assert(exchange.isDictionary(markets), add(add(add(add(exchange.id, " "), method), " must return a dict. "), exchange.json(markets)));
-        object marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
+        string method = "fetchMarkets";
+        object markets = await invokeExchangeDynamically(exchange, "fetchMarkets");
+        testSharedMethods.assertDictionaryResponse(exchange, method, markets);
+        List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
@@ -21,10 +21,10 @@ public partial class testMainClass : BaseTest
         detectMarketConflicts(exchange, markets);
         return true;
     }
-    public static object detectMarketConflicts(Exchange exchange, object marketValues)
+    public static object detectMarketConflicts(BaseExchange exchange, object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
-        object ids = new Dictionary<string, object>() {};
+        Dictionary<string, object> ids = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             object market = getValue(marketValues, i);
@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
                 ((IDictionary<string,object>)ids)[(string)symbol] = getValue(market, "id");
             } else
             {
-                object isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));
+                bool isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));
                 assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), getValue(ids, symbol)), " "), getValue(market, "id")));
             }
         }

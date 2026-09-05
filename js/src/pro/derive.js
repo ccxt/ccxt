@@ -76,7 +76,7 @@ export default class derive extends deriveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -152,7 +152,7 @@ export default class derive extends deriveRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const topic = 'ticker.' + market['id'] + '.100';
+        const topic = 'ticker_slim.' + market['id'] + '.100'; // the venue deprecated the fat ticker channel in favor of ticker_slim
         const request = {
             'method': 'subscribe',
             'params': {
@@ -236,8 +236,36 @@ export default class derive extends deriveRest {
         const params = this.safeDict(message, 'params');
         const rawData = this.safeDict(params, 'data');
         const data = this.safeDict(rawData, 'instrument_ticker', {});
-        const topic = this.safeValue(params, 'channel');
-        const ticker = this.parseTicker(data);
+        const topic = this.safeString(params, 'channel');
+        let ticker = undefined;
+        if (topic !== undefined && topic.startsWith('ticker_slim')) {
+            // the slim payload uses short keys and does not carry the instrument name,
+            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+            const parts = topic.split('.');
+            const marketId = this.safeString(parts, 1);
+            const market = this.safeMarket(marketId);
+            const stats = this.safeDict(data, 'stats', {});
+            ticker = this.safeTicker({
+                'symbol': market['symbol'],
+                'timestamp': this.safeInteger(data, 't'),
+                'datetime': this.iso8601(this.safeInteger(data, 't')),
+                'bid': this.safeString(data, 'b'),
+                'bidVolume': this.safeString(data, 'B'),
+                'ask': this.safeString(data, 'a'),
+                'askVolume': this.safeString(data, 'A'),
+                'high': this.safeString(stats, 'h'),
+                'low': this.safeString(stats, 'l'),
+                'baseVolume': this.safeString(stats, 'c'),
+                'quoteVolume': this.safeString(stats, 'v'),
+                'percentage': this.safeString(stats, 'p'),
+                'markPrice': this.safeString(data, 'M'),
+                'indexPrice': this.safeString(data, 'I'),
+                'info': rawData,
+            }, market);
+        }
+        else {
+            ticker = this.parseTicker(data);
+        }
         const tickerSymbol = ticker['symbol'];
         if (tickerSymbol !== undefined) {
             this.tickers[tickerSymbol] = ticker;
@@ -696,12 +724,13 @@ export default class derive extends deriveRest {
         }
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const methods = {
             'orderbook': this.handleOrderBook,
             'ticker': this.handleTicker,
+            'ticker_slim': this.handleTicker,
             'trades': this.handleTrade,
             'orders': this.handleOrder,
             'mytrades': this.handleMyTrade,

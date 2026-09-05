@@ -109,10 +109,11 @@ public partial class phemex : ccxt.phemex
         //         "volume": 934292
         //     }
         //
-        object marketId = this.safeString(ticker, "symbol");
-        market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
+        string? marketId = this.safeString(ticker, "symbol");
+        object marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        object symbol = getValue(marketResolved, "symbol");
+        Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         object lastString = this.fromEp(this.safeString(ticker, "close"), market);
         object last = this.parseNumber(lastString);
         object quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "turnover"), market));
@@ -172,9 +173,10 @@ public partial class phemex : ccxt.phemex
         //        "0.0001",
         //    ]
         //
-        object marketId = this.safeString(ticker, 0);
-        market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? marketId = this.safeString(ticker, 0);
+        object marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        object symbol = getValue(marketResolved, "symbol");
         object lastString = this.fromEp(this.safeString(ticker, 4), market);
         object last = this.parseNumber(lastString);
         object quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
@@ -291,7 +293,7 @@ public partial class phemex : ccxt.phemex
         //        "type": "snapshot",
         //    }
         //
-        object tickers = new List<object>() {};
+        List<object> tickers = new List<object>() {};
         if (isTrue(inOp(message, "market24h")))
         {
             object ticker = this.safeValue(message, "market24h");
@@ -313,7 +315,7 @@ public partial class phemex : ccxt.phemex
             object ticker = getValue(tickers, i);
             object symbol = getValue(ticker, "symbol");
             object messageHash = add("ticker:", symbol);
-            object timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
+            Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
             ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -332,7 +334,7 @@ public partial class phemex : ccxt.phemex
      * @param {string} [params.settle] set to USDT to use hedged perpetual api
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> watchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -343,10 +345,10 @@ public partial class phemex : ccxt.phemex
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object usePerpetualApi = isEqual(this.safeString(parameters, "settle"), "USDT");
+        bool usePerpetualApi = isEqual(this.safeString(parameters, "settle"), "USDT");
         object messageHash = ":balance";
         messageHash = ((bool) isTrue(usePerpetualApi)) ? add("perpetual", messageHash) : add(type, messageHash);
-        return await this.subscribePrivate(type, messageHash, parameters);
+        return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, parameters));
     }
 
     public virtual void handleBalance(object type, object client, object message)
@@ -397,19 +399,19 @@ public partial class phemex : ccxt.phemex
         for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object balance = getValue(message, i);
-            object currencyId = this.safeString(balance, "currency");
+            string? currencyId = this.safeString(balance, "currency");
             object code = this.safeCurrencyCode(currencyId);
             object currency = this.safeValue(this.currencies, code, new Dictionary<string, object>() {});
-            object scale = this.safeInteger(currency, "valueScale", 8);
+            Int64? scale = this.safeInteger(currency, "valueScale", 8);
             object account = this.account();
             object used = this.safeString(balance, "totalUsedBalanceRv");
             if (isTrue(isEqual(used, null)))
             {
-                object usedEv = this.safeString(balance, "totalUsedBalanceEv");
+                string? usedEv = this.safeString(balance, "totalUsedBalanceEv");
                 if (isTrue(isEqual(usedEv, null)))
                 {
-                    object lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
-                    object lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
+                    string? lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
+                    string? lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
                     usedEv = Precise.stringAdd(lockedTradingBalanceEv, lockedWithdrawEv);
                 }
                 used = this.fromEn(usedEv, scale);
@@ -417,12 +419,15 @@ public partial class phemex : ccxt.phemex
             object total = this.safeString(balance, "accountBalanceRv");
             if (isTrue(isEqual(total, null)))
             {
-                object totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
+                string? totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn(totalEv, scale);
             }
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["total"] = total;
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
         object messageHash = add(type, ":balance");
@@ -457,15 +462,15 @@ public partial class phemex : ccxt.phemex
         //         "type": "snapshot",
         //     }
         //
-        object name = "trade";
-        object marketId = this.safeString(message, "symbol");
+        string name = "trade";
+        string? marketId = this.safeString(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add(add(name, ":"), symbol);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
@@ -511,22 +516,22 @@ public partial class phemex : ccxt.phemex
         //         "type": "incremental",
         //     }
         //
-        object marketId = this.safeString(message, "symbol");
+        string? marketId = this.safeString(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object candles = this.safeValue2(message, "kline", "kline_p", new List<object>() {});
         object first = this.safeValue(candles, 0, new List<object>() {});
-        object interval = this.safeString(first, 1);
+        string? interval = this.safeString(first, 1);
         object timeframe = this.findTimeframe(interval);
         if (isTrue(!isEqual(timeframe, null)))
         {
             object messageHash = add(add(add("kline:", timeframe), ":"), symbol);
             object ohlcvs = this.parseOHLCVs(candles, market);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
-                object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
@@ -550,33 +555,34 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object isSwap = getValue(market, "swap");
-        object settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
         object name = "spot_market24h";
-        if (isTrue(isSwap))
+        if (isTrue(isEqual(isSwap, true)))
         {
             name = ((bool) isTrue(settleIsUSDT)) ? "perp_market24h_pack_p" : "market24h";
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
         object subscriptionHash = add(name, ".subscribe");
-        object messageHash = add("ticker:", symbol);
-        object subscribe = new Dictionary<string, object>() {
+        object messageHash = add("ticker:", symbolVar);
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
             { "id", requestId },
             { "params", new List<object>() {} },
         };
-        object request = this.deepExtend(subscribe, parameters);
-        return await this.watch(url, messageHash, request, subscriptionHash);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, subscriptionHash));
     }
 
     /**
@@ -591,7 +597,7 @@ public partial class phemex : ccxt.phemex
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -602,34 +608,34 @@ public partial class phemex : ccxt.phemex
         object first = getValue(symbols, 0);
         object market = this.market(first);
         object isSwap = getValue(market, "swap");
-        object settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
         object name = "spot_market24h";
-        if (isTrue(isSwap))
+        if (isTrue(isEqual(isSwap, true)))
         {
             name = ((bool) isTrue(settleIsUSDT)) ? "perp_market24h_pack_p" : "market24h";
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
         object subscriptionHash = add(name, ".subscribe");
-        object messageHashes = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
         }
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
             { "id", requestId },
             { "params", new List<object>() {} },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            object result = new Dictionary<string, object>() {};
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     /**
@@ -645,34 +651,37 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
         object isSwap = getValue(market, "swap");
-        object settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
-        object name = ((bool) isTrue((isTrue(isSwap) && isTrue(settleIsUSDT)))) ? "trade_p" : "trade";
-        object messageHash = add("trade:", symbol);
+        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool isUsdtSwap = isTrue((isEqual(isSwap, true))) && isTrue(settleIsUSDT);
+        object name = ((bool) isTrue(isUsdtSwap)) ? "trade_p" : "trade";
+        object messageHash = add("trade:", symbolVar);
         object method = add(name, ".subscribe");
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
             { "params", new List<object>() {getValue(market, "id")} },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     /**
@@ -686,32 +695,34 @@ public partial class phemex : ccxt.phemex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
         object isSwap = getValue(market, "swap");
-        object settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
-        object name = ((bool) isTrue((isTrue(isSwap) && isTrue(settleIsUSDT)))) ? "orderbook_p" : "orderbook";
-        object messageHash = add("orderbook:", symbol);
+        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool isUsdtSwap = isTrue((isEqual(isSwap, true))) && isTrue(settleIsUSDT);
+        object name = ((bool) isTrue(isUsdtSwap)) ? "orderbook_p" : "orderbook";
+        object messageHash = add("orderbook:", symbolVar);
         object method = add(name, ".subscribe");
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
             { "params", new List<object>() {getValue(market, "id")} },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     /**
@@ -728,35 +739,39 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
         object isSwap = getValue(market, "swap");
-        object settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
-        object name = ((bool) isTrue((isTrue(isSwap) && isTrue(settleIsUSDT)))) ? "kline_p" : "kline";
-        object messageHash = add(add(add("kline:", timeframe), ":"), symbol);
+        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        bool isUsdtSwap = isTrue((isEqual(isSwap, true))) && isTrue(settleIsUSDT);
+        object name = ((bool) isTrue(isUsdtSwap)) ? "kline_p" : "kline";
+        object messageHash = add(add(add("kline:", timeframeVar), ":"), symbolVar);
         object method = add(name, ".subscribe");
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {getValue(market, "id"), this.safeInteger(this.timeframes, timeframe)} },
+            { "params", new List<object>() {getValue(market, "id"), this.safeInteger(this.timeframes, timeframeVar)} },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
     public virtual void customHandleDelta(object bookside, object delta, object market = null)
@@ -818,15 +833,15 @@ public partial class phemex : ccxt.phemex
         //        "type": "snapshot",
         //    }
         //
-        object marketId = this.safeString(message, "symbol");
+        string? marketId = this.safeString(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object type = this.safeString(message, "type");
-        object depth = this.safeInteger(message, "depth");
-        object name = "orderbook";
+        string? type = this.safeString(message, "type");
+        Int64? depth = this.safeInteger(message, "depth");
+        string name = "orderbook";
         object messageHash = add(add(name, ":"), symbol);
-        object nonce = this.safeInteger(message, "sequence");
-        object timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
+        Int64? nonce = this.safeInteger(message, "sequence");
+        Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
         if (isTrue(isEqual(type, "snapshot")))
         {
             object book = this.safeValue2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
@@ -864,8 +879,10 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -874,10 +891,10 @@ public partial class phemex : ccxt.phemex
         object market = null;
         object type = null;
         object messageHash = "trades:";
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, getValue(market, "symbol"));
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
@@ -888,17 +905,17 @@ public partial class phemex : ccxt.phemex
         var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isEqual(symbol, null)))
+        if (isTrue(isEqual(symbolVar, null)))
         {
-            object settle = this.safeString(parameters, "settle");
+            string? settle = this.safeString(parameters, "settle");
             messageHash = ((bool) isTrue((isEqual(settle, "USDT")))) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
         }
         object trades = await this.subscribePrivate(type, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -996,8 +1013,8 @@ public partial class phemex : ccxt.phemex
         //        ...
         //    ]
         //
-        object channel = "trades";
-        object tradesLength = getArrayLength(message);
+        string channel = "trades";
+        int tradesLength = getArrayLength(message);
         if (isTrue(isEqual(tradesLength, 0)))
         {
             return;
@@ -1005,15 +1022,15 @@ public partial class phemex : ccxt.phemex
         object cachedTrades = this.myTrades;
         if (isTrue(isEqual(cachedTrades, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCacheBySymbolById(limit);
         }
-        object marketIds = new Dictionary<string, object>() {};
+        Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         object type = null;
         for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(message, i);
-            object marketId = this.safeString(rawTrade, "symbol");
+            string? marketId = this.safeString(rawTrade, "symbol");
             object market = this.safeMarket(marketId);
             object parsed = this.parseTrade(rawTrade);
             callDynamically(cachedTrades, "append", new object[] {parsed});
@@ -1022,9 +1039,12 @@ public partial class phemex : ccxt.phemex
             {
                 type = ((bool) isTrue((isEqual(getValue(market, "settle"), "USDT")))) ? "perpetual" : getValue(market, "type");
             }
-            ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
+            }
         }
-        object keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object market = getValue(keys, i);
@@ -1046,8 +1066,10 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1056,10 +1078,10 @@ public partial class phemex : ccxt.phemex
         object messageHash = "orders:";
         object market = null;
         object type = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, getValue(market, "symbol"));
             if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
             {
@@ -1070,17 +1092,17 @@ public partial class phemex : ccxt.phemex
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isUSDTSettled = isEqual(this.safeString(parameters, "settle"), "USDT");
-        if (isTrue(isEqual(symbol, null)))
+        bool isUSDTSettled = isEqual(this.safeString(parameters, "settle"), "USDT");
+        if (isTrue(isEqual(symbolVar, null)))
         {
             messageHash = ((bool) isTrue((isUSDTSettled))) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
         }
         object orders = await this.subscribePrivate(type, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)
@@ -1244,13 +1266,13 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         object trades = new List<object>() {};
-        object parsedOrders = new List<object>() {};
+        List<object> parsedOrders = new List<object>() {};
         if (isTrue(isTrue(isTrue((inOp(message, "closed"))) || isTrue((inOp(message, "fills")))) || isTrue((inOp(message, "open")))))
         {
             object closed = this.safeValue(message, "closed", new List<object>() {});
             object open = this.safeValue(message, "open", new List<object>() {});
             object orders = this.arrayConcat(open, closed);
-            object ordersLength = getArrayLength(orders);
+            int ordersLength = getArrayLength(orders);
             if (isTrue(isEqual(ordersLength, 0)))
             {
                 return;
@@ -1264,7 +1286,7 @@ public partial class phemex : ccxt.phemex
             }
         } else
         {
-            object messageLength = getArrayLength(message);
+            int messageLength = getArrayLength(message);
             if (isTrue(isEqual(messageLength, 0)))
             {
                 return;
@@ -1272,7 +1294,7 @@ public partial class phemex : ccxt.phemex
             for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
             {
                 object update = getValue(message, i);
-                object action = this.safeString(update, "action");
+                string? action = this.safeString(update, "action");
                 if (isTrue(isTrue((!isEqual(action, null))) && isTrue((!isEqual(action, "Cancel")))))
                 {
                     // order + trade info together
@@ -1283,8 +1305,8 @@ public partial class phemex : ccxt.phemex
             }
         }
         this.handleMyTrades(client as WebSocketClient, trades);
-        object limit = this.safeInteger(this.options, "ordersLimit", 1000);
-        object marketIds = new Dictionary<string, object>() {};
+        Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
+        Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         if (isTrue(isEqual(this.orders, null)))
         {
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1299,12 +1321,12 @@ public partial class phemex : ccxt.phemex
             object market = this.market(symbol);
             if (isTrue(isEqual(type, null)))
             {
-                object isUsdt = isEqual(getValue(market, "settle"), "USDT");
+                bool isUsdt = isEqual(getValue(market, "settle"), "USDT");
                 type = ((bool) isTrue(isUsdt)) ? "perpetual" : getValue(market, "type");
             }
             ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
         }
-        object keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currentMessageHash = add(add("orders", ":"), getValue(keys, i));
@@ -1439,32 +1461,33 @@ public partial class phemex : ccxt.phemex
         //        "userID": 4018340
         //    }
         //
-        object id = this.safeString(order, "orderID");
-        object clientOrderId = this.safeString(order, "clOrdID");
+        string? id = this.safeString(order, "orderID");
+        string? clientOrderId = this.safeString(order, "clOrdID");
         if (isTrue(isTrue((!isEqual(clientOrderId, null))) && isTrue((isLessThan(((string)clientOrderId).Length, 1)))))
         {
             clientOrderId = null;
         }
-        object marketId = this.safeString(order, "symbol");
-        market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? marketId = this.safeString(order, "symbol");
+        object marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        object symbol = getValue(marketResolved, "symbol");
         object status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
-        object side = this.safeStringLower(order, "side");
+        string? side = this.safeStringLower(order, "side");
         object type = this.parseOrderType(this.safeString(order, "ordType"));
-        object price = this.safeString(order, "priceRp", this.fromEp(this.safeString(order, "priceEp"), market));
-        object amount = this.safeString(order, "orderQty");
-        object filled = this.safeString(order, "cumQty");
-        object remaining = this.safeString(order, "leavesQty");
-        object timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
-        object cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
-        object lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
+        string? price = this.safeString(order, "priceRp", this.fromEp(this.safeString(order, "priceEp"), market));
+        string? amount = this.safeString(order, "orderQty");
+        string? filled = this.safeString(order, "cumQty");
+        string? remaining = this.safeString(order, "leavesQty");
+        Int64? timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
+        string? cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
+        Int64? lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
         if (isTrue(isEqual(lastTradeTimestamp, 0)))
         {
             lastTradeTimestamp = null;
         }
         object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        object stopPrice = this.safeString(order, "stopPx");
-        object postOnly = (isEqual(timeInForce, "PO"));
+        string? stopPrice = this.safeString(order, "stopPx");
+        bool postOnly = (isEqual(timeInForce, "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1588,10 +1611,10 @@ public partial class phemex : ccxt.phemex
         //       }
         //     ]
         // }
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id", "");
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
         {
-            object method = getValue(((WebSocketClient)client).subscriptions, id);
+            object method = this.safeValue(((WebSocketClient)client).subscriptions, id);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             if (isTrue(!isEqual(method, true)))
             {
@@ -1599,7 +1622,7 @@ public partial class phemex : ccxt.phemex
                 return;
             }
         }
-        object methodName = this.safeString(message, "method", "");
+        string? methodName = this.safeString(message, "method", "");
         if (isTrue(isTrue(isTrue((inOp(message, "market24h"))) || isTrue((inOp(message, "spot_market24h")))) || isTrue((isGreaterThanOrEqual(getIndexOf(methodName, "perp_market24h_pack_p"), 0)))))
         {
             this.handleTicker(client as WebSocketClient, message);
@@ -1624,7 +1647,7 @@ public partial class phemex : ccxt.phemex
         }
         if (isTrue(isTrue(isTrue((inOp(message, "accounts"))) || isTrue((inOp(message, "accounts_p")))) || isTrue((inOp(message, "wallets")))))
         {
-            object type = ((bool) isTrue((inOp(message, "accounts")))) ? "swap" : "spot";
+            string type = ((bool) isTrue((inOp(message, "accounts")))) ? "swap" : "spot";
             if (isTrue(inOp(message, "accounts_p")))
             {
                 type = "perpetual";
@@ -1646,8 +1669,8 @@ public partial class phemex : ccxt.phemex
         // }
         //
         object result = this.safeValue(message, "result");
-        object status = this.safeString(result, "status");
-        object messageHash = "authenticated";
+        string? status = this.safeString(result, "status");
+        string messageHash = "authenticated";
         if (isTrue(isEqual(status, "success")))
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
@@ -1671,10 +1694,10 @@ public partial class phemex : ccxt.phemex
         }
         await this.authenticate();
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object requestId = this.seconds();
-        object settleIsUSDT = (isEqual(this.safeValue(parameters, "settle", ""), "USDT"));
+        Int64 requestId = this.seconds();
+        bool settleIsUSDT = (isEqual(this.safeValue(parameters, "settle", ""), "USDT"));
         parameters = this.omit(parameters, "settle");
-        object channel = "aop.subscribe";
+        string channel = "aop.subscribe";
         if (isTrue(isEqual(type, "spot")))
         {
             channel = "wo.subscribe";
@@ -1683,7 +1706,7 @@ public partial class phemex : ccxt.phemex
         {
             channel = "aop_p.subscribe";
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", requestId },
             { "method", channel },
             { "params", new List<object>() {} },
@@ -1699,22 +1722,22 @@ public partial class phemex : ccxt.phemex
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
         object requestId = this.requestId();
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(future, null)))
         {
-            object expiryDelta = this.safeInteger(this.options, "expires", 120);
+            Int64? expiryDelta = this.safeInteger(this.options, "expires", 120);
             object expiration = add(this.seconds(), expiryDelta);
             object payload = add(this.apiKey, ((object)expiration).ToString());
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
-            object method = "user.auth";
-            object request = new Dictionary<string, object>() {
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
+            string method = "user.auth";
+            Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", method },
                 { "params", new List<object>() {"API", this.apiKey, signature, expiration} },
                 { "id", requestId },
             };
-            object subscriptionHash = ((object)requestId).ToString();
-            object message = this.extend(request, parameters);
+            string subscriptionHash = ((object)requestId).ToString();
+            Dictionary<string, object> message = this.extend(request, parameters);
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionHash] = this.handleAuthenticate;

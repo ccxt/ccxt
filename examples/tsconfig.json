@@ -20,6 +20,7 @@
   },
   "include": [
     "./ts/*.ts",
+    "./ts/prediction/*.ts",
   ],
   "exclude": [
     "node_modules/",

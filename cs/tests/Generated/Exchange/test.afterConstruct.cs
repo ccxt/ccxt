@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testAfterConstruct(Exchange exchange, object skippedProperties)
+    async static public Task<object> testAfterConstruct(BaseExchange exchange, object skippedProperties)
     {
         if (!isTrue((inOp(skippedProperties, "networks"))))
         {
@@ -15,11 +15,15 @@ public partial class testMainClass : BaseTest
         }
         return true;
     }
-    public static void testOptionsNetworks(Exchange exchange, object skippedProperties)
+    public static void testOptionsNetworks(BaseExchange exchange, object skippedProperties)
     {
         if (!isTrue((inOp(skippedProperties, "networks"))))
         {
-            object allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"};
+            // only allow these whitelisted unified networkCodes to be repeated
+            List<object> allowedUnifiedAliases = new List<object>() {"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"};
+            // safeDict, not exchange.options['networks']: a direct missing-key access throws
+            // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
+            // hyperliquid prediction market)
             object networks = exchange.safeDict(exchange.options, "networks");
             if (isTrue(isEqual(networks, null)))
             {
@@ -35,9 +39,9 @@ public partial class testMainClass : BaseTest
             assert(inOp(exchange.options, "networksById"), "exchange.options[\"networksById\"] is not set");
             assert(exchange.isDictionary(getValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not a dict");
             //
-            object networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
+            List<object> networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
-            object collectedNetworkIds = new List<object>() {};
+            List<object> collectedNetworkIds = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
                 object networkCode = getValue(networkCodes, i);
@@ -49,10 +53,10 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)collectedNetworkIds).Add(networkId);
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-            object collectedNetworkCodes = new List<object>() {};
+            List<object> collectedNetworkCodes = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
-                object networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
+                string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
                 assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), add(add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", getValue(networkCodes, i)), "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }

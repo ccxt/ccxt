@@ -34,10 +34,7 @@ func (this *Binanceusdm) TransferIn(code string, amount any, options ...Transfer
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.TransferIn(code, amount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
@@ -52,10 +49,7 @@ func (this *Binanceusdm) TransferOut(code string, amount any, options ...Transfe
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.TransferOut(code, amount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
@@ -182,7 +176,7 @@ func (this *Binanceusdm) EditOrders(orders []OrderRequest, options ...EditOrders
 func (this *Binanceusdm) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Binanceusdm) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Binanceusdm) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Binanceusdm) FetchBalance(params ...any) (Balances, error) {
@@ -230,7 +224,7 @@ func (this *Binanceusdm) FetchDepositAddress(code string, options ...FetchDeposi
 func (this *Binanceusdm) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Binanceusdm) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Binanceusdm) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Binanceusdm) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
@@ -239,10 +233,10 @@ func (this *Binanceusdm) FetchDeposits(options ...FetchDepositsOptions) ([]Trans
 func (this *Binanceusdm) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Binanceusdm) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Binanceusdm) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Binanceusdm) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Binanceusdm) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Binanceusdm) FetchFreeBalance(params ...any) (Balance, error) {
@@ -386,7 +380,7 @@ func (this *Binanceusdm) FetchPosition(symbol string, options ...FetchPositionOp
 func (this *Binanceusdm) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Binanceusdm) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binanceusdm) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Binanceusdm) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -404,7 +398,7 @@ func (this *Binanceusdm) FetchPositionsRisk(options ...FetchPositionsRiskOptions
 func (this *Binanceusdm) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Binanceusdm) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binanceusdm) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Binanceusdm) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -539,7 +533,7 @@ func (this *Binanceusdm) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Binanceusdm) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Binanceusdm) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Binanceusdm) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Binanceusdm) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -584,7 +578,7 @@ func (this *Binanceusdm) FetchTradesWs(symbol string, options ...FetchTradesWsOp
 func (this *Binanceusdm) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Binanceusdm) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Binanceusdm) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Binanceusdm) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

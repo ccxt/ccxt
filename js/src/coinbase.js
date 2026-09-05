@@ -15,6 +15,23 @@ import { jwt } from './base/functions/rsa.js';
 /**
  * @class coinbase
  * @augments Exchange
+ * @description This is the retail Coinbase.com exchange class, covering the Advanced Trade API - the successor
+ * of the former Coinbase Pro after the Pro/retail unification. Use this class for regular Coinbase.com accounts
+ * and API keys created at coinbase.com. For the institutional Coinbase Exchange API (exchange.coinbase.com,
+ * application-gated credentials) see the separate coinbaseexchange class, and for Coinbase International
+ * derivatives see coinbaseinternational. Historical Coinbase Pro trading data lives in the retail account and
+ * is accessible through this class.
+ *
+ * Instantiation with CDP (Cloud Developer Platform) keys, the current key format, see https://github.com/ccxt/ccxt/issues/23771:
+ *
+ *     const exchange = new ccxt.coinbase ({
+ *         'apiKey': 'organizations/{org_id}/apiKeys/{key_id}', // the full "name" field from the CDP key file
+ *         'secret': '-----BEGIN EC PRIVATE KEY-----\n...\n-----END EC PRIVATE KEY-----\n', // the "privateKey" field, keep the newlines
+ *     });
+ *
+ * No password/passphrase is used - that field belonged to the old Coinbase Pro keys. If the secret travels
+ * through an env var or json config, literal backslash-n sequences instead of real newlines will break the
+ * signature - pass the PEM exactly as issued.
  */
 export default class coinbase extends Exchange {
     describe() {
@@ -39,8 +56,8 @@ export default class coinbase extends Exchange {
                 'CORS': true,
                 'spot': true,
                 'margin': false,
-                'swap': false,
-                'future': false,
+                'swap': true,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -135,6 +152,7 @@ export default class coinbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -160,6 +178,7 @@ export default class coinbase extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -186,124 +205,124 @@ export default class coinbase extends Exchange {
                 'v2': {
                     'public': {
                         'get': {
-                            'currencies': 10.6,
-                            'currencies/crypto': 10.6,
-                            'time': 10.6,
-                            'exchange-rates': 10.6,
-                            'users/{user_id}': 10.6,
-                            'prices/{symbol}/buy': 10.6,
-                            'prices/{symbol}/sell': 10.6,
-                            'prices/{symbol}/spot': 10.6,
+                            'currencies': { 'cost': 10.6 },
+                            'currencies/crypto': { 'cost': 10.6 },
+                            'time': { 'cost': 10.6 },
+                            'exchange-rates': { 'cost': 10.6 },
+                            'users/{user_id}': { 'cost': 10.6 },
+                            'prices/{symbol}/buy': { 'cost': 10.6 },
+                            'prices/{symbol}/sell': { 'cost': 10.6 },
+                            'prices/{symbol}/spot': { 'cost': 10.6 },
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}': 10.6,
-                            'accounts/{account_id}/addresses/{address_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}': 10.6,
-                            'payment-methods': 10.6,
-                            'payment-methods/{payment_method_id}': 10.6,
-                            'user': 10.6,
-                            'user/auth': 10.6,
+                            'accounts': { 'cost': 10.6 },
+                            'accounts/{account_id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/addresses': { 'cost': 10.6 },
+                            'accounts/{account_id}/addresses/{address_id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/addresses/{address_id}/transactions': { 'cost': 10.6 },
+                            'accounts/{account_id}/transactions': { 'cost': 10.6 },
+                            'accounts/{account_id}/transactions/{transaction_id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/buys': { 'cost': 10.6 },
+                            'accounts/{account_id}/buys/{buy_id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/sells': { 'cost': 10.6 },
+                            'accounts/{account_id}/sells/{sell_id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/deposits': { 'cost': 10.6 },
+                            'accounts/{account_id}/deposits/{deposit_id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/withdrawals': { 'cost': 10.6 },
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}': { 'cost': 10.6 },
+                            'payment-methods': { 'cost': 10.6 },
+                            'payment-methods/{payment_method_id}': { 'cost': 10.6 },
+                            'user': { 'cost': 10.6 },
+                            'user/auth': { 'cost': 10.6 },
                         },
                         'post': {
-                            'accounts': 10.6,
-                            'accounts/{account_id}/primary': 10.6,
-                            'accounts/{account_id}/addresses': 10.6,
-                            'accounts/{account_id}/transactions': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/complete': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}/resend': 10.6,
-                            'accounts/{account_id}/buys': 10.6,
-                            'accounts/{account_id}/buys/{buy_id}/commit': 10.6,
-                            'accounts/{account_id}/sells': 10.6,
-                            'accounts/{account_id}/sells/{sell_id}/commit': 10.6,
-                            'accounts/{account_id}/deposits': 10.6,
-                            'accounts/{account_id}/deposits/{deposit_id}/commit': 10.6,
-                            'accounts/{account_id}/withdrawals': 10.6,
-                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': 10.6,
+                            'accounts': { 'cost': 10.6 },
+                            'accounts/{account_id}/primary': { 'cost': 10.6 },
+                            'accounts/{account_id}/addresses': { 'cost': 10.6 },
+                            'accounts/{account_id}/transactions': { 'cost': 10.6 },
+                            'accounts/{account_id}/transactions/{transaction_id}/complete': { 'cost': 10.6 },
+                            'accounts/{account_id}/transactions/{transaction_id}/resend': { 'cost': 10.6 },
+                            'accounts/{account_id}/buys': { 'cost': 10.6 },
+                            'accounts/{account_id}/buys/{buy_id}/commit': { 'cost': 10.6 },
+                            'accounts/{account_id}/sells': { 'cost': 10.6 },
+                            'accounts/{account_id}/sells/{sell_id}/commit': { 'cost': 10.6 },
+                            'accounts/{account_id}/deposits': { 'cost': 10.6 },
+                            'accounts/{account_id}/deposits/{deposit_id}/commit': { 'cost': 10.6 },
+                            'accounts/{account_id}/withdrawals': { 'cost': 10.6 },
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit': { 'cost': 10.6 },
                         },
                         'put': {
-                            'accounts/{account_id}': 10.6,
-                            'user': 10.6,
+                            'accounts/{account_id}': { 'cost': 10.6 },
+                            'user': { 'cost': 10.6 },
                         },
                         'delete': {
-                            'accounts/{id}': 10.6,
-                            'accounts/{account_id}/transactions/{transaction_id}': 10.6,
+                            'accounts/{id}': { 'cost': 10.6 },
+                            'accounts/{account_id}/transactions/{transaction_id}': { 'cost': 10.6 },
                         },
                     },
                 },
                 'v3': {
                     'public': {
                         'get': {
-                            'brokerage/time': 3,
-                            'brokerage/market/product_book': 3,
-                            'brokerage/market/products': 3,
-                            'brokerage/market/products/{product_id}': 3,
-                            'brokerage/market/products/{product_id}/candles': 3,
-                            'brokerage/market/products/{product_id}/ticker': 3,
+                            'brokerage/time': { 'cost': 3 },
+                            'brokerage/market/product_book': { 'cost': 3 },
+                            'brokerage/market/products': { 'cost': 3 },
+                            'brokerage/market/products/{product_id}': { 'cost': 3 },
+                            'brokerage/market/products/{product_id}/candles': { 'cost': 3 },
+                            'brokerage/market/products/{product_id}/ticker': { 'cost': 3 },
                         },
                     },
                     'private': {
                         'get': {
-                            'brokerage/accounts': 1,
-                            'brokerage/accounts/{account_uuid}': 1,
-                            'brokerage/orders/historical/batch': 1,
-                            'brokerage/orders/historical/fills': 1,
-                            'brokerage/orders/historical/{order_id}': 1,
-                            'brokerage/products': 3,
-                            'brokerage/products/{product_id}': 3,
-                            'brokerage/products/{product_id}/candles': 3,
-                            'brokerage/products/{product_id}/ticker': 3,
-                            'brokerage/best_bid_ask': 3,
-                            'brokerage/product_book': 3,
-                            'brokerage/transaction_summary': 3,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/balance_summary': 1,
-                            'brokerage/cfm/positions': 1,
-                            'brokerage/cfm/positions/{product_id}': 1,
-                            'brokerage/cfm/sweeps': 1,
-                            'brokerage/intx/portfolio/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}': 1,
-                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
-                            'brokerage/payment_methods': 1,
-                            'brokerage/payment_methods/{payment_method_id}': 1,
-                            'brokerage/key_permissions': 1,
+                            'brokerage/accounts': { 'cost': 1 },
+                            'brokerage/accounts/{account_uuid}': { 'cost': 1 },
+                            'brokerage/orders/historical/batch': { 'cost': 1 },
+                            'brokerage/orders/historical/fills': { 'cost': 1 },
+                            'brokerage/orders/historical/{order_id}': { 'cost': 1 },
+                            'brokerage/products': { 'cost': 3 },
+                            'brokerage/products/{product_id}': { 'cost': 3 },
+                            'brokerage/products/{product_id}/candles': { 'cost': 3 },
+                            'brokerage/products/{product_id}/ticker': { 'cost': 3 },
+                            'brokerage/best_bid_ask': { 'cost': 3 },
+                            'brokerage/product_book': { 'cost': 3 },
+                            'brokerage/transaction_summary': { 'cost': 3 },
+                            'brokerage/portfolios': { 'cost': 1 },
+                            'brokerage/portfolios/{portfolio_uuid}': { 'cost': 1 },
+                            'brokerage/convert/trade/{trade_id}': { 'cost': 1 },
+                            'brokerage/cfm/balance_summary': { 'cost': 1 },
+                            'brokerage/cfm/positions': { 'cost': 1 },
+                            'brokerage/cfm/positions/{product_id}': { 'cost': 1 },
+                            'brokerage/cfm/sweeps': { 'cost': 1 },
+                            'brokerage/intx/portfolio/{portfolio_uuid}': { 'cost': 1 },
+                            'brokerage/intx/positions/{portfolio_uuid}': { 'cost': 1 },
+                            'brokerage/intx/positions/{portfolio_uuid}/{symbol}': { 'cost': 1 },
+                            'brokerage/payment_methods': { 'cost': 1 },
+                            'brokerage/payment_methods/{payment_method_id}': { 'cost': 1 },
+                            'brokerage/key_permissions': { 'cost': 1 },
                         },
                         'post': {
-                            'brokerage/orders': 1,
-                            'brokerage/orders/batch_cancel': 1,
-                            'brokerage/orders/edit': 1,
-                            'brokerage/orders/edit_preview': 1,
-                            'brokerage/orders/preview': 1,
-                            'brokerage/portfolios': 1,
-                            'brokerage/portfolios/move_funds': 1,
-                            'brokerage/convert/quote': 1,
-                            'brokerage/convert/trade/{trade_id}': 1,
-                            'brokerage/cfm/sweeps/schedule': 1,
-                            'brokerage/intx/allocate': 1,
+                            'brokerage/orders': { 'cost': 1 },
+                            'brokerage/orders/batch_cancel': { 'cost': 1 },
+                            'brokerage/orders/edit': { 'cost': 1 },
+                            'brokerage/orders/edit_preview': { 'cost': 1 },
+                            'brokerage/orders/preview': { 'cost': 1 },
+                            'brokerage/portfolios': { 'cost': 1 },
+                            'brokerage/portfolios/move_funds': { 'cost': 1 },
+                            'brokerage/convert/quote': { 'cost': 1 },
+                            'brokerage/convert/trade/{trade_id}': { 'cost': 1 },
+                            'brokerage/cfm/sweeps/schedule': { 'cost': 1 },
+                            'brokerage/intx/allocate': { 'cost': 1 },
                             // futures
-                            'brokerage/orders/close_position': 1,
+                            'brokerage/orders/close_position': { 'cost': 1 },
                         },
                         'put': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': { 'cost': 1 },
                         },
                         'delete': {
-                            'brokerage/portfolios/{portfolio_uuid}': 1,
-                            'brokerage/cfm/sweeps': 1,
+                            'brokerage/portfolios/{portfolio_uuid}': { 'cost': 1 },
+                            'brokerage/cfm/sweeps': { 'cost': 1 },
                         },
                     },
                 },
@@ -864,7 +883,7 @@ export default class coinbase extends Exchange {
      * @ignore
      * @description fetch sells
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMySells ()
+     * @param {string} symbol not used by fetchMySells ()
      * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
      * @param {int} [limit] max number of sells to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -878,7 +897,8 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit(params, ['account_id', 'accountId']);
         const sells = await this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query));
-        return this.parseTrades(sells['data'], undefined, since, limit);
+        const sellsData = this.safeList(sells, 'data', []);
+        return this.parseTrades(sellsData, undefined, since, limit);
     }
     /**
      * @method
@@ -886,7 +906,7 @@ export default class coinbase extends Exchange {
      * @ignore
      * @description fetch buys
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMyBuys ()
+     * @param {string} symbol not used by fetchMyBuys ()
      * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
      * @param {int} [limit] max number of buys to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -900,7 +920,8 @@ export default class coinbase extends Exchange {
         }
         const query = this.omit(params, ['account_id', 'accountId']);
         const buys = await this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query));
-        return this.parseTrades(buys['data'], undefined, since, limit);
+        const buysData = this.safeList(buys, 'data', []);
+        return this.parseTrades(buysData, undefined, since, limit);
     }
     async fetchTransactionsWithMethod(method, code = undefined, since = undefined, limit = undefined, params = {}) {
         let request = undefined;
@@ -908,7 +929,16 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
+        }
+        else if (method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, params));
+        }
+        else {
+            response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, params));
+        }
         return this.parseTransactions(response['data'], undefined, since, limit);
     }
     /**
@@ -948,7 +978,7 @@ export default class coinbase extends Exchange {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         let currencyType = undefined;
-        [currencyType, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'currencyType');
+        [currencyType, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray(results, 'type', 'deposit', false);
@@ -1155,7 +1185,7 @@ export default class coinbase extends Exchange {
         let status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         if (status === undefined) {
             const committed = this.safeBool(transaction, 'committed');
-            status = committed ? 'ok' : 'pending';
+            status = (committed === true) ? 'ok' : 'pending';
         }
         const id = this.safeString(transaction, 'id');
         const currencyId = this.safeString(amountAndCurrencyObject, 'currency');
@@ -1284,7 +1314,7 @@ export default class coinbase extends Exchange {
         const v3Price = this.safeString(trade, 'price');
         let v3Cost = undefined;
         let v3Amount = this.safeString(trade, 'size');
-        if (sizeInQuote) {
+        if (sizeInQuote === true) {
             // calculate base size
             v3Cost = v3Amount;
             v3Amount = Precise.stringDiv(v3Amount, v3Price);
@@ -1346,7 +1376,7 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        if (this.options['adjustForTimeDifference']) {
+        if (this.options['adjustForTimeDifference'] === true) {
             await this.loadTimeDifference();
         }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
@@ -1642,7 +1672,7 @@ export default class coinbase extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': !tradingDisabled,
+            'active': tradingDisabled !== true,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
@@ -1822,8 +1852,8 @@ export default class coinbase extends Exchange {
         }
         const takerFeeRate = this.safeNumber(feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber(feeTier, 'maker_fee_rate');
-        const taker = takerFeeRate ? takerFeeRate : this.parseNumber('0.06');
-        const maker = makerFeeRate ? makerFeeRate : this.parseNumber('0.04');
+        const taker = (takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0) ? takerFeeRate : this.parseNumber('0.06');
+        const maker = (makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0) ? makerFeeRate : this.parseNumber('0.04');
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -1839,7 +1869,7 @@ export default class coinbase extends Exchange {
             'swap': isSwap,
             'future': !isSwap,
             'option': false,
-            'active': !tradingDisabled,
+            'active': tradingDisabled !== true,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -1981,35 +2011,43 @@ export default class coinbase extends Exchange {
             const id = this.safeString2(currency, 'id', 'code');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            this.options['networks'][code] = name.toLowerCase();
-            this.options['networksById'][code] = name.toLowerCase();
+            if (code !== undefined) {
+                this.options['networks'][code] = name.toLowerCase();
+            }
+            if (code !== undefined) {
+                this.options['networksById'][code] = name.toLowerCase();
+            }
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'networks': {}, // todo
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'min_size'),
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': currency,
+                    'id': id,
+                    'code': code,
+                    'type': type,
+                    'name': name,
+                    'active': true,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {}, // todo
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(currency, 'min_size'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
             if (assetId !== undefined) {
                 const lowerCaseName = name.toLowerCase();
-                networks[code] = lowerCaseName;
+                if (code !== undefined) {
+                    networks[code] = lowerCaseName;
+                }
                 networksById[lowerCaseName] = code;
             }
         }
@@ -2017,14 +2055,16 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < ratesIds.length; i++) {
             const currencyId = ratesIds[i];
             const code = this.safeCurrencyCode(currencyId);
-            if (!(code in result)) {
-                result[code] = this.safeCurrencyStructure({
-                    'info': {},
-                    'id': currencyId,
-                    'code': code,
-                    'type': 'crypto',
-                    'networks': {}, // todo
-                });
+            if ((code === undefined) || !(code in result)) {
+                if (code !== undefined) {
+                    result[code] = this.safeCurrencyStructure({
+                        'info': {},
+                        'id': currencyId,
+                        'code': code,
+                        'type': 'crypto',
+                        'networks': {}, // todo
+                    });
+                }
             }
         }
         this.options['networks'] = this.extend(networks, this.options['networks']);
@@ -2406,7 +2446,9 @@ export default class coinbase extends Exchange {
                         account['free'] = Precise.stringAdd(account['free'], total);
                         account['total'] = Precise.stringAdd(account['total'], total);
                     }
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
             else if (this.inArray(type, v3Accounts)) {
@@ -2430,7 +2472,9 @@ export default class coinbase extends Exchange {
                         account['used'] = Precise.stringAdd(account['used'], used);
                         account['total'] = Precise.stringAdd(account['total'], total);
                     }
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -2463,7 +2507,7 @@ export default class coinbase extends Exchange {
         if (marketType === 'future') {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, params));
         }
-        else if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
+        else if ((isV3 === true) || (method === 'v3PrivateGetBrokerageAccounts')) {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, params));
         }
@@ -2576,7 +2620,8 @@ export default class coinbase extends Exchange {
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
-        const ledger = this.parseLedger(response['data'], currency, since, limit);
+        const data = this.safeList(response, 'data', []);
+        const ledger = this.parseLedger(data, currency, since, limit);
         const length = ledger.length;
         if (length === 0) {
             return ledger;
@@ -2982,7 +3027,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['spot']) {
+        if (market['spot'] !== true) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -3029,7 +3074,7 @@ export default class coinbase extends Exchange {
             'side': side.toUpperCase(),
         };
         const reduceOnly = this.safeBool(params, 'reduceOnly');
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             params = this.omit(params, 'reduceOnly');
             params['amount'] = amount;
             return await this.closePosition(symbol, side, params);
@@ -3142,7 +3187,7 @@ export default class coinbase extends Exchange {
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new NotSupported(this.id + ' createOrder() only stop limit orders are supported');
             }
-            if (market['spot'] && (side === 'buy')) {
+            if ((market['spot'] === true) && (side === 'buy')) {
                 let total = undefined;
                 let createMarketBuyOrderRequiresPrice = true;
                 [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -3191,7 +3236,7 @@ export default class coinbase extends Exchange {
         params = this.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode']);
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview) {
+        if (preview === true) {
             params = this.omit(params, ['preview', 'test']);
             request = this.omit(request, 'client_order_id');
             response = await this.v3PrivatePostBrokerageOrdersPreview(this.extend(request, params));
@@ -3428,7 +3473,7 @@ export default class coinbase extends Exchange {
      * @description cancels an open order
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string} id order id
-     * @param {string} symbol not used by coinbase cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3445,7 +3490,7 @@ export default class coinbase extends Exchange {
      * @description cancel multiple orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by coinbase cancelOrders()
+     * @param {string} symbol not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3512,7 +3557,7 @@ export default class coinbase extends Exchange {
         }
         const preview = this.safeBool2(params, 'preview', 'test', false);
         let response = undefined;
-        if (preview) {
+        if (preview === true) {
             params = this.omit(params, ['preview', 'test']);
             response = await this.v3PrivatePostBrokerageOrdersEditPreview(this.extend(request, params));
         }
@@ -3630,7 +3675,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
@@ -3708,7 +3753,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
@@ -3809,7 +3854,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000);
         }
         return await this.fetchOrdersByStatus('FILLED', symbol, since, limit, params);
     }
@@ -3859,7 +3904,7 @@ export default class coinbase extends Exchange {
             'product_id': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeIntegerN(params, ['until', 'end']);
+        const until = this.safeInteger2(params, 'until', 'end');
         params = this.omit(params, ['until']);
         const duration = this.parseTimeframe(timeframe);
         const requestedDuration = limit * duration;
@@ -4026,7 +4071,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_sequence_timestamp'] = this.iso8601(until);
@@ -4074,7 +4119,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -4453,7 +4498,7 @@ export default class coinbase extends Exchange {
             'amount': this.numberToString(amount),
             'currency': code.toUpperCase(), // need to use code in case depositing USD etc.
             'payment_method': id,
-            'commit': true, // otheriwse the deposit does not go through
+            'commit': true, // otherwise the deposit does not go through
         };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, params));
         //
@@ -4763,12 +4808,67 @@ export default class coinbase extends Exchange {
     }
     /**
      * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'funds': {
+                'value': this.currencyToPrecision(code, amount),
+                'currency': currency['id'],
+            },
+            'source_portfolio_uuid': fromAccount,
+            'target_portfolio_uuid': toAccount,
+        };
+        const response = await this.v3PrivatePostBrokeragePortfoliosMoveFunds(this.extend(request, params));
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        const transfer = this.parseTransfer(response, currency);
+        transfer['amount'] = amount;
+        transfer['status'] = 'ok';
+        return transfer;
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        const currencyCode = this.safeCurrencyCode(undefined, currency);
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': this.safeString(transfer, 'source_portfolio_uuid'),
+            'toAccount': this.safeString(transfer, 'target_portfolio_uuid'),
+            'status': undefined,
+        };
+    }
+    /**
+     * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
-     * @param {object} [params] extra parameters specific to the coinbase api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -4849,7 +4949,7 @@ export default class coinbase extends Exchange {
         }
         const market = this.market(symbol);
         let response = undefined;
-        if (market['future']) {
+        if (market['future'] === true) {
             const productId = this.safeString(market, 'product_id');
             if (productId === undefined) {
                 throw new ArgumentsRequired(this.id + ' fetchPosition() requires a "product_id" in params');
@@ -5061,7 +5161,7 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             const market = this.market(symbol);
-            if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
+            if ((isSpot && (market['spot'] === true)) || (!isSpot && (market['spot'] !== true))) {
                 result[symbol] = {
                     'info': response,
                     'symbol': symbol,
@@ -5195,7 +5295,7 @@ export default class coinbase extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = fullPath;
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -5206,7 +5306,7 @@ export default class coinbase extends Exchange {
             if (authorization !== undefined) {
                 authorizationString = authorization;
             }
-            else if (this.token && !this.checkRequiredCredentials(false)) {
+            else if ((this.token !== '') && !this.checkRequiredCredentials(false)) {
                 authorizationString = 'Bearer ' + this.token;
             }
             else {
@@ -5214,14 +5314,14 @@ export default class coinbase extends Exchange {
                 const seconds = this.seconds();
                 let payload = '';
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                         payload = body;
                     }
                 }
                 else {
                     if (!isV3) {
-                        if (Object.keys(query).length) {
+                        if (Object.keys(query).length > 0) {
                             payload += '?' + this.urlencode(query);
                         }
                     }
@@ -5279,7 +5379,7 @@ export default class coinbase extends Exchange {
                     'Content-Type': 'application/json',
                 };
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                     }
                 }
@@ -5355,7 +5455,7 @@ export default class coinbase extends Exchange {
             }
         }
         const advancedTrade = this.options['advanced'];
-        if (!('data' in response) && (!advancedTrade)) {
+        if (!('data' in response) && (advancedTrade !== true)) {
             throw new ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
         return undefined;

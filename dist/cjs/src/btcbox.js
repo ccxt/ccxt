@@ -74,6 +74,7 @@ class btcbox extends btcbox$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
@@ -127,27 +128,27 @@ class btcbox extends btcbox$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
-                    ],
+                    'get': {
+                        'depth': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
+                    'post': {
+                        'balance': { 'cost': 1 },
+                        'trade_add': { 'cost': 1 },
+                        'trade_cancel': { 'cost': 1 },
+                        'trade_list': { 'cost': 1 },
+                        'trade_view': { 'cost': 1 },
+                        'wallet': { 'cost': 1 },
+                    },
                 },
                 'webApi': {
-                    'get': [
-                        'ajax/coin/coinInfo',
-                    ],
+                    'get': {
+                        'ajax/coin/coinInfo': { 'cost': 1 },
+                    },
                 },
             },
             'options': {
@@ -155,7 +156,6 @@ class btcbox extends btcbox$1["default"] {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 3,
                 },
-                'amountPrecision': '0.0001', // exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {
@@ -255,7 +255,7 @@ class btcbox extends btcbox$1["default"] {
             const quote = this.safeString(symbolParts, 1, '');
             const quoteId = quote.toLowerCase();
             const id = baseCurr.toLowerCase();
-            const res = response1[marketId];
+            const res = this.safeDict(response1, marketId, {});
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber('0.0005') : this.parseNumber('0.0010');
             const details = this.safeDict(result2Data, id, {});
@@ -321,7 +321,7 @@ class btcbox extends btcbox$1["default"] {
         const quoteId = this.safeString(market, 'quote');
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure({
             'id': this.safeString(market, 'symbol'),
             'uppercaseId': undefined,
             'symbol': symbol,
@@ -370,7 +370,7 @@ class btcbox extends btcbox$1["default"] {
             'active': undefined,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const result = { 'info': response };
@@ -413,7 +413,7 @@ class btcbox extends btcbox$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -421,7 +421,7 @@ class btcbox extends btcbox$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -469,7 +469,7 @@ class btcbox extends btcbox$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -543,7 +543,7 @@ class btcbox extends btcbox$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -802,7 +802,7 @@ class btcbox extends btcbox$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

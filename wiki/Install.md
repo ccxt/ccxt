@@ -1,5 +1,9 @@
 ## Install
 
+> **Just want an AI agent or your terminal to use CCXT?** You may not need to install the library at all:
+> - **[CCXT MCP Server](MCP.md)** — connect Claude Desktop/Code, Cursor, VS Code, Windsurf or any MCP host to 100+ exchanges and prediction markets. One line: `claude mcp add ccxt -- npx -y ccxt-mcp`.
+> - **[CCXT CLI](CLI.md)** — call any unified method straight from your shell.
+
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v15+)
@@ -41,14 +45,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.64/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.64/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.77/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.77/dist/ccxt.browser.min.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.64/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.77/dist/ccxt.browser.min.js"></script>
 ```
 
 The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
@@ -187,6 +191,36 @@ cd java
 ```
 
 See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for the full list of examples.
+
+### Rust
+
+[ccxt in Rust with **crates.io**](https://crates.io/crates/ccxt) ([docs.rs](https://docs.rs/ccxt))
+
+```shell
+cargo add ccxt tokio --features tokio/full
+cargo add ccxt-pro
+```
+
+```toml
+[dependencies]
+ccxt = "4.5.75"
+ccxt-pro = "4.5.75"
+tokio = { version = "1", features = ["full"] }
+```
+
+`ccxt` carries the REST exchanges; `ccxt-pro` adds the WebSocket (`watch*`) ones and is only needed if you stream. Both are async and expect a Tokio runtime.
+
+```rust
+use ccxt::{Binance, Params};
+
+let mut exchange = Binance::new(None);
+exchange.load_markets(false).await;
+
+let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+println!("{} {:?}", ticker.symbol, ticker.last);
+```
+
+See [examples/rust/](https://github.com/ccxt/ccxt/tree/master/examples/rust) for the full list of examples.
 
 ### Docker
 

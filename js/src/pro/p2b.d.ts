@@ -6,7 +6,7 @@ export default class p2b extends p2bRest {
     /**
      * @ignore
      * @method
-     * @description Connects to a websocket channel
+     * @description connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash string to look up in handler
      * @param {string[]|float[]} request endpoint parameters
@@ -84,7 +84,7 @@ export default class p2b extends p2bRest {
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOHLCV(client: Client, message: any): any;
@@ -95,7 +95,7 @@ export default class p2b extends p2bRest {
     handleErrorMessage(client: Client, message: any): Bool;
     ping(client: Client): {
         method: string;
-        params: any[];
+        params: never[];
         id: number;
     };
     handlePong(client: Client, message: any): any;

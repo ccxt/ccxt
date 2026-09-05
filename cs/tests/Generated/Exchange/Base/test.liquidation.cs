@@ -7,9 +7,9 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testLiquidation(Exchange exchange, object skippedProperties, object method, object entry, object symbol)
+    public static void testLiquidation(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
             { "contracts", exchange.parseNumber("1.234") },
@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
             { "datetime", "2017-09-01T00:00:00" },
         };
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"};
+        List<object> emptyAllowedFor = new List<object>() {"timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
@@ -34,10 +34,10 @@ public partial class testMainClass : BaseTest
         object contractSize = exchange.safeString(entry, "contractSize");
         object price = exchange.safeString(entry, "price");
         object baseValue = exchange.safeString(entry, "baseValue");
-        if (isTrue(isTrue(contracts) && isTrue(contractSize)))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(contracts, null))) && isTrue((!isEqual(contracts, "")))) && isTrue((!isEqual(contractSize, null)))) && isTrue((!isEqual(contractSize, "")))))
         {
             assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), add("baseValue == contracts * contractSize", logText));
-            if (isTrue(price))
+            if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(price, "")))))
             {
                 assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), add("quoteValue == contracts * contractSize * price", logText));
             }

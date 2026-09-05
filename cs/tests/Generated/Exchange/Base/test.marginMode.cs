@@ -7,14 +7,14 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testMarginMode(Exchange exchange, object skippedProperties, object method, object entry)
+    public static void testMarginMode(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "BTC/USDT:USDT" },
             { "marginMode", "cross" },
         };
-        object emptyAllowedFor = new List<object>() {"symbol"};
+        List<object> emptyAllowedFor = new List<object>() {"symbol"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     }
 

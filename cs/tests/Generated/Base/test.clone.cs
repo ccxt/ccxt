@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object obj1 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", new List<object>() {1, 2, 3} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -34,7 +34,7 @@ public partial class BaseTest
                 } },
                 { "other1", "x" },
             };
-            object obj2 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj2 = new Dictionary<string, object>() {
                 { "a", 2 },
                 { "b", new List<object>() {3, 4} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -58,7 +58,7 @@ public partial class BaseTest
             };
             // deepExtend
             object deepExtended = exchange.deepExtend(obj1, obj2);
-            object compareTo = new Dictionary<string, object>() {
+            Dictionary<string, object> compareTo = new Dictionary<string, object>() {
                 { "a", 2 },
                 { "b", new List<object>() {3, 4} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -89,7 +89,7 @@ public partial class BaseTest
             // test immutability / no cross-mutation between clone and original
             // -------------------------------------------------------------------------
             // --- test A: shallow-object clone – mutating the clone must not affect original ---
-            object simpleOrig = new Dictionary<string, object>() {
+            Dictionary<string, object> simpleOrig = new Dictionary<string, object>() {
                 { "x", 1 },
                 { "y", "hello" },
                 { "z", null },
@@ -107,7 +107,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(simpleClone, "x"), 999), "clone A: mutating original must not change clone x");
             // -------------------------------------------------------------------------
             // --- test B: nested object – verify clone is a shallow copy (top-level keys independent) ---
-            object nestedOrig = new Dictionary<string, object>() {
+            Dictionary<string, object> nestedOrig = new Dictionary<string, object>() {
                 { "top", "original" },
                 { "arr", new List<object>() {10, 20, 30} },
                 { "sub", new Dictionary<string, object>() {
@@ -130,7 +130,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(emptyClone, "newKey"), "injected"), "clone C: can add key to clone of empty object");
             // -------------------------------------------------------------------------
             // --- test D: cloning an object with undefined values preserves those keys ---
-            object withUndef = new Dictionary<string, object>() {
+            Dictionary<string, object> withUndef = new Dictionary<string, object>() {
                 { "present", "yes" },
                 { "absent", null },
             };
@@ -144,7 +144,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(withUndef, "present"), "yes"), "clone D: mutating clone must not change original");
             // -------------------------------------------------------------------------
             // --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
-            object masterOrig = new Dictionary<string, object>() {
+            Dictionary<string, object> masterOrig = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", 2 },
                 { "c", 3 },

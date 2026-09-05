@@ -28,6 +28,7 @@ include_once __DIR__ . '/test_network_methods.php';
 include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
+include_once __DIR__ . '/test_merge_balance_account.php';
 include_once __DIR__ . '/test_json.php';
 include_once __DIR__ . '/test_io.php';
 include_once __DIR__ . '/test_extract_params.php';
@@ -70,6 +71,7 @@ include_once __DIR__ . '/test_binary_concat.php';
 include_once __DIR__ . '/test_constants.php';
 include_once __DIR__ . '/test_base58_to_binary.php';
 include_once __DIR__ . '/test_is_json_encoded_object.php';
+include_once __DIR__ . '/test_is_dictionary.php';
 include_once __DIR__ . '/test_encode_decode.php';
 
 function base_tests_init() {
@@ -89,10 +91,12 @@ function base_tests_init() {
         test_number_to_be();
         test_decimal_to_precision();
         test_capitalize();
+        test_is_dictionary();
         test_number_to_string();
         test_precise();
         test_safe_methods();
         test_safe_ticker();
+        test_merge_balance_account();
         test_base58_to_binary();
         test_to_array();
         test_binary_to_base58();

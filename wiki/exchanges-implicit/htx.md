@@ -1,6 +1,6 @@
 Every endpoint in `htx`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/htx) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `v2PublicGetReferenceCurrencies`); the snake_case alias (`v2Public_get_reference_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V2PublicGetReferenceCurrencies`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v2PublicGetReferenceCurrencies`); the snake_case alias (`v2Public_get_reference_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V2PublicGetReferenceCurrencies`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official htx API documentation:** [huobiapi.github.io](https://huobiapi.github.io/docs/spot/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/dm/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/coin_margined_swap/v1/en/) · [huobiapi.github.io](https://huobiapi.github.io/docs/usdt_swap/v1/en/) · [huobi.com](https://www.huobi.com/en-us/opend/newApiPages/)
 
-> 465 implicit endpoints across 7 access groups.
+> 460 implicit endpoints across 6 access groups.
 
 ## v2Public
 
@@ -186,18 +186,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostCrossMarginOrdersIdRepay` | POST | `cross-margin/orders/{id}/repay` | 1 |
 | `privatePostStableCoinExchange` | POST | `stable-coin/exchange` | 1 |
 | `privatePostSubuserTransfer` | POST | `subuser/transfer` | 10 |
-
-## status
-
-**Base URL**: `https://{hostname}`
-
-| Method | HTTP | Endpoint | Cost |
-| --- | --- | --- | --- |
-| `statusPublicSpotGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicFutureInverseGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicFutureLinearGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicSwapInverseGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
-| `statusPublicSwapLinearGetApiV2SummaryJson` | GET | `api/v2/summary.json` | 1 |
 
 ## spot
 

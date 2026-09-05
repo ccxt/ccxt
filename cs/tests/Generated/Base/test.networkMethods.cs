@@ -118,8 +118,8 @@ public partial class BaseTest
             // check batch
             //
             object defaultNetworkCodeReplacements = getValue(exchange.options, "defaultNetworkCodeReplacements");
-            object allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBONE", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
-            object allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
+            List<object> allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
+            List<object> allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
             for (object i = 0; isLessThan(i, getArrayLength(allNetworkCodes)); postFixIncrement(ref i))
             {
                 object randomNetworkCode = getValue(allNetworkCodes, i);
@@ -127,7 +127,7 @@ public partial class BaseTest
                 {
                     object randomCurrencyCode = getValue(allCurrencyCodes, j);
                     object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
-                    object keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
+                    List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
                     for (object k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
                     {
                         object chainBaseCoin = getValue(keys, k);
@@ -187,13 +187,13 @@ public partial class BaseTest
         public void testNetworkMethods()
         {
             // both below dicts should end with "same" results
-            object dict1 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict1 = new Dictionary<string, object>() {
                 { "BTC", "Bitcoin" },
                 { "BRC20", "Brc_20" },
                 { "TRC20", "Tron" },
                 { "ETH", "Ether" },
             };
-            object dict2 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict2 = new Dictionary<string, object>() {
                 { "BTC", "Bitcoin" },
                 { "BRC20", "Brc_20" },
                 { "TRC20", "Tron" },

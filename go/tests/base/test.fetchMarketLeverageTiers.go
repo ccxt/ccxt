@@ -6,22 +6,22 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchMarketLeverageTiers(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchMarketLeverageTiers"
-
-		tiers := (<-exchange.FetchMarketLeverageTiers(symbol))
-		PanicOnError(tiers)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol)
-		for j := 0; IsLessThan(j, GetArrayLength(tiers)); j++ {
-			TestLeverageTier(exchange, skippedProperties, method, GetValue(tiers, j))
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchMarketLeverageTiersBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchMarketLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchMarketLeverageTiers"
+
+	tiers := (<-exchange.FetchMarketLeverageTiers(symbol))
+	PanicOnError(tiers)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol)
+	for j := 0; IsLessThan(j, GetArrayLength(tiers)); j++ {
+		TestLeverageTier(exchange, skippedProperties, method, GetValue(tiers, j))
+	}
+
+	ch <- true
+	return nil
 }

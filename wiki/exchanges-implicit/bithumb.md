@@ -1,6 +1,6 @@
 Every endpoint in `bithumb`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bithumb) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetTickerALLQuoteId`); the snake_case alias (`public_get_ticker_all_quoteid`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetTickerALLQuoteId`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetPublicTickerALLQuoteId`); the snake_case alias (`public_get_public_ticker_all_quoteid`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetPublicTickerALLQuoteId`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -8,7 +8,7 @@ These methods are available in every CCXT language — TypeScript, JavaScript, P
 
 ```javascript
 const bithumb = new ccxt.bithumb ();
-const response = await bithumb.publicGetTickerALLQuoteId (params);
+const response = await bithumb.publicGetPublicTickerALLQuoteId (params);
 ```
 
 #### **TypeScript**
@@ -16,7 +16,7 @@ const response = await bithumb.publicGetTickerALLQuoteId (params);
 ```typescript
 import ccxt from 'ccxt';
 const bithumb = new ccxt.bithumb ();
-const response = await bithumb.publicGetTickerALLQuoteId (params);
+const response = await bithumb.publicGetPublicTickerALLQuoteId (params);
 ```
 
 #### **Python**
@@ -24,14 +24,14 @@ const response = await bithumb.publicGetTickerALLQuoteId (params);
 ```python
 import ccxt
 bithumb = ccxt.bithumb()
-response = bithumb.public_get_ticker_all_quoteid(params)
+response = bithumb.public_get_public_ticker_all_quoteid(params)
 ```
 
 #### **PHP**
 
 ```php
 $bithumb = new \ccxt\bithumb();
-$response = $bithumb->public_get_ticker_all_quoteid($params);
+$response = $bithumb->public_get_public_ticker_all_quoteid($params);
 ```
 
 #### **C#**
@@ -39,14 +39,14 @@ $response = $bithumb->public_get_ticker_all_quoteid($params);
 ```csharp
 using ccxt;
 var bithumb = new Bithumb();
-var response = await bithumb.publicGetTickerALLQuoteId(parameters);
+var response = await bithumb.publicGetPublicTickerALLQuoteId(parameters);
 ```
 
 #### **Go**
 
 ```go
 bithumb := ccxt.NewBithumb(nil)
-response := <-bithumb.PublicGetTickerALLQuoteId(params)
+response := <-bithumb.PublicGetPublicTickerALLQuoteId(params)
 ```
 
 <!-- tabs:end -->
@@ -55,27 +55,38 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bithumb API documentation:** [apidocs.bithumb.com](https://apidocs.bithumb.com)
 
-> 28 implicit endpoints across 2 access groups.
+> 67 implicit endpoints across 2 access groups.
 
 ## public
 
-**Base URL**: `https://api.{hostname}/public`
+**Base URL**: `https://api.{hostname}`
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `publicGetTickerALLQuoteId` | GET | `ticker/ALL_{quoteId}` |  |
-| `publicGetTickerBaseIdQuoteId` | GET | `ticker/{baseId}_{quoteId}` |  |
-| `publicGetOrderbookALLQuoteId` | GET | `orderbook/ALL_{quoteId}` |  |
-| `publicGetOrderbookBaseIdQuoteId` | GET | `orderbook/{baseId}_{quoteId}` |  |
-| `publicGetTransactionHistoryBaseIdQuoteId` | GET | `transaction_history/{baseId}_{quoteId}` |  |
-| `publicGetNetworkInfo` | GET | `network-info` |  |
-| `publicGetAssetsstatusMultichainALL` | GET | `assetsstatus/multichain/ALL` |  |
-| `publicGetAssetsstatusMultichainCurrency` | GET | `assetsstatus/multichain/{currency}` |  |
-| `publicGetWithdrawMinimumALL` | GET | `withdraw/minimum/ALL` |  |
-| `publicGetWithdrawMinimumCurrency` | GET | `withdraw/minimum/{currency}` |  |
-| `publicGetAssetsstatusALL` | GET | `assetsstatus/ALL` |  |
-| `publicGetAssetsstatusBaseId` | GET | `assetsstatus/{baseId}` |  |
-| `publicGetCandlestickBaseIdQuoteIdInterval` | GET | `candlestick/{baseId}_{quoteId}/{interval}` |  |
+| `publicGetPublicTickerALLQuoteId` | GET | `public/ticker/ALL_{quoteId}` | 1 |
+| `publicGetPublicTickerBaseIdQuoteId` | GET | `public/ticker/{baseId}_{quoteId}` | 1 |
+| `publicGetPublicOrderbookALLQuoteId` | GET | `public/orderbook/ALL_{quoteId}` | 1 |
+| `publicGetPublicOrderbookBaseIdQuoteId` | GET | `public/orderbook/{baseId}_{quoteId}` | 1 |
+| `publicGetPublicTransactionHistoryBaseIdQuoteId` | GET | `public/transaction_history/{baseId}_{quoteId}` | 1 |
+| `publicGetPublicNetworkInfo` | GET | `public/network-info` | 1 |
+| `publicGetPublicAssetsstatusMultichainALL` | GET | `public/assetsstatus/multichain/ALL` | 1 |
+| `publicGetPublicAssetsstatusMultichainCurrency` | GET | `public/assetsstatus/multichain/{currency}` | 1 |
+| `publicGetPublicWithdrawMinimumALL` | GET | `public/withdraw/minimum/ALL` | 1 |
+| `publicGetPublicWithdrawMinimumCurrency` | GET | `public/withdraw/minimum/{currency}` | 1 |
+| `publicGetPublicAssetsstatusALL` | GET | `public/assetsstatus/ALL` | 1 |
+| `publicGetPublicAssetsstatusBaseId` | GET | `public/assetsstatus/{baseId}` | 1 |
+| `publicGetPublicCandlestickBaseIdQuoteIdInterval` | GET | `public/candlestick/{baseId}_{quoteId}/{interval}` | 1 |
+| `publicGetV1MarketAll` | GET | `v1/market/all` | 1 |
+| `publicGetV1CandlesMinutesUnit` | GET | `v1/candles/minutes/{unit}` | 1 |
+| `publicGetV1CandlesDays` | GET | `v1/candles/days` | 1 |
+| `publicGetV1CandlesWeeks` | GET | `v1/candles/weeks` | 1 |
+| `publicGetV1CandlesMonths` | GET | `v1/candles/months` | 1 |
+| `publicGetV1TradesTicks` | GET | `v1/trades/ticks` | 1 |
+| `publicGetV1Ticker` | GET | `v1/ticker` | 1 |
+| `publicGetV1Orderbook` | GET | `v1/orderbook` | 1 |
+| `publicGetV1MarketVirtualAssetWarning` | GET | `v1/market/virtual_asset_warning` | 1 |
+| `publicGetV1Notices` | GET | `v1/notices` | 1 |
+| `publicGetV2FeeInoutCurrency` | GET | `v2/fee/inout/{currency}` | 1 |
 
 ## private
 
@@ -83,19 +94,47 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `privatePostInfoAccount` | POST | `info/account` |  |
-| `privatePostInfoBalance` | POST | `info/balance` |  |
-| `privatePostInfoWalletAddress` | POST | `info/wallet_address` |  |
-| `privatePostInfoTicker` | POST | `info/ticker` |  |
-| `privatePostInfoOrders` | POST | `info/orders` |  |
-| `privatePostInfoUserTransactions` | POST | `info/user_transactions` |  |
-| `privatePostInfoOrderDetail` | POST | `info/order_detail` |  |
-| `privatePostTradePlace` | POST | `trade/place` |  |
-| `privatePostTradeCancel` | POST | `trade/cancel` |  |
-| `privatePostTradeBtcWithdrawal` | POST | `trade/btc_withdrawal` |  |
-| `privatePostTradeKrwDeposit` | POST | `trade/krw_deposit` |  |
-| `privatePostTradeKrwWithdrawal` | POST | `trade/krw_withdrawal` |  |
-| `privatePostTradeMarketBuy` | POST | `trade/market_buy` |  |
-| `privatePostTradeMarketSell` | POST | `trade/market_sell` |  |
-| `privatePostTradeStopLimit` | POST | `trade/stop_limit` |  |
+| `privateGetV1Accounts` | GET | `v1/accounts` | 1 |
+| `privateGetV1OrdersChance` | GET | `v1/orders/chance` | 1 |
+| `privateGetV1Order` | GET | `v1/order` | 1 |
+| `privateGetV1Orders` | GET | `v1/orders` | 1 |
+| `privateGetV1Twap` | GET | `v1/twap` | 1 |
+| `privateGetV1Withdraws` | GET | `v1/withdraws` | 1 |
+| `privateGetV1WithdrawsKrw` | GET | `v1/withdraws/krw` | 1 |
+| `privateGetV1Withdraw` | GET | `v1/withdraw` | 1 |
+| `privateGetV1WithdrawsChance` | GET | `v1/withdraws/chance` | 1 |
+| `privateGetV1WithdrawsCoinAddresses` | GET | `v1/withdraws/coin_addresses` | 1 |
+| `privateGetV1Deposits` | GET | `v1/deposits` | 1 |
+| `privateGetV1DepositsKrw` | GET | `v1/deposits/krw` | 1 |
+| `privateGetV1Deposit` | GET | `v1/deposit` | 1 |
+| `privateGetV1DepositsCoinAddresses` | GET | `v1/deposits/coin_addresses` | 1 |
+| `privateGetV1DepositsCoinAddress` | GET | `v1/deposits/coin_address` | 1 |
+| `privateGetV1StatusWallet` | GET | `v1/status/wallet` | 1 |
+| `privateGetV1ApiKeys` | GET | `v1/api_keys` | 1 |
+| `privatePostInfoAccount` | POST | `info/account` | 1 |
+| `privatePostInfoBalance` | POST | `info/balance` | 1 |
+| `privatePostInfoWalletAddress` | POST | `info/wallet_address` | 1 |
+| `privatePostInfoTicker` | POST | `info/ticker` | 1 |
+| `privatePostInfoOrders` | POST | `info/orders` | 1 |
+| `privatePostInfoUserTransactions` | POST | `info/user_transactions` | 1 |
+| `privatePostInfoOrderDetail` | POST | `info/order_detail` | 1 |
+| `privatePostTradePlace` | POST | `trade/place` | 5 |
+| `privatePostTradeCancel` | POST | `trade/cancel` | 5 |
+| `privatePostTradeBtcWithdrawal` | POST | `trade/btc_withdrawal` | 1 |
+| `privatePostTradeKrwDeposit` | POST | `trade/krw_deposit` | 1 |
+| `privatePostTradeKrwWithdrawal` | POST | `trade/krw_withdrawal` | 1 |
+| `privatePostTradeMarketBuy` | POST | `trade/market_buy` | 1 |
+| `privatePostTradeMarketSell` | POST | `trade/market_sell` | 1 |
+| `privatePostTradeStopLimit` | POST | `trade/stop_limit` | 1 |
+| `privatePostV2Orders` | POST | `v2/orders` | 1 |
+| `privatePostV2OrdersBatch` | POST | `v2/orders/batch` | 6 |
+| `privatePostV2OrdersCancel` | POST | `v2/orders/cancel` | 6 |
+| `privatePostV1Twap` | POST | `v1/twap` | 1 |
+| `privatePostV1WithdrawsCoin` | POST | `v1/withdraws/coin` | 1 |
+| `privatePostV1WithdrawsKrw` | POST | `v1/withdraws/krw` | 1 |
+| `privatePostV1DepositsGenerateCoinAddress` | POST | `v1/deposits/generate_coin_address` | 1 |
+| `privatePostV1DepositsKrw` | POST | `v1/deposits/krw` | 1 |
+| `privateDeleteV2Order` | DELETE | `v2/order` | 1 |
+| `privateDeleteV1Twap` | DELETE | `v1/twap` | 1 |
+| `privateDeleteV1WithdrawsCoin` | DELETE | `v1/withdraws/coin` | 1 |
 

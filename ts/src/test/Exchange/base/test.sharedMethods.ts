@@ -4,9 +4,9 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Bool, Num, Order, Str } from '../../../base/types.js';
+import { Bool, Dict, Num, Order, Str } from '../../../base/types.js';
 
-function logTemplate (exchange: Exchange, method: string, entry: object) {
+function logTemplate (exchange: Exchange, method: Str, entry: object | undefined) {
     // there are cases when exchange is undefined (eg. base tests)
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
@@ -41,12 +41,19 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
-    const same_object = exchange.isDictionary (entryKeyVal) && exchange.isDictionary (formatKeyVal);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    let formatIsEmptyArray = false;
+    if (Array.isArray (formatKeyVal)) {
+        const formatLen = formatKeyVal.length;
+        formatIsEmptyArray = (formatLen === 0);
+    }
+    const same_object = exchange.isDictionary (entryKeyVal) && (exchange.isDictionary (formatKeyVal) || formatIsEmptyArray);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
 
-function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any [] = undefined, deep = false) {
+function assertStructure (exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor: any[] | undefined = undefined, deep = false) {
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -62,19 +69,16 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (i, emptyAllowedFor);
             const value = entry[i];
-            if (i in skippedProperties) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if (emptyAllowedForThisKey && (value === undefined)) {
+            if ((emptyAllowedForThisKey && (value === undefined)) || (i in skippedProperties)) {
                 continue;
             }
             assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            const typeAssertion = assertType (exchange, skippedProperties, entry, i, format);
-            assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
+            const typeAssertion = assertType (exchange, {}, entry, i, format);
+            assert (typeAssertion === true, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
         assert (exchange.isDictionary (entry), 'entry is not a dict' + logText);
@@ -82,16 +86,15 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (key in skippedProperties) {
+                // a skipped key must not be required to exist at all, e.g. prediction
+                // market structures are keyed by an outcome handle and omit 'symbol'
                 continue;
             }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
-            if (key in skippedProperties) {
-                continue;
-            }
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
-            const value = entry[key];
+            const value = (entry as Dict)[key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
             if (emptyAllowedForThisKey && (value === undefined)) {
                 continue;
@@ -100,11 +103,11 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (value !== undefined, '"' + stringValue (key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
-                assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                const typeAssertion = assertType (exchange, {}, entry, key, format);
+                assert (typeAssertion === true, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (exchange.isDictionary (value) || Array.isArray (value)) {
-                        assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
+                        assertStructure (exchange, skippedProperties, method, value, (format as Dict)[key], emptyAllowedFor, deep);
                     }
                 }
             }
@@ -123,9 +126,9 @@ function assertTimestamp (exchange: Exchange, skippedProperties: object, method:
         assert ((keyNameOrIndex in entry), 'timestamp key "' + keyNameOrIndex + '" is missing from structure' + logText);
     } else {
         // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-        assert (!(entry[keyNameOrIndex] === undefined), 'timestamp index ' + stringValue (keyNameOrIndex) + ' is undefined' + logText);
+        assert (!((entry as Dict)[keyNameOrIndex] === undefined), 'timestamp index ' + stringValue (keyNameOrIndex) + ' is undefined' + logText);
     }
-    const ts = entry[keyNameOrIndex];
+    const ts = (entry as Dict)[keyNameOrIndex];
     assert (ts !== undefined || allowNull, 'timestamp is null' + logText);
     if (ts !== undefined) {
         assert (typeof ts === 'number', 'timestamp is not numeric' + logText);
@@ -161,7 +164,10 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
-            const tsMs = entry['timestamp'];
+            const tsMs = (entry as Dict)['timestamp'];
+            if (dtParsed === undefined) {
+                assert (false, 'datetime is not parseable: ' + dt + logText);
+            }
             const diff = Math.abs (dtParsed - tsMs);
             if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
                 const dtParsedString = exchange.iso8601 (dtParsed);
@@ -187,7 +193,7 @@ function assertCurrencyCode (exchange: Exchange, skippedProperties: object, meth
     }
 }
 
-function assertValidCurrencyIdAndCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId, currencyCode, allowNull: boolean = true) {
+function assertValidCurrencyIdAndCode (exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId: Str, currencyCode: Str, allowNull: boolean = true) {
     // this is exclusive exceptional key name to be used in `skip-tests.json`, to skip check for currency id and code
     if (('currency' in skippedProperties) || ('currencyIdAndCode' in skippedProperties)) {
         return;
@@ -227,7 +233,7 @@ function assertSymbol (exchange: Exchange, skippedProperties: object, method: st
 
 function assertSymbolInMarkets (exchange: Exchange, skippedProperties: object, method: string, symbol: string) {
     const logText = logTemplate (exchange, method, {});
-    assert ((symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
+    assert ((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 
 
@@ -243,7 +249,7 @@ function assertGreater (exchange: Exchange, skippedProperties: object, method: s
     }
 }
 
-function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
+function assertGreaterOrEqual (exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -267,7 +273,7 @@ function assertLess (exchange: Exchange, skippedProperties: object, method: stri
     }
 }
 
-function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull: boolean = true) {
+function assertLessOrEqual (exchange: Exchange, skippedProperties: object, method: Str, entry: object, key: string | number, compareTo: Str, allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -303,7 +309,7 @@ function assertNonEqual (exchange: Exchange, skippedProperties: object, method: 
     }
 }
 
-function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedArray: any[], allowNull: boolean = true) {
+function assertInArray (exchange: Exchange, skippedProperties: object, method: string, entry: object | undefined, key: string | number, expectedArray: any[], allowNull: boolean = true) {
     if (key in skippedProperties) {
         return;
     }
@@ -343,7 +349,7 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     }
 }
 
-function assertTimestampOrder (exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending = true) {
+function assertTimestampOrder (exchange: Exchange, method: Str, codeOrSymbol: string, items: any[], ascending = true) {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
             const currentTs = items[i - 1]['timestamp'];
@@ -397,14 +403,14 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     }
 }
 
-async function fetchBestBidAsk (exchange, method, symbol) {
+async function fetchBestBidAsk (exchange: any, method: string, symbol: string) {
     const logText = logTemplate (exchange, method, {});
     // find out best bid/ask price
     let bestBid: Num = undefined;
     let bestAsk: Num = undefined;
 
     let usedMethod: Str = undefined;
-    if (exchange.has['fetchOrderBook']) {
+    if ((exchange.has['fetchOrderBook'] !== undefined) && (exchange.has['fetchOrderBook'] !== false)) {
         usedMethod = 'fetchOrderBook';
         const orderbook = await exchange.fetchOrderBook (symbol);
         const bids = exchange.safeList (orderbook, 'bids');
@@ -413,18 +419,18 @@ async function fetchBestBidAsk (exchange, method, symbol) {
         const bestAskArray = exchange.safeList (asks, 0);
         bestBid = exchange.safeNumber (bestBidArray, 0);
         bestAsk = exchange.safeNumber (bestAskArray, 0);
-    } else if (exchange.has['fetchBidsAsks']) {
+    } else if ((exchange.has['fetchBidsAsks'] !== undefined) && (exchange.has['fetchBidsAsks'] !== false)) {
         usedMethod = 'fetchBidsAsks';
         const tickers = await exchange.fetchBidsAsks ([ symbol ]);
         const ticker = exchange.safeDict (tickers, symbol);
         bestBid = exchange.safeNumber (ticker, 'bid');
         bestAsk = exchange.safeNumber (ticker, 'ask');
-    } else if (exchange.has['fetchTicker']) {
+    } else if ((exchange.has['fetchTicker'] !== undefined) && (exchange.has['fetchTicker'] !== false)) {
         usedMethod = 'fetchTicker';
         const ticker = await exchange.fetchTicker (symbol);
         bestBid = exchange.safeNumber (ticker, 'bid');
         bestAsk = exchange.safeNumber (ticker, 'ask');
-    } else if (exchange.has['fetchTickers']) {
+    } else if ((exchange.has['fetchTickers'] !== undefined) && (exchange.has['fetchTickers'] !== false)) {
         usedMethod = 'fetchTickers';
         const tickers = await exchange.fetchTickers ([ symbol ]);
         const ticker = exchange.safeDict (tickers, symbol);
@@ -436,8 +442,8 @@ async function fetchBestBidAsk (exchange, method, symbol) {
     return [ bestBid, bestAsk ];
 }
 
-async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder: Order = undefined;
+async function fetchOrder (exchange: any, symbol: Str, orderId: Str, skippedProperties: any) {
+    let fetchedOrder: Order | undefined = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -445,7 +451,7 @@ async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
     const methods_singular = [ 'fetchOrder', 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrder' ];
     for (let i = 0; i < methods_singular.length; i++) {
         const singularFetchName = methods_singular[i];
-        if (exchange.has[singularFetchName]) {
+        if ((exchange.has[singularFetchName] !== undefined) && (exchange.has[singularFetchName] !== false)) {
             const currentOrder = await exchange[singularFetchName] (originalId, symbol);
             // if there is an id inside the order, it means the order was fetched successfully
             if (currentOrder['id'] === originalId) {
@@ -460,7 +466,7 @@ async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
         const methods_plural = [ 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchCanceledOrders' ];
         for (let i = 0; i < methods_plural.length; i++) {
             const pluralFetchName = methods_plural[i];
-            if (exchange.has[pluralFetchName]) {
+            if ((exchange.has[pluralFetchName] !== undefined) && (exchange.has[pluralFetchName] !== false)) {
                 const orders = await exchange[pluralFetchName] (symbol, sinceTime);
                 let found = false;
                 for (let j = 0; j < orders.length; j++) {
@@ -480,7 +486,7 @@ async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
     return fetchedOrder;
 }
 
-function assertOrderState (exchange, skippedProperties, method, order, assertedStatus, strictCheck) {
+function assertOrderState (exchange: any, skippedProperties: any, method: string, order: any, assertedStatus: string, strictCheck: boolean) {
     // note, `strictCheck` is `true` only from "fetchOrder" cases
     const logText = logTemplate (exchange, method, order);
     const msg = 'order should be ' + assertedStatus + ', but it was not asserted' + logText;
@@ -543,7 +549,7 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
-function getActiveMarkets (exchange, includeUnknown = true) {
+function getActiveMarkets (exchange: any, includeUnknown = true) {
     const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
     if (includeUnknown) {
         const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
@@ -567,21 +573,21 @@ function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
-function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string) {
+function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str) {
     exchange.proxyUrl = proxyUrl;
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
 }
 
-function concat (a: any[] = undefined, b: any[] = undefined) {
+function concat (a: any[] | undefined = undefined, b: any[] | undefined = undefined) {
     // we use this method temporarily, because of ast-transpiler issue across langs
     if (a === undefined) {
         return b;
     } else if (b === undefined) {
         return a;
     } else {
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < a.length; i++) {
             result.push (a[i]);
         }
@@ -590,6 +596,22 @@ function concat (a: any[] = undefined, b: any[] = undefined) {
         }
         return result;
     }
+}
+
+function assertDictionaryResponse (exchange: Exchange, method: string, response: any, hint: Str = undefined) {
+    // php cannot distinguish an empty dict from an empty list, both are a plain array
+    // there, so an empty array response is shape indeterminate and accepted, observed
+    // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    let isEmptyArrayResponse = false;
+    if (Array.isArray (response)) {
+        const responseLength = response.length;
+        isEmptyArrayResponse = (responseLength === 0);
+    }
+    let hintText = '';
+    if (hint !== undefined) {
+        hintText = ' ' + hint;
+    }
+    assert (exchange.isDictionary (response) || isEmptyArrayResponse, exchange.id + ' ' + method + hintText + ' must return a dict. ' + exchange.json (response));
 }
 
 function assertNonEmtpyArray (exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint: Str = undefined) {
@@ -632,21 +654,40 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
     return exchange.getProperty (exchange, keyUpper, defaultValue);
 }
 
-async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
+function tickerExceptionNeedsOhlcv (ex: any, exchange: Exchange, ticker: any): boolean {
+    // pure helper (no awaits): files under test/Exchange/base transpile into a single
+    // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    // in the per-lane callers - this tells them whether the probe is needed
+    const eMessage: string = exchange.exceptionMessage (ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            if ((exchange.markets !== undefined) && (symbol in exchange.markets)) {
+                if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any, ohlcv: any = undefined) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    const eMessage = exchange.exceptionMessage (ex, false);
+    // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    const eMessage: string = exchange.exceptionMessage (ex, false); // typed string so the php transpile uses mb_strpos, not in_array
     if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(symbol in exchange.markets)) {
+            if ((exchange.markets === undefined) || !(symbol in exchange.markets)) {
                 return;
             }
-            // if OHLCV supported
-            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
-                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
-                if (ohlcv.length <= 1) {
-                    // if only 1 day, then allow it
+            if (ohlcv !== undefined) {
+                const ohlcvLength = ohlcv.length;
+                if (ohlcvLength <= 1) {
+                    // if only 1 day of listing, then allow it
                     return;
                 }
             }
@@ -722,9 +763,11 @@ export default {
     removeProxyOptions,
     setProxyOptions,
     assertNonEmtpyArray,
+    assertDictionaryResponse,
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
     assertAmountPriceCost,
+    tickerExceptionNeedsOhlcv,
     validateTickerExceptionForPercentage,
 };

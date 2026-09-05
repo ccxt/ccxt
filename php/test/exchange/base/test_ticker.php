@@ -10,6 +10,20 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
+    // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+    // books where bid==ask and a stale `last` far from the median are normal — skip the
+    // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+    // omits vwap/previousClose entirely, so their presence must not be asserted
+    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
+        $skipped_properties = $exchange->extend(array(
+            'symbol' => true,
+            'spread' => true,
+            'lastBetweenBidAsk' => true,
+            'maxIncrease' => true,
+            'vwap' => true,
+            'previousClose' => true,
+        ), $skipped_properties);
+    }
     $format = array(
         'info' => array(),
         'symbol' => 'ETH/BTC',
@@ -48,7 +62,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $is_fetch_ticker_called = $method === 'fetchTicker';
     $symbol_for_market = ($symbol !== null) ? $symbol : $exchange->safe_string($entry, 'symbol');
     if ($symbol_for_market !== null) {
-        if (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets)) {
+        if (($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
             $market = $exchange->market($symbol_for_market);
         } else {
             $is_unrecognized_symbol = true;
@@ -61,7 +75,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         }
     }
     if (is_array($skipped_properties) && array_key_exists('skipNonActiveMarkets', $skipped_properties)) {
-        if ($market === null || !$market['active']) {
+        if ($market === null || ($market['active'] !== true)) {
             return;
         }
     }
@@ -101,7 +115,12 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $close = $exchange->omit_zero($exchange->safe_string($entry, 'close'));
     if (!(is_array($skipped_properties) && array_key_exists('compareQuoteVolumeBaseVolume', $skipped_properties))) {
         // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null)) {
+        // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+        // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+        // far above baseVolume * high), so the spot-derived invariant does not hold there,
+        // see https://github.com/ccxt/ccxt/pull/29563
+        $is_inverse = $exchange->safe_bool($market, 'inverse', false);
+        if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null) && ($is_inverse !== true)) {
             $base_low = Precise::string_mul($base_volume, $low);
             $base_high = Precise::string_mul($base_volume, $high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -119,6 +138,19 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
             $base_low = Precise::string_div($base_low, $tolerance);
             $base_high = Precise::string_mul($base_high, $tolerance);
+            // some exchanges round quoteVolume before reporting it - aster,
+            // for example, returns 8.07 when the true traded value is 8.0651,
+            // which on micro-price contracts (1000WOJAK etc) is enough to
+            // break the quoteVolume <= baseVolume * high sanity check below.
+            // the reported string reveals its own rounding step (trailing
+            // zeros are padding, so 8.07000000 -> 2 real decimals -> step
+            // 0.01), so we widen the acceptance window by one such step on
+            // each side - big enough to forgive rounding, far too small to
+            // hide a real bug like mismatched units or a wrong-field parse
+            $quote_volume_decimals = $exchange->precision_from_string($quote_volume);
+            $quote_quantum = $exchange->parse_precision($exchange->number_to_string($quote_volume_decimals));
+            $base_low = Precise::string_sub($base_low, $quote_quantum);
+            $base_high = Precise::string_add($base_high, $quote_quantum);
             assert(Precise::string_ge($quote_volume, $base_low), 'quoteVolume should be => baseVolume * low' . $log_text);
             assert(Precise::string_le($quote_volume, $base_high), 'quoteVolume should be <= baseVolume * high' . $log_text);
         }
@@ -155,7 +187,8 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $ask_string = $exchange->safe_string($entry, 'ask');
     $bid_string = $exchange->safe_string($entry, 'bid');
     if (($ask_string !== null) && ($bid_string !== null) && !(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {
-        assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
+        // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
     }
     // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
     $allowed_percentage_variation = '0.01';
@@ -167,24 +200,35 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     }
     $percentage = $exchange->safe_string($entry, 'percentage');
     $change = $exchange->safe_string($entry, 'change');
+    // option markets are exempt from the UPPER percentage/change caps only:
+    // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    // contract moving into the money legitimately gains 1000x+ (observed: a
+    // paradex call at +109055% on its expiry date, mark price equal to
+    // intrinsic). the floors stay: a long option cannot lose more than its
+    // premium, so percentage >= -100 and change >= -open hold for options too
+    $is_option_market = $exchange->safe_bool($market, 'option', false);
     if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties)) && !$is_unrecognized_symbol) {
         //
         // percentage
         //
-        $max_increase = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        $max_increase = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if ($percentage !== null) {
-            // - should be above -100 and below MAX
+            // - should be above -100 and (for non-options) below MAX
             assert(Precise::string_ge($percentage, '-100'), 'percentage should be above -100% ' . $log_text);
-            assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
+            if ($is_option_market !== true) {
+                assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
+            }
         }
         //
         // change
         //
         $approx_value = $exchange->safe_string_n($entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose']);
         if ($change !== null) {
-            // - should be between -price & +price*100
+            // - should be above -price and (for non-options) below +price*maxIncrease
             assert(Precise::string_ge($change, Precise::string_neg($approx_value)), 'change should be above -price ' . $log_text);
-            assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
+            if ($is_option_market !== true) {
+                assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
+            }
         }
     }
     //

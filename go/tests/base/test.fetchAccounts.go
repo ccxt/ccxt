@@ -6,22 +6,22 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchAccounts(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchAccounts"
-
-		accounts := (<-exchange.FetchAccounts())
-		PanicOnError(accounts)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, accounts)
-		for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
-			TestAccount(exchange, skippedProperties, method, GetValue(accounts, i))
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchAccountsBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchAccountsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchAccounts"
+
+	accounts := (<-exchange.FetchAccounts())
+	PanicOnError(accounts)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, accounts)
+	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
+		TestAccount(exchange, skippedProperties, method, GetValue(accounts, i))
+	}
+
+	ch <- true
+	return nil
 }

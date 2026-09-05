@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -27,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class deribit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(deribit, self).describe(), {
             'id': 'deribit',
             'name': 'Deribit',
@@ -153,144 +152,144 @@ class deribit(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         # Authentication
-                        'auth': 1,
-                        'exchange_token': 1,
-                        'fork_token': 1,
+                        'auth': {'cost': 1},
+                        'exchange_token': {'cost': 1},
+                        'fork_token': {'cost': 1},
                         # Session management
-                        'set_heartbeat': 1,
-                        'disable_heartbeat': 1,
+                        'set_heartbeat': {'cost': 1},
+                        'disable_heartbeat': {'cost': 1},
                         # Supporting
-                        'get_time': 1,
-                        'hello': 1,
-                        'status': 1,
-                        'test': 1,
+                        'get_time': {'cost': 1},
+                        'hello': {'cost': 1},
+                        'status': {'cost': 1},
+                        'test': {'cost': 1},
                         # Subscription management
-                        'subscribe': 1,
-                        'unsubscribe': 1,
-                        'unsubscribe_all': 1,
+                        'subscribe': {'cost': 1},
+                        'unsubscribe': {'cost': 1},
+                        'unsubscribe_all': {'cost': 1},
                         # Account management
-                        'get_announcements': 1,
+                        'get_announcements': {'cost': 1},
                         # Market data
-                        'get_book_summary_by_currency': 1,
-                        'get_book_summary_by_instrument': 1,
-                        'get_contract_size': 1,
-                        'get_currencies': 1,
-                        'get_delivery_prices': 1,
-                        'get_funding_chart_data': 1,
-                        'get_funding_rate_history': 1,
-                        'get_funding_rate_value': 1,
-                        'get_historical_volatility': 1,
-                        'get_index': 1,
-                        'get_index_price': 1,
-                        'get_index_price_names': 1,
-                        'get_instrument': 1,
-                        'get_instruments': 1,
-                        'get_last_settlements_by_currency': 1,
-                        'get_last_settlements_by_instrument': 1,
-                        'get_last_trades_by_currency': 1,
-                        'get_last_trades_by_currency_and_time': 1,
-                        'get_last_trades_by_instrument': 1,
-                        'get_last_trades_by_instrument_and_time': 1,
-                        'get_mark_price_history': 1,
-                        'get_order_book': 1,
-                        'get_trade_volumes': 1,
-                        'get_tradingview_chart_data': 1,
-                        'get_volatility_index_data': 1,
-                        'ticker': 1,
+                        'get_book_summary_by_currency': {'cost': 1},
+                        'get_book_summary_by_instrument': {'cost': 1},
+                        'get_contract_size': {'cost': 1},
+                        'get_currencies': {'cost': 1},
+                        'get_delivery_prices': {'cost': 1},
+                        'get_funding_chart_data': {'cost': 1},
+                        'get_funding_rate_history': {'cost': 1},
+                        'get_funding_rate_value': {'cost': 1},
+                        'get_historical_volatility': {'cost': 1},
+                        'get_index': {'cost': 1},
+                        'get_index_price': {'cost': 1},
+                        'get_index_price_names': {'cost': 1},
+                        'get_instrument': {'cost': 1},
+                        'get_instruments': {'cost': 1},
+                        'get_last_settlements_by_currency': {'cost': 1},
+                        'get_last_settlements_by_instrument': {'cost': 1},
+                        'get_last_trades_by_currency': {'cost': 1},
+                        'get_last_trades_by_currency_and_time': {'cost': 1},
+                        'get_last_trades_by_instrument': {'cost': 1},
+                        'get_last_trades_by_instrument_and_time': {'cost': 1},
+                        'get_mark_price_history': {'cost': 1},
+                        'get_order_book': {'cost': 1},
+                        'get_trade_volumes': {'cost': 1},
+                        'get_tradingview_chart_data': {'cost': 1},
+                        'get_volatility_index_data': {'cost': 1},
+                        'ticker': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         # Authentication
-                        'logout': 1,
+                        'logout': {'cost': 1},
                         # Session management
-                        'enable_cancel_on_disconnect': 1,
-                        'disable_cancel_on_disconnect': 1,
-                        'get_cancel_on_disconnect': 1,
+                        'enable_cancel_on_disconnect': {'cost': 1},
+                        'disable_cancel_on_disconnect': {'cost': 1},
+                        'get_cancel_on_disconnect': {'cost': 1},
                         # Subscription management
-                        'subscribe': 1,
-                        'unsubscribe': 1,
-                        'unsubscribe_all': 1,
+                        'subscribe': {'cost': 1},
+                        'unsubscribe': {'cost': 1},
+                        'unsubscribe_all': {'cost': 1},
                         # Account management
-                        'change_api_key_name': 1,
-                        'change_scope_in_api_key': 1,
-                        'change_subaccount_name': 1,
-                        'create_api_key': 1,
-                        'create_subaccount': 1,
-                        'disable_api_key': 1,
-                        'disable_tfa_for_subaccount': 1,
-                        'enable_affiliate_program': 1,
-                        'enable_api_key': 1,
-                        'get_access_log': 1,
-                        'get_account_summary': 1,
-                        'get_account_summaries': 1,
-                        'get_affiliate_program_info': 1,
-                        'get_email_language': 1,
-                        'get_new_announcements': 1,
-                        'get_portfolio_margins': 1,
-                        'get_position': 1,
-                        'get_positions': 1,
-                        'get_subaccounts': 1,
-                        'get_subaccounts_details': 1,
-                        'get_transaction_log': 1,
-                        'list_api_keys': 1,
-                        'remove_api_key': 1,
-                        'remove_subaccount': 1,
-                        'reset_api_key': 1,
-                        'set_announcement_as_read': 1,
-                        'set_api_key_as_default': 1,
-                        'set_email_for_subaccount': 1,
-                        'set_email_language': 1,
-                        'set_password_for_subaccount': 1,
-                        'toggle_notifications_from_subaccount': 1,
-                        'toggle_subaccount_login': 1,
+                        'change_api_key_name': {'cost': 1},
+                        'change_scope_in_api_key': {'cost': 1},
+                        'change_subaccount_name': {'cost': 1},
+                        'create_api_key': {'cost': 1},
+                        'create_subaccount': {'cost': 1},
+                        'disable_api_key': {'cost': 1},
+                        'disable_tfa_for_subaccount': {'cost': 1},
+                        'enable_affiliate_program': {'cost': 1},
+                        'enable_api_key': {'cost': 1},
+                        'get_access_log': {'cost': 1},
+                        'get_account_summary': {'cost': 1},
+                        'get_account_summaries': {'cost': 1},
+                        'get_affiliate_program_info': {'cost': 1},
+                        'get_email_language': {'cost': 1},
+                        'get_new_announcements': {'cost': 1},
+                        'get_portfolio_margins': {'cost': 1},
+                        'get_position': {'cost': 1},
+                        'get_positions': {'cost': 1},
+                        'get_subaccounts': {'cost': 1},
+                        'get_subaccounts_details': {'cost': 1},
+                        'get_transaction_log': {'cost': 1},
+                        'list_api_keys': {'cost': 1},
+                        'remove_api_key': {'cost': 1},
+                        'remove_subaccount': {'cost': 1},
+                        'reset_api_key': {'cost': 1},
+                        'set_announcement_as_read': {'cost': 1},
+                        'set_api_key_as_default': {'cost': 1},
+                        'set_email_for_subaccount': {'cost': 1},
+                        'set_email_language': {'cost': 1},
+                        'set_password_for_subaccount': {'cost': 1},
+                        'toggle_notifications_from_subaccount': {'cost': 1},
+                        'toggle_subaccount_login': {'cost': 1},
                         # Block Trade
-                        'execute_block_trade': 4,
-                        'get_block_trade': 1,
-                        'get_last_block_trades_by_currency': 1,
-                        'invalidate_block_trade_signature': 1,
-                        'verify_block_trade': 4,
+                        'execute_block_trade': {'cost': 4},
+                        'get_block_trade': {'cost': 1},
+                        'get_last_block_trades_by_currency': {'cost': 1},
+                        'invalidate_block_trade_signature': {'cost': 1},
+                        'verify_block_trade': {'cost': 4},
                         # Trading
-                        'buy': 4,
-                        'sell': 4,
-                        'edit': 4,
-                        'edit_by_label': 4,
-                        'cancel': 4,
-                        'cancel_all': 4,
-                        'cancel_all_by_currency': 4,
-                        'cancel_all_by_instrument': 4,
-                        'cancel_by_label': 4,
-                        'close_position': 4,
-                        'get_margins': 1,
-                        'get_mmp_config': 1,
-                        'get_open_orders_by_currency': 1,
-                        'get_open_orders_by_instrument': 1,
-                        'get_order_history_by_currency': 1,
-                        'get_order_history_by_instrument': 1,
-                        'get_order_margin_by_ids': 1,
-                        'get_order_state': 1,
-                        'get_stop_order_history': 1,  # deprecated
-                        'get_trigger_order_history': 1,
-                        'get_user_trades_by_currency': 1,
-                        'get_user_trades_by_currency_and_time': 1,
-                        'get_user_trades_by_instrument': 1,
-                        'get_user_trades_by_instrument_and_time': 1,
-                        'get_user_trades_by_order': 1,
-                        'reset_mmp': 1,
-                        'set_mmp_config': 1,
-                        'get_settlement_history_by_instrument': 1,
-                        'get_settlement_history_by_currency': 1,
+                        'buy': {'cost': 4},
+                        'sell': {'cost': 4},
+                        'edit': {'cost': 4},
+                        'edit_by_label': {'cost': 4},
+                        'cancel': {'cost': 4},
+                        'cancel_all': {'cost': 4},
+                        'cancel_all_by_currency': {'cost': 4},
+                        'cancel_all_by_instrument': {'cost': 4},
+                        'cancel_by_label': {'cost': 4},
+                        'close_position': {'cost': 4},
+                        'get_margins': {'cost': 1},
+                        'get_mmp_config': {'cost': 1},
+                        'get_open_orders_by_currency': {'cost': 1},
+                        'get_open_orders_by_instrument': {'cost': 1},
+                        'get_order_history_by_currency': {'cost': 1},
+                        'get_order_history_by_instrument': {'cost': 1},
+                        'get_order_margin_by_ids': {'cost': 1},
+                        'get_order_state': {'cost': 1},
+                        'get_stop_order_history': {'cost': 1},  # deprecated
+                        'get_trigger_order_history': {'cost': 1},
+                        'get_user_trades_by_currency': {'cost': 1},
+                        'get_user_trades_by_currency_and_time': {'cost': 1},
+                        'get_user_trades_by_instrument': {'cost': 1},
+                        'get_user_trades_by_instrument_and_time': {'cost': 1},
+                        'get_user_trades_by_order': {'cost': 1},
+                        'reset_mmp': {'cost': 1},
+                        'set_mmp_config': {'cost': 1},
+                        'get_settlement_history_by_instrument': {'cost': 1},
+                        'get_settlement_history_by_currency': {'cost': 1},
                         # Wallet
-                        'cancel_transfer_by_id': 1,
-                        'cancel_withdrawal': 1,
-                        'create_deposit_address': 1,
-                        'get_current_deposit_address': 1,
-                        'get_deposits': 1,
-                        'get_transfers': 1,
-                        'get_withdrawals': 1,
-                        'submit_transfer_to_subaccount': 1,
-                        'submit_transfer_to_user': 1,
-                        'withdraw': 1,
+                        'cancel_transfer_by_id': {'cost': 1},
+                        'cancel_withdrawal': {'cost': 1},
+                        'create_deposit_address': {'cost': 1},
+                        'get_current_deposit_address': {'cost': 1},
+                        'get_deposits': {'cost': 1},
+                        'get_transfers': {'cost': 1},
+                        'get_withdrawals': {'cost': 1},
+                        'submit_transfer_to_subaccount': {'cost': 1},
+                        'submit_transfer_to_user': {'cost': 1},
+                        'withdraw': {'cost': 1},
                     },
                 },
             },
@@ -529,6 +528,8 @@ class deribit(Exchange, ImplicitAPI):
         else:
             settle = base
         splitBase = base
+        if base is None:
+            raise ExchangeError(self.id + ' createExpiredOptionMarket() missing base')
         if base.find('_') > -1:
             splitSymbol = base.split('_')
             splitBase = self.safe_string(splitSymbol, 0)
@@ -585,7 +586,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
-        if isOption and not (marketId in self.markets_by_id):
+        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)
@@ -649,7 +650,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_currencies(data)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -680,13 +681,13 @@ class deribit(Exchange, ImplicitAPI):
             'networks': None,
         })
 
-    def code_from_options(self, methodName, params={}):
+    def code_from_options(self, methodName: object, params={}):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, methodName, {})
         code = self.safe_value(options, 'code', defaultCode)
         return self.safe_value(params, 'code', code)
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -719,7 +720,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -768,7 +769,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account):
+    def parse_account(self, account: object):
         #
         #      {
         #          "username": "someusername_1",
@@ -790,7 +791,7 @@ class deribit(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for deribit
 
@@ -930,8 +931,14 @@ class deribit(Exchange, ImplicitAPI):
                 settle = self.safe_currency_code(settleId)
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 future = not swap and (kind.find('future') >= 0)
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 option = (kind.find('option') >= 0)
+                if kind is None:
+                    raise ExchangeError(self.id + ' method() missing kind')
                 isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
@@ -960,9 +967,10 @@ class deribit(Exchange, ImplicitAPI):
                     inverse = (quote != settle)
                     linear = (settle == quote)
                 parsedMarketValue = self.safe_value(parsedMarkets, symbol)
-                if parsedMarketValue:
+                if parsedMarketValue is not None:
                     continue
-                parsedMarkets[symbol] = True
+                if symbol is not None:
+                    parsedMarkets[symbol] = True
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -1018,13 +1026,13 @@ class deribit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, balance) -> Balances:
+    def parse_balance(self, balance: object) -> Balances:
         result = {
             'info': balance,
         }
         summaries = []
         if 'summaries' in balance:
-            summaries = self.safe_list(balance, 'summaries')
+            summaries = self.safe_list(balance, 'summaries', [])
         else:
             summaries = [balance]
         for i in range(0, len(summaries)):
@@ -1035,7 +1043,8 @@ class deribit(Exchange, ImplicitAPI):
             account['free'] = self.safe_string(data, 'available_funds')
             account['used'] = self.safe_string(data, 'maintenance_margin')
             account['total'] = self.safe_string(data, 'equity')
-            result[currencyCode] = account
+            if currencyCode is not None:
+                result[currencyCode] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1262,8 +1271,8 @@ class deribit(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_string(stats, 'volume'),
+            'baseVolume': self.safe_string(stats, 'volume'),
+            'quoteVolume': self.safe_string_2(stats, 'volume_notional', 'volume_usd'),
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
@@ -1394,10 +1403,11 @@ class deribit(Exchange, ImplicitAPI):
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            if symbol is not None:
+                tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1519,7 +1529,7 @@ class deribit(Exchange, ImplicitAPI):
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')
         cost = Precise.string_mul(amount, priceString)
-        if market['inverse']:
+        if market['inverse'] is True:
             cost = Precise.string_div(amount, priceString)
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
@@ -1551,7 +1561,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://docs.deribit.com/#public-get_last_trades_by_instrument
@@ -1708,8 +1718,9 @@ class deribit(Exchange, ImplicitAPI):
                     'taker': self.safe_number(fee, 'taker_fee'),
                 }
         parsedFees = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             market = self.market(symbol)
             fee = {
                 'info': market,
@@ -1719,11 +1730,11 @@ class deribit(Exchange, ImplicitAPI):
                 'maker': market['maker'],
                 'taker': market['taker'],
             }
-            if market['swap']:
+            if market['swap'] is True:
                 fee = self.extend(fee, perpetualFee)
-            elif market['future']:
+            elif market['future'] is True:
                 fee = self.extend(fee, futureFee)
-            elif market['option']:
+            elif market['option'] is True:
                 fee = self.extend(fee, optionFee)
             parsedFees[symbol] = fee
         return parsedFees
@@ -1737,7 +1748,7 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1812,7 +1823,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order_type(self, orderType):
+    def parse_order_type(self, orderType: object):
         orderTypes = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -1863,7 +1874,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if self.safe_bool(market, 'inverse'):
+        if self.safe_bool(market, 'inverse') is True:
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
@@ -2046,7 +2057,7 @@ class deribit(Exchange, ImplicitAPI):
                 else:
                     # take_limit(buy only)
                     request['type'] = 'take_limit'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = True
         if postOnly:
             request['post_only'] = True
@@ -2172,7 +2183,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#private-cancel
 
         :param str id: order id
-        :param str symbol: not used by deribit cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2192,7 +2203,7 @@ class deribit(Exchange, ImplicitAPI):
         https://docs.deribit.com/#private-cancel_all
         https://docs.deribit.com/#private-cancel_all_by_instrument
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2222,7 +2233,7 @@ class deribit(Exchange, ImplicitAPI):
             }),
         ]
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2252,7 +2263,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2419,7 +2430,7 @@ class deribit(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2466,7 +2477,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2705,7 +2716,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2759,7 +2770,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_positions(result, symbols)
 
-    def fetch_volatility_history(self, code: str, params={}):
+    def fetch_volatility_history(self, code: str, params={}) -> list[dict]:
         """
         fetch the historical volatility of an option market based on an underlying asset
 
@@ -2792,7 +2803,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         return self.parse_volatility_history(response)
 
-    def parse_volatility_history(self, volatility):
+    def parse_volatility_history(self, volatility: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2820,7 +2831,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -3002,7 +3013,7 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetWithdraw(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    {
         #      "withdrawal_priorities": [],
@@ -3028,7 +3039,7 @@ class deribit(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -3123,7 +3134,8 @@ class deribit(Exchange, ImplicitAPI):
         eachItemDuration = '1h'
         if paginate:
             # fix for: https://github.com/ccxt/ccxt/issues/25040
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, self.extend(params, {'isDeribitPaginationCall': True}), maxEntriesPerRequest)
+            paginationParams = self.extend(params, {'isDeribitPaginationCall': True})
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)
         duration = self.parse_timeframe(eachItemDuration) * 1000
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
@@ -3143,6 +3155,8 @@ class deribit(Exchange, ImplicitAPI):
             request['end_timestamp'] = time
         if 'isDeribitPaginationCall' in params:
             params = self.omit(params, 'isDeribitPaginationCall')
+            if limit is None:
+                raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a limit argument')
             maxUntil = self.sum(since, limit * duration)
             request['end_timestamp'] = min(request['end_timestamp'], maxUntil)
         response = self.publicGetGetFundingRateHistory(self.extend(request, params))
@@ -3169,7 +3183,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",
@@ -3232,7 +3246,7 @@ class deribit(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', None)
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3273,7 +3287,7 @@ class deribit(Exchange, ImplicitAPI):
         settlementsWithCursor = self.add_pagination_cursor_to_result(cursor, settlements)
         return self.parse_liquidations(settlementsWithCursor, market, since, limit)
 
-    def add_pagination_cursor_to_result(self, cursor, data):
+    def add_pagination_cursor_to_result(self, cursor: object, data: object):
         if cursor is not None:
             dataLength = len(data)
             if dataLength > 0:
@@ -3302,7 +3316,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot']:
+        if market['spot'] is True:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
         request = {
             'instrument_name': market['id'],
@@ -3341,7 +3355,7 @@ class deribit(Exchange, ImplicitAPI):
         settlements = self.safe_list(result, 'settlements', [])
         return self.parse_liquidations(settlements, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None):
         #
         #     {
         #         "type": "bankruptcy",
@@ -3667,7 +3681,7 @@ class deribit(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'instrument_name': market['id'],
@@ -3709,7 +3723,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_dict(result, 0, {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "high": 93099.5,
@@ -3739,7 +3753,7 @@ class deribit(Exchange, ImplicitAPI):
         openInterest = self.safe_number(interest, 'open_interest')
         openInterestAmount = None
         openInterestValue = None
-        if market['option'] or (market['future'] and market['linear']):
+        if (market['option'] is True) or ((market['future'] is True) and (market['linear'] is True)):
             openInterestAmount = openInterest
         else:
             openInterestValue = openInterest
@@ -3755,17 +3769,17 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = str(self.milliseconds())
             requestBody = ''
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
             requestData = method + "\n" + request + "\n" + requestBody + "\n"  # eslint-disable-line quotes
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
@@ -3776,8 +3790,8 @@ class deribit(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     {

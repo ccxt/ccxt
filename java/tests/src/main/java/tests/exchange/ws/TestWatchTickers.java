@@ -32,11 +32,14 @@ public class TestWatchTickers extends BaseTest {
         Object method = "watchTickers";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = new java.util.HashMap<String, Object>() {{}};
             Object success = true;
             Object shouldReturn = false;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTickers(argSymbols, argParams)).join();
@@ -54,19 +57,18 @@ public class TestWatchTickers extends BaseTest {
                     shouldReturn = true;
                 } else if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (Helpers.isTrue(shouldReturn))
             {
                 return false;
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
@@ -77,9 +79,24 @@ public class TestWatchTickers extends BaseTest {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
                 {
                     Object ticker = Helpers.GetValue(values, i);
-                    TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    try
+                    {
+                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    } catch(Exception ex)
+                    {
+                        Object ohlcv = null;
+                        Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tickerSymbol, null))) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                        {
+                            ohlcv = (exchange.fetchOHLCV(tickerSymbol, "1d", null, 5)).join();
+                        }
+                        TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
+                    }
                 }
-                now = exchange.milliseconds();
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

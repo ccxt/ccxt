@@ -42,7 +42,7 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
-* [fetchPositionADLRank](#fetchpositionadlrank)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -97,7 +97,7 @@ phemex.fetchCurrencies (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook  
 
@@ -562,7 +562,7 @@ fetch all open positions
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.code | <code>string</code> | No | the currency code to fetch positions for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions' |
 
 
 ```javascript
@@ -585,7 +585,7 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
 
 
@@ -694,7 +694,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -841,7 +841,7 @@ make a withdrawal
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | Yes |  |
-| params | <code>object</code> | No | extra parameters specific to the phemex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.network | <code>string</code> | No | unified network code |
 
 
@@ -944,9 +944,9 @@ phemex.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
-<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
 
-### fetchPositionADLRank{docsify-ignore}
+### fetchPositionsADLRank{docsify-ignore}
 fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
@@ -964,11 +964,11 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions' |
 
 
 ```javascript
-phemex.fetchPositionADLRank (symbols?, params?)
+phemex.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -1085,7 +1085,7 @@ phemex.watchTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

@@ -96,143 +96,143 @@ class bittrade extends Exchange {
             'api' => array(
                 'v2Public' => array(
                     'get' => array(
-                        'reference/currencies' => 1, // 币链参考信息
-                        'market-status' => 1, // 获取当前市场状态
+                        'reference/currencies' => array( 'cost' => 1 ), // 币链参考信息
+                        'market-status' => array( 'cost' => 1 ), // 获取当前市场状态
                     ),
                 ),
                 'v2Private' => array(
                     'get' => array(
-                        'account/ledger' => 1,
-                        'account/withdraw/quota' => 1,
-                        'account/withdraw/address' => 1, // 提币地址查询(限母用户可用)
-                        'account/deposit/address' => 1,
-                        'account/repayment' => 5, // 还币交易记录查询
-                        'reference/transact-fee-rate' => 1,
-                        'account/asset-valuation' => 0.2, // 获取账户资产估值
-                        'point/account' => 5, // 点卡余额查询
-                        'sub-user/user-list' => 1, // 获取子用户列表
-                        'sub-user/user-state' => 1, // 获取特定子用户的用户状态
-                        'sub-user/account-list' => 1, // 获取特定子用户的账户列表
-                        'sub-user/deposit-address' => 1, // 子用户充币地址查询
-                        'sub-user/query-deposit' => 1, // 子用户充币记录查询
-                        'user/api-key' => 1, // 母子用户API key信息查询
-                        'user/uid' => 1, // 母子用户获取用户UID
-                        'algo-orders/opening' => 1, // 查询未触发OPEN策略委托
-                        'algo-orders/history' => 1, // 查询策略委托历史
-                        'algo-orders/specific' => 1, // 查询特定策略委托
-                        'c2c/offers' => 1, // 查询借入借出订单
-                        'c2c/offer' => 1, // 查询特定借入借出订单及其交易记录
-                        'c2c/transactions' => 1, // 查询借入借出交易记录
-                        'c2c/repayment' => 1, // 查询还币交易记录
-                        'c2c/account' => 1, // 查询账户余额
-                        'etp/reference' => 1, // 基础参考信息
-                        'etp/transactions' => 5, // 获取杠杆ETP申赎记录
-                        'etp/transaction' => 5, // 获取特定杠杆ETP申赎记录
-                        'etp/rebalance' => 1, // 获取杠杆ETP调仓记录
-                        'etp/limit' => 1, // 获取ETP持仓限额
+                        'account/ledger' => array( 'cost' => 1 ),
+                        'account/withdraw/quota' => array( 'cost' => 1 ),
+                        'account/withdraw/address' => array( 'cost' => 1 ), // 提币地址查询(限母用户可用)
+                        'account/deposit/address' => array( 'cost' => 1 ),
+                        'account/repayment' => array( 'cost' => 5 ), // 还币交易记录查询
+                        'reference/transact-fee-rate' => array( 'cost' => 1 ),
+                        'account/asset-valuation' => array( 'cost' => 0.2 ), // 获取账户资产估值
+                        'point/account' => array( 'cost' => 5 ), // 点卡余额查询
+                        'sub-user/user-list' => array( 'cost' => 1 ), // 获取子用户列表
+                        'sub-user/user-state' => array( 'cost' => 1 ), // 获取特定子用户的用户状态
+                        'sub-user/account-list' => array( 'cost' => 1 ), // 获取特定子用户的账户列表
+                        'sub-user/deposit-address' => array( 'cost' => 1 ), // 子用户充币地址查询
+                        'sub-user/query-deposit' => array( 'cost' => 1 ), // 子用户充币记录查询
+                        'user/api-key' => array( 'cost' => 1 ), // 母子用户API key信息查询
+                        'user/uid' => array( 'cost' => 1 ), // 母子用户获取用户UID
+                        'algo-orders/opening' => array( 'cost' => 1 ), // 查询未触发OPEN策略委托
+                        'algo-orders/history' => array( 'cost' => 1 ), // 查询策略委托历史
+                        'algo-orders/specific' => array( 'cost' => 1 ), // 查询特定策略委托
+                        'c2c/offers' => array( 'cost' => 1 ), // 查询借入借出订单
+                        'c2c/offer' => array( 'cost' => 1 ), // 查询特定借入借出订单及其交易记录
+                        'c2c/transactions' => array( 'cost' => 1 ), // 查询借入借出交易记录
+                        'c2c/repayment' => array( 'cost' => 1 ), // 查询还币交易记录
+                        'c2c/account' => array( 'cost' => 1 ), // 查询账户余额
+                        'etp/reference' => array( 'cost' => 1 ), // 基础参考信息
+                        'etp/transactions' => array( 'cost' => 5 ), // 获取杠杆ETP申赎记录
+                        'etp/transaction' => array( 'cost' => 5 ), // 获取特定杠杆ETP申赎记录
+                        'etp/rebalance' => array( 'cost' => 1 ), // 获取杠杆ETP调仓记录
+                        'etp/limit' => array( 'cost' => 1 ), // 获取ETP持仓限额
                     ),
                     'post' => array(
-                        'account/transfer' => 1,
-                        'account/repayment' => 5, // 归还借币（全仓逐仓通用）
-                        'point/transfer' => 5, // 点卡划转
-                        'sub-user/management' => 1, // 冻结/解冻子用户
-                        'sub-user/creation' => 1, // 子用户创建
-                        'sub-user/tradable-market' => 1, // 设置子用户交易权限
-                        'sub-user/transferability' => 1, // 设置子用户资产转出权限
-                        'sub-user/api-key-generation' => 1, // 子用户API key创建
-                        'sub-user/api-key-modification' => 1, // 修改子用户API key
-                        'sub-user/api-key-deletion' => 1, // 删除子用户API key
-                        'sub-user/deduct-mode' => 1, // 设置子用户手续费抵扣模式
-                        'algo-orders' => 1, // 策略委托下单
-                        'algo-orders/cancel-all-after' => 1, // 自动撤销订单
-                        'algo-orders/cancellation' => 1, // 策略委托（触发前）撤单
-                        'c2c/offer' => 1, // 借入借出下单
-                        'c2c/cancellation' => 1, // 借入借出撤单
-                        'c2c/cancel-all' => 1, // 撤销所有借入借出订单
-                        'c2c/repayment' => 1, // 还币
-                        'c2c/transfer' => 1, // 资产划转
-                        'etp/creation' => 5, // 杠杆ETP换入
-                        'etp/redemption' => 5, // 杠杆ETP换出
-                        'etp/{transactId}/cancel' => 10, // 杠杆ETP单个撤单
-                        'etp/batch-cancel' => 50, // 杠杆ETP批量撤单
+                        'account/transfer' => array( 'cost' => 1 ),
+                        'account/repayment' => array( 'cost' => 5 ), // 归还借币（全仓逐仓通用）
+                        'point/transfer' => array( 'cost' => 5 ), // 点卡划转
+                        'sub-user/management' => array( 'cost' => 1 ), // 冻结/解冻子用户
+                        'sub-user/creation' => array( 'cost' => 1 ), // 子用户创建
+                        'sub-user/tradable-market' => array( 'cost' => 1 ), // 设置子用户交易权限
+                        'sub-user/transferability' => array( 'cost' => 1 ), // 设置子用户资产转出权限
+                        'sub-user/api-key-generation' => array( 'cost' => 1 ), // 子用户API key创建
+                        'sub-user/api-key-modification' => array( 'cost' => 1 ), // 修改子用户API key
+                        'sub-user/api-key-deletion' => array( 'cost' => 1 ), // 删除子用户API key
+                        'sub-user/deduct-mode' => array( 'cost' => 1 ), // 设置子用户手续费抵扣模式
+                        'algo-orders' => array( 'cost' => 1 ), // 策略委托下单
+                        'algo-orders/cancel-all-after' => array( 'cost' => 1 ), // 自动撤销订单
+                        'algo-orders/cancellation' => array( 'cost' => 1 ), // 策略委托（触发前）撤单
+                        'c2c/offer' => array( 'cost' => 1 ), // 借入借出下单
+                        'c2c/cancellation' => array( 'cost' => 1 ), // 借入借出撤单
+                        'c2c/cancel-all' => array( 'cost' => 1 ), // 撤销所有借入借出订单
+                        'c2c/repayment' => array( 'cost' => 1 ), // 还币
+                        'c2c/transfer' => array( 'cost' => 1 ), // 资产划转
+                        'etp/creation' => array( 'cost' => 5 ), // 杠杆ETP换入
+                        'etp/redemption' => array( 'cost' => 5 ), // 杠杆ETP换出
+                        'etp/{transactId}/cancel' => array( 'cost' => 10 ), // 杠杆ETP单个撤单
+                        'etp/batch-cancel' => array( 'cost' => 50 ), // 杠杆ETP批量撤单
                     ),
                 ),
                 'market' => array(
                     'get' => array(
-                        'history/kline' => 1, // 获取K线数据
-                        'detail/merged' => 1, // 获取聚合行情(Ticker)
-                        'depth' => 1, // 获取 Market Depth 数据
-                        'trade' => 1, // 获取 Trade Detail 数据
-                        'history/trade' => 1, // 批量获取最近的交易记录
-                        'detail' => 1, // 获取 Market Detail 24小时成交量数据
-                        'tickers' => 1,
-                        'etp' => 1, // 获取杠杆ETP实时净值
+                        'history/kline' => array( 'cost' => 1 ), // 获取K线数据
+                        'detail/merged' => array( 'cost' => 1 ), // 获取聚合行情(Ticker)
+                        'depth' => array( 'cost' => 1 ), // 获取 Market Depth 数据
+                        'trade' => array( 'cost' => 1 ), // 获取 Trade Detail 数据
+                        'history/trade' => array( 'cost' => 1 ), // 批量获取最近的交易记录
+                        'detail' => array( 'cost' => 1 ), // 获取 Market Detail 24小时成交量数据
+                        'tickers' => array( 'cost' => 1 ),
+                        'etp' => array( 'cost' => 1 ), // 获取杠杆ETP实时净值
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'common/symbols' => 1, // 查询系统支持的所有交易对
-                        'common/currencys' => 1, // 查询系统支持的所有币种
-                        'common/timestamp' => 1, // 查询系统当前时间
-                        'common/exchange' => 1, // order limits
-                        'settings/currencys' => 1, // ?language=en-US
+                        'common/symbols' => array( 'cost' => 1 ), // 查询系统支持的所有交易对
+                        'common/currencys' => array( 'cost' => 1 ), // 查询系统支持的所有币种
+                        'common/timestamp' => array( 'cost' => 1 ), // 查询系统当前时间
+                        'common/exchange' => array( 'cost' => 1 ), // order limits
+                        'settings/currencys' => array( 'cost' => 1 ), // ?language=en-US
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'account/accounts' => 0.2, // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance' => 0.2, // 查询指定账户的余额
-                        'account/accounts/{sub-uid}' => 1,
-                        'account/history' => 4,
-                        'cross-margin/loan-info' => 1,
-                        'margin/loan-info' => 1, // 查询借币币息率及额度
-                        'fee/fee-rate/get' => 1,
-                        'order/openOrders' => 0.4,
-                        'order/orders' => 0.4,
-                        'order/orders/{id}' => 0.4, // 查询某个订单详情
-                        'order/orders/{id}/matchresults' => 0.4, // 查询某个订单的成交明细
-                        'order/orders/getClientOrder' => 0.4,
-                        'order/history' => 1, // 查询当前委托、历史委托
-                        'order/matchresults' => 1, // 查询当前成交、历史成交
+                        'account/accounts' => array( 'cost' => 0.2 ), // 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance' => array( 'cost' => 0.2 ), // 查询指定账户的余额
+                        'account/accounts/{sub-uid}' => array( 'cost' => 1 ),
+                        'account/history' => array( 'cost' => 4 ),
+                        'cross-margin/loan-info' => array( 'cost' => 1 ),
+                        'margin/loan-info' => array( 'cost' => 1 ), // 查询借币币息率及额度
+                        'fee/fee-rate/get' => array( 'cost' => 1 ),
+                        'order/openOrders' => array( 'cost' => 0.4 ),
+                        'order/orders' => array( 'cost' => 0.4 ),
+                        'order/orders/{id}' => array( 'cost' => 0.4 ), // 查询某个订单详情
+                        'order/orders/{id}/matchresults' => array( 'cost' => 0.4 ), // 查询某个订单的成交明细
+                        'order/orders/getClientOrder' => array( 'cost' => 0.4 ),
+                        'order/history' => array( 'cost' => 1 ), // 查询当前委托、历史委托
+                        'order/matchresults' => array( 'cost' => 1 ), // 查询当前成交、历史成交
                         // 'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址（Deprecated）
-                        'query/deposit-withdraw' => 1,
+                        'query/deposit-withdraw' => array( 'cost' => 1 ),
                         // 'margin/loan-info', // duplicate
-                        'margin/loan-orders' => 0.2, // 借贷订单
-                        'margin/accounts/balance' => 0.2, // 借贷账户详情
-                        'cross-margin/loan-orders' => 1, // 查询借币订单
-                        'cross-margin/accounts/balance' => 1, // 借币账户详情
-                        'points/actions' => 1,
-                        'points/orders' => 1,
-                        'subuser/aggregate-balance' => 10,
-                        'stable-coin/exchange_rate' => 1,
-                        'stable-coin/quote' => 1,
+                        'margin/loan-orders' => array( 'cost' => 0.2 ), // 借贷订单
+                        'margin/accounts/balance' => array( 'cost' => 0.2 ), // 借贷账户详情
+                        'cross-margin/loan-orders' => array( 'cost' => 1 ), // 查询借币订单
+                        'cross-margin/accounts/balance' => array( 'cost' => 1 ), // 借币账户详情
+                        'points/actions' => array( 'cost' => 1 ),
+                        'points/orders' => array( 'cost' => 1 ),
+                        'subuser/aggregate-balance' => array( 'cost' => 10 ),
+                        'stable-coin/exchange_rate' => array( 'cost' => 1 ),
+                        'stable-coin/quote' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'account/transfer' => 1, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
-                        'futures/transfer' => 1,
-                        'order/batch-orders' => 0.4,
-                        'order/orders/place' => 0.2, // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders/submitCancelClientOrder' => 0.2,
-                        'order/orders/batchCancelOpenOrders' => 0.4,
+                        'account/transfer' => array( 'cost' => 1 ), // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
+                        'futures/transfer' => array( 'cost' => 1 ),
+                        'order/batch-orders' => array( 'cost' => 0.4 ),
+                        'order/orders/place' => array( 'cost' => 0.2 ), // 创建并执行一个新订单 (一步下单， 推荐使用)
+                        'order/orders/submitCancelClientOrder' => array( 'cost' => 0.2 ),
+                        'order/orders/batchCancelOpenOrders' => array( 'cost' => 0.4 ),
                         // 'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         // 'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel' => 0.2, // 申请撤销一个订单请求
-                        'order/orders/batchcancel' => 0.4, // 批量撤销订单
+                        'order/orders/{id}/submitcancel' => array( 'cost' => 0.2 ), // 申请撤销一个订单请求
+                        'order/orders/batchcancel' => array( 'cost' => 0.4 ), // 批量撤销订单
                         // 'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create' => 1, // 申请提现虚拟币
+                        'dw/withdraw/api/create' => array( 'cost' => 1 ), // 申请提现虚拟币
                         // 'dw/withdraw-virtual/create', // 申请提现虚拟币
                         // 'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现（Deprecated）
-                        'dw/withdraw-virtual/{id}/cancel' => 1, // 申请取消提现虚拟币
-                        'dw/transfer-in/margin' => 10, // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin' => 10, // 借贷账户划出至现货账户
-                        'margin/orders' => 10, // 申请借贷
-                        'margin/orders/{id}/repay' => 10, // 归还借贷
-                        'cross-margin/transfer-in' => 1, // 资产划转
-                        'cross-margin/transfer-out' => 1, // 资产划转
-                        'cross-margin/orders' => 1, // 申请借币
-                        'cross-margin/orders/{id}/repay' => 1, // 归还借币
-                        'stable-coin/exchange' => 1,
-                        'subuser/transfer' => 10,
+                        'dw/withdraw-virtual/{id}/cancel' => array( 'cost' => 1 ), // 申请取消提现虚拟币
+                        'dw/transfer-in/margin' => array( 'cost' => 10 ), // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin' => array( 'cost' => 10 ), // 借贷账户划出至现货账户
+                        'margin/orders' => array( 'cost' => 10 ), // 申请借贷
+                        'margin/orders/{id}/repay' => array( 'cost' => 10 ), // 归还借贷
+                        'cross-margin/transfer-in' => array( 'cost' => 1 ), // 资产划转
+                        'cross-margin/transfer-out' => array( 'cost' => 1 ), // 资产划转
+                        'cross-margin/orders' => array( 'cost' => 1 ), // 申请借币
+                        'cross-margin/orders/{id}/repay' => array( 'cost' => 1 ), // 归还借币
+                        'stable-coin/exchange' => array( 'cost' => 1 ),
+                        'subuser/transfer' => array( 'cost' => 10 ),
                     ),
                 ),
             ),
@@ -374,14 +374,26 @@ class bittrade extends Exchange {
                     'ALGO' => 'algo',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarketsMethod' => 'publicGetCommonSymbols',
-                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod' => 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates' => array(
+                    'method' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                ),
+                'fetchOpenOrders' => array(
+                    'method' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                ),
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                    'method' => 'privatePostOrderOrdersPlace',
+                ),
+                'fetchMarkets' => array(
+                    'method' => 'publicGetCommonSymbols',
+                ),
+                'fetchBalance' => array(
+                    'method' => 'privateGetAccountAccountsIdBalance',
+                ),
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'language' => 'en-US',
+                'fetchCurrencies' => array(
+                    'language' => 'en-US',
+                ),
                 'broker' => array(
                     'id' => 'AA03022abc',
                 ),
@@ -424,6 +436,9 @@ class bittrade extends Exchange {
         if ($symbols === null) {
             $symbols = $this->symbols;
         }
+        if ($symbols === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
@@ -432,7 +447,7 @@ class bittrade extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_limits_by_id(string $id, $params = array()) {
+    public function fetch_trading_limits_by_id(?string $id, $params = array()) {
         $request = array(
             'symbol' => $id,
         );
@@ -456,7 +471,7 @@ class bittrade extends Exchange {
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
-    public function parse_trading_limits($limits, ?string $symbol = null, $params = array()) {
+    public function parse_trading_limits(mixed $limits, ?string $symbol = null, $params = array()) {
         //
         //   {                                  $symbol => "aidocbtc",
         //                  "buy-limit-must-less-than" =>  1.1,
@@ -483,8 +498,8 @@ class bittrade extends Exchange {
         );
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['cost'], $this->precisionMode);
+    public function cost_to_precision(?string $symbol, mixed $cost) {
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->market($symbol)['precision']['cost'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array()): array {
@@ -493,8 +508,13 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $method = $this->options['fetchMarketsMethod'];
-        $response = $this->$method($params);
+        $method = $this->handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols');
+        $response = null;
+        if ($method === 'publicGetCommonSymbols') {
+            $response = $this->publicGetCommonSymbols($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkets() does not support the ' . $method . ' method');
+        }
         //
         //    {
         //        "status" => "ok",
@@ -544,6 +564,12 @@ class bittrade extends Exchange {
             $superLeverageRatio = $this->safe_string($market, 'super-$margin-leverage-ratio', '1');
             $margin = Precise::string_gt($leverageRatio, '1') || Precise::string_gt($superLeverageRatio, '1');
             $fee = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
+            if ($baseId === null) {
+                throw new ExchangeError($this->id . ' fetchMarkets() missing baseId');
+            }
+            if ($quoteId === null) {
+                throw new ExchangeError($this->id . ' fetchMarkets() missing quoteId');
+            }
             $result[] = array(
                 'id' => $baseId . $quoteId,
                 'symbol' => $base . '/' . $quote,
@@ -641,7 +667,7 @@ class bittrade extends Exchange {
         $bidVolume = null;
         $ask = null;
         $askVolume = null;
-        if (is_array($ticker) && array_key_exists('bid', $ticker)) {
+        if (is_array($ticker) && array_key_exists('bid' ?? '', $ticker)) {
             if ((gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
@@ -650,7 +676,7 @@ class bittrade extends Exchange {
                 $bidVolume = $this->safe_string($ticker, 'bidSize');
             }
         }
-        if (is_array($ticker) && array_key_exists('ask', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ask' ?? '', $ticker)) {
             if ((gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
@@ -693,7 +719,7 @@ class bittrade extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -725,8 +751,8 @@ class bittrade extends Exchange {
         //         }
         //     }
         //
-        if (is_array($response) && array_key_exists('tick', $response)) {
-            if (!$response['tick']) {
+        if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
+            if (($response['tick'] === null) || ($response['tick'] === null)) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
             $tick = $this->safe_value($response, 'tick');
@@ -773,7 +799,8 @@ class bittrade extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->parse_ticker($response['tick'], $market);
+        $tick = $this->safe_dict($response, 'tick', array());
+        $ticker = $this->parse_ticker($tick, $market);
         $timestamp = $this->safe_integer($response, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
@@ -907,7 +934,8 @@ class bittrade extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetOrderOrdersIdMatchresults($this->extend($request, $params));
-        return $this->parse_trades($response['data'], null, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, null, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -936,7 +964,8 @@ class bittrade extends Exchange {
             // $request['end-time'] = $this->sum($since, 172800000); // 48 hours window
         }
         $response = $this->privateGetOrderMatchresults($this->extend($request, $params));
-        return $this->parse_trades($response['data'], $market, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = 1000, $params = array()): array {
@@ -996,7 +1025,7 @@ class bittrade extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -1067,7 +1096,7 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $response = $this->privateGetAccountAccounts($params);
-        return $response['data'];
+        return $this->safe_list($response, 'data', array());
     }
 
     public function fetch_currencies($params = array()): array {
@@ -1077,7 +1106,7 @@ class bittrade extends Exchange {
          * @return {array} an associative dictionary of $currencies
          */
         $request = array(
-            'language' => $this->options['language'],
+            'language' => $this->handle_option('fetchCurrencies', 'language', 'en-US'),
         );
         $response = $this->publicGetSettingsCurrencys($this->extend($request, $params));
         //
@@ -1132,7 +1161,7 @@ class bittrade extends Exchange {
         $countryDisabled = $this->safe_value($currency, 'country-disabled');
         $visible = $this->safe_bool($currency, 'visible', false);
         $state = $this->safe_string($currency, 'state');
-        $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
+        $active = ($visible === true) && ($depositEnabled === true) && ($withdrawEnabled === true) && ($state === 'online') && ($countryDisabled !== true);
         $name = $this->safe_string($currency, 'display-name');
         $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
         return $this->safe_currency_structure(array(
@@ -1167,7 +1196,7 @@ class bittrade extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1175,18 +1204,26 @@ class bittrade extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = null;
-            if (is_array($result) && array_key_exists($code, $result)) {
+            if (($code !== null) && (is_array($result) && array_key_exists($code ?? '', $result))) {
                 $account = $result[$code];
             } else {
                 $account = $this->account();
             }
+            if ($account === null) {
+                throw new ExchangeError($this->id . ' parseBalance() could not resolve account');
+            }
             if ($balance['type'] === 'trade') {
                 $account['free'] = $this->safe_string($balance, 'balance');
+            }
+            if ($account === null) {
+                throw new ExchangeError($this->id . ' parseBalance() could not resolve account');
             }
             if ($balance['type'] === 'frozen') {
                 $account['used'] = $this->safe_string($balance, 'balance');
             }
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1201,15 +1238,20 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $this->load_accounts();
-        $method = $this->options['fetchBalanceMethod'];
+        $method = $this->handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
         $request = array(
             'id' => $this->accounts[0]['id'],
         );
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'privateGetAccountAccountsIdBalance') {
+            $response = $this->privateGetAccountAccountsIdBalance($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchBalance() does not support the ' . $method . ' method');
+        }
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders_by_states($states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1221,8 +1263,13 @@ class bittrade extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
-        $response = $this->$method($this->extend($request, $params));
+        $method = $this->handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        $response = null;
+        if (($method === 'private_get_order_history') || ($method === 'privateGetOrderHistory')) {
+            $response = $this->privateGetOrderHistory($this->extend($request, $params));
+        } else {
+            $response = $this->privateGetOrderOrders($this->extend($request, $params));
+        }
         //
         //     { "status" =>   "ok",
         //         "data" => array( {                  id =>  13997833016,
@@ -1258,7 +1305,7 @@ class bittrade extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetOrderOrdersId($this->extend($request, $params));
-        $order = $this->safe_dict($response, 'data');
+        $order = $this->safe_dict($response, 'data', array());
         return $this->parse_order($order);
     }
 
@@ -1283,8 +1330,11 @@ class bittrade extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
-        return $this->$method($symbol, $since, $limit, $params);
+        $method = $this->handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
+        if (($method === 'fetch_open_orders_v2') || ($method === 'fetchOpenOrdersV2')) {
+            return $this->fetch_open_orders_v2($symbol, $since, $limit, $params);
+        }
+        return $this->fetch_open_orders_v1($symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders_v1(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -1306,7 +1356,7 @@ class bittrade extends Exchange {
         return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1408,7 +1458,7 @@ class bittrade extends Exchange {
         $side = null;
         $type = null;
         $status = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
+        if (is_array($order) && array_key_exists('type' ?? '', $order)) {
             $orderType = explode('-', $order['type']);
             $side = $orderType[0];
             $type = $orderType[1];
@@ -1468,7 +1518,7 @@ class bittrade extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if ($market['spot'] !== true) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1537,8 +1587,13 @@ class bittrade extends Exchange {
         if ($type === 'limit' || $type === 'ioc' || $type === 'limit-maker' || $type === 'stop-limit' || $type === 'stop-limit-fok') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $method = $this->options['createOrderMethod'];
-        $response = $this->$method($this->extend($request, $params));
+        $method = $this->handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        $response = null;
+        if ($method === 'privatePostOrderOrdersPlace') {
+            $response = $this->privatePostOrderOrdersPlace($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' createOrder() does not support the ' . $method . ' method');
+        }
         $id = $this->safe_string($response, 'data');
         return $this->safe_order(array(
             'info' => $response,
@@ -1562,11 +1617,11 @@ class bittrade extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string} $symbol not used by bittrade cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1587,7 +1642,7 @@ class bittrade extends Exchange {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by bittrade cancelOrders ()
+         * @param {string} $symbol not used by cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1638,7 +1693,7 @@ class bittrade extends Exchange {
         return $this->parse_cancel_orders($response);
     }
 
-    public function parse_cancel_orders($orders) {
+    public function parse_cancel_orders(mixed $orders) {
         //
         //    {
         //        "success" => array(
@@ -1699,7 +1754,7 @@ class bittrade extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1737,7 +1792,7 @@ class bittrade extends Exchange {
         );
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency" => "usdt",
@@ -1797,7 +1852,8 @@ class bittrade extends Exchange {
         }
         $response = $this->privateGetQueryDepositWithdraw($this->extend($request, $params));
         // return $response
-        return $this->parse_transactions($response['data'], $currency, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1831,7 +1887,8 @@ class bittrade extends Exchange {
         }
         $response = $this->privateGetQueryDepositWithdraw($this->extend($request, $params));
         // return $response
-        return $this->parse_transactions($response['data'], $currency, $since, $limit);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1985,7 +2042,7 @@ class bittrade extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
@@ -2028,7 +2085,7 @@ class bittrade extends Exchange {
                 );
             }
         } else {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }
@@ -2038,11 +2095,11 @@ class bittrade extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //

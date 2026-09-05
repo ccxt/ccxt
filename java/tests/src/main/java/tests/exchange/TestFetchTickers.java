@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,11 +11,19 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchTickers extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchTickers(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchTickers(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+        // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+        // is impractical and the "every active market has a ticker" check doesn't apply — test
+        // fetchTickers by the outcome handle instead
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            Object predictionResult = (fetchTickersHelperTest(exchange, skippedProperties, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(predictionResult));
+        }
         Object withoutSymbol = fetchTickersHelperTest(exchange, skippedProperties, null);
         Object withSymbol = fetchTickersHelperTest(exchange, skippedProperties, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
         Object results = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(withoutSymbol, withSymbol)))).join();
@@ -23,15 +32,15 @@ public class TestFetchTickers extends BaseTest {
         });
 
     }
-    public java.util.concurrent.CompletableFuture<Object> fetchTickersHelperTest(Exchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTickersHelperTest(BaseExchange exchange, Object skippedProperties, Object argSymbols2, Object... optionalArgs)
     {
         final Object argSymbols3 = argSymbols2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object method = "fetchTickers";
-        Object response = (exchange.fetchTickers(argSymbols, argParams)).join();
-        Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dict. "), exchange.json(response)));
+        Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{argSymbols, argParams})).join();
+        TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         Object values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
@@ -43,13 +52,25 @@ public class TestFetchTickers extends BaseTest {
         {
             // todo: symbol check here
             Object ticker = Helpers.GetValue(values, i);
-            TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+            try
+            {
+                TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+            } catch(Exception ex)
+            {
+                Object ohlcv = null;
+                Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tickerSymbol, null))) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                {
+                    ohlcv = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", null, 5})).join();
+                }
+                TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
+            }
         }
         return response;
         });
 
     }
-    public static void fetchTickersAmountsTest(Exchange exchange, Object skippedProperties, Object tickers)
+    public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)
     {
         Object tickersValues = Helpers.objectValues(tickers);
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "checkActiveSymbols"))))
@@ -66,6 +87,10 @@ public class TestFetchTickers extends BaseTest {
             // ensure tickers length is less than markets length
             //
             Object allMarkets = exchange.markets;
+            if (Helpers.isTrue(Helpers.isEqual(allMarkets, null)))
+            {
+                return;
+            }
             Object allMarketsLength = Helpers.getArrayLength(Helpers.objectKeys(allMarkets));
             Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), String.valueOf(obtainedTickersLength)), " tickers, "), String.valueOf(allMarketsLength)), " markets"));
         }

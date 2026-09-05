@@ -16,6 +16,7 @@ Welcome to the ccxt wiki!
   - [C#](https://github.com/ccxt/ccxt/wiki/Install#netc)
   - [Go](https://github.com/ccxt/ccxt/wiki/Install#go)
   - [Java](https://github.com/ccxt/ccxt/wiki/Install#java)
+  - [Rust](https://github.com/ccxt/ccxt/wiki/Install#rust)
   - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
   - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
@@ -76,6 +77,10 @@ Welcome to the ccxt wiki!
 ## WebSocket Support
 
 - [CCXT Pro](https://github.com/ccxt/ccxt/wiki/ccxt.pro)
+
+## AI Agents
+
+- [AI Skills](https://github.com/ccxt/ccxt/wiki/AI-Skills)
 
 ## Troubleshooting
 

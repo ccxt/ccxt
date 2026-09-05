@@ -17,17 +17,20 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchBidsAsksHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        object method = "watchBidsAsks";
+        string method = "watchBidsAsks";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        int maxIdleTime = 5000;
+        bool idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
-            object success = true;
-            object shouldReturn = false;
+            bool success = true;
+            bool shouldReturn = false;
             object response = new Dictionary<string, object>() {};
+            object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchBidsAsks(argSymbols, argParams);
+                response = detypeForComparison(await exchange.WatchBidsAsks(argSymbols, argParams));
             } catch(Exception e)
             {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
@@ -42,18 +45,17 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (isTrue(shouldReturn))
             {
                 return false;
             }
             if (isTrue(isEqual(success, true)))
             {
-                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
-                object values = new List<object>(((IDictionary<string,object>)response).Values);
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
+                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {
@@ -65,7 +67,10 @@ public partial class testMainClass : BaseTest
                     object ticker = getValue(values, i);
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                now = exchange.milliseconds();
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

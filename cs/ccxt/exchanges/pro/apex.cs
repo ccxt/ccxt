@@ -63,10 +63,10 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -80,22 +80,23 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
         object url = this.getWsPublicUrl();
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -109,10 +110,10 @@ public partial class apex : ccxt.apex
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
-            object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            string? tradeSymbol = this.safeString(first, "symbol");
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -138,20 +139,20 @@ public partial class apex : ccxt.apex
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object topic = this.safeString(message, "topic");
+        string? topic = this.safeString(message, "topic");
         object trades = data;
-        object parts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(parts, 2);
+        List<object> parts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        string? marketId = this.safeString(parts, 2);
         object market = this.safeMarket(marketId, null, null);
         object symbol = getValue(market, "symbol");
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object length = getArrayLength(trades);
+        int length = getArrayLength(trades);
         for (object j = 0; isLessThan(j, length); postFixIncrement(ref j))
         {
             object index = subtract(subtract(length, j), 1);
@@ -177,14 +178,14 @@ public partial class apex : ccxt.apex
         //         "BT": false
         //     }
         //
-        object id = this.safeStringN(trade, new List<object>() {"i", "id", "v"});
-        object marketId = this.safeStringN(trade, new List<object>() {"s", "symbol"});
+        string? id = this.safeStringN(trade, new List<object>() {"i", "id", "v"});
+        string? marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
-        object side = this.safeStringLowerN(trade, new List<object>() {"S", "side"});
-        object price = this.safeStringN(trade, new List<object>() {"p", "price"});
-        object amount = this.safeStringN(trade, new List<object>() {"q", "v", "size"});
+        string? side = this.safeStringLower2(trade, "S", "side");
+        string? price = this.safeString2(trade, "p", "price");
+        string? amount = this.safeStringN(trade, new List<object>() {"q", "v", "size"});
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -212,10 +213,10 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -226,39 +227,40 @@ public partial class apex : ccxt.apex
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         symbols = this.marketSymbols(symbols);
         object url = this.getWsPublicUrl();
-        object topics = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            if (isTrue(isEqual(limit, null)))
+            if (isTrue(isEqual(limitVar, null)))
             {
-                limit = 25;
+                limitVar = 25;
             }
-            object topic = add(add(add("orderBook", ((object)limit).ToString()), ".H."), getValue(market, "id2"));
+            object topic = add(add(add("orderBook", ((object)limitVar).ToString()), ".H."), getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
             object messageHash = add("orderbook:", symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object orderbook = await this.watchTopics(url, messageHashes, topics, parameters);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
     public async virtual Task<object> watchTopics(object url, object messageHashes, object topics, object parameters = null)
@@ -270,7 +272,7 @@ public partial class apex : ccxt.apex
         // are already subscribed, skip the subscribe entirely.
         parameters ??= new Dictionary<string, object>();
         var client = this.client(url);
-        object newTopics = new List<object>() {};
+        List<object> newTopics = new List<object>() {};
         object newTopicsCount = 0;
         for (object i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
         {
@@ -283,7 +285,7 @@ public partial class apex : ccxt.apex
         object message = null;
         if (isTrue(isGreaterThan(newTopicsCount, 0)))
         {
-            object request = new Dictionary<string, object>() {
+            Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "subscribe" },
                 { "args", newTopics },
             };
@@ -301,7 +303,7 @@ public partial class apex : ccxt.apex
         object url = this.safeString(this.options, "wsPublicUrl");
         if (isTrue(isEqual(url, null)))
         {
-            object timeStamp = ((object)this.milliseconds()).ToString();
+            string timeStamp = ((object)this.milliseconds()).ToString();
             url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
             ((IDictionary<string,object>)this.options)["wsPublicUrl"] = url;
         }
@@ -313,7 +315,7 @@ public partial class apex : ccxt.apex
         object url = this.safeString(this.options, "wsPrivateUrl");
         if (isTrue(isEqual(url, null)))
         {
-            object timeStamp = ((object)this.milliseconds()).ToString();
+            string timeStamp = ((object)this.milliseconds()).ToString();
             url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
             ((IDictionary<string,object>)this.options)["wsPrivateUrl"] = url;
         }
@@ -355,13 +357,13 @@ public partial class apex : ccxt.apex
         //         }
         //     }
         //
-        object type = this.safeString(message, "type");
-        object isSnapshot = (isEqual(type, "snapshot"));
+        string? type = this.safeString(message, "type");
+        bool isSnapshot = (isEqual(type, "snapshot"));
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketId = this.safeString(data, "s");
+        string? marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId, null, null);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
+        Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -408,20 +410,21 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object url = this.getWsPublicUrl();
-        object messageHash = add("ticker:", symbol);
+        object messageHash = add("ticker:", symbolVar);
         object topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
-        object topics = new List<object>() {topic};
-        return await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
+        List<object> topics = new List<object>() {topic};
+        return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
 
     /**
@@ -433,7 +436,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -441,12 +444,12 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object messageHashes = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         object url = this.getWsPublicUrl();
-        object topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        List<object> topics = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue((IList<string>)(symbols), i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
@@ -456,11 +459,11 @@ public partial class apex : ccxt.apex
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
         {
-            object result = new Dictionary<string, object>() {};
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            return ccxt.BaseExchange.ToTickers(result);
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -486,8 +489,8 @@ public partial class apex : ccxt.apex
         //     "cs":44939063,
         //     "ts":1661500091955487
         // }
-        object topic = this.safeString(message, "topic", "");
-        object updateType = this.safeString(message, "type", "");
+        string? topic = this.safeString(message, "topic", "");
+        string? updateType = this.safeString(message, "type", "");
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object symbol = null;
         object parsed = this.parseTicker(data);
@@ -497,17 +500,17 @@ public partial class apex : ccxt.apex
             symbol = getValue(parsed, "symbol");
         } else if (isTrue(isEqual(updateType, "delta")))
         {
-            object topicParts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-            object topicLength = getArrayLength(topicParts);
-            object marketId = this.safeString(topicParts, subtract(topicLength, 1));
+            List<object> topicParts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            int topicLength = getArrayLength(topicParts);
+            string? marketId = this.safeString(topicParts, subtract(topicLength, 1));
             object market = this.safeMarket(marketId, null, null);
             symbol = getValue(market, "symbol");
             object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             object rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
-            object merged = this.extend(rawTicker, data);
+            Dictionary<string, object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }
-        object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
+        Int64? timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         ((IDictionary<string,object>)parsed)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsed)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = parsed;
@@ -527,13 +530,14 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
-        return getValue(getValue(result, symbol), timeframe);
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
+        return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
     /**
@@ -547,7 +551,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -555,13 +559,13 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         object url = this.getWsPublicUrl();
-        object rawHashes = new List<object>() {};
-        object messageHashes = new List<object>() {};
+        List<object> rawHashes = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(((string)symbolString));
+            object market = this.market(symbolString);
             symbolString = getValue(market, "id2");
             object unfiedTimeframe = this.safeString(data, 1, "1");
             object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -577,7 +581,7 @@ public partial class apex : ccxt.apex
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -605,14 +609,14 @@ public partial class apex : ccxt.apex
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object topic = this.safeString(message, "topic");
-        object topicParts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object topicLength = getArrayLength(topicParts);
-        object timeframeId = this.safeString(topicParts, 1);
+        string? topic = this.safeString(message, "topic");
+        List<object> topicParts = ((string)((string)topic)).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        int topicLength = getArrayLength(topicParts);
+        string? timeframeId = this.safeString(topicParts, 1);
         object timeframe = this.findTimeframe(timeframeId);
-        object marketId = this.safeString(topicParts, subtract(topicLength, 1));
-        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
-        object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string? marketId = this.safeString(topicParts, subtract(topicLength, 1));
+        bool isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
@@ -621,7 +625,7 @@ public partial class apex : ccxt.apex
         }
         if (!isTrue((inOp(getValue(this.ohlcvs, symbol), ((string)timeframe)))))
         {
-            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
@@ -631,7 +635,7 @@ public partial class apex : ccxt.apex
             callDynamically(stored, "append", new object[] {parsed});
         }
         object messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
-        object resolveData = new List<object>() {symbol, timeframe, stored};
+        List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
     }
 
@@ -667,27 +671,29 @@ public partial class apex : ccxt.apex
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object messageHash = "myTrades";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add(":", symbol));
+            symbolVar = this.symbol(symbolVar);
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         object url = this.getWsPrivateUrl();
         await this.authenticate(url);
         object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
     /**
@@ -701,7 +707,7 @@ public partial class apex : ccxt.apex
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -709,10 +715,10 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         object messageHash = "";
-        if (!isTrue(this.isEmpty((IList<object>)(symbols))))
+        if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
-            messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object url = this.getWsPrivateUrl();
         messageHash = add("positions", messageHash);
@@ -723,15 +729,15 @@ public partial class apex : ccxt.apex
         if (isTrue(isEqual(cache, null)))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
-            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
-        object topics = new List<object>() {"positions"};
+        List<object> topics = new List<object>() {"positions"};
         object newPositions = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
         if (isTrue(this.newUpdates))
         {
-            return newPositions;
+            return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true));
     }
 
     /**
@@ -745,28 +751,30 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object messageHash = "orders";
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add(":", symbol));
+            symbolVar = this.symbol(symbolVar);
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         object url = this.getWsPrivateUrl();
         await this.authenticate(url);
-        object topics = new List<object>() {"orders"};
+        List<object> topics = new List<object>() {"orders"};
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object lists)
@@ -790,11 +798,11 @@ public partial class apex : ccxt.apex
         // ]
         if (isTrue(isEqual(this.myTrades, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         object trades = this.myTrades;
-        object symbols = new Dictionary<string, object>() {};
+        Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(lists, i);
@@ -803,14 +811,14 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
-        object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currentMessageHash = add("myTrades:", getValue(keys, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {trades, currentMessageHash});
         }
         // non-symbol specific
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
     }
 
@@ -847,11 +855,11 @@ public partial class apex : ccxt.apex
         // ]
         if (isTrue(isEqual(this.orders, null)))
         {
-            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        object symbols = new Dictionary<string, object>() {};
+        Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object parsed = this.parseOrder(getValue(lists, i));
@@ -859,13 +867,13 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {parsed});
         }
-        object symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
         {
             object currentMessageHash = add("orders:", getValue(symbolsArray, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {orders, currentMessageHash});
         }
-        object messageHash = "orders";
+        string messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
     }
 
@@ -875,7 +883,7 @@ public partial class apex : ccxt.apex
         {
             return;
         }
-        object messageHash = "fetchPositionsSnapshot";
+        string messageHash = "fetchPositionsSnapshot";
         if (!isTrue((inOp(client.futures, messageHash))))
         {
             client.future(messageHash);
@@ -886,7 +894,7 @@ public partial class apex : ccxt.apex
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        object fetchFunctions = new List<object> {this.fetchPositions()};
+        List<object> fetchFunctions = new List<object> {this.FetchPositions()};
         object promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
@@ -937,12 +945,12 @@ public partial class apex : ccxt.apex
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
-        object newPositions = new List<object>() {};
+        List<object> newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(lists, i);
             object position = this.parsePosition(rawPosition);
-            object side = this.safeString(position, "side");
+            string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
             ((IList<object>)newPositions).Add(position);
@@ -965,9 +973,9 @@ public partial class apex : ccxt.apex
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -981,19 +989,19 @@ public partial class apex : ccxt.apex
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object timestamp = ((object)this.milliseconds()).ToString();
-        object request_path = "/ws/accounts";
-        object http_method = "GET";
+        string timestamp = ((object)this.milliseconds()).ToString();
+        string request_path = "/ws/accounts";
+        string http_method = "GET";
         object messageString = (add(add(timestamp, http_method), request_path));
-        object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
-        object messageHash = "authenticated";
+        string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
+        string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
             // auth sign
-            object request = new Dictionary<string, object>() {
+            Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "type", "login" },
                 { "topics", new List<object>() {"ws_zk_accounts_v3"} },
                 { "httpMethod", http_method },
@@ -1003,7 +1011,7 @@ public partial class apex : ccxt.apex
                 { "timestamp", timestamp },
                 { "signature", signature },
             };
-            object message = new Dictionary<string, object>() {
+            Dictionary<string, object> message = new Dictionary<string, object>() {
                 { "op", "login" },
                 { "args", new List<object> {json(request)} },
             };
@@ -1057,23 +1065,23 @@ public partial class apex : ccxt.apex
         //       "connId":"cojifin88smerbj9t560-406"
         //   }
         //
-        object code = this.safeStringN(message, new List<object>() {"code", "ret_code", "retCode"});
+        string? code = this.safeStringN(message, new List<object>() {"code", "ret_code", "retCode"});
         try
         {
             if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, "0"))))
             {
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
-                object msg = this.safeString2(message, "retMsg", "ret_msg");
+                string? msg = this.safeString2(message, "retMsg", "ret_msg");
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
             object success = this.safeValue(message, "success");
-            if (isTrue(isTrue(!isEqual(success, null)) && !isTrue(success)))
+            if (isTrue(isTrue((!isEqual(success, null))) && isTrue((!isEqual(success, true)))))
             {
                 object ret_msg = this.safeString(message, "ret_msg");
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
-                object op = this.safeString(request, "op");
+                string? op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
                 // is still active and delivering data on this socket. Without
@@ -1097,7 +1105,7 @@ public partial class apex : ccxt.apex
         {
             if (isTrue(error is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -1105,7 +1113,7 @@ public partial class apex : ccxt.apex
                 }
             } else
             {
-                object messageHash = this.safeString(message, "reqId");
+                string? messageHash = this.safeString(message, "reqId");
                 ((WebSocketClient)client).reject(error, messageHash);
             }
             return true;
@@ -1114,12 +1122,12 @@ public partial class apex : ccxt.apex
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
         {
             return;
         }
-        object topic = this.safeString2(message, "topic", "op", "");
-        object methods = new Dictionary<string, object>() {
+        string? topic = this.safeString2(message, "topic", "op", "");
+        Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "ws_zk_accounts_v3", this.handleAccount },
             { "orderBook", this.handleOrderBook },
             { "depth", this.handleOrderBook },
@@ -1139,7 +1147,7 @@ public partial class apex : ccxt.apex
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
-        object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1151,7 +1159,7 @@ public partial class apex : ccxt.apex
             }
         }
         // unified auth acknowledgement
-        object type = this.safeString(message, "type");
+        string? type = this.safeString(message, "type");
         if (isTrue(isEqual(type, "AUTH_RESP")))
         {
             this.handleAuthenticate(client as WebSocketClient, message);
@@ -1160,7 +1168,7 @@ public partial class apex : ccxt.apex
 
     public override object ping(WebSocketClient client)
     {
-        object timeStamp = this.milliseconds();
+        Int64 timeStamp = this.milliseconds();
         client.lastPong = timeStamp;
         return new Dictionary<string, object>() {
             { "args", new List<object> {((object)timeStamp).ToString()} },
@@ -1173,7 +1181,7 @@ public partial class apex : ccxt.apex
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //
-        object timeStamp = this.milliseconds();
+        Int64 timeStamp = this.milliseconds();
         try
         {
             await client.send(new Dictionary<string, object>() {
@@ -1239,9 +1247,9 @@ public partial class apex : ccxt.apex
         //    }
         //
         object success = this.safeValue(message, "success");
-        object code = this.safeInteger(message, "retCode");
-        object messageHash = "authenticated";
-        if (isTrue(isTrue(success) || isTrue(isEqual(code, 0))))
+        Int64? code = this.safeInteger(message, "retCode");
+        string messageHash = "authenticated";
+        if (isTrue(isTrue((isEqual(success, true))) || isTrue((isEqual(code, 0)))))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);

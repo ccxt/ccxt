@@ -13,6 +13,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class ndax extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -108,8 +110,9 @@ class ndax extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -164,105 +167,116 @@ class ndax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'Activate2FA' => 1,
-                        'Authenticate2FA' => 1,
-                        'AuthenticateUser' => 1,
-                        'GetL2Snapshot' => 1,
-                        'GetLevel1' => 1,
-                        'GetValidate2FARequiredEndpoints' => 1,
-                        'LogOut' => 1,
-                        'GetTickerHistory' => 1,
-                        'GetProduct' => 1,
-                        'GetProducts' => 1,
-                        'GetInstrument' => 1,
-                        'GetInstruments' => 1,
-                        'Ping' => 1,
-                        'trades' => 1, // undocumented
-                        'GetLastTrades' => 1, // undocumented
-                        'SubscribeLevel1' => 1,
-                        'SubscribeLevel2' => 1,
-                        'SubscribeTicker' => 1,
-                        'SubscribeTrades' => 1,
-                        'SubscribeBlockTrades' => 1,
-                        'UnsubscribeBlockTrades' => 1,
-                        'UnsubscribeLevel1' => 1,
-                        'UnsubscribeLevel2' => 1,
-                        'UnsubscribeTicker' => 1,
-                        'UnsubscribeTrades' => 1,
-                        'Authenticate' => 1, // undocumented
+                        'Activate2FA' => array( 'cost' => 1 ),
+                        'Authenticate2FA' => array( 'cost' => 1 ),
+                        'AuthenticateUser' => array( 'cost' => 1 ),
+                        'EnableXP2FA' => array( 'cost' => 1 ),
+                        'GetL2Snapshot' => array( 'cost' => 1 ),
+                        'GetLevel1' => array( 'cost' => 1 ),
+                        'GetValidate2FARequiredEndpoints' => array( 'cost' => 1 ),
+                        'LogOut' => array( 'cost' => 1 ),
+                        'GetTickerHistory' => array( 'cost' => 1 ),
+                        'GetProduct' => array( 'cost' => 1 ),
+                        'GetProducts' => array( 'cost' => 1 ),
+                        'GetInstrument' => array( 'cost' => 1 ),
+                        'GetInstruments' => array( 'cost' => 1 ),
+                        'GetEarliestTickTime' => array( 'cost' => 1 ),
+                        'Ping' => array( 'cost' => 1 ),
+                        'assets' => array( 'cost' => 1 ),
+                        'orderbook' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'summary' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ), // undocumented
+                        'GetLastTrades' => array( 'cost' => 1 ), // undocumented
+                        'ConfirmWithdraw' => array( 'cost' => 1 ),
+                        'SubscribeLevel1' => array( 'cost' => 1 ),
+                        'SubscribeLevel2' => array( 'cost' => 1 ),
+                        'SubscribeTicker' => array( 'cost' => 1 ),
+                        'SubscribeTrades' => array( 'cost' => 1 ),
+                        'SubscribeBlockTrades' => array( 'cost' => 1 ),
+                        'UnsubscribeBlockTrades' => array( 'cost' => 1 ),
+                        'UnsubscribeLevel1' => array( 'cost' => 1 ),
+                        'UnsubscribeLevel2' => array( 'cost' => 1 ),
+                        'UnsubscribeTicker' => array( 'cost' => 1 ),
+                        'UnsubscribeTrades' => array( 'cost' => 1 ),
+                        'Authenticate' => array( 'cost' => 1 ), // undocumented
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'GetUserAccountInfos' => 1,
-                        'GetUserAccounts' => 1,
-                        'GetUserAffiliateCount' => 1,
-                        'GetUserAffiliateTag' => 1,
-                        'GetUserConfig' => 1,
-                        'GetAllUnredactedUserConfigsForUser' => 1,
-                        'GetUnredactedUserConfigByKey' => 1,
-                        'GetUserDevices' => 1,
-                        'GetUserReportTickets' => 1,
-                        'GetUserReportWriterResultRecords' => 1,
-                        'GetAccountInfo' => 1,
-                        'GetAccountPositions' => 1,
-                        'GetAllAccountConfigs' => 1,
-                        'GetTreasuryProductsForAccount' => 1,
-                        'GetAccountTrades' => 1,
-                        'GetAccountTransactions' => 1,
-                        'GetOpenTradeReports' => 1,
-                        'GetAllOpenTradeReports' => 1,
-                        'GetTradesHistory' => 1,
-                        'GetOpenOrders' => 1,
-                        'GetOpenQuotes' => 1,
-                        'GetOrderFee' => 1,
-                        'GetOrderHistory' => 1,
-                        'GetOrdersHistory' => 1,
-                        'GetOrderStatus' => 1,
-                        'GetOmsFeeTiers' => 1,
-                        'GetAccountDepositTransactions' => 1,
-                        'GetAccountWithdrawTransactions' => 1,
-                        'GetAllDepositRequestInfoTemplates' => 1,
-                        'GetDepositInfo' => 1,
-                        'GetDepositRequestInfoTemplate' => 1,
-                        'GetDeposits' => 1,
-                        'GetDepositTicket' => 1,
-                        'GetDepositTickets' => 1,
-                        'GetOMSWithdrawFees' => 1,
-                        'GetWithdrawFee' => 1,
-                        'GetWithdraws' => 1,
-                        'GetWithdrawTemplate' => 1,
-                        'GetWithdrawTemplateTypes' => 1,
-                        'GetWithdrawTicket' => 1,
-                        'GetWithdrawTickets' => 1,
+                        'GetUserAccountInfos' => array( 'cost' => 1 ),
+                        'GetUserAccounts' => array( 'cost' => 1 ),
+                        'GetUserAffiliateCount' => array( 'cost' => 1 ),
+                        'GetUserAffiliateTag' => array( 'cost' => 1 ),
+                        'GetUserConfig' => array( 'cost' => 1 ),
+                        'GetAllUnredactedUserConfigsForUser' => array( 'cost' => 1 ),
+                        'GetUnredactedUserConfigByKey' => array( 'cost' => 1 ),
+                        'GetUserDevices' => array( 'cost' => 1 ),
+                        'GetUserReportTickets' => array( 'cost' => 1 ),
+                        'GetUserReportWriterResultRecords' => array( 'cost' => 1 ),
+                        'GetAccountInfo' => array( 'cost' => 1 ),
+                        'GetAccountPositions' => array( 'cost' => 1 ),
+                        'GetAllAccountConfigs' => array( 'cost' => 1 ),
+                        'GetTreasuryProductsForAccount' => array( 'cost' => 1 ),
+                        'GetAccountTrades' => array( 'cost' => 1 ),
+                        'GetAccountTransactions' => array( 'cost' => 1 ),
+                        'GetOpenTradeReports' => array( 'cost' => 1 ),
+                        'GetAllOpenTradeReports' => array( 'cost' => 1 ),
+                        'GetTradesHistory' => array( 'cost' => 1 ),
+                        'GetOpenOrders' => array( 'cost' => 1 ),
+                        'GetOpenQuotes' => array( 'cost' => 1 ),
+                        'GetOrderFee' => array( 'cost' => 1 ),
+                        'GetOrderHistory' => array( 'cost' => 1 ),
+                        'GetOrdersHistory' => array( 'cost' => 1 ),
+                        'GetOrderStatus' => array( 'cost' => 1 ),
+                        'GetOmsFeeTiers' => array( 'cost' => 1 ),
+                        'GetAccountDepositTransactions' => array( 'cost' => 1 ),
+                        'GetAccountWithdrawTransactions' => array( 'cost' => 1 ),
+                        'GetAllDepositRequestInfoTemplates' => array( 'cost' => 1 ),
+                        'GetDepositInfo' => array( 'cost' => 1 ),
+                        'GetDepositRequestInfoTemplate' => array( 'cost' => 1 ),
+                        'GetDeposits' => array( 'cost' => 1 ),
+                        'GetDepositTicket' => array( 'cost' => 1 ),
+                        'GetDepositTickets' => array( 'cost' => 1 ),
+                        'GetOMSWithdrawFees' => array( 'cost' => 1 ),
+                        'GetWithdrawFee' => array( 'cost' => 1 ),
+                        'GetWithdraws' => array( 'cost' => 1 ),
+                        'GetWithdrawTemplate' => array( 'cost' => 1 ),
+                        'GetWithdrawTemplateTypes' => array( 'cost' => 1 ),
+                        'GetWithdrawTicket' => array( 'cost' => 1 ),
+                        'GetWithdrawTicketAttachment' => array( 'cost' => 1 ),
+                        'GetWithdrawTickets' => array( 'cost' => 1 ),
+                        'GetDepositTicketAttachment' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'AddUserAffiliateTag' => 1,
-                        'CancelUserReport' => 1,
-                        'RegisterNewDevice' => 1,
-                        'SubscribeAccountEvents' => 1,
-                        'UpdateUserAffiliateTag' => 1,
-                        'GenerateTradeActivityReport' => 1,
-                        'GenerateTransactionActivityReport' => 1,
-                        'GenerateTreasuryActivityReport' => 1,
-                        'ScheduleTradeActivityReport' => 1,
-                        'ScheduleTransactionActivityReport' => 1,
-                        'ScheduleTreasuryActivityReport' => 1,
-                        'CancelAllOrders' => 1,
-                        'CancelOrder' => 1,
-                        'CancelQuote' => 1,
-                        'CancelReplaceOrder' => 1,
-                        'CreateQuote' => 1,
-                        'ModifyOrder' => 1,
-                        'SendOrder' => 1,
-                        'SubmitBlockTrade' => 1,
-                        'UpdateQuote' => 1,
-                        'CancelWithdraw' => 1,
-                        'CreateDepositTicket' => 1,
-                        'CreateWithdrawTicket' => 1,
-                        'SubmitDepositTicketComment' => 1,
-                        'SubmitWithdrawTicketComment' => 1,
-                        'GetOrderHistoryByOrderId' => 1,
+                        'AddUserAffiliateTag' => array( 'cost' => 1 ),
+                        'AddDepositTicketAttachment' => array( 'cost' => 1 ),
+                        'AddWithdrawTicketAttachment' => array( 'cost' => 1 ),
+                        'CancelUserReport' => array( 'cost' => 1 ),
+                        'RegisterNewDevice' => array( 'cost' => 1 ),
+                        'SubscribeAccountEvents' => array( 'cost' => 1 ),
+                        'UpdateUserAffiliateTag' => array( 'cost' => 1 ),
+                        'GenerateTradeActivityReport' => array( 'cost' => 1 ),
+                        'GenerateTransactionActivityReport' => array( 'cost' => 1 ),
+                        'GenerateTreasuryActivityReport' => array( 'cost' => 1 ),
+                        'ScheduleTradeActivityReport' => array( 'cost' => 1 ),
+                        'ScheduleTransactionActivityReport' => array( 'cost' => 1 ),
+                        'ScheduleTreasuryActivityReport' => array( 'cost' => 1 ),
+                        'CancelAllOrders' => array( 'cost' => 1 ),
+                        'CancelOrder' => array( 'cost' => 1 ),
+                        'CancelQuote' => array( 'cost' => 1 ),
+                        'CancelReplaceOrder' => array( 'cost' => 1 ),
+                        'CreateQuote' => array( 'cost' => 1 ),
+                        'ModifyOrder' => array( 'cost' => 1 ),
+                        'SendOrder' => array( 'cost' => 1 ),
+                        'SubmitBlockTrade' => array( 'cost' => 1 ),
+                        'UpdateQuote' => array( 'cost' => 1 ),
+                        'CancelWithdraw' => array( 'cost' => 1 ),
+                        'CreateDepositTicket' => array( 'cost' => 1 ),
+                        'CreateWithdrawTicket' => array( 'cost' => 1 ),
+                        'SubmitDepositTicketComment' => array( 'cost' => 1 ),
+                        'SubmitWithdrawTicketComment' => array( 'cost' => 1 ),
+                        'GetOrderHistoryByOrderId' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -392,99 +406,132 @@ class ndax extends Exchange {
         ));
     }
 
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://apidoc.ndax.io/#ping
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
+         */
+        $response = Async\await($this->publicGetPing($params));
+        //
+        //     {
+        //         "msg":"PONG"
+        //     }
+        //
+        $message = $this->safe_string($response, 'msg');
+        return array(
+            'status' => ($message === 'PONG') ? 'ok' : 'error',
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
+    }
+
     public function sign_in($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * sign in, must be called prior to using other authenticated methods
-             *
-             * @see https://apidoc.ndax.io/#authenticate2fa
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return $response from exchange
-             */
-            $this->check_required_credentials();
-            if ($this->login === null || $this->password === null) {
-                throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password');
+        return Async\async(self::do_sign_in(...))($params);
+    }
+
+    private function do_sign_in($params = array()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         *
+         * @see https://apidoc.ndax.io/#authenticate2fa
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return $response from exchange
+         */
+        $this->check_required_credentials();
+        if ($this->login === null || $this->password === null) {
+            throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password');
+        }
+        $request = array(
+            'grant_type' => 'client_credentials', // the only supported value
+        );
+        $response = Async\await($this->publicGetAuthenticate($this->extend($request, $params)));
+        //
+        //     {
+        //         "Authenticated":true,
+        //         "Requires2FA":true,
+        //         "AuthType":"Google",
+        //         "AddtlInfo":"",
+        //         "Pending2FaToken" => "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+        //     }
+        //
+        $sessionToken = $this->safe_string($response, 'SessionToken');
+        if ($sessionToken !== null) {
+            $this->options['sessionToken'] = $sessionToken;
+            return $response;
+        }
+        $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
+        if ($pending2faToken !== null) {
+            if ($this->twofa === null) {
+                throw new AuthenticationError($this->id . ' signIn() requires exchange.twofa credentials');
             }
+            $this->options['pending2faToken'] = $pending2faToken;
             $request = array(
-                'grant_type' => 'client_credentials', // the only supported value
+                'Code' => $this->totp($this->twofa),
             );
-            $response = Async\await($this->publicGetAuthenticate($this->extend($request, $params)));
+            $responseInner = Async\await($this->publicGetAuthenticate2FA($this->extend($request, $params)));
             //
             //     {
-            //         "Authenticated":true,
-            //         "Requires2FA":true,
-            //         "AuthType":"Google",
-            //         "AddtlInfo":"",
-            //         "Pending2FaToken" => "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
+            //         "Authenticated" => true,
+            //         "UserId":57764,
+            //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            $sessionToken = $this->safe_string($response, 'SessionToken');
-            if ($sessionToken !== null) {
-                $this->options['sessionToken'] = $sessionToken;
-                return $response;
-            }
-            $pending2faToken = $this->safe_string($response, 'Pending2FaToken');
-            if ($pending2faToken !== null) {
-                if ($this->twofa === null) {
-                    throw new AuthenticationError($this->id . ' signIn() requires exchange.twofa credentials');
-                }
-                $this->options['pending2faToken'] = $pending2faToken;
-                $request = array(
-                    'Code' => $this->totp($this->twofa),
-                );
-                $responseInner = Async\await($this->publicGetAuthenticate2FA($this->extend($request, $params)));
-                //
-                //     {
-                //         "Authenticated" => true,
-                //         "UserId":57764,
-                //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
-                //     }
-                //
-                $sessionToken = $this->safe_string($responseInner, 'SessionToken');
-                $this->options['sessionToken'] = $sessionToken;
-                return $responseInner;
-            }
-            return $response;
-        })();
+            $sessionToken = $this->safe_string($responseInner, 'SessionToken');
+            $this->options['sessionToken'] = $sessionToken;
+            return $responseInner;
+        }
+        return $response;
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://apidoc.ndax.io/#getproduct
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            $request = array(
-                'omsId' => $omsId,
-            );
-            $response = Async\await($this->publicGetGetProducts($this->extend($request, $params)));
-            //
-            //    [
-            //        array(
-            //            "OMSId" => "1",
-            //            "ProductId" => "1",
-            //            "Product" => "BTC",
-            //            "ProductFullName" => "Bitcoin",
-            //            "MasterDataUniqueProductSymbol" => "",
-            //            "ProductType" => "CryptoCurrency",
-            //            "DecimalPlaces" => "8",
-            //            "TickSize" => "0.0000000100000000000000000000",
-            //            "DepositEnabled" => true,
-            //            "WithdrawEnabled" => true,
-            //            "NoFees" => false,
-            //            "IsDisabled" => false,
-            //            "MarginEnabled" => false
-            //        ),
-            //        ...
-            //
-            return $this->parse_currencies($response);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://apidoc.ndax.io/#getproducts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        $request = array(
+            'omsId' => $omsId,
+        );
+        $response = Async\await($this->publicGetGetProducts($this->extend($request, $params)));
+        //
+        //    [
+        //        array(
+        //            "OMSId" => "1",
+        //            "ProductId" => "1",
+        //            "Product" => "BTC",
+        //            "ProductFullName" => "Bitcoin",
+        //            "MasterDataUniqueProductSymbol" => "",
+        //            "ProductType" => "CryptoCurrency",
+        //            "DecimalPlaces" => "8",
+        //            "TickSize" => "0.0000000100000000000000000000",
+        //            "DepositEnabled" => true,
+        //            "WithdrawEnabled" => true,
+        //            "NoFees" => false,
+        //            "IsDisabled" => false,
+        //            "MarginEnabled" => false
+        //        ),
+        //        ...
+        //
+        return $this->parse_currencies($response);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -503,7 +550,7 @@ class ndax extends Exchange {
             'type' => $type,
             'precision' => $this->safe_number($rawCurrency, 'TickSize'),
             'info' => $rawCurrency,
-            'active' => !$this->safe_bool($rawCurrency, 'IsDisabled'),
+            'active' => ($this->safe_bool($rawCurrency, 'IsDisabled') !== true),
             'deposit' => $this->safe_bool($rawCurrency, 'DepositEnabled'),
             'withdraw' => $this->safe_bool($rawCurrency, 'WithdrawEnabled'),
             'fee' => null,
@@ -523,68 +570,70 @@ class ndax extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all markets for ndax
-             *
-             * @see https://apidoc.ndax.io/#getinstruments
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            $request = array(
-                'omsId' => $omsId,
-            );
-            $response = Async\await($this->publicGetGetInstruments($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "OMSId":1,
-            //             "InstrumentId":3,
-            //             "Symbol":"LTCBTC",
-            //             "Product1":3,
-            //             "Product1Symbol":"LTC",
-            //             "Product2":1,
-            //             "Product2Symbol":"BTC",
-            //             "InstrumentType":"Standard",
-            //             "VenueInstrumentId":3,
-            //             "VenueId":1,
-            //             "SortIndex":0,
-            //             "SessionStatus":"Running",
-            //             "PreviousSessionStatus":"Stopped",
-            //             "SessionStatusDateTime":"2020-11-25T19:42:15.245Z",
-            //             "SelfTradePrevention":true,
-            //             "QuantityIncrement":0.0000000100000000000000000000,
-            //             "PriceIncrement":0.0000000100000000000000000000,
-            //             "MinimumQuantity":0.0100000000000000000000000000,
-            //             "MinimumPrice":0.0000010000000000000000000000,
-            //             "VenueSymbol":"LTCBTC",
-            //             "IsDisable":false,
-            //             "MasterDataId":0,
-            //             "PriceCollarThreshold":0.0000000000000000000000000000,
-            //             "PriceCollarPercent":0.0000000000000000000000000000,
-            //             "PriceCollarEnabled":false,
-            //             "PriceFloorLimit":0.0000000000000000000000000000,
-            //             "PriceFloorLimitEnabled":false,
-            //             "PriceCeilingLimit":0.0000000000000000000000000000,
-            //             "PriceCeilingLimitEnabled":false,
-            //             "CreateWithMarketRunning":true,
-            //             "AllowOnlyMarketMakerCounterParty":false,
-            //             "PriceCollarIndexDifference":0.0000000000000000000000000000,
-            //             "PriceCollarConvertToOtcEnabled":false,
-            //             "PriceCollarConvertToOtcClientUserId":0,
-            //             "PriceCollarConvertToOtcAccountId":0,
-            //             "PriceCollarConvertToOtcThreshold":0.0000000000000000000000000000,
-            //             "OtcConvertSizeThreshold":0.0000000000000000000000000000,
-            //             "OtcConvertSizeEnabled":false,
-            //             "OtcTradesPublic":true,
-            //             "PriceTier":0
-            //         ),
-            //     )
-            //
-            return $this->parse_markets($response);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all markets for ndax
+         *
+         * @see https://apidoc.ndax.io/#getinstruments
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        $request = array(
+            'omsId' => $omsId,
+        );
+        $response = Async\await($this->publicGetGetInstruments($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "OMSId":1,
+        //             "InstrumentId":3,
+        //             "Symbol":"LTCBTC",
+        //             "Product1":3,
+        //             "Product1Symbol":"LTC",
+        //             "Product2":1,
+        //             "Product2Symbol":"BTC",
+        //             "InstrumentType":"Standard",
+        //             "VenueInstrumentId":3,
+        //             "VenueId":1,
+        //             "SortIndex":0,
+        //             "SessionStatus":"Running",
+        //             "PreviousSessionStatus":"Stopped",
+        //             "SessionStatusDateTime":"2020-11-25T19:42:15.245Z",
+        //             "SelfTradePrevention":true,
+        //             "QuantityIncrement":0.0000000100000000000000000000,
+        //             "PriceIncrement":0.0000000100000000000000000000,
+        //             "MinimumQuantity":0.0100000000000000000000000000,
+        //             "MinimumPrice":0.0000010000000000000000000000,
+        //             "VenueSymbol":"LTCBTC",
+        //             "IsDisable":false,
+        //             "MasterDataId":0,
+        //             "PriceCollarThreshold":0.0000000000000000000000000000,
+        //             "PriceCollarPercent":0.0000000000000000000000000000,
+        //             "PriceCollarEnabled":false,
+        //             "PriceFloorLimit":0.0000000000000000000000000000,
+        //             "PriceFloorLimitEnabled":false,
+        //             "PriceCeilingLimit":0.0000000000000000000000000000,
+        //             "PriceCeilingLimitEnabled":false,
+        //             "CreateWithMarketRunning":true,
+        //             "AllowOnlyMarketMakerCounterParty":false,
+        //             "PriceCollarIndexDifference":0.0000000000000000000000000000,
+        //             "PriceCollarConvertToOtcEnabled":false,
+        //             "PriceCollarConvertToOtcClientUserId":0,
+        //             "PriceCollarConvertToOtcAccountId":0,
+        //             "PriceCollarConvertToOtcThreshold":0.0000000000000000000000000000,
+        //             "OtcConvertSizeThreshold":0.0000000000000000000000000000,
+        //             "OtcConvertSizeEnabled":false,
+        //             "OtcTradesPublic":true,
+        //             "PriceTier":0
+        //         ),
+        //     )
+        //
+        return $this->parse_markets($response);
     }
 
     public function parse_market(array $market): array {
@@ -597,7 +646,7 @@ class ndax extends Exchange {
         $sessionStatus = $this->safe_string($market, 'SessionStatus');
         $isDisable = $this->safe_value($market, 'IsDisable');
         $sessionRunning = ($sessionStatus === 'Running');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -612,7 +661,7 @@ class ndax extends Exchange {
             'swap' => false,
             'future' => false,
             'option' => false,
-            'active' => ($sessionRunning && !$isDisable),
+            'active' => ($sessionRunning && ($isDisable !== true)),
             'contract' => false,
             'linear' => null,
             'inverse' => null,
@@ -645,10 +694,10 @@ class ndax extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
+    public function parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
         $nonce = null;
         $result = array(
             'symbol' => $symbol,
@@ -678,9 +727,8 @@ class ndax extends Exchange {
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
-            $side = $levelSide ? $asksKey : $bidsKey;
-            $resultSide = $result[$side];
-            $resultSide[] = $bidask;
+            $side = ($levelSide !== null && $levelSide !== null && $levelSide !== 0) ? $asksKey : $bidsKey;
+            $result[$side][] = $bidask;
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -691,53 +739,55 @@ class ndax extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://apidoc.ndax.io/#getl2snapshot
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $limit = ($limit === null) ? 100 : $limit; // default 100
-            $request = array(
-                'omsId' => $omsId,
-                'InstrumentId' => $market['id'],
-                'Depth' => $limit, // default 100
-            );
-            $response = Async\await($this->publicGetGetL2Snapshot($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             0,   // 0 MDUpdateId
-            //             1,   // 1 Number of Unique Accounts
-            //             123, // 2 ActionDateTime in Posix format X 1000
-            //             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
-            //             0.0, // 4 LastTradePrice
-            //             0,   // 5 Number of Orders
-            //             0.0, // 6 Price
-            //             0,   // 7 ProductPairCode
-            //             0.0, // 8 Quantity
-            //             0,   // 9 Side
-            //         ),
-            //         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
-            //         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
-            //         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
-            //         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
-            //         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
-            //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
-            //     )
-            //
-            return $this->parse_order_book($response, $symbol);
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://apidoc.ndax.io/#getl2snapshot
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $limit = ($limit === null) ? 100 : $limit; // default 100
+        $request = array(
+            'omsId' => $omsId,
+            'InstrumentId' => $market['id'],
+            'Depth' => $limit, // default 100
+        );
+        $response = Async\await($this->publicGetGetL2Snapshot($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             0,   // 0 MDUpdateId
+        //             1,   // 1 Number of Unique Accounts
+        //             123, // 2 ActionDateTime in Posix format X 1000
+        //             0,   // 3 ActionType 0 (New), 1 (Update), 2(Delete)
+        //             0.0, // 4 LastTradePrice
+        //             0,   // 5 Number of Orders
+        //             0.0, // 6 Price
+        //             0,   // 7 ProductPairCode
+        //             0.0, // 8 Quantity
+        //             0,   // 9 Side
+        //         ),
+        //         [97244115,1,1607456142963,0,19069.32,1,19069.31,8,0.140095,0],
+        //         [97244115,0,1607456142963,0,19069.32,1,19068.64,8,0.0055,0],
+        //         [97244115,0,1607456142963,0,19069.32,1,19068.26,8,0.021291,0],
+        //         [97244115,1,1607456142964,0,19069.32,1,19069.32,8,0.099636,1],
+        //         [97244115,0,1607456142964,0,19069.32,1,19069.98,8,0.1,1],
+        //         [97244115,0,1607456142964,0,19069.32,1,19069.99,8,0.141604,1],
+        //     )
+        //
+        return $this->parse_order_book($response, $symbol);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -773,25 +823,42 @@ class ndax extends Exchange {
         //         "Rolling24HrPxChangePercent":0,
         //     }
         //
+        // fetchTickers
+        //
+        //     {
+        //         "trading_pairs":"BTC_CAD",
+        //         "last_price":75925.37,
+        //         "lowest_ask":75926.63,
+        //         "highest_bid":66.435340000000000000000000000,
+        //         "base_volume":75774.93,
+        //         "quote_volume":5112197.7830825000000000000000,
+        //         "price_change_percent_24h":-5.3894893561980828521107542600,
+        //         "highest_price_24h":79813.51,
+        //         "lowest_price_24h":73700.01
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'TimeStamp');
         $marketId = $this->safe_string($ticker, 'InstrumentId');
-        $market = $this->safe_market($marketId, $market);
+        if ($marketId === null) {
+            $marketId = $this->safe_string($ticker, 'trading_pairs');
+        }
+        $market = $this->safe_market($marketId, $market, '_');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_string($ticker, 'LastTradedPx');
-        $percentage = $this->safe_string($ticker, 'Rolling24HrPxChangePercent');
+        $last = $this->safe_string_2($ticker, 'LastTradedPx', 'last_price');
+        $percentage = $this->safe_string_2($ticker, 'Rolling24HrPxChangePercent', 'price_change_percent_24h');
         $change = $this->safe_string($ticker, 'Rolling24HrPxChange');
         $open = $this->safe_string($ticker, 'SessionOpen');
-        $baseVolume = $this->safe_string($ticker, 'Rolling24HrVolume');
-        $quoteVolume = $this->safe_string($ticker, 'Rolling24HrNotional');
+        $baseVolume = $this->safe_string_2($ticker, 'Rolling24HrVolume', 'base_volume');
+        $quoteVolume = $this->safe_string_2($ticker, 'Rolling24HrNotional', 'quote_volume');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'SessionHigh'),
-            'low' => $this->safe_string($ticker, 'SessionLow'),
-            'bid' => $this->safe_string($ticker, 'BestBid'),
+            'high' => $this->safe_string_2($ticker, 'SessionHigh', 'highest_price_24h'),
+            'low' => $this->safe_string_2($ticker, 'SessionLow', 'lowest_price_24h'),
+            'bid' => $this->safe_string_2($ticker, 'BestBid', 'highest_bid'),
             'bidVolume' => null, // $this->safe_number($ticker, 'BidQty'), always shows 0
-            'ask' => $this->safe_string($ticker, 'BestOffer'),
+            'ask' => $this->safe_string_2($ticker, 'BestOffer', 'lowest_ask'),
             'askVolume' => null, // $this->safe_number($ticker, 'AskQty'), always shows 0
             'vwap' => null,
             'open' => $open,
@@ -807,62 +874,102 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://apidoc.ndax.io/#getlevel1
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'omsId' => $omsId,
-                'InstrumentId' => $market['id'],
-            );
-            $response = Async\await($this->publicGetGetLevel1($this->extend($request, $params)));
-            //
-            //     {
-            //         "OMSId":1,
-            //         "InstrumentId":8,
-            //         "BestBid":19069.31,
-            //         "BestOffer":19069.32,
-            //         "LastTradedPx":19069.32,
-            //         "LastTradedQty":0.0001,
-            //         "LastTradeTime":1607040406424,
-            //         "SessionOpen":19069.32,
-            //         "SessionHigh":19069.32,
-            //         "SessionLow":19069.32,
-            //         "SessionClose":19069.32,
-            //         "Volume":0.0001,
-            //         "CurrentDayVolume":0.0001,
-            //         "CurrentDayNotional":1.906932,
-            //         "CurrentDayNumTrades":1,
-            //         "CurrentDayPxChange":0.00,
-            //         "Rolling24HrVolume":0.000000000000000000000000000,
-            //         "Rolling24HrNotional":0.00000000000000000000000,
-            //         "Rolling24NumTrades":0,
-            //         "Rolling24HrPxChange":0,
-            //         "TimeStamp":"1607040406425",
-            //         "BidQty":0,
-            //         "AskQty":0,
-            //         "BidOrderCt":0,
-            //         "AskOrderCt":0,
-            //         "Rolling24HrPxChangePercent":0,
-            //     }
-            //
-            return $this->parse_ticker($response, $market);
-        })();
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://apidoc.ndax.io/#cmc-summary
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->publicGetSummary($params));
+        //
+        //     array(
+        //         {
+        //             "trading_pairs":"BTC_CAD",
+        //             "last_price":75925.37,
+        //             "lowest_ask":75926.63,
+        //             "highest_bid":66.435340000000000000000000000,
+        //             "base_volume":75774.93,
+        //             "quote_volume":5112197.7830825000000000000000,
+        //             "price_change_percent_24h":-5.3894893561980828521107542600,
+        //             "highest_price_24h":79813.51,
+        //             "lowest_price_24h":73700.01
+        //         }
+        //     )
+        //
+        $tickers = $this->parse_tickers($response);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+    }
+
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://apidoc.ndax.io/#getlevel1
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'omsId' => $omsId,
+            'InstrumentId' => $market['id'],
+        );
+        $response = Async\await($this->publicGetGetLevel1($this->extend($request, $params)));
+        //
+        //     {
+        //         "OMSId":1,
+        //         "InstrumentId":8,
+        //         "BestBid":19069.31,
+        //         "BestOffer":19069.32,
+        //         "LastTradedPx":19069.32,
+        //         "LastTradedQty":0.0001,
+        //         "LastTradeTime":1607040406424,
+        //         "SessionOpen":19069.32,
+        //         "SessionHigh":19069.32,
+        //         "SessionLow":19069.32,
+        //         "SessionClose":19069.32,
+        //         "Volume":0.0001,
+        //         "CurrentDayVolume":0.0001,
+        //         "CurrentDayNotional":1.906932,
+        //         "CurrentDayNumTrades":1,
+        //         "CurrentDayPxChange":0.00,
+        //         "Rolling24HrVolume":0.000000000000000000000000000,
+        //         "Rolling24HrNotional":0.00000000000000000000000,
+        //         "Rolling24NumTrades":0,
+        //         "Rolling24HrPxChange":0,
+        //         "TimeStamp":"1607040406425",
+        //         "BidQty":0,
+        //         "AskQty":0,
+        //         "BidOrderCt":0,
+        //         "AskOrderCt":0,
+        //         "Rolling24HrPxChangePercent":0,
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1501603632000, // 0 DateTime
@@ -887,54 +994,60 @@ class ndax extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://apidoc.ndax.io/#gettickerhistory
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://apidoc.ndax.io/#gettickerhistory
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'omsId' => $omsId,
+            'InstrumentId' => $market['id'],
+            'Interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        $duration = $this->parse_timeframe($timeframe);
+        $now = $this->milliseconds();
+        if ($since === null) {
+            if ($limit !== null) {
+                $request['FromDate'] = $this->ymdhms($now - $duration * $limit * 1000);
+                $request['ToDate'] = $this->ymdhms($now);
             }
-            $market = $this->market($symbol);
-            $request = array(
-                'omsId' => $omsId,
-                'InstrumentId' => $market['id'],
-                'Interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            );
-            $duration = $this->parse_timeframe($timeframe);
-            $now = $this->milliseconds();
-            if ($since === null) {
-                if ($limit !== null) {
-                    $request['FromDate'] = $this->ymdhms($now - $duration * $limit * 1000);
-                    $request['ToDate'] = $this->ymdhms($now);
-                }
+        } else {
+            $request['FromDate'] = $this->ymdhms($since);
+            if ($limit === null) {
+                $request['ToDate'] = $this->ymdhms($now);
             } else {
-                $request['FromDate'] = $this->ymdhms($since);
-                if ($limit === null) {
-                    $request['ToDate'] = $this->ymdhms($now);
-                } else {
-                    $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
-                }
+                $request['ToDate'] = $this->ymdhms($this->sum($since, $duration * $limit * 1000));
             }
-            $response = Async\await($this->publicGetGetTickerHistory($this->extend($request, $params)));
-            //
-            //     array(
-            //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
-            //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
-            //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
-            //     )
-            //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        }
+        $response = Async\await($this->publicGetGetTickerHistory($this->extend($request, $params)));
+        //
+        //     array(
+        //         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
+        //         [1607299320000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299260000],
+        //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
+        //     )
+        //
+        $candles = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $candles = $response;
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1064,7 +1177,7 @@ class ndax extends Exchange {
             $id = $this->safe_string($trade, 0);
             $marketId = $this->safe_string($trade, 1);
             $takerSide = $this->safe_value($trade, 8);
-            $side = $takerSide ? 'sell' : 'buy';
+            $side = ($takerSide === true) ? 'sell' : 'buy';
             $orderId = $this->safe_string($trade, 4);
         } else {
             $timestamp = $this->safe_integer_2($trade, 'TradeTimeMS', 'ReceiveTime');
@@ -1106,78 +1219,82 @@ class ndax extends Exchange {
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'omsId' => $omsId,
-                'InstrumentId' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['Count'] = $limit;
-            }
-            $response = Async\await($this->publicGetGetLastTrades($this->extend($request, $params)));
-            //
-            //     array(
-            //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
-            //         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
-            //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
-            //     )
-            //
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'omsId' => $omsId,
+            'InstrumentId' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['Count'] = $limit;
+        }
+        $response = Async\await($this->publicGetGetLastTrades($this->extend($request, $params)));
+        //
+        //     array(
+        //         [6913253,8,0.03340802,19116.08,2543425077,2543425482,1606935922416,0,1,0,0],
+        //         [6913254,8,0.01391671,19117.42,2543427510,2543427811,1606935927998,1,1,0,0],
+        //         [6913255,8,0.000006,19107.81,2543430495,2543430793,1606935933881,2,0,0,0],
+        //     )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch all the accounts associated with a profile
-             *
-             * @see https://apidoc.ndax.io/#getuseraccounts
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
-             */
-            if (!$this->login) {
-                throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
-            }
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            $this->check_required_credentials();
-            $request = array(
-                'omsId' => $omsId,
-                'UserId' => $this->uid,
-                'UserName' => $this->login,
-            );
-            $response = Async\await($this->privateGetGetUserAccounts($this->extend($request, $params)));
-            //
-            //     array( 449 ) // comma-separated list of account ids
-            //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $accountId = $this->safe_string($response, $i);
-                $result[] = array(
-                    'id' => $accountId,
-                    'type' => null,
-                    'currency' => null,
-                    'info' => $accountId,
-                );
-            }
-            return $result;
-        })();
+        return Async\async(self::do_fetch_accounts(...))($params);
     }
 
-    public function parse_balance($response): array {
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * fetch all the accounts associated with a profile
+         *
+         * @see https://apidoc.ndax.io/#getuseraccounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
+         */
+        if (($this->login === null) || ($this->login === '')) {
+            throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
+        }
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        $this->check_required_credentials();
+        $request = array(
+            'omsId' => $omsId,
+            'UserId' => $this->uid,
+            'UserName' => $this->login,
+        );
+        $response = Async\await($this->privateGetGetUserAccounts($this->extend($request, $params)));
+        //
+        //     array( 449 ) // comma-separated list of account ids
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $accountId = $this->safe_string($response, $i);
+            $result[] = array(
+                'id' => $accountId,
+                'type' => null,
+                'currency' => null,
+                'info' => $accountId,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1186,79 +1303,83 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+            if (($currencyId !== null) && ($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId ?? '', $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'Amount');
                 $account['used'] = $this->safe_string($balance, 'Hold');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://apidoc.ndax.io/#getaccountpositions
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            if ($accountId === null) {
-                $accountId = $this->parse_to_int($this->accounts[0]['id']);
-            }
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-            );
-            $response = Async\await($this->privateGetGetAccountPositions($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "OMSId":1,
-            //             "AccountId":449,
-            //             "ProductSymbol":"BTC",
-            //             "ProductId":1,
-            //             "Amount":10.000000000000000000000000000,
-            //             "Hold":0,
-            //             "PendingDeposits":0.0000000000000000000000000000,
-            //             "PendingWithdraws":0.0000000000000000000000000000,
-            //             "TotalDayDeposits":10.000000000000000000000000000,
-            //             "TotalMonthDeposits":10.000000000000000000000000000,
-            //             "TotalYearDeposits":10.000000000000000000000000000,
-            //             "TotalDayDepositNotional":10.000000000000000000000000000,
-            //             "TotalMonthDepositNotional":10.000000000000000000000000000,
-            //             "TotalYearDepositNotional":10.000000000000000000000000000,
-            //             "TotalDayWithdraws":0,
-            //             "TotalMonthWithdraws":0,
-            //             "TotalYearWithdraws":0,
-            //             "TotalDayWithdrawNotional":0,
-            //             "TotalMonthWithdrawNotional":0,
-            //             "TotalYearWithdrawNotional":0,
-            //             "NotionalProductId":8,
-            //             "NotionalProductSymbol":"USDT",
-            //             "NotionalValue":10.000000000000000000000000000,
-            //             "NotionalHoldAmount":0,
-            //             "NotionalRate":1
-            //         ),
-            //     )
-            //
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_ledger_entry_type($type) {
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://apidoc.ndax.io/#getaccountpositions
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        if ($accountId === null) {
+            $accountId = $this->parse_to_int($this->accounts[0]['id']);
+        }
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+        );
+        $response = Async\await($this->privateGetGetAccountPositions($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "OMSId":1,
+        //             "AccountId":449,
+        //             "ProductSymbol":"BTC",
+        //             "ProductId":1,
+        //             "Amount":10.000000000000000000000000000,
+        //             "Hold":0,
+        //             "PendingDeposits":0.0000000000000000000000000000,
+        //             "PendingWithdraws":0.0000000000000000000000000000,
+        //             "TotalDayDeposits":10.000000000000000000000000000,
+        //             "TotalMonthDeposits":10.000000000000000000000000000,
+        //             "TotalYearDeposits":10.000000000000000000000000000,
+        //             "TotalDayDepositNotional":10.000000000000000000000000000,
+        //             "TotalMonthDepositNotional":10.000000000000000000000000000,
+        //             "TotalYearDepositNotional":10.000000000000000000000000000,
+        //             "TotalDayWithdraws":0,
+        //             "TotalMonthWithdraws":0,
+        //             "TotalYearWithdraws":0,
+        //             "TotalDayWithdrawNotional":0,
+        //             "TotalMonthWithdrawNotional":0,
+        //             "TotalYearWithdrawNotional":0,
+        //             "NotionalProductId":8,
+        //             "NotionalProductSymbol":"USDT",
+        //             "NotionalValue":10.000000000000000000000000000,
+        //             "NotionalHoldAmount":0,
+        //             "NotionalRate":1
+        //         ),
+        //     )
+        //
+        return $this->parse_balance($response);
+    }
+
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'Trade' => 'trade',
             'Deposit' => 'transaction',
@@ -1335,58 +1456,60 @@ class ndax extends Exchange {
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             *
-             * @see https://apidoc.ndax.io/#getaccounttransactions
-             *
-             * @param {string} [$code] unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entries to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-            );
-            if ($limit !== null) {
-                $request['Depth'] = $limit;
-            }
-            $response = Async\await($this->privateGetGetAccountTransactions($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "TransactionId":2663709493,
-            //             "ReferenceId":68,
-            //             "OMSId":1,
-            //             "AccountId":449,
-            //             "CR":10.000000000000000000000000000,
-            //             "DR":0.0000000000000000000000000000,
-            //             "Counterparty":3,
-            //             "TransactionType":"Other",
-            //             "ReferenceType":"Deposit",
-            //             "ProductId":1,
-            //             "Balance":10.000000000000000000000000000,
-            //             "TimeStamp":1607532331591
-            //         ),
-            //     )
-            //
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            return $this->parse_ledger($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://apidoc.ndax.io/#getaccounttransactions
+         *
+         * @param {string} [$code] unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+        );
+        if ($limit !== null) {
+            $request['Depth'] = $limit;
+        }
+        $response = Async\await($this->privateGetGetAccountTransactions($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "TransactionId":2663709493,
+        //             "ReferenceId":68,
+        //             "OMSId":1,
+        //             "AccountId":449,
+        //             "CR":10.000000000000000000000000000,
+        //             "DR":0.0000000000000000000000000000,
+        //             "Counterparty":3,
+        //             "TransactionType":"Other",
+        //             "ReferenceType":"Deposit",
+        //             "ProductId":1,
+        //             "Balance":10.000000000000000000000000000,
+        //             "TimeStamp":1607532331591
+        //         ),
+        //     )
+        //
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
     public function parse_order_status(?string $status) {
@@ -1500,713 +1623,755 @@ class ndax extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://apidoc.ndax.io/#sendorder
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
-             * @param {string} [$params->clientOrderId] a unique id for the order
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://apidoc.ndax.io/#sendorder
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
+         * @param {string} [$params->clientOrderId] a unique id for the order
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
+        $orderType = $this->safe_integer($this->options['orderTypes'], $this->capitalize($type));
+        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        if ($triggerPrice !== null) {
+            if ($type === 'market') {
+                $orderType = 3;
+            } elseif ($type === 'limit') {
+                $orderType = 4;
             }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
-            $orderType = $this->safe_integer($this->options['orderTypes'], $this->capitalize($type));
-            $triggerPrice = $this->safe_string($params, 'triggerPrice');
-            if ($triggerPrice !== null) {
-                if ($type === 'market') {
-                    $orderType = 3;
-                } elseif ($type === 'limit') {
-                    $orderType = 4;
-                }
+        }
+        $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
+        $market = $this->market($symbol);
+        $orderSide = ($side === 'buy') ? 0 : 1;
+        $amountString = $this->amount_to_precision($symbol, $amount);
+        $request = array(
+            'InstrumentId' => $this->parse_to_int($market['id']),
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            // 'ClientOrderId' => $clientOrderId, // defaults to 0
+            // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
+            // If order B executes, then order A created by this call is canceled.
+            // You can also set up order B to watch order A in the same way, but that may require an update to order B to make it watch this one, which could have implications for priority in the order book.
+            // See CancelReplaceOrder and ModifyOrder.
+            // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
+            // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
+            'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
+            'Quantity' => ($amountString === null) ? null : floatval($amountString),
+            'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
+            // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
+        );
+        // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
+        if ($price !== null) {
+            $limitPriceString = $this->price_to_precision($symbol, $price);
+            if ($limitPriceString === null) {
+                $limitPriceString = '0';
             }
-            $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
-            $market = $this->market($symbol);
-            $orderSide = ($side === 'buy') ? 0 : 1;
-            $amountString = $this->amount_to_precision($symbol, $amount);
-            $request = array(
-                'InstrumentId' => $this->parse_to_int($market['id']),
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
-                // 'ClientOrderId' => $clientOrderId, // defaults to 0
-                // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
-                // If order B executes, then order A created by this call is canceled.
-                // You can also set up order B to watch order A in the same way, but that may require an update to order B to make it watch this one, which could have implications for priority in the order book.
-                // See CancelReplaceOrder and ModifyOrder.
-                // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
-                // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
-                'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-                'Quantity' => ($amountString === null) ? null : floatval($amountString),
-                'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
-                // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-                // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
-            );
-            // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-            if ($price !== null) {
-                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price));
-            }
-            if ($clientOrderId !== null) {
-                $request['ClientOrderId'] = $clientOrderId;
-            }
-            if ($triggerPrice !== null) {
-                $request['StopPrice'] = $triggerPrice;
-            }
-            $response = Async\await($this->privatePostSendOrder($this->extend($request, $params)));
-            //
-            //     {
-            //         "status":"Accepted",
-            //         "errormsg":"",
-            //         "OrderId" => 2543565231
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+            $request['LimitPrice'] = floatval($limitPriceString);
+        }
+        if ($clientOrderId !== null) {
+            $request['ClientOrderId'] = $clientOrderId;
+        }
+        if ($triggerPrice !== null) {
+            $request['StopPrice'] = $triggerPrice;
+        }
+        $response = Async\await($this->privatePostSendOrder($this->extend($request, $params)));
+        //
+        //     {
+        //         "status":"Accepted",
+        //         "errormsg":"",
+        //         "OrderId" => 2543565231
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * cancels an open order and places a new order
+         *
+         * @see https://apidoc.ndax.io/#cancelreplaceorder
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} [$amount] how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
+        $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
+        $market = $this->market($symbol);
+        $orderSide = ($side === 'buy') ? 0 : 1;
+        $amountString = $this->amount_to_precision($symbol, $amount);
+        $request = array(
+            'OrderIdToReplace' => intval($id),
+            'InstrumentId' => $this->parse_to_int($market['id']),
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
+            // 'ClientOrderId' => $clientOrderId, // defaults to 0
+            // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
+            // If order B executes, then order A created by this call is canceled.
+            // You can also set up order B to watch order A in the same way, but that may require an update to order B to make it watch this one, which could have implications for priority in the order book.
+            // See CancelReplaceOrder and ModifyOrder.
+            // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
+            // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
+            'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
+            'Quantity' => ($amountString === null) ? null : floatval($amountString),
+            'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
+            // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
+        );
+        // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
+        if ($price !== null) {
+            $limitPriceString = $this->price_to_precision($symbol, $price);
+            if ($limitPriceString === null) {
+                $limitPriceString = '0';
             }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
-            $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
-            $market = $this->market($symbol);
-            $orderSide = ($side === 'buy') ? 0 : 1;
-            $amountString = $this->amount_to_precision($symbol, $amount);
-            $request = array(
-                'OrderIdToReplace' => intval($id),
-                'InstrumentId' => $this->parse_to_int($market['id']),
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
-                // 'ClientOrderId' => $clientOrderId, // defaults to 0
-                // If this order is order A, OrderIdOCO refers to the order ID of an order B (which is not the order being created by this call).
-                // If order B executes, then order A created by this call is canceled.
-                // You can also set up order B to watch order A in the same way, but that may require an update to order B to make it watch this one, which could have implications for priority in the order book.
-                // See CancelReplaceOrder and ModifyOrder.
-                // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
-                // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
-                'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-                'Quantity' => ($amountString === null) ? null : floatval($amountString),
-                'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
-                // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
-                // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
-            );
-            // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-            if ($price !== null) {
-                $request['LimitPrice'] = floatval($this->price_to_precision($symbol, $price));
-            }
-            if ($clientOrderId !== null) {
-                $request['ClientOrderId'] = $clientOrderId;
-            }
-            $response = Async\await($this->privatePostCancelReplaceOrder($this->extend($request, $params)));
-            //
-            //     {
-            //         "replacementOrderId" => 1234,
-            //         "replacementClOrdId" => 1561,
-            //         "origOrderId" => 5678,
-            //         "origClOrdId" => 91011,
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+            $request['LimitPrice'] = floatval($limitPriceString);
+        }
+        if ($clientOrderId !== null) {
+            $request['ClientOrderId'] = $clientOrderId;
+        }
+        $response = Async\await($this->privatePostCancelReplaceOrder($this->extend($request, $params)));
+        //
+        //     {
+        //         "replacementOrderId" => 1234,
+        //         "replacementClOrdId" => 1561,
+        //         "origOrderId" => 5678,
+        //         "origClOrdId" => 91011,
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://apidoc.ndax.io/#gettradeshistory
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                // 'InstrumentId' => $market['id'],
-                // 'TradeId' => 123, // If you specify TradeId, GetTradesHistory can return all states for a single trade
-                // 'OrderId' => 456, // If specified, the call returns all trades associated with the order
-                // 'UserId' => integer. The ID of the logged-in user. If not specified, the call returns trades associated with the users belonging to the default account for the logged-in user of this OMS.
-                // 'StartTimeStamp' => long integer. The historical date and time at which to begin the trade report, in POSIX format. If not specified, reverts to the start date of this account on the trading venue.
-                // 'EndTimeStamp' => long integer. Date at which to end the trade report, in POSIX format.
-                // 'Depth' => integer. In this case, the count of trades to return, counting from the StartIndex. If Depth is not specified, returns all trades between BeginTimeStamp and EndTimeStamp, beginning at StartIndex.
-                // 'StartIndex' => 0 // from the most recent trade 0 and moving backwards in time
-                // 'ExecutionId' => 123, // The ID of the individual buy or sell execution. If not specified, returns all.
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['InstrumentId'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
-            }
-            if ($limit !== null) {
-                $request['Depth'] = $limit;
-            }
-            $response = Async\await($this->privateGetGetTradesHistory($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "OMSId":1,
-            //             "ExecutionId":16916567,
-            //             "TradeId":14476351,
-            //             "OrderId":2543565231,
-            //             "AccountId":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "SubAccountId":0,
-            //             "ClientOrderId":0,
-            //             "InstrumentId":8,
-            //             "Side":"Sell",
-            //             "OrderType":"Market",
-            //             "Quantity":0.1230000000000000000000000000,
-            //             "RemainingQuantity":0.0000000000000000000000000000,
-            //             "Price":19069.310000000000000000000000,
-            //             "Value":2345.5251300000000000000000000,
-            //             "CounterParty":"7",
-            //             "OrderTradeRevision":1,
-            //             "Direction":"NoChange",
-            //             "IsBlockTrade":false,
-            //             "Fee":1.1727625650000000000000000000,
-            //             "FeeProductId":8,
-            //             "OrderOriginator":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "TradeTimeMS":1607565031569,
-            //             "MakerTaker":"Taker",
-            //             "AdapterTradeId":0,
-            //             "InsideBid":19069.310000000000000000000000,
-            //             "InsideBidSize":0.2400950000000000000000000000,
-            //             "InsideAsk":19069.320000000000000000000000,
-            //             "InsideAskSize":0.0997360000000000000000000000,
-            //             "IsQuote":false,
-            //             "CounterPartyClientUserId":1,
-            //             "NotionalProductId":2,
-            //             "NotionalRate":1.0000000000000000000000000000,
-            //             "NotionalValue":2345.5251300000000000000000000,
-            //             "NotionalHoldAmount":0,
-            //             "TradeTime":637431618315686826
-            //         }
-            //     )
-            //
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://apidoc.ndax.io/#gettradeshistory
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            // 'InstrumentId' => $market['id'],
+            // 'TradeId' => 123, // If you specify TradeId, GetTradesHistory can return all states for a single trade
+            // 'OrderId' => 456, // If specified, the call returns all trades associated with the order
+            // 'UserId' => integer. The ID of the logged-in user. If not specified, the call returns trades associated with the users belonging to the default account for the logged-in user of this OMS.
+            // 'StartTimeStamp' => long integer. The historical date and time at which to begin the trade report, in POSIX format. If not specified, reverts to the start date of this account on the trading venue.
+            // 'EndTimeStamp' => long integer. Date at which to end the trade report, in POSIX format.
+            // 'Depth' => integer. In this case, the count of trades to return, counting from the StartIndex. If Depth is not specified, returns all trades between BeginTimeStamp and EndTimeStamp, beginning at StartIndex.
+            // 'StartIndex' => 0 // from the most recent trade 0 and moving backwards in time
+            // 'ExecutionId' => 123, // The ID of the individual buy or sell execution. If not specified, returns all.
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['InstrumentId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['Depth'] = $limit;
+        }
+        $response = Async\await($this->privateGetGetTradesHistory($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "OMSId":1,
+        //             "ExecutionId":16916567,
+        //             "TradeId":14476351,
+        //             "OrderId":2543565231,
+        //             "AccountId":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "SubAccountId":0,
+        //             "ClientOrderId":0,
+        //             "InstrumentId":8,
+        //             "Side":"Sell",
+        //             "OrderType":"Market",
+        //             "Quantity":0.1230000000000000000000000000,
+        //             "RemainingQuantity":0.0000000000000000000000000000,
+        //             "Price":19069.310000000000000000000000,
+        //             "Value":2345.5251300000000000000000000,
+        //             "CounterParty":"7",
+        //             "OrderTradeRevision":1,
+        //             "Direction":"NoChange",
+        //             "IsBlockTrade":false,
+        //             "Fee":1.1727625650000000000000000000,
+        //             "FeeProductId":8,
+        //             "OrderOriginator":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "TradeTimeMS":1607565031569,
+        //             "MakerTaker":"Taker",
+        //             "AdapterTradeId":0,
+        //             "InsideBid":19069.310000000000000000000000,
+        //             "InsideBidSize":0.2400950000000000000000000000,
+        //             "InsideAsk":19069.320000000000000000000000,
+        //             "InsideAskSize":0.0997360000000000000000000000,
+        //             "IsQuote":false,
+        //             "CounterPartyClientUserId":1,
+        //             "NotionalProductId":2,
+        //             "NotionalRate":1.0000000000000000000000000000,
+        //             "NotionalValue":2345.5251300000000000000000000,
+        //             "NotionalHoldAmount":0,
+        //             "TradeTime":637431618315686826
+        //         }
+        //     )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders
-             *
-             * @see https://apidoc.ndax.io/#cancelallorders
-             *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-            );
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['IntrumentId'] = $market['id'];
-            }
-            $response = Async\await($this->privatePostCancelAllOrders($this->extend($request, $params)));
-            //
-            //     {
-            //         "result":true,
-            //         "errormsg":null,
-            //         "errorcode":0,
-            //         "detail":null
-            //     }
-            //
-            return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
-            );
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders
+         *
+         * @see https://apidoc.ndax.io/#cancelallorders
+         *
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['IntrumentId'] = $market['id'];
+        }
+        $response = Async\await($this->privatePostCancelAllOrders($this->extend($request, $params)));
+        //
+        //     {
+        //         "result":true,
+        //         "errormsg":null,
+        //         "errorcode":0,
+        //         "detail":null
+        //     }
+        //
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open $order
-             *
-             * @see https://apidoc.ndax.io/#cancelorder
-             *
-             * @param {string} $id $order $id
-             * @param {string} $symbol unified $symbol of the $market the $order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->clientOrderId] a unique $id for the $order
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'omsId' => $omsId,
-                // 'AccountId' => $accountId,
-            );
-            $clientOrderId = $this->safe_integer_2($params, 'clientOrderId', 'ClOrderId');
-            if ($clientOrderId !== null) {
-                $request['ClOrderId'] = $clientOrderId;
-            } else {
-                $request['OrderId'] = intval($id);
-            }
-            $params = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
-            $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
-            $order = $this->parse_order($response, $market);
-            return $this->extend($order, array(
-                'id' => $id,
-                'clientOrderId' => $clientOrderId,
-            ));
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open $order
+         *
+         * @see https://apidoc.ndax.io/#cancelorder
+         *
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] a unique $id for the $order
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'omsId' => $omsId,
+            // 'AccountId' => $accountId,
+        );
+        $clientOrderId = $this->safe_integer_2($params, 'clientOrderId', 'ClOrderId');
+        if ($clientOrderId !== null) {
+            $request['ClOrderId'] = $clientOrderId;
+        } else {
+            $request['OrderId'] = intval($id);
+        }
+        $params = $this->omit($params, array( 'clientOrderId', 'ClOrderId' ));
+        $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
+        $order = $this->parse_order($response, $market);
+        return $this->extend($order, array(
+            'id' => $id,
+            'clientOrderId' => $clientOrderId,
+        ));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://apidoc.ndax.io/#getopenorders
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-            );
-            $response = Async\await($this->privateGetGetOpenOrders($this->extend($request, $params)));
-            //
-            //     array(
-            //         {
-            //             "Side":"Buy",
-            //             "OrderId":2543565233,
-            //             "Price":19010,
-            //             "Quantity":0.345,
-            //             "DisplayQuantity":0.345,
-            //             "Instrument":8,
-            //             "Account":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "OrderType":"Limit",
-            //             "ClientOrderId":0,
-            //             "OrderState":"Working",
-            //             "ReceiveTime":1607579326003,
-            //             "ReceiveTimeTicks":637431761260028981,
-            //             "LastUpdatedTime":1607579326005,
-            //             "LastUpdatedTimeTicks":637431761260054714,
-            //             "OrigQuantity":0.345,
-            //             "QuantityExecuted":0,
-            //             "GrossValueExecuted":0,
-            //             "ExecutableValue":0,
-            //             "AvgPrice":0,
-            //             "CounterPartyId":0,
-            //             "ChangeReason":"NewInputAccepted",
-            //             "OrigOrderId":2543565233,
-            //             "OrigClOrdId":0,
-            //             "EnteredBy":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "IsQuote":false,
-            //             "InsideAsk":19069.32,
-            //             "InsideAskSize":0.099736,
-            //             "InsideBid":19068.25,
-            //             "InsideBidSize":1.330001,
-            //             "LastTradePrice":19068.25,
-            //             "RejectReason":"",
-            //             "IsLockedIn":false,
-            //             "CancelReason":"",
-            //             "OrderFlag":"AddedToBook",
-            //             "UseMargin":false,
-            //             "StopPrice":0,
-            //             "PegPriceType":"Unknown",
-            //             "PegOffset":0,
-            //             "PegLimitOffset":0,
-            //             "IpAddress":null,
-            //             "ClientOrderIdUuid":null,
-            //             "OMSId":1
-            //         }
-            //     )
-            //
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://apidoc.ndax.io/#getopenorders
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+        );
+        $response = Async\await($this->privateGetGetOpenOrders($this->extend($request, $params)));
+        //
+        //     array(
+        //         {
+        //             "Side":"Buy",
+        //             "OrderId":2543565233,
+        //             "Price":19010,
+        //             "Quantity":0.345,
+        //             "DisplayQuantity":0.345,
+        //             "Instrument":8,
+        //             "Account":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "OrderType":"Limit",
+        //             "ClientOrderId":0,
+        //             "OrderState":"Working",
+        //             "ReceiveTime":1607579326003,
+        //             "ReceiveTimeTicks":637431761260028981,
+        //             "LastUpdatedTime":1607579326005,
+        //             "LastUpdatedTimeTicks":637431761260054714,
+        //             "OrigQuantity":0.345,
+        //             "QuantityExecuted":0,
+        //             "GrossValueExecuted":0,
+        //             "ExecutableValue":0,
+        //             "AvgPrice":0,
+        //             "CounterPartyId":0,
+        //             "ChangeReason":"NewInputAccepted",
+        //             "OrigOrderId":2543565233,
+        //             "OrigClOrdId":0,
+        //             "EnteredBy":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "IsQuote":false,
+        //             "InsideAsk":19069.32,
+        //             "InsideAskSize":0.099736,
+        //             "InsideBid":19068.25,
+        //             "InsideBidSize":1.330001,
+        //             "LastTradePrice":19068.25,
+        //             "RejectReason":"",
+        //             "IsLockedIn":false,
+        //             "CancelReason":"",
+        //             "OrderFlag":"AddedToBook",
+        //             "UseMargin":false,
+        //             "StopPrice":0,
+        //             "PegPriceType":"Unknown",
+        //             "PegOffset":0,
+        //             "PegLimitOffset":0,
+        //             "IpAddress":null,
+        //             "ClientOrderIdUuid":null,
+        //             "OMSId":1
+        //         }
+        //     )
+        //
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://apidoc.ndax.io/#getorderhistory
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                // 'ClientOrderId' => clientOrderId,
-                // 'OriginalOrderId' => id,
-                // 'OriginalClientOrderId' => long integer,
-                // 'UserId' => integer,
-                // 'InstrumentId' => $market['id'],
-                // 'StartTimestamp' => $since,
-                // 'EndTimestamp' => $this->milliseconds(),
-                // 'Depth' => $limit,
-                // 'StartIndex' => 0,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['InstrumentId'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
-            }
-            if ($limit !== null) {
-                $request['Depth'] = $limit;
-            }
-            $response = Async\await($this->privateGetGetOrdersHistory($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "Side":"Buy",
-            //             "OrderId":2543565233,
-            //             "Price":19010.000000000000000000000000,
-            //             "Quantity":0.0000000000000000000000000000,
-            //             "DisplayQuantity":0.3450000000000000000000000000,
-            //             "Instrument":8,
-            //             "Account":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "OrderType":"Limit",
-            //             "ClientOrderId":0,
-            //             "OrderState":"Canceled",
-            //             "ReceiveTime":1607579326003,
-            //             "ReceiveTimeTicks":637431761260028981,
-            //             "LastUpdatedTime":1607580965346,
-            //             "LastUpdatedTimeTicks":637431777653463754,
-            //             "OrigQuantity":0.3450000000000000000000000000,
-            //             "QuantityExecuted":0.0000000000000000000000000000,
-            //             "GrossValueExecuted":0.0000000000000000000000000000,
-            //             "ExecutableValue":0.0000000000000000000000000000,
-            //             "AvgPrice":0.0000000000000000000000000000,
-            //             "CounterPartyId":0,
-            //             "ChangeReason":"UserModified",
-            //             "OrigOrderId":2543565233,
-            //             "OrigClOrdId":0,
-            //             "EnteredBy":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "IsQuote":false,
-            //             "InsideAsk":19069.320000000000000000000000,
-            //             "InsideAskSize":0.0997360000000000000000000000,
-            //             "InsideBid":19068.250000000000000000000000,
-            //             "InsideBidSize":1.3300010000000000000000000000,
-            //             "LastTradePrice":19068.250000000000000000000000,
-            //             "RejectReason":"",
-            //             "IsLockedIn":false,
-            //             "CancelReason":"UserModified",
-            //             "OrderFlag":"AddedToBook, RemovedFromBook",
-            //             "UseMargin":false,
-            //             "StopPrice":0.0000000000000000000000000000,
-            //             "PegPriceType":"Unknown",
-            //             "PegOffset":0.0000000000000000000000000000,
-            //             "PegLimitOffset":0.0000000000000000000000000000,
-            //             "IpAddress":"x.x.x.x",
-            //             "ClientOrderIdUuid":null,
-            //             "OMSId":1
-            //         ),
-            //     )
-            //
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://apidoc.ndax.io/#getorderhistory
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            // 'ClientOrderId' => clientOrderId,
+            // 'OriginalOrderId' => id,
+            // 'OriginalClientOrderId' => long integer,
+            // 'UserId' => integer,
+            // 'InstrumentId' => $market['id'],
+            // 'StartTimestamp' => $since,
+            // 'EndTimestamp' => $this->milliseconds(),
+            // 'Depth' => $limit,
+            // 'StartIndex' => 0,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['InstrumentId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['StartTimeStamp'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['Depth'] = $limit;
+        }
+        $response = Async\await($this->privateGetGetOrdersHistory($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "Side":"Buy",
+        //             "OrderId":2543565233,
+        //             "Price":19010.000000000000000000000000,
+        //             "Quantity":0.0000000000000000000000000000,
+        //             "DisplayQuantity":0.3450000000000000000000000000,
+        //             "Instrument":8,
+        //             "Account":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "OrderType":"Limit",
+        //             "ClientOrderId":0,
+        //             "OrderState":"Canceled",
+        //             "ReceiveTime":1607579326003,
+        //             "ReceiveTimeTicks":637431761260028981,
+        //             "LastUpdatedTime":1607580965346,
+        //             "LastUpdatedTimeTicks":637431777653463754,
+        //             "OrigQuantity":0.3450000000000000000000000000,
+        //             "QuantityExecuted":0.0000000000000000000000000000,
+        //             "GrossValueExecuted":0.0000000000000000000000000000,
+        //             "ExecutableValue":0.0000000000000000000000000000,
+        //             "AvgPrice":0.0000000000000000000000000000,
+        //             "CounterPartyId":0,
+        //             "ChangeReason":"UserModified",
+        //             "OrigOrderId":2543565233,
+        //             "OrigClOrdId":0,
+        //             "EnteredBy":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "IsQuote":false,
+        //             "InsideAsk":19069.320000000000000000000000,
+        //             "InsideAskSize":0.0997360000000000000000000000,
+        //             "InsideBid":19068.250000000000000000000000,
+        //             "InsideBidSize":1.3300010000000000000000000000,
+        //             "LastTradePrice":19068.250000000000000000000000,
+        //             "RejectReason":"",
+        //             "IsLockedIn":false,
+        //             "CancelReason":"UserModified",
+        //             "OrderFlag":"AddedToBook, RemovedFromBook",
+        //             "UseMargin":false,
+        //             "StopPrice":0.0000000000000000000000000000,
+        //             "PegPriceType":"Unknown",
+        //             "PegOffset":0.0000000000000000000000000000,
+        //             "PegLimitOffset":0.0000000000000000000000000000,
+        //             "IpAddress":"x.x.x.x",
+        //             "ClientOrderIdUuid":null,
+        //             "OMSId":1
+        //         ),
+        //     )
+        //
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://apidoc.ndax.io/#getorderstatus
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'OrderId' => intval($id),
-            );
-            $response = Async\await($this->privateGetGetOrderStatus($this->extend($request, $params)));
-            //
-            //     {
-            //         "Side":"Sell",
-            //         "OrderId":2543565232,
-            //         "Price":0.0000000000000000000000000000,
-            //         "Quantity":0.0000000000000000000000000000,
-            //         "DisplayQuantity":0.0000000000000000000000000000,
-            //         "Instrument":8,
-            //         "Account":449,
-            //         "AccountName":"igor@ccxt.trade",
-            //         "OrderType":"Market",
-            //         "ClientOrderId":0,
-            //         "OrderState":"FullyExecuted",
-            //         "ReceiveTime":1607569475591,
-            //         "ReceiveTimeTicks":637431662755912377,
-            //         "LastUpdatedTime":1607569475596,
-            //         "LastUpdatedTimeTicks":637431662755960902,
-            //         "OrigQuantity":1.0000000000000000000000000000,
-            //         "QuantityExecuted":1.0000000000000000000000000000,
-            //         "GrossValueExecuted":19068.270478610000000000000000,
-            //         "ExecutableValue":0.0000000000000000000000000000,
-            //         "AvgPrice":19068.270478610000000000000000,
-            //         "CounterPartyId":0,
-            //         "ChangeReason":"Trade",
-            //         "OrigOrderId":2543565232,
-            //         "OrigClOrdId":0,
-            //         "EnteredBy":446,
-            //         "UserName":"igor@ccxt.trade",
-            //         "IsQuote":false,
-            //         "InsideAsk":19069.320000000000000000000000,
-            //         "InsideAskSize":0.0997360000000000000000000000,
-            //         "InsideBid":19069.310000000000000000000000,
-            //         "InsideBidSize":0.2400950000000000000000000000,
-            //         "LastTradePrice":19069.310000000000000000000000,
-            //         "RejectReason":"",
-            //         "IsLockedIn":false,
-            //         "CancelReason":"",
-            //         "OrderFlag":"0",
-            //         "UseMargin":false,
-            //         "StopPrice":0.0000000000000000000000000000,
-            //         "PegPriceType":"Unknown",
-            //         "PegOffset":0.0000000000000000000000000000,
-            //         "PegLimitOffset":0.0000000000000000000000000000,
-            //         "IpAddress":"x.x.x.x",
-            //         "ClientOrderIdUuid":null,
-            //         "OMSId":1
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://apidoc.ndax.io/#getorderstatus
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'OrderId' => intval($id),
+        );
+        $response = Async\await($this->privateGetGetOrderStatus($this->extend($request, $params)));
+        //
+        //     {
+        //         "Side":"Sell",
+        //         "OrderId":2543565232,
+        //         "Price":0.0000000000000000000000000000,
+        //         "Quantity":0.0000000000000000000000000000,
+        //         "DisplayQuantity":0.0000000000000000000000000000,
+        //         "Instrument":8,
+        //         "Account":449,
+        //         "AccountName":"igor@ccxt.trade",
+        //         "OrderType":"Market",
+        //         "ClientOrderId":0,
+        //         "OrderState":"FullyExecuted",
+        //         "ReceiveTime":1607569475591,
+        //         "ReceiveTimeTicks":637431662755912377,
+        //         "LastUpdatedTime":1607569475596,
+        //         "LastUpdatedTimeTicks":637431662755960902,
+        //         "OrigQuantity":1.0000000000000000000000000000,
+        //         "QuantityExecuted":1.0000000000000000000000000000,
+        //         "GrossValueExecuted":19068.270478610000000000000000,
+        //         "ExecutableValue":0.0000000000000000000000000000,
+        //         "AvgPrice":19068.270478610000000000000000,
+        //         "CounterPartyId":0,
+        //         "ChangeReason":"Trade",
+        //         "OrigOrderId":2543565232,
+        //         "OrigClOrdId":0,
+        //         "EnteredBy":446,
+        //         "UserName":"igor@ccxt.trade",
+        //         "IsQuote":false,
+        //         "InsideAsk":19069.320000000000000000000000,
+        //         "InsideAskSize":0.0997360000000000000000000000,
+        //         "InsideBid":19069.310000000000000000000000,
+        //         "InsideBidSize":0.2400950000000000000000000000,
+        //         "LastTradePrice":19069.310000000000000000000000,
+        //         "RejectReason":"",
+        //         "IsLockedIn":false,
+        //         "CancelReason":"",
+        //         "OrderFlag":"0",
+        //         "UseMargin":false,
+        //         "StopPrice":0.0000000000000000000000000000,
+        //         "PegPriceType":"Unknown",
+        //         "PegOffset":0.0000000000000000000000000000,
+        //         "PegLimitOffset":0.0000000000000000000000000000,
+        //         "IpAddress":"x.x.x.x",
+        //         "ClientOrderIdUuid":null,
+        //         "OMSId":1
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the $trades made from a single order
-             *
-             * @see https://apidoc.ndax.io/#getorderhistorybyorderid
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of $trades to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $request = array(
-                'OMSId' => $this->parse_to_int($omsId),
-                // 'AccountId' => $accountId,
-                'OrderId' => intval($id),
-            );
-            $response = Async\await($this->privatePostGetOrderHistoryByOrderId($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "Side":"Sell",
-            //             "OrderId":2543565235,
-            //             "Price":18600.000000000000000000000000,
-            //             "Quantity":0.0000000000000000000000000000,
-            //             "DisplayQuantity":0.0000000000000000000000000000,
-            //             "Instrument":8,
-            //             "Account":449,
-            //             "AccountName":"igor@ccxt.trade",
-            //             "OrderType":"Limit",
-            //             "ClientOrderId":0,
-            //             "OrderState":"FullyExecuted",
-            //             "ReceiveTime":1607585844956,
-            //             "ReceiveTimeTicks":637431826449564182,
-            //             "LastUpdatedTime":1607585844959,
-            //             "LastUpdatedTimeTicks":637431826449593893,
-            //             "OrigQuantity":0.1230000000000000000000000000,
-            //             "QuantityExecuted":0.1230000000000000000000000000,
-            //             "GrossValueExecuted":2345.3947500000000000000000000,
-            //             "ExecutableValue":0.0000000000000000000000000000,
-            //             "AvgPrice":19068.250000000000000000000000,
-            //             "CounterPartyId":0,
-            //             "ChangeReason":"Trade",
-            //             "OrigOrderId":2543565235,
-            //             "OrigClOrdId":0,
-            //             "EnteredBy":446,
-            //             "UserName":"igor@ccxt.trade",
-            //             "IsQuote":false,
-            //             "InsideAsk":19069.320000000000000000000000,
-            //             "InsideAskSize":0.0997360000000000000000000000,
-            //             "InsideBid":19068.250000000000000000000000,
-            //             "InsideBidSize":1.3300010000000000000000000000,
-            //             "LastTradePrice":19068.250000000000000000000000,
-            //             "RejectReason":"",
-            //             "IsLockedIn":false,
-            //             "CancelReason":"",
-            //             "OrderFlag":"0",
-            //             "UseMargin":false,
-            //             "StopPrice":0.0000000000000000000000000000,
-            //             "PegPriceType":"Unknown",
-            //             "PegOffset":0.0000000000000000000000000000,
-            //             "PegLimitOffset":0.0000000000000000000000000000,
-            //             "IpAddress":"x.x.x.x",
-            //             "ClientOrderIdUuid":null,
-            //             "OMSId":1
-            //         ),
-            //     )
-            //
-            $grouped = $this->group_by($response, 'ChangeReason');
-            $trades = $this->safe_list($grouped, 'Trade', array());
-            return $this->parse_trades($trades, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the $trades made from a single order
+         *
+         * @see https://apidoc.ndax.io/#getorderhistorybyorderid
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'OMSId' => $this->parse_to_int($omsId),
+            // 'AccountId' => $accountId,
+            'OrderId' => intval($id),
+        );
+        $response = Async\await($this->privatePostGetOrderHistoryByOrderId($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "Side":"Sell",
+        //             "OrderId":2543565235,
+        //             "Price":18600.000000000000000000000000,
+        //             "Quantity":0.0000000000000000000000000000,
+        //             "DisplayQuantity":0.0000000000000000000000000000,
+        //             "Instrument":8,
+        //             "Account":449,
+        //             "AccountName":"igor@ccxt.trade",
+        //             "OrderType":"Limit",
+        //             "ClientOrderId":0,
+        //             "OrderState":"FullyExecuted",
+        //             "ReceiveTime":1607585844956,
+        //             "ReceiveTimeTicks":637431826449564182,
+        //             "LastUpdatedTime":1607585844959,
+        //             "LastUpdatedTimeTicks":637431826449593893,
+        //             "OrigQuantity":0.1230000000000000000000000000,
+        //             "QuantityExecuted":0.1230000000000000000000000000,
+        //             "GrossValueExecuted":2345.3947500000000000000000000,
+        //             "ExecutableValue":0.0000000000000000000000000000,
+        //             "AvgPrice":19068.250000000000000000000000,
+        //             "CounterPartyId":0,
+        //             "ChangeReason":"Trade",
+        //             "OrigOrderId":2543565235,
+        //             "OrigClOrdId":0,
+        //             "EnteredBy":446,
+        //             "UserName":"igor@ccxt.trade",
+        //             "IsQuote":false,
+        //             "InsideAsk":19069.320000000000000000000000,
+        //             "InsideAskSize":0.0997360000000000000000000000,
+        //             "InsideBid":19068.250000000000000000000000,
+        //             "InsideBidSize":1.3300010000000000000000000000,
+        //             "LastTradePrice":19068.250000000000000000000000,
+        //             "RejectReason":"",
+        //             "IsLockedIn":false,
+        //             "CancelReason":"",
+        //             "OrderFlag":"0",
+        //             "UseMargin":false,
+        //             "StopPrice":0.0000000000000000000000000000,
+        //             "PegPriceType":"Unknown",
+        //             "PegOffset":0.0000000000000000000000000000,
+        //             "PegLimitOffset":0.0000000000000000000000000000,
+        //             "IpAddress":"x.x.x.x",
+        //             "ClientOrderIdUuid":null,
+        //             "OMSId":1
+        //         ),
+        //     )
+        //
+        $grouped = $this->group_by($response, 'ChangeReason');
+        $trades = $this->safe_list($grouped, 'Trade', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch the deposit address for a $currency associated with this account
-             * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $currency = $this->currency($code);
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'ProductId' => $currency['id'],
-                'GenerateNewKey' => false,
-            );
-            $response = Async\await($this->privateGetGetDepositInfo($this->extend($request, $params)));
-            //
-            //     {
-            //         "result":true,
-            //         "errormsg":null,
-            //         "statuscode":0,
-            //         "AssetManagerId":1,
-            //         "AccountId":57922,
-            //         "AssetId":16,
-            //         "ProviderId":23,
-            //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
-            //     }
-            //
-            return $this->parse_deposit_address($response, $currency);
-        })();
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $currency = $this->currency($code);
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+            'GenerateNewKey' => false,
+        );
+        $response = Async\await($this->privateGetGetDepositInfo($this->extend($request, $params)));
+        //
+        //     {
+        //         "result":true,
+        //         "errormsg":null,
+        //         "statuscode":0,
+        //         "AssetManagerId":1,
+        //         "AccountId":57922,
+        //         "AssetId":16,
+        //         "ProviderId":23,
+        //         "DepositInfo":"[\"0x8A27564b5c30b91C93B1591821642420F323a210\"]"
+        //     }
+        //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -2243,141 +2408,147 @@ class ndax extends Exchange {
     }
 
     public function create_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * create a currency deposit address
-             * @param {string} $code unified currency $code of the currency for the deposit address
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            $request = array(
-                'GenerateNewKey' => true,
-            );
-            return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_create_deposit_address(...))($code, $params);
+    }
+
+    private function do_create_deposit_address(string $code, $params = array()) {
+        /**
+         * create a currency deposit address
+         * @param {string} $code unified currency $code of the currency for the deposit address
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        $request = array(
+            'GenerateNewKey' => true,
+        );
+        return Async\await($this->fetch_deposit_address($code, $this->extend($request, $params)));
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://apidoc.ndax.io/#getdeposits
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] not used by ndax fetchDeposits
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-            );
-            $response = Async\await($this->privateGetGetDeposits($this->extend($request, $params)));
-            //
-            //    "array(
-            //        array(
-            //            "OMSId" => 1,
-            //            "DepositId" => 44,
-            //            "AccountId" => 449,
-            //            "SubAccountId" => 0,
-            //            "ProductId" => 4,
-            //            "Amount" => 200.00000000000000000000000000,
-            //            "LastUpdateTimeStamp" => 637431291261187806,
-            //            "ProductType" => "CryptoCurrency",
-            //            "TicketStatus" => "FullyProcessed",
-            //            "DepositInfo" => "array(
-            //                "AccountProviderId":42,
-            //                "AccountProviderName":"USDT_BSC",
-            //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
-            //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
-            //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
-            //            ),",
-            //            "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
-            //            "TicketNumber" => 71,
-            //            "NotionalProductId" => 13,
-            //            "NotionalValue" => 200.00000000000000000000000000,
-            //            "FeeAmount" => 0.0000000000000000000000000000,
-            //        ),
-            //        ...
-            //    )"
-            //
-            if (gettype($response) === 'string') {
-                return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
-            }
-            return $this->parse_transactions($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://apidoc.ndax.io/#getdeposits
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] not used by ndax fetchDeposits
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+        );
+        $response = Async\await($this->privateGetGetDeposits($this->extend($request, $params)));
+        //
+        //    "array(
+        //        array(
+        //            "OMSId" => 1,
+        //            "DepositId" => 44,
+        //            "AccountId" => 449,
+        //            "SubAccountId" => 0,
+        //            "ProductId" => 4,
+        //            "Amount" => 200.00000000000000000000000000,
+        //            "LastUpdateTimeStamp" => 637431291261187806,
+        //            "ProductType" => "CryptoCurrency",
+        //            "TicketStatus" => "FullyProcessed",
+        //            "DepositInfo" => "array(
+        //                "AccountProviderId":42,
+        //                "AccountProviderName":"USDT_BSC",
+        //                "TXId":"0x3879b02632c69482646409e991149290bc9a58e4603be63c7c2c90a843f45d2b",
+        //                "FromAddress":"0x8894E0a0c962CB723c1976a4421c95949bE2D4E3",
+        //                "ToAddress":"0x5428EcEB1F7Ee058f64158589e27D087149230CB"
+        //            ),",
+        //            "DepositCode" => "ab0e23d5-a9ce-4d94-865f-9ab464fb1de3",
+        //            "TicketNumber" => 71,
+        //            "NotionalProductId" => 13,
+        //            "NotionalValue" => 200.00000000000000000000000000,
+        //            "FeeAmount" => 0.0000000000000000000000000000,
+        //        ),
+        //        ...
+        //    )"
+        //
+        if (gettype($response) === 'string') {
+            return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
+        }
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://apidoc.ndax.io/#getwithdraws
-             *
-             * @param {string} $code unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $request = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-            );
-            $response = Async\await($this->privateGetGetWithdraws($this->extend($request, $params)));
-            //
-            //     array(
-            //         array(
-            //             "Amount" => 0.0,
-            //             "FeeAmount" => 0.0,
-            //             "NotionalValue" => 0.0,
-            //             "WithdrawId" => 0,
-            //             "AssetManagerId" => 0,
-            //             "AccountId" => 0,
-            //             "AssetId" => 0,
-            //             "TemplateForm" => "array(\"TemplateType\" => \"TetherRPCWithdraw\",\"Comment\" => \"TestWithdraw\",\"ExternalAddress\" => \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\")",
-            //             "TemplateFormType" => "TetherRPCWithdraw",
-            //             "omsId" => 0,
-            //             "TicketStatus" => 0,
-            //             "TicketNumber" => 0,
-            //             "WithdrawTransactionDetails" => "",
-            //             "WithdrawType" => "",
-            //             "WithdrawCode" => "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
-            //             "AssetType" => 0,
-            //             "Reaccepted" => true,
-            //             "NotionalProductId" => 0
-            //         ),
-            //     )
-            //
-            return $this->parse_transactions($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://apidoc.ndax.io/#getwithdraws
+         *
+         * @param {string} $code unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $request = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+        );
+        $response = Async\await($this->privateGetGetWithdraws($this->extend($request, $params)));
+        //
+        //     array(
+        //         array(
+        //             "Amount" => 0.0,
+        //             "FeeAmount" => 0.0,
+        //             "NotionalValue" => 0.0,
+        //             "WithdrawId" => 0,
+        //             "AssetManagerId" => 0,
+        //             "AccountId" => 0,
+        //             "AssetId" => 0,
+        //             "TemplateForm" => "array(\"TemplateType\" => \"TetherRPCWithdraw\",\"Comment\" => \"TestWithdraw\",\"ExternalAddress\" => \"ms6C3pKAAr8gRCcnVebs8VRkVrjcvqNYv3\")",
+        //             "TemplateFormType" => "TetherRPCWithdraw",
+        //             "omsId" => 0,
+        //             "TicketStatus" => 0,
+        //             "TicketNumber" => 0,
+        //             "WithdrawTransactionDetails" => "",
+        //             "WithdrawType" => "",
+        //             "WithdrawCode" => "490b4fa3-53fc-44f4-bd29-7e16be86fba3",
+        //             "AssetType" => 0,
+        //             "Reaccepted" => true,
+        //             "NotionalProductId" => 0
+        //         ),
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type(?string $status = null, ?string $type = null) {
@@ -2487,10 +2658,10 @@ class ndax extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ProductId');
         $code = $this->safe_currency_code($currencyId, $currency);
         $type = null;
-        if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
+        if (is_array($transaction) && array_key_exists('DepositId' ?? '', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
-        } elseif (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('WithdrawId' ?? '', $transaction)) {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
@@ -2532,108 +2703,110 @@ class ndax extends Exchange {
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            // this method required login, password and twofa key
-            $sessionToken = $this->safe_string($this->options, 'sessionToken');
-            if ($sessionToken === null) {
-                throw new AuthenticationError($this->id . ' call signIn() method to obtain a session token');
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        // this method required login, password and twofa key
+        $sessionToken = $this->safe_string($this->options, 'sessionToken');
+        if ($sessionToken === null) {
+            throw new AuthenticationError($this->id . ' call signIn() method to obtain a session token');
+        }
+        if ($this->twofa === null) {
+            throw new AuthenticationError($this->id . ' withdraw() requires exchange.twofa credentials');
+        }
+        $this->check_address($address);
+        $omsId = $this->safe_integer($this->options, 'omsId', 1);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        Async\await($this->load_accounts());
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
+        $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
+        $params = $this->omit($params, array( 'accountId', 'AccountId' ));
+        $currency = $this->currency($code);
+        $withdrawTemplateTypesRequest = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+        );
+        $withdrawTemplateTypesResponse = Async\await($this->privateGetGetWithdrawTemplateTypes($withdrawTemplateTypesRequest));
+        //
+        //     {
+        //         "result" => true,
+        //         "errormsg" => null,
+        //         "statuscode" => "0",
+        //         "TemplateTypes" => array(
+        //             array( AccountProviderId => "14", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "BitgoRPC-BTC" ),
+        //             array( AccountProviderId => "20", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "TrezorBTC" ),
+        //             array( AccountProviderId => "31", TemplateName => "BTC", AccountProviderName => "BTC Fireblocks 1" )
+        //         )
+        //     }
+        //
+        $templateTypes = $this->safe_value($withdrawTemplateTypesResponse, 'TemplateTypes', array());
+        $firstTemplateType = $this->safe_value($templateTypes, 0);
+        if ($firstTemplateType === null) {
+            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template type for ' . $currency['code']);
+        }
+        $templateName = $this->safe_string($firstTemplateType, 'TemplateName');
+        $withdrawTemplateRequest = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+            'TemplateType' => $templateName,
+            'AccountProviderId' => $firstTemplateType['AccountProviderId'],
+        );
+        $withdrawTemplateResponse = Async\await($this->privateGetGetWithdrawTemplate($withdrawTemplateRequest));
+        //
+        //     {
+        //         "result" => true,
+        //         "errormsg" => null,
+        //         "statuscode" => "0",
+        //         "Template" => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
+        //     }
+        //
+        $template = $this->safe_string($withdrawTemplateResponse, 'Template');
+        if ($template === null) {
+            throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template for ' . $currency['code']);
+        }
+        $withdrawTemplate = json_decode($template, $as_associative_array = true);
+        $withdrawTemplate['ExternalAddress'] = $address;
+        if ($tag !== null) {
+            if (is_array($withdrawTemplate) && array_key_exists('Memo' ?? '', $withdrawTemplate)) {
+                $withdrawTemplate['Memo'] = $tag;
             }
-            if ($this->twofa === null) {
-                throw new AuthenticationError($this->id . ' withdraw() requires exchange.twofa credentials');
-            }
-            $this->check_address($address);
-            $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            Async\await($this->load_accounts());
-            $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
-            $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
-            $params = $this->omit($params, array( 'accountId', 'AccountId' ));
-            $currency = $this->currency($code);
-            $withdrawTemplateTypesRequest = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'ProductId' => $currency['id'],
-            );
-            $withdrawTemplateTypesResponse = Async\await($this->privateGetGetWithdrawTemplateTypes($withdrawTemplateTypesRequest));
-            //
-            //     {
-            //         "result" => true,
-            //         "errormsg" => null,
-            //         "statuscode" => "0",
-            //         "TemplateTypes" => array(
-            //             array( AccountProviderId => "14", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "BitgoRPC-BTC" ),
-            //             array( AccountProviderId => "20", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "TrezorBTC" ),
-            //             array( AccountProviderId => "31", TemplateName => "BTC", AccountProviderName => "BTC Fireblocks 1" )
-            //         )
-            //     }
-            //
-            $templateTypes = $this->safe_value($withdrawTemplateTypesResponse, 'TemplateTypes', array());
-            $firstTemplateType = $this->safe_value($templateTypes, 0);
-            if ($firstTemplateType === null) {
-                throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template type for ' . $currency['code']);
-            }
-            $templateName = $this->safe_string($firstTemplateType, 'TemplateName');
-            $withdrawTemplateRequest = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'ProductId' => $currency['id'],
-                'TemplateType' => $templateName,
-                'AccountProviderId' => $firstTemplateType['AccountProviderId'],
-            );
-            $withdrawTemplateResponse = Async\await($this->privateGetGetWithdrawTemplate($withdrawTemplateRequest));
-            //
-            //     {
-            //         "result" => true,
-            //         "errormsg" => null,
-            //         "statuscode" => "0",
-            //         "Template" => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
-            //     }
-            //
-            $template = $this->safe_string($withdrawTemplateResponse, 'Template');
-            if ($template === null) {
-                throw new ExchangeError($this->id . ' withdraw() could not find a withdraw $template for ' . $currency['code']);
-            }
-            $withdrawTemplate = json_decode($template, $as_associative_array = true);
-            $withdrawTemplate['ExternalAddress'] = $address;
-            if ($tag !== null) {
-                if (is_array($withdrawTemplate) && array_key_exists('Memo', $withdrawTemplate)) {
-                    $withdrawTemplate['Memo'] = $tag;
-                }
-            }
-            $withdrawPayload = array(
-                'omsId' => $omsId,
-                'AccountId' => $accountId,
-                'ProductId' => $currency['id'],
-                'TemplateForm' => $this->json($withdrawTemplate),
-                'TemplateType' => $templateName,
-            );
-            $withdrawRequest = array(
-                'TfaType' => 'Google',
-                'TFaCode' => $this->totp($this->twofa),
-                'Payload' => $this->json($withdrawPayload),
-            );
-            $response = Async\await($this->privatePostCreateWithdrawTicket($this->deep_extend($withdrawRequest, $params)));
-            return $this->parse_transaction($response, $currency);
-        })();
+        }
+        $withdrawPayload = array(
+            'omsId' => $omsId,
+            'AccountId' => $accountId,
+            'ProductId' => $currency['id'],
+            'TemplateForm' => $this->json($withdrawTemplate),
+            'TemplateType' => $templateName,
+        );
+        $withdrawRequest = array(
+            'TfaType' => 'Google',
+            'TFaCode' => $this->totp($this->twofa),
+            'Payload' => $this->json($withdrawPayload),
+        );
+        $response = Async\await($this->privatePostCreateWithdrawTicket($this->deep_extend($withdrawRequest, $params)));
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -2654,7 +2827,7 @@ class ndax extends Exchange {
                     $query = $this->omit($query, 'pending2faToken');
                 }
             }
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -2679,7 +2852,7 @@ class ndax extends Exchange {
                 $headers['Content-Type'] = 'application/json';
                 $body = $this->json($query);
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
@@ -2687,7 +2860,7 @@ class ndax extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($code === 404) {
             throw new AuthenticationError($this->id . ' ' . $body);
         }

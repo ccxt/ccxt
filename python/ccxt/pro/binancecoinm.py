@@ -4,14 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
-from ccxt.base.types import Any
 
 import ccxt.async_support.binancecoinm as binancecoinmRest
 
 
 class binancecoinm(binance):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         # eslint-disable-next-line new-cap
         restInstance = binancecoinmRest()
         restDescribe = restInstance.describe()

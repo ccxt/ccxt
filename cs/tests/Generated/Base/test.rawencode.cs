@@ -14,13 +14,13 @@ public partial class BaseTest
             });
             // todo: add sort
             // todo: add nulls
-            object dict2 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict2 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", "+&" },
             };
             // as key-order not preserved, expect mixed orde
-            object expected2a = "a=1&b=+&";
-            object expected2b = "b=+&&a=1";
+            string expected2a = "a=1&b=+&";
+            string expected2b = "b=+&&a=1";
             object result2 = exchange.rawencode(dict2);
             Assert(isTrue(isEqual(result2, expected2a)) || isTrue(isEqual(result2, expected2b)), add(add(add(add(add("rawencode: expected ", expected2a), " or "), expected2b), " but got "), result2));
         }

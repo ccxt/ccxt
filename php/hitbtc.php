@@ -29,7 +29,7 @@ class hitbtc extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'closePosition' => false,
+                'closePosition' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -131,129 +131,129 @@ class hitbtc extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'public/currency' => 10,
-                        'public/currency/{currency}' => 10,
-                        'public/symbol' => 10,
-                        'public/symbol/{symbol}' => 10,
-                        'public/ticker' => 10,
-                        'public/ticker/{symbol}' => 10,
-                        'public/price/rate' => 10,
-                        'public/price/history' => 10,
-                        'public/price/ticker' => 10,
-                        'public/price/ticker/{symbol}' => 10,
-                        'public/trades' => 10,
-                        'public/trades/{symbol}' => 10,
-                        'public/orderbook' => 10,
-                        'public/orderbook/{symbol}' => 10,
-                        'public/candles' => 10,
-                        'public/candles/{symbol}' => 10,
-                        'public/converted/candles' => 10,
-                        'public/converted/candles/{symbol}' => 10,
-                        'public/futures/info' => 10,
-                        'public/futures/info/{symbol}' => 10,
-                        'public/futures/history/funding' => 10,
-                        'public/futures/history/funding/{symbol}' => 10,
-                        'public/futures/candles/index_price' => 10,
-                        'public/futures/candles/index_price/{symbol}' => 10,
-                        'public/futures/candles/mark_price' => 10,
-                        'public/futures/candles/mark_price/{symbol}' => 10,
-                        'public/futures/candles/premium_index' => 10,
-                        'public/futures/candles/premium_index/{symbol}' => 10,
-                        'public/futures/candles/open_interest' => 10,
-                        'public/futures/candles/open_interest/{symbol}' => 10,
+                        'public/currency' => array( 'cost' => 10 ),
+                        'public/currency/{currency}' => array( 'cost' => 10 ),
+                        'public/symbol' => array( 'cost' => 10 ),
+                        'public/symbol/{symbol}' => array( 'cost' => 10 ),
+                        'public/ticker' => array( 'cost' => 10 ),
+                        'public/ticker/{symbol}' => array( 'cost' => 10 ),
+                        'public/price/rate' => array( 'cost' => 10 ),
+                        'public/price/history' => array( 'cost' => 10 ),
+                        'public/price/ticker' => array( 'cost' => 10 ),
+                        'public/price/ticker/{symbol}' => array( 'cost' => 10 ),
+                        'public/trades' => array( 'cost' => 10 ),
+                        'public/trades/{symbol}' => array( 'cost' => 10 ),
+                        'public/orderbook' => array( 'cost' => 10 ),
+                        'public/orderbook/{symbol}' => array( 'cost' => 10 ),
+                        'public/candles' => array( 'cost' => 10 ),
+                        'public/candles/{symbol}' => array( 'cost' => 10 ),
+                        'public/converted/candles' => array( 'cost' => 10 ),
+                        'public/converted/candles/{symbol}' => array( 'cost' => 10 ),
+                        'public/futures/info' => array( 'cost' => 10 ),
+                        'public/futures/info/{symbol}' => array( 'cost' => 10 ),
+                        'public/futures/history/funding' => array( 'cost' => 10 ),
+                        'public/futures/history/funding/{symbol}' => array( 'cost' => 10 ),
+                        'public/futures/candles/index_price' => array( 'cost' => 10 ),
+                        'public/futures/candles/index_price/{symbol}' => array( 'cost' => 10 ),
+                        'public/futures/candles/mark_price' => array( 'cost' => 10 ),
+                        'public/futures/candles/mark_price/{symbol}' => array( 'cost' => 10 ),
+                        'public/futures/candles/premium_index' => array( 'cost' => 10 ),
+                        'public/futures/candles/premium_index/{symbol}' => array( 'cost' => 10 ),
+                        'public/futures/candles/open_interest' => array( 'cost' => 10 ),
+                        'public/futures/candles/open_interest/{symbol}' => array( 'cost' => 10 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'spot/balance' => 15,
-                        'spot/balance/{currency}' => 15,
-                        'spot/order' => 1,
-                        'spot/order/{client_order_id}' => 1,
-                        'spot/fee' => 15,
-                        'spot/fee/{symbol}' => 15,
-                        'spot/history/order' => 15,
-                        'spot/history/trade' => 15,
-                        'margin/account' => 1,
-                        'margin/account/isolated/{symbol}' => 1,
-                        'margin/account/cross/{currency}' => 1,
-                        'margin/order' => 1,
-                        'margin/order/{client_order_id}' => 1,
-                        'margin/config' => 15,
-                        'margin/history/order' => 15,
-                        'margin/history/trade' => 15,
-                        'margin/history/positions' => 15,
-                        'margin/history/clearing' => 15,
-                        'futures/balance' => 15,
-                        'futures/balance/{currency}' => 15,
-                        'futures/account' => 1,
-                        'futures/account/isolated/{symbol}' => 1,
-                        'futures/order' => 1,
-                        'futures/order/{client_order_id}' => 1,
-                        'futures/config' => 15,
-                        'futures/fee' => 15,
-                        'futures/fee/{symbol}' => 15,
-                        'futures/history/order' => 15,
-                        'futures/history/trade' => 15,
-                        'futures/history/positions' => 15,
-                        'futures/history/clearing' => 15,
-                        'wallet/balance' => 30,
-                        'wallet/balance/{currency}' => 30,
-                        'wallet/crypto/address' => 30,
-                        'wallet/crypto/address/recent-deposit' => 30,
-                        'wallet/crypto/address/recent-withdraw' => 30,
-                        'wallet/crypto/address/check-mine' => 30,
-                        'wallet/transactions' => 30,
-                        'wallet/transactions/{tx_id}' => 30,
-                        'wallet/crypto/fee/estimate' => 30,
-                        'wallet/airdrops' => 30,
-                        'wallet/amount-locks' => 30,
-                        'sub-account' => 15,
-                        'sub-account/acl' => 15,
-                        'sub-account/balance/{subAccID}' => 15,
-                        'sub-account/crypto/address/{subAccID}/{currency}' => 15,
+                        'spot/balance' => array( 'cost' => 15 ),
+                        'spot/balance/{currency}' => array( 'cost' => 15 ),
+                        'spot/order' => array( 'cost' => 1 ),
+                        'spot/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'spot/fee' => array( 'cost' => 15 ),
+                        'spot/fee/{symbol}' => array( 'cost' => 15 ),
+                        'spot/history/order' => array( 'cost' => 15 ),
+                        'spot/history/trade' => array( 'cost' => 15 ),
+                        'margin/account' => array( 'cost' => 1 ),
+                        'margin/account/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'margin/account/cross/{currency}' => array( 'cost' => 1 ),
+                        'margin/order' => array( 'cost' => 1 ),
+                        'margin/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'margin/config' => array( 'cost' => 15 ),
+                        'margin/history/order' => array( 'cost' => 15 ),
+                        'margin/history/trade' => array( 'cost' => 15 ),
+                        'margin/history/positions' => array( 'cost' => 15 ),
+                        'margin/history/clearing' => array( 'cost' => 15 ),
+                        'futures/balance' => array( 'cost' => 15 ),
+                        'futures/balance/{currency}' => array( 'cost' => 15 ),
+                        'futures/account' => array( 'cost' => 1 ),
+                        'futures/account/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'futures/order' => array( 'cost' => 1 ),
+                        'futures/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'futures/config' => array( 'cost' => 15 ),
+                        'futures/fee' => array( 'cost' => 15 ),
+                        'futures/fee/{symbol}' => array( 'cost' => 15 ),
+                        'futures/history/order' => array( 'cost' => 15 ),
+                        'futures/history/trade' => array( 'cost' => 15 ),
+                        'futures/history/positions' => array( 'cost' => 15 ),
+                        'futures/history/clearing' => array( 'cost' => 15 ),
+                        'wallet/balance' => array( 'cost' => 30 ),
+                        'wallet/balance/{currency}' => array( 'cost' => 30 ),
+                        'wallet/crypto/address' => array( 'cost' => 30 ),
+                        'wallet/crypto/address/recent-deposit' => array( 'cost' => 30 ),
+                        'wallet/crypto/address/recent-withdraw' => array( 'cost' => 30 ),
+                        'wallet/crypto/address/check-mine' => array( 'cost' => 30 ),
+                        'wallet/transactions' => array( 'cost' => 30 ),
+                        'wallet/transactions/{tx_id}' => array( 'cost' => 30 ),
+                        'wallet/crypto/fee/estimate' => array( 'cost' => 30 ),
+                        'wallet/airdrops' => array( 'cost' => 30 ),
+                        'wallet/amount-locks' => array( 'cost' => 30 ),
+                        'sub-account' => array( 'cost' => 15 ),
+                        'sub-account/acl' => array( 'cost' => 15 ),
+                        'sub-account/balance/{subAccID}' => array( 'cost' => 15 ),
+                        'sub-account/crypto/address/{subAccID}/{currency}' => array( 'cost' => 15 ),
                     ),
                     'post' => array(
-                        'spot/order' => 1,
-                        'spot/order/list' => 1,
-                        'margin/order' => 1,
-                        'margin/order/list' => 1,
-                        'futures/order' => 1,
-                        'futures/order/list' => 1,
-                        'wallet/crypto/address' => 30,
-                        'wallet/crypto/withdraw' => 30,
-                        'wallet/convert' => 30,
-                        'wallet/transfer' => 30,
-                        'wallet/internal/withdraw' => 30,
-                        'wallet/crypto/check-offchain-available' => 30,
-                        'wallet/crypto/fees/estimate' => 30,
-                        'wallet/airdrops/{id}/claim' => 30,
-                        'sub-account/freeze' => 15,
-                        'sub-account/activate' => 15,
-                        'sub-account/transfer' => 15,
-                        'sub-account/acl' => 15,
+                        'spot/order' => array( 'cost' => 1 ),
+                        'spot/order/list' => array( 'cost' => 1 ),
+                        'margin/order' => array( 'cost' => 1 ),
+                        'margin/order/list' => array( 'cost' => 1 ),
+                        'futures/order' => array( 'cost' => 1 ),
+                        'futures/order/list' => array( 'cost' => 1 ),
+                        'wallet/crypto/address' => array( 'cost' => 30 ),
+                        'wallet/crypto/withdraw' => array( 'cost' => 30 ),
+                        'wallet/convert' => array( 'cost' => 30 ),
+                        'wallet/transfer' => array( 'cost' => 30 ),
+                        'wallet/internal/withdraw' => array( 'cost' => 30 ),
+                        'wallet/crypto/check-offchain-available' => array( 'cost' => 30 ),
+                        'wallet/crypto/fees/estimate' => array( 'cost' => 30 ),
+                        'wallet/airdrops/{id}/claim' => array( 'cost' => 30 ),
+                        'sub-account/freeze' => array( 'cost' => 15 ),
+                        'sub-account/activate' => array( 'cost' => 15 ),
+                        'sub-account/transfer' => array( 'cost' => 15 ),
+                        'sub-account/acl' => array( 'cost' => 15 ),
                     ),
                     'patch' => array(
-                        'spot/order/{client_order_id}' => 1,
-                        'margin/order/{client_order_id}' => 1,
-                        'futures/order/{client_order_id}' => 1,
+                        'spot/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'margin/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'futures/order/{client_order_id}' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'spot/order' => 1,
-                        'spot/order/{client_order_id}' => 1,
-                        'margin/position' => 1,
-                        'margin/position/isolated/{symbol}' => 1,
-                        'margin/order' => 1,
-                        'margin/order/{client_order_id}' => 1,
-                        'futures/position' => 1,
-                        'futures/position/{margin_mode}/{symbol}' => 1,
-                        'futures/order' => 1,
-                        'futures/order/{client_order_id}' => 1,
-                        'wallet/crypto/withdraw/{id}' => 30,
+                        'spot/order' => array( 'cost' => 1 ),
+                        'spot/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'margin/position' => array( 'cost' => 1 ),
+                        'margin/position/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'margin/order' => array( 'cost' => 1 ),
+                        'margin/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'futures/position' => array( 'cost' => 1 ),
+                        'futures/position/{margin_mode}/{symbol}' => array( 'cost' => 1 ),
+                        'futures/order' => array( 'cost' => 1 ),
+                        'futures/order/{client_order_id}' => array( 'cost' => 1 ),
+                        'wallet/crypto/withdraw/{id}' => array( 'cost' => 30 ),
                     ),
                     'put' => array(
-                        'margin/account/isolated/{symbol}' => 1,
-                        'futures/account/isolated/{symbol}' => 1,
-                        'wallet/crypto/withdraw/{id}' => 30,
+                        'margin/account/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'futures/account/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'wallet/crypto/withdraw/{id}' => array( 'cost' => 30 ),
                     ),
                 ),
             ),
@@ -974,22 +974,24 @@ class hitbtc extends Exchange {
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
-            $networks[$networkCode] = array(
-                'info' => $rawNetwork,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
-                'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
-                'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $rawNetwork,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                    'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                    'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $entry,
@@ -997,7 +999,7 @@ class hitbtc extends Exchange {
             'id' => $currencyId,
             'precision' => $this->safe_number($entry, 'precision_transfer'),
             'name' => $this->safe_string($entry, 'full_name'),
-            'active' => !$this->safe_bool($entry, 'delisted'),
+            'active' => $this->safe_bool($entry, 'delisted') !== true,
             'deposit' => $this->safe_bool($entry, 'payin_enabled'),
             'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
             'networks' => $networks,
@@ -1096,7 +1098,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -1105,7 +1107,9 @@ class hitbtc extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($entry, 'available');
             $account['used'] = $this->safe_string($entry, 'reserved');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1225,7 +1229,7 @@ class hitbtc extends Exchange {
             $marketId = $keys[$i];
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
-            $entry = $response[$marketId];
+            $entry = $this->safe_dict($response, $marketId, array());
             $result[$symbol] = $this->parse_ticker($entry, $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
@@ -1310,7 +1314,7 @@ class hitbtc extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $marketInner = $this->market($marketId);
-            $rawTrades = $response[$marketId];
+            $rawTrades = $this->safe_list($response, $marketId, array());
             $parsed = $this->parse_trades($rawTrades, $marketInner);
             $trades = $this->array_concat($trades, $parsed);
         }
@@ -1435,7 +1439,7 @@ class hitbtc extends Exchange {
         $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_value($trade, 'taker');
         if ($taker !== null) {
-            $takerOrMaker = $taker ? 'taker' : 'maker';
+            $takerOrMaker = ($taker === true) ? 'taker' : 'maker';
         } else {
             $takerOrMaker = 'taker'; // the only case when `$taker` field is missing, is public fetchTrades and it must be $taker
         }
@@ -1473,7 +1477,7 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
-    public function fetch_transactions_helper($types, $code, $since, $limit, $params) {
+    public function fetch_transactions_helper(mixed $types, mixed $code, mixed $since, mixed $limit, mixed $params): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1533,7 +1537,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'DEPOSIT' => 'deposit',
             'WITHDRAW' => 'withdrawal',
@@ -1699,10 +1703,10 @@ class hitbtc extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $orderbook = $response[$marketId];
+            $orderbook = $this->safe_dict($response, $marketId, array());
             $symbol = $this->safe_symbol($marketId);
             $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
-            $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, $timestamp, 'bid', 'ask');
+            $result[$symbol] = $this->parse_order_book($orderbook, $symbol, $timestamp, 'bid', 'ask');
         }
         return $result;
     }
@@ -1716,7 +1720,7 @@ class hitbtc extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1907,10 +1911,11 @@ class hitbtc extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->to_array($response);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // Spot and Swap
         //
@@ -2215,7 +2220,7 @@ class hitbtc extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetch an open order by it's $id
          *
@@ -2269,7 +2274,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#cancel-futures-orders
          * @see https://api.hitbtc.com/#cancel-all-margin-orders
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for canceling margin orders
@@ -2430,7 +2435,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_order_request(array $market, string $marketType, string $type, string $side, float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_order_request(array $market, string $marketType, string $type, string $side, ?float $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
         $isLimit = ($type === 'limit');
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2700,7 +2705,7 @@ class hitbtc extends Exchange {
         return $this->parse_margin_modes($config, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,
@@ -2772,7 +2777,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function convert_currency_network(string $code, $amount, $fromNetwork, $toNetwork, $params) {
+    public function convert_currency_network(string $code, mixed $amount, mixed $fromNetwork, mixed $toNetwork, mixed $params) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2841,7 +2846,7 @@ class hitbtc extends Exchange {
         }
         $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
         $includeFee = $this->safe_bool($withdrawOptions, 'includeFee', false);
-        if ($includeFee) {
+        if ($includeFee === true) {
             $request['include_fee'] = true;
         }
         $response = $this->privatePostWalletCryptoWithdraw($this->extend($request, $params));
@@ -2978,7 +2983,7 @@ class hitbtc extends Exchange {
         for ($i = 0; $i < count($contracts); $i++) {
             $marketId = $contracts[$i];
             $marketInner = $this->safe_market($marketId);
-            $fundingRateData = $response[$marketId];
+            $fundingRateData = $this->safe_list($response, $marketId, array());
             for ($j = 0; $j < count($fundingRateData); $j++) {
                 $entry = $fundingRateData[$j];
                 $symbolInner = $this->safe_symbol($marketInner['symbol']);
@@ -3004,7 +3009,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#get-futures-margin-accounts
          * @see https://api.hitbtc.com/#get-all-margin-accounts
          *
-         * @param {string[]|null} $symbols not used by hitbtc fetchPositions ()
+         * @param {string[]|null} $symbols not used by fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin positions
@@ -3230,7 +3235,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3301,7 +3306,8 @@ class hitbtc extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $marketId = $markets[$i];
             $marketInner = $this->safe_market($marketId);
-            $results[] = $this->parse_open_interest($response[$marketId], $marketInner);
+            $openInterest = $this->safe_dict($response, $marketId, array());
+            $results[] = $this->parse_open_interest($openInterest, $marketInner);
         }
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
@@ -3320,7 +3326,7 @@ class hitbtc extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchOpenInterest() supports swap contracts only');
         }
         $request = array(
@@ -3359,7 +3365,7 @@ class hitbtc extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if (!$market['swap']) {
+        if ($market['swap'] !== true) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
         }
         $request = array(
@@ -3384,7 +3390,7 @@ class hitbtc extends Exchange {
         return $this->parse_funding_rate($response, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3424,13 +3430,13 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        if ($market['swap']) {
+        if ($market['swap'] === true) {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
@@ -3680,7 +3686,7 @@ class hitbtc extends Exchange {
         return $this->privatePutFuturesAccountIsolatedSymbol($this->extend($request, $params));
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -3722,7 +3728,7 @@ class hitbtc extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //         "full_name" => "ConnectWealth",
@@ -3784,7 +3790,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol unified ccxt $market $symbol
          * @param {string} $side 'buy' or 'sell'
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] *required* unified $market $symbol
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
          * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
@@ -3818,7 +3824,7 @@ class hitbtc extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
+    public function handle_margin_mode_and_params(string $methodName, $params = array(), mixed $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -3837,7 +3843,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         //     {
         //       "error" => {
@@ -3866,7 +3872,7 @@ class hitbtc extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $implodedPath;
@@ -3877,7 +3883,7 @@ class hitbtc extends Exchange {
             'Content-Type' => 'application/json',
         );
         if ($method === 'GET') {
-            if ($queryLength) {
+            if (($queryLength !== null) && ($queryLength !== 0)) {
                 $getRequest = '?' . $this->urlencode($query);
                 $url = $url . $getRequest;
             }

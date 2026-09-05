@@ -18,28 +18,29 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbols):
     method = 'watchOrderBookForSymbols'
-    now = exchange.milliseconds()
-    ends = now + 15000
-    returned_symbols = []
-    while now < ends or len(returned_symbols) < len(symbols):
+    # as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+    # loop has to be bounded by the deadline alone. waiting for every requested
+    # symbol to be seen would hang forever whenever one of them stays idle.
+    max_idle_time = 5000
+    current_time = exchange.milliseconds()
+    deadline = current_time + 15000
+    idle = False
+    while (current_time < deadline) and not idle:
         response = None
-        success = True
+        succeeded = True
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_order_book_for_symbols(symbols)
         except Exception as e:
-            # temporary fix for InvalidNonce for c#
+            # interim workaround for InvalidNonce raised by the c# runtime
             if not test_shared_methods.is_temporary_failure(e) and not (isinstance(e, InvalidNonce)):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
-            success = False
-        if (success) and (response is not None):
-            # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response)
-            now = exchange.milliseconds()
-            test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
+            succeeded = False
+        current_time = exchange.milliseconds()
+        if (succeeded) and (response is not None):
             test_order_book(exchange, skipped_properties, method, response, None)
-            symbol = response['symbol']
-            if (symbol is not None) and not exchange.in_array(symbol, returned_symbols):
-                returned_symbols.append(symbol)
+            test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
+            elapsed = current_time - start_time
+            if elapsed > max_idle_time:
+                idle = True
     return True

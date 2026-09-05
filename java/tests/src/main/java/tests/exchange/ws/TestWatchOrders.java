@@ -26,11 +26,15 @@ public class TestWatchOrders extends BaseTest {
             try
             {
                 response = (exchange.watchOrders(symbol)).join();
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                {
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                }
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;
@@ -38,6 +42,10 @@ public class TestWatchOrders extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                {
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)

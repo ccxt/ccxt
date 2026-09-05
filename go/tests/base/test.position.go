@@ -6,7 +6,30 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any, now any) {
-	var format any = map[string]any{
+	// a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
+	// `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
+	// leverage / margin / mark-price / liquidation / pnl fields that don't apply
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol":                      true,
+			"timestamp":                   true,
+			"datetime":                    true,
+			"leverage":                    true,
+			"initialMargin":               true,
+			"initialMarginPercentage":     true,
+			"maintenanceMargin":           true,
+			"maintenanceMarginPercentage": true,
+			"entryPrice":                  true,
+			"notional":                    true,
+			"unrealizedPnl":               true,
+			"marginRatio":                 true,
+			"liquidationPrice":            true,
+			"markPrice":                   true,
+			"collateral":                  true,
+			"percentage":                  true,
+		}, skippedProperties)
+	}
+	var format map[string]any = map[string]any{
 		"info":                        map[string]any{},
 		"symbol":                      "XYZ/USDT",
 		"timestamp":                   1504224000000,
@@ -29,7 +52,7 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		"side":                        "long",
 		"percentage":                  exchange.ParseNumber("1.234"),
 	}
-	var emptyotAllowedFor any = []any{"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"}
+	var emptyotAllowedFor []any = []any{"liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol)

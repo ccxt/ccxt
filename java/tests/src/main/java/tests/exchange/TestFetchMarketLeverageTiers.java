@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchMarketLeverageTiers extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchMarketLeverageTiers(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchMarketLeverageTiers(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchMarketLeverageTiers";
-        Object tiers = (exchange.fetchMarketLeverageTiers(symbol)).join();
+        Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarketLeverageTiers", new Object[]{symbol})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tiers)); j++)
         {

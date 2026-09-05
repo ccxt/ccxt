@@ -1902,9 +1902,9 @@
                         "fee": 0,
                         "fees": {},
                         "networks": {
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "id": "USDT-Arbitrum One",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -4244,9 +4244,9 @@
                                     "wdTickSz": "8"
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "id": "ETH-Arbitrum One",
-                                "network": "ARBONE",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -8696,11 +8696,11 @@
                     "msg": ""
                 },
                 "parsedResponse": {
-                    "ARBONE": {
+                    "ARBITRUM": {
                         "currency": "USDT",
                         "address": "add1",
                         "tag": null,
-                        "network": "ARBONE",
+                        "network": "ARBITRUM",
                         "info": {
                             "chain": "USDT-Arbitrum One",
                             "ctAddr": "9fcbb9",
@@ -10877,7 +10877,7 @@
                 "parsedResponse": {
                     "currency": "USDC",
                     "rate": 0.00004453,
-                    "period": 86400000,
+                    "period": 3600000,
                     "timestamp": null,
                     "datetime": null,
                     "info": {
@@ -10966,9 +10966,7 @@
                             "tag": ""
                         },
                         "id": "2903938004064555008",
-                        "clientOrderId": [
-                            "1234abcd"
-                        ],
+                        "clientOrderId": null,
                         "timestamp": null,
                         "datetime": null,
                         "lastTradeTimestamp": null,
@@ -10992,10 +10990,215 @@
                         "trades": [],
                         "reduceOnly": false,
                         "fees": [],
-                        "stopPrice": null,
-                        "trigger": true
+                        "stopPrice": null
                     }
                 ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates with explicit swap and XPERP future symbols",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "ETH/USD:USD-310404"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "20000.0000000000000000",
+                            "instId": "BTC-USD-SWAP",
+                            "instType": "SWAP",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.00375",
+                            "method": "current_period",
+                            "minFundingRate": "-0.00375",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0005386400502937",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785351549573"
+                        },
+                        {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "10000.0000000000000000",
+                            "instId": "ETH-USD_UM_XPERP-310404",
+                            "instType": "FUTURES",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.0075",
+                            "method": "current_period",
+                            "minFundingRate": "-0.0075",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0001263443654703",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785350592833"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "20000.0000000000000000",
+                            "instId": "BTC-USD-SWAP",
+                            "instType": "SWAP",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.00375",
+                            "method": "current_period",
+                            "minFundingRate": "-0.00375",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0005386400502937",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785351549573"
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": 0,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.0001,
+                        "fundingTimestamp": 1785369600000,
+                        "fundingDatetime": "2026-07-30T00:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1785398400000,
+                        "nextFundingDatetime": "2026-07-30T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    },
+                    "ETH/USD:USD-310404": {
+                        "info": {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "10000.0000000000000000",
+                            "instId": "ETH-USD_UM_XPERP-310404",
+                            "instType": "FUTURES",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.0075",
+                            "method": "current_period",
+                            "minFundingRate": "-0.0075",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0001263443654703",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785350592833"
+                        },
+                        "symbol": "ETH/USD:USD-310404",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": 0,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.0001,
+                        "fundingTimestamp": 1785369600000,
+                        "fundingDatetime": "2026-07-30T00:00:00.000Z",
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": 1785398400000,
+                        "nextFundingDatetime": "2026-07-30T08:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate on an XPERP future (long-dated future that still pays funding)",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH-USD_UM_XPERP-310404"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "formulaType": "withRate",
+                            "fundingRate": "0.0001000000000000",
+                            "fundingTime": "1785369600000",
+                            "impactValue": "10000.0000000000000000",
+                            "instId": "ETH-USD_UM_XPERP-310404",
+                            "instType": "FUTURES",
+                            "interestRate": "0.0001000000000000",
+                            "maxFundingRate": "0.0075",
+                            "method": "current_period",
+                            "minFundingRate": "-0.0075",
+                            "nextFundingRate": "",
+                            "nextFundingTime": "1785398400000",
+                            "premium": "-0.0001263443654703",
+                            "prevFundingTime": "1785340800000",
+                            "settFundingRate": "0.0001000000000000",
+                            "settState": "settled",
+                            "ts": "1785350592833"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "formulaType": "withRate",
+                        "fundingRate": "0.0001000000000000",
+                        "fundingTime": "1785369600000",
+                        "impactValue": "10000.0000000000000000",
+                        "instId": "ETH-USD_UM_XPERP-310404",
+                        "instType": "FUTURES",
+                        "interestRate": "0.0001000000000000",
+                        "maxFundingRate": "0.0075",
+                        "method": "current_period",
+                        "minFundingRate": "-0.0075",
+                        "nextFundingRate": "",
+                        "nextFundingTime": "1785398400000",
+                        "premium": "-0.0001263443654703",
+                        "prevFundingTime": "1785340800000",
+                        "settFundingRate": "0.0001000000000000",
+                        "settState": "settled",
+                        "ts": "1785350592833"
+                    },
+                    "symbol": "ETH/USD:USD-310404",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1785369600000,
+                    "fundingDatetime": "2026-07-30T00:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1785398400000,
+                    "nextFundingDatetime": "2026-07-30T08:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
             }
         ],
         "fetchFundingHistory": [

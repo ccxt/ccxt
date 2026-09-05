@@ -6,65 +6,71 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbols any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchTradesForSymbols"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		var returnedSymbols any = []any{}
-		for IsTrue(IsLessThan(now, ends)) || IsTrue(IsLessThan(GetArrayLength(returnedSymbols), GetArrayLength(symbols))) {
-			var response any = nil
-			var success any = true
+	ch := make(chan any, 1)
+	go testWatchTradesForSymbolsBody(ch, exchange, skippedProperties, symbols)
+	return ch
+}
+func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbols any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "watchTradesForSymbols"
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	var maxIdleTime int = 5000
+	var idle bool = false
+	var returnedSymbols any = []any{}
+	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+		var response any = nil
+		var success bool = true
+		var startTime any = exchange.Milliseconds()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchTradesForSymbols(symbols)))
-					PanicOnError(response)
-					return nil
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							success = false
+							return nil
+						}()
+					}
 				}()
+				// try block:
 
-			}
-			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-				Assert(IsArray(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an array. "), exchange.Json(response)))
-				now = exchange.Milliseconds()
-				var symbol any = nil
-				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-					var trade any = GetValue(response, i)
-					symbol = GetValue(trade, "symbol")
-					if IsTrue(IsEqual(symbol, nil)) {
-						continue
-					}
-					TestTrade(exchange, skippedProperties, method, trade, symbol, now)
-					AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
-					if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
-						AppendToArray(&returnedSymbols, symbol)
-					}
+				response = (<-exchange.(ccxt.IWatchTradesForSymbols).WatchTradesForSymbols(symbols))
+				PanicOnError(response)
+				return nil
+			}()
+
+		}
+		now = exchange.Milliseconds()
+		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+			Assert(IsArray(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(symbols)), " must return an array. "), exchange.Json(response)))
+			var symbol any = nil
+			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+				var trade any = GetValue(response, i)
+				symbol = GetValue(trade, "symbol")
+				if IsTrue(IsEqual(symbol, nil)) {
+					continue
+				}
+				TestTrade(exchange, skippedProperties, method, trade, symbol, now)
+				AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
+				if !IsTrue(exchange.InArray(symbol, returnedSymbols)) {
+					AppendToArray(&returnedSymbols, symbol)
 				}
 			}
+			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+				idle = true
+			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }

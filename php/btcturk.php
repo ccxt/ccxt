@@ -131,34 +131,34 @@ class btcturk extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'orderbook' => 1,
-                        'ticker' => 0.1,
-                        'trades' => 1,   // ?last=COUNT (max 50)
-                        'ohlc' => 1,
-                        'server/exchangeinfo' => 1,
+                        'orderbook' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 0.1 ),
+                        'trades' => array( 'cost' => 1 ),   // ?last=COUNT (max 50)
+                        'ohlc' => array( 'cost' => 1 ),
+                        'server/exchangeinfo' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'users/balances' => 1,
-                        'openOrders' => 1,
-                        'allOrders' => 1,
-                        'users/transactions/trade' => 1,
+                        'users/balances' => array( 'cost' => 1 ),
+                        'openOrders' => array( 'cost' => 1 ),
+                        'allOrders' => array( 'cost' => 1 ),
+                        'users/transactions/trade' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'users/transactions/crypto' => 1,
-                        'users/transactions/fiat' => 1,
-                        'order' => 1,
-                        'cancelOrder' => 1,
+                        'users/transactions/crypto' => array( 'cost' => 1 ),
+                        'users/transactions/fiat' => array( 'cost' => 1 ),
+                        'order' => array( 'cost' => 1 ),
+                        'cancelOrder' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'order' => 1,
+                        'order' => array( 'cost' => 1 ),
                     ),
                 ),
                 'graph' => array(
                     'get' => array(
-                        'ohlcs' => 1,
-                        'klines/history' => 1,
+                        'ohlcs' => array( 'cost' => 1 ),
+                        'klines/history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -301,7 +301,7 @@ class btcturk extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($entry): array {
+    public function parse_market(mixed $entry): array {
         $id = $this->safe_string($entry, 'name');
         $baseId = $this->safe_string($entry, 'numerator');
         $quoteId = $this->safe_string($entry, 'denominator');
@@ -325,7 +325,7 @@ class btcturk extends Exchange {
             }
         }
         $status = $this->safe_string($entry, 'status');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -373,10 +373,10 @@ class btcturk extends Exchange {
             ),
             'created' => null,
             'info' => $entry,
-        );
+        ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $data = $this->safe_list($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -391,7 +391,9 @@ class btcturk extends Exchange {
             $account['total'] = $this->safe_string($entry, 'balance');
             $account['free'] = $this->safe_string($entry, 'free');
             $account['used'] = $this->safe_string($entry, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -437,7 +439,7 @@ class btcturk extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -653,10 +655,14 @@ class btcturk extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_trades($data, $market, $since, $limit);
+        $dataList = array();
+        if ($data !== null) {
+            $dataList = $data;
+        }
+        return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
         //        "timestamp" => 1661990400,
@@ -759,7 +765,7 @@ class btcturk extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         $results = array();
         $timestamp = $this->safe_list($ohlcvs, 't', array());
         $high = $this->safe_list($ohlcvs, 'h', array());
@@ -809,13 +815,13 @@ class btcturk extends Exchange {
         if ($type !== 'market') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        if (is_array($params) && array_key_exists('clientOrderId', $params)) {
+        if (is_array($params) && array_key_exists('clientOrderId' ?? '', $params)) {
             $request['newClientOrderId'] = $params['clientOrderId'];
-        } elseif (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+        } elseif (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
         $response = $this->privatePostOrder($this->extend($request, $params));
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -826,7 +832,7 @@ class btcturk extends Exchange {
          * @see https://docs.btcturk.com/private-endpoints/cancel-order
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by btcturk cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1044,20 +1050,24 @@ class btcturk extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_trades($data, $market, $since, $limit);
+        $dataList = array();
+        if ($data !== null) {
+            $dataList = $data;
+        }
+        return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
     public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }
         $url = $this->urls['api'][$api] . '/' . $path;
         if (($method === 'GET') || ($method === 'DELETE')) {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
@@ -1078,7 +1088,7 @@ class btcturk extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
         $output = ($message === null) ? $body : $message;

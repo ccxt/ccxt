@@ -10,7 +10,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/e
 //  ---------------------------------------------------------------------------
 
 export default class grvt extends grvtRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -51,7 +51,7 @@ export default class grvt extends grvtRest {
         });
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // confirmation
         //
@@ -83,7 +83,7 @@ export default class grvt extends grvtRest {
         //     prev_sequence_number: "0",
         //  }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const methods: Dict = {
@@ -105,7 +105,7 @@ export default class grvt extends grvtRest {
             return;
         }
         const channel = this.safeString (message, 'stream');
-        const method = this.safeValue (methods, (channel as string));
+        const method = this.safeValue (methods, channel);
         if (method !== undefined) {
             method.call (this, client, message);
         }
@@ -122,7 +122,7 @@ export default class grvt extends grvtRest {
         return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
     }
 
-    requestId () {
+    override requestId () {
         this.lockId ();
         const newValue = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = newValue;
@@ -139,7 +139,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -157,14 +157,14 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTickers requires a symbols argument');
         }
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', 500);
+        let interval = 500;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -175,7 +175,7 @@ export default class grvt extends grvtRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            rawHashes.push (marketId + '@' + (interval as string).toString ());
+            rawHashes.push (marketId + '@' + interval.toString ());
             messageHashes.push ('ticker::' + market['symbol']);
         }
         const request = {
@@ -191,7 +191,7 @@ export default class grvt extends grvtRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // v1.ticker.s
         //
@@ -272,14 +272,14 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
         client.resolve (ticker, 'ticker::' + symbol);
     }
 
-    parseWsTicker (message, market: Market = undefined) {
+    parseWsTicker (message: any, market: Market = undefined) {
         // same dict as REST api
         return this.parseTicker (message, market);
     }
@@ -295,8 +295,8 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -311,7 +311,7 @@ export default class grvt extends grvtRest {
      * @param {string} [params.limit] 50, 200, 500, 1000 (default 50)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -339,7 +339,7 @@ export default class grvt extends grvtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.trade",
@@ -366,7 +366,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -378,7 +378,7 @@ export default class grvt extends grvtRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         // same as REST api
         return this.parseTrade (trade, market);
     }
@@ -395,7 +395,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -416,7 +416,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -425,7 +425,7 @@ export default class grvt extends grvtRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const symbolString = this.safeString (data, 0);
-            const market = this.market ((symbolString as string));
+            const market = this.market (symbolString);
             const marketId = market['id'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -444,7 +444,7 @@ export default class grvt extends grvtRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.candle",
@@ -469,7 +469,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const secondPart = this.safeString (parts, 1, '');
         const timeframeId = secondPart.replace ('-TRADE', '');
@@ -487,7 +487,7 @@ export default class grvt extends grvtRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // same as REST api
         return this.parseOHLCV (ohlcv, market);
     }
@@ -501,9 +501,9 @@ export default class grvt extends grvtRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -520,9 +520,9 @@ export default class grvt extends grvtRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -536,10 +536,10 @@ export default class grvt extends grvtRest {
         if (limit === undefined) {
             [ limit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'limit', 100);
         }
-        let interval: Str = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
+        let interval = 500;
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         symbols = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? ((interval as string).toString () + '-' + (limit as number).toString ()) : (interval as string).toString ();
+        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -557,7 +557,7 @@ export default class grvt extends grvtRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.book.s",
@@ -588,7 +588,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (data, 'event_time', 0.000001);
         if (!(symbol in this.orderbooks)) {
@@ -627,7 +627,7 @@ export default class grvt extends grvtRest {
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         await this.signIn ();
-        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
         if (authenticated === undefined) {
             const accountId = this.safeString (this.options, 'AuthAccountId');
@@ -662,7 +662,7 @@ export default class grvt extends grvtRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -689,7 +689,7 @@ export default class grvt extends grvtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.fill",
@@ -736,7 +736,7 @@ export default class grvt extends grvtRest {
         client.resolve (this.myTrades, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market: Market = undefined) {
+    parseWsMyTrade (trade: any, market: Market = undefined) {
         return this.parseTrade (trade, market);
     }
 
@@ -751,7 +751,7 @@ export default class grvt extends grvtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -782,7 +782,7 @@ export default class grvt extends grvtRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client, message) {
+    handlePosition (client: any, message: any) {
         //
         //    {
         //        "stream": "v1.position",
@@ -824,7 +824,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         // same as REST api
         return this.parsePosition (position, market);
     }
@@ -840,7 +840,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -867,7 +867,7 @@ export default class grvt extends grvtRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.order",
@@ -943,12 +943,12 @@ export default class grvt extends grvtRest {
         client.resolve (this.orders, 'order::' + order['symbol']);
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         // same as REST api
         return this.parseOrder (order, market);
     }
 
-    handleErrorMessage (client: Client, response): Bool {
+    handleErrorMessage (client: Client, response: any): Bool {
         //
         //    {
         //        "jsonrpc": "2.0",

@@ -7,9 +7,9 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testTransfer(Exchange exchange, object skippedProperties, object method, object entry, object requestedCode)
+    public static void testTransfer(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "1234" },
             { "timestamp", 1502962946216 },
@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
             { "toAccount", "swap" },
             { "status", "ok" },
         };
-        object emptyAllowedFor = new List<object>() {"fromAccount", "toAccount"};
+        List<object> emptyAllowedFor = new List<object>() {"fromAccount", "toAccount"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, exchange.milliseconds());
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "currency"), requestedCode);

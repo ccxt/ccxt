@@ -88,10 +88,7 @@ the latest known information on the availability of the exchange API
 
 **See**
 
-- https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-- https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-- https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-- https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+- https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
 
 
@@ -262,7 +259,7 @@ htx.fetchLastPrices (symbols?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1630,7 +1627,7 @@ closes open positions for a contract market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | side | <code>string</code> | Yes | 'buy' or 'sell', the side of the closing order, opposite side as position side |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807] |
 | params.marginMode | <code>object</code> | No | 'cross' or 'isolated', required for linear markets EXCHANGE SPECIFIC PARAMETERS |
 | params.amount | <code>number</code> | No | order quantity |
@@ -1859,7 +1856,7 @@ htx.unWatchOHLCV (symbol, timeframe, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

@@ -13,9 +13,9 @@ public partial class BaseTest
                 { "id", "sample0" },
             });
             // @SKIP_START_GO
-            object methodName = "setMarketsFromExchange";
-            object trueClause = isEqual(emptyExchange.safeString(null, null), null);
-            object sampleMarket = new Dictionary<string, object>() {
+            string methodName = "setMarketsFromExchange";
+            bool trueClause = isEqual(emptyExchange.safeString(null, null), null);
+            Dictionary<string, object> sampleMarket = new Dictionary<string, object>() {
                 { "BTC/USD", new Dictionary<string, object>() {
                     { "id", "BtcUsd" },
                     { "symbol", "BTC/USD" },
@@ -35,7 +35,7 @@ public partial class BaseTest
             var exchange2 = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "primaryEx" },
             });
-            Assert(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)exchange1.markets).Keys)), 0), "Markets should be loaded in exchange1");
+            Assert(isTrue((!isEqual(exchange1.markets, null))) && isTrue((isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)exchange1.markets).Keys)), 0))), "Markets should be loaded in exchange1");
             // Test error case: exchanges are different
             var differentExchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "secondaryEx" },
@@ -63,7 +63,7 @@ public partial class BaseTest
             // Test the new setMarketsFromExchange method
             exchange2.setMarketsFromExchange(exchange1);
             // Verify shared markets work
-            object neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
+            List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
             for (object i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
             {
                 AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, getValue(neededProps, i)), emptyExchange.getProperty(exchange2, getValue(neededProps, i)));

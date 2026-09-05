@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Bool, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Bool, Int, Market, OrderBook, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -17,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class coinbaseinternational(ccxt.async_support.coinbaseinternational):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'has': {
                 'ws': True,
@@ -172,7 +171,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(subscribe, params), messageHashes)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -182,9 +181,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.subscribe('RISK', [symbol], params)
+        return self.subscribe('RISK', [symbol], params)
 
     async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
@@ -230,8 +227,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         output = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            market = self.markets[symbol]
-            if market['active']:
+            market = self.market(symbol)
+            if market['active'] is True:
                 output.append(symbol)
         return output
 
@@ -257,7 +254,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_instrument(self, client: Client, message):
+    def handle_instrument(self, client: Client, message: object):
         #
         #    {
         #        "sequence": 1,
@@ -288,7 +285,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.resolve(ticker, channel)
         client.resolve(ticker, channel + '::' + ticker['symbol'])
 
-    def parse_ws_instrument(self, ticker: dict, market=None):
+    def parse_ws_instrument(self, ticker: dict, market: Market = None):
         #
         #    {
         #        "sequence": 1,
@@ -367,7 +364,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'quoteVolume': self.safe_string_2(ticker, 'total_24_hour_volume', 'total24_hour_volume'),
         })
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: object):
         #
         # snapshot
         #    {
@@ -436,7 +433,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'previousClose': None,
         })
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
 
@@ -460,7 +457,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         # {
         #     "sequence": 0,
@@ -496,7 +493,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             stored.append(parsed)
         client.resolve(stored, messageHash + '::' + symbol)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -508,9 +505,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -529,7 +526,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: object, message: object):
         #
         #    {
         #       "sequence": 0,
@@ -557,7 +554,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.resolve(tradesArray, channel + '::' + trade['symbol'])
         return message
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #    {
         #       "sequence": 0,
@@ -588,7 +585,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'fee': None,
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -599,9 +596,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -612,11 +609,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        if self.markets is None:
-            await self.load_markets()
-        return await self.subscribe_multiple('LEVEL2', symbols, params)
+        return self.subscribe_multiple('LEVEL2', symbols, params)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: object, message: object):
         #
         # snapshot
         #    {
@@ -674,7 +669,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, channel + '::' + symbol)
 
-    def handle_delta(self, orderbook, delta):
+    def handle_delta(self, orderbook: object, delta: object):
         rawSide = self.safe_string_lower(delta, 0)
         side = 'bids' if (rawSide == 'buy') else 'asks'
         price = self.safe_float(delta, 1)
@@ -682,11 +677,11 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         bookside = orderbook[side]
         bookside.store(price, amount)
 
-    def handle_deltas(self, orderbook, deltas):
+    def handle_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message: object):
         #
         #    {
         #       "channels": [
@@ -713,7 +708,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #
         return message
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: object):
         #
         # snapshot
         #    {
@@ -741,7 +736,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.fundingRates[fundingRate['symbol']] = fundingRate
         client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #    {
         #        message: 'Failed to subscribe',
@@ -764,8 +759,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             client.reject(e)
         return True
 
-    def handle_message(self, client, message):
-        if self.handle_error_message(client, message):
+    def handle_message(self, client: object, message: object):
+        if self.handle_error_message(client, message) is True:
             return
         channel = self.safe_string(message, 'channel', '')
         methods = {

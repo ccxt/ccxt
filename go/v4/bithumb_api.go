@@ -7,114 +7,337 @@
 
 package ccxt
 
-func (this *BithumbCore) PublicGetTickerALLQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickerALLQuoteId", args...)
+// PublicGetPublicTickerALLQuoteId returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicTickerALLQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTickerALLQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetTickerBaseIdQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickerBaseIdQuoteId", args...)
+// PublicGetPublicTickerBaseIdQuoteId returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicTickerBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTickerBaseIdQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetOrderbookALLQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderbookALLQuoteId", args...)
+// PublicGetPublicOrderbookALLQuoteId returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicOrderbookALLQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicOrderbookALLQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetOrderbookBaseIdQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderbookBaseIdQuoteId", args...)
+// PublicGetPublicOrderbookBaseIdQuoteId returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicOrderbookBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicOrderbookBaseIdQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetTransactionHistoryBaseIdQuoteId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTransactionHistoryBaseIdQuoteId", args...)
+// PublicGetPublicTransactionHistoryBaseIdQuoteId returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicTransactionHistoryBaseIdQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTransactionHistoryBaseIdQuoteId", args...)
 }
 
-func (this *BithumbCore) PublicGetNetworkInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetNetworkInfo", args...)
+// PublicGetPublicNetworkInfo returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicNetworkInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicNetworkInfo", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusMultichainALL(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetsstatusMultichainALL", args...)
+// PublicGetPublicAssetsstatusMultichainALL returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicAssetsstatusMultichainALL(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicAssetsstatusMultichainALL", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusMultichainCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetsstatusMultichainCurrency", args...)
+// PublicGetPublicAssetsstatusMultichainCurrency returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicAssetsstatusMultichainCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicAssetsstatusMultichainCurrency", args...)
 }
 
-func (this *BithumbCore) PublicGetWithdrawMinimumALL(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetWithdrawMinimumALL", args...)
+// PublicGetPublicWithdrawMinimumALL returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicWithdrawMinimumALL(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicWithdrawMinimumALL", args...)
 }
 
-func (this *BithumbCore) PublicGetWithdrawMinimumCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetWithdrawMinimumCurrency", args...)
+// PublicGetPublicWithdrawMinimumCurrency returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicWithdrawMinimumCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicWithdrawMinimumCurrency", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusALL(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetsstatusALL", args...)
+// PublicGetPublicAssetsstatusALL returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicAssetsstatusALL(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicAssetsstatusALL", args...)
 }
 
-func (this *BithumbCore) PublicGetAssetsstatusBaseId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetsstatusBaseId", args...)
+// PublicGetPublicAssetsstatusBaseId returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicAssetsstatusBaseId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicAssetsstatusBaseId", args...)
 }
 
-func (this *BithumbCore) PublicGetCandlestickBaseIdQuoteIdInterval(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCandlestickBaseIdQuoteIdInterval", args...)
+// PublicGetPublicCandlestickBaseIdQuoteIdInterval returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetPublicCandlestickBaseIdQuoteIdInterval(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCandlestickBaseIdQuoteIdInterval", args...)
 }
 
+// PublicGetV1MarketAll returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1MarketAll(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1MarketAll", args...)
+}
+
+// PublicGetV1CandlesMinutesUnit returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1CandlesMinutesUnit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1CandlesMinutesUnit", args...)
+}
+
+// PublicGetV1CandlesDays returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1CandlesDays(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1CandlesDays", args...)
+}
+
+// PublicGetV1CandlesWeeks returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1CandlesWeeks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1CandlesWeeks", args...)
+}
+
+// PublicGetV1CandlesMonths returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1CandlesMonths(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1CandlesMonths", args...)
+}
+
+// PublicGetV1TradesTicks returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1TradesTicks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1TradesTicks", args...)
+}
+
+// PublicGetV1Ticker returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1Ticker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1Ticker", args...)
+}
+
+// PublicGetV1Orderbook returns a channel that yields a JSON array.
+func (this *BithumbCore) PublicGetV1Orderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1Orderbook", args...)
+}
+
+// PublicGetV1MarketVirtualAssetWarning returns a channel that yields a JSON object or a JSON array.
+func (this *BithumbCore) PublicGetV1MarketVirtualAssetWarning(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1MarketVirtualAssetWarning", args...)
+}
+
+// PublicGetV1Notices returns a channel that yields a JSON object or a JSON array.
+func (this *BithumbCore) PublicGetV1Notices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1Notices", args...)
+}
+
+// PublicGetV2FeeInoutCurrency returns a channel that yields a JSON object.
+func (this *BithumbCore) PublicGetV2FeeInoutCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV2FeeInoutCurrency", args...)
+}
+
+// PrivateGetV1Accounts returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1Accounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Accounts", args...)
+}
+
+// PrivateGetV1OrdersChance returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1OrdersChance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1OrdersChance", args...)
+}
+
+// PrivateGetV1Order returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1Order(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Order", args...)
+}
+
+// PrivateGetV1Orders returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1Orders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Orders", args...)
+}
+
+// PrivateGetV1Twap returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1Twap(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Twap", args...)
+}
+
+// PrivateGetV1Withdraws returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1Withdraws(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Withdraws", args...)
+}
+
+// PrivateGetV1WithdrawsKrw returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1WithdrawsKrw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1WithdrawsKrw", args...)
+}
+
+// PrivateGetV1Withdraw returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1Withdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Withdraw", args...)
+}
+
+// PrivateGetV1WithdrawsChance returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1WithdrawsChance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1WithdrawsChance", args...)
+}
+
+// PrivateGetV1WithdrawsCoinAddresses returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1WithdrawsCoinAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1WithdrawsCoinAddresses", args...)
+}
+
+// PrivateGetV1Deposits returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1Deposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Deposits", args...)
+}
+
+// PrivateGetV1DepositsKrw returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1DepositsKrw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1DepositsKrw", args...)
+}
+
+// PrivateGetV1Deposit returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1Deposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1Deposit", args...)
+}
+
+// PrivateGetV1DepositsCoinAddresses returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivateGetV1DepositsCoinAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1DepositsCoinAddresses", args...)
+}
+
+// PrivateGetV1DepositsCoinAddress returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV1DepositsCoinAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1DepositsCoinAddress", args...)
+}
+
+// PrivateGetV1StatusWallet returns a channel that yields a JSON object or a JSON array.
+func (this *BithumbCore) PrivateGetV1StatusWallet(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1StatusWallet", args...)
+}
+
+// PrivateGetV1ApiKeys returns a channel that yields a JSON object or a JSON array.
+func (this *BithumbCore) PrivateGetV1ApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1ApiKeys", args...)
+}
+
+// PrivatePostInfoAccount returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoAccount", args...)
 }
 
+// PrivatePostInfoBalance returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoBalance", args...)
 }
 
+// PrivatePostInfoWalletAddress returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoWalletAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoWalletAddress", args...)
 }
 
+// PrivatePostInfoTicker returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoTicker", args...)
 }
 
+// PrivatePostInfoOrders returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoOrders", args...)
 }
 
+// PrivatePostInfoUserTransactions returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoUserTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoUserTransactions", args...)
 }
 
+// PrivatePostInfoOrderDetail returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostInfoOrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostInfoOrderDetail", args...)
 }
 
+// PrivatePostTradePlace returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradePlace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradePlace", args...)
 }
 
+// PrivatePostTradeCancel returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeCancel", args...)
 }
 
+// PrivatePostTradeBtcWithdrawal returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeBtcWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeBtcWithdrawal", args...)
 }
 
+// PrivatePostTradeKrwDeposit returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeKrwDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeKrwDeposit", args...)
 }
 
+// PrivatePostTradeKrwWithdrawal returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeKrwWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeKrwWithdrawal", args...)
 }
 
+// PrivatePostTradeMarketBuy returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeMarketBuy(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeMarketBuy", args...)
 }
 
+// PrivatePostTradeMarketSell returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeMarketSell(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeMarketSell", args...)
 }
 
+// PrivatePostTradeStopLimit returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostTradeStopLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeStopLimit", args...)
+}
+
+// PrivatePostV2Orders returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV2Orders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2Orders", args...)
+}
+
+// PrivatePostV2OrdersBatch returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV2OrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2OrdersBatch", args...)
+}
+
+// PrivatePostV2OrdersCancel returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV2OrdersCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2OrdersCancel", args...)
+}
+
+// PrivatePostV1Twap returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV1Twap(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1Twap", args...)
+}
+
+// PrivatePostV1WithdrawsCoin returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV1WithdrawsCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1WithdrawsCoin", args...)
+}
+
+// PrivatePostV1WithdrawsKrw returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV1WithdrawsKrw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1WithdrawsKrw", args...)
+}
+
+// PrivatePostV1DepositsGenerateCoinAddress returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV1DepositsGenerateCoinAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1DepositsGenerateCoinAddress", args...)
+}
+
+// PrivatePostV1DepositsKrw returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivatePostV1DepositsKrw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1DepositsKrw", args...)
+}
+
+// PrivateDeleteV2Order returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateDeleteV2Order(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteV2Order", args...)
+}
+
+// PrivateDeleteV1Twap returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateDeleteV1Twap(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteV1Twap", args...)
+}
+
+// PrivateDeleteV1WithdrawsCoin returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateDeleteV1WithdrawsCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteV1WithdrawsCoin", args...)
 }

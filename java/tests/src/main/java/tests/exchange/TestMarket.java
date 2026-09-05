@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -11,7 +12,7 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestMarket extends BaseTest {
-    public static void testMarket(Exchange exchange, Object skippedProperties, Object method, Object market)
+    public static void testMarket(BaseExchange exchange, Object skippedProperties, Object method, Object market)
     {
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
@@ -88,7 +89,7 @@ public class TestMarket extends BaseTest {
         Object isInactiveMarket = Helpers.isEqual(Helpers.GetValue(market, "active"), false);
         //
         Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("margin"));
-        if (!Helpers.isTrue(contract))
+        if (Helpers.isTrue(!Helpers.isEqual(contract, true)))
         {
             ((java.util.List<Object>)emptyAllowedFor).add("contractSize");
             ((java.util.List<Object>)emptyAllowedFor).add("linear");
@@ -97,12 +98,12 @@ public class TestMarket extends BaseTest {
             ((java.util.List<Object>)emptyAllowedFor).add("settle");
             ((java.util.List<Object>)emptyAllowedFor).add("settleId");
         }
-        if (Helpers.isTrue(!Helpers.isTrue(future) && !Helpers.isTrue(option)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(future, true))) && Helpers.isTrue((!Helpers.isEqual(option, true)))))
         {
             ((java.util.List<Object>)emptyAllowedFor).add("expiry");
             ((java.util.List<Object>)emptyAllowedFor).add("expiryDatetime");
         }
-        if (!Helpers.isTrue(option))
+        if (Helpers.isTrue(!Helpers.isEqual(option, true)))
         {
             ((java.util.List<Object>)emptyAllowedFor).add("optionType");
             ((java.util.List<Object>)emptyAllowedFor).add("strike");
@@ -117,8 +118,18 @@ public class TestMarket extends BaseTest {
             ((java.util.List<Object>)emptyAllowedFor).add("base");
             ((java.util.List<Object>)emptyAllowedFor).add("quote");
         }
+        if (Helpers.isTrue(Helpers.isEqual(exchange.safeString(market, "type"), "prediction")))
+        {
+            // prediction market rows carry the unified 'market' handle, the
+            // deprecated 'symbol' key is intentionally absent from their structures
+            format = exchange.omit(format, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol")));
+        }
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
+        // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+        if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction")))
+        {
+            TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
+        }
         Object logText = TestSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
         // todo: check not all to be within 0-1.0
@@ -126,8 +137,8 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "taker", "100");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
-        // validate type
-        Object validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "other"));
+        // validate type ('prediction' for prediction-market exchanges)
+        Object validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         Object validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
@@ -137,26 +148,26 @@ public class TestMarket extends BaseTest {
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
             Object type = Helpers.GetValue(checkedTypes, i);
-            if (Helpers.isTrue(Helpers.GetValue(market, type)))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, type), true)))
             {
                 Assert(Helpers.isEqual(type, Helpers.GetValue(market, "type")), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.type (", Helpers.GetValue(market, "type")), ") not equal to \""), type), "\""), logText));
             }
         }
         // check if 'subType' is consistent
-        if (Helpers.isTrue(Helpers.isTrue(swap) || Helpers.isTrue(future)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(swap, true))) || Helpers.isTrue((Helpers.isEqual(future, true)))))
         {
             Object checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);
-                if (Helpers.isTrue(Helpers.GetValue(market, subType)))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, subType), true)))
                 {
                     Assert(Helpers.isEqual(subType, Helpers.GetValue(market, "subType")), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.subType (", Helpers.GetValue(market, "subType")), ") not equal to \""), subType), "\""), logText));
                 }
             }
         }
         // margin check (todo: add margin as mandatory, instead of undefined)
-        if (Helpers.isTrue(spot))
+        if (Helpers.isTrue(Helpers.isEqual(spot, true)))
         {
             // for spot market, 'margin' can be either true/false or undefined
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new java.util.ArrayList<Object>(java.util.Arrays.asList(true, false, null)));
@@ -166,17 +177,22 @@ public class TestMarket extends BaseTest {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new java.util.ArrayList<Object>(java.util.Arrays.asList(false, null)));
         }
         // check mutually exclusive fields
-        if (Helpers.isTrue(spot))
+        Object isPrediction = (Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction"));
+        if (Helpers.isTrue(isPrediction))
         {
-            Assert(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(contract) && Helpers.isTrue(Helpers.isEqual(linear, null))) && Helpers.isTrue(Helpers.isEqual(inverse, null))) && !Helpers.isTrue(option)) && !Helpers.isTrue(swap)) && !Helpers.isTrue(future), Helpers.add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText));
+            // prediction markets trade outcome shares — neither spot nor a derivative contract
+            Assert(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(spot, true))) && Helpers.isTrue((!Helpers.isEqual(contract, true)))) && Helpers.isTrue((!Helpers.isEqual(future, true)))) && Helpers.isTrue((!Helpers.isEqual(swap, true)))) && Helpers.isTrue((!Helpers.isEqual(option, true))), Helpers.add("for prediction market, none of spot/contract/future/swap/option should be set", logText));
+        } else if (Helpers.isTrue(Helpers.isEqual(spot, true)))
+        {
+            Assert(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isEqual(linear, null)))) && Helpers.isTrue((Helpers.isEqual(inverse, null)))) && Helpers.isTrue((!Helpers.isEqual(option, true)))) && Helpers.isTrue((!Helpers.isEqual(swap, true)))) && Helpers.isTrue((!Helpers.isEqual(future, true))), Helpers.add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText));
         } else
         {
             // if not spot, any of the below should be true
-            Assert(Helpers.isTrue(contract) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(future) || Helpers.isTrue(swap)) || Helpers.isTrue(option)) || Helpers.isTrue(isIndex))), Helpers.add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
+            Assert(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(future, true))) || Helpers.isTrue((Helpers.isEqual(swap, true)))) || Helpers.isTrue((Helpers.isEqual(option, true)))) || Helpers.isTrue((Helpers.isEqual(isIndex, true))))), Helpers.add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
         }
         Object contractSize = exchange.safeString(market, "contractSize");
         // contract fields
-        if (Helpers.isTrue(Helpers.isTrue(contract) && !Helpers.isTrue(isInactiveMarket)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && !Helpers.isTrue(isInactiveMarket)))
         {
             if (Helpers.isTrue(isQuanto))
             {
@@ -195,7 +211,7 @@ public class TestMarket extends BaseTest {
             Assert(Helpers.isTrue((Helpers.inOp(skippedProperties, "contractSize"))) || Helpers.isTrue(Precise.stringGt(contractSize, "0")), Helpers.add("\"contractSize\" must be > 0 when \"contract\" is true", logText));
             // settle should be defined
             Assert(Helpers.isTrue((Helpers.inOp(skippedProperties, "settle"))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settle"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settleId"), null)))), Helpers.add("\"settle\" & \"settleId\" must be defined when \"contract\" is true", logText));
-        } else if (!Helpers.isTrue(contract))
+        } else if (Helpers.isTrue(!Helpers.isEqual(contract, true)))
         {
             // linear & inverse needs to be undefined
             Assert(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(linear, null)) && Helpers.isTrue(Helpers.isEqual(inverse, null))) && Helpers.isTrue(Helpers.isEqual(quanto, null)), Helpers.add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText));
@@ -205,18 +221,18 @@ public class TestMarket extends BaseTest {
             Assert(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settleId"), null))), Helpers.add("\"settle\" must be undefined when \"contract\" is false", logText));
         }
         // future, swap and option should be mutually exclusive
-        if (Helpers.isTrue(Helpers.GetValue(market, "future")))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
         {
-            Assert(Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "swap")) && !Helpers.isTrue(Helpers.GetValue(market, "option"))) && !Helpers.isTrue(isIndex), Helpers.add("market swap and option must be false when \"future\" is true", logText));
-        } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            Assert(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "option"), true)))) && Helpers.isTrue((!Helpers.isEqual(isIndex, true))), Helpers.add("market swap and option must be false when \"future\" is true", logText));
+        } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
         {
-            Assert(!Helpers.isTrue(Helpers.GetValue(market, "future")) && !Helpers.isTrue(Helpers.GetValue(market, "option")), Helpers.add("market future and option must be false when \"swap\" is true", logText));
-        } else if (Helpers.isTrue(Helpers.GetValue(market, "option")))
+            Assert(Helpers.isTrue((!Helpers.isEqual(future, true))) && Helpers.isTrue((!Helpers.isEqual(option, true))), Helpers.add("market future and option must be false when \"swap\" is true", logText));
+        } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
         {
-            Assert(!Helpers.isTrue(Helpers.GetValue(market, "future")) && !Helpers.isTrue(Helpers.GetValue(market, "swap")), Helpers.add("market future and swap must be false when \"option\" is true", logText));
+            Assert(Helpers.isTrue((!Helpers.isEqual(future, true))) && Helpers.isTrue((!Helpers.isEqual(swap, true))), Helpers.add("market future and swap must be false when \"option\" is true", logText));
         }
         // check specific fields for options & futures
-        if (Helpers.isTrue(Helpers.isTrue(option) || Helpers.isTrue(future)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(option, true))) || Helpers.isTrue((Helpers.isEqual(future, true)))))
         {
             // future or option markets need 'expiry' and 'expiryDatetime'
             Assert(!Helpers.isEqual(Helpers.GetValue(market, "expiry"), null), Helpers.add("\"expiry\" must be defined when \"future\" is true", logText));
@@ -225,7 +241,7 @@ public class TestMarket extends BaseTest {
             Object isoString = exchange.iso8601(Helpers.GetValue(market, "expiry"));
             Assert(Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), isoString), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("expiryDatetime (\"", Helpers.GetValue(market, "expiryDatetime")), "\") must be equal to expiry in iso8601 format \""), isoString), "\""), logText));
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "expiry", "0");
-            if (Helpers.isTrue(option))
+            if (Helpers.isTrue(Helpers.isEqual(option, true)))
             {
                 // strike should be defined
                 Assert((Helpers.isTrue((Helpers.inOp(skippedProperties, "strike"))) || Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "strike"), null))), Helpers.add("\"strike\" must be defined when \"option\" is true", logText));
@@ -239,7 +255,7 @@ public class TestMarket extends BaseTest {
                 Assert(Helpers.isEqual(Helpers.GetValue(market, "strike"), null), Helpers.add("\"strike\" must be undefined when \"option\" is false", logText));
                 Assert(Helpers.isEqual(Helpers.GetValue(market, "optionType"), null), Helpers.add("\"optionType\" must be undefined when \"option\" is false", logText));
             }
-        } else if (Helpers.isTrue(spot))
+        } else if (Helpers.isTrue(Helpers.isEqual(spot, true)))
         {
             // otherwise, expiry needs to be undefined
             Assert(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiry"), null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null))), Helpers.add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
@@ -253,7 +269,7 @@ public class TestMarket extends BaseTest {
             Object priceOrAmountKey = Helpers.GetValue(precisionKeys, i);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             Object isExclusivePair = Helpers.isEqual(Helpers.GetValue(market, "baseId"), "BTC");
-            Object isNonSpot = !Helpers.isTrue(spot); // such high precision is only allowed in contract markets
+            Object isNonSpot = !Helpers.isEqual(spot, true); // such high precision is only allowed in contract markets
             Object isPrice = Helpers.isEqual(priceOrAmountKey, "price");
             Object isTickSize5 = Precise.stringEq("5", exchange.safeString(Helpers.GetValue(market, "precision"), priceOrAmountKey));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isNonSpot) && Helpers.isTrue(isPrice)) && Helpers.isTrue(isExclusivePair)) && Helpers.isTrue(isTickSize5)))
@@ -291,8 +307,9 @@ public class TestMarket extends BaseTest {
                 }
             }
         }
-        // check currencies
-        if (!Helpers.isTrue(isInactiveMarket))
+        // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+        // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+        if (Helpers.isTrue(!Helpers.isTrue(isInactiveMarket) && !Helpers.isTrue(isPrediction)))
         {
             TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, Helpers.GetValue(market, "baseId"), Helpers.GetValue(market, "base"));
             TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, Helpers.GetValue(market, "quoteId"), Helpers.GetValue(market, "quote"));

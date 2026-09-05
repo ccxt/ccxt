@@ -159,7 +159,7 @@
                         "clientOrderId": "1234"
                     }
                 ],
-                "output": "{\"market_symbol\":\"xrpbrl\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"2\",\"client_order_id\":\"1234\"}"
+                "output": { "market_symbol": "xrpbrl", "side": "BUY", "type": "MARKET", "quantity": "2", "client_order_id": "1234" }
             },
             {
                 "description": "Create a limit sell order",
@@ -172,7 +172,7 @@
                     0.0001,
                     330000
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"quantity\":\"0.0001\",\"price\":\"330000\"}"
+                "output": { "market_symbol": "btcbrl", "side": "SELL", "type": "LIMIT", "quantity": "0.0001", "price": "330000" }
             },
             {
                 "description": "Create a limit buy order",
@@ -185,7 +185,7 @@
                     0.00001,
                     280000
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"0.00001\",\"price\":\"280000\"}"
+                "output": { "market_symbol": "btcbrl", "side": "BUY", "type": "LIMIT", "quantity": "0.00001", "price": "280000" }
             },
             {
                 "description": "Create market buy order",
@@ -197,7 +197,7 @@
                     "BUY",
                     0.000005
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"0.000005\"}"
+                "output": { "market_symbol": "btcbrl", "side": "BUY", "type": "MARKET", "quantity": "0.000005" }
             },
             {
                 "description": "Create market sell order",
@@ -209,7 +209,7 @@
                     "SELL",
                     0.000005
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"0.000005\"}"
+                "output": { "market_symbol": "btcbrl", "side": "SELL", "type": "MARKET", "quantity": "0.000005" }
             },
             {
                 "description": "Create stop market sell order",
@@ -225,7 +225,7 @@
                         "triggerPrice": 330000
                     }
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"STOP_MARKET\",\"stop_price\":\"330000\",\"quantity\":\"0.000005\"}"
+                "output": { "market_symbol": "btcbrl", "side": "SELL", "type": "STOP_MARKET", "stop_price": "330000", "quantity": "0.000005" }
             },
             {
                 "description": "Create stop market buy order",
@@ -241,7 +241,7 @@
                         "triggerPrice": 330000
                     }
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"STOP_MARKET\",\"stop_price\":\"330000\",\"quantity\":\"0.000005\"}"
+                "output": { "market_symbol": "btcbrl", "side": "BUY", "type": "STOP_MARKET", "stop_price": "330000", "quantity": "0.000005" }
             },
             {
                 "description": "Create stop market sell order",
@@ -257,7 +257,7 @@
                         "triggerPrice": 331000
                     }
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"STOP_LIMIT\",\"stop_price\":\"331000\",\"quantity\":\"0.000005\",\"price\":\"330000\"}"
+                "output": { "market_symbol": "btcbrl", "side": "SELL", "type": "STOP_LIMIT", "stop_price": "331000", "quantity": "0.000005", "price": "330000" }
             },
             {
                 "description": "Create stop market buy order",
@@ -273,7 +273,7 @@
                         "triggerPrice": 329000
                     }
                 ],
-                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"stop_price\":\"329000\",\"quantity\":\"0.000005\",\"price\":\"330000\"}"
+                "output": { "market_symbol": "btcbrl", "side": "BUY", "type": "STOP_LIMIT", "stop_price": "329000", "quantity": "0.000005", "price": "330000" }
             }
         ],
         "createOrders": [
@@ -299,7 +299,7 @@
                         }
                     ]
                 ],
-                "output": "{\"data\":[{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"50\"},{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"quantity\":\"0.11\",\"price\":\"70\"}]}"
+                "output": { "data": [ { "market_symbol": "btcbrl", "side": "BUY", "type": "LIMIT", "quantity": "0.1", "price": "50" }, { "market_symbol": "btcbrl", "side": "SELL", "type": "LIMIT", "quantity": "0.11", "price": "70" } ] }
             }
         ],
         "cancelOrder": [
@@ -310,7 +310,7 @@
                 "input": [
                     3916418841
                 ],
-                "output": "{\"id\":3916418841,\"type\":\"ID\"}"
+                "output": { "id": 3916418841, "type": "ID" }
             }
         ],
         "cancelAllOrders": [
@@ -319,7 +319,7 @@
                 "method": "cancelAllOrders",
                 "url": "https://api.foxbit.com.br/rest/v3/orders/cancel",
                 "input": [],
-                "output": "{\"type\":\"ALL\"}"
+                "output": { "type": "ALL" }
             },
             {
                 "description": "Cancel orders by symbol",
@@ -328,7 +328,7 @@
                 "input": [
                     "BTC/BRL"
                 ],
-                "output": "{\"type\":\"MARKET\",\"market_symbol\":\"btcbrl\"}"
+                "output": { "type": "MARKET", "market_symbol": "btcbrl" }
             }
         ],
         "fetchOrder": [
@@ -610,7 +610,7 @@
                     "SELL",
                     0.00001
                 ],
-                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071391945},\"create\":{\"type\":\"MARKET\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"quantity\":\"0.00001\"}}"
+                "output": { "mode": "ALLOW_FAILURE", "cancel": { "type": "ID", "id": 4071391945 }, "create": { "type": "MARKET", "side": "SELL", "market_symbol": "btcbrl", "quantity": "0.00001" } }
             },
             {
                 "description": "Cancel an order and replace by a limit one",
@@ -624,7 +624,7 @@
                     0.0001,
                     355000
                 ],
-                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071396126},\"create\":{\"type\":\"LIMIT\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"quantity\":\"0.0001\",\"price\":\"355000\"}}"
+                "output": { "mode": "ALLOW_FAILURE", "cancel": { "type": "ID", "id": 4071396126 }, "create": { "type": "LIMIT", "side": "SELL", "market_symbol": "btcbrl", "quantity": "0.0001", "price": "355000" } }
             },
             {
                 "description": "Cancel an order and replace by a stop market one",
@@ -638,7 +638,7 @@
                     0.0001,
                     375000
                 ],
-                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071399012},\"create\":{\"type\":\"STOP_MARKET\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"stop_price\":\"375000\",\"quantity\":\"0.0001\"}}"
+                "output": { "mode": "ALLOW_FAILURE", "cancel": { "type": "ID", "id": 4071399012 }, "create": { "type": "STOP_MARKET", "side": "SELL", "market_symbol": "btcbrl", "stop_price": "375000", "quantity": "0.0001" } }
             },
             {
                 "description": "Cancel an order and replace by a instant one",
@@ -651,7 +651,7 @@
                     "SELL",
                     2
                 ],
-                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071399967},\"create\":{\"type\":\"INSTANT\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"amount\":\"2\"}}"
+                "output": { "mode": "ALLOW_FAILURE", "cancel": { "type": "ID", "id": 4071399967 }, "create": { "type": "INSTANT", "side": "SELL", "market_symbol": "btcbrl", "amount": "2" } }
             }
         ],
         "fetchTradingFee": [
@@ -715,7 +715,7 @@
                     "network": "TRC20"
                   }
                 ],
-                "output": "{\"currency_symbol\":\"usdt\",\"amount\":\"5\",\"destination_address\":\"address_here\",\"network_code\":\"trc20\"}"
+                "output": { "currency_symbol": "usdt", "amount": "5", "destination_address": "address_here", "network_code": "trc20" }
             },
             {
                 "description": "withdraw on an unmapped network (Ton)",
@@ -730,7 +730,7 @@
                     "network": "ton"
                   }
                 ],
-                "output": "{\"currency_symbol\":\"usdt\",\"amount\":\"5\",\"destination_address\":\"address_here\",\"network_code\":\"ton\"}"
+                "output": { "currency_symbol": "usdt", "amount": "5", "destination_address": "address_here", "network_code": "ton" }
             },
             {
                 "description": "withdraw with tag",
@@ -745,7 +745,7 @@
                     "network": "ton"
                   }
                 ],
-                "output": "{\"currency_symbol\":\"usdt\",\"amount\":\"5\",\"destination_address\":\"address_here\",\"destination_tag\":\"tag_here\",\"network_code\":\"ton\"}"
+                "output": { "currency_symbol": "usdt", "amount": "5", "destination_address": "address_here", "destination_tag": "tag_here", "network_code": "ton" }
             }
         ]
     }

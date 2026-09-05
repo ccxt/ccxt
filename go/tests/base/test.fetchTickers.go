@@ -6,91 +6,110 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchTickers(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var withoutSymbol any = FetchTickersHelperTest(exchange, skippedProperties, nil)
-		var withSymbol any = FetchTickersHelperTest(exchange, skippedProperties, []any{symbol})
-
-		results := (<-promiseAll([]any{withoutSymbol, withSymbol}))
-		PanicOnError(results)
-		FetchTickersAmountsTest(exchange, skippedProperties, GetValue(results, 0))
-
-		ch <- results
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchTickersBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchTickersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+	// is impractical and the "every active market has a ticker" check doesn't apply — test
+	// fetchTickers by the outcome handle instead
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+
+		predictionResult := (<-FetchTickersHelperTest(exchange, skippedProperties, []any{symbol}))
+		PanicOnError(predictionResult)
+
+		ch <- []any{predictionResult}
+		return nil
+	}
+	var withoutSymbol any = FetchTickersHelperTest(exchange, skippedProperties, nil)
+	var withSymbol any = FetchTickersHelperTest(exchange, skippedProperties, []any{symbol})
+
+	results := (<-promiseAll([]any{withoutSymbol, withSymbol}))
+	PanicOnError(results)
+	FetchTickersAmountsTest(exchange, skippedProperties, GetValue(results, 0))
+
+	ch <- results
+	return nil
 }
 func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		argParams := GetArg(optionalArgs, 0, map[string]any{})
-		_ = argParams
-		var method any = "fetchTickers"
-
-		response := (<-exchange.FetchTickers(argSymbols, argParams))
-		PanicOnError(response)
-		Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dict. "), exchange.Json(response)))
-		var values any = ObjectValues(response)
-		var checkedSymbol any = nil
-		if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
-			checkedSymbol = GetValue(argSymbols, 0)
-		}
-		AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-		for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
-			// todo: symbol check here
-			var ticker any = GetValue(values, i)
-
-			{
-				func() (ret_ any) {
-					defer func() {
-						if ex := recover(); ex != nil {
-							if ex == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-
-								retRes3112 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
-								PanicOnError(retRes3112)
-								return nil
-							}()
-						}
-					}()
-					// try block:
-					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
-					return nil
-				}()
-
-			}
-		}
-
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go fetchTickersHelperTestBody(ch, exchange, skippedProperties, argSymbols, optionalArgs...)
 	return ch
 }
+func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	argParams := GetArg(optionalArgs, 0, map[string]any{})
+	_ = argParams
+	var method string = "fetchTickers"
+
+	response := (<-exchange.(ccxt.IFetchTickers).FetchTickers(argSymbols, argParams))
+	PanicOnError(response)
+	AssertDictionaryResponse(exchange, method, response, exchange.Json(argSymbols))
+	var values []any = ObjectValues(response)
+	var checkedSymbol any = nil
+	if IsTrue(IsTrue(!IsEqual(argSymbols, nil)) && IsTrue(IsEqual(GetArrayLength(argSymbols), 1))) {
+		checkedSymbol = GetValue(argSymbols, 0)
+	}
+	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
+	for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+		// todo: symbol check here
+		var ticker any = GetValue(values, i)
+
+		{
+			func() (ret_ any) {
+				defer func() {
+					if ex := recover(); ex != nil {
+						if ex == "break" {
+							return
+						}
+						ret_ = func() any {
+							// catch block:
+							var ohlcv any = nil
+							var tickerSymbol any = GetValue(ticker, "symbol")
+							if IsTrue(IsTrue((!IsEqual(tickerSymbol, nil))) && IsTrue(TickerExceptionNeedsOhlcv(ex, exchange, ticker))) {
+
+								ohlcv = (<-exchange.FetchOHLCV(tickerSymbol, "1d", nil, 5))
+								PanicOnError(ohlcv)
+							}
+							ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)
+							return nil
+						}()
+					}
+				}()
+				// try block:
+				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+				return nil
+			}()
+
+		}
+	}
+
+	ch <- response
+	return nil
+}
 func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any, tickers any) {
-	var tickersValues any = ObjectValues(tickers)
+	var tickersValues []any = ObjectValues(tickers)
 	if !IsTrue((InOp(skippedProperties, "checkActiveSymbols"))) {
 		//
 		// ensure all "active" symbols have tickers
 		//
 		var nonInactiveMarkets any = GetActiveMarkets(exchange)
-		var notInactiveSymbolsLength any = GetArrayLength(nonInactiveMarkets)
-		var obtainedTickersLength any = GetArrayLength(tickersValues)
-		var minRatio any = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+		var notInactiveSymbolsLength int = GetArrayLength(nonInactiveMarkets)
+		var obtainedTickersLength int = GetArrayLength(tickersValues)
+		var minRatio float64 = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
 		Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, minRatio)), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(notInactiveSymbolsLength)), " active markets"))
 		//
 		// ensure tickers length is less than markets length
 		//
 		var allMarkets any = exchange.GetMarkets()
-		var allMarketsLength any = GetArrayLength(ObjectKeys(allMarkets))
+		if IsTrue(IsEqual(allMarkets, nil)) {
+			return
+		}
+		var allMarketsLength int = GetArrayLength(ObjectKeys(allMarkets))
 		Assert(IsLessThanOrEqual(obtainedTickersLength, allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
 	}
 }

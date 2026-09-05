@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class modetrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(modetrade, self).describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
@@ -53,6 +52,7 @@ class modetrade(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -63,6 +63,7 @@ class modetrade(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchCanceledOrders': False,
@@ -150,133 +151,133 @@ class modetrade(Exchange, ImplicitAPI):
                 'v1': {
                     'public': {
                         'get': {
-                            'public/volume/stats': 1,
-                            'public/broker/name': 1,
-                            'public/chain_info/{broker_id}': 1,
-                            'public/system_info': 1,
-                            'public/vault_balance': 1,
-                            'public/insurancefund': 1,
-                            'public/chain_info': 1,
-                            'faucet/usdc': 1,
-                            'public/account': 1,
-                            'get_account': 1,
-                            'registration_nonce': 1,
-                            'get_orderly_key': 1,
-                            'public/liquidation': 1,
-                            'public/liquidated_positions': 1,
-                            'public/config': 1,
-                            'public/campaign/ranking': 10,
-                            'public/campaign/stats': 10,
-                            'public/campaign/user': 10,
-                            'public/campaign/stats/details': 10,
-                            'public/campaigns': 10,
-                            'public/points/leaderboard': 1,
-                            'client/points': 1,
-                            'public/points/epoch': 1,
-                            'public/points/epoch_dates': 1,
-                            'public/referral/check_ref_code': 1,
-                            'public/referral/verify_ref_code': 1,
-                            'referral/admin_info': 1,
-                            'referral/info': 1,
-                            'referral/referee_info': 1,
-                            'referral/referee_rebate_summary': 1,
-                            'referral/referee_history': 1,
-                            'referral/referral_history': 1,
-                            'referral/rebate_summary': 1,
-                            'client/distribution_history': 1,
-                            'tv/config': 1,
-                            'tv/history': 1,
-                            'tv/symbol_info': 1,
-                            'public/funding_rate_history': 1,
-                            'public/funding_rate/{symbol}': 0.33,
-                            'public/funding_rates': 1,
-                            'public/info': 1,
-                            'public/info/{symbol}': 1,
-                            'public/market_trades': 1,
-                            'public/token': 1,
-                            'public/futures': 1,
-                            'public/futures/{symbol}': 1,
+                            'public/volume/stats': {'cost': 1},
+                            'public/broker/name': {'cost': 1},
+                            'public/chain_info/{broker_id}': {'cost': 1},
+                            'public/system_info': {'cost': 1},
+                            'public/vault_balance': {'cost': 1},
+                            'public/insurancefund': {'cost': 1},
+                            'public/chain_info': {'cost': 1},
+                            'faucet/usdc': {'cost': 1},
+                            'public/account': {'cost': 1},
+                            'get_account': {'cost': 1},
+                            'registration_nonce': {'cost': 1},
+                            'get_orderly_key': {'cost': 1},
+                            'public/liquidation': {'cost': 1},
+                            'public/liquidated_positions': {'cost': 1},
+                            'public/config': {'cost': 1},
+                            'public/campaign/ranking': {'cost': 10},
+                            'public/campaign/stats': {'cost': 10},
+                            'public/campaign/user': {'cost': 10},
+                            'public/campaign/stats/details': {'cost': 10},
+                            'public/campaigns': {'cost': 10},
+                            'public/points/leaderboard': {'cost': 1},
+                            'client/points': {'cost': 1},
+                            'public/points/epoch': {'cost': 1},
+                            'public/points/epoch_dates': {'cost': 1},
+                            'public/referral/check_ref_code': {'cost': 1},
+                            'public/referral/verify_ref_code': {'cost': 1},
+                            'referral/admin_info': {'cost': 1},
+                            'referral/info': {'cost': 1},
+                            'referral/referee_info': {'cost': 1},
+                            'referral/referee_rebate_summary': {'cost': 1},
+                            'referral/referee_history': {'cost': 1},
+                            'referral/referral_history': {'cost': 1},
+                            'referral/rebate_summary': {'cost': 1},
+                            'client/distribution_history': {'cost': 1},
+                            'tv/config': {'cost': 1},
+                            'tv/history': {'cost': 1},
+                            'tv/symbol_info': {'cost': 1},
+                            'public/funding_rate_history': {'cost': 1},
+                            'public/funding_rate/{symbol}': {'cost': 0.33},
+                            'public/funding_rates': {'cost': 1},
+                            'public/info': {'cost': 1},
+                            'public/info/{symbol}': {'cost': 1},
+                            'public/market_trades': {'cost': 1},
+                            'public/token': {'cost': 1},
+                            'public/futures': {'cost': 1},
+                            'public/futures/{symbol}': {'cost': 1},
                         },
                         'post': {
-                            'register_account': 1,
+                            'register_account': {'cost': 1},
                         },
                     },
                     'private': {
                         'get': {
-                            'client/key_info': 6,
-                            'client/orderly_key_ip_restriction': 6,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'algo/order/{oid}': 1,
-                            'algo/client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'algo/orders': 1,
-                            'trade/{tid}': 1,
-                            'trades': 1,
-                            'order/{oid}/trades': 1,
-                            'client/liquidator_liquidations': 1,
-                            'liquidations': 1,
-                            'asset/history': 60,
-                            'client/holding': 1,
-                            'withdraw_nonce': 1,
-                            'settle_nonce': 1,
-                            'pnl_settlement/history': 1,
-                            'volume/user/daily': 60,
-                            'volume/user/stats': 60,
-                            'client/statistics': 60,
-                            'client/info': 60,
-                            'client/statistics/daily': 60,
-                            'positions': 3.33,
-                            'position/{symbol}': 3.33,
-                            'funding_fee/history': 30,
-                            'notification/inbox/notifications': 60,
-                            'notification/inbox/unread': 60,
-                            'volume/broker/daily': 60,
-                            'broker/fee_rate/default': 10,
-                            'broker/user_info': 10,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'client/key_info': {'cost': 6},
+                            'client/orderly_key_ip_restriction': {'cost': 6},
+                            'order/{oid}': {'cost': 1},
+                            'client/order/{client_order_id}': {'cost': 1},
+                            'algo/order/{oid}': {'cost': 1},
+                            'algo/client/order/{client_order_id}': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'algo/orders': {'cost': 1},
+                            'trade/{tid}': {'cost': 1},
+                            'trades': {'cost': 1},
+                            'order/{oid}/trades': {'cost': 1},
+                            'client/liquidator_liquidations': {'cost': 1},
+                            'liquidations': {'cost': 1},
+                            'asset/history': {'cost': 60},
+                            'client/holding': {'cost': 1},
+                            'withdraw_nonce': {'cost': 1},
+                            'settle_nonce': {'cost': 1},
+                            'pnl_settlement/history': {'cost': 1},
+                            'volume/user/daily': {'cost': 60},
+                            'volume/user/stats': {'cost': 60},
+                            'client/statistics': {'cost': 60},
+                            'client/info': {'cost': 60},
+                            'client/statistics/daily': {'cost': 60},
+                            'positions': {'cost': 3.33},
+                            'position/{symbol}': {'cost': 3.33},
+                            'funding_fee/history': {'cost': 30},
+                            'notification/inbox/notifications': {'cost': 60},
+                            'notification/inbox/unread': {'cost': 60},
+                            'volume/broker/daily': {'cost': 60},
+                            'broker/fee_rate/default': {'cost': 10},
+                            'broker/user_info': {'cost': 10},
+                            'orderbook/{symbol}': {'cost': 1},
+                            'kline': {'cost': 1},
                         },
                         'post': {
-                            'orderly_key': 1,
-                            'client/set_orderly_key_ip_restriction': 6,
-                            'client/reset_orderly_key_ip_restriction': 6,
-                            'order': 1,
-                            'batch-order': 10,
-                            'algo/order': 1,
-                            'liquidation': 1,
-                            'claim_insurance_fund': 1,
-                            'withdraw_request': 1,
-                            'settle_pnl': 1,
-                            'notification/inbox/mark_read': 60,
-                            'notification/inbox/mark_read_all': 60,
-                            'client/leverage': 120,
-                            'client/maintenance_config': 60,
-                            'delegate_signer': 10,
-                            'delegate_orderly_key': 10,
-                            'delegate_settle_pnl': 10,
-                            'delegate_withdraw_request': 10,
-                            'broker/fee_rate/set': 10,
-                            'broker/fee_rate/set_default': 10,
-                            'broker/fee_rate/default': 10,
-                            'referral/create': 10,
-                            'referral/update': 10,
-                            'referral/bind': 10,
-                            'referral/edit_split': 10,
+                            'orderly_key': {'cost': 1},
+                            'client/set_orderly_key_ip_restriction': {'cost': 6},
+                            'client/reset_orderly_key_ip_restriction': {'cost': 6},
+                            'order': {'cost': 1},
+                            'batch-order': {'cost': 10},
+                            'algo/order': {'cost': 1},
+                            'liquidation': {'cost': 1},
+                            'claim_insurance_fund': {'cost': 1},
+                            'withdraw_request': {'cost': 1},
+                            'settle_pnl': {'cost': 1},
+                            'notification/inbox/mark_read': {'cost': 60},
+                            'notification/inbox/mark_read_all': {'cost': 60},
+                            'client/leverage': {'cost': 120},
+                            'client/maintenance_config': {'cost': 60},
+                            'delegate_signer': {'cost': 10},
+                            'delegate_orderly_key': {'cost': 10},
+                            'delegate_settle_pnl': {'cost': 10},
+                            'delegate_withdraw_request': {'cost': 10},
+                            'broker/fee_rate/set': {'cost': 10},
+                            'broker/fee_rate/set_default': {'cost': 10},
+                            'broker/fee_rate/default': {'cost': 10},
+                            'referral/create': {'cost': 10},
+                            'referral/update': {'cost': 10},
+                            'referral/bind': {'cost': 10},
+                            'referral/edit_split': {'cost': 10},
                         },
                         'put': {
-                            'order': 1,
-                            'algo/order': 1,
+                            'order': {'cost': 1},
+                            'algo/order': {'cost': 1},
                         },
                         'delete': {
-                            'order': 1,
-                            'algo/order': 1,
-                            'client/order': 1,
-                            'algo/client/order': 1,
-                            'algo/orders': 1,
-                            'orders': 1,
-                            'batch-order': 1,
-                            'client/batch-order': 1,
+                            'order': {'cost': 1},
+                            'algo/order': {'cost': 1},
+                            'client/order': {'cost': 1},
+                            'algo/client/order': {'cost': 1},
+                            'algo/orders': {'cost': 1},
+                            'orders': {'cost': 1},
+                            'batch-order': {'cost': 1},
+                            'client/batch-order': {'cost': 1},
                         },
                     },
                 },
@@ -427,7 +428,7 @@ class modetrade(Exchange, ImplicitAPI):
         super(modetrade, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -523,7 +524,7 @@ class modetrade(Exchange, ImplicitAPI):
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -571,9 +572,9 @@ class modetrade(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'created_time'),
             'info': market,
-        }
+        })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for modetrade
 
@@ -658,7 +659,7 @@ class modetrade(Exchange, ImplicitAPI):
         tokenRows = self.safe_list(data, 'rows', [])
         return self.parse_currencies(tokenRows)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'token')
         networks = self.safe_list(rawCurrency, 'chain_details', [])
         code = self.safe_currency_code(currencyId)
@@ -714,7 +715,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
+    def parse_token_and_fee_temp(self, item: object, feeTokenKey: object, feeAmountKey: object):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -789,7 +790,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -829,7 +830,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -871,7 +872,7 @@ class modetrade(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1028,7 +1029,7 @@ class modetrade(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1186,7 +1187,7 @@ class modetrade(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1219,7 +1220,7 @@ class modetrade(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1229,7 +1230,7 @@ class modetrade(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
@@ -1426,7 +1427,11 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         """
  @ignore
         helper function to build the request
@@ -1469,7 +1474,7 @@ class modetrade(Exchange, ImplicitAPI):
                 request['order_type'] = 'FOK'
             elif timeInForce == 'ioc':
                 request['order_type'] = 'IOC'
-        if reduceOnly:
+        if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request[priceKey] = self.price_to_precision(symbol, price)
@@ -1512,7 +1517,7 @@ class modetrade(Exchange, ImplicitAPI):
                     'type': 'LIMIT',
                     'reduce_only': True,
                 }
-                outterOrder.append(takeProfitOrder)
+                childOrders.append(takeProfitOrder)
             request['child_orders'] = [outterOrder]
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
@@ -1586,7 +1591,7 @@ class modetrade(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params={}):
         """
         *contract only* create a list of trade orders
 
@@ -1735,7 +1740,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if not trigger and (symbol is None):
+        if (trigger is not True) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -1749,7 +1754,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         response: dict
-        if trigger:
+        if trigger is True:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
@@ -1785,12 +1790,12 @@ class modetrade(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger:
+        if trigger is True:
             return self.extend(self.parse_order(response), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1809,7 +1814,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
         response = None
-        if clientOrderIds:
+        if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
         else:
@@ -1835,7 +1840,7 @@ class modetrade(Exchange, ImplicitAPI):
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -1849,7 +1854,7 @@ class modetrade(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        if trigger:
+        if trigger is True:
             response = self.v1PrivateDeleteAlgoOrders(self.extend(request, params))
         else:
             response = self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -1900,15 +1905,15 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
-        if trigger:
-            if clientOrderId:
+        if trigger is True:
+            if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
             else:
                 request['oid'] = id
                 response = self.v1PrivateGetAlgoOrderOid(self.extend(request, params))
         else:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
             else:
@@ -1944,7 +1949,7 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_dict(response, 'data', response)
         return self.parse_order(orders, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1966,7 +1971,7 @@ class modetrade(Exchange, ImplicitAPI):
             self.load_markets()
         paginate = False
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger) else 500
+        maxLimit = 100 if (isTrigger is True) else 500
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit)
@@ -1982,11 +1987,11 @@ class modetrade(Exchange, ImplicitAPI):
             request['size'] = limit
         else:
             request['size'] = maxLimit
-        if isTrigger:
+        if isTrigger is True:
             request['algo_type'] = 'STOP'
         request, params = self.handle_until_option('end_t', request, params)
         response = None
-        if isTrigger:
+        if isTrigger is True:
             response = self.v1PrivateGetAlgoOrders(self.extend(request, params))
         else:
             response = self.v1PrivateGetOrders(self.extend(request, params))
@@ -2028,7 +2033,7 @@ class modetrade(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'rows', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2051,7 +2056,7 @@ class modetrade(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2184,7 +2189,7 @@ class modetrade(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2195,7 +2200,8 @@ class modetrade(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['used'] = self.safe_string(balance, 'frozen')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -2228,7 +2234,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2300,14 +2306,14 @@ class modetrade(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2369,7 +2375,7 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2386,7 +2392,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2403,7 +2409,7 @@ class modetrade(Exchange, ImplicitAPI):
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2446,17 +2452,17 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message):
+    def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2537,7 +2543,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_leverage(self, leverage, market: Market = None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'max_leverage')
         return {
             'info': leverage,
@@ -2682,7 +2688,7 @@ class modetrade(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_position(self, symbol: Str, params={}):
+    def fetch_position(self, symbol: str, params={}):
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
@@ -2730,7 +2736,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2788,7 +2794,7 @@ class modetrade(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: object = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2797,7 +2803,7 @@ class modetrade(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
@@ -2805,7 +2811,7 @@ class modetrade(Exchange, ImplicitAPI):
             isOrder = path == 'algo/order' or path == 'order' or path == 'batch-order'
             if isPostOrPut and isOrder:
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if not isSandboxMode:
+                if isSandboxMode is not True:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(params, 'orders', [])
@@ -2831,7 +2837,7 @@ class modetrade(Exchange, ImplicitAPI):
                 auth += body
                 headers['content-type'] = 'application/json'
             else:
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
                     auth += '?' + self.rawencode(params)
                 headers['content-type'] = 'application/x-www-form-urlencoded'
@@ -2845,8 +2851,8 @@ class modetrade(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if not response:
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+        if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
@@ -2854,7 +2860,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success')
         errorCode = self.safe_string(response, 'code')
-        if not success:
+        if success is not True:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

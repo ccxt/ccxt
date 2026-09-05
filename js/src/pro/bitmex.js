@@ -25,7 +25,7 @@ export default class bitmex extends bitmexRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
-                'watchPostions': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -375,7 +375,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+    watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         return this.watchLiquidationsForSymbols([symbol], since, limit, params);
     }
     /**
@@ -688,8 +688,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     async authenticate(params = {}) {
         const url = this.urls['api']['ws'];
@@ -718,7 +718,7 @@ export default class bitmex extends bitmexRest {
     handleAuthenticationMessage(client, message) {
         const authenticated = this.safeBool(message, 'success', false);
         const messageHash = 'authenticated';
-        if (authenticated) {
+        if (authenticated === true) {
             // we resolve the future here permanently so authentication only happens once
             const future = this.safeValue(client.futures, messageHash);
             future.resolve(true);
@@ -750,7 +750,8 @@ export default class bitmex extends bitmexRest {
         const subscriptionHash = 'position';
         let messageHash = 'positions';
         if (!this.isEmpty(symbols)) {
-            messageHash = '::' + symbols.join(',');
+            symbols = this.marketSymbols(symbols);
+            messageHash = 'positions::' + symbols.join(',');
         }
         const url = this.urls['api']['ws'];
         const request = {
@@ -1307,8 +1308,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -1318,7 +1319,7 @@ export default class bitmex extends bitmexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         let table = undefined;
@@ -1766,7 +1767,7 @@ export default class bitmex extends bitmexRest {
         //         ]
         //     }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             const table = this.safeString(message, 'table');
             const methods = {
                 'orderBookL2': this.handleOrderBook,

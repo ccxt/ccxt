@@ -102,22 +102,39 @@ require_once PATH_TO_CCXT . 'CancelPending.php';
 require_once PATH_TO_CCXT . 'UnsubscribeError.php';
 
 
-require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
-require_once PATH_TO_CCXT . 'Precise.php';
-require_once PATH_TO_CCXT . 'Exchange.php';
-require_once PATH_TO_CCXT_ASYNC . 'Exchange.php';
-
-
+// when installing from source with `composer install`, load the vendored
+// dependencies first, so that ReactPHP can be detected below
 $autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 if (file_exists($autoloadFile)) {
     require_once $autoloadFile;
 }
 
+// the async & pro (WebSocket) parts of the library require ReactPHP
+// if ReactPHP is not installed (e.g. a manual installation from source
+// without Composer), only the synchronous REST part of the library is loaded
+// https://github.com/ccxt/ccxt/issues/29196
+if (!defined('CCXT_SYNC_ONLY')) {
+    define('CCXT_SYNC_ONLY', !interface_exists('React\\Promise\\PromiseInterface'));
+}
+
+require_once PATH_TO_CCXT . 'Precise.php';
+require_once PATH_TO_CCXT . 'Exchange.php';
+
+if (!CCXT_SYNC_ONLY) {
+    require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
+    require_once PATH_TO_CCXT_ASYNC . 'Exchange.php';
+}
+
 spl_autoload_register(function ($class_name) {
-    $sections = explode("\\", $class_name);
-    if (in_array("ccxt\\pro", $sections)) {
-        $class_name = str_replace("ccxt\\pro\\", "", $class_name);
-        $sections = explode("\\", $class_name);
+    if (strpos($class_name, 'ccxt\\') !== 0) {
+        return;
+    }
+    $is_pro = strpos($class_name, 'ccxt\\pro\\') === 0;
+    $is_async = strpos($class_name, 'ccxt\\async\\') === 0;
+    if (($is_pro || $is_async) && CCXT_SYNC_ONLY) {
+        throw new \RuntimeException($class_name . ' requires ReactPHP - install ccxt with Composer to use the async/pro (WebSocket) features, see https://github.com/ccxt/ccxt#php');
+    }
+    if ($is_pro) {
         $class_name = str_replace("ccxt\\pro\\", "", $class_name);
         $file = PATH_TO_WS_CCXT . $class_name . '.php';
         if (file_exists($file)) {
@@ -135,17 +152,16 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-// require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
-
-
 namespace ccxt\pro;
 
-require_once PATH_TO_WS_CCXT . 'Future.php';
-require_once PATH_TO_WS_CCXT . 'Client.php';
-require_once PATH_TO_WS_CCXT . 'OrderBook.php';
-require_once PATH_TO_WS_CCXT . 'OrderBookSide.php';
-require_once PATH_TO_WS_CCXT . 'BaseCache.php';
-require_once PATH_TO_WS_CCXT . 'ArrayCache.php';
-require_once PATH_TO_WS_CCXT . 'ArrayCacheByTimestamp.php';
-require_once PATH_TO_WS_CCXT . 'ArrayCacheBySymbolById.php';
-require_once PATH_TO_WS_CCXT . 'Exchange.php';
+if (!\CCXT_SYNC_ONLY) {
+    require_once PATH_TO_WS_CCXT . 'Future.php';
+    require_once PATH_TO_WS_CCXT . 'Client.php';
+    require_once PATH_TO_WS_CCXT . 'OrderBook.php';
+    require_once PATH_TO_WS_CCXT . 'OrderBookSide.php';
+    require_once PATH_TO_WS_CCXT . 'BaseCache.php';
+    require_once PATH_TO_WS_CCXT . 'ArrayCache.php';
+    require_once PATH_TO_WS_CCXT . 'ArrayCacheByTimestamp.php';
+    require_once PATH_TO_WS_CCXT . 'ArrayCacheBySymbolById.php';
+    require_once PATH_TO_WS_CCXT . 'Exchange.php';
+}

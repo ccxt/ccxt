@@ -152,7 +152,9 @@ class deribit extends deribit$1["default"] {
         const currencyId = this.safeString(data, 'currency');
         const currencyCode = this.safeCurrencyCode(currencyId);
         const balance = this.parseBalance(data);
-        this.balance[currencyCode] = balance;
+        if (currencyCode !== undefined) {
+            this.balance[currencyCode] = balance;
+        }
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
     }
@@ -533,7 +535,7 @@ class deribit extends deribit$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
@@ -547,7 +549,7 @@ class deribit extends deribit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         let interval = undefined;
@@ -897,7 +899,13 @@ class deribit extends deribit$1["default"] {
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, undefined, false);
+        if (symbolsArray === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
+        }
         for (let i = 0; i < symbolsArray.length; i++) {
+            if (symbolsArray === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
+            }
             const current = symbolsArray[i];
             let market = undefined;
             if (isOHLCV) {

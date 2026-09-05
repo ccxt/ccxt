@@ -7,29 +7,29 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchCurrencies(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchCurrencies(BaseExchange exchange, object skippedProperties)
     {
-        object method = "fetchCurrencies";
-        object currencies = await exchange.fetchCurrencies();
+        string method = "fetchCurrencies";
+        object currencies = await invokeExchangeDynamically(exchange, "fetchCurrencies");
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         object numInactiveCurrencies = 0;
         object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
-        object requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
+        List<object> requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
         object features = exchange.features;
         object featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
         object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
         object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!isTrue(isFetchCurrenciesPrivate))
+        if (isTrue(!isEqual(isFetchCurrenciesPrivate, true)))
         {
-            object values = new List<object>(((IDictionary<string,object>)currencies).Values);
+            List<object> values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);
-            object currenciesLength = getArrayLength(values);
+            int currenciesLength = getArrayLength(values);
             // ensure exchange returns enough length of currencies
-            object skipAmount = (inOp(skippedProperties, "amountOfCurrencies"));
+            bool skipAmount = (inOp(skippedProperties, "amountOfCurrencies"));
             assert(isTrue(skipAmount) || isTrue(isGreaterThan(currenciesLength, 5)), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
             // allow skipped exchanges
-            object skipActive = (inOp(skippedProperties, "activeCurrenciesQuota"));
-            object skipMajorCurrencyCheck = (inOp(skippedProperties, "activeMajorCurrencies"));
+            bool skipActive = (inOp(skippedProperties, "activeCurrenciesQuota"));
+            bool skipMajorCurrencyCheck = (inOp(skippedProperties, "activeMajorCurrencies"));
             // loop
             for (object i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
             {
@@ -46,10 +46,10 @@ public partial class testMainClass : BaseTest
                 object withdraw = exchange.safeBool(currency, "withdraw");
                 object deposit = exchange.safeBool(currency, "deposit");
                 object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                object skipUsdtForMica = isTrue(isMicaCompliant) && isTrue(isEqual(code, "USDT"));
-                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && !isTrue(skipUsdtForMica)))
+                bool skipUsdtForMica = isTrue((isEqual(isMicaCompliant, true))) && isTrue((isEqual(code, "USDT")));
+                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && isTrue((!isEqual(skipUsdtForMica, true)))))
                 {
-                    assert(isTrue(withdraw) && isTrue(deposit), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    assert(isTrue((isEqual(withdraw, true))) && isTrue((isEqual(deposit, true))), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
@@ -59,11 +59,11 @@ public partial class testMainClass : BaseTest
         }
         return true;
     }
-    public static object detectCurrencyConflicts(Exchange exchange, object currencyValues)
+    public static object detectCurrencyConflicts(BaseExchange exchange, object currencyValues)
     {
         // detect if there are currencies with different ids for the same code
-        object ids = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
+        Dictionary<string, object> ids = new Dictionary<string, object>() {};
+        List<object> keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -74,7 +74,7 @@ public partial class testMainClass : BaseTest
                 ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
             } else
             {
-                object isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));
+                bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));
                 assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), getValue(ids, code)), " "), getValue(currency, "id")));
             }
         }

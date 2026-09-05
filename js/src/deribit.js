@@ -143,144 +143,144 @@ export default class deribit extends Exchange {
                 'public': {
                     'get': {
                         // Authentication
-                        'auth': 1,
-                        'exchange_token': 1,
-                        'fork_token': 1,
+                        'auth': { 'cost': 1 },
+                        'exchange_token': { 'cost': 1 },
+                        'fork_token': { 'cost': 1 },
                         // Session management
-                        'set_heartbeat': 1,
-                        'disable_heartbeat': 1,
+                        'set_heartbeat': { 'cost': 1 },
+                        'disable_heartbeat': { 'cost': 1 },
                         // Supporting
-                        'get_time': 1,
-                        'hello': 1,
-                        'status': 1,
-                        'test': 1,
+                        'get_time': { 'cost': 1 },
+                        'hello': { 'cost': 1 },
+                        'status': { 'cost': 1 },
+                        'test': { 'cost': 1 },
                         // Subscription management
-                        'subscribe': 1,
-                        'unsubscribe': 1,
-                        'unsubscribe_all': 1,
+                        'subscribe': { 'cost': 1 },
+                        'unsubscribe': { 'cost': 1 },
+                        'unsubscribe_all': { 'cost': 1 },
                         // Account management
-                        'get_announcements': 1,
+                        'get_announcements': { 'cost': 1 },
                         // Market data
-                        'get_book_summary_by_currency': 1,
-                        'get_book_summary_by_instrument': 1,
-                        'get_contract_size': 1,
-                        'get_currencies': 1,
-                        'get_delivery_prices': 1,
-                        'get_funding_chart_data': 1,
-                        'get_funding_rate_history': 1,
-                        'get_funding_rate_value': 1,
-                        'get_historical_volatility': 1,
-                        'get_index': 1,
-                        'get_index_price': 1,
-                        'get_index_price_names': 1,
-                        'get_instrument': 1,
-                        'get_instruments': 1,
-                        'get_last_settlements_by_currency': 1,
-                        'get_last_settlements_by_instrument': 1,
-                        'get_last_trades_by_currency': 1,
-                        'get_last_trades_by_currency_and_time': 1,
-                        'get_last_trades_by_instrument': 1,
-                        'get_last_trades_by_instrument_and_time': 1,
-                        'get_mark_price_history': 1,
-                        'get_order_book': 1,
-                        'get_trade_volumes': 1,
-                        'get_tradingview_chart_data': 1,
-                        'get_volatility_index_data': 1,
-                        'ticker': 1,
+                        'get_book_summary_by_currency': { 'cost': 1 },
+                        'get_book_summary_by_instrument': { 'cost': 1 },
+                        'get_contract_size': { 'cost': 1 },
+                        'get_currencies': { 'cost': 1 },
+                        'get_delivery_prices': { 'cost': 1 },
+                        'get_funding_chart_data': { 'cost': 1 },
+                        'get_funding_rate_history': { 'cost': 1 },
+                        'get_funding_rate_value': { 'cost': 1 },
+                        'get_historical_volatility': { 'cost': 1 },
+                        'get_index': { 'cost': 1 },
+                        'get_index_price': { 'cost': 1 },
+                        'get_index_price_names': { 'cost': 1 },
+                        'get_instrument': { 'cost': 1 },
+                        'get_instruments': { 'cost': 1 },
+                        'get_last_settlements_by_currency': { 'cost': 1 },
+                        'get_last_settlements_by_instrument': { 'cost': 1 },
+                        'get_last_trades_by_currency': { 'cost': 1 },
+                        'get_last_trades_by_currency_and_time': { 'cost': 1 },
+                        'get_last_trades_by_instrument': { 'cost': 1 },
+                        'get_last_trades_by_instrument_and_time': { 'cost': 1 },
+                        'get_mark_price_history': { 'cost': 1 },
+                        'get_order_book': { 'cost': 1 },
+                        'get_trade_volumes': { 'cost': 1 },
+                        'get_tradingview_chart_data': { 'cost': 1 },
+                        'get_volatility_index_data': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
                         // Authentication
-                        'logout': 1,
+                        'logout': { 'cost': 1 },
                         // Session management
-                        'enable_cancel_on_disconnect': 1,
-                        'disable_cancel_on_disconnect': 1,
-                        'get_cancel_on_disconnect': 1,
+                        'enable_cancel_on_disconnect': { 'cost': 1 },
+                        'disable_cancel_on_disconnect': { 'cost': 1 },
+                        'get_cancel_on_disconnect': { 'cost': 1 },
                         // Subscription management
-                        'subscribe': 1,
-                        'unsubscribe': 1,
-                        'unsubscribe_all': 1,
+                        'subscribe': { 'cost': 1 },
+                        'unsubscribe': { 'cost': 1 },
+                        'unsubscribe_all': { 'cost': 1 },
                         // Account management
-                        'change_api_key_name': 1,
-                        'change_scope_in_api_key': 1,
-                        'change_subaccount_name': 1,
-                        'create_api_key': 1,
-                        'create_subaccount': 1,
-                        'disable_api_key': 1,
-                        'disable_tfa_for_subaccount': 1,
-                        'enable_affiliate_program': 1,
-                        'enable_api_key': 1,
-                        'get_access_log': 1,
-                        'get_account_summary': 1,
-                        'get_account_summaries': 1,
-                        'get_affiliate_program_info': 1,
-                        'get_email_language': 1,
-                        'get_new_announcements': 1,
-                        'get_portfolio_margins': 1,
-                        'get_position': 1,
-                        'get_positions': 1,
-                        'get_subaccounts': 1,
-                        'get_subaccounts_details': 1,
-                        'get_transaction_log': 1,
-                        'list_api_keys': 1,
-                        'remove_api_key': 1,
-                        'remove_subaccount': 1,
-                        'reset_api_key': 1,
-                        'set_announcement_as_read': 1,
-                        'set_api_key_as_default': 1,
-                        'set_email_for_subaccount': 1,
-                        'set_email_language': 1,
-                        'set_password_for_subaccount': 1,
-                        'toggle_notifications_from_subaccount': 1,
-                        'toggle_subaccount_login': 1,
+                        'change_api_key_name': { 'cost': 1 },
+                        'change_scope_in_api_key': { 'cost': 1 },
+                        'change_subaccount_name': { 'cost': 1 },
+                        'create_api_key': { 'cost': 1 },
+                        'create_subaccount': { 'cost': 1 },
+                        'disable_api_key': { 'cost': 1 },
+                        'disable_tfa_for_subaccount': { 'cost': 1 },
+                        'enable_affiliate_program': { 'cost': 1 },
+                        'enable_api_key': { 'cost': 1 },
+                        'get_access_log': { 'cost': 1 },
+                        'get_account_summary': { 'cost': 1 },
+                        'get_account_summaries': { 'cost': 1 },
+                        'get_affiliate_program_info': { 'cost': 1 },
+                        'get_email_language': { 'cost': 1 },
+                        'get_new_announcements': { 'cost': 1 },
+                        'get_portfolio_margins': { 'cost': 1 },
+                        'get_position': { 'cost': 1 },
+                        'get_positions': { 'cost': 1 },
+                        'get_subaccounts': { 'cost': 1 },
+                        'get_subaccounts_details': { 'cost': 1 },
+                        'get_transaction_log': { 'cost': 1 },
+                        'list_api_keys': { 'cost': 1 },
+                        'remove_api_key': { 'cost': 1 },
+                        'remove_subaccount': { 'cost': 1 },
+                        'reset_api_key': { 'cost': 1 },
+                        'set_announcement_as_read': { 'cost': 1 },
+                        'set_api_key_as_default': { 'cost': 1 },
+                        'set_email_for_subaccount': { 'cost': 1 },
+                        'set_email_language': { 'cost': 1 },
+                        'set_password_for_subaccount': { 'cost': 1 },
+                        'toggle_notifications_from_subaccount': { 'cost': 1 },
+                        'toggle_subaccount_login': { 'cost': 1 },
                         // Block Trade
-                        'execute_block_trade': 4,
-                        'get_block_trade': 1,
-                        'get_last_block_trades_by_currency': 1,
-                        'invalidate_block_trade_signature': 1,
-                        'verify_block_trade': 4,
+                        'execute_block_trade': { 'cost': 4 },
+                        'get_block_trade': { 'cost': 1 },
+                        'get_last_block_trades_by_currency': { 'cost': 1 },
+                        'invalidate_block_trade_signature': { 'cost': 1 },
+                        'verify_block_trade': { 'cost': 4 },
                         // Trading
-                        'buy': 4,
-                        'sell': 4,
-                        'edit': 4,
-                        'edit_by_label': 4,
-                        'cancel': 4,
-                        'cancel_all': 4,
-                        'cancel_all_by_currency': 4,
-                        'cancel_all_by_instrument': 4,
-                        'cancel_by_label': 4,
-                        'close_position': 4,
-                        'get_margins': 1,
-                        'get_mmp_config': 1,
-                        'get_open_orders_by_currency': 1,
-                        'get_open_orders_by_instrument': 1,
-                        'get_order_history_by_currency': 1,
-                        'get_order_history_by_instrument': 1,
-                        'get_order_margin_by_ids': 1,
-                        'get_order_state': 1,
-                        'get_stop_order_history': 1, // deprecated
-                        'get_trigger_order_history': 1,
-                        'get_user_trades_by_currency': 1,
-                        'get_user_trades_by_currency_and_time': 1,
-                        'get_user_trades_by_instrument': 1,
-                        'get_user_trades_by_instrument_and_time': 1,
-                        'get_user_trades_by_order': 1,
-                        'reset_mmp': 1,
-                        'set_mmp_config': 1,
-                        'get_settlement_history_by_instrument': 1,
-                        'get_settlement_history_by_currency': 1,
+                        'buy': { 'cost': 4 },
+                        'sell': { 'cost': 4 },
+                        'edit': { 'cost': 4 },
+                        'edit_by_label': { 'cost': 4 },
+                        'cancel': { 'cost': 4 },
+                        'cancel_all': { 'cost': 4 },
+                        'cancel_all_by_currency': { 'cost': 4 },
+                        'cancel_all_by_instrument': { 'cost': 4 },
+                        'cancel_by_label': { 'cost': 4 },
+                        'close_position': { 'cost': 4 },
+                        'get_margins': { 'cost': 1 },
+                        'get_mmp_config': { 'cost': 1 },
+                        'get_open_orders_by_currency': { 'cost': 1 },
+                        'get_open_orders_by_instrument': { 'cost': 1 },
+                        'get_order_history_by_currency': { 'cost': 1 },
+                        'get_order_history_by_instrument': { 'cost': 1 },
+                        'get_order_margin_by_ids': { 'cost': 1 },
+                        'get_order_state': { 'cost': 1 },
+                        'get_stop_order_history': { 'cost': 1 }, // deprecated
+                        'get_trigger_order_history': { 'cost': 1 },
+                        'get_user_trades_by_currency': { 'cost': 1 },
+                        'get_user_trades_by_currency_and_time': { 'cost': 1 },
+                        'get_user_trades_by_instrument': { 'cost': 1 },
+                        'get_user_trades_by_instrument_and_time': { 'cost': 1 },
+                        'get_user_trades_by_order': { 'cost': 1 },
+                        'reset_mmp': { 'cost': 1 },
+                        'set_mmp_config': { 'cost': 1 },
+                        'get_settlement_history_by_instrument': { 'cost': 1 },
+                        'get_settlement_history_by_currency': { 'cost': 1 },
                         // Wallet
-                        'cancel_transfer_by_id': 1,
-                        'cancel_withdrawal': 1,
-                        'create_deposit_address': 1,
-                        'get_current_deposit_address': 1,
-                        'get_deposits': 1,
-                        'get_transfers': 1,
-                        'get_withdrawals': 1,
-                        'submit_transfer_to_subaccount': 1,
-                        'submit_transfer_to_user': 1,
-                        'withdraw': 1,
+                        'cancel_transfer_by_id': { 'cost': 1 },
+                        'cancel_withdrawal': { 'cost': 1 },
+                        'create_deposit_address': { 'cost': 1 },
+                        'get_current_deposit_address': { 'cost': 1 },
+                        'get_deposits': { 'cost': 1 },
+                        'get_transfers': { 'cost': 1 },
+                        'get_withdrawals': { 'cost': 1 },
+                        'submit_transfer_to_subaccount': { 'cost': 1 },
+                        'submit_transfer_to_user': { 'cost': 1 },
+                        'withdraw': { 'cost': 1 },
                     },
                 },
             },
@@ -524,6 +524,9 @@ export default class deribit extends Exchange {
             settle = base;
         }
         let splitBase = base;
+        if (base === undefined) {
+            throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
+        }
         if (base.indexOf('_') > -1) {
             const splitSymbol = base.split('_');
             splitBase = this.safeString(splitSymbol, 0);
@@ -581,7 +584,7 @@ export default class deribit extends Exchange {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -931,8 +934,17 @@ export default class deribit extends Exchange {
                 const settle = this.safeCurrencyCode(settleId);
                 const settlementPeriod = this.safeValue(market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
+                if (kind === undefined) {
+                    throw new ExchangeError(this.id + ' method() missing kind');
+                }
                 const future = !swap && (kind.indexOf('future') >= 0);
+                if (kind === undefined) {
+                    throw new ExchangeError(this.id + ' method() missing kind');
+                }
                 const option = (kind.indexOf('option') >= 0);
+                if (kind === undefined) {
+                    throw new ExchangeError(this.id + ' method() missing kind');
+                }
                 const isComboMarket = kind.indexOf('combo') >= 0;
                 const expiry = this.safeInteger(market, 'expiration_timestamp');
                 let strike = undefined;
@@ -968,10 +980,12 @@ export default class deribit extends Exchange {
                     linear = (settle === quote);
                 }
                 const parsedMarketValue = this.safeValue(parsedMarkets, symbol);
-                if (parsedMarketValue) {
+                if (parsedMarketValue !== undefined) {
                     continue;
                 }
-                parsedMarkets[symbol] = true;
+                if (symbol !== undefined) {
+                    parsedMarkets[symbol] = true;
+                }
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({
@@ -1035,7 +1049,7 @@ export default class deribit extends Exchange {
         };
         let summaries = [];
         if ('summaries' in balance) {
-            summaries = this.safeList(balance, 'summaries');
+            summaries = this.safeList(balance, 'summaries', []);
         }
         else {
             summaries = [balance];
@@ -1048,7 +1062,9 @@ export default class deribit extends Exchange {
             account['free'] = this.safeString(data, 'available_funds');
             account['used'] = this.safeString(data, 'maintenance_margin');
             account['total'] = this.safeString(data, 'equity');
-            result[currencyCode] = account;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1281,8 +1297,8 @@ export default class deribit extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeString(stats, 'volume'),
+            'baseVolume': this.safeString(stats, 'volume'),
+            'quoteVolume': this.safeString2(stats, 'volume_notional', 'volume_usd'),
             'markPrice': this.safeString(ticker, 'mark_price'),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
@@ -1425,7 +1441,9 @@ export default class deribit extends Exchange {
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker(result[i]);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
@@ -1559,7 +1577,7 @@ export default class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = Precise.stringMul(amount, priceString);
-        if (market['inverse']) {
+        if (market['inverse'] === true) {
             cost = Precise.stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -1762,8 +1780,9 @@ export default class deribit extends Exchange {
             }
         }
         const parsedFees = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             let fee = {
                 'info': market,
@@ -1773,13 +1792,13 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap']) {
+            if (market['swap'] === true) {
                 fee = this.extend(fee, perpetualFee);
             }
-            else if (market['future']) {
+            else if (market['future'] === true) {
                 fee = this.extend(fee, futureFee);
             }
-            else if (market['option']) {
+            else if (market['option'] === true) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -1794,7 +1813,7 @@ export default class deribit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1924,7 +1943,7 @@ export default class deribit extends Exchange {
         const filledString = this.safeString(order, 'filled_amount');
         const amount = this.safeString(order, 'amount');
         let cost = Precise.stringMul(filledString, averageString);
-        if (this.safeBool(market, 'inverse')) {
+        if (this.safeBool(market, 'inverse') === true) {
             if (averageString !== '0') {
                 cost = Precise.stringDiv(amount, averageString);
             }
@@ -2126,7 +2145,7 @@ export default class deribit extends Exchange {
                 }
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = true;
         }
         if (postOnly) {
@@ -2263,7 +2282,7 @@ export default class deribit extends Exchange {
      * @description cancels an open order
      * @see https://docs.deribit.com/#private-cancel
      * @param {string} id order id
-     * @param {string} symbol not used by deribit cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2284,7 +2303,7 @@ export default class deribit extends Exchange {
      * @description cancel all open orders
      * @see https://docs.deribit.com/#private-cancel_all
      * @see https://docs.deribit.com/#private-cancel_all_by_instrument
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3260,7 +3279,8 @@ export default class deribit extends Exchange {
         const eachItemDuration = '1h';
         if (paginate) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, this.extend(params, { 'isDeribitPaginationCall': true }), maxEntriesPerRequest);
+            const paginationParams = this.extend(params, { 'isDeribitPaginationCall': true });
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest);
         }
         const duration = this.parseTimeframe(eachItemDuration) * 1000;
         let time = this.milliseconds();
@@ -3285,6 +3305,9 @@ export default class deribit extends Exchange {
         }
         if ('isDeribitPaginationCall' in params) {
             params = this.omit(params, 'isDeribitPaginationCall');
+            if (limit === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a limit argument');
+            }
             const maxUntil = this.sum(since, limit * duration);
             request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
         }
@@ -3378,7 +3401,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3455,7 +3478,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot']) {
+        if (market['spot'] === true) {
             throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
         }
         const request = {
@@ -3827,7 +3850,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['contract']) {
+        if (market['contract'] !== true) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -3900,7 +3923,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if (market['option'] || (market['future'] && market['linear'])) {
+        if ((market['option'] === true) || ((market['future'] === true) && (market['linear'] === true))) {
             openInterestAmount = openInterest;
         }
         else {
@@ -3921,7 +3944,7 @@ export default class deribit extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -3930,7 +3953,7 @@ export default class deribit extends Exchange {
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();
             const requestBody = '';
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes
@@ -3944,7 +3967,7 @@ export default class deribit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
         //

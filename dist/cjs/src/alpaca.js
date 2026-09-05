@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------xs
+//  ---------------------------------------------------------------------------
 /**
  * @class alpaca
  * @augments Exchange
@@ -59,6 +59,7 @@ class alpaca extends alpaca$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createOrderWithTakeProfitAndStopLossWs': false,
@@ -158,96 +159,96 @@ class alpaca extends alpaca$1["default"] {
                 'broker': {},
                 'trader': {
                     'private': {
-                        'get': [
-                            'v2/account',
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/account/portfolio/history',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/account/configurations',
-                            'v2/account/activities',
-                            'v2/account/activities/{activity_type}',
-                            'v2/calendar',
-                            'v2/clock',
-                            'v2/assets',
-                            'v2/assets/{symbol_or_asset_id}',
-                            'v2/corporate_actions/announcements/{id}',
-                            'v2/corporate_actions/announcements',
-                            'v2/wallets',
-                            'v2/wallets/transfers',
-                        ],
-                        'post': [
-                            'v2/orders',
-                            'v2/watchlists',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/wallets/transfers',
-                        ],
-                        'put': [
-                            'v2/orders/{order_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                        ],
-                        'patch': [
-                            'v2/orders/{order_id}',
-                            'v2/account/configurations',
-                        ],
-                        'delete': [
-                            'v2/orders',
-                            'v2/orders/{order_id}',
-                            'v2/positions',
-                            'v2/positions/{symbol_or_asset_id}',
-                            'v2/watchlists/{watchlist_id}',
-                            'v2/watchlists:by_name',
-                            'v2/watchlists/{watchlist_id}/{symbol}',
-                        ],
+                        'get': {
+                            'v2/account': { 'cost': 1 },
+                            'v2/orders': { 'cost': 1 },
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/positions': { 'cost': 1 },
+                            'v2/positions/{symbol_or_asset_id}': { 'cost': 1 },
+                            'v2/account/portfolio/history': { 'cost': 1 },
+                            'v2/watchlists': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                            'v2/account/configurations': { 'cost': 1 },
+                            'v2/account/activities': { 'cost': 1 },
+                            'v2/account/activities/{activity_type}': { 'cost': 1 },
+                            'v2/calendar': { 'cost': 1 },
+                            'v2/clock': { 'cost': 1 },
+                            'v2/assets': { 'cost': 1 },
+                            'v2/assets/{symbol_or_asset_id}': { 'cost': 1 },
+                            'v2/corporate_actions/announcements/{id}': { 'cost': 1 },
+                            'v2/corporate_actions/announcements': { 'cost': 1 },
+                            'v2/wallets': { 'cost': 1 },
+                            'v2/wallets/transfers': { 'cost': 1 },
+                        },
+                        'post': {
+                            'v2/orders': { 'cost': 1 },
+                            'v2/watchlists': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                            'v2/wallets/transfers': { 'cost': 1 },
+                        },
+                        'put': {
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                        },
+                        'patch': {
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/account/configurations': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'v2/orders': { 'cost': 1 },
+                            'v2/orders/{order_id}': { 'cost': 1 },
+                            'v2/positions': { 'cost': 1 },
+                            'v2/positions/{symbol_or_asset_id}': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}': { 'cost': 1 },
+                            'v2/watchlists:by_name': { 'cost': 1 },
+                            'v2/watchlists/{watchlist_id}/{symbol}': { 'cost': 1 },
+                        },
                     },
                 },
                 'market': {
                     'public': {
-                        'get': [
-                            'v1beta3/crypto/{loc}/bars',
-                            'v1beta3/crypto/{loc}/latest/bars',
-                            'v1beta3/crypto/{loc}/latest/orderbooks',
-                            'v1beta3/crypto/{loc}/latest/quotes',
-                            'v1beta3/crypto/{loc}/latest/trades',
-                            'v1beta3/crypto/{loc}/quotes',
-                            'v1beta3/crypto/{loc}/snapshots',
-                            'v1beta3/crypto/{loc}/trades',
-                        ],
+                        'get': {
+                            'v1beta3/crypto/{loc}/bars': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/bars': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/orderbooks': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/quotes': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/latest/trades': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/quotes': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/snapshots': { 'cost': 1 },
+                            'v1beta3/crypto/{loc}/trades': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'v1beta1/corporate-actions',
-                            'v1beta1/forex/latest/rates',
-                            'v1beta1/forex/rates',
-                            'v1beta1/logos/{symbol}',
-                            'v1beta1/news',
-                            'v1beta1/screener/stocks/most-actives',
-                            'v1beta1/screener/{market_type}/movers',
-                            'v2/stocks/auctions',
-                            'v2/stocks/bars',
-                            'v2/stocks/bars/latest',
-                            'v2/stocks/meta/conditions/{ticktype}',
-                            'v2/stocks/meta/exchanges',
-                            'v2/stocks/quotes',
-                            'v2/stocks/quotes/latest',
-                            'v2/stocks/snapshots',
-                            'v2/stocks/trades',
-                            'v2/stocks/trades/latest',
-                            'v2/stocks/{symbol}/auctions',
-                            'v2/stocks/{symbol}/bars',
-                            'v2/stocks/{symbol}/bars/latest',
-                            'v2/stocks/{symbol}/quotes',
-                            'v2/stocks/{symbol}/quotes/latest',
-                            'v2/stocks/{symbol}/snapshot',
-                            'v2/stocks/{symbol}/trades',
-                            'v2/stocks/{symbol}/trades/latest',
-                        ],
+                        'get': {
+                            'v1beta1/corporate-actions': { 'cost': 1 },
+                            'v1beta1/forex/latest/rates': { 'cost': 1 },
+                            'v1beta1/forex/rates': { 'cost': 1 },
+                            'v1beta1/logos/{symbol}': { 'cost': 1 },
+                            'v1beta1/news': { 'cost': 1 },
+                            'v1beta1/screener/stocks/most-actives': { 'cost': 1 },
+                            'v1beta1/screener/{market_type}/movers': { 'cost': 1 },
+                            'v2/stocks/auctions': { 'cost': 1 },
+                            'v2/stocks/bars': { 'cost': 1 },
+                            'v2/stocks/bars/latest': { 'cost': 1 },
+                            'v2/stocks/meta/conditions/{ticktype}': { 'cost': 1 },
+                            'v2/stocks/meta/exchanges': { 'cost': 1 },
+                            'v2/stocks/quotes': { 'cost': 1 },
+                            'v2/stocks/quotes/latest': { 'cost': 1 },
+                            'v2/stocks/snapshots': { 'cost': 1 },
+                            'v2/stocks/trades': { 'cost': 1 },
+                            'v2/stocks/trades/latest': { 'cost': 1 },
+                            'v2/stocks/{symbol}/auctions': { 'cost': 1 },
+                            'v2/stocks/{symbol}/bars': { 'cost': 1 },
+                            'v2/stocks/{symbol}/bars/latest': { 'cost': 1 },
+                            'v2/stocks/{symbol}/quotes': { 'cost': 1 },
+                            'v2/stocks/{symbol}/quotes/latest': { 'cost': 1 },
+                            'v2/stocks/{symbol}/snapshot': { 'cost': 1 },
+                            'v2/stocks/{symbol}/trades': { 'cost': 1 },
+                            'v2/stocks/{symbol}/trades/latest': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -307,6 +308,7 @@ class alpaca extends alpaca$1["default"] {
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
+                'minCostUSD': 10, // alpaca floors USD-quoted crypto buy orders at 10 USD notional, a venue parameter that has changed before
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
@@ -314,7 +316,9 @@ class alpaca extends alpaca$1["default"] {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc', // fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -408,12 +412,14 @@ class alpaca extends alpaca$1["default"] {
                     '40410000': errors.InvalidOrder, // { "code": 40410000, "message": "order is not found."}
                     '40010001': errors.BadRequest, // {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': errors.PermissionDenied, // { "code": 40110000, "message": "request is not authorized"}
-                    '40310000': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     '42910000': errors.RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': errors.BadRequest, // {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': errors.BadSymbol, // {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
+                    'cost basis must be': errors.InvalidOrder, // {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+                    'insufficient balance for': errors.InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    'orders are rejected by user request': errors.PermissionDenied, // {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
         });
@@ -436,9 +442,21 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const timestamp = this.safeString(response, 'timestamp');
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const localTime = timestamp.slice(0, 23);
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrStart = timestamp.length - 6;
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrEnd = timestamp.length - 3;
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
         const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
@@ -448,7 +466,7 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#fetchMarkets
      * @description retrieves data on all markets for alpaca
      * @see https://docs.alpaca.markets/reference/get-v2-assets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
@@ -503,6 +521,9 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const marketId = this.safeString(asset, 'symbol');
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('/');
         const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
@@ -520,7 +541,13 @@ class alpaca extends alpaca$1["default"] {
         const minAmount = this.safeNumber(asset, 'min_order_size');
         const amount = this.safeNumber(asset, 'min_trade_increment');
         const price = this.safeNumber(asset, 'price_increment');
-        return {
+        let minCost = undefined;
+        if ((assetClass === 'crypto') && (quote === 'USD')) {
+            // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
+            // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
+            minCost = this.safeNumber(this.options, 'minCostUSD', this.parseNumber('10'));
+        }
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -562,13 +589,13 @@ class alpaca extends alpaca$1["default"] {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
             'created': undefined,
             'info': asset,
-        };
+        });
     }
     /**
      * @method
@@ -641,13 +668,17 @@ class alpaca extends alpaca$1["default"] {
             //    }
             //
             const trades = this.safeDict(response, 'trades', {});
-            symbolTrades = this.safeDict(trades, marketId, {});
-            symbolTrades = [symbolTrades];
+            const symbolTrade = this.safeDict(trades, marketId, {});
+            symbolTrades = [symbolTrade];
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return this.parseTrades(symbolTrades, market, since, limit);
+        let symbolTradesList = [];
+        if (symbolTrades !== undefined) {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades(symbolTradesList, market, since, limit);
     }
     /**
      * @method
@@ -658,7 +689,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -724,7 +755,10 @@ class alpaca extends alpaca$1["default"] {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the alpha api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -737,6 +771,10 @@ class alpaca extends alpaca$1["default"] {
         const marketId = market['id'];
         const loc = this.safeString(params, 'loc', 'us');
         const method = this.safeString(params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        let paginationCalls = 10;
+        [paginationCalls, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginationCalls', 10);
         const request = {
             'symbols': marketId,
             'loc': loc,
@@ -748,10 +786,15 @@ class alpaca extends alpaca$1["default"] {
                 request['limit'] = limit;
             }
             if (since !== undefined) {
-                request['start'] = this.yyyymmdd(since);
+                request['start'] = this.iso8601(since);
+            }
+            const until = this.safeInteger(params, 'until');
+            if (until !== undefined) {
+                params = this.omit(params, 'until');
+                request['end'] = this.iso8601(until);
             }
             request['timeframe'] = this.safeString(this.timeframes, timeframe, timeframe);
-            const response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+            let response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
             //
             //    {
             //        "bars": {
@@ -781,8 +824,28 @@ class alpaca extends alpaca$1["default"] {
             //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
             //     }
             //
-            const bars = this.safeDict(response, 'bars', {});
+            let bars = this.safeDict(response, 'bars', {});
             ohlcvs = this.safeList(bars, marketId, []);
+            if (paginate) {
+                // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
+                let pageToken = this.safeString(response, 'next_page_token');
+                for (let i = 1; i < paginationCalls; i++) {
+                    const ohlcvsLength = ohlcvs.length;
+                    if ((pageToken === undefined) || ((limit !== undefined) && (ohlcvsLength >= limit))) {
+                        break;
+                    }
+                    request['page_token'] = pageToken;
+                    response = await this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, params));
+                    bars = this.safeDict(response, 'bars', {});
+                    const page = this.safeList(bars, marketId, []);
+                    const pageLength = page.length;
+                    if (pageLength === 0) {
+                        break;
+                    }
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
+                    pageToken = this.safeString(response, 'next_page_token');
+                }
+            }
         }
         else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
             const response = await this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, params));
@@ -803,8 +866,8 @@ class alpaca extends alpaca$1["default"] {
             //     }
             //
             const bars = this.safeDict(response, 'bars', {});
-            ohlcvs = this.safeDict(bars, marketId, {});
-            ohlcvs = [ohlcvs];
+            const bar = this.safeDict(bars, marketId, {});
+            ohlcvs = [bar];
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
@@ -858,17 +921,19 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
-     * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch tickers for, defaults to all markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        if (symbols === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires a symbols argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        if (symbols === undefined) {
+            // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
+            const allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
+            symbols = allSymbols;
         }
         symbols = this.marketSymbols(symbols);
         const loc = this.safeString(params, 'loc', 'us');
@@ -963,7 +1028,8 @@ class alpaca extends alpaca$1["default"] {
                 'percentage': undefined,
                 'average': undefined,
                 'baseVolume': this.safeString(dailyBar, 'v'),
-                'quoteVolume': this.safeString(dailyBar, 'n'),
+                // 'n' is the trade count; the quote volume is the daily volume at the daily vwap
+                'quoteVolume': Precise["default"].stringMul(this.safeString(dailyBar, 'v'), this.safeString(dailyBar, 'vw')),
             }, market);
             results.push(ticker);
         }
@@ -1062,7 +1128,7 @@ class alpaca extends alpaca$1["default"] {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             let newType;
             if (type.indexOf('limit') >= 0) {
@@ -1085,8 +1151,9 @@ class alpaca extends alpaca$1["default"] {
         else {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
+        let defaultTIF = undefined;
+        [defaultTIF, params] = this.handleOptionAndParams(params, 'createOrder', 'timeInForce');
+        request['time_in_force'] = defaultTIF;
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
         request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
@@ -1157,7 +1224,7 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.alpaca.markets/reference/deleteallorders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1344,7 +1411,7 @@ class alpaca extends alpaca$1["default"] {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision(symbol, amount);
         }
-        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             params = this.omit(params, 'triggerPrice');
@@ -1353,7 +1420,7 @@ class alpaca extends alpaca$1["default"] {
             request['limit_price'] = this.priceToPrecision(symbol, price);
         }
         let timeInForce = undefined;
-        [timeInForce, params] = this.handleOptionAndParams2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        [timeInForce, params] = this.handleOptionAndParams(params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
@@ -1649,7 +1716,7 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             address = address + ':' + tag;
         }
         const request = {
@@ -1677,6 +1744,10 @@ class alpaca extends alpaca$1["default"] {
         //
         return this.parseTransaction(response, currency);
     }
+    setSandboxMode(enable) {
+        super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
+    }
     async fetchTransactionsHelper(type, code, since, limit, params) {
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1684,6 +1755,43 @@ class alpaca extends alpaca$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
+        }
+        const sandboxMode = this.isSandboxModeEnabled || this.safeBool(this.options, 'sandboxMode', false);
+        if (sandboxMode === true) {
+            // paper-trading hosts do not serve the crypto wallets api at all, so route
+            // through the account activities ledger instead, filtered to transfer-like
+            // entries, see https://github.com/ccxt/ccxt/issues/24847
+            const request = {
+                'activity_types': 'CSD,CSW,TRANS',
+            };
+            const activities = await this.traderPrivateGetV2AccountActivities(this.extend(request, params));
+            //
+            //     [
+            //         {
+            //             "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+            //             "activity_type": "CSD",
+            //             "date": "2025-01-10",
+            //             "net_amount": "1000",
+            //             "status": "executed"
+            //         }
+            //     ]
+            //
+            const filtered = [];
+            let ledger = [];
+            if (Array.isArray(activities)) {
+                ledger = activities;
+            }
+            for (let i = 0; i < ledger.length; i++) {
+                const entry = ledger[i];
+                const activityType = this.safeString(entry, 'activity_type');
+                const amount = this.safeString(entry, 'net_amount');
+                const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise["default"].stringLt(amount, '0'));
+                const entryDirection = isIncoming ? 'INCOMING' : 'OUTGOING';
+                if ((type === 'BOTH') || (entryDirection === type)) {
+                    filtered.push(entry);
+                }
+            }
+            return this.parseTransactions(filtered, currency, since, limit, params);
         }
         const response = await this.traderPrivateGetV2WalletsTransfers(params);
         //
@@ -1704,8 +1812,12 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const results = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
+        let transfers = [];
+        if (Array.isArray(response)) {
+            transfers = response;
+        }
+        for (let i = 0; i < transfers.length; i++) {
+            const entry = transfers[i];
             const direction = this.safeString(entry, 'direction');
             if (direction === type) {
                 results.push(entry);
@@ -1760,6 +1872,18 @@ class alpaca extends alpaca$1["default"] {
     }
     parseTransaction(transaction, currency = undefined) {
         //
+        // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        //
+        //     {
+        //         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
+        //         "activity_type": "CSD",
+        //         "date": "2025-01-10",
+        //         "net_amount": "1000",
+        //         "status": "executed"
+        //     }
+        //
+        // crypto wallets api entry
+        //
         //     {
         //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
         //         "tx_hash": null,
@@ -1776,44 +1900,99 @@ class alpaca extends alpaca$1["default"] {
         //         "fees": "0.1"
         //     }
         //
-        const datetime = this.safeString(transaction, 'created_at');
-        const currencyId = this.safeString(transaction, 'asset');
-        const code = this.safeCurrencyCode(currencyId, currency);
-        const fees = this.safeString(transaction, 'fees');
-        const networkFee = this.safeString(transaction, 'network_fee');
-        const totalFee = Precise["default"].stringAdd(fees, networkFee);
-        const fee = {
-            'cost': this.parseNumber(totalFee),
-            'currency': code,
-        };
+        const activityType = this.safeString(transaction, 'activity_type');
+        let txid = undefined;
+        let timestamp = undefined;
+        let datetime = undefined;
+        let network = undefined;
+        let address = undefined;
+        let addressTo = undefined;
+        let addressFrom = undefined;
+        let type = undefined;
+        let amount = undefined;
+        let code = undefined;
+        let status = undefined;
+        let comment = undefined;
+        let internal = undefined;
+        let fee = undefined;
+        if (activityType !== undefined) {
+            const netAmount = this.safeString(transaction, 'net_amount');
+            const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise["default"].stringLt(netAmount, '0'));
+            timestamp = this.parse8601(this.safeString(transaction, 'date') + 'T00:00:00Z');
+            datetime = this.iso8601(timestamp);
+            type = isIncoming ? 'deposit' : 'withdrawal';
+            amount = this.parseNumber(Precise["default"].stringAbs(netAmount));
+            // cash ledger rows carry no per-entry asset field and are USD, while crypto
+            // TRANS entries may carry symbol/asset - never blindly adopt the caller's
+            // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
+            const activityCurrencyId = this.safeString2(transaction, 'symbol', 'asset');
+            if (activityCurrencyId !== undefined) {
+                code = this.safeCurrencyCode(activityCurrencyId);
+            }
+            else if ((activityType === 'CSD') || (activityType === 'CSW')) {
+                code = 'USD';
+            }
+            else {
+                code = this.safeCurrencyCode(undefined, currency);
+            }
+            status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+            comment = activityType;
+            internal = (activityType !== 'TRANS');
+        }
+        else {
+            txid = this.safeString(transaction, 'tx_hash');
+            datetime = this.safeString(transaction, 'created_at');
+            timestamp = this.parse8601(datetime);
+            network = this.safeString(transaction, 'chain');
+            address = this.safeString(transaction, 'to_address');
+            addressTo = this.safeString(transaction, 'to_address');
+            addressFrom = this.safeString(transaction, 'from_address');
+            type = this.parseTransactionType(this.safeString(transaction, 'direction'));
+            amount = this.safeNumber(transaction, 'amount');
+            const currencyId = this.safeString(transaction, 'asset');
+            code = this.safeCurrencyCode(currencyId, currency);
+            status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
+            const fees = this.safeString(transaction, 'fees');
+            const networkFee = this.safeString(transaction, 'network_fee');
+            const totalFee = Precise["default"].stringAdd(fees, networkFee);
+            fee = {
+                'cost': this.parseNumber(totalFee),
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
-            'txid': this.safeString(transaction, 'tx_hash'),
-            'timestamp': this.parse8601(datetime),
+            'txid': txid,
+            'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'chain'),
-            'address': this.safeString(transaction, 'to_address'),
-            'addressTo': this.safeString(transaction, 'to_address'),
-            'addressFrom': this.safeString(transaction, 'from_address'),
+            'network': network,
+            'address': address,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.parseTransactionType(this.safeString(transaction, 'direction')),
-            'amount': this.safeNumber(transaction, 'amount'),
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'status': status,
             'updated': undefined,
+            'comment': comment,
+            'internal': internal,
             'fee': fee,
-            'comment': undefined,
-            'internal': undefined,
         };
     }
     parseTransactionStatus(status) {
         const statuses = {
+            // crypto wallets api
             'PROCESSING': 'pending',
             'FAILED': 'failed',
             'COMPLETE': 'ok',
+            // account activities ledger, see https://github.com/ccxt/ccxt/issues/24847
+            'executed': 'ok',
+            'canceled': 'canceled',
+            'pending': 'pending',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1894,7 +2073,9 @@ class alpaca extends alpaca$1["default"] {
         const code = this.safeCurrencyCode(currencyId);
         account['free'] = this.safeString(response, 'cash');
         account['total'] = this.safeString(response, 'equity');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1907,7 +2088,7 @@ class alpaca extends alpaca$1["default"] {
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit(params, this.extractParams(path));
-        if (Object.keys(query).length) {
+        if (Object.keys(query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.urlencode(query);
             }
@@ -1932,11 +2113,16 @@ class alpaca extends alpaca$1["default"] {
         if (code !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         }
-        const message = this.safeValue(response, 'message');
+        const message = this.safeString(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            throw new errors.ExchangeError(feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                // an error envelope must always throw — also for statuses the http-status handler has no entry for
+                throw new errors.ExchangeError(feedback);
+            }
+            // unmapped messages on the remaining error statuses fall through to the default http-status handler
         }
         return undefined;
     }

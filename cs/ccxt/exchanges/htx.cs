@@ -106,7 +106,7 @@ public partial class htx : Exchange
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", true },
                 { "fetchSettlementHistory", true },
-                { "fetchStatus", false },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -149,17 +149,6 @@ public partial class htx : Exchange
                 { "hostnames", new Dictionary<string, object>() {
                     { "contract", "api.hbdm.vn" },
                     { "spot", "api.huobi.pro" },
-                    { "status", new Dictionary<string, object>() {
-                        { "spot", "status.huobigroup.com" },
-                        { "future", new Dictionary<string, object>() {
-                            { "inverse", "status-dm.huobigroup.com" },
-                            { "linear", "status-linear-swap.huobigroup.com" },
-                        } },
-                        { "swap", new Dictionary<string, object>() {
-                            { "inverse", "status-swap.huobigroup.com" },
-                            { "linear", "status-linear-swap.huobigroup.com" },
-                        } },
-                    } },
                 } },
                 { "api", new Dictionary<string, object>() {
                     { "status", "https://{hostname}" },
@@ -181,538 +170,1425 @@ public partial class htx : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v2Public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "reference/currencies", 1 },
-                        { "market-status", 1 },
+                        { "reference/currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market-status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "v2Private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account/ledger", 1 },
-                        { "account/withdraw/quota", 1 },
-                        { "account/withdraw/address", 1 },
-                        { "account/deposit/address", 1 },
-                        { "account/repayment", 5 },
-                        { "reference/transact-fee-rate", 1 },
-                        { "account/asset-valuation", 0.2 },
-                        { "point/account", 5 },
-                        { "sub-user/user-list", 1 },
-                        { "sub-user/user-state", 1 },
-                        { "sub-user/account-list", 1 },
-                        { "sub-user/deposit-address", 1 },
-                        { "sub-user/query-deposit", 1 },
-                        { "user/api-key", 1 },
-                        { "user/uid", 1 },
-                        { "algo-orders/opening", 1 },
-                        { "algo-orders/history", 1 },
-                        { "algo-orders/specific", 1 },
-                        { "c2c/offers", 1 },
-                        { "c2c/offer", 1 },
-                        { "c2c/transactions", 1 },
-                        { "c2c/repayment", 1 },
-                        { "c2c/account", 1 },
-                        { "etp/reference", 1 },
-                        { "etp/transactions", 5 },
-                        { "etp/transaction", 5 },
-                        { "etp/rebalance", 1 },
-                        { "etp/limit", 1 },
+                        { "account/ledger", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/withdraw/quota", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/withdraw/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/repayment", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "reference/transact-fee-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/asset-valuation", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "point/account", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "sub-user/user-list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/user-state", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/account-list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/deposit-address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/query-deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/api-key", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/uid", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo-orders/opening", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo-orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo-orders/specific", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/offers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/offer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/repayment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "etp/reference", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "etp/transactions", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "etp/transaction", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "etp/rebalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "etp/limit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "account/transfer", 1 },
-                        { "account/repayment", 5 },
-                        { "point/transfer", 5 },
-                        { "sub-user/management", 1 },
-                        { "sub-user/creation", 1 },
-                        { "sub-user/tradable-market", 1 },
-                        { "sub-user/transferability", 1 },
-                        { "sub-user/api-key-generation", 1 },
-                        { "sub-user/api-key-modification", 1 },
-                        { "sub-user/api-key-deletion", 1 },
-                        { "sub-user/deduct-mode", 1 },
-                        { "algo-orders", 1 },
-                        { "algo-orders/cancel-all-after", 1 },
-                        { "algo-orders/cancellation", 1 },
-                        { "c2c/offer", 1 },
-                        { "c2c/cancellation", 1 },
-                        { "c2c/cancel-all", 1 },
-                        { "c2c/repayment", 1 },
-                        { "c2c/transfer", 1 },
-                        { "etp/creation", 5 },
-                        { "etp/redemption", 5 },
-                        { "etp/{transactId}/cancel", 10 },
-                        { "etp/batch-cancel", 50 },
+                        { "account/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/repayment", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "point/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "sub-user/management", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/creation", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/tradable-market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/transferability", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/api-key-generation", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/api-key-modification", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/api-key-deletion", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sub-user/deduct-mode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo-orders/cancel-all-after", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "algo-orders/cancellation", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/offer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/cancellation", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/cancel-all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/repayment", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "c2c/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "etp/creation", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "etp/redemption", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "etp/{transactId}/cancel", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "etp/batch-cancel", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "common/symbols", 1 },
-                        { "common/currencys", 1 },
-                        { "common/timestamp", 1 },
-                        { "common/exchange", 1 },
-                        { "settings/currencys", 1 },
+                        { "common/symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "common/currencys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "common/timestamp", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "common/exchange", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "settings/currencys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account/accounts", 0.2 },
-                        { "account/accounts/{id}/balance", 0.2 },
-                        { "account/accounts/{sub-uid}", 1 },
-                        { "account/history", 4 },
-                        { "cross-margin/loan-info", 1 },
-                        { "margin/loan-info", 1 },
-                        { "fee/fee-rate/get", 1 },
-                        { "order/openOrders", 0.4 },
-                        { "order/orders", 0.4 },
-                        { "order/orders/{id}", 0.4 },
-                        { "order/orders/{id}/matchresults", 0.4 },
-                        { "order/orders/getClientOrder", 0.4 },
-                        { "order/history", 1 },
-                        { "order/matchresults", 1 },
-                        { "query/deposit-withdraw", 1 },
-                        { "margin/loan-orders", 0.2 },
-                        { "margin/accounts/balance", 0.2 },
-                        { "cross-margin/loan-orders", 1 },
-                        { "cross-margin/accounts/balance", 1 },
-                        { "points/actions", 1 },
-                        { "points/orders", 1 },
-                        { "subuser/aggregate-balance", 10 },
-                        { "stable-coin/exchange_rate", 1 },
-                        { "stable-coin/quote", 1 },
+                        { "account/accounts", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "account/accounts/{id}/balance", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "account/accounts/{sub-uid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/history", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "cross-margin/loan-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/loan-info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fee/fee-rate/get", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/openOrders", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/orders", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/orders/{id}/matchresults", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/orders/getClientOrder", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/matchresults", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "query/deposit-withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "margin/loan-orders", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "margin/accounts/balance", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "cross-margin/loan-orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cross-margin/accounts/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "points/actions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "points/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subuser/aggregate-balance", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "stable-coin/exchange_rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stable-coin/quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "account/transfer", 1 },
-                        { "futures/transfer", 1 },
-                        { "order/batch-orders", 0.4 },
-                        { "order/orders/place", 0.2 },
-                        { "order/orders/submitCancelClientOrder", 0.2 },
-                        { "order/orders/batchCancelOpenOrders", 0.4 },
-                        { "order/orders/{id}/submitcancel", 0.2 },
-                        { "order/orders/batchcancel", 0.4 },
-                        { "dw/withdraw/api/create", 1 },
-                        { "dw/withdraw-virtual/{id}/cancel", 1 },
-                        { "dw/transfer-in/margin", 10 },
-                        { "dw/transfer-out/margin", 10 },
-                        { "margin/orders", 10 },
-                        { "margin/orders/{id}/repay", 10 },
-                        { "cross-margin/transfer-in", 1 },
-                        { "cross-margin/transfer-out", 1 },
-                        { "cross-margin/orders", 1 },
-                        { "cross-margin/orders/{id}/repay", 1 },
-                        { "stable-coin/exchange", 1 },
-                        { "subuser/transfer", 10 },
-                    } },
-                } },
-                { "status", new Dictionary<string, object>() {
-                    { "public", new Dictionary<string, object>() {
-                        { "spot", new Dictionary<string, object>() {
-                            { "get", new Dictionary<string, object>() {
-                                { "api/v2/summary.json", 1 },
-                            } },
+                        { "account/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
                         } },
-                        { "future", new Dictionary<string, object>() {
-                            { "inverse", new Dictionary<string, object>() {
-                                { "get", new Dictionary<string, object>() {
-                                    { "api/v2/summary.json", 1 },
-                                } },
-                            } },
-                            { "linear", new Dictionary<string, object>() {
-                                { "get", new Dictionary<string, object>() {
-                                    { "api/v2/summary.json", 1 },
-                                } },
-                            } },
+                        { "futures/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
                         } },
-                        { "swap", new Dictionary<string, object>() {
-                            { "inverse", new Dictionary<string, object>() {
-                                { "get", new Dictionary<string, object>() {
-                                    { "api/v2/summary.json", 1 },
-                                } },
-                            } },
-                            { "linear", new Dictionary<string, object>() {
-                                { "get", new Dictionary<string, object>() {
-                                    { "api/v2/summary.json", 1 },
-                                } },
-                            } },
+                        { "order/batch-orders", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/orders/place", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "order/orders/submitCancelClientOrder", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "order/orders/batchCancelOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "order/orders/{id}/submitcancel", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                        } },
+                        { "order/orders/batchcancel", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "dw/withdraw/api/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dw/withdraw-virtual/{id}/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "dw/transfer-in/margin", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "dw/transfer-out/margin", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "margin/orders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "margin/orders/{id}/repay", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "cross-margin/transfer-in", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cross-margin/transfer-out", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cross-margin/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cross-margin/orders/{id}/repay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "stable-coin/exchange", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subuser/transfer", new Dictionary<string, object>() {
+                            { "cost", 10 },
                         } },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v2/market-status", 1 },
-                            { "v1/common/symbols", 1 },
-                            { "v1/common/currencys", 1 },
-                            { "v2/settings/common/currencies", 1 },
-                            { "v2/reference/currencies", 1 },
-                            { "v1/common/timestamp", 1 },
-                            { "v1/common/exchange", 1 },
-                            { "v1/settings/common/chains", 1 },
-                            { "v1/settings/common/currencys", 1 },
-                            { "v1/settings/common/symbols", 1 },
-                            { "v2/settings/common/symbols", 1 },
-                            { "v1/settings/common/market-symbols", 1 },
-                            { "market/history/candles", 1 },
-                            { "market/history/kline", 1 },
-                            { "market/detail/merged", 1 },
-                            { "market/tickers", 1 },
-                            { "market/detail", 1 },
-                            { "market/depth", 1 },
-                            { "market/trade", 1 },
-                            { "market/history/trade", 1 },
-                            { "market/etp", 1 },
-                            { "v2/etp/reference", 1 },
-                            { "v2/etp/rebalance", 1 },
+                            { "v2/market-status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/common/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/common/currencys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/settings/common/currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/reference/currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/common/timestamp", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/common/exchange", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/settings/common/chains", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/settings/common/currencys", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/settings/common/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/settings/common/symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/settings/common/market-symbols", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/history/candles", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/history/kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/detail/merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/tickers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/depth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/history/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/etp", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/etp/reference", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/etp/rebalance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "v1/account/accounts", 0.2 },
-                            { "v1/account/accounts/{account-id}/balance", 0.2 },
-                            { "v2/account/valuation", 1 },
-                            { "v2/account/asset-valuation", 0.2 },
-                            { "v1/account/history", 4 },
-                            { "v2/account/ledger", 1 },
-                            { "v2/point/account", 5 },
-                            { "v2/account/deposit/address", 1 },
-                            { "v2/account/withdraw/quota", 1 },
-                            { "v2/account/withdraw/address", 1 },
-                            { "v2/reference/currencies", 1 },
-                            { "v1/query/deposit-withdraw", 1 },
-                            { "v1/query/withdraw/client-order-id", 1 },
-                            { "v2/user/api-key", 1 },
-                            { "v2/user/uid", 1 },
-                            { "v2/sub-user/user-list", 1 },
-                            { "v2/sub-user/user-state", 1 },
-                            { "v2/sub-user/account-list", 1 },
-                            { "v2/sub-user/deposit-address", 1 },
-                            { "v2/sub-user/query-deposit", 1 },
-                            { "v1/subuser/aggregate-balance", 10 },
-                            { "v1/account/accounts/{sub-uid}", 1 },
-                            { "v1/order/openOrders", 0.4 },
-                            { "v1/order/orders/{order-id}", 0.4 },
-                            { "v1/order/orders/getClientOrder", 0.4 },
-                            { "v1/order/orders/{order-id}/matchresult", 0.4 },
-                            { "v1/order/orders/{order-id}/matchresults", 0.4 },
-                            { "v1/order/orders", 0.4 },
-                            { "v1/order/history", 1 },
-                            { "v1/order/matchresults", 1 },
-                            { "v2/reference/transact-fee-rate", 1 },
-                            { "v2/algo-orders/opening", 1 },
-                            { "v2/algo-orders/history", 1 },
-                            { "v2/algo-orders/specific", 1 },
-                            { "v1/margin/loan-info", 1 },
-                            { "v1/margin/loan-orders", 0.2 },
-                            { "v1/margin/accounts/balance", 0.2 },
-                            { "v1/cross-margin/loan-info", 1 },
-                            { "v1/cross-margin/loan-orders", 1 },
-                            { "v1/cross-margin/accounts/balance", 1 },
-                            { "v2/account/repayment", 5 },
-                            { "v5/account/universal_transfer_records", 4 },
-                            { "v1/stable-coin/quote", 1 },
-                            { "v1/stable_coin/exchange_rate", 1 },
-                            { "v2/etp/transactions", 5 },
-                            { "v2/etp/transaction", 5 },
-                            { "v2/etp/limit", 1 },
+                            { "v1/account/accounts", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/account/accounts/{account-id}/balance", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v2/account/valuation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/asset-valuation", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/account/history", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/account/ledger", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/point/account", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v2/account/deposit/address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/withdraw/quota", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/withdraw/address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/reference/currencies", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/query/deposit-withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/query/withdraw/client-order-id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/user/api-key", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/user/uid", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/user-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/user-state", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/account-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/deposit-address", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/query-deposit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/subuser/aggregate-balance", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/account/accounts/{sub-uid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/order/openOrders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/orders/{order-id}", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/orders/getClientOrder", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/orders/{order-id}/matchresult", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/orders/{order-id}/matchresults", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/orders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/order/matchresults", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/reference/transact-fee-rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/algo-orders/opening", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/algo-orders/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/algo-orders/specific", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/margin/loan-info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/margin/loan-orders", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/margin/accounts/balance", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/cross-margin/loan-info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/cross-margin/loan-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/cross-margin/accounts/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/repayment", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v5/account/universal_transfer_records", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v1/stable-coin/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/stable_coin/exchange_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/etp/transactions", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v2/etp/transaction", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v2/etp/limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "v1/account/transfer", 1 },
-                            { "v1/futures/transfer", 1 },
-                            { "v2/point/transfer", 5 },
-                            { "v2/account/transfer", 1 },
-                            { "v1/dw/withdraw/api/create", 1 },
-                            { "v1/dw/withdraw-virtual/{withdraw-id}/cancel", 1 },
-                            { "v2/sub-user/deduct-mode", 1 },
-                            { "v2/sub-user/creation", 1 },
-                            { "v2/sub-user/management", 1 },
-                            { "v2/sub-user/tradable-market", 1 },
-                            { "v2/sub-user/transferability", 1 },
-                            { "v2/sub-user/api-key-generation", 1 },
-                            { "v2/sub-user/api-key-modification", 1 },
-                            { "v2/sub-user/api-key-deletion", 1 },
-                            { "v1/subuser/transfer", 10 },
-                            { "v1/trust/user/active/credit", 10 },
-                            { "v1/order/orders/place", 0.2 },
-                            { "v1/order/batch-orders", 0.4 },
-                            { "v1/order/auto/place", 0.2 },
-                            { "v1/order/orders/{order-id}/submitcancel", 0.2 },
-                            { "v1/order/orders/submitCancelClientOrder", 0.2 },
-                            { "v1/order/orders/batchCancelOpenOrders", 0.4 },
-                            { "v1/order/orders/batchcancel", 0.4 },
-                            { "v2/algo-orders/cancel-all-after", 1 },
-                            { "v2/algo-orders", 1 },
-                            { "v2/algo-orders/cancellation", 1 },
-                            { "v2/account/repayment", 5 },
-                            { "v1/dw/transfer-in/margin", 10 },
-                            { "v1/dw/transfer-out/margin", 10 },
-                            { "v1/margin/orders", 10 },
-                            { "v1/margin/orders/{order-id}/repay", 10 },
-                            { "v1/cross-margin/transfer-in", 1 },
-                            { "v1/cross-margin/transfer-out", 1 },
-                            { "v1/cross-margin/orders", 1 },
-                            { "v1/cross-margin/orders/{order-id}/repay", 1 },
-                            { "v1/stable-coin/exchange", 1 },
-                            { "v2/etp/creation", 5 },
-                            { "v2/etp/redemption", 5 },
-                            { "v2/etp/{transactId}/cancel", 10 },
-                            { "v2/etp/batch-cancel", 50 },
+                            { "v1/account/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/futures/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/point/transfer", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v2/account/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/dw/withdraw/api/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/dw/withdraw-virtual/{withdraw-id}/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/deduct-mode", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/creation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/management", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/tradable-market", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/transferability", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/api-key-generation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/api-key-modification", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/sub-user/api-key-deletion", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/subuser/transfer", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trust/user/active/credit", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/order/orders/place", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/order/batch-orders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/auto/place", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/order/orders/{order-id}/submitcancel", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/order/orders/submitCancelClientOrder", new Dictionary<string, object>() {
+                                { "cost", 0.2 },
+                            } },
+                            { "v1/order/orders/batchCancelOpenOrders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v1/order/orders/batchcancel", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "v2/algo-orders/cancel-all-after", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/algo-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/algo-orders/cancellation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/account/repayment", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v1/dw/transfer-in/margin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/dw/transfer-out/margin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/margin/orders", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/margin/orders/{order-id}/repay", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/cross-margin/transfer-in", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/cross-margin/transfer-out", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/cross-margin/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/cross-margin/orders/{order-id}/repay", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/stable-coin/exchange", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/etp/creation", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v2/etp/redemption", new Dictionary<string, object>() {
+                                { "cost", 5 },
+                            } },
+                            { "v2/etp/{transactId}/cancel", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/etp/batch-cancel", new Dictionary<string, object>() {
+                                { "cost", 50 },
+                            } },
                         } },
                     } },
                 } },
                 { "contract", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "api/v1/timestamp", 1 },
-                            { "heartbeat/", 1 },
-                            { "api/v1/contract_contract_info", 1 },
-                            { "api/v1/contract_index", 1 },
-                            { "api/v1/contract_query_elements", 1 },
-                            { "api/v1/contract_price_limit", 1 },
-                            { "api/v1/contract_open_interest", 1 },
-                            { "api/v1/contract_delivery_price", 1 },
-                            { "market/depth", 1 },
-                            { "market/bbo", 1 },
-                            { "market/history/kline", 1 },
-                            { "index/market/history/mark_price_kline", 1 },
-                            { "market/detail/merged", 1 },
-                            { "market/detail/batch_merged", 1 },
-                            { "v2/market/detail/batch_merged", 1 },
-                            { "market/trade", 1 },
-                            { "market/history/trade", 1 },
-                            { "api/v1/contract_risk_info", 1 },
-                            { "api/v1/contract_insurance_fund", 1 },
-                            { "api/v1/contract_adjustfactor", 1 },
-                            { "api/v1/contract_his_open_interest", 1 },
-                            { "api/v1/contract_ladder_margin", 1 },
-                            { "api/v1/contract_api_state", 1 },
-                            { "api/v1/contract_elite_account_ratio", 1 },
-                            { "api/v1/contract_elite_position_ratio", 1 },
-                            { "api/v1/contract_liquidation_orders", 1 },
-                            { "api/v1/contract_settlement_records", 1 },
-                            { "index/market/history/index", 1 },
-                            { "index/market/history/basis", 1 },
-                            { "api/v1/contract_estimated_settlement_price", 1 },
-                            { "api/v3/contract_liquidation_orders", 1 },
-                            { "swap-api/v1/swap_contract_info", 1 },
-                            { "swap-api/v1/swap_index", 1 },
-                            { "swap-api/v1/swap_query_elements", 1 },
-                            { "swap-api/v1/swap_price_limit", 1 },
-                            { "swap-api/v1/swap_open_interest", 1 },
-                            { "swap-ex/market/depth", 1 },
-                            { "swap-ex/market/bbo", 1 },
-                            { "swap-ex/market/history/kline", 1 },
-                            { "index/market/history/swap_mark_price_kline", 1 },
-                            { "swap-ex/market/detail/merged", 1 },
-                            { "v2/swap-ex/market/detail/batch_merged", 1 },
-                            { "index/market/history/swap_premium_index_kline", 1 },
-                            { "swap-ex/market/detail/batch_merged", 1 },
-                            { "swap-ex/market/trade", 1 },
-                            { "swap-ex/market/history/trade", 1 },
-                            { "swap-api/v1/swap_risk_info", 1 },
-                            { "swap-api/v1/swap_insurance_fund", 1 },
-                            { "swap-api/v1/swap_adjustfactor", 1 },
-                            { "swap-api/v1/swap_his_open_interest", 1 },
-                            { "swap-api/v1/swap_ladder_margin", 1 },
-                            { "swap-api/v1/swap_api_state", 1 },
-                            { "swap-api/v1/swap_elite_account_ratio", 1 },
-                            { "swap-api/v1/swap_elite_position_ratio", 1 },
-                            { "swap-api/v1/swap_estimated_settlement_price", 1 },
-                            { "swap-api/v1/swap_liquidation_orders", 1 },
-                            { "swap-api/v1/swap_settlement_records", 1 },
-                            { "swap-api/v1/swap_funding_rate", 1 },
-                            { "swap-api/v1/swap_batch_funding_rate", 1 },
-                            { "swap-api/v1/swap_historical_funding_rate", 1 },
-                            { "swap-api/v3/swap_liquidation_orders", 1 },
-                            { "index/market/history/swap_estimated_rate_kline", 1 },
-                            { "index/market/history/swap_basis", 1 },
-                            { "linear-swap-api/v1/swap_contract_info", 1 },
-                            { "linear-swap-api/v1/swap_index", 1 },
-                            { "linear-swap-api/v1/swap_query_elements", 1 },
-                            { "linear-swap-api/v1/swap_price_limit", 1 },
-                            { "linear-swap-ex/market/depth", 1 },
-                            { "linear-swap-ex/market/bbo", 1 },
-                            { "linear-swap-ex/market/history/kline", 1 },
-                            { "index/market/history/linear_swap_mark_price_kline", 1 },
-                            { "linear-swap-ex/market/detail/merged", 1 },
-                            { "linear-swap-ex/market/detail/batch_merged", 1 },
-                            { "v2/linear-swap-ex/market/detail/batch_merged", 1 },
-                            { "linear-swap-ex/market/trade", 1 },
-                            { "linear-swap-ex/market/history/trade", 1 },
-                            { "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", 1 },
-                            { "linear-swap-api/v1/swap_adjustfactor", 1 },
-                            { "linear-swap-api/v1/swap_cross_adjustfactor", 1 },
-                            { "linear-swap-api/v1/swap_his_open_interest", 1 },
-                            { "linear-swap-api/v1/swap_ladder_margin", 1 },
-                            { "linear-swap-api/v1/swap_cross_ladder_margin", 1 },
-                            { "linear-swap-api/v1/swap_api_state", 1 },
-                            { "linear-swap-api/v1/swap_elite_account_ratio", 1 },
-                            { "linear-swap-api/v1/swap_elite_position_ratio", 1 },
-                            { "linear-swap-api/v1/swap_settlement_records", 1 },
-                            { "linear-swap-api/v3/swap_liquidation_orders", 1 },
-                            { "index/market/history/linear_swap_premium_index_kline", 1 },
-                            { "index/market/history/linear_swap_estimated_rate_kline", 1 },
-                            { "index/market/history/linear_swap_basis", 1 },
-                            { "linear-swap-api/v1/swap_estimated_settlement_price", 1 },
-                            { "v5/market/funding_rate", 0.125 },
-                            { "v5/market/funding_rate_history", 0.125 },
-                            { "v5/market/open_interest", 0.125 },
-                            { "v5/market/liquidation_orders", 0.125 },
-                            { "v5/market/settlement_history", 0.125 },
-                            { "v5/market/elite_account_ratio", 0.125 },
-                            { "v5/market/elite_position_ratio", 0.125 },
-                            { "v5/market/estimated_settlement_price", 0.125 },
-                            { "v5/market/price_limit", 0.125 },
+                            { "api/v1/timestamp", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "heartbeat/", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_contract_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_index", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_query_elements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_price_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_open_interest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_delivery_price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/depth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/bbo", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/history/kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/mark_price_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/detail/merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/detail/batch_merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/market/detail/batch_merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "market/history/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_risk_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_insurance_fund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_adjustfactor", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_his_open_interest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_ladder_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_api_state", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_elite_account_ratio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_elite_position_ratio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_liquidation_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_settlement_records", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/index", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/basis", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_estimated_settlement_price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_liquidation_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_contract_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_index", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_query_elements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_price_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_open_interest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/depth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/bbo", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/history/kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/swap_mark_price_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/detail/merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/swap-ex/market/detail/batch_merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/swap_premium_index_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/detail/batch_merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-ex/market/history/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_risk_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_insurance_fund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_adjustfactor", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_his_open_interest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_ladder_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_api_state", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_elite_account_ratio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_elite_position_ratio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_estimated_settlement_price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_liquidation_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_settlement_records", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_funding_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_batch_funding_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_historical_funding_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_liquidation_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/swap_estimated_rate_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/swap_basis", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_contract_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_index", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_query_elements", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_price_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/depth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/bbo", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/history/kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/linear_swap_mark_price_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/detail/merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/detail/batch_merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/linear-swap-ex/market/detail/batch_merged", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-ex/market/history/trade", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/linear-swap-api/v1/swap_insurance_fund", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_adjustfactor", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_cross_adjustfactor", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_his_open_interest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_ladder_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_cross_ladder_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_api_state", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_elite_account_ratio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_elite_position_ratio", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_settlement_records", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v3/swap_liquidation_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/linear_swap_premium_index_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/linear_swap_estimated_rate_kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/market/history/linear_swap_basis", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "linear-swap-api/v1/swap_estimated_settlement_price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v5/market/funding_rate", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/funding_rate_history", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/open_interest", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/liquidation_orders", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/settlement_history", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/elite_account_ratio", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/elite_position_ratio", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/estimated_settlement_price", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/price_limit", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
-                            { "api/v1/contract_sub_auth_list", 1 },
-                            { "api/v1/contract_api_trading_status", 1 },
-                            { "swap-api/v1/swap_sub_auth_list", 1 },
-                            { "swap-api/v1/swap_api_trading_status", 1 },
-                            { "v5/account/asset_mode", 0.20834 },
-                            { "v5/account/balance", 0.20834 },
-                            { "v5/account/bills", 0.20834 },
-                            { "v5/account/fee_deduction_currency", 0.20834 },
-                            { "v5/trade/position/opens", 0.41679 },
-                            { "v5/trade/order/opens", 0.41679 },
-                            { "v5/trade/order/details", 0.41679 },
-                            { "v5/trade/order/history", 0.41679 },
-                            { "v5/trade/order", 0.41679 },
-                            { "v5/position/lever", 0.20834 },
-                            { "v5/position/mode", 0.20834 },
-                            { "v5/position/risk/limit", 0.20834 },
-                            { "v5/position/risk/limit_tier", 0.20834 },
-                            { "v5/market/risk/limit", 0.125 },
-                            { "v5/market/assets_deduction_currency", 0.125 },
-                            { "v5/market/multi_assets_margin", 0.125 },
-                            { "v5/algo/order/opens", 0.41679 },
-                            { "v5/algo/order", 0.41679 },
-                            { "v5/algo/order/history", 0.41679 },
+                            { "api/v1/contract_sub_auth_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_api_trading_status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_sub_auth_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_api_trading_status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v5/account/asset_mode", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/account/balance", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/account/bills", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/account/fee_deduction_currency", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/trade/position/opens", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/order/opens", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/order/details", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/order/history", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/order", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/position/lever", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/position/mode", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/position/risk/limit", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/position/risk/limit_tier", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/market/risk/limit", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/assets_deduction_currency", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/market/multi_assets_margin", new Dictionary<string, object>() {
+                                { "cost", 0.125 },
+                            } },
+                            { "v5/algo/order/opens", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/algo/order", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/algo/order/history", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
-                            { "api/v1/contract_balance_valuation", 1 },
-                            { "api/v1/contract_account_info", 1 },
-                            { "api/v1/contract_position_info", 1 },
-                            { "api/v1/contract_sub_auth", 1 },
-                            { "api/v1/contract_sub_account_list", 1 },
-                            { "api/v1/contract_sub_account_info_list", 1 },
-                            { "api/v1/contract_sub_account_info", 1 },
-                            { "api/v1/contract_sub_position_info", 1 },
-                            { "api/v1/contract_financial_record", 1 },
-                            { "api/v1/contract_financial_record_exact", 1 },
-                            { "api/v1/contract_user_settlement_records", 1 },
-                            { "api/v1/contract_order_limit", 1 },
-                            { "api/v1/contract_fee", 1 },
-                            { "api/v1/contract_transfer_limit", 1 },
-                            { "api/v1/contract_position_limit", 1 },
-                            { "api/v1/contract_account_position_info", 1 },
-                            { "api/v1/contract_master_sub_transfer", 1 },
-                            { "api/v1/contract_master_sub_transfer_record", 1 },
-                            { "api/v1/contract_available_level_rate", 1 },
-                            { "api/v3/contract_financial_record", 1 },
-                            { "api/v3/contract_financial_record_exact", 1 },
-                            { "api/v1/contract-cancel-after", 1 },
-                            { "api/v1/contract_order", 1 },
-                            { "api/v1/contract_batchorder", 1 },
-                            { "api/v1/contract_cancel", 1 },
-                            { "api/v1/contract_cancelall", 1 },
-                            { "api/v1/contract_switch_lever_rate", 30 },
-                            { "api/v1/lightning_close_position", 1 },
-                            { "api/v1/contract_order_info", 1 },
-                            { "api/v1/contract_order_detail", 1 },
-                            { "api/v1/contract_openorders", 1 },
-                            { "api/v1/contract_hisorders", 1 },
-                            { "api/v1/contract_hisorders_exact", 1 },
-                            { "api/v1/contract_matchresults", 1 },
-                            { "api/v1/contract_matchresults_exact", 1 },
-                            { "api/v3/contract_hisorders", 1 },
-                            { "api/v3/contract_hisorders_exact", 1 },
-                            { "api/v3/contract_matchresults", 1 },
-                            { "api/v3/contract_matchresults_exact", 1 },
-                            { "api/v1/contract_trigger_order", 1 },
-                            { "api/v1/contract_trigger_cancel", 1 },
-                            { "api/v1/contract_trigger_cancelall", 1 },
-                            { "api/v1/contract_trigger_openorders", 1 },
-                            { "api/v1/contract_trigger_hisorders", 1 },
-                            { "api/v1/contract_tpsl_order", 1 },
-                            { "api/v1/contract_tpsl_cancel", 1 },
-                            { "api/v1/contract_tpsl_cancelall", 1 },
-                            { "api/v1/contract_tpsl_openorders", 1 },
-                            { "api/v1/contract_tpsl_hisorders", 1 },
-                            { "api/v1/contract_relation_tpsl_order", 1 },
-                            { "api/v1/contract_track_order", 1 },
-                            { "api/v1/contract_track_cancel", 1 },
-                            { "api/v1/contract_track_cancelall", 1 },
-                            { "api/v1/contract_track_openorders", 1 },
-                            { "api/v1/contract_track_hisorders", 1 },
-                            { "swap-api/v1/swap_balance_valuation", 1 },
-                            { "swap-api/v1/swap_account_info", 1 },
-                            { "swap-api/v1/swap_position_info", 1 },
-                            { "swap-api/v1/swap_account_position_info", 1 },
-                            { "swap-api/v1/swap_sub_auth", 1 },
-                            { "swap-api/v1/swap_sub_account_list", 1 },
-                            { "swap-api/v1/swap_sub_account_info_list", 1 },
-                            { "swap-api/v1/swap_sub_account_info", 1 },
-                            { "swap-api/v1/swap_sub_position_info", 1 },
-                            { "swap-api/v1/swap_financial_record", 1 },
-                            { "swap-api/v1/swap_financial_record_exact", 1 },
-                            { "swap-api/v1/swap_user_settlement_records", 1 },
-                            { "swap-api/v1/swap_available_level_rate", 1 },
-                            { "swap-api/v1/swap_order_limit", 1 },
-                            { "swap-api/v1/swap_fee", 1 },
-                            { "swap-api/v1/swap_transfer_limit", 1 },
-                            { "swap-api/v1/swap_position_limit", 1 },
-                            { "swap-api/v1/swap_master_sub_transfer", 1 },
-                            { "swap-api/v1/swap_master_sub_transfer_record", 1 },
-                            { "swap-api/v3/swap_financial_record", 1 },
-                            { "swap-api/v3/swap_financial_record_exact", 1 },
-                            { "swap-api/v1/swap-cancel-after", 1 },
-                            { "swap-api/v1/swap_order", 1 },
-                            { "swap-api/v1/swap_batchorder", 1 },
-                            { "swap-api/v1/swap_cancel", 1 },
-                            { "swap-api/v1/swap_cancelall", 1 },
-                            { "swap-api/v1/swap_lightning_close_position", 1 },
-                            { "swap-api/v1/swap_switch_lever_rate", 30 },
-                            { "swap-api/v1/swap_order_info", 1 },
-                            { "swap-api/v1/swap_order_detail", 1 },
-                            { "swap-api/v1/swap_openorders", 1 },
-                            { "swap-api/v1/swap_hisorders", 1 },
-                            { "swap-api/v1/swap_hisorders_exact", 1 },
-                            { "swap-api/v1/swap_matchresults", 1 },
-                            { "swap-api/v1/swap_matchresults_exact", 1 },
-                            { "swap-api/v3/swap_matchresults", 1 },
-                            { "swap-api/v3/swap_matchresults_exact", 1 },
-                            { "swap-api/v3/swap_hisorders", 1 },
-                            { "swap-api/v3/swap_hisorders_exact", 1 },
-                            { "swap-api/v1/swap_trigger_order", 1 },
-                            { "swap-api/v1/swap_trigger_cancel", 1 },
-                            { "swap-api/v1/swap_trigger_cancelall", 1 },
-                            { "swap-api/v1/swap_trigger_openorders", 1 },
-                            { "swap-api/v1/swap_trigger_hisorders", 1 },
-                            { "swap-api/v1/swap_tpsl_order", 1 },
-                            { "swap-api/v1/swap_tpsl_cancel", 1 },
-                            { "swap-api/v1/swap_tpsl_cancelall", 1 },
-                            { "swap-api/v1/swap_tpsl_openorders", 1 },
-                            { "swap-api/v1/swap_tpsl_hisorders", 1 },
-                            { "swap-api/v1/swap_relation_tpsl_order", 1 },
-                            { "swap-api/v1/swap_track_order", 1 },
-                            { "swap-api/v1/swap_track_cancel", 1 },
-                            { "swap-api/v1/swap_track_cancelall", 1 },
-                            { "swap-api/v1/swap_track_openorders", 1 },
-                            { "swap-api/v1/swap_track_hisorders", 1 },
-                            { "v5/account/asset_mode", 100 },
-                            { "v5/trade/order", 0.41679 },
-                            { "v5/trade/batch_orders", 0.41679 },
-                            { "v5/trade/cancel_order", 0.41679 },
-                            { "v5/trade/cancel_batch_orders", 0.41679 },
-                            { "v5/trade/cancel_all_orders", 0.41679 },
-                            { "v5/trade/cancel-after", 0.41679 },
-                            { "v5/trade/position", 0.41679 },
-                            { "v5/trade/position_all", 0.41679 },
-                            { "v5/position/lever", 0.20834 },
-                            { "v5/position/mode", 0.20834 },
-                            { "v5/position/margin", 0.20834 },
-                            { "v5/account/fee_deduction_currency", 0.20834 },
-                            { "v5/algo/order", 0.41679 },
-                            { "v5/algo/cancel_orders", 0.41679 },
+                            { "api/v1/contract_balance_valuation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_account_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_position_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_sub_auth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_sub_account_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_sub_account_info_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_sub_account_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_sub_position_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_financial_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_financial_record_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_user_settlement_records", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_order_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_transfer_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_position_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_account_position_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_master_sub_transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_master_sub_transfer_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_available_level_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_financial_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_financial_record_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract-cancel-after", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_batchorder", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_switch_lever_rate", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
+                            { "api/v1/lightning_close_position", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_order_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_order_detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_hisorders_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_matchresults", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_matchresults_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_hisorders_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_matchresults", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v3/contract_matchresults_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_trigger_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_trigger_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_trigger_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_trigger_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_trigger_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_tpsl_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_tpsl_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_tpsl_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_tpsl_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_tpsl_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_relation_tpsl_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_track_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_track_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_track_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_track_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "api/v1/contract_track_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_balance_valuation", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_account_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_position_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_account_position_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_sub_auth", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_sub_account_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_sub_account_info_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_sub_account_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_sub_position_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_financial_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_financial_record_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_user_settlement_records", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_available_level_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_order_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_fee", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_transfer_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_position_limit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_master_sub_transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_master_sub_transfer_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_financial_record", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_financial_record_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap-cancel-after", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_batchorder", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_lightning_close_position", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_switch_lever_rate", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
+                            { "swap-api/v1/swap_order_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_order_detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_hisorders_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_matchresults", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_matchresults_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_matchresults", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_matchresults_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v3/swap_hisorders_exact", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_trigger_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_trigger_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_trigger_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_trigger_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_trigger_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_tpsl_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_tpsl_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_tpsl_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_tpsl_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_tpsl_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_relation_tpsl_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_track_order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_track_cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_track_cancelall", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_track_openorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "swap-api/v1/swap_track_hisorders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v5/account/asset_mode", new Dictionary<string, object>() {
+                                { "cost", 100 },
+                            } },
+                            { "v5/trade/order", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/batch_orders", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/cancel_order", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/cancel_batch_orders", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/cancel_all_orders", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/cancel-after", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/position", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/trade/position_all", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/position/lever", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/position/mode", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/position/margin", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/account/fee_deduction_currency", new Dictionary<string, object>() {
+                                { "cost", 0.20834 },
+                            } },
+                            { "v5/algo/order", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
+                            { "v5/algo/cancel_orders", new Dictionary<string, object>() {
+                                { "cost", 0.41679 },
+                            } },
                         } },
                     } },
                 } },
@@ -1210,248 +2086,82 @@ public partial class htx : Exchange
      * @method
      * @name htx#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+     * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-status
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<object> fetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> FetchStatus(object parameters = null)
     {
+        // the former statuspage endpoints (status*.huobigroup.com) were
+        // decommissioned after the huobi -> htx rebrand and no longer resolve,
+        // so this method uses the live native endpoints instead
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object enabledForContracts = this.handleOption("fetchStatus", "enableForContracts", false); // temp fix for: https://status-linear-swap.huobigroup.com/api/v2/summary.json
-        object response = null;
-        if (isTrue(isTrue(!isEqual(marketType, "spot")) && isTrue(enabledForContracts)))
-        {
-            object subType = this.safeString(parameters, "subType", getValue(this.options, "defaultSubType"));
-            if (isTrue(isEqual(marketType, "swap")))
-            {
-                if (isTrue(isEqual(subType, "linear")))
-                {
-                    response = await this.statusPublicSwapLinearGetApiV2SummaryJson();
-                } else if (isTrue(isEqual(subType, "inverse")))
-                {
-                    response = await this.statusPublicSwapInverseGetApiV2SummaryJson();
-                }
-            } else if (isTrue(isEqual(marketType, "future")))
-            {
-                if (isTrue(isEqual(subType, "linear")))
-                {
-                    response = await this.statusPublicFutureLinearGetApiV2SummaryJson();
-                } else if (isTrue(isEqual(subType, "inverse")))
-                {
-                    response = await this.statusPublicFutureInverseGetApiV2SummaryJson();
-                }
-            } else if (isTrue(isEqual(marketType, "contract")))
-            {
-                response = await this.contractPublicGetHeartbeat();
-            }
-        } else if (isTrue(isEqual(marketType, "spot")))
-        {
-            response = await this.statusPublicSpotGetApiV2SummaryJson();
-        }
-        //
-        // statusPublicSpotGetApiV2SummaryJson, statusPublicSwapInverseGetApiV2SummaryJson, statusPublicFutureLinearGetApiV2SummaryJson, statusPublicFutureInverseGetApiV2SummaryJson
-        //
-        //      {
-        //          "page": {
-        //              "id":"mn7l2lw8pz4p",
-        //              "name":"Huobi Futures-USDT-margined Swaps",
-        //              "url":"https://status-linear-swap.huobigroup.com",
-        //              "time_zone":"Asia/Singapore",
-        //              "updated_at":"2022-04-29T12:47:21.319+08:00"},
-        //              "components": [
-        //                  {
-        //                      "id":"lrv093qk3yp5",
-        //                      "name":"market data",
-        //                      "status":"operational",
-        //                      "created_at":"2020-10-29T14:08:59.427+08:00",
-        //                      "updated_at":"2020-10-29T14:08:59.427+08:00",
-        //                      "position":1,"description":null,
-        //                      "showcase":false,
-        //                      "start_date":null,
-        //                      "group_id":null,
-        //                      "page_id":"mn7l2lw8pz4p",
-        //                      "group":true,
-        //                      "only_show_if_degraded":false,
-        //                      "components": [
-        //                          "82k5jxg7ltxd" // list of related components
-        //                      ]
-        //                  },
-        //              ],
-        //              "incidents": [ // empty array if there are no issues
-        //                  {
-        //                      "id": "rclfxz2g21ly",  // incident id
-        //                      "name": "Market data is delayed",  // incident name
-        //                      "status": "investigating",  // incident status
-        //                      "created_at": "2020-02-11T03:15:01.913Z",  // incident create time
-        //                      "updated_at": "2020-02-11T03:15:02.003Z",   // incident update time
-        //                      "monitoring_at": null,
-        //                      "resolved_at": null,
-        //                      "impact": "minor",  // incident impact
-        //                      "shortlink": "http://stspg.io/pkvbwp8jppf9",
-        //                      "started_at": "2020-02-11T03:15:01.906Z",
-        //                      "page_id": "p0qjfl24znv5",
-        //                      "incident_updates": [
-        //                          {
-        //                              "id": "dwfsk5ttyvtb",
-        //                              "status": "investigating",
-        //                              "body": "Market data is delayed",
-        //                              "incident_id": "rclfxz2g21ly",
-        //                              "created_at": "2020-02-11T03:15:02.000Z",
-        //                              "updated_at": "2020-02-11T03:15:02.000Z",
-        //                              "display_at": "2020-02-11T03:15:02.000Z",
-        //                              "affected_components": [
-        //                                  {
-        //                                      "code": "nctwm9tghxh6",
-        //                                      "name": "Market data",
-        //                                      "old_status": "operational",
-        //                                      "new_status": "degraded_performance"
-        //                                  }
-        //                              ],
-        //                              "deliver_notifications": true,
-        //                              "custom_tweet": null,
-        //                              "tweet_id": null
-        //                          }
-        //                      ],
-        //                      "components": [
-        //                          {
-        //                              "id": "nctwm9tghxh6",
-        //                              "name": "Market data",
-        //                              "status": "degraded_performance",
-        //                              "created_at": "2020-01-13T09:34:48.284Z",
-        //                              "updated_at": "2020-02-11T03:15:01.951Z",
-        //                              "position": 8,
-        //                              "description": null,
-        //                              "showcase": false,
-        //                              "group_id": null,
-        //                              "page_id": "p0qjfl24znv5",
-        //                              "group": false,
-        //                              "only_show_if_degraded": false
-        //                          }
-        //                      ]
-        //                  }, ...
-        //              ],
-        //              "scheduled_maintenances":[ // empty array if there are no scheduled maintenances
-        //                  {
-        //                      "id": "k7g299zl765l", // incident id
-        //                      "name": "Schedule maintenance", // incident name
-        //                      "status": "scheduled", // incident status
-        //                      "created_at": "2020-02-11T03:16:31.481Z",  // incident create time
-        //                      "updated_at": "2020-02-11T03:16:31.530Z",  // incident update time
-        //                      "monitoring_at": null,
-        //                      "resolved_at": null,
-        //                      "impact": "maintenance",  // incident impact
-        //                      "shortlink": "http://stspg.io/md4t4ym7nytd",
-        //                      "started_at": "2020-02-11T03:16:31.474Z",
-        //                      "page_id": "p0qjfl24znv5",
-        //                      "incident_updates": [
-        //                          {
-        //                              "id": "8whgr3rlbld8",
-        //                              "status": "scheduled",
-        //                              "body": "We will be undergoing scheduled maintenance during this time.",
-        //                              "incident_id": "k7g299zl765l",
-        //                              "created_at": "2020-02-11T03:16:31.527Z",
-        //                              "updated_at": "2020-02-11T03:16:31.527Z",
-        //                              "display_at": "2020-02-11T03:16:31.527Z",
-        //                              "affected_components": [
-        //                                  {
-        //                                      "code": "h028tnzw1n5l",
-        //                                      "name": "Deposit And Withdraw - Deposit",
-        //                                      "old_status": "operational",
-        //                                      "new_status": "operational"
-        //                                  }
-        //                              ],
-        //                              "deliver_notifications": true,
-        //                              "custom_tweet": null,
-        //                              "tweet_id": null
-        //                          }
-        //                      ],
-        //                      "components": [
-        //                          {
-        //                              "id": "h028tnzw1n5l",
-        //                              "name": "Deposit",
-        //                              "status": "operational",
-        //                              "created_at": "2019-12-05T02:07:12.372Z",
-        //                              "updated_at": "2020-02-10T12:34:52.970Z",
-        //                              "position": 1,
-        //                              "description": null,
-        //                              "showcase": false,
-        //                              "group_id": "gtd0nyr3pf0k",
-        //                              "page_id": "p0qjfl24znv5",
-        //                              "group": false,
-        //                              "only_show_if_degraded": false
-        //                          }
-        //                      ],
-        //                      "scheduled_for": "2020-02-15T00:00:00.000Z",  // scheduled maintenance start time
-        //                      "scheduled_until": "2020-02-15T01:00:00.000Z"  // scheduled maintenance end time
-        //                  }
-        //              ],
-        //              "status": {
-        //                  "indicator":"none", // none, minor, major, critical, maintenance
-        //                  "description":"all systems operational" // All Systems Operational, Minor Service Outage, Partial System Outage, Partially Degraded Service, Service Under Maintenance
-        //              }
-        //          }
-        //
-        //
-        // contractPublicGetHeartbeat
-        //
-        //      {
-        //          "status": "ok", // 'ok', 'error'
-        //          "data": {
-        //              "heartbeat": 1, // future 1: available, 0: maintenance with service suspended
-        //              "estimated_recovery_time": null, // estimated recovery time in milliseconds
-        //              "swap_heartbeat": 1,
-        //              "swap_estimated_recovery_time": null,
-        //              "option_heartbeat": 1,
-        //              "option_estimated_recovery_time": null,
-        //              "linear_swap_heartbeat": 1,
-        //              "linear_swap_estimated_recovery_time": null
-        //          },
-        //          "ts": 1557714418033
-        //      }
-        //
         object status = null;
-        object updated = null;
-        object url = null;
-        if (isTrue(isEqual(marketType, "contract")))
+        object eta = null;
+        object response = null;
+        if (isTrue(isEqual(marketType, "spot")))
         {
-            object statusRaw = this.safeString(response, "status");
-            if (isTrue(isEqual(statusRaw, null)))
-            {
-                status = null;
-            } else
-            {
-                status = ((bool) isTrue((isEqual(statusRaw, "ok")))) ? "ok" : "maintenance"; // 'ok', 'error'
-            }
-            updated = this.safeString(response, "ts");
+            response = await this.spotPublicGetV2MarketStatus(parameters);
+            //
+            //     {
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": {
+            //             "marketStatus": 1, // 1 normal, 2 halted, 3 cancel-only
+            //             "haltStartTime": 1614852011000, // only when halted
+            //             "haltEndTime": 1614852400000 // only when the end time is estimable
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            Int64? marketStatus = this.safeInteger(data, "marketStatus");
+            status = ((bool) isTrue((isEqual(marketStatus, 1)))) ? "ok" : "maintenance";
+            eta = this.safeInteger(data, "haltEndTime");
         } else
         {
-            object statusData = this.safeValue(response, "status", new Dictionary<string, object>() {});
-            object statusRaw = this.safeString(statusData, "indicator");
-            status = ((bool) isTrue((isEqual(statusRaw, "none")))) ? "ok" : "maintenance"; // none, minor, major, critical, maintenance
-            object pageData = this.safeValue(response, "page", new Dictionary<string, object>() {});
-            object datetime = this.safeString(pageData, "updated_at");
-            updated = this.parse8601(datetime);
-            url = this.safeString(pageData, "url");
+            object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchStatus", null, parameters);
+            subType = ((IList<object>)subTypeparametersVariable)[0];
+            parameters = ((IList<object>)subTypeparametersVariable)[1];
+            response = await this.contractPublicGetHeartbeat(parameters);
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "heartbeat": 1, // 1 available, 0 unavailable
+            //             "estimated_recovery_time": null,
+            //             "swap_heartbeat": 1,
+            //             "swap_estimated_recovery_time": null,
+            //             "option_heartbeat": 1,
+            //             "option_estimated_recovery_time": null,
+            //             "linear_swap_heartbeat": 1,
+            //             "linear_swap_estimated_recovery_time": null
+            //         },
+            //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
+            //     }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            string heartbeatKey = "heartbeat";
+            string etaKey = "estimated_recovery_time";
+            if (isTrue(isEqual(subType, "linear")))
+            {
+                heartbeatKey = "linear_swap_heartbeat";
+                etaKey = "linear_swap_estimated_recovery_time";
+            } else if (isTrue(isEqual(marketType, "swap")))
+            {
+                heartbeatKey = "swap_heartbeat";
+                etaKey = "swap_estimated_recovery_time";
+            }
+            Int64? heartbeat = this.safeInteger(data, heartbeatKey);
+            status = ((bool) isTrue((isEqual(heartbeat, 1)))) ? "ok" : "maintenance";
+            eta = this.safeInteger(data, etaKey);
         }
-        return new Dictionary<string, object>() {
-            { "status", status },
-            { "updated", updated },
-            { "eta", null },
-            { "url", url },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status },             { "updated", null },             { "eta", eta },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1463,12 +2173,12 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<object> fetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "fetchTime", new Dictionary<string, object>() {});
-        object defaultType = this.safeString(this.options, "defaultType", "spot");
-        object type = this.safeString(options, "type", defaultType);
+        string? defaultType = this.safeString(this.options, "defaultType", "spot");
+        string? type = this.safeString(options, "type", defaultType);
         type = this.safeString(parameters, "type", type);
         object response = null;
         if (isTrue(isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")))))
@@ -1487,7 +2197,7 @@ public partial class htx : Exchange
         //
         //     {"status":"ok","ts":1637504164707}
         //
-        return this.safeInteger2(response, "data", "ts");
+        return ccxt.BaseExchange.ToInt64Value(this.safeInteger2(response, "data", "ts"));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
@@ -1501,7 +2211,7 @@ public partial class htx : Exchange
         //         "makerFeeRate":"0.002"
         //     }
         //
-        object marketId = this.safeString(fee, "symbol");
+        string? marketId = this.safeString(fee, "symbol");
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -1521,7 +2231,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1529,7 +2239,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", getValue(market, "id") },
         };
         object response = await this.spotPrivateGetV2ReferenceTransactFeeRate(this.extend(request, parameters));
@@ -1550,10 +2260,10 @@ public partial class htx : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        return this.parseTradingFee(first, market);
+        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(first, market));
     }
 
-    public async override Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> FetchTradingLimits(object symbols = null, object parameters = null)
     {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
@@ -1567,13 +2277,17 @@ public partial class htx : Exchange
         {
             symbols = this.symbols;
         }
-        object result = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
+        }
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IDictionary<string,object>)result)[(string)symbol] = await this.fetchTradingLimitsById(this.marketId(symbol), parameters);
+            ((IDictionary<string,object>)result)[(string)symbol] = ccxt.BaseExchange.FromDict(await this.FetchTradingLimitsById(this.marketId(symbol), parameters));
         }
-        return result;
+        return ccxt.BaseExchange.ToDict(result);
     }
 
     /**
@@ -1585,10 +2299,10 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the limits object of a market structure
      */
-    public async virtual Task<object> fetchTradingLimitsById(object id, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradingLimitsById(object id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", id },
         };
         object response = await this.spotPublicGetV1CommonExchange(this.extend(request, parameters));
@@ -1608,7 +2322,7 @@ public partial class htx : Exchange
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return this.parseTradingLimits(this.safeValue(response, "data", new Dictionary<string, object>() {}));
+        return ccxt.BaseExchange.ToDict(this.parseTradingLimits(this.safeValue(response, "data", new Dictionary<string, object>() {})));
     }
 
     public virtual object parseTradingLimits(object limits, object symbol = null, object parameters = null)
@@ -1642,7 +2356,7 @@ public partial class htx : Exchange
 
     public override object costToPrecision(object symbol, object cost)
     {
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "cost"), this.precisionMode);
+        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(this.market(symbol), "precision"), "cost"), this.precisionMode);
     }
 
     /**
@@ -1656,10 +2370,10 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        if (isTrue(isEqual(getValue(this.options, "adjustForTimeDifference"), true)))
         {
             await this.loadTimeDifference();
         }
@@ -1669,22 +2383,22 @@ public partial class htx : Exchange
         parameters = ((IList<object>)typesparametersVariable)[1];
         object allMarkets = new List<object>() {};
         object promises = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)types).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)types).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            if (isTrue(this.safeBool(types, key)))
+            if (isTrue(isEqual(this.safeBool(types, key), true)))
             {
                 if (isTrue(isEqual(key, "spot")))
                 {
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType("spot", null, parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("spot", null, parameters));
                 } else if (isTrue(isEqual(key, "linear")))
                 {
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType(null, "linear", parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType(null, "linear", parameters));
                 } else if (isTrue(isEqual(key, "inverse")))
                 {
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType("swap", "inverse", parameters));
-                    ((IList<object>)promises).Add(this.fetchMarketsByTypeAndSubType("future", "inverse", parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("swap", "inverse", parameters));
+                    ((IList<object>)promises).Add(this.FetchMarketsByTypeAndSubType("future", "inverse", parameters));
                 }
             }
         }
@@ -1693,7 +2407,7 @@ public partial class htx : Exchange
         {
             allMarkets = this.arrayConcat(allMarkets, getValue(promises, i));
         }
-        return allMarkets;
+        return ccxt.BaseExchange.ToMarketInterfaceList(allMarkets);
     }
 
     /**
@@ -1710,11 +2424,11 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<object> fetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object isSpot = (isEqual(type, "spot"));
-        object request = new Dictionary<string, object>() {};
+        bool isSpot = (isEqual(type, "spot"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         if (!isTrue(isSpot))
         {
@@ -1823,12 +2537,12 @@ public partial class htx : Exchange
         //     }
         //
         object markets = this.safeList(response, "data", new List<object>() {});
-        object numMarkets = getArrayLength(markets);
+        int numMarkets = getArrayLength(markets);
         if (isTrue(isLessThan(numMarkets, 1)))
         {
             throw new OperationFailed ((string)add(add(this.id, " fetchMarkets() returned an empty response: "), this.json(response))) ;
         }
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
@@ -1836,20 +2550,24 @@ public partial class htx : Exchange
             object quoteId = null;
             object settleId = null;
             object id = null;
-            object lowercaseId = null;
-            object contract = (inOp(market, "contract_code"));
-            object spot = !isTrue(contract);
-            object swap = false;
-            object future = false;
-            object linear = null;
-            object inverse = null;
+            string? lowercaseId = null;
+            bool contract = (inOp(market, "contract_code"));
+            bool spot = !isTrue(contract);
+            bool swap = false;
+            bool future = false;
+            bool? linear = null;
+            bool? inverse = null;
             // check if parsed market is contract
             if (isTrue(contract))
             {
                 id = this.safeString(market, "contract_code");
+                if (isTrue(isEqual(id, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing id")) ;
+                }
                 lowercaseId = ((string)id).ToLower();
-                object delivery_date = this.safeString(market, "delivery_date");
-                object business_type = this.safeString(market, "business_type");
+                string? delivery_date = this.safeString(market, "delivery_date");
+                string? business_type = this.safeString(market, "business_type");
                 future = !isEqual(delivery_date, null);
                 swap = !isTrue(future);
                 linear = !isEqual(business_type, null);
@@ -1857,7 +2575,11 @@ public partial class htx : Exchange
                 if (isTrue(swap))
                 {
                     type = "swap";
-                    object parts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    if (isTrue(isEqual(id, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " method() missing id")) ;
+                    }
+                    List<object> parts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     baseId = this.safeStringLower(market, "symbol");
                     quoteId = this.safeStringLower(parts, 1);
                     settleId = ((bool) isTrue(inverse)) ? baseId : quoteId;
@@ -1871,8 +2593,12 @@ public partial class htx : Exchange
                         settleId = baseId;
                     } else
                     {
-                        object pair = this.safeString(market, "pair");
-                        object parts = ((string)pair).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                        string? pair = this.safeString(market, "pair");
+                        if (isTrue(isEqual(pair, null)))
+                        {
+                            throw new ExchangeError ((string)add(this.id, " method() missing pair")) ;
+                        }
+                        List<object> parts = ((string)pair).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                         quoteId = this.safeStringLower(parts, 1);
                         settleId = quoteId;
                     }
@@ -1882,6 +2608,14 @@ public partial class htx : Exchange
                 type = "spot";
                 baseId = this.safeString(market, "base-currency");
                 quoteId = this.safeString(market, "quote-currency");
+                if (isTrue(isEqual(quoteId, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing quoteId")) ;
+                }
+                if (isTrue(isEqual(baseId, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing baseId")) ;
+                }
                 id = add(baseId, quoteId);
                 lowercaseId = ((string)id).ToLower();
             }
@@ -1889,13 +2623,13 @@ public partial class htx : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(bs, "/"), quote);
-            object expiry = null;
+            Int64? expiry = null;
             if (isTrue(contract))
             {
-                if (isTrue(inverse))
+                if (isTrue(isEqual(inverse, true)))
                 {
                     symbol = add(symbol, add(":", bs));
-                } else if (isTrue(linear))
+                } else if (isTrue(isEqual(linear, true)))
                 {
                     symbol = add(symbol, add(":", quote));
                 }
@@ -1911,10 +2645,10 @@ public partial class htx : Exchange
             object minAmount = this.safeNumber(market, "min-order-amt");
             if (isTrue(contract))
             {
-                if (isTrue(linear))
+                if (isTrue(isEqual(linear, true)))
                 {
                     minAmount = contractSize;
-                } else if (isTrue(inverse))
+                } else if (isTrue(isEqual(inverse, true)))
                 {
                     minCost = contractSize;
                 }
@@ -1924,7 +2658,7 @@ public partial class htx : Exchange
             object costPrecision = null;
             object maker = null;
             object taker = null;
-            object active = null;
+            bool? active = null;
             if (isTrue(spot))
             {
                 pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "price-precision")));
@@ -1932,7 +2666,7 @@ public partial class htx : Exchange
                 costPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "value-precision")));
                 maker = this.parseNumber("0.002");
                 taker = this.parseNumber("0.002");
-                object state = this.safeString(market, "state");
+                string? state = this.safeString(market, "state");
                 active = (isEqual(state, "online"));
             } else
             {
@@ -1940,12 +2674,12 @@ public partial class htx : Exchange
                 amountPrecision = this.parseNumber("1"); // other markets have step size of 1 contract
                 maker = this.parseNumber("0.0002");
                 taker = this.parseNumber("0.0005");
-                object contractStatus = this.safeInteger(market, "contract_status");
+                Int64? contractStatus = this.safeInteger(market, "contract_status");
                 active = (isEqual(contractStatus, 1));
             }
-            object leverageRatio = this.safeString(market, "leverage-ratio", "1");
-            object superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-            object hasLeverage = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
+            string? leverageRatio = this.safeString(market, "leverage-ratio", "1");
+            string? superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
+            bool hasLeverage = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -1956,7 +2690,7 @@ public partial class htx : Exchange
             // 7 Settlement Completed
             // 8 Delivered
             // 9 Suspending of Trade
-            object created = null;
+            Int64? created = null;
             object createdDate = this.safeString(market, "create_date"); // i.e 20230101
             if (isTrue(!isEqual(createdDate, null)))
             {
@@ -2019,12 +2753,12 @@ public partial class htx : Exchange
                 { "info", market },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public virtual object tryGetSymbolFromFutureMarkets(object symbolOrMarketId)
     {
-        if (isTrue(inOp(this.markets, symbolOrMarketId)))
+        if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbolOrMarketId)))))
         {
             return symbolOrMarketId;
         }
@@ -2041,8 +2775,8 @@ public partial class htx : Exchange
         {
             return getValue(futureMarketIdsForSymbols, symbolOrMarketId);
         }
-        object futureMarkets = this.filterBy(this.markets, "future", true);
-        object futuresCharsMaps = new Dictionary<string, object>() {
+        List<object> futureMarkets = this.filterBy(this.markets, "future", true);
+        Dictionary<string, object> futuresCharsMaps = new Dictionary<string, object>() {
             { "this_week", "CW" },
             { "next_week", "NW" },
             { "quarter", "CQ" },
@@ -2052,10 +2786,10 @@ public partial class htx : Exchange
         {
             object market = getValue(futureMarkets, i);
             object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-            object contractType = this.safeString(info, "contract_type");
-            object contractSuffix = getValue(futuresCharsMaps, contractType);
+            string? contractType = this.safeString(info, "contract_type");
+            object contractSuffix = this.safeValue(futuresCharsMaps, contractType);
             // see comment on formats a bit above
-            object constructedId = ((bool) isTrue(getValue(market, "linear"))) ? add(add(add(add(getValue(market, "base"), "-"), getValue(market, "quote")), "-"), contractSuffix) : add(add(getValue(market, "base"), "_"), contractSuffix);
+            object constructedId = ((bool) isTrue((isEqual(getValue(market, "linear"), true)))) ? add(add(add(add(getValue(market, "base"), "-"), getValue(market, "quote")), "-"), contractSuffix) : add(add(getValue(market, "base"), "_"), contractSuffix);
             if (isTrue(isEqual(constructedId, symbolOrMarketId)))
             {
                 object symbol = getValue(market, "symbol");
@@ -2115,14 +2849,14 @@ public partial class htx : Exchange
         //         "symbol": "btcusdt"
         //     }
         //
-        object marketId = this.safeString2(ticker, "symbol", "contract_code");
+        string? marketId = this.safeString2(ticker, "symbol", "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         symbol = this.tryGetSymbolFromFutureMarkets(symbol);
         object timestamp = this.safeInteger2(ticker, "ts", "quoteTime");
-        object bid = null;
-        object bidVolume = null;
-        object ask = null;
-        object askVolume = null;
+        string? bid = null;
+        string? bidVolume = null;
+        string? ask = null;
+        string? askVolume = null;
         if (isTrue(inOp(ticker, "bid")))
         {
             if (isTrue(isTrue(!isEqual(getValue(ticker, "bid"), null)) && isTrue(((getValue(ticker, "bid") is IList<object>) || (getValue(ticker, "bid").GetType().IsGenericType && getValue(ticker, "bid").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
@@ -2147,10 +2881,10 @@ public partial class htx : Exchange
                 askVolume = this.safeString(ticker, "askSize");
             }
         }
-        object open = this.safeString(ticker, "open");
-        object close = this.safeString(ticker, "close");
-        object baseVolume = this.safeString(ticker, "amount");
-        object quoteVolume = this.safeString(ticker, "vol");
+        string? open = this.safeString(ticker, "open");
+        string? close = this.safeString(ticker, "close");
+        string? baseVolume = this.safeString(ticker, "amount");
+        string? quoteVolume = this.safeString(ticker, "vol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -2187,7 +2921,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2195,19 +2929,19 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             response = await this.contractPublicGetLinearSwapExMarketDetailMerged(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "inverse")))
+        } else if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
-            if (isTrue(getValue(market, "future")))
+            if (isTrue(isEqual(getValue(market, "future"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
                 response = await this.contractPublicGetMarketDetailMerged(this.extend(request, parameters));
-            } else if (isTrue(getValue(market, "swap")))
+            } else if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
                 response = await this.contractPublicGetSwapExMarketDetailMerged(this.extend(request, parameters));
@@ -2262,10 +2996,10 @@ public partial class htx : Exchange
         //
         object tick = this.safeValue(response, "tick", new Dictionary<string, object>() {});
         object ticker = this.parseTicker(tick, market);
-        object timestamp = this.safeInteger(response, "ts");
+        Int64? timestamp = this.safeInteger(response, "ts");
         ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
         ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
-        return ticker;
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     /**
@@ -2280,7 +3014,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2288,13 +3022,13 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object first = this.safeString(symbols, 0);
+        string? first = this.safeString(symbols, 0);
         object market = null;
         if (isTrue(!isEqual(first, null)))
         {
             market = this.market(first);
         }
-        object isSubTypeRequested = isTrue((inOp(parameters, "subType"))) || isTrue((inOp(parameters, "business_type")));
+        bool isSubTypeRequested = isTrue((inOp(parameters, "subType"))) || isTrue((inOp(parameters, "business_type")));
         object type = null;
         object subType = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -2303,12 +3037,12 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {};
-        object isSpot = (isEqual(type, "spot"));
-        object future = (isEqual(type, "future"));
-        object swap = (isEqual(type, "swap"));
-        object linear = (isEqual(subType, "linear"));
-        object inverse = (isEqual(subType, "inverse"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        bool isSpot = (isEqual(type, "spot"));
+        bool future = (isEqual(type, "future"));
+        bool swap = (isEqual(type, "swap"));
+        bool linear = (isEqual(subType, "linear"));
+        bool inverse = (isEqual(subType, "inverse"));
         object response = null;
         if (isTrue(!isTrue(isSpot) || isTrue(isSubTypeRequested)))
         {
@@ -2398,7 +3132,7 @@ public partial class htx : Exchange
         //
         object rawTickers = this.safeList2(response, "data", "ticks", new List<object>() {});
         object tickers = this.parseTickers(rawTickers, symbols, parameters);
-        return this.filterByArrayTickers(tickers, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
     /**
@@ -2412,7 +3146,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
      */
-    public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LastPrices> FetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2445,16 +3179,16 @@ public partial class htx : Exchange
         }
         object tick = this.safeValue(response, "tick", new Dictionary<string, object>() {});
         object data = this.safeList(tick, "data", new List<object>() {});
-        return this.parseLastPrices(data, symbols);
+        return ccxt.BaseExchange.ToLastPrices(this.parseLastPrices(data, symbols));
     }
 
     public override object parseLastPrice(object entry, object market = null)
     {
         // example responses are documented in fetchLastPrices
-        object marketId = this.safeString2(entry, "symbol", "contract_code");
+        string? marketId = this.safeString2(entry, "symbol", "contract_code");
         market = this.safeMarket(marketId, market);
         object price = this.safeNumber(entry, "price");
-        object direction = this.safeString(entry, "direction"); // "buy" or "sell"
+        string? direction = this.safeString(entry, "direction"); // "buy" or "sell"
         // group timestamp should not be assigned to the individual trades' times
         return new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -2477,9 +3211,9 @@ public partial class htx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2487,21 +3221,21 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "step0" },
         };
         object response = null;
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             response = await this.contractPublicGetLinearSwapExMarketDepth(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "inverse")))
+        } else if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
-            if (isTrue(getValue(market, "future")))
+            if (isTrue(isEqual(getValue(market, "future"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
                 response = await this.contractPublicGetMarketDepth(this.extend(request, parameters));
-            } else if (isTrue(getValue(market, "swap")))
+            } else if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
                 response = await this.contractPublicGetSwapExMarketDepth(this.extend(request, parameters));
@@ -2552,17 +3286,21 @@ public partial class htx : Exchange
         //         }
         //     }
         //
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " fetchOrderBook() returned empty response")) ;
+        }
         if (isTrue(inOp(response, "tick")))
         {
-            if (!isTrue(getValue(response, "tick")))
+            if (isTrue(isTrue((isEqual(getValue(response, "tick"), null))) || isTrue((isEqual(getValue(response, "tick"), null)))))
             {
                 throw new BadSymbol ((string)add(add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
             }
             object tick = this.safeValue(response, "tick");
-            object timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
+            Int64? timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
             object result = this.parseOrderBook(tick, symbol, timestamp);
             ((IDictionary<string,object>)result)["nonce"] = this.safeInteger(tick, "version");
-            return result;
+            return ccxt.BaseExchange.ToOrderBook(result);
         }
         throw new ExchangeError ((string)add(add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
     }
@@ -2673,38 +3411,38 @@ public partial class htx : Exchange
         //         "contract_type": "swap"
         //     }
         //
-        object marketId = this.safeString2(trade, "contract_code", "symbol");
+        string? marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
-        object order = this.safeString2(trade, "order-id", "order_id");
+        string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
         object type = this.safeString(trade, "type");
         if (isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "-"), 0)))))
         {
-            object typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(typeParts, 0);
             type = getValue(typeParts, 1);
         }
-        object takerOrMaker = this.safeStringLower(trade, "role");
-        object priceString = this.safeString2(trade, "price", "trade_price");
-        object amountString = this.safeString2(trade, "filled-amount", "amount");
+        string? takerOrMaker = this.safeStringLower(trade, "role");
+        string? priceString = this.safeString2(trade, "price", "trade_price");
+        string? amountString = this.safeString2(trade, "filled-amount", "amount");
         amountString = this.safeString(trade, "trade_volume", amountString);
-        object costString = this.safeString(trade, "trade_turnover");
+        string? costString = this.safeString(trade, "trade_turnover");
         object fee = null;
         object feeCost = this.safeString(trade, "filled-fees");
         if (isTrue(isEqual(feeCost, null)))
         {
             feeCost = Precise.stringNeg(this.safeString(trade, "trade_fee"));
         }
-        object feeCurrencyId = this.safeStringN(trade, new List<object>() {"fee-currency", "fee_asset", "fee_currency"});
+        string? feeCurrencyId = this.safeStringN(trade, new List<object>() {"fee-currency", "fee_asset", "fee_currency"});
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
-        object filledPoints = this.safeString(trade, "filled-points");
+        string? filledPoints = this.safeString(trade, "filled-points");
         if (isTrue(!isEqual(filledPoints, null)))
         {
             if (isTrue(isTrue((isEqual(feeCost, null))) || isTrue(Precise.stringEquals(feeCost, "0"))))
             {
-                object feeDeductCurrency = this.safeString(trade, "fee-deduct-currency");
+                string? feeDeductCurrency = this.safeString(trade, "fee-deduct-currency");
                 if (isTrue(!isEqual(feeDeductCurrency, null)))
                 {
                     feeCost = filledPoints;
@@ -2723,7 +3461,7 @@ public partial class htx : Exchange
         // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
         // - otherwise the least priority is given to the `id` key
         object id = null;
-        object safeId = this.safeString(trade, "id");
+        string? safeId = this.safeString(trade, "id");
         if (isTrue(isTrue(!isEqual(safeId, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(safeId, "-"), 0))))
         {
             id = safeId;
@@ -2760,7 +3498,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object market = null;
@@ -2776,7 +3514,7 @@ public partial class htx : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchOrderTrades() is only supported for spot markets")) ;
         }
-        return await this.fetchSpotOrderTrades(id, symbol, since, limit, parameters);
+        return await this.FetchSpotOrderTrades(((string)id),((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -2792,18 +3530,19 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async virtual Task<object> fetchSpotOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> FetchSpotOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order-id", id },
         };
         object response = await this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters));
-        return this.parseTrades(getValue(response, "data"), null, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, null, since, limit));
     }
 
     /**
@@ -2820,7 +3559,7 @@ public partial class htx : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2833,7 +3572,7 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters);
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2878,7 +3617,7 @@ public partial class htx : Exchange
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((IList<object>)requestparametersVariable)[0];
             parameters = ((IList<object>)requestparametersVariable)[1];
-            if (isTrue(this.safeBool(market, "linear")))
+            if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = this.safeString(market, "id");
                 if (isTrue(!isEqual(limit, null)))
@@ -2886,7 +3625,7 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 500
                 }
                 response = await this.contractPrivateGetV5TradeOrderDetails(this.extend(request, parameters));
-            } else if (isTrue(this.safeBool(market, "inverse")))
+            } else if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
             {
                 if (isTrue(!isEqual(limit, null)))
                 {
@@ -3011,7 +3750,7 @@ public partial class htx : Exchange
         {
             trades = this.safeValue(trades, "trades");
         }
-        return this.parseTrades(trades, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
     /**
@@ -3028,39 +3767,40 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        limit ??= 1000;
+        object limitVar = limit;
+        limitVar ??= 1000;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(limit, null)))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // max 2000
+            ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // max 2000
         }
         object response = null;
-        if (isTrue(getValue(market, "future")))
+        if (isTrue(isEqual(getValue(market, "future"), true)))
         {
-            if (isTrue(getValue(market, "inverse")))
+            if (isTrue(isEqual(getValue(market, "inverse"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
                 response = await this.contractPublicGetMarketHistoryTrade(this.extend(request, parameters));
-            } else if (isTrue(getValue(market, "linear")))
+            } else if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters));
             }
-        } else if (isTrue(getValue(market, "swap")))
+        } else if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            if (isTrue(getValue(market, "inverse")))
+            if (isTrue(isEqual(getValue(market, "inverse"), true)))
             {
                 response = await this.contractPublicGetSwapExMarketHistoryTrade(this.extend(request, parameters));
-            } else if (isTrue(getValue(market, "linear")))
+            } else if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 response = await this.contractPublicGetLinearSwapExMarketHistoryTrade(this.extend(request, parameters));
             }
@@ -3094,7 +3834,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trades = this.safeValue(getValue(data, i), "data", new List<object>() {});
@@ -3105,7 +3845,7 @@ public partial class htx : Exchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        return this.filterBySymbolSinceLimit(result, getValue(market, "symbol"), since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, getValue(market, "symbol"), since, limitVar));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -3142,9 +3882,11 @@ public partial class htx : Exchange
      * @param {string} [params.useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        object limitVar = limit;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -3156,50 +3898,50 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000);
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar, timeframeVar, parameters, 1000));
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "period", this.safeString(this.timeframes, timeframe, timeframe) },
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object priceType = this.safeStringN(parameters, new List<object>() {"priceType", "price"});
+        object priceType = this.safeString2(parameters, "priceType", "price");
         parameters = this.omit(parameters, new List<object>() {"priceType", "price"});
         object until = null;
         var untilparametersVariable = this.handleParamInteger(parameters, "until");
         until = ((IList<object>)untilparametersVariable)[0];
         parameters = ((IList<object>)untilparametersVariable)[1];
         object untilSeconds = ((bool) isTrue((!isEqual(until, null)))) ? this.parseToInt(divide(until, 1000)) : null;
-        if (isTrue(getValue(market, "contract")))
+        if (isTrue(isEqual(getValue(market, "contract"), true)))
         {
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(!isEqual(limitVar, null)))
             {
-                ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // when using limit: from & to are ignored
+                ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // when using limitVar: from & to are ignored
             } else
             {
-                limit = 2000; // only used for from/to calculation
+                limitVar = 2000; // only used for from/to calculation
             }
             if (isTrue(isEqual(priceType, null)))
             {
-                object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframeVar);
                 object calcualtedEnd = null;
                 if (isTrue(isEqual(since, null)))
                 {
-                    object now = this.seconds();
-                    ((IDictionary<string,object>)request)["from"] = subtract(now, multiply(duration, (subtract(limit, 1))));
+                    Int64 now = this.seconds();
+                    ((IDictionary<string,object>)request)["from"] = subtract(now, multiply(duration, (subtract(limitVar, 1))));
                     calcualtedEnd = now;
                 } else
                 {
                     object start = this.parseToInt(divide(since, 1000));
                     ((IDictionary<string,object>)request)["from"] = start;
-                    calcualtedEnd = this.sum(start, multiply(duration, (subtract(limit, 1))));
+                    calcualtedEnd = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
                 }
                 ((IDictionary<string,object>)request)["to"] = ((bool) isTrue((!isEqual(untilSeconds, null)))) ? untilSeconds : calcualtedEnd;
             }
         }
         object response = null;
-        if (isTrue(getValue(market, "future")))
+        if (isTrue(isEqual(getValue(market, "future"), true)))
         {
-            if (isTrue(getValue(market, "inverse")))
+            if (isTrue(isEqual(getValue(market, "inverse"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
                 if (isTrue(isEqual(priceType, "mark")))
@@ -3215,7 +3957,7 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPublicGetMarketHistoryKline(this.extend(request, parameters));
                 }
-            } else if (isTrue(getValue(market, "linear")))
+            } else if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
                 if (isTrue(isEqual(priceType, "mark")))
@@ -3232,10 +3974,10 @@ public partial class htx : Exchange
                     response = await this.contractPublicGetLinearSwapExMarketHistoryKline(this.extend(request, parameters));
                 }
             }
-        } else if (isTrue(getValue(market, "swap")))
+        } else if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            if (isTrue(getValue(market, "inverse")))
+            if (isTrue(isEqual(getValue(market, "inverse"), true)))
             {
                 if (isTrue(isEqual(priceType, "mark")))
                 {
@@ -3250,7 +3992,7 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPublicGetSwapExMarketHistoryKline(this.extend(request, parameters));
                 }
-            } else if (isTrue(getValue(market, "linear")))
+            } else if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 if (isTrue(isEqual(priceType, "mark")))
                 {
@@ -3275,9 +4017,9 @@ public partial class htx : Exchange
             parameters = ((IList<object>)useHistoricalparametersVariable)[1];
             if (!isTrue(useHistorical))
             {
-                if (isTrue(!isEqual(limit, null)))
+                if (isTrue(!isEqual(limitVar, null)))
                 {
-                    ((IDictionary<string,object>)request)["size"] = mathMin(limit, 2000); // max 2000
+                    ((IDictionary<string,object>)request)["size"] = mathMin(limitVar, 2000); // max 2000
                 }
                 response = await this.spotPublicGetMarketHistoryKline(this.extend(request, parameters));
             } else
@@ -3291,9 +4033,9 @@ public partial class htx : Exchange
                 {
                     ((IDictionary<string,object>)request)["to"] = untilSeconds;
                 }
-                if (isTrue(!isEqual(limit, null)))
+                if (isTrue(!isEqual(limitVar, null)))
                 {
-                    ((IDictionary<string,object>)request)["size"] = mathMin(1000, limit); // max 1000, otherwise default returns 150
+                    ((IDictionary<string,object>)request)["size"] = mathMin(1000, limitVar); // max 1000, otherwise default returns 150
                 }
                 response = await this.spotPublicGetMarketHistoryCandles(this.extend(request, parameters));
             }
@@ -3311,7 +4053,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframeVar, since, limitVar));
     }
 
     /**
@@ -3322,7 +4064,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async override Task<object> fetchAccounts(object parameters = null)
+    public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3340,7 +4082,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        return this.parseAccounts(data);
+        return ccxt.BaseExchange.ToAccountList(this.parseAccounts(data));
     }
 
     public override object parseAccount(object account)
@@ -3353,7 +4095,7 @@ public partial class htx : Exchange
         //         "state": "working" // working, lock
         //     }
         //
-        object typeId = this.safeString(account, "type");
+        string? typeId = this.safeString(account, "type");
         object accountsById = this.safeValue(this.options, "accountsById", new Dictionary<string, object>() {});
         object type = this.safeValue(accountsById, typeId, typeId);
         return new Dictionary<string, object>() {
@@ -3375,14 +4117,14 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public async virtual Task<object> fetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
+    public async virtual Task<string> FetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
-        object accountId = this.safeValue2(parameters, "accountId", "account-id");
+        string? accountId = this.safeString2(parameters, "accountId", "account-id");
         if (isTrue(!isEqual(accountId, null)))
         {
-            return accountId;
+            return ccxt.BaseExchange.ToStringValue(accountId);
         }
         if (isTrue(isEqual(type, "spot")))
         {
@@ -3403,21 +4145,21 @@ public partial class htx : Exchange
         {
             object account = getValue(accounts, i);
             object info = this.safeValue(account, "info");
-            object subtype = this.safeString(info, "subtype");
-            object typeFromAccount = this.safeString(account, "type");
+            string? subtype = this.safeString(info, "subtype");
+            string? typeFromAccount = this.safeString(account, "type");
             if (isTrue(isEqual(type, "margin")))
             {
                 if (isTrue(isEqual(subtype, marketId)))
                 {
-                    return this.safeString(account, "id");
+                    return ccxt.BaseExchange.ToStringValue(this.safeString(account, "id"));
                 }
             } else if (isTrue(isEqual(type, typeFromAccount)))
             {
-                return this.safeString(account, "id");
+                return ccxt.BaseExchange.ToStringValue(this.safeString(account, "id"));
             }
         }
         object defaultAccount = this.safeValue(accounts, 0, new Dictionary<string, object>() {});
-        return this.safeString(defaultAccount, "id");
+        return ccxt.BaseExchange.ToStringValue(this.safeString(defaultAccount, "id"));
     }
 
     /**
@@ -3484,41 +4226,53 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)this.options)["networkChainIdsByNames"] = new Dictionary<string, object>() {};
         }
-        object currencyId = this.safeString(rawCurrency, "currency");
+        string? currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
-        object assetType = this.safeString(rawCurrency, "assetType");
-        object type = ((bool) isTrue((isEqual(assetType, "1")))) ? "crypto" : "fiat";
-        ((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames"))[(string)code] = new Dictionary<string, object>() {};
+        string? assetType = this.safeString(rawCurrency, "assetType");
+        string type = ((bool) isTrue((isEqual(assetType, "1")))) ? "crypto" : "fiat";
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames"))[(string)code] = new Dictionary<string, object>() {};
+        }
         object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
-        object networks = new Dictionary<string, object>() {};
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chainEntry = getValue(chains, j);
-            object uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
-            object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
-            ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
+            string? uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
+            string? title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+            if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(title, null))))
+            {
+                ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
+            }
+            if (isTrue(!isEqual(uniqueChainId, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
+            }
             object networkCode = this.networkIdToCode(uniqueChainId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", chainEntry },
-                { "id", uniqueChainId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chainEntry, "minDepositAmt") },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", chainEntry },
+                    { "id", uniqueChainId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chainEntry, "minDepositAmt") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chainEntry, "minWithdrawAmt") },
+                            { "max", this.safeNumber(chainEntry, "maxWithdrawAmt") },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chainEntry, "minWithdrawAmt") },
-                        { "max", this.safeNumber(chainEntry, "maxWithdrawAmt") },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", isEqual(this.safeString(chainEntry, "depositStatus"), "allowed") },
-                { "withdraw", isEqual(this.safeString(chainEntry, "withdrawStatus"), "allowed") },
-                { "fee", this.safeNumber(chainEntry, "transactFeeWithdraw") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))) },
-            };
+                    { "active", null },
+                    { "deposit", isEqual(this.safeString(chainEntry, "depositStatus"), "allowed") },
+                    { "withdraw", isEqual(this.safeString(chainEntry, "withdrawStatus"), "allowed") },
+                    { "fee", this.safeNumber(chainEntry, "transactFeeWithdraw") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))) },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -3552,8 +4306,8 @@ public partial class htx : Exchange
     public override object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);
-        object keysLength = getArrayLength(keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds")).Keys);
+        int keysLength = getArrayLength(keys);
         if (isTrue(isEqual(keysLength, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " networkIdToCode() - markets need to be loaded at first")) ;
@@ -3572,8 +4326,8 @@ public partial class htx : Exchange
         {
             return base.networkCodeToId(networkCode);
         }
-        object keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames")).Keys);
-        object keysLength = getArrayLength(keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames")).Keys);
+        int keysLength = getArrayLength(keys);
         if (isTrue(isEqual(keysLength, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " networkCodeToId() - markets need to be loaded at first")) ;
@@ -3604,7 +4358,7 @@ public partial class htx : Exchange
      * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3625,25 +4379,29 @@ public partial class htx : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         object isMultiAssetMode = null;
-        var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
+        var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(subType, null)))
+        {
+            subType = "linear";
+        }
         var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
         isMultiAssetMode = ((IList<object>)isMultiAssetModeparametersVariable)[0];
         parameters = ((IList<object>)isMultiAssetModeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {};
-        object spot = (isEqual(type, "spot"));
-        object future = (isEqual(type, "future"));
-        object swap = (isEqual(type, "swap"));
-        object inverse = (isEqual(subType, "inverse"));
-        object linear = (isEqual(subType, "linear"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        bool spot = (isEqual(type, "spot"));
+        bool future = (isEqual(type, "future"));
+        bool swap = (isEqual(type, "swap"));
+        bool inverse = (isEqual(subType, "inverse"));
+        bool linear = (isEqual(subType, "linear"));
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object isolated = (isEqual(marginMode, "isolated"));
-        object cross = (isEqual(marginMode, "cross"));
-        object margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
+        bool isolated = (isEqual(marginMode, "isolated"));
+        bool cross = (isEqual(marginMode, "cross"));
+        bool margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
         object response = null;
         if (isTrue(isTrue(isMultiAssetMode) || isTrue((isTrue(linear) && isTrue((isTrue(swap) || isTrue(future)))))))
         {
@@ -3662,7 +4420,7 @@ public partial class htx : Exchange
             } else
             {
                 await this.loadAccounts();
-                object accountId = await this.fetchAccountIdByType(type, null, null, parameters);
+                object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType(type, null, null, parameters));
                 ((IDictionary<string,object>)request)["account-id"] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, parameters));
             }
@@ -3818,9 +4576,9 @@ public partial class htx : Exchange
         //     }
         //
         object finalResponse = response;
-        object result = ((object)new Dictionary<string, object>() {
+        object result = new Dictionary<string, object>() {
             { "info", finalResponse },
-        });
+        };
         object data = this.safeValue(response, "data");
         if (isTrue(isTrue(isMultiAssetMode) || isTrue((isTrue(linear) && isTrue((isTrue(swap) || isTrue(future)))))))
         {
@@ -3828,12 +4586,15 @@ public partial class htx : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
             {
                 object balance = getValue(details, i);
-                object currencyId = this.safeString(balance, "currency");
+                string? currencyId = this.safeString(balance, "currency");
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available_margin");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "equity");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
             result = this.safeBalance(result);
         } else if (isTrue(isTrue(spot) || isTrue(margin)))
@@ -3843,27 +4604,38 @@ public partial class htx : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                 {
                     object entry = getValue(data, i);
-                    object symbol = this.safeSymbol(this.safeString(entry, "symbol"));
                     object balances = this.safeValue(entry, "list");
-                    object subResult = new Dictionary<string, object>() {};
+                    Dictionary<string, object> subResult = new Dictionary<string, object>() {};
                     for (object j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
                     {
                         object balance = getValue(balances, j);
-                        object currencyId = this.safeString(balance, "currency");
+                        string? currencyId = this.safeString(balance, "currency");
                         object code = this.safeCurrencyCode(currencyId);
-                        ((IDictionary<string,object>)subResult)[(string)code] = this.parseMarginBalanceHelper(balance, code, subResult);
+                        if (isTrue(!isEqual(code, null)))
+                        {
+                            ((IDictionary<string,object>)subResult)[(string)code] = this.parseMarginBalanceHelper(balance, code, subResult);
+                        }
                     }
-                    ((IDictionary<string,object>)result)[(string)symbol] = this.safeBalance(subResult);
+                    List<object> subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
+                    for (object j = 0; isLessThan(j, getArrayLength(subCodes)); postFixIncrement(ref j))
+                    {
+                        object subCode = getValue(subCodes, j);
+                        result = this.mergeBalanceAccount(result, subCode, getValue(subResult, subCode));
+                    }
                 }
+                result = this.safeBalance(result);
             } else
             {
                 object balances = this.safeValue(data, "list", new List<object>() {});
                 for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
                 {
                     object balance = getValue(balances, i);
-                    object currencyId = this.safeString(balance, "currency");
+                    string? currencyId = this.safeString(balance, "currency");
                     object code = this.safeCurrencyCode(currencyId);
-                    ((IDictionary<string,object>)result)[(string)code] = this.parseMarginBalanceHelper(balance, code, result);
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = this.parseMarginBalanceHelper(balance, code, result);
+                    }
                 }
                 result = this.safeBalance(result);
             }
@@ -3872,16 +4644,19 @@ public partial class htx : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);
-                object currencyId = this.safeString(balance, "symbol");
+                string? currencyId = this.safeString(balance, "symbol");
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "margin_available");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "margin_frozen");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
             result = this.safeBalance(result);
         }
-        return result;
+        return ccxt.BaseExchange.ToBalances(result);
     }
 
     /**
@@ -3903,7 +4678,7 @@ public partial class htx : Exchange
      * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3919,11 +4694,11 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            object clientOrderId = this.safeString(parameters, "clientOrderId");
+            string? clientOrderId = this.safeString(parameters, "clientOrderId");
             if (isTrue(!isEqual(clientOrderId, null)))
             {
                 // will be filled below in extend ()
@@ -3942,12 +4717,12 @@ public partial class htx : Exchange
             object stopLoss = this.safeBool(parameters, "stopLoss");
             object takeProfit = this.safeBool(parameters, "takeProfit");
             object trailing = this.safeBool(parameters, "trailing");
-            object isAlgo = (isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(stopLoss)) || isTrue(takeProfit)) || isTrue(stopLossTakeProfit)) || isTrue(trailing));
+            bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
-            object clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
+            string? clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
             if (isTrue(isEqual(clientOrderId, null)))
             {
-                if (isTrue(isAlgo))
+                if (isTrue(isEqual(isAlgo, true)))
                 {
                     ((IDictionary<string,object>)request)["algo_id"] = id;
                 } else
@@ -3956,7 +4731,7 @@ public partial class htx : Exchange
                 }
             } else
             {
-                if (isTrue(isAlgo))
+                if (isTrue(isEqual(isAlgo, true)))
                 {
                     ((IDictionary<string,object>)request)["algo_client_order_id"] = clientOrderId;
                 } else
@@ -3965,23 +4740,23 @@ public partial class htx : Exchange
                 }
                 parameters = this.omit(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
             }
-            if (isTrue(this.safeBool(market, "linear")))
+            if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
-                if (isTrue(isAlgo))
+                if (isTrue(isEqual(isAlgo, true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "trigger";
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "trailing_stop";
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "tpsl";
-                    } else if (isTrue(stopLoss))
+                    } else if (isTrue(isEqual(stopLoss, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "sl";
-                    } else if (isTrue(takeProfit))
+                    } else if (isTrue(isEqual(takeProfit, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "tp";
                     }
@@ -4001,7 +4776,7 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["margin_mode"] = marginMode;
                     response = await this.contractPrivateGetV5TradeOrder(this.extend(request, parameters));
                 }
-            } else if (isTrue(this.safeBool(market, "inverse")))
+            } else if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
             {
                 if (isTrue(isEqual(marketType, "future")))
                 {
@@ -4121,7 +4896,7 @@ public partial class htx : Exchange
         {
             order = this.safeValue(order, 0);
         }
-        return this.parseOrder(order, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
     public virtual object parseMarginBalanceHelper(object balance, object code, object result)
@@ -4134,9 +4909,17 @@ public partial class htx : Exchange
         {
             account = this.account();
         }
+        if (isTrue(isEqual(account, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarginBalanceHelper() could not resolve account")) ;
+        }
         if (isTrue(isEqual(getValue(balance, "type"), "trade")))
         {
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "balance");
+        }
+        if (isTrue(isEqual(account, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarginBalanceHelper() could not resolve account")) ;
         }
         if (isTrue(isEqual(getValue(balance, "type"), "frozen")))
         {
@@ -4145,10 +4928,10 @@ public partial class htx : Exchange
         return account;
     }
 
-    public async virtual Task<object> fetchSpotOrdersByStates(object states, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchSpotOrdersByStates(object states, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeString(this.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders"); // spot_private_get_v1_order_history
+        string? method = this.safeString(this.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders"); // spot_private_get_v1_order_history
         if (isTrue(isEqual(method, "spot_private_get_v1_order_orders")))
         {
             if (isTrue(isEqual(symbol, null)))
@@ -4216,22 +4999,22 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
-    public async virtual Task<object> fetchSpotOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchSpotOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters);
+        return await this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public async virtual Task<object> fetchClosedSpotOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchClosedSpotOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchSpotOrdersByStates("filled", symbol, since, limit, parameters);
+        return await this.FetchSpotOrdersByStates("filled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public async virtual Task<object> fetchContractOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchContractOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4250,7 +5033,7 @@ public partial class htx : Exchange
         object stopLoss = this.safeBool(parameters, "stopLoss");
         object takeProfit = this.safeBool(parameters, "takeProfit");
         object trailing = this.safeBool(parameters, "trailing", false);
-        object isAlgo = (isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(stopLoss)) || isTrue(takeProfit)) || isTrue(stopLossTakeProfit)) || isTrue(trailing));
+        bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         if (isTrue(!isEqual(since, null)))
         {
@@ -4259,7 +5042,7 @@ public partial class htx : Exchange
         var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             if (isTrue(!isEqual(limit, null)))
             {
@@ -4272,21 +5055,21 @@ public partial class htx : Exchange
             marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
             ((IDictionary<string,object>)request)["margin_mode"] = marginMode;
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            if (isTrue(isAlgo))
+            if (isTrue(isEqual(isAlgo, true)))
             {
-                if (isTrue(trigger))
+                if (isTrue(isEqual(trigger, true)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "trigger";
-                } else if (isTrue(trailing))
+                } else if (isTrue(isEqual(trailing, true)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "trailing_stop";
-                } else if (isTrue(stopLossTakeProfit))
+                } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "tpsl";
-                } else if (isTrue(stopLoss))
+                } else if (isTrue(isEqual(stopLoss, true)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "sl";
-                } else if (isTrue(takeProfit))
+                } else if (isTrue(isEqual(takeProfit, true)))
                 {
                     ((IDictionary<string,object>)request)["type"] = "tp";
                 }
@@ -4295,37 +5078,37 @@ public partial class htx : Exchange
             {
                 response = await this.contractPrivateGetV5TradeOrderHistory(this.extend(request, parameters));
             }
-        } else if (isTrue(getValue(market, "inverse")))
+        } else if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
             ((IDictionary<string,object>)request)["contract"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["type"] = 1; // 1:All Orders,2:Order in Finished Status
             ((IDictionary<string,object>)request)["trade_type"] = 0; // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
             ((IDictionary<string,object>)request)["status"] = "0"; // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
-            if (isTrue(getValue(market, "swap")))
+            if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
-                if (isTrue(trigger))
+                if (isTrue(isEqual(trigger, true)))
                 {
                     response = await this.contractPrivatePostSwapApiV1SwapTriggerHisorders(this.extend(request, parameters));
-                } else if (isTrue(stopLossTakeProfit))
+                } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                 {
                     response = await this.contractPrivatePostSwapApiV1SwapTpslHisorders(this.extend(request, parameters));
-                } else if (isTrue(trailing))
+                } else if (isTrue(isEqual(trailing, true)))
                 {
                     response = await this.contractPrivatePostSwapApiV1SwapTrackHisorders(this.extend(request, parameters));
                 } else
                 {
                     response = await this.contractPrivatePostSwapApiV3SwapHisorders(this.extend(request, parameters));
                 }
-            } else if (isTrue(getValue(market, "future")))
+            } else if (isTrue(isEqual(getValue(market, "future"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
-                if (isTrue(trigger))
+                if (isTrue(isEqual(trigger, true)))
                 {
                     response = await this.contractPrivatePostApiV1ContractTriggerHisorders(this.extend(request, parameters));
-                } else if (isTrue(stopLossTakeProfit))
+                } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                 {
                     response = await this.contractPrivatePostApiV1ContractTpslHisorders(this.extend(request, parameters));
-                } else if (isTrue(trailing))
+                } else if (isTrue(isEqual(trailing, true)))
                 {
                     response = await this.contractPrivatePostApiV1ContractTrackHisorders(this.extend(request, parameters));
                 } else
@@ -4339,10 +5122,10 @@ public partial class htx : Exchange
         {
             orders = this.safeValue(orders, "orders", new List<object>() {});
         }
-        return this.parseOrders(orders, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
-    public async virtual Task<object> fetchClosedContractOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchClosedContractOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4353,17 +5136,17 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = this.market(symbol);
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object trigger = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object stopLoss = this.safeBool(parameters, "stopLoss");
             object takeProfit = this.safeBool(parameters, "takeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            object isAlgo = (isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(stopLoss)) || isTrue(takeProfit)) || isTrue(stopLossTakeProfit)) || isTrue(trailing));
-            if (isTrue(isAlgo))
+            bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
+            if (isTrue(isEqual(isAlgo, true)))
             {
                 ((IDictionary<string,object>)request)["states"] = "effective";
             } else
@@ -4374,7 +5157,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["status"] = "6";
         }
-        return await this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.FetchContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
     }
 
     /**
@@ -4399,7 +5182,7 @@ public partial class htx : Exchange
      * @param {bool} [params.takeProfit] *contract only* set to true if you want to fetch take profit orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4415,17 +5198,17 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object contract = isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")));
+        bool contract = isTrue((isEqual(marketType, "swap"))) || isTrue((isEqual(marketType, "future")));
         if (isTrue(isTrue(contract) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchOrders() requires a symbol argument for "), marketType), " orders")) ;
         }
         if (isTrue(contract))
         {
-            return await this.fetchContractOrders(symbol, since, limit, parameters);
+            return await this.FetchContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
         {
-            return await this.fetchSpotOrders(symbol, since, limit, parameters);
+            return await this.FetchSpotOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
     }
 
@@ -4447,7 +5230,7 @@ public partial class htx : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4460,7 +5243,7 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, parameters, 100);
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, parameters, 100));
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -4473,23 +5256,23 @@ public partial class htx : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            return await this.fetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, parameters);
+            return await this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
         {
             if (isTrue(isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchCanceledOrders() requires a symbol argument for "), marketType), " orders")) ;
             }
-            object request = new Dictionary<string, object>() {};
-            if (isTrue(this.safeBool(market, "linear")))
+            Dictionary<string, object> request = new Dictionary<string, object>() {};
+            if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
                 object trigger = this.safeBool2(parameters, "stop", "trigger");
                 object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
                 object stopLoss = this.safeBool(parameters, "stopLoss");
                 object takeProfit = this.safeBool(parameters, "takeProfit");
                 object trailing = this.safeBool(parameters, "trailing", false);
-                object isAlgo = (isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(stopLoss)) || isTrue(takeProfit)) || isTrue(stopLossTakeProfit)) || isTrue(trailing));
-                if (isTrue(isAlgo))
+                bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
+                if (isTrue(isEqual(isAlgo, true)))
                 {
                     ((IDictionary<string,object>)request)["states"] = "canceled";
                 } else
@@ -4500,7 +5283,7 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["status"] = "5,7"; // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
             }
-            return await this.fetchContractOrders(symbol, since, limit, this.extend(request, parameters));
+            return await this.FetchContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
         }
     }
 
@@ -4522,7 +5305,7 @@ public partial class htx : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4535,7 +5318,7 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters, 100);
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters, 100));
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -4548,10 +5331,10 @@ public partial class htx : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            return await this.fetchClosedSpotOrders(symbol, since, limit, parameters);
+            return await this.FetchClosedSpotOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
         {
-            return await this.fetchClosedContractOrders(symbol, since, limit, parameters);
+            return await this.FetchClosedContractOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         }
     }
 
@@ -4573,7 +5356,7 @@ public partial class htx : Exchange
      * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4585,7 +5368,7 @@ public partial class htx : Exchange
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -4594,7 +5377,7 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isLinear = (isEqual(subType, "linear"));
+        bool isLinear = (isEqual(subType, "linear"));
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -4603,7 +5386,7 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
             // todo replace with fetchAccountIdByType
-            object accountId = this.safeString(parameters, "account-id");
+            string? accountId = this.safeString(parameters, "account-id");
             if (isTrue(isEqual(accountId, null)))
             {
                 // pick the first account
@@ -4653,21 +5436,21 @@ public partial class htx : Exchange
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             if (isTrue(isLinear))
             {
-                if (isTrue(isTrue(isTrue(isTrue(isTrue(trigger) || isTrue(trailing)) || isTrue(stopLossTakeProfit)) || isTrue(stopLoss)) || isTrue(takeProfit)))
+                if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(trailing, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "trigger";
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "trailing_stop";
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "tpsl";
-                    } else if (isTrue(stopLoss))
+                    } else if (isTrue(isEqual(stopLoss, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "sl";
-                    } else if (isTrue(takeProfit))
+                    } else if (isTrue(isEqual(takeProfit, true)))
                     {
                         ((IDictionary<string,object>)request)["type"] = "tp";
                     }
@@ -4680,13 +5463,13 @@ public partial class htx : Exchange
             {
                 if (isTrue(isEqual(marketType, "swap")))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOpenorders(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOpenorders(this.extend(request, parameters));
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackOpenorders(this.extend(request, parameters));
                     } else
@@ -4696,13 +5479,13 @@ public partial class htx : Exchange
                 } else if (isTrue(isEqual(marketType, "future")))
                 {
                     ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId", "usdt");
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTriggerOpenorders(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTpslOpenorders(this.extend(request, parameters));
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTrackOpenorders(this.extend(request, parameters));
                     } else
@@ -4977,12 +5760,12 @@ public partial class htx : Exchange
         {
             orders = this.safeValue(orders, "orders", new List<object>() {});
         }
-        return this.parseOrders(orders, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "partial-filled", "open" },
             { "partial-canceled", "canceled" },
             { "filled", "closed" },
@@ -5210,25 +5993,25 @@ public partial class htx : Exchange
         //         "order_price_type": "formula_price"
         //     }
         //
-        object marketId = this.safeString2(order, "contract_code", "symbol");
+        string? marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
-        object rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
+        string? rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
         object status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
         if (isTrue(!isEqual(rejectedCreateOrders, null)))
         {
             status = "rejected";
         }
-        object id = this.safeStringN(order, new List<object>() {"algo_id", "id", "order_id_str", "order-id", "order_id"});
+        string? id = this.safeStringN(order, new List<object>() {"algo_id", "id", "order_id_str", "order-id", "order_id"});
         object side = this.safeString2(order, "direction", "side");
-        object contractCode = this.safeString(order, "contract_code");
-        object isLinearOrder = isTrue(isTrue(isTrue((!isEqual(contractCode, null))) && isTrue((!isEqual(market, null)))) && isTrue(getValue(market, "linear"))) && !isTrue(getValue(market, "spot"));
+        string? contractCode = this.safeString(order, "contract_code");
+        bool isLinearOrder = isTrue(isTrue(isTrue((!isEqual(contractCode, null))) && isTrue((!isEqual(market, null)))) && isTrue((isEqual(getValue(market, "linear"), true)))) && isTrue((!isEqual(getValue(market, "spot"), true)));
         object type = null;
-        if (isTrue(isLinearOrder))
+        if (isTrue(isEqual(isLinearOrder, true)))
         {
             type = this.safeString(order, "type");
             if (isTrue(isTrue(isTrue(isTrue((isEqual(type, null))) || isTrue((isEqual(type, "tp")))) || isTrue((isEqual(type, "sl")))) || isTrue((isEqual(type, "tpsl")))))
             {
-                type = this.safeStringN(order, new List<object>() {"tp_type", "sl_type"});
+                type = this.safeString2(order, "tp_type", "sl_type");
             }
             if (isTrue(isEqual(type, "0")))
             {
@@ -5237,12 +6020,12 @@ public partial class htx : Exchange
         } else
         {
             type = this.safeString(order, "order_price_type");
-            object rawType = this.safeString(order, "type");
+            string? rawType = this.safeString(order, "type");
             if (isTrue(!isEqual(rawType, null)))
             {
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(rawType, "-"), 0)))
                 {
-                    object orderType = ((string)rawType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    List<object> orderType = ((string)rawType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     side = getValue(orderType, 0);
                     type = getValue(orderType, 1);
                 } else if (isTrue(isEqual(type, null)))
@@ -5252,10 +6035,10 @@ public partial class htx : Exchange
             }
         }
         object timestamp = this.safeIntegerN(order, new List<object>() {"created_at", "created-at", "create_date", "created_time"});
-        object clientOrderId = this.safeStringN(order, new List<object>() {"client_order_id", add("client-or", "der-id"), "algo_client_order_id"}); // transpiler regex trick for php issue
-        object cost = null;
-        object amount = null;
-        if (isTrue(isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "market"), 0)))) && isTrue((!isTrue(isLinearOrder)))))
+        string? clientOrderId = this.safeStringN(order, new List<object>() {"client_order_id", add("client-or", "der-id"), "algo_client_order_id"}); // transpiler regex trick for php issue
+        string? cost = null;
+        string? amount = null;
+        if (isTrue(isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "market"), 0)))) && isTrue((!isEqual(isLinearOrder, true)))))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -5263,15 +6046,15 @@ public partial class htx : Exchange
             amount = this.safeString2(order, "volume", "amount");
             cost = this.safeStringN(order, new List<object>() {"filled-cash-amount", "field-cash-amount", "trade_turnover"}); // same typo here
         }
-        object filled = this.safeStringN(order, new List<object>() {"filled-amount", "field-amount", "trade_volume"}); // typo in their API, filled amount
-        object price = this.safeString2(order, "price", "order_price");
-        object feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled feeSide
+        string? filled = this.safeStringN(order, new List<object>() {"filled-amount", "field-amount", "trade_volume"}); // typo in their API, filled amount
+        string? price = this.safeString2(order, "price", "order_price");
+        string? feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled feeSide
         feeCost = this.safeString(order, "fee", feeCost);
         object fee = null;
         if (isTrue(isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((!isEqual(feeCost, "0")))) && isTrue((!isEqual(feeCost, "0.0")))))
         {
             object feeCurrency = null;
-            object feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
+            string? feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             if (isTrue(!isEqual(feeCurrencyId, null)))
             {
                 feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -5284,15 +6067,15 @@ public partial class htx : Exchange
                 { "currency", feeCurrency },
             };
         }
-        object average = this.safeString(order, "trade_avg_price");
+        string? average = this.safeString(order, "trade_avg_price");
         object trades = this.safeValue(order, "trades");
         object reduceOnly = null;
-        if (isTrue(isLinearOrder))
+        if (isTrue(isEqual(isLinearOrder, true)))
         {
             reduceOnly = this.safeBool(order, "reduce_only");
         } else
         {
-            object reduceOnlyInteger = this.safeInteger(order, "reduce_only");
+            Int64? reduceOnlyInteger = this.safeInteger(order, "reduce_only");
             if (isTrue(!isEqual(reduceOnlyInteger, null)))
             {
                 reduceOnly = ((bool) isTrue((isEqual(reduceOnlyInteger, 0)))) ? false : true;
@@ -5336,7 +6119,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5344,12 +6127,12 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "spot")))
+        if (isTrue(!isEqual(getValue(market, "spot"), true)))
         {
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
+        return await this.CreateOrder(((string)symbol), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
     }
 
     /**
@@ -5366,7 +6149,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createTrailingPercentOrder(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingPercent, null)))
@@ -5379,7 +6162,7 @@ public partial class htx : Exchange
         }
         ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
         ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
-        return await this.createOrder(symbol, type, side, amount, price, parameters);
+        return await this.CreateOrder(((string)symbol),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
     }
 
     /**
@@ -5397,9 +6180,17 @@ public partial class htx : Exchange
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public async virtual Task<object> createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> CreateSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -5410,15 +6201,15 @@ public partial class htx : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object accountId = await this.fetchAccountIdByType(getValue(market, "type"), marginMode, symbol);
-        object request = new Dictionary<string, object>() {
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType(getValue(market, "type"), marginMode, symbol));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", accountId },
             { "symbol", getValue(market, "id") },
         };
         object orderType = ((string)type).Replace((string)"buy-", (string)"");
         orderType = ((string)orderType).Replace((string)"sell-", (string)"");
         object options = this.safeValue(this.options, getValue(market, "type"), new Dictionary<string, object>() {});
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price"});
         if (isTrue(isEqual(triggerPrice, null)))
         {
             object stopOrderTypes = this.safeValue(options, "stopOrderTypes", new Dictionary<string, object>() {});
@@ -5428,8 +6219,8 @@ public partial class htx : Exchange
             }
         } else
         {
-            object defaultOperator = ((bool) isTrue((isEqual(side, "sell")))) ? "lte" : "gte";
-            object stopOperator = this.safeString(parameters, "operator", defaultOperator);
+            string defaultOperator = ((bool) isTrue((isEqual(side, "sell")))) ? "lte" : "gte";
+            string? stopOperator = this.safeString(parameters, "operator", defaultOperator);
             ((IDictionary<string,object>)request)["stop-price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["operator"] = stopOperator;
             if (isTrue(isTrue((isEqual(orderType, "limit"))) || isTrue((isEqual(orderType, "limit-fok")))))
@@ -5440,15 +6231,15 @@ public partial class htx : Exchange
                 throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support "), type), " orders")) ;
             }
         }
-        object postOnly = null;
+        object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isEqual(orderType, "market"), isEqual(orderType, "limit-maker"), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly))
+        if (isTrue(isEqual(postOnly, true)))
         {
             orderType = "limit-maker";
         }
-        object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
+        string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         if (isTrue(isEqual(timeInForce, "FOK")))
         {
             orderType = add(orderType, "-fok");
@@ -5457,7 +6248,7 @@ public partial class htx : Exchange
             orderType = "ioc";
         }
         ((IDictionary<string,object>)request)["type"] = add(add(side, "-"), orderType);
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
         if (isTrue(isEqual(clientOrderId, null)))
         {
             object broker = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
@@ -5502,8 +6293,8 @@ public partial class htx : Exchange
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    object amountString = this.numberToString(amount);
-                    object priceString = this.numberToString(price);
+                    string? amountString = this.numberToString(amount);
+                    string? priceString = this.numberToString(price);
                     quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                 }
             } else
@@ -5521,46 +6312,54 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"});
-        return this.extend(request, parameters);
+        return ccxt.BaseExchange.ToDict(this.extend(request, parameters));
     }
 
     public virtual object createContractOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name htx#createContractOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
-        * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
-        * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
-        * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {float} [params.takeProfit.price] take profit order price take profit orders
-        * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
-        * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
-        * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name htx#createContractOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+         * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] take profit order price take profit orders
+         * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+         * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
+         * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        object postOnly = null;
+        object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), isEqual(type, "post_only"), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly))
+        if (isTrue(isEqual(postOnly, true)))
         {
             type = "post_only";
         }
@@ -5568,10 +6367,10 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("createOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isLinear = (isEqual(subType, "linear"));
+        bool isLinear = (isEqual(subType, "linear"));
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         object hedged = this.safeBool(parameters, "hedged", false);
-        object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
+        string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (isTrue(isLinear))
         {
             object marginMode = null;
@@ -5588,10 +6387,10 @@ public partial class htx : Exchange
             object takeProfit = this.safeDict(parameters, "takeProfit");
             object stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice");
             object stopLossOrderPrice = this.safeNumber(stopLoss, "price");
-            object stopLossType = this.safeString(stopLoss, "type");
+            string? stopLossType = this.safeString(stopLoss, "type");
             object takeProfitTriggerPriceAttached = this.safeNumber(takeProfit, "triggerPrice");
             object takeProfitOrderPrice = this.safeNumber(takeProfit, "price");
-            object takeProfitType = this.safeString(takeProfit, "type");
+            string? takeProfitType = this.safeString(takeProfit, "type");
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
             if (isTrue(!isEqual(stopLoss, null)))
             {
@@ -5627,9 +6426,9 @@ public partial class htx : Exchange
             }
         } else
         {
-            if (isTrue(hedged))
+            if (isTrue(isEqual(hedged, true)))
             {
-                if (isTrue(reduceOnly))
+                if (isTrue(isEqual(reduceOnly, true)))
                 {
                     ((IDictionary<string,object>)request)["offset"] = "close";
                 } else
@@ -5649,12 +6448,12 @@ public partial class htx : Exchange
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
         object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
         object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
-        object trailingPercent = this.safeString2(parameters, "trailingPercent", "callback_rate");
+        string? trailingPercent = this.safeString2(parameters, "trailingPercent", "callback_rate");
         object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice", price);
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isTrigger = !isEqual(triggerPrice, null);
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isTrigger = !isEqual(triggerPrice, null);
+        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
         if (isTrue(isTrue(isLinear) && isTrue((isTrue(isTrue(isTrue(isTrailingPercentOrder) || isTrue(isTrigger)) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))))
         {
@@ -5676,7 +6475,7 @@ public partial class htx : Exchange
                 }
             } else
             {
-                object triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
+                string? triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
                 ((IDictionary<string,object>)request)["trigger_type"] = triggerType;
                 if (isTrue(!isEqual(price, null)))
                 {
@@ -5716,7 +6515,7 @@ public partial class htx : Exchange
             }
         } else if (isTrue(isTrailingPercentOrder))
         {
-            object trailingPercentString = Precise.stringDiv(trailingPercent, "100");
+            string? trailingPercentString = Precise.stringDiv(trailingPercent, "100");
             ((IDictionary<string,object>)request)["callback_rate"] = this.parseToNumeric(trailingPercentString);
             ((IDictionary<string,object>)request)["order_price_type"] = this.safeString(parameters, "order_price_type", "formula_price");
             ((IDictionary<string,object>)request)["active_price"] = trailingTriggerPrice;
@@ -5741,7 +6540,7 @@ public partial class htx : Exchange
         }
         if (isTrue(!isTrue(isStopLossTriggerOrder) && !isTrue(isTakeProfitTriggerOrder)))
         {
-            if (isTrue(reduceOnly))
+            if (isTrue(isEqual(reduceOnly, true)))
             {
                 ((IDictionary<string,object>)request)["reduce_only"] = 1;
             }
@@ -5761,7 +6560,7 @@ public partial class htx : Exchange
             }
         }
         object broker = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
-        object brokerId = this.safeString(broker, "id");
+        string? brokerId = this.safeString(broker, "id");
         ((IDictionary<string,object>)request)["channel_code"] = brokerId;
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged"});
         return this.extend(request, parameters);
@@ -5811,7 +6610,7 @@ public partial class htx : Exchange
      * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5823,23 +6622,23 @@ public partial class htx : Exchange
         object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
         object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         object trailingPercent = this.safeNumber(parameters, "trailingPercent");
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isTrigger = !isEqual(triggerPrice, null);
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isTrigger = !isEqual(triggerPrice, null);
+        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object response = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             if (isTrue(isTrailingPercentOrder))
             {
                 throw new NotSupported ((string)add(this.id, " createOrder() does not support trailing orders for spot markets")) ;
             }
-            object spotRequest = await this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
+            object spotRequest = ccxt.BaseExchange.FromDict(await this.CreateSpotOrderRequest(symbol, type, side, amount, price, parameters));
             response = await this.spotPrivatePostV1OrderOrdersPlace(spotRequest);
         } else
         {
             object contractRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 if (isTrue(isTrue(isTrue(isTrue(isTrigger) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)) || isTrue(isTrailingPercentOrder)))
                 {
@@ -5848,14 +6647,14 @@ public partial class htx : Exchange
                 {
                     response = await this.contractPrivatePostV5TradeOrder(contractRequest);
                 }
-            } else if (isTrue(getValue(market, "inverse")))
+            } else if (isTrue(isEqual(getValue(market, "inverse"), true)))
             {
-                object offset = this.safeString(parameters, "offset");
+                string? offset = this.safeString(parameters, "offset");
                 if (isTrue(isEqual(offset, null)))
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
                 }
-                if (isTrue(getValue(market, "swap")))
+                if (isTrue(isEqual(getValue(market, "swap"), true)))
                 {
                     if (isTrue(isTrigger))
                     {
@@ -5870,7 +6669,7 @@ public partial class htx : Exchange
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder(contractRequest);
                     }
-                } else if (isTrue(getValue(market, "future")))
+                } else if (isTrue(isEqual(getValue(market, "future"), true)))
                 {
                     if (isTrue(isTrigger))
                     {
@@ -5946,29 +6745,10 @@ public partial class htx : Exchange
         //
         object data = null;
         object result = null;
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
-            return this.safeOrder(new Dictionary<string, object>() {
-                { "info", response },
-                { "id", this.safeString(response, "data") },
-                { "timestamp", null },
-                { "datetime", null },
-                { "lastTradeTimestamp", null },
-                { "status", null },
-                { "symbol", null },
-                { "type", type },
-                { "side", side },
-                { "price", price },
-                { "amount", amount },
-                { "filled", null },
-                { "remaining", null },
-                { "cost", null },
-                { "trades", null },
-                { "fee", null },
-                { "clientOrderId", null },
-                { "average", null },
-            }, market);
-        } else if (isTrue(getValue(market, "linear")))
+            return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {                 { "info", response },                 { "id", this.safeString(response, "data") },                 { "timestamp", null },                 { "datetime", null },                 { "lastTradeTimestamp", null },                 { "status", null },                 { "symbol", null },                 { "type", type },                 { "side", side },                 { "price", price },                 { "amount", amount },                 { "filled", null },                 { "remaining", null },                 { "cost", null },                 { "trades", null },                 { "fee", null },                 { "clientOrderId", null },                 { "average", null },             }, market));
+        } else if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             if (isTrue(isTrue(isTrue(isTrue(isTrigger) || isTrue(isTrailingPercentOrder)) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))
             {
@@ -5978,12 +6758,11 @@ public partial class htx : Exchange
             {
                 result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             }
-            return this.extend(this.parseOrder(result, market), new Dictionary<string, object>() {
-                { "type", type },
-                { "side", side },
-                { "price", price },
-                { "amount", amount },
-            });
+            if (isTrue(isEqual(result, null)))
+            {
+                throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
+            }
+            return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(result, market), new Dictionary<string, object>() {                 { "type", type },                 { "side", side },                 { "price", price },                 { "amount", amount },             }));
         } else if (isTrue(isStopLossTriggerOrder))
         {
             data = this.safeValue(response, "data", new Dictionary<string, object>() {});
@@ -5996,7 +6775,11 @@ public partial class htx : Exchange
         {
             result = this.safeValue(response, "data", new Dictionary<string, object>() {});
         }
-        return this.parseOrder(result, market);
+        if (isTrue(isEqual(result, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
+        }
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(result, market));
     }
 
     /**
@@ -6011,21 +6794,21 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object ordersRequests = new List<object>() {};
+        List<object> ordersRequests = new List<object>() {};
         object symbol = null;
         object market = null;
         object marginMode = null;
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object marketId = this.safeString(rawOrder, "symbol");
+            string? marketId = this.safeString(rawOrder, "symbol");
             if (isTrue(isEqual(symbol, null)))
             {
                 symbol = marketId;
@@ -6036,8 +6819,8 @@ public partial class htx : Exchange
                     throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
                 }
             }
-            object type = this.safeString(rawOrder, "type");
-            object side = this.safeString(rawOrder, "side");
+            string? type = this.safeString(rawOrder, "type");
+            string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
@@ -6058,9 +6841,9 @@ public partial class htx : Exchange
             }
             market = this.market(symbol);
             object orderRequest = null;
-            if (isTrue(getValue(market, "spot")))
+            if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
-                orderRequest = await this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
+                orderRequest = ccxt.BaseExchange.FromDict(await this.CreateSpotOrderRequest(marketId, type, side, amount, price, orderParams));
             } else
             {
                 orderRequest = this.createContractOrderRequest(marketId, type, side, amount, price, orderParams);
@@ -6068,23 +6851,23 @@ public partial class htx : Exchange
             orderRequest = this.omit(orderRequest, "marginMode");
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(this.safeBool(market, "spot")))
+        if (isTrue(isEqual(this.safeBool(market, "spot"), true)))
         {
             response = await this.privatePostOrderBatchOrders(ordersRequests);
         } else
         {
-            if (isTrue(this.safeBool(market, "linear")))
+            if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
                 response = await this.contractPrivatePostV5TradeBatchOrders(ordersRequests);
-            } else if (isTrue(this.safeBool(market, "inverse")))
+            } else if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
             {
                 ((IDictionary<string,object>)request)["orders_data"] = ordersRequests;
-                if (isTrue(this.safeBool(market, "swap")))
+                if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
                 {
                     response = await this.contractPrivatePostSwapApiV1SwapBatchorder(request);
-                } else if (isTrue(this.safeBool(market, "future")))
+                } else if (isTrue(isEqual(this.safeBool(market, "future"), true)))
                 {
                     response = await this.contractPrivatePostApiV1ContractBatchorder(request);
                 }
@@ -6155,7 +6938,7 @@ public partial class htx : Exchange
         //
         //
         object result = null;
-        if (isTrue(this.safeBool(market, "spot")))
+        if (isTrue(isEqual(this.safeBool(market, "spot"), true)))
         {
             result = this.safeValue(response, "data", new List<object>() {});
         } else
@@ -6172,7 +6955,7 @@ public partial class htx : Exchange
                 result = this.arrayConcat(success, errors);
             }
         }
-        return this.parseOrders(result, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market));
     }
 
     /**
@@ -6191,7 +6974,7 @@ public partial class htx : Exchange
      * @param {bool} [params.trailing] *contract only* set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6211,8 +6994,8 @@ public partial class htx : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isLinear = (isEqual(subType, "linear"));
-        object request = new Dictionary<string, object>() {};
+        bool isLinear = (isEqual(subType, "linear"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeBoolN(parameters, new List<object>() {"stopLossTakeProfit", "stopLoss", "takeProfit"});
         object trailing = this.safeBool(parameters, "trailing", false);
@@ -6220,7 +7003,7 @@ public partial class htx : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            object clientOrderId = this.safeString2(parameters, "client-order-id", "clientOrderId");
+            string? clientOrderId = this.safeString2(parameters, "client-order-id", "clientOrderId");
             if (isTrue(isEqual(clientOrderId, null)))
             {
                 ((IDictionary<string,object>)request)["order-id"] = id;
@@ -6237,8 +7020,8 @@ public partial class htx : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            object clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
-            if (!isTrue((isTrue(isLinear) && isTrue((isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)) || isTrue(trailing))))))
+            string? clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
+            if (!isTrue((isTrue(isLinear) && isTrue((isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))))))))
             {
                 if (isTrue(isEqual(clientOrderId, null)))
                 {
@@ -6249,7 +7032,7 @@ public partial class htx : Exchange
                     parameters = this.omit(parameters, new List<object>() {"client_order_id", "clientOrderId"});
                 }
             }
-            if (isTrue(this.safeBool(market, "future")))
+            if (isTrue(isEqual(this.safeBool(market, "future"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId");
             } else
@@ -6258,9 +7041,9 @@ public partial class htx : Exchange
             }
             if (isTrue(isLinear))
             {
-                if (isTrue(isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)) || isTrue(trailing)))
+                if (isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true)))))
                 {
-                    object requestItem = new Dictionary<string, object>() {
+                    Dictionary<string, object> requestItem = new Dictionary<string, object>() {
                         { "contract_code", this.safeString(market, "id") },
                     };
                     if (isTrue(isEqual(clientOrderId, null)))
@@ -6272,38 +7055,38 @@ public partial class htx : Exchange
                         ((IDictionary<string,object>)requestItem)["algo_client_order_id"] = clientOrderId;
                         parameters = this.omit(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
                     }
-                    object requestBody = new List<object> {this.extend(requestItem, parameters)};
+                    List<object> requestBody = new List<object> {this.extend(requestItem, parameters)};
                     response = await this.contractPrivatePostV5AlgoCancelOrders(requestBody);
                 } else
                 {
                     response = await this.contractPrivatePostV5TradeCancelOrder(this.extend(request, parameters));
                 }
-            } else if (isTrue(this.safeBool(market, "inverse")))
+            } else if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
             {
-                if (isTrue(this.safeBool(market, "swap")))
+                if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, parameters));
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackCancel(this.extend(request, parameters));
                     } else
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, parameters));
                     }
-                } else if (isTrue(this.safeBool(market, "future")))
+                } else if (isTrue(isEqual(this.safeBool(market, "future"), true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, parameters));
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTrackCancel(this.extend(request, parameters));
                     } else
@@ -6366,7 +7149,7 @@ public partial class htx : Exchange
         object result = null;
         if (isTrue(isLinear))
         {
-            if (isTrue(isTrue(isTrue(trigger) || isTrue(stopLossTakeProfit)) || isTrue(trailing)))
+            if (isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true)))))
             {
                 object data = this.safeList(response, "data", new List<object>() {});
                 result = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -6378,10 +7161,11 @@ public partial class htx : Exchange
         {
             result = response;
         }
-        return this.extend(this.parseOrder(result, market), new Dictionary<string, object>() {
-            { "id", id },
-            { "status", "canceled" },
-        });
+        if (isTrue(isEqual(result, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
+        }
+        return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(result, market), new Dictionary<string, object>() {             { "id", id },             { "status", "canceled" },         }));
     }
 
     /**
@@ -6396,7 +7180,7 @@ public partial class htx : Exchange
      * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6412,7 +7196,7 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
@@ -6451,7 +7235,7 @@ public partial class htx : Exchange
             object clientOrderIds = this.safeValue2(parameters, "client_order_id", "clientOrderId");
             clientOrderIds = this.safeValue2(parameters, "client_order_ids", "clientOrderIds", clientOrderIds);
             parameters = this.omit(parameters, new List<object>() {"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"});
-            if (!isTrue(this.safeBool(market, "linear")))
+            if (isTrue(!isEqual(this.safeBool(market, "linear"), true)))
             {
                 if (isTrue(isEqual(clientOrderIds, null)))
                 {
@@ -6461,14 +7245,14 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["client_order_id"] = clientOrderIds;
                 }
             }
-            if (isTrue(this.safeBool(market, "future")))
+            if (isTrue(isEqual(this.safeBool(market, "future"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId");
             } else
             {
                 ((IDictionary<string,object>)request)["contract_code"] = this.safeString(market, "id");
             }
-            if (isTrue(this.safeBool(market, "linear")))
+            if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
                 if (isTrue(isEqual(clientOrderIds, null)))
                 {
@@ -6484,26 +7268,26 @@ public partial class htx : Exchange
                     }
                 }
                 response = await this.contractPrivatePostV5TradeCancelBatchOrders(this.extend(request, parameters));
-            } else if (isTrue(this.safeBool(market, "inverse")))
+            } else if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
             {
-                if (isTrue(this.safeBool(market, "swap")))
+                if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancel(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancel(this.extend(request, parameters));
                     } else
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapCancel(this.extend(request, parameters));
                     }
-                } else if (isTrue(this.safeBool(market, "future")))
+                } else if (isTrue(isEqual(this.safeBool(market, "future"), true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancel(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTpslCancel(this.extend(request, parameters));
                     } else
@@ -6589,12 +7373,12 @@ public partial class htx : Exchange
         //         "ts": 1780822053167
         //     }
         //
-        if (isTrue(isTrue(isTrue(this.safeBool(market, "linear")) && !isTrue(trigger)) && !isTrue(stopLossTakeProfit)))
+        if (isTrue(isTrue(isTrue((isEqual(this.safeBool(market, "linear"), true))) && isTrue((!isEqual(trigger, true)))) && isTrue((!isEqual(stopLossTakeProfit, true)))))
         {
-            return this.parseCancelOrders(response);
+            return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
         }
         object data = this.safeDict(response, "data");
-        return this.parseCancelOrders(data);
+        return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(data));
     }
 
     public virtual object parseCancelOrders(object orders)
@@ -6649,7 +7433,7 @@ public partial class htx : Exchange
         //         "ts": 1780822053167
         //     }
         //
-        object successes = this.safeString(orders, "successes");
+        string? successes = this.safeString(orders, "successes");
         object success = null;
         if (isTrue(!isEqual(successes, null)))
         {
@@ -6660,7 +7444,7 @@ public partial class htx : Exchange
         }
         object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
         object data = this.safeList(orders, "data", new List<object>() {});
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
@@ -6705,7 +7489,7 @@ public partial class htx : Exchange
      * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6721,7 +7505,7 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -6741,16 +7525,14 @@ public partial class htx : Exchange
             //     }
             //
             object data = this.safeDict(response, "data");
-            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", data },
-})};
+            return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", data }, })});
         } else
         {
             if (isTrue(isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
-            if (isTrue(this.safeBool(market, "future")))
+            if (isTrue(isEqual(this.safeBool(market, "future"), true)))
             {
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId");
             }
@@ -6759,35 +7541,35 @@ public partial class htx : Exchange
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
-            if (isTrue(this.safeBool(market, "linear")))
+            if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
                 response = await this.contractPrivatePostV5TradeCancelAllOrders(this.extend(request, parameters));
-            } else if (isTrue(this.safeBool(market, "inverse")))
+            } else if (isTrue(isEqual(this.safeBool(market, "inverse"), true)))
             {
-                if (isTrue(this.safeBool(market, "swap")))
+                if (isTrue(isEqual(this.safeBool(market, "swap"), true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerCancelall(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslCancelall(this.extend(request, parameters));
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTrackCancelall(this.extend(request, parameters));
                     } else
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapCancelall(this.extend(request, parameters));
                     }
-                } else if (isTrue(this.safeBool(market, "future")))
+                } else if (isTrue(isEqual(this.safeBool(market, "future"), true)))
                 {
-                    if (isTrue(trigger))
+                    if (isTrue(isEqual(trigger, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTriggerCancelall(this.extend(request, parameters));
-                    } else if (isTrue(stopLossTakeProfit))
+                    } else if (isTrue(isEqual(stopLossTakeProfit, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTpslCancelall(this.extend(request, parameters));
-                    } else if (isTrue(trailing))
+                    } else if (isTrue(isEqual(trailing, true)))
                     {
                         response = await this.contractPrivatePostApiV1ContractTrackCancelall(this.extend(request, parameters));
                     } else
@@ -6809,12 +7591,12 @@ public partial class htx : Exchange
             //         "ts": "1683435723755"
             //     }
             //
-            if (isTrue(isTrue(this.safeBool(market, "linear")) && isTrue((isTrue(!isTrue(trigger) && !isTrue(trailing)) && !isTrue(stopLossTakeProfit)))))
+            if (isTrue(isTrue((isEqual(this.safeBool(market, "linear"), true))) && isTrue((isTrue(isTrue((!isEqual(trigger, true))) && isTrue((!isEqual(trailing, true)))) && isTrue((!isEqual(stopLossTakeProfit, true)))))))
             {
-                return this.parseCancelOrders(response);
+                return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(response));
             }
             object data = this.safeDict(response, "data");
-            return this.parseCancelOrders(data);
+            return ccxt.BaseExchange.ToOrderList(this.parseCancelOrders(data));
         }
     }
 
@@ -6827,14 +7609,18 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
         object response = await this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters));
@@ -6848,7 +7634,7 @@ public partial class htx : Exchange
         //         }
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -6861,13 +7647,13 @@ public partial class htx : Exchange
         //         "chain": "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
-        object address = this.safeString(depositAddress, "address");
-        object tag = this.safeString(depositAddress, "addressTag");
-        object currencyId = this.safeString(depositAddress, "currency");
+        string? address = this.safeString(depositAddress, "address");
+        string? tag = this.safeString(depositAddress, "addressTag");
+        string? currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
         object code = this.safeCurrencyCode(currencyId, currency);
-        object note = this.safeString(depositAddress, "note");
-        object networkId = this.safeString(depositAddress, "chain");
+        string? note = this.safeString(depositAddress, "note");
+        string? networkId = this.safeString(depositAddress, "chain");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "currency", code },
@@ -6888,7 +7674,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6896,7 +7682,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
         object response = await this.spotPrivateGetV2AccountDepositAddress(this.extend(request, parameters));
@@ -6915,7 +7701,7 @@ public partial class htx : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         object parsed = this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")}, false);
-        return this.indexBy(parsed, "network");
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
 
     /**
@@ -6927,7 +7713,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6938,12 +7724,12 @@ public partial class htx : Exchange
         var networkCodeparamsOmitedVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodeparamsOmitedVariable)[0];
         var paramsOmited = ((IList<object>) networkCodeparamsOmitedVariable)[1];
-        object indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
+        object indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), paramsOmited));
         object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(getValue(currency, "code"), networkCode, indexedAddresses);
-        return getValue(indexedAddresses, selectedNetworkCode);
+        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedAddresses, selectedNetworkCode));
     }
 
-    public async virtual Task<object> fetchWithdrawAddresses(object code, object note = null, object networkCode = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(object code, object note = null, object networkCode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6951,7 +7737,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
         object response = await this.spotPrivateGetV2AccountWithdrawAddress(this.extend(request, parameters));
@@ -6970,19 +7756,19 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object allAddresses = ((object)this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")}, false)); // cjg: to do remove this weird object or array ambiguity
-        object addresses = new List<object>() {};
+        object allAddresses = this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")}, false);
+        List<object> addresses = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
         {
             object address = getValue(allAddresses, i);
-            object noteMatch = isTrue((isEqual(note, null))) || isTrue((isEqual(getValue(address, "note"), note)));
-            object networkMatch = isTrue((isEqual(networkCode, null))) || isTrue((isEqual(getValue(address, "network"), networkCode)));
+            bool noteMatch = isTrue((isEqual(note, null))) || isTrue((isEqual(getValue(address, "note"), note)));
+            bool networkMatch = isTrue((isEqual(networkCode, null))) || isTrue((isEqual(getValue(address, "network"), networkCode)));
             if (isTrue(isTrue(noteMatch) && isTrue(networkMatch)))
             {
                 ((IList<object>)addresses).Add(address);
             }
         }
-        return addresses;
+        return ccxt.BaseExchange.ToDictList(addresses);
     }
 
     /**
@@ -6996,12 +7782,13 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue(isEqual(limit, null)) || isTrue(isGreaterThan(limit, 100))))
+        if (isTrue(isTrue(isEqual(limitVar, null)) || isTrue(isGreaterThan(limitVar, 100))))
         {
-            limit = 100;
+            limitVar = 100;
         }
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -7012,7 +7799,7 @@ public partial class htx : Exchange
         {
             currency = this.currency(code);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "deposit" },
             { "direct", "next" },
             { "from", 0 },
@@ -7021,9 +7808,9 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = limit; // max 100
+            ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
         object response = await this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters));
         //
@@ -7052,7 +7839,8 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        return this.parseTransactions(getValue(response, "data"), currency, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limitVar));
     }
 
     /**
@@ -7066,12 +7854,13 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue(isEqual(limit, null)) || isTrue(isGreaterThan(limit, 100))))
+        if (isTrue(isTrue(isEqual(limitVar, null)) || isTrue(isGreaterThan(limitVar, 100))))
         {
-            limit = 100;
+            limitVar = 100;
         }
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -7082,7 +7871,7 @@ public partial class htx : Exchange
         {
             currency = this.currency(code);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "withdraw" },
             { "direct", "next" },
             { "from", 0 },
@@ -7091,9 +7880,9 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = limit; // max 100
+            ((IDictionary<string,object>)request)["size"] = limitVar; // max 100
         }
         object response = await this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters));
         //
@@ -7120,7 +7909,8 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        return this.parseTransactions(getValue(response, "data"), currency, since, limit);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limitVar));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -7175,26 +7965,30 @@ public partial class htx : Exchange
         //         "data": "99562054"
         //     }
         //
-        object timestamp = this.safeInteger(transaction, "created-at");
+        Int64? timestamp = this.safeInteger(transaction, "created-at");
         object code = this.safeCurrencyCode(this.safeString(transaction, "currency"));
-        object type = this.safeString(transaction, "type");
+        string? type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, "withdraw")))
         {
             type = "withdrawal";
         }
-        object feeCost = this.safeString(transaction, "fee");
+        string? feeCost = this.safeString(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
             feeCost = Precise.stringAbs(feeCost);
         }
-        object networkId = this.safeString(transaction, "chain");
+        string? networkId = this.safeString(transaction, "chain");
         object txHash = this.safeString(transaction, "tx-hash");
+        if (isTrue(isEqual(txHash, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseTransaction() missing txHash")) ;
+        }
         if (isTrue(isTrue(isEqual(networkId, "ETH")) && isTrue(isLessThan(getIndexOf(txHash, "0x"), 0))))
         {
             txHash = add("0x", txHash);
         }
-        object subType = this.safeString(transaction, "sub-type");
-        object intern = isEqual(subType, "FAST");
+        string? subType = this.safeString(transaction, "sub-type");
+        bool intern = isEqual(subType, "FAST");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString2(transaction, "id", "data") },
@@ -7225,7 +8019,7 @@ public partial class htx : Exchange
 
     public virtual object parseTransactionStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "unknown", "failed" },
             { "confirming", "pending" },
             { "confirmed", "ok" },
@@ -7258,11 +8052,13 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
+        object amountVar = amount;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -7270,13 +8066,13 @@ public partial class htx : Exchange
         }
         this.checkAddress(address);
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", address },
             { "currency", ((string)getValue(currency, "id")).ToLower() },
         };
-        if (isTrue(!isEqual(tag, null)))
+        if (isTrue(!isEqual(tagVar, null)))
         {
-            ((IDictionary<string,object>)request)["addr-tag"] = tag; // only for XRP?
+            ((IDictionary<string,object>)request)["addr-tag"] = tagVar; // only for XRP?
         }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
@@ -7286,7 +8082,12 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, code);
         }
-        amount = parseFloat(this.currencyToPrecision(code, amount, networkCode));
+        object amountPrecision = this.currencyToPrecision(code, amountVar, networkCode);
+        if (isTrue(isEqual(amountPrecision, null)))
+        {
+            amountPrecision = "0";
+        }
+        amountVar = parseFloat(amountPrecision);
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
         if (isTrue(this.safeBool(withdrawOptions, "includeFee", false)))
         {
@@ -7302,16 +8103,31 @@ public partial class htx : Exchange
                     throw new ArgumentsRequired ((string)add(this.id, " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter")) ;
                 }
             }
-            // fee needs to be deducted from whole amount
+            // fee needs to be deducted from whole amountVar
             object feeString = this.currencyToPrecision(code, fee, networkCode);
             parameters = this.omit(parameters, "fee");
-            object amountString = this.numberToString(amount);
-            object amountSubtractedString = Precise.stringSub(amountString, feeString);
-            object amountSubtracted = parseFloat(amountSubtractedString);
-            ((IDictionary<string,object>)request)["fee"] = parseFloat(feeString);
-            amount = parseFloat(this.currencyToPrecision(code, amountSubtracted, networkCode));
+            string? amountString = this.numberToString(amountVar);
+            string? amountSubtractedString = Precise.stringSub(amountString, feeString);
+            object amountSubtractedParsed = amountSubtractedString;
+            if (isTrue(isEqual(amountSubtractedParsed, null)))
+            {
+                amountSubtractedParsed = "0";
+            }
+            object amountSubtracted = parseFloat(amountSubtractedParsed);
+            object feeParsed = feeString;
+            if (isTrue(isEqual(feeParsed, null)))
+            {
+                feeParsed = "0";
+            }
+            ((IDictionary<string,object>)request)["fee"] = parseFloat(feeParsed);
+            object amountAfterFee = this.currencyToPrecision(code, amountSubtracted, networkCode);
+            if (isTrue(isEqual(amountAfterFee, null)))
+            {
+                amountAfterFee = "0";
+            }
+            amountVar = parseFloat(amountAfterFee);
         }
-        ((IDictionary<string,object>)request)["amount"] = amount;
+        ((IDictionary<string,object>)request)["amount"] = amountVar;
         object response = await this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, parameters));
         //
         //     {
@@ -7319,7 +8135,7 @@ public partial class htx : Exchange
         //         "data": "99562054"
         //     }
         //
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -7348,17 +8164,17 @@ public partial class htx : Exchange
         //     }
         //
         object accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
-        object id = this.safeString2(transfer, "transfer_id", "data");
-        object currencyId = this.safeString(transfer, "currency");
+        string? id = this.safeString2(transfer, "transfer_id", "data");
+        string? currencyId = this.safeString(transfer, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         object amount = this.safeNumber(transfer, "amount");
-        object timestamp = this.safeInteger(transfer, "transfer_time");
-        object fromAccountRaw = this.safeString(transfer, "from_account_type");
-        object toAccountRaw = this.safeString(transfer, "to_account_type");
-        object fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
-        object toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
-        object statusRaw = this.safeString(transfer, "status");
-        object status = null;
+        Int64? timestamp = this.safeInteger(transfer, "transfer_time");
+        string? fromAccountRaw = this.safeString(transfer, "from_account_type");
+        string? toAccountRaw = this.safeString(transfer, "to_account_type");
+        string? fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
+        string? toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
+        string? statusRaw = this.safeString(transfer, "status");
+        string? status = null;
         if (isTrue(isEqual(statusRaw, "success")))
         {
             status = "ok";
@@ -7402,7 +8218,7 @@ public partial class htx : Exchange
      * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7410,9 +8226,14 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        object transferAmount = this.currencyToPrecision(code, amount);
+        if (isTrue(isEqual(transferAmount, null)))
+        {
+            transferAmount = "0";
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
-            { "amount", parseFloat(this.currencyToPrecision(code, amount)) },
+            { "amount", parseFloat(transferAmount) },
         };
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("transfer", null, parameters);
@@ -7420,17 +8241,17 @@ public partial class htx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object fromAccountId = this.convertTypeToAccount(fromAccount);
         object toAccountId = this.convertTypeToAccount(toAccount);
-        object toCross = isEqual(toAccountId, "cross");
-        object fromCross = isEqual(fromAccountId, "cross");
-        object toIsolated = this.inArray(toAccountId, this.ids);
-        object fromIsolated = this.inArray(fromAccountId, this.ids);
-        object fromSpot = isEqual(fromAccountId, "pro");
-        object toSpot = isEqual(toAccountId, "pro");
+        bool toCross = isEqual(toAccountId, "cross");
+        bool fromCross = isEqual(fromAccountId, "cross");
+        bool toIsolated = (isTrue((!isEqual(this.ids, null))) && isTrue(this.inArray(toAccountId, this.ids)));
+        bool fromIsolated = (isTrue((!isEqual(this.ids, null))) && isTrue(this.inArray(fromAccountId, this.ids)));
+        bool fromSpot = isEqual(fromAccountId, "pro");
+        bool toSpot = isEqual(toAccountId, "pro");
         if (isTrue(isTrue(fromSpot) && isTrue(toSpot)))
         {
             throw new BadRequest ((string)add(add(add(add(this.id, " transfer () cannot make a transfer between "), fromAccount), " and "), toAccount)) ;
         }
-        object fromOrToFuturesAccount = isTrue((isEqual(fromAccountId, "futures"))) || isTrue((isEqual(toAccountId, "futures")));
+        bool fromOrToFuturesAccount = isTrue((isEqual(fromAccountId, "futures"))) || isTrue((isEqual(toAccountId, "futures")));
         object response = null;
         if (isTrue(fromOrToFuturesAccount))
         {
@@ -7488,7 +8309,11 @@ public partial class htx : Exchange
         //        "print-log": true
         //    }
         //
-        return this.parseTransfer(response, currency);
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseTransfer() returned empty response")) ;
+        }
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
     }
 
     /**
@@ -7506,7 +8331,7 @@ public partial class htx : Exchange
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7514,7 +8339,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(code);
@@ -7524,7 +8349,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        object until = this.safeInteger(parameters, "until");
+        Int64? until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, "until");
@@ -7556,7 +8381,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTransfers(data, currency, since, limit);
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(data, currency, since, limit));
     }
 
     /**
@@ -7567,7 +8392,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    public async override Task<object> fetchIsolatedBorrowRates(object parameters = null)
+    public async override Task<ccxt.IsolatedBorrowRates> FetchIsolatedBorrowRates(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7605,7 +8430,7 @@ public partial class htx : Exchange
         // }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        return this.parseIsolatedBorrowRates(data);
+        return ccxt.BaseExchange.ToIsolatedBorrowRates(this.parseIsolatedBorrowRates(data));
     }
 
     public override object parseIsolatedBorrowRate(object info, object market = null)
@@ -7633,13 +8458,13 @@ public partial class htx : Exchange
         //         ]
         //     },
         //
-        object marketId = this.safeString(info, "symbol");
+        string? marketId = this.safeString(info, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object currencies = this.safeValue(info, "currencies", new List<object>() {});
         object baseData = this.safeValue(currencies, 0);
         object quoteData = this.safeValue(currencies, 1);
-        object baseId = this.safeString(baseData, "currency");
-        object quoteId = this.safeString(quoteData, "currency");
+        string? baseId = this.safeString(baseData, "currency");
+        string? quoteId = this.safeString(quoteData, "currency");
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "base", this.safeCurrencyCode(baseId) },
@@ -7667,7 +8492,7 @@ public partial class htx : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -7680,21 +8505,21 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "current_page", "page_index", 1, 50);
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "current_page", "page_index", 1, 50));
         }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
         };
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // max 100
             }
             if (isTrue(!isEqual(since, null)))
             {
@@ -7711,10 +8536,10 @@ public partial class htx : Exchange
             }
         }
         object response = null;
-        if (isTrue(getValue(market, "inverse")))
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
             response = await this.contractPublicGetSwapApiV1SwapHistoricalFundingRate(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "linear")))
+        } else if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             response = await this.contractPublicGetV5MarketFundingRateHistory(this.extend(request, parameters));
         } else
@@ -7722,15 +8547,15 @@ public partial class htx : Exchange
             throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() supports inverse and linear swaps only")) ;
         }
         object data = this.safeValue(response, "data");
-        object rates = new List<object>() {};
-        if (isTrue(getValue(market, "linear")))
+        List<object> rates = new List<object>() {};
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object entry = getValue(data, i);
-                object marketId = this.safeString(entry, "contract_code");
+                string? marketId = this.safeString(entry, "contract_code");
                 object symbolInner = this.safeSymbol(marketId, market);
-                object timestamp = this.safeInteger(entry, "funding_time");
+                Int64? timestamp = this.safeInteger(entry, "funding_time");
                 ((IList<object>)rates).Add(new Dictionary<string, object>() {
                     { "info", entry },
                     { "symbol", symbolInner },
@@ -7747,9 +8572,9 @@ public partial class htx : Exchange
             {
                 object entry = getValue(result, i);
                 ((IDictionary<string,object>)entry)["current_page"] = cursor;
-                object marketId = this.safeString(entry, "contract_code");
+                string? marketId = this.safeString(entry, "contract_code");
                 object symbolInner = this.safeSymbol(marketId);
-                object timestamp = this.safeInteger(entry, "funding_time");
+                Int64? timestamp = this.safeInteger(entry, "funding_time");
                 ((IList<object>)rates).Add(new Dictionary<string, object>() {
                     { "info", entry },
                     { "symbol", symbolInner },
@@ -7759,8 +8584,8 @@ public partial class htx : Exchange
                 });
             }
         }
-        object sorted = this.sortBy(rates, "timestamp");
-        return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+        List<object> sorted = this.sortBy(rates, "timestamp");
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -7790,12 +8615,12 @@ public partial class htx : Exchange
         //     }
         //
         object nextFundingRate = this.safeNumber(contract, "estimated_rate");
-        object fundingTimestamp = this.safeInteger(contract, "funding_time");
-        object nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
-        object fundingTimeString = this.safeString(contract, "funding_time");
-        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
-        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
-        object marketId = this.safeString(contract, "contract_code");
+        Int64? fundingTimestamp = this.safeInteger(contract, "funding_time");
+        Int64? nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        string? fundingTimeString = this.safeString(contract, "funding_time");
+        string? nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        string? millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        string? marketId = this.safeString(contract, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -7821,7 +8646,7 @@ public partial class htx : Exchange
 
     public virtual object parseFundingInterval(object interval)
     {
-        object intervals = new Dictionary<string, object>() {
+        Dictionary<string, object> intervals = new Dictionary<string, object>() {
             { "3600000", "1h" },
             { "14400000", "4h" },
             { "28800000", "8h" },
@@ -7841,7 +8666,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7849,14 +8674,14 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
         };
         object response = null;
-        if (isTrue(getValue(market, "inverse")))
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
         {
             response = await this.contractPublicGetSwapApiV1SwapFundingRate(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "linear")))
+        } else if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             response = await this.contractPublicGetV5MarketFundingRate(this.extend(request, parameters));
         } else
@@ -7864,7 +8689,7 @@ public partial class htx : Exchange
             throw new NotSupported ((string)add(this.id, " fetchFundingRate() supports inverse and linear swaps only")) ;
         }
         object result = null;
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object data = this.safeList(response, "data", new List<object>() {});
             result = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -7872,7 +8697,7 @@ public partial class htx : Exchange
         {
             result = this.safeValue(response, "data", new Dictionary<string, object>() {});
         }
-        return this.parseFundingRate(result, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(result, market));
     }
 
     /**
@@ -7884,7 +8709,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7892,19 +8717,19 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object defaultSubType = this.safeString(this.options, "defaultSubType", "linear");
+        string defaultSubType = "linear";
         object subType = null;
         var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(!isEqual(symbols, null)))
         {
-            object firstSymbol = this.safeString(symbols, 0);
+            string? firstSymbol = this.safeString(symbols, 0);
             object market = this.market(firstSymbol);
             object isLinear = getValue(market, "linear");
-            subType = ((bool) isTrue(isLinear)) ? "linear" : "inverse";
+            subType = ((bool) isTrue((isEqual(isLinear, true)))) ? "linear" : "inverse";
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(isEqual(subType, "linear")))
         {
@@ -7935,7 +8760,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        return this.parseFundingRates(data, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(data, symbols));
     }
 
     /**
@@ -7951,7 +8776,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
-    public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(object code = null, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -7963,7 +8788,7 @@ public partial class htx : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start-date"] = this.yyyymmdd(since);
@@ -8015,7 +8840,7 @@ public partial class htx : Exchange
         //
         object data = this.safeValue(response, "data");
         object interest = this.parseBorrowInterests(data, market);
-        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+        return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest, code, since, limit));
     }
 
     public override object parseBorrowInterest(object info, object market = null)
@@ -8061,11 +8886,11 @@ public partial class htx : Exchange
         //       "filled-ht":"0"
         //   }
         //
-        object marketId = this.safeString(info, "symbol");
-        object marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
+        string? marketId = this.safeString(info, "symbol");
+        string marginMode = ((bool) isTrue((isEqual(marketId, null)))) ? "cross" : "isolated";
         market = this.safeMarket(marketId);
-        object symbol = this.safeString(market, "symbol");
-        object timestamp = this.safeInteger(info, "accrued-at");
+        string? symbol = this.safeString(market, "symbol");
+        Int64? timestamp = this.safeInteger(info, "accrued-at");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", symbol },
@@ -8089,8 +8914,9 @@ public partial class htx : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        object pathString = path;
         object url = "/";
-        object isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object query = null;
         if (isTrue(isArrayParams))
         {
@@ -8113,8 +8939,8 @@ public partial class htx : Exchange
             if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
             {
                 this.checkRequiredCredentials();
-                object timestamp = this.ymdhms(this.nonce(), "T");
-                object request = new Dictionary<string, object>() {
+                string timestamp = this.ymdhms(this.nonce(), "T");
+                Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
                     { "AccessKeyId", this.apiKey },
@@ -8124,12 +8950,12 @@ public partial class htx : Exchange
                 {
                     request = this.extend(request, query);
                 }
-                object sortedRequest = this.keysort(request);
-                object auth = this.urlencode(sortedRequest, true); // true is a go only requirment
+                Dictionary<string, object> sortedRequest = this.keysort(request);
+                object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                object content = new List<object>() {method, this.hostname, url, auth};
-                object payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+                List<object> content = new List<object>() {method, this.hostname, url, auth};
+                string payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));
@@ -8156,7 +8982,7 @@ public partial class htx : Exchange
                 }
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isTrue((!isEqual(query, null))) && isTrue((isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
@@ -8168,10 +8994,10 @@ public partial class htx : Exchange
         {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            object type = this.safeString(api, 0);
-            object access = this.safeString(api, 1);
-            object levelOneNestedPath = this.safeString(api, 2);
-            object levelTwoNestedPath = this.safeString(api, 3);
+            string? type = this.safeString(api, 0);
+            string? access = this.safeString(api, 1);
+            string? levelOneNestedPath = this.safeString(api, 2);
+            string? levelTwoNestedPath = this.safeString(api, 3);
             object hostname = null;
             object hostnames = this.safeValue(getValue(this.urls, "hostnames"), type);
             if (isTrue(!(hostnames is string)))
@@ -8186,7 +9012,7 @@ public partial class htx : Exchange
             url = add(url, this.implodeParams(path, parameters));
             if (isTrue(isEqual(access, "public")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isTrue((!isEqual(query, null))) && isTrue((isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
@@ -8199,18 +9025,18 @@ public partial class htx : Exchange
                     object id = this.safeString(options, "id", "AA03022abc");
                     if (!isTrue(isArrayParams))
                     {
-                        if (isTrue(isTrue(isEqual(getIndexOf(path, "cancel"), -1)) && isTrue(((string)path).EndsWith(((string)"order")))))
+                        if (isTrue(isTrue((isEqual(getIndexOf(pathString, "cancel"), -1))) && isTrue(((string)pathString).EndsWith(((string)"order")))))
                         {
                             // swap order placement
-                            object channelCode = this.safeString(parameters, "channel_code");
+                            string? channelCode = this.safeString(parameters, "channel_code");
                             if (isTrue(isEqual(channelCode, null)))
                             {
                                 ((IDictionary<string,object>)parameters)["channel_code"] = id;
                             }
-                        } else if (isTrue(((string)path).EndsWith(((string)"orders/place"))))
+                        } else if (isTrue(((string)pathString).EndsWith(((string)"orders/place"))))
                         {
                             // spot order placement
-                            object clientOrderId = this.safeString(parameters, "client-order-id");
+                            string? clientOrderId = this.safeString(parameters, "client-order-id");
                             if (isTrue(isEqual(clientOrderId, null)))
                             {
                                 ((IDictionary<string,object>)parameters)["client-order-id"] = add(id, this.uuid());
@@ -8218,25 +9044,25 @@ public partial class htx : Exchange
                         }
                     }
                 }
-                object timestamp = this.ymdhms(this.nonce(), "T");
-                object request = new Dictionary<string, object>() {
+                string timestamp = this.ymdhms(this.nonce(), "T");
+                Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "SignatureMethod", "HmacSHA256" },
                     { "SignatureVersion", "2" },
                     { "AccessKeyId", this.apiKey },
                     { "Timestamp", timestamp },
                 };
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
-                request = ((object)this.keysort(request));
+                request = this.keysort(request);
                 if (isTrue(!isEqual(method, "POST")))
                 {
-                    object sortedQuery = ((object)this.keysort(query));
+                    Dictionary<string, object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
                 object auth = ((string)this.urlencode(request, true)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                object content2 = new List<object>() {method, hostname, url, auth};
-                object payload = String.Join("\n", ((IList<object>)content2).ToArray()); // eslint-disable-line quotes
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+                List<object> content2 = new List<object>() {method, hostname, url, auth};
+                string payload = String.Join("\n", ((IList<object>)content2).ToArray()); // eslint-disable-line quotes
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));
@@ -8267,7 +9093,7 @@ public partial class htx : Exchange
                 }
             }
             object finalHostname = hostname; // java req
-            url = add(this.implodeParams(getValue(getValue(this.urls, "api"), type), new Dictionary<string, object>() {
+            url = add(this.implodeParams(getValue(getValue(this.urls, "api"), ((string)type)), new Dictionary<string, object>() {
     { "hostname", finalHostname },
 }), url);
         }
@@ -8291,14 +9117,14 @@ public partial class htx : Exchange
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            object status = this.safeString(response, "status");
+            string? status = this.safeString(response, "status");
             if (isTrue(isEqual(status, "error")))
             {
-                object code = this.safeString2(response, "err-code", "err_code");
+                string? code = this.safeString2(response, "err-code", "err_code");
                 object feedback = add(add(this.id, " "), body);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
-                object message = this.safeString2(response, "err-msg", "err_msg");
+                string? message = this.safeString2(response, "err-msg", "err_msg");
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
@@ -8307,7 +9133,7 @@ public partial class htx : Exchange
         {
             // {code: '1003', message: 'invalid signature'}
             object feedback = add(add(this.id, " "), body);
-            object code = this.safeString(response, "code");
+            string? code = this.safeString(response, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }
         object data = this.safeDict(response, "data");
@@ -8315,8 +9141,8 @@ public partial class htx : Exchange
         if (isTrue(!isEqual(errorsList, null)))
         {
             object first = this.safeDict(errorsList, 0);
-            object errcode = this.safeString(first, "err_code");
-            object errmessage = this.safeString(first, "err_msg");
+            string? errcode = this.safeString(first, "err_code");
+            string? errmessage = this.safeString(first, "err_msg");
             object feedBack = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errcode, feedBack);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errmessage, feedBack);
@@ -8338,7 +9164,7 @@ public partial class htx : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -8358,7 +9184,7 @@ public partial class htx : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
             } else
@@ -8369,7 +9195,7 @@ public partial class htx : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 object marginMode = null;
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchFundingHistory", parameters);
@@ -8414,7 +9240,7 @@ public partial class htx : Exchange
             response = await this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseIncomes(data, market, since, limit);
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(data, market, since, limit));
     }
 
     /**
@@ -8430,7 +9256,7 @@ public partial class htx : Exchange
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -8445,10 +9271,10 @@ public partial class htx : Exchange
         var marketTypequeryVariable = this.handleMarketTypeAndParams("setLeverage", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "lever_rate", leverage },
         };
-        if (isTrue(isTrue(isEqual(marketType, "future")) && isTrue(getValue(market, "inverse"))))
+        if (isTrue(isTrue(isEqual(marketType, "future")) && isTrue((isEqual(getValue(market, "inverse"), true)))))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
         } else
@@ -8456,7 +9282,7 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
@@ -8478,7 +9304,11 @@ public partial class htx : Exchange
                 throw new NotSupported ((string)add(this.id, " setLeverage() not support this market type")) ;
             }
         }
-        return response;
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " setLeverage() returned empty response")) ;
+        }
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     public override object parseIncome(object income, object market = null)
@@ -8505,12 +9335,12 @@ public partial class htx : Exchange
         //         "created_time": "1780963213165"
         //     }
         //
-        object marketId = this.safeString(income, "contract_code");
+        string? marketId = this.safeString(income, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         object amount = this.safeNumber(income, "amount");
         object timestamp = this.safeInteger2(income, "ts", "created_time");
-        object id = this.safeString(income, "id");
-        object currencyId = this.safeStringN(income, new List<object>() {"symbol", "asset", "currency"});
+        string? id = this.safeString(income, "id");
+        string? currencyId = this.safeStringN(income, new List<object>() {"symbol", "asset", "currency"});
         object code = this.safeCurrencyCode(currencyId);
         return new Dictionary<string, object>() {
             { "info", income },
@@ -8585,22 +9415,29 @@ public partial class htx : Exchange
         //
         market = this.safeMarket(this.safeString(position, "contract_code"));
         object symbol = getValue(market, "symbol");
-        object contracts = this.safeString(position, "volume");
+        string? contracts = this.safeString(position, "volume");
         object contractSize = this.safeValue(market, "contractSize");
-        object contractSizeString = this.numberToString(contractSize);
+        string? contractSizeString = this.numberToString(contractSize);
         object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
-        object initialMargin = this.safeString2(position, "position_margin", "initial_margin");
-        object rawSide = this.safeString(position, "direction");
-        object rawPositionSide = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
-        object side = this.safeString(position, "position_side", rawPositionSide);
+        string? initialMargin = this.safeString2(position, "position_margin", "initial_margin");
+        string? rawSide = this.safeString(position, "direction");
+        string directionSide = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "long" : "short";
+        string? rawPositionSide = this.safeString(position, "position_side");
+        // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
+        object side = directionSide;
+        bool isHedgedPositionSide = isTrue((isEqual(rawPositionSide, "long"))) || isTrue((isEqual(rawPositionSide, "short")));
+        if (isTrue(isHedgedPositionSide))
+        {
+            side = rawPositionSide;
+        }
         object unrealizedProfit = this.safeNumber(position, "profit_unreal");
-        object marginMode = this.safeString(position, "margin_mode");
-        object leverage = this.safeString(position, "lever_rate");
-        object percentage = Precise.stringMul(this.safeString(position, "profit_rate"), "100");
-        object lastPrice = this.safeString(position, "last_price");
-        object faceValue = Precise.stringMul(contracts, contractSizeString);
-        object notional = null;
-        if (isTrue(getValue(market, "linear")))
+        string? marginMode = this.safeString(position, "margin_mode");
+        string? leverage = this.safeString(position, "lever_rate");
+        string? percentage = Precise.stringMul(this.safeString(position, "profit_rate"), "100");
+        string? lastPrice = this.safeString(position, "last_price");
+        string? faceValue = Precise.stringMul(contracts, contractSizeString);
+        string? notional = null;
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             notional = Precise.stringMul(faceValue, lastPrice);
         } else
@@ -8608,12 +9445,12 @@ public partial class htx : Exchange
             notional = Precise.stringDiv(faceValue, lastPrice);
             marginMode = "cross";
         }
-        object intialMarginPercentage = Precise.stringDiv(initialMargin, notional);
-        object collateral = this.safeString2(position, "margin_balance", "margin");
-        object adjustmentFactor = this.safeString(position, "adjust_factor");
-        object maintenanceMarginLinear = this.safeString(position, "maintenance_margin");
-        object marginRatioLinear = this.safeString(position, "margin_rate");
-        object maintenanceMarginPercentage = null;
+        string? intialMarginPercentage = Precise.stringDiv(initialMargin, notional);
+        string? collateral = this.safeString2(position, "margin_balance", "margin");
+        string? adjustmentFactor = this.safeString(position, "adjust_factor");
+        string? maintenanceMarginLinear = this.safeString(position, "maintenance_margin");
+        string? marginRatioLinear = this.safeString(position, "margin_rate");
+        string? maintenanceMarginPercentage = null;
         object maintenanceMargin = null;
         object marginRatio = null;
         object maintenanceMarginPercentageResult = null;
@@ -8633,7 +9470,7 @@ public partial class htx : Exchange
         {
             marginRatio = marginRatioLinear;
         }
-        object timestamp = this.safeInteger(position, "created_time");
+        Int64? timestamp = this.safeInteger(position, "created_time");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -8679,7 +9516,7 @@ public partial class htx : Exchange
      * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -8690,10 +9527,10 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
-                object first = this.safeString(symbols, 0);
+                string? first = this.safeString(symbols, 0);
                 market = this.market(first);
             }
         }
@@ -8727,8 +9564,8 @@ public partial class htx : Exchange
             }
         }
         object data = this.safeValue(response, "data", new List<object>() {});
-        object timestamp = this.safeInteger(response, "ts");
-        object result = new List<object>() {};
+        Int64? timestamp = this.safeInteger(response, "ts");
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object position = getValue(data, i);
@@ -8738,7 +9575,7 @@ public partial class htx : Exchange
                 { "datetime", this.iso8601(timestamp) },
             }));
         }
-        return this.filterByArrayPositions(result, "symbol", symbols, false);
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
     /**
@@ -8752,7 +9589,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -8768,20 +9605,20 @@ public partial class htx : Exchange
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(isTrue(getValue(market, "future")) && isTrue(getValue(market, "inverse"))))
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((isEqual(getValue(market, "future"), true))) && isTrue((isEqual(getValue(market, "inverse"), true)))))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
         } else
         {
-            if (isTrue(!isTrue(getValue(market, "linear")) && isTrue((isEqual(marginMode, "cross")))))
+            if (isTrue(isTrue((!isEqual(getValue(market, "linear"), true))) && isTrue((isEqual(marginMode, "cross")))))
             {
                 ((IDictionary<string,object>)request)["margin_account"] = "USDT"; // only allowed value
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             response = await this.contractPrivateGetV5TradePositionOpens(this.extend(request, query));
         } else
@@ -8798,10 +9635,10 @@ public partial class htx : Exchange
             }
         }
         object data = this.safeValue(response, "data");
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object linearPosition = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            return this.parsePosition(linearPosition, market);
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(linearPosition, market));
         }
         object account = null;
         if (isTrue(isEqual(marginMode, "cross")))
@@ -8814,7 +9651,7 @@ public partial class htx : Exchange
         object omitted = this.omit(account, new List<object>() {"positions"});
         object positions = this.safeValue(account, "positions");
         object position = null;
-        if (isTrue(isTrue(getValue(market, "future")) && isTrue(getValue(market, "inverse"))))
+        if (isTrue(isTrue((isEqual(getValue(market, "future"), true))) && isTrue((isEqual(getValue(market, "inverse"), true)))))
         {
             for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
             {
@@ -8829,16 +9666,16 @@ public partial class htx : Exchange
         {
             position = this.safeValue(positions, 0);
         }
-        object timestamp = this.safeInteger(response, "ts");
+        Int64? timestamp = this.safeInteger(response, "ts");
         object parsed = this.parsePosition(this.extend(position, omitted), market);
         ((IDictionary<string,object>)parsed)["timestamp"] = timestamp;
         ((IDictionary<string,object>)parsed)["datetime"] = this.iso8601(timestamp);
-        return parsed;
+        return ccxt.BaseExchange.ToPosition(parsed);
     }
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "trade", "trade" },
             { "etf", "trade" },
             { "transact-fee", "fee" },
@@ -8854,7 +9691,7 @@ public partial class htx : Exchange
             { "other-types", "transfer" },
             { "rebate", "rebate" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -8872,13 +9709,13 @@ public partial class htx : Exchange
         //         "transferee": 13496526
         //     }
         //
-        object currencyId = this.safeString(item, "currency");
+        string? currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object id = this.safeString(item, "transactId");
-        object transferType = this.safeString(item, "transferType");
-        object timestamp = this.safeInteger(item, "transactTime");
-        object account = this.safeString(item, "accountId");
+        string? id = this.safeString(item, "transactId");
+        string? transferType = this.safeString(item, "transferType");
+        Int64? timestamp = this.safeInteger(item, "transactTime");
+        string? account = this.safeString(item, "accountId");
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
@@ -8911,7 +9748,7 @@ public partial class htx : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -8924,9 +9761,9 @@ public partial class htx : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 500);
+            return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 500));
         }
-        object accountId = await this.fetchAccountIdByType("spot", null, null, parameters);
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType("spot", null, null, parameters));
         object request = new Dictionary<string, object>() {
             { "accountId", accountId },
         };
@@ -8981,7 +9818,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        return this.parseLedger(data, currency, since, limit);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
     /**
@@ -8992,7 +9829,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9030,24 +9867,24 @@ public partial class htx : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverageTiers(data, symbols, "contract_code");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(data, symbols, "contract_code"));
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
     {
-        object currencyId = this.safeString(info, "trade_partition");
-        object marketId = this.safeString(info, "contract_code");
-        object tiers = new List<object>() {};
+        string? currencyId = this.safeString(info, "trade_partition");
+        string? marketId = this.safeString(info, "contract_code");
+        List<object> tiers = new List<object>() {};
         object brackets = this.safeList(info, "list", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
         {
             object item = getValue(brackets, i);
-            object leverage = this.safeString(item, "lever_rate");
+            string? leverage = this.safeString(item, "lever_rate");
             object ladders = this.safeList(item, "ladders", new List<object>() {});
             for (object k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
             {
                 object bracket = getValue(ladders, k);
-                object adjustFactor = this.safeString(bracket, "adjust_factor");
+                string? adjustFactor = this.safeString(bracket, "adjust_factor");
                 ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                     { "tier", this.safeInteger(bracket, "ladder") },
                     { "symbol", this.safeSymbol(marketId, market, null, "swap") },
@@ -9079,7 +9916,7 @@ public partial class htx : Exchange
      * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         timeframe ??= "1h";
         parameters ??= new Dictionary<string, object>();
@@ -9091,7 +9928,7 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        object timeframes = new Dictionary<string, object>() {
+        Dictionary<string, object> timeframes = new Dictionary<string, object>() {
             { "1h", "60min" },
             { "4h", "4hour" },
             { "12h", "12hour" },
@@ -9099,7 +9936,7 @@ public partial class htx : Exchange
         };
         object market = this.market(symbol);
         object amountType = this.safeInteger2(parameters, "amount_type", "amountType", 2);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", getValue(timeframes, timeframe) },
             { "amount_type", amountType },
         };
@@ -9108,13 +9945,13 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["size"] = limit;
         }
         object response = null;
-        if (isTrue(getValue(market, "future")))
+        if (isTrue(isEqual(getValue(market, "future"), true)))
         {
             ((IDictionary<string,object>)request)["contract_type"] = this.safeString(getValue(market, "info"), "contract_type");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "baseId"); // currency code on coin-m futures
             // coin-m futures
             response = await this.contractPublicGetApiV1ContractHisOpenInterest(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "linear")))
+        } else if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             ((IDictionary<string,object>)request)["contract_type"] = "swap";
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
@@ -9189,7 +10026,7 @@ public partial class htx : Exchange
         //
         object data = this.safeValue(response, "data");
         object tick = this.safeList(data, "tick");
-        return this.parseOpenInterestsHistory(tick, market, since, limit);
+        return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(tick, market, since, limit));
     }
 
     /**
@@ -9202,7 +10039,7 @@ public partial class htx : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9213,14 +10050,14 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
-                object first = this.safeString(symbols, 0);
+                string? first = this.safeString(symbols, 0);
                 market = this.market(first);
             }
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
@@ -9241,7 +10078,7 @@ public partial class htx : Exchange
             throw new NotSupported ((string)add(this.id, " fetchOpenInterests() does not currently support linear markets")) ;
         }
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOpenInterests(data, symbols);
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(data, symbols));
     }
 
     /**
@@ -9255,7 +10092,7 @@ public partial class htx : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9263,25 +10100,25 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "contract")))
+        if (isTrue(!isEqual(getValue(market, "contract"), true)))
         {
             throw new BadRequest ((string)add(this.id, " fetchOpenInterest() supports contract markets only")) ;
         }
-        if (isTrue(getValue(market, "option")))
+        if (isTrue(isEqual(getValue(market, "option"), true)))
         {
             throw new NotSupported ((string)add(this.id, " fetchOpenInterest() does not currently support option markets")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
         };
         object response = null;
-        if (isTrue(getValue(market, "future")))
+        if (isTrue(isEqual(getValue(market, "future"), true)))
         {
             ((IDictionary<string,object>)request)["contract_type"] = this.safeString(getValue(market, "info"), "contract_type");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "baseId");
             // COIN-M futures
             response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, parameters));
-        } else if (isTrue(getValue(market, "linear")))
+        } else if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             // USDT-M swaps
             response = await this.contractPublicGetV5MarketOpenInterest(this.extend(request, parameters));
@@ -9345,20 +10182,17 @@ public partial class htx : Exchange
         //         "ts": 1664337928805
         //     }
         //
-        object timestamp = this.safeInteger(response, "ts");
-        if (isTrue(getValue(market, "linear")))
+        Int64? timestamp = this.safeInteger(response, "ts");
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return this.extend(this.parseOpenInterest(result, market), new Dictionary<string, object>() {
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            });
+            return ccxt.BaseExchange.ToOpenInterest(this.extend(this.parseOpenInterest(result, market), new Dictionary<string, object>() {                 { "timestamp", timestamp },                 { "datetime", this.iso8601(timestamp) },             }));
         }
         object data = this.safeValue(response, "data", new List<object>() {});
         object openInterest = this.parseOpenInterest(getValue(data, 0), market);
         ((IDictionary<string,object>)openInterest)["timestamp"] = timestamp;
         ((IDictionary<string,object>)openInterest)["datetime"] = this.iso8601(timestamp);
-        return openInterest;
+        return ccxt.BaseExchange.ToOpenInterest(openInterest);
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -9410,10 +10244,10 @@ public partial class htx : Exchange
         //         "trade_turnover": 28628600.000000000000000000
         //     }
         //
-        object timestamp = this.safeInteger(interest, "ts");
+        Int64? timestamp = this.safeInteger(interest, "ts");
         object amount = this.safeNumber(interest, "volume");
         object value = this.safeNumber(interest, "value");
-        object marketId = this.safeString(interest, "contract_code");
+        string? marketId = this.safeString(interest, "contract_code");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
             { "baseVolume", amount },
@@ -9447,7 +10281,7 @@ public partial class htx : Exchange
         }
         object currency = this.currency(code);
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
             { "symbol", getValue(market, "id") },
@@ -9486,7 +10320,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
         };
@@ -9524,8 +10358,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object accountId = await this.fetchAccountIdByType("spot", "isolated", symbol, parameters);
-        object request = new Dictionary<string, object>() {
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType("spot", "isolated", symbol, parameters));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
             { "accountId", accountId },
@@ -9569,8 +10403,8 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object accountId = await this.fetchAccountIdByType("spot", "cross", null, parameters);
-        object request = new Dictionary<string, object>() {
+        object accountId = ccxt.BaseExchange.FromStringValue(await this.FetchAccountIdByType("spot", "cross", null, parameters));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
             { "accountId", accountId },
@@ -9618,7 +10452,7 @@ public partial class htx : Exchange
         //         "repayTime":1600747722018
         //     }
         //
-        object timestamp = this.safeInteger(info, "repayTime");
+        Int64? timestamp = this.safeInteger(info, "repayTime");
         return new Dictionary<string, object>() {
             { "id", this.safeString2(info, "repayId", "data") },
             { "currency", this.safeCurrencyCode(null, currency) },
@@ -9646,7 +10480,7 @@ public partial class htx : Exchange
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -9655,7 +10489,7 @@ public partial class htx : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        if (isTrue(getValue(market, "future")))
+        if (isTrue(isEqual(getValue(market, "future"), true)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "baseId");
         } else
@@ -9664,7 +10498,7 @@ public partial class htx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            if (isTrue(isTrue(getValue(market, "linear")) && isTrue(getValue(market, "swap"))))
+            if (isTrue(isTrue((isEqual(getValue(market, "linear"), true))) && isTrue((isEqual(getValue(market, "swap"), true)))))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             } else
@@ -9680,9 +10514,9 @@ public partial class htx : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 response = await this.contractPublicGetV5MarketSettlementHistory(this.extend(request, parameters));
             } else
@@ -9762,16 +10596,16 @@ public partial class htx : Exchange
         //         "ts": 1781853150623
         //     }
         //
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object dataLinear = this.safeList(response, "data", new List<object>() {});
             object settlementsLinear = this.parseSettlements(dataLinear, market);
-            return this.sortBy(settlementsLinear, "timestamp");
+            return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
         object data = this.safeValue(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
         object settlements = this.parseSettlements(settlementRecord, market);
-        return this.sortBy(settlements, "timestamp");
+        return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));
     }
 
     /**
@@ -9783,7 +10617,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -9828,7 +10662,7 @@ public partial class htx : Exchange
         //    }
         //
         object data = this.safeList(response, "data");
-        return this.parseDepositWithdrawFees(data, codes, "currency");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
     public override object parseDepositWithdrawFee(object fee, object currency = null)
@@ -9865,13 +10699,13 @@ public partial class htx : Exchange
         //          }
         //
         object chains = this.safeValue(fee, "chains", new List<object>() {});
-        object code = this.safeString(currency, "code");
+        string? code = this.safeString(currency, "code");
         object result = this.depositWithdrawFee(fee);
         for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chainEntry = getValue(chains, j);
-            object networkId = this.safeString(chainEntry, "chain");
-            object withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
+            string? networkId = this.safeString(chainEntry, "chain");
+            string? withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = null;
             object withdrawResult = null;
@@ -9890,13 +10724,16 @@ public partial class htx : Exchange
                     { "percentage", true },
                 };
             }
-            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "withdraw", withdrawResult },
-                { "deposit", new Dictionary<string, object>() {
-                    { "fee", null },
-                    { "percentage", null },
-                } },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    { "withdraw", withdrawResult },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
             result = this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
@@ -9952,19 +10789,19 @@ public partial class htx : Exchange
         //         }
         //     ]
         //
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             object settlement = getValue(settlements, i);
             object list = this.safeValue(settlement, "list");
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 object parsedSettlement = this.parseSettlement(settlement, market);
                 ((IList<object>)result).Add(parsedSettlement);
             } else if (isTrue(!isEqual(list, null)))
             {
-                object timestamp = this.safeInteger(settlement, "settlement_time");
-                object timestampDetails = new Dictionary<string, object>() {
+                Int64? timestamp = this.safeInteger(settlement, "settlement_time");
+                Dictionary<string, object> timestampDetails = new Dictionary<string, object>() {
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
                 };
@@ -10017,8 +10854,8 @@ public partial class htx : Exchange
         //         "settlement_price": "62933.747161774209291325"
         //     }
         //
-        object timestamp = this.safeInteger(settlement, "settlement_time");
-        object marketId = this.safeString(settlement, "contract_code");
+        Int64? timestamp = this.safeInteger(settlement, "settlement_time");
+        string? marketId = this.safeString(settlement, "contract_code");
         return new Dictionary<string, object>() {
             { "info", settlement },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -10043,7 +10880,7 @@ public partial class htx : Exchange
      * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10053,7 +10890,7 @@ public partial class htx : Exchange
         object market = this.market(symbol);
         object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(getValue(market, "linear")))
+        if (isTrue(!isEqual(getValue(market, "linear"), true)))
         {
             ((IDictionary<string,object>)request)["trade_type"] = tradeType;
         }
@@ -10066,9 +10903,9 @@ public partial class htx : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isTrue(getValue(market, "swap")))
+        if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            if (isTrue(getValue(market, "linear")))
+            if (isTrue(isEqual(getValue(market, "linear"), true)))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
                 if (isTrue(!isEqual(limit, null)))
@@ -10081,7 +10918,7 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["contract"] = getValue(market, "id");
                 response = await this.contractPublicGetSwapApiV3SwapLiquidationOrders(this.extend(request, parameters));
             }
-        } else if (isTrue(getValue(market, "future")))
+        } else if (isTrue(isEqual(getValue(market, "future"), true)))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             response = await this.contractPublicGetApiV3ContractLiquidationOrders(this.extend(request, parameters));
@@ -10113,7 +10950,7 @@ public partial class htx : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseLiquidations(data, market, since, limit);
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(data, market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, object market = null)
@@ -10148,7 +10985,7 @@ public partial class htx : Exchange
         //         "trade_turnover": "125.957"
         //     }
         //
-        object marketId = this.safeString(liquidation, "contract_code");
+        string? marketId = this.safeString(liquidation, "contract_code");
         object timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
@@ -10173,7 +11010,7 @@ public partial class htx : Exchange
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
      * @param {string} symbol unified CCXT market symbol
      * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
      * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
      *
@@ -10183,7 +11020,7 @@ public partial class htx : Exchange
      * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
      * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    public async override Task<object> closePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10191,12 +11028,12 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (!isTrue(getValue(market, "contract")))
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(getValue(market, "contract"), true)))
         {
             throw new BadRequest ((string)add(this.id, " closePosition() symbol supports contract markets only")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract_code", getValue(market, "id") },
         };
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -10205,7 +11042,7 @@ public partial class htx : Exchange
             parameters = this.omit(parameters, "clientOrderId");
         }
         object response = null;
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
@@ -10216,7 +11053,7 @@ public partial class htx : Exchange
         } else
         {
             this.checkRequiredArgument("closePosition", side, "side");
-            object amount = this.safeString2(parameters, "volume", "amount");
+            string? amount = this.safeString2(parameters, "volume", "amount");
             if (isTrue(isEqual(amount, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
@@ -10224,7 +11061,7 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
             ((IDictionary<string,object>)request)["direction"] = side;
             parameters = this.omit(parameters, new List<object>() {"volume", "amount"});
-            if (isTrue(getValue(market, "swap")))
+            if (isTrue(isEqual(getValue(market, "swap"), true)))
             {
                 response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, parameters));
             } else
@@ -10232,10 +11069,14 @@ public partial class htx : Exchange
                 response = await this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, parameters));
             }
         }
-        if (isTrue(getValue(market, "linear")))
+        if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             return this.parseOrder(data, market);
+        }
+        if (isTrue(isEqual(response, null)))
+        {
+            throw new NullResponse ((string)add(this.id, " parseOrder() returned empty response")) ;
         }
         return this.parseOrder(response, market);
     }
@@ -10251,23 +11092,23 @@ public partial class htx : Exchange
      * @param {string} [params.marginMode] "cross" (default) or "isolated"
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object posMode = ((bool) isTrue(hedged)) ? "dual_side" : "single_side";
+        string posMode = ((bool) isTrue(hedged)) ? "dual_side" : "single_side";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "position_mode", posMode },
         };
-        if (isTrue(isTrue((!isEqual(market, null))) && isTrue((getValue(market, "inverse")))))
+        if (isTrue(isTrue((!isEqual(market, null))) && isTrue((isEqual(getValue(market, "inverse"), true)))))
         {
             throw new BadRequest ((string)add(this.id, " setPositionMode can only be used for linear markets")) ;
         }
@@ -10282,7 +11123,7 @@ public partial class htx : Exchange
         //         "ts": 1781233894454
         //     }
         //
-        return response;
+        return ccxt.BaseExchange.ToDict(response);
     }
 
     /**
@@ -10296,7 +11137,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.ADL>> FetchPositionsADLRank(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -10307,10 +11148,10 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
-                object first = this.safeString(symbols, 0);
+                string? first = this.safeString(symbols, 0);
                 market = this.market(first);
             }
         }
@@ -10344,7 +11185,7 @@ public partial class htx : Exchange
             }
         }
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseADLRanks(data, symbols);
+        return ccxt.BaseExchange.ToADLList(this.parseADLRanks(data, symbols));
     }
 
     public override object parseADLRank(object info, object market = null)
@@ -10400,8 +11241,8 @@ public partial class htx : Exchange
         //         "trade_partition": ""
         //     }
         //
-        object marketId = this.safeString(info, "contract_code");
-        object timestamp = this.safeInteger(info, "created_time");
+        string? marketId = this.safeString(info, "contract_code");
+        Int64? timestamp = this.safeInteger(info, "created_time");
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },

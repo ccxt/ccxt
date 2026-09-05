@@ -6,31 +6,31 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchMarkets(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchMarkets"
-
-		markets := (<-exchange.FetchMarkets())
-		PanicOnError(markets)
-		Assert(exchange.IsDictionary(markets), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return a dict. "), exchange.Json(markets)))
-		var marketValues any = ObjectValues(markets)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues)
-		for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
-			TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
-		}
-		DetectMarketConflicts(exchange, markets)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchMarketsBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchMarkets"
+
+	markets := (<-exchange.FetchMarkets())
+	PanicOnError(markets)
+	AssertDictionaryResponse(exchange, method, markets)
+	var marketValues []any = ObjectValues(markets)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues)
+	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
+		TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
+	}
+	DetectMarketConflicts(exchange, markets)
+
+	ch <- true
+	return nil
 }
 func DetectMarketConflicts(exchange ccxt.ICoreExchange, marketValues any) any {
 	// detect if there are markets with different ids for the same symbol
-	var ids any = map[string]any{}
+	var ids map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
 		var market any = GetValue(marketValues, i)
 		var symbol any = GetValue(market, "symbol")

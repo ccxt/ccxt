@@ -329,7 +329,8 @@
                             "initialMargin": "3.0603333330273",
                             "mmr": "0.007",
                             "maintenanceMargin": "0.064267",
-                            "creationTime": 1774469753178000000
+                            "creationTime": 1774469753178000000,
+                            "updateTime": 1774469753178000000
                         }
                     ]
                 },
@@ -348,13 +349,14 @@
                         "initialMargin": "3.0603333330273",
                         "mmr": "0.007",
                         "maintenanceMargin": "0.064267",
-                        "creationTime": 1774469753178000000
+                        "creationTime": 1774469753178000000,
+                        "updateTime": 1774469753178000000
                     },
                     "id": "30000000000084351",
                     "symbol": "DOGE/USDT:USDT",
                     "timestamp": 1774469753177,
                     "datetime": "2026-03-25T20:15:53.177Z",
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1774469753177,
                     "initialMargin": 3.0603333330273,
                     "initialMarginPercentage": 0.3333333333,
                     "maintenanceMargin": 0.064267,
@@ -556,6 +558,35 @@
                     "timestamp": 1771839619931,
                     "datetime": "2026-02-23T09:40:19.931Z",
                     "direction": "in"
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin from position",
+                "method": "reduceMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": "0.1"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": "0.1"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
                 }
             }
         ],
@@ -3138,6 +3169,82 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "contract ticker, whose priceChgPct is a ratio",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 63190,
+                            "bestBidPrice": 63189.9,
+                            "bestBidSize": 1214,
+                            "bestAskPrice": 63190,
+                            "bestAskSize": 3079,
+                            "highPrice": 63362.7,
+                            "lowPrice": 62938.7,
+                            "priceChgPct": 0.0017,
+                            "priceChg": 108.3,
+                            "volumeOf24h": 1252.542,
+                            "turnoverOf24h": 79051949.033,
+                            "markPrice": 63190,
+                            "indexPrice": 63213.08,
+                            "ts": 1786909114532000000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786909114532,
+                        "datetime": "2026-08-16T19:38:34.532Z",
+                        "high": 63362.7,
+                        "low": 62938.7,
+                        "bid": 63189.9,
+                        "bidVolume": 1214,
+                        "ask": 63190,
+                        "askVolume": 3079,
+                        "vwap": 63113.212198074,
+                        "open": 63081.7,
+                        "close": 63190,
+                        "last": 63190,
+                        "previousClose": null,
+                        "change": 108.3,
+                        "percentage": 0.17,
+                        "average": 63135.8,
+                        "baseVolume": 1252.542,
+                        "quoteVolume": 79051949.033,
+                        "markPrice": 63190,
+                        "indexPrice": 63213.08,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 63190,
+                            "bestBidPrice": 63189.9,
+                            "bestBidSize": 1214,
+                            "bestAskPrice": 63190,
+                            "bestAskSize": 3079,
+                            "highPrice": 63362.7,
+                            "lowPrice": 62938.7,
+                            "priceChgPct": 0.0017,
+                            "priceChg": 108.3,
+                            "volumeOf24h": 1252.542,
+                            "turnoverOf24h": 79051949.033,
+                            "markPrice": 63190,
+                            "indexPrice": 63213.08,
+                            "ts": 1786909114532000000
+                        }
+                    }
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "with networkCode",
@@ -3509,14 +3616,12 @@
                     },
                     "timestamp": null,
                     "datetime": null,
-                    "LTC/USDT": {
-                        "LTC":{"free":0,"used":0,"total":0,"debt":0},
-                        "USDT":{"free":5,"used":0,"total":5,"debt":0},
-                        "free":{"LTC":0,"USDT":5},
-                        "used":{"LTC":0,"USDT":0},
-                        "total":{"LTC":0,"USDT":5},
-                        "debt":{"LTC":0,"USDT":0}
-                    }
+                    "LTC":{"free":0,"used":0,"total":0,"debt":0},
+                    "USDT":{"free":5,"used":0,"total":5,"debt":0},
+                    "free":{"LTC":0,"USDT":5},
+                    "used":{"LTC":0,"USDT":0},
+                    "total":{"LTC":0,"USDT":5},
+                    "debt":{"LTC":0,"USDT":0}
                 }
             }
         ],
@@ -5276,7 +5381,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainName": "ARBITRUM",
                                     "withdrawalMinSize": "0.0005",
@@ -5298,7 +5403,7 @@
                                 },
                                 "id": "arbitrum",
                                 "name": "ARBITRUM",
-                                "code": "ARBONE",
+                                "code": "ARBITRUM",
                                 "active": null,
                                 "fee": 0.0001,
                                 "deposit": false,
@@ -5700,7 +5805,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainName": "ARBITRUM",
                                     "withdrawalMinSize": "0.0004",
@@ -5722,7 +5827,7 @@
                                 },
                                 "id": "arbitrum",
                                 "name": "ARBITRUM",
-                                "code": "ARBONE",
+                                "code": "ARBITRUM",
                                 "active": null,
                                 "fee": 0.0002,
                                 "deposit": true,
@@ -6725,7 +6830,7 @@
                                     }
                                 }
                             },
-                            "ARBONE": {
+                            "ARBITRUM": {
                                 "info": {
                                     "chainName": "ARBITRUM",
                                     "withdrawalMinSize": "5",
@@ -6747,7 +6852,7 @@
                                 },
                                 "id": "arbitrum",
                                 "name": "ARBITRUM",
-                                "code": "ARBONE",
+                                "code": "ARBITRUM",
                                 "active": null,
                                 "fee": 1,
                                 "deposit": true,

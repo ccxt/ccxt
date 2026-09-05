@@ -12,7 +12,7 @@ import type { Dict, Strings, TransferEntry } from './base/types.js';
  * @augments kucoin
  */
 export default class kucoinfutures extends kucoin {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',
@@ -29,6 +29,7 @@ export default class kucoinfutures extends kucoin {
                 'future': true,
                 'option': undefined,
                 'fetchBidsAsks': true,
+                'transfer': true,
             },
             'options': {
                 'fetchMarkets': {
@@ -49,11 +50,12 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         const request = {
             'method': 'futuresPublicGetAllTickers',
         };
-        return await this.fetchTickers (symbols, this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        return await this.fetchTickers (symbols, extendedRequest);
     }
 
     /**
@@ -67,7 +69,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -120,7 +122,7 @@ export default class kucoinfutures extends kucoin {
         } else {
             throw new BadRequest (this.id + ' transfer() only supports transfers between future/swap, spot and funding accounts');
         }
-        const data: Dict = this.safeDict (response, 'data', {}) as Dict;
+        const data = this.safeDict (response, 'data', {}) as Dict;
         return this.extend (this.parseTransfer (data, currency), {
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
@@ -128,7 +130,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseTransferType (transferType) {
+    parseTransferType (transferType: any) {
         const transferTypes: Dict = {
             'spot': 'TRADE',
             'funding': 'MAIN',
