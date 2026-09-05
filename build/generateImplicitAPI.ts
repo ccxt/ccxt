@@ -10,6 +10,7 @@ import log from 'ololog'
 import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { applyJavaUtilImports } from './javaUtilImports.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -820,8 +821,8 @@ function createImplicitMethodsJava(){
 
         const methods =  methodNames.map(method=> {
             // callAsync is generic, so the declared shape lands on the
-            // signature itself. The types are fully qualified because the
-            // generated api classes import nothing but io.github.ccxt.Exchange.
+            // signature itself. The types are spelled fully qualified here;
+            // applyJavaUtilImports collapses them to simple names + imports on write.
             const returns = javaReturnType (exchange, method);
             const shape = isUnionShape (exchange, method)
                 ? `${proseReturnShape (exchange, method)}, so this endpoint keeps Object`
@@ -1002,7 +1003,7 @@ async function editAPIFilesJava(subdir = ''){
     // the dir is already populated (CI rebuild) or empty (first run).
     fs.mkdirSync(JAVA_PATH + subdir, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + subdir + capitalize(ex) + 'Api.java');
-    await Promise.all(files.map((path, idx) => writeFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, applyJavaUtilImports (storedJavaMethods[exchanges[idx]].join ('\n')))))
 }
 
 //-------------------------------------------------------------------------

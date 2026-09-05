@@ -19,6 +19,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
+import { applyJavaUtilImports, shortenJavaUtilReferences, ensureJavaImports } from "./javaUtilImports.js";
 
 ansi.nice
 
@@ -39,6 +40,15 @@ function overwriteFileAndFolder(path: string, content: string) {
     }
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
+    //
+    // Every Java compilation unit this transpiler emits (exchange cores, WS cores, tests,
+    // errors) goes through here, so this is the one place the fully-qualified
+    // `java.util.*` spelling of the ast-transpiler output is collapsed to simple names
+    // plus explicit imports. Doing it at write time keeps every upstream regex pass
+    // (which still matches on the `java.util.HashMap` spelling) untouched.
+    if (path.endsWith('.java')) {
+        content = applyJavaUtilImports(content);
+    }
     overwriteFile(path, content);
 }
 
@@ -1166,7 +1176,7 @@ class NewTranspiler {
             let baseMethods = parts[1];
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
             log.magenta('→', (javaExchangeBase as any).yellow)
-            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + baseMethods.trim() + '\n')
+            this.spliceTranspiledJavaBody(javaExchangeBase, javaDelimiter, restOfFile, baseMethods.trim() + '\n', false);
         }
 
         // Inject the Exchange-tier (62 trading methods) into Exchange.java below its delimiter.
@@ -1178,7 +1188,28 @@ class NewTranspiler {
             // drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
-            this.replaceInFileLiteral(EXCHANGE_METHODS_FILE, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + exchangeBody.trim() + '\n}\n');
+            this.spliceTranspiledJavaBody(EXCHANGE_METHODS_FILE, javaDelimiter, restOfFile, exchangeBody.trim() + '\n}\n', true);
+        }
+    }
+
+    // Replace everything below the transpile delimiter of a half hand-written base file
+    // (BaseExchange.java / Exchange.java / PredictionExchange.java) with `body`. The body is
+    // shortened to simple `java.util.*` names first (see build/javaUtilImports.ts) and the
+    // hand-written header above the delimiter gets any import the shortened body now needs
+    // that it does not already declare — nothing else above the delimiter is touched.
+    spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
+        const pattern = new RegExp(javaDelimiter + restOfFile);
+        const shortened = shortenJavaUtilReferences(body);
+        const replacement = javaDelimiter + '\n' + shortened.source;
+        if (literal) {
+            this.replaceInFileLiteral(filename, pattern, replacement);
+        } else {
+            replaceInFile(filename, pattern, replacement);
+        }
+        const contents = fs.readFileSync(filename, 'utf8');
+        const withImports = ensureJavaImports(contents, shortened.imports);
+        if (withImports !== contents) {
+            fs.writeFileSync(filename, withImports);
         }
     }
 
@@ -1249,7 +1280,7 @@ class NewTranspiler {
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             const merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
             log.magenta('→', (javaPredictionBase as any).yellow)
-            this.replaceInFileLiteral(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + merged);
+            this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
         }
     }
 
@@ -1803,7 +1834,7 @@ class NewTranspiler {
                     new RegExp(`import\\s+io\\.github\\.ccxt\\.exchanges\\.${parentName}\\s*;`),
                     `import io.github.ccxt.exchanges.${parentName}Core;`
                 );
-                fs.writeFileSync(path, content, 'utf-8');
+                fs.writeFileSync(path, applyJavaUtilImports(content), 'utf-8');
             }
         }
     }

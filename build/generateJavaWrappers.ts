@@ -17,6 +17,7 @@ import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
+import { applyJavaUtilImports } from './javaUtilImports.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -745,7 +746,7 @@ function main() {
         const outputPath = `${EXCHANGES_FOLDER}${className}.java`;
 
         const content = generateTypedExchangeClass(exchangeId, restMethods);
-        fs.writeFileSync(outputPath, content, 'utf-8');
+        fs.writeFileSync(outputPath, applyJavaUtilImports(content), 'utf-8');
         generated++;
     }
 
@@ -763,7 +764,7 @@ function main() {
             const outputPath = `${WS_EXCHANGES_FOLDER}${className}.java`;
 
             const content = generateTypedWsClass(exchangeId, watchMethods);
-            fs.writeFileSync(outputPath, content, 'utf-8');
+            fs.writeFileSync(outputPath, applyJavaUtilImports(content), 'utf-8');
             wsGenerated++;
         }
 
@@ -782,7 +783,7 @@ function main() {
             const outputPath = `${PREDICTION_EXCHANGES_FOLDER}${className}.java`;
             const exchangeMethods = predictionRestMethods.concat(PREDICTION_EXCHANGE_METHODS[exchangeId] || []);
             const content = generateTypedExchangeClass(exchangeId, exchangeMethods, 'io.github.ccxt.exchanges.prediction');
-            fs.writeFileSync(outputPath, content, 'utf-8');
+            fs.writeFileSync(outputPath, applyJavaUtilImports(content), 'utf-8');
             predGenerated++;
         }
         console.log(`Generated ${predGenerated} prediction REST typed wrappers`);
