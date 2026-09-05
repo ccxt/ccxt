@@ -185,6 +185,7 @@ type ICoreExchange interface {
 	Sum(args ...any) any
 	NumberToString(num any) any
 	ParseToNumeric(value any) any
+	IsRoundNumber(value any) any
 	LoadMarkets(params ...any) <-chan any
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
