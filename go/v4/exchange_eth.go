@@ -15,7 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/elliottech/lighter-go/client"
@@ -48,208 +47,208 @@ import (
 // "type": "order"
 // }
 type TimeInForce struct {
-	TIF string `mapstructure:"tif" msgpack:"tif"`
+	TIF string `json:"tif" msgpack:"tif"`
 }
 
 type TriggerSpec struct {
-	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
-	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
-	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+	IsMarket  bool   `json:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `json:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `json:"tpsl" msgpack:"tpsl"`
 }
 
 type OrderKind struct {
-	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
-	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
+	Limit   *TimeInForce `json:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `json:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int       `mapstructure:"a" msgpack:"a"`
-	B bool      `mapstructure:"b" msgpack:"b"`
-	P string    `mapstructure:"p" msgpack:"p"`
-	S string    `mapstructure:"s" msgpack:"s"`
-	R bool      `mapstructure:"r" msgpack:"r"`
-	T OrderKind `mapstructure:"t" msgpack:"t"`
-	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
+	A int       `json:"a" msgpack:"a"`
+	B bool      `json:"b" msgpack:"b"`
+	P string    `json:"p" msgpack:"p"`
+	S string    `json:"s" msgpack:"s"`
+	R bool      `json:"r" msgpack:"r"`
+	T OrderKind `json:"t" msgpack:"t"`
+	C string    `json:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {
-	Type     string             `mapstructure:"type" msgpack:"type"`
-	Orders   []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
-	Grouping string             `mapstructure:"grouping" msgpack:"grouping"`
-	Builder  *Builder           `mapstructure:"builder" msgpack:"builder,omitempty"`
+	Type     string             `json:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid `json:"orders" msgpack:"orders"`
+	Grouping string             `json:"grouping" msgpack:"grouping"`
+	Builder  *Builder           `json:"builder" msgpack:"builder,omitempty"`
 }
 
 type Builder struct {
-	B string `mapstructure:"b" msgpack:"b"`
-	F int    `mapstructure:"f" msgpack:"f"`
+	B string `json:"b" msgpack:"b"`
+	F int    `json:"f" msgpack:"f"`
 }
 
 // cancel
 // {"type":"cancel","cancels":[{"a":10000,"o":9078231563}]}
 type Cancel struct {
-	A int `mapstructure:"a" msgpack:"a"`
-	O int `mapstructure:"o" msgpack:"o"`
+	A int `json:"a" msgpack:"a"`
+	O int `json:"o" msgpack:"o"`
 }
 type CancelMessage struct {
-	Type    string   `mapstructure:"type" msgpack:"type"`
-	Cancels []Cancel `mapstructure:"cancels" msgpack:"cancels"`
+	Type    string   `json:"type" msgpack:"type"`
+	Cancels []Cancel `json:"cancels" msgpack:"cancels"`
 }
 
 // Transfer
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","type":"usdClassTransfer","amount":"100000","toPerp":false,"nonce":1737458035944}
 type TransferMessage struct {
-	HyperliquidChain string `mapstructure:"hyperliquidChain" msgpack:"hyperliquidChain"`
-	SignatureChainID string `mapstructure:"signatureChainId" msgpack:"signatureChainId"`
-	Type             string `mapstructure:"type" msgpack:"type"`
-	Amount           string `mapstructure:"amount" msgpack:"amount"`
-	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
-	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
+	HyperliquidChain string `json:"hyperliquidChain" msgpack:"hyperliquidChain"`
+	SignatureChainID string `json:"signatureChainId" msgpack:"signatureChainId"`
+	Type             string `json:"type" msgpack:"type"`
+	Amount           string `json:"amount" msgpack:"amount"`
+	ToPerp           bool   `json:"toPerp" msgpack:"toPerp"`
+	Nonce            int64  `json:"nonce" msgpack:"nonce"`
 }
 type SubAccountTransferMessage struct {
-	Type           string `mapstructure:"type" msgpack:"type"`
-	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
-	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
-	Usd            int    `mapstructure:"usd" msgpack:"usd"`
+	Type           string `json:"type" msgpack:"type"`
+	SubAccountUser string `json:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `json:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `json:"usd" msgpack:"usd"`
 }
 
 // Vault transfer message
 
 type VaultTransferMessage struct {
-	Type         string `mapstructure:"type" msgpack:"type"`
-	VaultAddress string `mapstructure:"vaultAddress" msgpack:"vaultAddress"`
-	IsDeposit    bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
-	Usd          int    `mapstructure:"usd" msgpack:"usd"`
+	Type         string `json:"type" msgpack:"type"`
+	VaultAddress string `json:"vaultAddress" msgpack:"vaultAddress"`
+	IsDeposit    bool   `json:"isDeposit" msgpack:"isDeposit"`
+	Usd          int    `json:"usd" msgpack:"usd"`
 }
 
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
 type WithdrawMessage struct {
-	HyperliquidChain string `mapstructure:"hyperliquidChain" msgpack:"hyperliquidChain"`
-	SignatureChainID string `mapstructure:"signatureChainId" msgpack:"signatureChainId"`
-	Destination      string `mapstructure:"destination" msgpack:"destination"`
-	Amount           string `mapstructure:"amount" msgpack:"amount"`
-	Time             int64  `mapstructure:"time" msgpack:"time"`
-	Type             string `mapstructure:"type" msgpack:"type"`
+	HyperliquidChain string `json:"hyperliquidChain" msgpack:"hyperliquidChain"`
+	SignatureChainID string `json:"signatureChainId" msgpack:"signatureChainId"`
+	Destination      string `json:"destination" msgpack:"destination"`
+	Amount           string `json:"amount" msgpack:"amount"`
+	Time             int64  `json:"time" msgpack:"time"`
+	Type             string `json:"type" msgpack:"type"`
 }
 
 // editOrder
 // {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
 type Modify struct {
-	OID   int              `mapstructure:"oid" msgpack:"oid"`
-	Order OrderHyperliquid `mapstructure:"order" msgpack:"order"`
+	OID   int              `json:"oid" msgpack:"oid"`
+	Order OrderHyperliquid `json:"order" msgpack:"order"`
 }
 
 // EditOrderMessage represents the batch modification message.
 type EditOrderMessage struct {
-	Type     string   `mapstructure:"type" msgpack:"type"`
-	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
+	Type     string   `json:"type" msgpack:"type"`
+	Modifies []Modify `json:"modifies" msgpack:"modifies"`
 }
 
 // CreateSubAccount message
 
 type CreateSubAccountMessage struct {
-	Type string `mapstructure:"type" msgpack:"type"`
-	Name string `mapstructure:"name" msgpack:"name"`
+	Type string `json:"type" msgpack:"type"`
+	Name string `json:"name" msgpack:"name"`
 }
 
 // UpdateLeverage message
 
 type UpdateLeverageMessage struct {
-	Type     string `mapstructure:"type" msgpack:"type"`
-	Asset    int    `mapstructure:"asset" msgpack:"asset"`
-	IsCross  bool   `mapstructure:"isCross" msgpack:"isCross"`
-	Leverage int    `mapstructure:"leverage" msgpack:"leverage"`
+	Type     string `json:"type" msgpack:"type"`
+	Asset    int    `json:"asset" msgpack:"asset"`
+	IsCross  bool   `json:"isCross" msgpack:"isCross"`
+	Leverage int    `json:"leverage" msgpack:"leverage"`
 }
 
 // UpdateIsolatedMargin message
 
 type UpdateIsolatedMarginMessage struct {
-	Type  string `mapstructure:"type" msgpack:"type"`
-	Asset int    `mapstructure:"asset" msgpack:"asset"`
-	IsBuy bool   `mapstructure:"isBuy" msgpack:"isBuy"`
-	Ntli  int    `mapstructure:"Ntli" msgpack:"Ntli"`
+	Type  string `json:"type" msgpack:"type"`
+	Asset int    `json:"asset" msgpack:"asset"`
+	IsBuy bool   `json:"isBuy" msgpack:"isBuy"`
+	Ntli  int    `json:"Ntli" msgpack:"Ntli"`
 }
 
 type ReserveRequestWeightMessage struct {
-	Type   string `mapstructure:"type" msgpack:"type"`
-	Weight int    `mapstructure:"weight" msgpack:"weight"`
+	Type   string `json:"type" msgpack:"type"`
+	Weight int    `json:"weight" msgpack:"weight"`
 }
 
 // SetReferrer message
 
 type SetReferrerMessage struct {
-	Type string `mapstructure:"type" msgpack:"type"`
-	Code string `mapstructure:"code" msgpack:"code"`
+	Type string `json:"type" msgpack:"type"`
+	Code string `json:"code" msgpack:"code"`
 }
 
 // AgentSetAbstraction message
 
 type AgentSetAbstractionMessage struct {
-	Type        string `mapstructure:"type" msgpack:"type"`
-	Abstraction string `mapstructure:"abstraction" msgpack:"abstraction"`
+	Type        string `json:"type" msgpack:"type"`
+	Abstraction string `json:"abstraction" msgpack:"abstraction"`
 }
 
 // TwapOrder message
 
 type TwapOrderSpec struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	M int    `mapstructure:"m" msgpack:"m"`
-	T bool   `mapstructure:"t" msgpack:"t"`
+	A int    `json:"a" msgpack:"a"`
+	B bool   `json:"b" msgpack:"b"`
+	S string `json:"s" msgpack:"s"`
+	R bool   `json:"r" msgpack:"r"`
+	M int    `json:"m" msgpack:"m"`
+	T bool   `json:"t" msgpack:"t"`
 }
 
 type TwapOrderMessage struct {
-	Type string        `mapstructure:"type" msgpack:"type"`
-	Twap TwapOrderSpec `mapstructure:"twap" msgpack:"twap"`
+	Type string        `json:"type" msgpack:"type"`
+	Twap TwapOrderSpec `json:"twap" msgpack:"twap"`
 }
 
 // TwapCancel message
 
 type TwapCancelMessage struct {
-	Type string `mapstructure:"type" msgpack:"type"`
-	A    int    `mapstructure:"a" msgpack:"a"`
-	T    int    `mapstructure:"t" msgpack:"t"`
+	Type string `json:"type" msgpack:"type"`
+	A    int    `json:"a" msgpack:"a"`
+	T    int    `json:"t" msgpack:"t"`
 }
 
 // ScheduleCancel message
 
 type ScheduleCancelMessage struct {
-	Type string `mapstructure:"type" msgpack:"type"`
-	Time int    `mapstructure:"time" msgpack:"time"`
+	Type string `json:"type" msgpack:"type"`
+	Time int    `json:"time" msgpack:"time"`
 }
 
 // CreateVault message
 
 type CreateVaultMessage struct {
-	Type        string `mapstructure:"type" msgpack:"type"`
-	Name        string `mapstructure:"name" msgpack:"name"`
-	Description string `mapstructure:"description" msgpack:"description"`
-	InitialUsd  int    `mapstructure:"initialUsd" msgpack:"initialUsd"`
-	Nonce       int    `mapstructure:"nonce" msgpack:"nonce"`
+	Type        string `json:"type" msgpack:"type"`
+	Name        string `json:"name" msgpack:"name"`
+	Description string `json:"description" msgpack:"description"`
+	InitialUsd  int    `json:"initialUsd" msgpack:"initialUsd"`
+	Nonce       int    `json:"nonce" msgpack:"nonce"`
 }
 
 // SubAccountSpotTransfer message
 
 type SubAccountSpotTransferMessage struct {
-	Type           string `mapstructure:"type" msgpack:"type"`
-	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
-	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
-	Token          string `mapstructure:"token" msgpack:"token"`
-	Amount         string `mapstructure:"amount" msgpack:"amount"`
+	Type           string `json:"type" msgpack:"type"`
+	SubAccountUser string `json:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `json:"isDeposit" msgpack:"isDeposit"`
+	Token          string `json:"token" msgpack:"token"`
+	Amount         string `json:"amount" msgpack:"amount"`
 }
 
 // CancelByCloid message
 
 type CancelByCloidItem struct {
-	Asset int    `mapstructure:"asset" msgpack:"asset"`
-	Cloid string `mapstructure:"cloid" msgpack:"cloid"`
+	Asset int    `json:"asset" msgpack:"asset"`
+	Cloid string `json:"cloid" msgpack:"cloid"`
 }
 
 type CancelByCloidMessage struct {
-	Type    string              `mapstructure:"type" msgpack:"type"`
-	Cancels []CancelByCloidItem `mapstructure:"cancels" msgpack:"cancels"`
+	Type    string              `json:"type" msgpack:"type"`
+	Cancels []CancelByCloidItem `json:"cancels" msgpack:"cancels"`
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -566,6 +565,18 @@ func ConvertInt64ToInt(data any) any { // these functions change in place the ob
 // 	}
 // }
 
+// decodeHyperliquidMessage maps a generic map[string]any (produced by ParseJson)
+// onto one of the typed hyperliquid message structs above via encoding/json.
+// Field matching is case-insensitive and unknown keys are ignored, matching the
+// mapstructure.Decode behaviour this replaces.
+func decodeHyperliquidMessage(input any, output any) error {
+	raw, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(raw, output)
+}
+
 func (this *BaseExchange) Packb(data any) []uint8 {
 
 	var dataObj any = nil
@@ -593,7 +604,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "order":
 		var orderMsg OrderMessage
 
-		err := mapstructure.Decode(converted, &orderMsg)
+		err := decodeHyperliquidMessage(converted, &orderMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -607,7 +618,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "cancel":
 		var cancelMsg CancelMessage
 
-		err := mapstructure.Decode(converted, &cancelMsg)
+		err := decodeHyperliquidMessage(converted, &cancelMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -621,7 +632,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
-		err := mapstructure.Decode(converted, &withdrawMsg)
+		err := decodeHyperliquidMessage(converted, &withdrawMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -634,7 +645,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "batchModify":
 		var editMsg EditOrderMessage
 
-		err := mapstructure.Decode(converted, &editMsg)
+		err := decodeHyperliquidMessage(converted, &editMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -647,7 +658,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "subAccountTransfer":
 		var subAccountTransferMsg SubAccountTransferMessage
 
-		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		err := decodeHyperliquidMessage(converted, &subAccountTransferMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -660,7 +671,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "createSubAccount":
 		var createSubAccountMsg CreateSubAccountMessage
 
-		err := mapstructure.Decode(converted, &createSubAccountMsg)
+		err := decodeHyperliquidMessage(converted, &createSubAccountMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -673,7 +684,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "updateLeverage":
 		var leverageMsg UpdateLeverageMessage
 
-		err := mapstructure.Decode(converted, &leverageMsg)
+		err := decodeHyperliquidMessage(converted, &leverageMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -686,7 +697,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "updateIsolatedMargin":
 		var isolatedMarginMsg UpdateIsolatedMarginMessage
 
-		err := mapstructure.Decode(converted, &isolatedMarginMsg)
+		err := decodeHyperliquidMessage(converted, &isolatedMarginMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -699,7 +710,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "vaultTransfer":
 		var vaultTransferMsg VaultTransferMessage
 
-		err := mapstructure.Decode(converted, &vaultTransferMsg)
+		err := decodeHyperliquidMessage(converted, &vaultTransferMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -712,7 +723,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "reserveRequestWeight":
 		var reserveRequestWeightMsg ReserveRequestWeightMessage
 
-		err := mapstructure.Decode(converted, &reserveRequestWeightMsg)
+		err := decodeHyperliquidMessage(converted, &reserveRequestWeightMsg)
 		if err != nil {
 			panic(err)
 		}
@@ -725,7 +736,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "setReferrer":
 		var msg SetReferrerMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -738,7 +749,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "agentSetAbstraction":
 		var msg AgentSetAbstractionMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -751,7 +762,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "twapOrder":
 		var msg TwapOrderMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -764,7 +775,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "twapCancel":
 		var msg TwapCancelMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -777,7 +788,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "scheduleCancel":
 		var msg ScheduleCancelMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -790,7 +801,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "createVault":
 		var msg CreateVaultMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -803,7 +814,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "subAccountSpotTransfer":
 		var msg SubAccountSpotTransferMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
@@ -816,7 +827,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	case "cancelByCloid":
 		var msg CancelByCloidMessage
 
-		err := mapstructure.Decode(converted, &msg)
+		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {
 			panic(err)
 		}
