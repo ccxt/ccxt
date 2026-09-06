@@ -1,5 +1,7 @@
 #include "ExchangeBase.h"
 
+#include <curl/curl.h>
+
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
@@ -10,6 +12,7 @@
 #include <ctime>
 #include <cctype>
 #include <charconv>
+#include <cstdlib>
 #include <iostream>
 #include <random>
 #include <set>
@@ -1169,10 +1172,424 @@ std::shared_future<std::any> ExchangeBase::fetch (std::any url, std::any method,
             return impl (url, method, headers, body);
         }).share ();
     }
-    return std::async (std::launch::deferred, [target, verb] () -> std::any {
-        throw NotSupported ("HTTP transport is not implemented in the C++ port yet: "
-                            + verb + " " + target);
+    // Real transport. Mirrors ts/src/base/Exchange.ts fetch()/handleRestResponse():
+    // merge default headers -> libcurl -> onRestResponse -> parseJson -> handleErrors
+    // -> handleHttpStatusCode -> parsed body (or raw text when it is not JSON).
+    return std::async (std::launch::deferred, [this, target, verb, url, method, headers, body] () -> std::any {
+        if (!this->headers.has_value ()) {
+            this->headers = dict {
+                { std::string ("User-Agent"),
+                  std::string ("ccxt-cpp/0.1.0 (+https://github.com/ccxt/ccxt)") },
+            };
+        }
+        std::any merged = headers;
+        if (this->headers.has_value () && isDict (this->headers)) {
+            if (headers.has_value () && isDict (headers)) {
+                merged = this->deepExtend (this->headers, headers);
+            } else {
+                merged = this->headers;
+            }
+        }
+
+        CURL* curl = curl_easy_init ();
+        if (!curl) {
+            throw NetworkError (this->id.has_value () ? str (this->id) : std::string ("ccxt")
+                                + " " + verb + " " + target + " curl_easy_init failed");
+        }
+
+        curl_easy_setopt (curl, CURLOPT_URL, target.c_str ());
+        curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt (curl, CURLOPT_ACCEPT_ENCODING, "");   // enable gzip/deflate
+        curl_easy_setopt (curl, CURLOPT_NOSIGNAL, 1L);
+
+        const long long timeoutMs = this->timeout.has_value ()
+            ? std::max (1000LL, toLong (this->timeout)) : 10000LL;
+        curl_easy_setopt (curl, CURLOPT_TIMEOUT_MS, timeoutMs);
+
+        // honour the standard proxy environment variables, then the exchange
+        // options (httpProxy/httpsProxy) — the static test harness relies on the
+        // latter: initOfflineExchange installs a deliberately unreachable proxy so
+        // request tests fail with InvalidProxySettings instead of hitting the
+        // network (see the "proxy 2 times" comment in ts/src/test/tests.ts).
+        bool proxyApplied = false;
+        std::string proxyValue;
+        if (this->options.has_value () && isDict (this->options)) {
+            const auto& opts = std::any_cast<dict> (this->options);
+            const auto pick = [&opts] (const char* key) -> std::string {
+                if (opts.has (std::string (key))) {
+                    const std::any v = opts.get (std::string (key));
+                    if (isStr (v)) {
+                        return str (v);
+                    }
+                }
+                return std::string {};
+            };
+            const bool httpsTarget = target.rfind ("https://", 0) == 0;
+            proxyValue = httpsTarget ? (pick ("httpsProxy").empty () ? pick ("httpProxy") : pick ("httpsProxy"))
+                                      : (pick ("httpProxy").empty () ? pick ("httpsProxy") : pick ("httpProxy"));
+            if (!proxyValue.empty ()) {
+                curl_easy_setopt (curl, CURLOPT_PROXY, proxyValue.c_str ());
+                proxyApplied = true;
+            }
+        }
+        if (!proxyApplied) {
+            if (const char* p = std::getenv ("https_proxy")) { curl_easy_setopt (curl, CURLOPT_PROXY, p); }
+            else if (const char* p2 = std::getenv ("http_proxy")) { curl_easy_setopt (curl, CURLOPT_PROXY, p2); }
+        }
+
+        if (verb == "GET") {
+            curl_easy_setopt (curl, CURLOPT_HTTPGET, 1L);
+        } else if (verb == "POST") {
+            curl_easy_setopt (curl, CURLOPT_POST, 1L);
+        } else {
+            curl_easy_setopt (curl, CURLOPT_CUSTOMREQUEST, verb.c_str ());
+        }
+
+        struct curl_slist* hdrs = nullptr;
+        if (merged.has_value () && isDict (merged)) {
+            for (const auto& kv : std::any_cast<dict> (merged).entries ()) {
+                hdrs = curl_slist_append (hdrs, (kv.first + ": " + str (kv.second)).c_str ());
+            }
+        }
+        if (hdrs) {
+            curl_easy_setopt (curl, CURLOPT_HTTPHEADER, hdrs);
+        }
+
+        std::string rawBody;
+        if (body.has_value () && isStr (body)) {
+            rawBody = str (body);
+            curl_easy_setopt (curl, CURLOPT_POSTFIELDS, rawBody.c_str ());
+            curl_easy_setopt (curl, CURLOPT_POSTFIELDSIZE, static_cast<long> (rawBody.size ()));
+        }
+
+        std::string out;
+        curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, +[] (void* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
+            static_cast<std::string*> (userdata)->append (static_cast<const char*> (ptr), size * nmemb);
+            return size * nmemb;
+        });
+        curl_easy_setopt (curl, CURLOPT_WRITEDATA, &out);
+
+        const CURLcode res = curl_easy_perform (curl);
+        long status = 0;
+        curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
+        if (hdrs) { curl_slist_free_all (hdrs); }
+        curl_easy_cleanup (curl);
+
+        if (res != CURLE_OK) {
+            // A failing configured proxy is a proxy-settings error in ccxt's error
+            // hierarchy (mirrors JS checkProxySettings/fetch), not a network error.
+            if (proxyApplied) {
+                throw InvalidProxySettings ((this->id.has_value () ? str (this->id) : std::string ("ccxt"))
+                                            + " " + verb + " " + target + " via proxy " + proxyValue + " "
+                                            + curl_easy_strerror (res));
+            }
+            throw NetworkError ((this->id.has_value () ? str (this->id) : std::string ("ccxt"))
+                                + " " + verb + " " + target + " "
+                                + curl_easy_strerror (res));
+        }
+
+        const std::any statusText = std::string ("OK");
+        const std::any emptyHeaders = dict {};
+
+        const std::any bodyText = this->onRestResponse (status, statusText, url, method,
+                                                        emptyHeaders, out, headers, body);
+        std::any parsed = std::any {};
+        try {
+            parsed = this->parseJson (bodyText);
+        } catch (const std::exception&) {
+            parsed = std::any {};
+        }
+
+        const std::any skip = this->handleErrors (status, statusText, url, method,
+                                                  emptyHeaders, bodyText, parsed,
+                                                  headers, body);
+        if (!skip.has_value ()) {
+            this->handleHttpStatusCode (status, statusText, url, method, out);
+        }
+        if (parsed.has_value () && !isTrue (isEqual (parsed, std::any {}))) {
+            return parsed;
+        }
+        return out;
     }).share ();
+}
+
+// ---------------------------------------------------------------------------
+// dynamic access — the transpiled test framework reads and writes members
+// through these when the receiver is a std::any
+// ---------------------------------------------------------------------------
+
+std::any ExchangeBase::getProperty (const std::string& name) {
+    if (name == "id") return this->id;
+    if (name == "name") return this->name;
+    if (name == "alias") return this->alias;
+    if (name == "countries") return this->countries;
+    if (name == "version") return this->version;
+    if (name == "hostname") return this->hostname;
+    if (name == "certified") return this->certified;
+    if (name == "pro") return this->pro;
+    if (name == "has") return this->has;
+    if (name == "features") return this->features;
+    if (name == "urls") return this->urls;
+    if (name == "api") return this->api;
+    if (name == "options") return this->options;
+    if (name == "timeframes") return this->timeframes;
+    if (name == "fees") return this->fees;
+    if (name == "limits") return this->limits;
+    if (name == "precision") return this->precision;
+    if (name == "precisionMode") return this->precisionMode;
+    if (name == "paddingMode") return this->paddingMode;
+    if (name == "requiredCredentials") return this->requiredCredentials;
+    if (name == "commonCurrencies") return this->commonCurrencies;
+    if (name == "exceptions") return this->exceptions;
+    if (name == "twofa") return this->twofa;
+    if (name == "apiKey") return this->apiKey;
+    if (name == "secret") return this->secret;
+    if (name == "password") return this->password;
+    if (name == "uid") return this->uid;
+    if (name == "login") return this->login;
+    if (name == "walletAddress") return this->walletAddress;
+    if (name == "privateKey") return this->privateKey;
+    if (name == "token") return this->token;
+    if (name == "verbose") return this->verbose;
+    if (name == "reduceFees") return this->reduceFees;
+    if (name == "isSandboxModeEnabled") return this->isSandboxModeEnabled;
+    if (name == "enableRateLimit") return this->enableRateLimit;
+    if (name == "rateLimit") return this->rateLimit;
+    if (name == "rateLimiterAlgorithm") return this->rateLimiterAlgorithm;
+    if (name == "tokenBucket") return this->tokenBucket;
+    if (name == "throttler") return this->throttler;
+    if (name == "timeout") return this->timeout;
+    if (name == "rollingWindowSize") return this->rollingWindowSize;
+    if (name == "last_request_url") return this->last_request_url;
+    if (name == "last_request_body") return this->last_request_body;
+    if (name == "last_request_headers") return this->last_request_headers;
+    if (name == "markets") return this->markets;
+    if (name == "markets_by_id") return this->markets_by_id;
+    if (name == "currencies") return this->currencies;
+    if (name == "currencies_by_id") return this->currencies_by_id;
+    if (name == "symbols") return this->symbols;
+    if (name == "ids") return this->ids;
+    if (name == "codes") return this->codes;
+    if (name == "baseCurrencies") return this->baseCurrencies;
+    if (name == "quoteCurrencies") return this->quoteCurrencies;
+    if (name == "accounts") return this->accounts;
+    if (name == "accountsById") return this->accountsById;
+    if (name == "minFundingAddressLength") return this->minFundingAddressLength;
+    if (name == "substituteCommonCurrencyCodes") return this->substituteCommonCurrencyCodes;
+    if (name == "headers") return this->headers;
+    if (name == "httpProxy") return this->httpProxy;
+    if (name == "httpsProxy") return this->httpsProxy;
+    if (name == "wsProxy") return this->wsProxy;
+    if (name == "wssProxy") return this->wssProxy;
+    if (name == "enableLastHttpResponse") return std::any (true);
+    throw NotSupported ("getProperty: unknown member \"" + name + "\"");
+}
+
+std::any ExchangeBase::setProperty (const std::string& name, std::any value) {
+    if (name == "id") { this->id = value; return value; }
+    if (name == "alias") { this->alias = value; return value; }
+    if (name == "hostname") { this->hostname = value; return value; }
+    if (name == "urls") { this->urls = value; return value; }
+    if (name == "api") { this->api = value; return value; }
+    if (name == "options") { this->options = value; return value; }
+    if (name == "apiKey") { this->apiKey = value; return value; }
+    if (name == "secret") { this->secret = value; return value; }
+    if (name == "password") { this->password = value; return value; }
+    if (name == "uid") { this->uid = value; return value; }
+    if (name == "walletAddress") { this->walletAddress = value; return value; }
+    if (name == "privateKey") { this->privateKey = value; return value; }
+    if (name == "accounts") { this->accounts = value; return value; }
+    if (name == "currencies") { this->currencies = value; return value; }
+    if (name == "markets") { this->markets = value; return value; }
+    if (name == "symbols") { this->symbols = value; return value; }
+    if (name == "timeout") { this->timeout = value; return value; }
+    if (name == "httpProxy") { this->httpProxy = value; return value; }
+    if (name == "httpsProxy") { this->httpsProxy = value; return value; }
+    if (name == "wsProxy") { this->wsProxy = value; return value; }
+    if (name == "wssProxy") { this->wssProxy = value; return value; }
+    if (name == "verbose") { this->verbose = value; return value; }
+    throw NotSupported ("setProperty: unknown member \"" + name + "\"");
+}
+
+std::any ExchangeBase::callDynamically (const std::string& name, std::any args) {
+    // unified methods first: the generated per-exchange callMethod table
+    std::exception_ptr underlying;
+    try {
+        return this->callMethod (std::string (name), args.has_value () ? args : std::any (list {}));
+    } catch (...) {
+        underlying = std::current_exception ();
+        // fall through to the helper registry below
+    }
+    const auto& argv = isList (args) ? std::any_cast<list> (args).items () : std::vector<std::any> {};
+    const std::any a0 = argv.size () > 0 ? argv[0] : std::any {};
+    const std::any a1 = argv.size () > 1 ? argv[1] : std::any {};
+    const std::any a2 = argv.size () > 2 ? argv[2] : std::any {};
+    const std::any a3 = argv.size () > 3 ? argv[3] : std::any {};
+    if (name == "safeValue") return this->safeValue (a0, a1, a2);
+    if (name == "safeString") return this->safeString (a0, a1, a2);
+    if (name == "safeStringUpper") return this->safeStringUpper (a0, a1, a2);
+    if (name == "safeStringLower") return this->safeStringLower (a0, a1, a2);
+    if (name == "safeInteger") return this->safeInteger (a0, a1, a2);
+    if (name == "safeIntegerProduct") return this->safeIntegerProduct (a0, a1, a2, a3);
+    if (name == "safeIntegerProduct2") return this->safeIntegerProduct2 (a0, a1, a2, a3);
+    if (name == "safeNumber") return this->safeNumber (a0, a1, a2);
+    if (name == "safeDict") return this->safeDict (a0, a1, a2);
+    if (name == "safeList") return this->safeList (a0, a1, a2);
+    if (name == "safeBool") return this->safeBool (a0, a1, a2);
+    if (name == "deepExtend") return this->deepExtend (a0, a1);
+    if (name == "extend") return this->extend (a0, a1);
+    if (name == "extendExchangeOptions") return this->extendExchangeOptions (a0);
+    if (name == "convertToSafeDictionary") return this->convertToSafeDictionary (a0);
+    if (name == "json") return this->json (a0);
+    if (name == "parseJson") return this->parseJson (a0);
+    if (name == "inArray") return this->inArray (a0, a1);
+    if (name == "indexBy") return this->indexBy (a0, a1);
+    if (name == "filterBy") return this->filterBy (a0, a1, a2);
+    if (name == "sortBy") return this->sortBy (a0, a1, a2);
+    if (name == "sum") return this->sum (a0, a1, a2, a3);
+    if (name == "numberToString") return this->numberToString (a0);
+    if (name == "parseToInt") return this->parseToInt (a0);
+    if (name == "parseToNumeric") return this->parseToNumeric (a0);
+    if (name == "isDictionary") return isDict (a0);
+    if (name == "isEmptyString") return this->isEmptyString (a0);
+    if (name == "market") return this->market (a0);
+    if (name == "marketId") return this->marketId (a0);
+    if (name == "currency") return this->currency (a0);
+    if (name == "currencyId") return this->currencyId (a0);
+    if (name == "iso8601") return this->iso8601 (a0);
+    if (name == "milliseconds") return this->milliseconds ();
+    if (name == "checkRequiredCredentials") return this->checkRequiredCredentials (a0);
+    if (name == "setSandboxMode") { this->setSandboxMode (a0); return std::any {}; }
+    if (name == "setMarkets") { this->setMarkets (a0, a1); return std::any {}; }
+    if (name == "loadMarkets") return this->loadMarkets (a0);
+    if (name == "sleep") return this->sleep (a0);
+    if (name == "getCcxtVersion") return this->getCcxtVersion ();
+    if (name == "fetch") return this->fetch (a0, a1, a2, a3);
+    // No dynamic handler at all: surface the original callMethod failure — it is
+    // almost always the real error (markets not loaded, bad symbol, ...), and the
+    // generic "no handler" message hid exactly that.
+    if (underlying) {
+        std::rethrow_exception (underlying);
+    }
+    throw NotSupported ("callDynamically: no handler for \"" + name + "\"");
+}
+
+std::any ExchangeBase::handleErrors (std::any, std::any, std::any, std::any,
+                                     std::any, std::any, std::any, std::any,
+                                     std::any) {
+    return std::any {};   // no-op default; per-exchange overrides throw
+}
+
+std::any ExchangeBase::handleHttpStatusCode (std::any code, std::any reason,
+                                             std::any url, std::any method,
+                                             std::any body) {
+    if (!code.has_value ()) {
+        return std::any {};
+    }
+    const long long status = toLong (code);
+    if (status < 400) {
+        return std::any {};
+    }
+    const std::string message = (this->id.has_value () ? str (this->id) : std::string ("ccxt"))
+        + " " + str (method) + " " + str (url) + " " + std::to_string (status)
+        + " " + str (reason) + " " + str (body);
+    switch (status) {
+    case 422: throw ExchangeError (message);
+    case 418: throw DDoSProtection (message);
+    case 429: throw RateLimitExceeded (message);
+    case 404: case 409: case 410: case 451: case 500: case 501:
+    case 502: case 503: case 520: case 521: case 522: case 525:
+    case 526: case 400: case 403: case 405: case 530:
+        throw ExchangeNotAvailable (message);
+    case 408: case 504: throw RequestTimeout (message);
+    case 401: case 407: case 511: throw AuthenticationError (message);
+    default:
+        if (status >= 500) {
+            throw ExchangeNotAvailable (message);
+        }
+        return std::any {};
+    }
+}
+
+std::any ExchangeBase::onRestResponse (std::any, std::any, std::any, std::any,
+                                       std::any, std::any responseBody,
+                                       std::any, std::any) {
+    // default: return the trimmed body text
+    if (!responseBody.has_value () || !isStr (responseBody)) {
+        return responseBody;
+    }
+    std::string text = str (responseBody);
+    const auto first = text.find_first_not_of (" \t\r\n");
+    if (first == std::string::npos) {
+        return std::string ("");
+    }
+    const auto last = text.find_last_not_of (" \t\r\n");
+    return text.substr (first, last - first + 1);
+}
+
+// ---------------------------------------------------------------------------
+// handwritten helpers the transpiled test framework calls (ts/src/base/Exchange.ts)
+// ---------------------------------------------------------------------------
+
+std::any ExchangeBase::extendExchangeOptions (std::any newOptions) {
+    this->options = this->extend (this->options, newOptions);
+    return std::any {};
+}
+
+std::any ExchangeBase::convertToSafeDictionary (std::any value) {
+    return value;
+}
+
+std::any ExchangeBase::getCcxtVersion () {
+    return std::string ("4.4.79");   // kept in sync with the JS package version
+}
+
+// ---------------------------------------------------------------------------
+// generated-surface no-ops
+// ---------------------------------------------------------------------------
+// The real definitions live in the generated Exchange.*.inc fragments (on the
+// Exchange class); these exist only so the ExchangeBase vtable has an entry to
+// bind. Everything reachable through an ExchangeBase* is a concrete Exchange, so
+// these are never actually dispatched.
+
+std::any ExchangeBase::safeNumber (std::any, std::any, std::any) {
+    throw NotSupported ("safeNumber is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::safeDict (std::any, std::any, std::any) {
+    throw NotSupported ("safeDict is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::safeList (std::any, std::any, std::any) {
+    throw NotSupported ("safeList is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::parseToInt (std::any) {
+    throw NotSupported ("parseToInt is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::parseToNumeric (std::any) {
+    throw NotSupported ("parseToNumeric is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::market (std::any) {
+    throw NotSupported ("market is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::marketId (std::any) {
+    throw NotSupported ("marketId is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::currency (std::any) {
+    throw NotSupported ("currency is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::currencyId (std::any) {
+    throw NotSupported ("currencyId is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::checkRequiredCredentials (std::any) {
+    throw NotSupported ("checkRequiredCredentials is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::setMarkets (std::any, std::any) {
+    throw NotSupported ("setMarkets is generated, not on the C++ ExchangeBase");
+}
+void ExchangeBase::setSandboxMode (std::any) {
+    throw NotSupported ("setSandboxMode is generated, not on the C++ ExchangeBase");
+}
+std::any ExchangeBase::isEmptyString (std::any) {
+    throw NotSupported ("isEmptyString is generated, not on the C++ ExchangeBase");
 }
 
 // ---------------------------------------------------------------------------
@@ -1333,28 +1750,46 @@ std::any ExchangeBase::callMethod (std::any name, std::any) {
 }
 
 std::shared_future<std::any> ExchangeBase::fetchMarkets (std::any) {
-    return std::async (std::launch::deferred, [] () -> std::any {
-        throw NotSupported ("fetchMarkets needs the HTTP layer, which the C++ port does not have yet");
+    // C# Exchange.fetchMarkets: the base returns this.markets as an array; the
+    // generated per-exchange override does the real HTTP fetch.
+    return std::async (std::launch::deferred, [this] () -> std::any {
+        return this->toArray (this->markets);
     }).share ();
 }
 
 std::shared_future<std::any> ExchangeBase::fetchCurrencies (std::any) {
-    return std::async (std::launch::deferred, [] () -> std::any {
-        throw NotSupported ("fetchCurrencies needs the HTTP layer, which the C++ port does not have yet");
+    // C# Exchange.fetchCurrencies: base returns this.currencies verbatim
+    return std::async (std::launch::deferred, [this] () -> std::any {
+        return this->currencies;
     }).share ();
 }
 
-std::shared_future<std::any> ExchangeBase::loadMarkets (std::any reload, std::any) {
-    return std::async (std::launch::deferred, [this, reload] () -> std::any {
-        // Markets already in hand means nothing to fetch -- TS returns them straight
-        // back in that case, which is what makes the offline static tests work at all:
-        // they call setMarkets() from a fixture and every loadMarkets() after that is a
-        // no-op. Only a genuine fetch needs the transport.
+std::shared_future<std::any> ExchangeBase::loadMarkets (std::any reload, std::any params) {
+    // C# loadMarketsHelper semantics. The C# version caches the in-flight task
+    // (marketsLoading); the C++ async model is deferred futures resolved on the
+    // calling thread, so the mutex is enough to keep concurrent callers correct.
+    return std::async (std::launch::deferred, [this, reload, params] () -> std::any {
+        std::lock_guard<std::mutex> guard (this->loadMarketsMutex);
         if (!isTrue (reload) && isDict (this->markets)
             && (std::any_cast<dict> (this->markets).size () > 0)) {
+            if (!this->markets_by_id.has_value ()) {
+                return this->setMarkets (this->markets);
+            }
             return this->markets;
         }
-        throw NotSupported ("loadMarkets requires the HTTP transport, not implemented yet");
+        std::any currenciesFetched;
+        const std::any hasFetchCurrencies = this->safeValue (this->has, std::string ("fetchCurrencies"));
+        if (isTrue (hasFetchCurrencies)) {
+            currenciesFetched = awaitValue (this->fetchCurrencies ());
+            if (isDict (this->options)) {
+                std::any_cast<dict> (this->options).set ("cachedCurrencies", currenciesFetched);
+            }
+        }
+        const std::any fetched = awaitValue (this->fetchMarkets (params));
+        if (isDict (this->options)) {
+            deleteKey (this->options, std::string ("cachedCurrencies"));
+        }
+        return this->setMarkets (fetched, currenciesFetched);
     }).share ();
 }
 

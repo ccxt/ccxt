@@ -10,6 +10,12 @@
 // names the runtime piece it is waiting on.
 
 #include "BaseTest.Bridge.h"
+#include "TestMainClass.Bridge.h"
+
+#include <any>
+#include <iostream>
+#include <string>
+#include <vector>
 
 // Hand-written, not generated: ts/src/test/base/test.cryptography.ts is marked
 // NO_AUTO_TRANSPILE, so every port maintains its own copy (C# included).
@@ -169,22 +175,57 @@ int runBaseTests () {
 
 } // namespace
 
+// ---------------------------------------------------------------------------
+// CLI snapshot + exchange test driver (mirrors cs/tests/Program.cs)
+// ---------------------------------------------------------------------------
+
+namespace ccxt {
+std::vector<std::string> g_testArgs;
+}
+
 int main (int argc, char** argv) {
     bool baseTests = false;
     std::string exchangeId;
+    std::string arg2;
     for (int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
+        ccxt::g_testArgs.push_back (arg);
         if (arg == "--baseTests") {
             baseTests = true;
         } else if (arg.rfind ("--", 0) != 0) {
-            exchangeId = arg;
+            if (exchangeId.empty ()) {
+                exchangeId = arg;
+            } else if (arg2.empty ()) {
+                arg2 = arg;
+            }
         }
     }
     if (baseTests) {
         return runBaseTests ();
     }
-    // Live per-exchange tests need the HTTP layer, which this iteration stubs out.
-    std::cout << "[TEST_FAILURE] only --baseTests is implemented in the C++ port"
-              << (exchangeId.empty () ? "" : " (asked for " + exchangeId + ")") << std::endl;
-    return 1;
+    if (exchangeId.empty ()) {
+        std::cout << "[TEST_FAILURE] usage: ccxt-tests [--baseTests] <exchangeId> [symbol|method] [--requestTests|--responseTests|--info ...]" << std::endl;
+        return 1;
+    }
+    // mirror Program.cs InitOptions: the second positional is a symbol when it
+    // contains '/', otherwise a method name
+    std::any symbolArgv = std::any {};
+    std::any methodArgv = std::any {};
+    if (!arg2.empty ()) {
+        if (arg2.find ('/') != std::string::npos) {
+            symbolArgv = std::string (arg2);
+        } else {
+            methodArgv = std::string (arg2);
+        }
+    }
+    try {
+        ccxt::testMainClass testClass;
+        testClass.parseCliArgsAndProps ();
+        const auto future = testClass.init (std::string (exchangeId), symbolArgv, methodArgv);
+        ccxt::awaitValue (future);
+        return 0;
+    } catch (const std::exception& e) {
+        std::cout << "[TEST_FAILURE] " << e.what () << std::endl;
+        return 1;
+    }
 }
