@@ -35,8 +35,18 @@ async function example () {
         //
         //     {
         //         "status": "OK",
-        //         "data": [ { "id": ..., "market": "BTC-USD", "side": "BUY", "price": "...", "qty": "...", "value": "...", "fee": "...", "createdTime": ... } ],
-        //         "pagination": { "cursor": 1784963886257016832, "count": 100 }
+        //         "data": [
+        //             {
+        //                 "id": "2096628727583608834",
+        //                 "time": "1788710216791",
+        //                 "makerId": "12523",
+        //                 "makerBuilderId": "257624",
+        //                 "volume": "30.9360000000000000",
+        //                 "makerFee": "0.0030930000000000",
+        //                 "makerBuilderFee": "0.0030930000000000"
+        //             }
+        //         ],
+        //         "pagination": { "cursor": 2095127463284707328, "count": 100 }
         //     }
         //
         const data = exchange.safeList (response, 'data', []);
@@ -52,22 +62,21 @@ async function example () {
         }
         cursor = nextCursor;
     }
+    // every entry is one fill routed through this builder id: `volume` is the
+    // notional, `makerFee` the maker's total fee and `makerBuilderFee` the
+    // share of it that accrues to the builder
     let volume = 0;
-    let fees = 0;
+    let makerFees = 0;
+    let builderFees = 0;
     for (const trade of trades) {
-        const value = exchange.safeNumber (trade, 'value');
-        if (value !== undefined) {
-            volume += value;
-        } else {
-            const price = exchange.safeNumber (trade, 'price', 0);
-            const amount = exchange.safeNumber2 (trade, 'qty', 'amount', 0);
-            volume += price * amount;
-        }
-        fees += exchange.safeNumber (trade, 'fee', 0);
+        volume += exchange.safeNumber (trade, 'volume', 0);
+        makerFees += exchange.safeNumber (trade, 'makerFee', 0);
+        builderFees += exchange.safeNumber (trade, 'makerBuilderFee', 0);
     }
     console.log ('total builder trades:', trades.length);
     console.log ('total volume:', volume);
-    console.log ('total fees:', fees);
+    console.log ('total maker fees:', makerFees);
+    console.log ('total builder fees:', builderFees);
 }
 
 await example ();
