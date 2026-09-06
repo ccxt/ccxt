@@ -180,7 +180,7 @@ public partial class p2b : ccxt.p2b
         parameters = ((IList<object>)nameparametersVariable)[1];
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(market, "symbol")));
@@ -236,7 +236,7 @@ public partial class p2b : ccxt.p2b
         List<object> messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
             }
@@ -372,7 +372,7 @@ public partial class p2b : ccxt.p2b
             tradesArray = new ArrayCache(tradesLimit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
         }
-        for (object i = 0; isLessThan(i, getArrayLength((IList<object>)(trades))); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength((IList<object>)(trades))); postFixIncrement(ref i))
         {
             object item = getValue((IList<object>)(trades), i);
             object trade = this.parseTrade(item, market);
@@ -491,7 +491,7 @@ public partial class p2b : ccxt.p2b
         }
         if (isTrue(!isEqual(bids, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
             {
                 object bid = this.safeValue(bids, i);
                 object price = this.safeNumber(bid, 0);
@@ -502,7 +502,7 @@ public partial class p2b : ccxt.p2b
         }
         if (isTrue(!isEqual(asks, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
             {
                 object ask = this.safeValue(asks, i);
                 object price = this.safeNumber(ask, 0);

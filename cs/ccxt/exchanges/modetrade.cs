@@ -893,7 +893,7 @@ public partial class modetrade : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object minPrecision = null;
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             // TODO: transform chain id to human readable name
@@ -1297,7 +1297,7 @@ public partial class modetrade : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "rows", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1475,7 +1475,7 @@ public partial class modetrade : Exchange
         object symbols = this.symbols;
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1969,7 +1969,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2705,7 +2705,7 @@ public partial class modetrade : Exchange
             { "info", response },
         };
         object balances = this.safeList(response, "holding", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             object code = this.safeCurrencyCode(this.safeString(balance, "token"));
@@ -3451,7 +3451,7 @@ public partial class modetrade : Exchange
                     if (isTrue(isEqual(path, "batch-order")))
                     {
                         object ordersList = this.safeList(parameters, "orders", new List<object>() {});
-                        for (object i = 0; isLessThan(i, getArrayLength(ordersList)); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(ordersList)); postFixIncrement(ref i))
                         {
                             ((IDictionary<string,object>)getValue(getValue(parameters, "orders"), i))["order_tag"] = brokerId;
                         }

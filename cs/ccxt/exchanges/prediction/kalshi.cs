@@ -371,11 +371,11 @@ public partial class kalshi : PredictionExchange
             object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams));
             int eventsLength = getArrayLength(events);
             List<object> queryMarkets = new List<object>() {};
-            for (object ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
+            for (int ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
             {
                 object eventMarkets = this.safeList(getValue(events, ei), "markets", new List<object>() {});
                 int eventMarketsLength = getArrayLength(eventMarkets);
-                for (object mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
+                for (int mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
                 {
                     ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
                 }
@@ -409,14 +409,14 @@ public partial class kalshi : PredictionExchange
             object response = await this.kalshiPublicGetMarkets(this.extend(request, rest));
             object rawMarkets = this.safeList(response, "markets", new List<object>() {});
             int rawMarketsLength = getArrayLength(rawMarkets);
-            for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
             {
                 object raw = getValue(rawMarkets, i);
                 object parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
                 object eventKey = ((bool) isTrue((isTrue(!isEqual(eventTitle, null)) && isTrue(!isEqual(eventTitle, ""))))) ? this.shortenSlug(eventTitle) : null;
-                for (object j = 0; isLessThan(j, getArrayLength(parsed)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(parsed)); postFixIncrement(ref j))
                 {
                     object m = getValue(parsed, j);
                     ((IList<object>)flatMarkets).Add(m);
@@ -573,7 +573,7 @@ public partial class kalshi : PredictionExchange
     {
         List<object> tickers = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
             object outcomeSymbol = getValue(outcomeSymbols, i);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(outcomeSymbol, ":"), 0)))
@@ -615,7 +615,7 @@ public partial class kalshi : PredictionExchange
             };
             object response = await this.kalshiPublicGetMarkets(request);
             object rawMarkets = this.safeList(response, "markets", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
             {
                 object parsed = this.parseMarket(getValue(rawMarkets, i));
                 if (isTrue(isEqual(parsed, null)))
@@ -627,7 +627,7 @@ public partial class kalshi : PredictionExchange
             }
             startIndex = this.sum(startIndex, chunkSize);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
             if (!isTrue(this.hasOutcome(getValue(outcomeSymbols, i))))
             {
@@ -787,7 +787,7 @@ public partial class kalshi : PredictionExchange
         List<object> outcomeIds = new List<object>() {ticker, add(ticker, "-NO")};
         List<object> outcomes = new List<object>() {};
         object resolvedOutcome = null;
-        for (object oi = 0; isLessThan(oi, getArrayLength(outcomeLabels)); postFixIncrement(ref oi))
+        for (int oi = 0; isLessThan(oi, getArrayLength(outcomeLabels)); postFixIncrement(ref oi))
         {
             object label = getValue(outcomeLabels, oi);
             object outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
@@ -1196,14 +1196,14 @@ public partial class kalshi : PredictionExchange
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes(outcomes);
         List<object> targets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
             ((IList<object>)targets).Add(getValue(outcomes, i));
         }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
         List<object> tickers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(targets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(targets)); postFixIncrement(ref i))
         {
             object outcomeObj = this.outcome(getValue(targets, i));
             string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
@@ -1243,7 +1243,7 @@ public partial class kalshi : PredictionExchange
             };
             object response = await this.kalshiPublicGetMarkets(this.extend(request, parameters));
             object rawMarkets = this.safeList(response, "markets", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
             {
                 object raw = getValue(rawMarkets, i);
                 string? marketTicker = this.safeString(raw, "ticker");
@@ -1252,7 +1252,7 @@ public partial class kalshi : PredictionExchange
                     continue;
                 }
                 object grouped = getValue(outcomesByTicker, marketTicker);
-                for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
                 {
                     object ticker = this.parsePredictionTicker(raw, getValue(grouped, j));
                     string? symbolKey = this.safeString(ticker, "outcome");
@@ -1311,12 +1311,12 @@ public partial class kalshi : PredictionExchange
         if (isTrue(isNo))
         {
             // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
-            for (object bi = 0; isLessThan(bi, getArrayLength(rawNo)); postFixIncrement(ref bi))
+            for (int bi = 0; isLessThan(bi, getArrayLength(rawNo)); postFixIncrement(ref bi))
             {
                 object price = this.safeNumber(getValue(rawNo, bi), 0);
                 ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, bi), 1)});
             }
-            for (object ai = 0; isLessThan(ai, getArrayLength(rawYes)); postFixIncrement(ref ai))
+            for (int ai = 0; isLessThan(ai, getArrayLength(rawYes)); postFixIncrement(ref ai))
             {
                 object yesPrice = this.safeNumber(getValue(rawYes, ai), 0);
                 object price = ((bool) isTrue((!isEqual(yesPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
@@ -1325,12 +1325,12 @@ public partial class kalshi : PredictionExchange
         } else
         {
             // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
-            for (object bi = 0; isLessThan(bi, getArrayLength(rawYes)); postFixIncrement(ref bi))
+            for (int bi = 0; isLessThan(bi, getArrayLength(rawYes)); postFixIncrement(ref bi))
             {
                 object price = this.safeNumber(getValue(rawYes, bi), 0);
                 ((IList<object>)bids).Add(new List<object>() {price, this.safeNumber(getValue(rawYes, bi), 1)});
             }
-            for (object ai = 0; isLessThan(ai, getArrayLength(rawNo)); postFixIncrement(ref ai))
+            for (int ai = 0; isLessThan(ai, getArrayLength(rawNo)); postFixIncrement(ref ai))
             {
                 object noPrice = this.safeNumber(getValue(rawNo, ai), 0);
                 object price = ((bool) isTrue((!isEqual(noPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
@@ -1460,7 +1460,7 @@ public partial class kalshi : PredictionExchange
         //
         object candles = this.safeList(response, "candlesticks", new List<object>() {});
         List<object> usableCandles = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             object priceObj = this.safeDict(candle, "price", new Dictionary<string, object>() {});
@@ -1559,7 +1559,7 @@ public partial class kalshi : PredictionExchange
         object response = await this.kalshiPublicGetMarketsTrades(this.extend(request, parameters));
         object trades = this.safeList(response, "trades", new List<object>() {});
         List<object> filteredTrades = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             string? tradeTicker = this.safeString2(trade, "ticker", "market_ticker");
@@ -1678,7 +1678,7 @@ public partial class kalshi : PredictionExchange
         object fills = this.safeList(response, "fills", new List<object>() {});
         int fillsLength = getArrayLength(fills);
         List<object> trades = new List<object>() {};
-        for (object i = 0; isLessThan(i, fillsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, fillsLength); postFixIncrement(ref i))
         {
             ((IList<object>)trades).Add(this.parseMyTrade(getValue(fills, i), outcomeObj));
         }
@@ -1688,7 +1688,7 @@ public partial class kalshi : PredictionExchange
             wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             if (isTrue(isTrue((isEqual(wantedOutcome, null))) || isTrue((isEqual(this.safeString(trade, "outcome"), wantedOutcome)))))
@@ -1867,7 +1867,7 @@ public partial class kalshi : PredictionExchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchPositions() missing outcomes")) ;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
             object outcomeObj = this.outcome(getValue(outcomes, i));
             object outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -1878,7 +1878,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object position = getValue(parsed, i);
             object positionInfo = this.safeDict(position, "info", new Dictionary<string, object>() {});
@@ -1918,7 +1918,7 @@ public partial class kalshi : PredictionExchange
         object rawSettlements = this.safeList(response, "settlements", new List<object>() {});
         int rawSettlementsLength = getArrayLength(rawSettlements);
         List<object> parsed = new List<object>() {};
-        for (object i = 0; isLessThan(i, rawSettlementsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, rawSettlementsLength); postFixIncrement(ref i))
         {
             ((IList<object>)parsed).Add(this.parseSettlement(getValue(rawSettlements, i)));
         }
@@ -1928,7 +1928,7 @@ public partial class kalshi : PredictionExchange
             wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object settlement = getValue(parsed, i);
             if (isTrue(isTrue((isEqual(wantedOutcome, null))) || isTrue((isEqual(this.safeString(settlement, "outcome"), wantedOutcome)))))
@@ -2151,7 +2151,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? status = this.safeString(order, "status");
@@ -2506,7 +2506,7 @@ public partial class kalshi : PredictionExchange
         object restingOrders = this.safeList(restingResponse, "orders", new List<object>() {});
         int restingOrdersLength = getArrayLength(restingOrders);
         List<object> canceledOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, restingOrdersLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, restingOrdersLength); postFixIncrement(ref i))
         {
             object restingOrder = getValue(restingOrders, i);
             string? orderId = this.safeString(restingOrder, "order_id");
@@ -2603,7 +2603,7 @@ public partial class kalshi : PredictionExchange
         }
         int rawEventsLength = getArrayLength(rawEvents);
         List<object> result = new List<object>() {};
-        for (object di = 0; isLessThan(di, rawEventsLength); postFixIncrement(ref di))
+        for (int di = 0; isLessThan(di, rawEventsLength); postFixIncrement(ref di))
         {
             object parsedEvent = this.parseEvent(getValue(rawEvents, di));
             ((IList<object>)result).Add(parsedEvent);
@@ -2611,7 +2611,7 @@ public partial class kalshi : PredictionExchange
             object parsedMarketsRaw = getValue(parsedEvent, "markets");
             object parsedMarkets = ((bool) isTrue((!isEqual(parsedMarketsRaw, null)))) ? parsedMarketsRaw : new List<object>() {};
             int parsedMarketsLength = getArrayLength(parsedMarkets);
-            for (object mi = 0; isLessThan(mi, parsedMarketsLength); postFixIncrement(ref mi))
+            for (int mi = 0; isLessThan(mi, parsedMarketsLength); postFixIncrement(ref mi))
             {
                 object m = getValue(parsedMarkets, mi);
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
@@ -2643,7 +2643,7 @@ public partial class kalshi : PredictionExchange
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> eventTickers = new List<object>() {};
         int queriesLength = getArrayLength(queries);
-        for (object qi = 0; isLessThan(qi, queriesLength); postFixIncrement(ref qi))
+        for (int qi = 0; isLessThan(qi, queriesLength); postFixIncrement(ref qi))
         {
             object searchResponse = await this.electionsPublicGetSearchSeries(new Dictionary<string, object>() {
                 { "query", getValue(queries, qi) },
@@ -2652,7 +2652,7 @@ public partial class kalshi : PredictionExchange
             });
             object page = this.safeList(searchResponse, "current_page", new List<object>() {});
             int pageLength = getArrayLength(page);
-            for (object pi = 0; isLessThan(pi, pageLength); postFixIncrement(ref pi))
+            for (int pi = 0; isLessThan(pi, pageLength); postFixIncrement(ref pi))
             {
                 string? et = this.safeString(getValue(page, pi), "event_ticker");
                 if (isTrue(!isEqual(et, null)))
@@ -2668,7 +2668,7 @@ public partial class kalshi : PredictionExchange
         }
         List<object> rawEvents = new List<object>() {};
         int eventTickersLength = getArrayLength(eventTickers);
-        for (object ei = 0; isLessThan(ei, eventTickersLength); postFixIncrement(ref ei))
+        for (int ei = 0; isLessThan(ei, eventTickersLength); postFixIncrement(ref ei))
         {
             int collectedLength = getArrayLength(rawEvents);
             if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedLength, limit)))))
@@ -2731,14 +2731,14 @@ public partial class kalshi : PredictionExchange
         // tags / category -> documented /series listing
         object tags = this.safeList(parameters, "tags", new List<object>() {});
         int tagsLength = getArrayLength(tags);
-        for (object ti = 0; isLessThan(ti, tagsLength); postFixIncrement(ref ti))
+        for (int ti = 0; isLessThan(ti, tagsLength); postFixIncrement(ref ti))
         {
             object seriesResponse = await this.kalshiPublicGetSeries(new Dictionary<string, object>() {
                 { "tags", getValue(tags, ti) },
             });
             object seriesList = this.safeList(seriesResponse, "series", new List<object>() {});
             int seriesListLength = getArrayLength(seriesList);
-            for (object si = 0; isLessThan(si, seriesListLength); postFixIncrement(ref si))
+            for (int si = 0; isLessThan(si, seriesListLength); postFixIncrement(ref si))
             {
                 string? st = this.safeString(getValue(seriesList, si), "ticker");
                 if (isTrue(!isEqual(st, null)))
@@ -2755,7 +2755,7 @@ public partial class kalshi : PredictionExchange
             });
             object seriesList = this.safeList(seriesResponse, "series", new List<object>() {});
             int seriesListLength = getArrayLength(seriesList);
-            for (object si = 0; isLessThan(si, seriesListLength); postFixIncrement(ref si))
+            for (int si = 0; isLessThan(si, seriesListLength); postFixIncrement(ref si))
             {
                 string? st = this.safeString(getValue(seriesList, si), "ticker");
                 if (isTrue(!isEqual(st, null)))
@@ -2770,7 +2770,7 @@ public partial class kalshi : PredictionExchange
         {
             List<object> parts = ((string)seriesParam).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             int partsLength = getArrayLength(parts);
-            for (object pi = 0; isLessThan(pi, partsLength); postFixIncrement(ref pi))
+            for (int pi = 0; isLessThan(pi, partsLength); postFixIncrement(ref pi))
             {
                 ((IList<object>)collected).Add(getValue(parts, pi));
             }
@@ -2779,7 +2779,7 @@ public partial class kalshi : PredictionExchange
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> ordered = new List<object>() {};
         int collectedLength = getArrayLength(collected);
-        for (object ci = 0; isLessThan(ci, collectedLength); postFixIncrement(ref ci))
+        for (int ci = 0; isLessThan(ci, collectedLength); postFixIncrement(ref ci))
         {
             object st = getValue(collected, ci);
             string? already = this.safeString(seen, st);
@@ -2810,7 +2810,7 @@ public partial class kalshi : PredictionExchange
         int seriesTickersLength = getArrayLength(seriesTickers);
         Int64? pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
-        for (object si = 0; isLessThan(si, seriesTickersLength); postFixIncrement(ref si))
+        for (int si = 0; isLessThan(si, seriesTickersLength); postFixIncrement(ref si))
         {
             int collectedLength = getArrayLength(rawEvents);
             if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedLength, limit)))))
@@ -2818,7 +2818,7 @@ public partial class kalshi : PredictionExchange
                 break;
             }
             string? cursor = null;
-            for (object page = 0; isLessThan(page, maxPages); postFixIncrement(ref page))
+            for (int page = 0; isLessThan(page, maxPages); postFixIncrement(ref page))
             {
                 object reqLimit = pageLimit;
                 if (isTrue(!isEqual(limit, null)))
@@ -2846,7 +2846,7 @@ public partial class kalshi : PredictionExchange
                 object response = await this.kalshiPublicGetEvents(this.extend(request, rest));
                 object pageEvents = this.safeList(response, "events", new List<object>() {});
                 int pageEventsLength = getArrayLength(pageEvents);
-                for (object ei = 0; isLessThan(ei, pageEventsLength); postFixIncrement(ref ei))
+                for (int ei = 0; isLessThan(ei, pageEventsLength); postFixIncrement(ref ei))
                 {
                     ((IList<object>)rawEvents).Add(getValue(pageEvents, ei));
                 }
@@ -2968,7 +2968,7 @@ public partial class kalshi : PredictionExchange
         bool anyActive = false;
         bool allResolved = true;
         object latestClose = null;
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object rawMarket = getValue(rawMarkets, i);
             object parsed = this.parseMarket(rawMarket);

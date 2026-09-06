@@ -480,7 +480,7 @@ public partial class krakenfutures : Exchange
         //
         object instruments = this.safeValue(response, "instruments", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(instruments)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(instruments)); postFixIncrement(ref i))
         {
             object market = getValue(instruments, i);
             string? id = this.safeString(market, "symbol");
@@ -595,7 +595,7 @@ public partial class krakenfutures : Exchange
         }
         object settlementCurrencies = getValue(getValue(this.options, "settlementCurrencies"), "flex");
         List<object> currencies = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlementCurrencies)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlementCurrencies)); postFixIncrement(ref i))
         {
             object code = getValue(settlementCurrencies, i);
             ((IList<object>)currencies).Add(new Dictionary<string, object>() {
@@ -889,7 +889,7 @@ public partial class krakenfutures : Exchange
         }
         object feeSchedules = this.safeList(response, "feeSchedules", new List<object>() {});
         Dictionary<string, object> schedulesByUid = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(feeSchedules)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(feeSchedules)); postFixIncrement(ref i))
         {
             object schedule = getValue(feeSchedules, i);
             string? uid = this.safeString(schedule, "uid");
@@ -900,7 +900,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -932,7 +932,7 @@ public partial class krakenfutures : Exchange
         object tiers = this.safeList(fee, "tiers", new List<object>() {});
         string? makerFee = null;
         string? takerFee = null;
-        for (object i = 0; isLessThan(i, getArrayLength(tiers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tiers)); postFixIncrement(ref i))
         {
             object tier = getValue(tiers, i);
             string? tierVolume = this.safeString(tier, "usdVolume");
@@ -1567,7 +1567,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -1706,7 +1706,7 @@ public partial class krakenfutures : Exchange
         int clientOrderIdsLength = getArrayLength(clientOrderIds);
         if (isTrue(isGreaterThan(clientOrderIdsLength, 0)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
             {
                 ((IList<object>)orders).Add(new Dictionary<string, object>() {
                     { "order", "cancel" },
@@ -1715,7 +1715,7 @@ public partial class krakenfutures : Exchange
             }
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 ((IList<object>)orders).Add(new Dictionary<string, object>() {
                     { "order", "cancel" },
@@ -1812,7 +1812,7 @@ public partial class krakenfutures : Exchange
         object cancelStatus = this.safeDict(response, "cancelStatus");
         object orderEvents = this.safeList(cancelStatus, "orderEvents", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orderEvents)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderEvents)); postFixIncrement(ref i))
         {
             object orderEvent = this.safeDict(orderEvents, 0);
             object order = this.safeDict(orderEvent, "order", new Dictionary<string, object>() {});
@@ -1985,7 +1985,7 @@ public partial class krakenfutures : Exchange
         }
         object allOrders = this.safeList(response, "elements", new List<object>() {});
         List<object> closedOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
         {
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
@@ -2059,7 +2059,7 @@ public partial class krakenfutures : Exchange
         }
         object allOrders = this.safeList(response, "elements", new List<object>() {});
         List<object> canceledAndRejected = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
         {
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
@@ -2531,7 +2531,7 @@ public partial class krakenfutures : Exchange
         if (isTrue(isGreaterThan(orderEventsLength, 0)))
         {
             List<object> executions = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(orderEvents)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orderEvents)); postFixIncrement(ref i))
             {
                 object item = getValue(orderEvents, i);
                 if (isTrue(isEqual(this.safeString(item, "type"), "EXECUTION")))
@@ -2595,7 +2595,7 @@ public partial class krakenfutures : Exchange
         if (isTrue(isGreaterThan(tradesLength, 0)))
         {
             object vwapSum = "0.0";
-            for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
             {
                 object trade = getValue(trades, i);
                 string? tradeAmount = this.safeString(trade, "amount");
@@ -2823,7 +2823,7 @@ public partial class krakenfutures : Exchange
         // each execution emits two rows: a cash leg(asset is a currency) and
         // a position-size leg(asset equals the contract id) - keep the cash legs only
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(logs)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(logs)); postFixIncrement(ref i))
         {
             object row = getValue(logs, i);
             string? asset = this.safeString(row, "asset");
@@ -3140,7 +3140,7 @@ public partial class krakenfutures : Exchange
         object balances = this.safeValue2(response, "balances", "currencies", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object balance = getValue(balances, currencyId);
@@ -3198,7 +3198,7 @@ public partial class krakenfutures : Exchange
         object response = await this.publicGetTickers(parameters);
         object tickers = this.safeList(response, "tickers", new List<object>() {});
         List<object> fundingRates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object entry = getValue(tickers, i);
             object entry_symbol = this.safeValue(entry, "symbol");
@@ -3334,7 +3334,7 @@ public partial class krakenfutures : Exchange
         //
         object rates = this.safeValue(response, "rates");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
         {
             object item = getValue(rates, i);
             string? datetime = this.safeString(item, "timestamp");
@@ -3402,7 +3402,7 @@ public partial class krakenfutures : Exchange
         {
             throw new ExchangeNotAvailable ((string)add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = this.parsePosition(getValue(positions, i));
             ((IList<object>)result).Add(position);
@@ -3584,7 +3584,7 @@ public partial class krakenfutures : Exchange
         {
             return tiers;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
         {
             object tier = getValue(marginLevels, i);
             string? initialMargin = this.safeString(tier, "initialMargin");

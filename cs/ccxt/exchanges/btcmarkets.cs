@@ -698,7 +698,7 @@ public partial class btcmarkets : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "assetName");
@@ -1168,7 +1168,7 @@ public partial class btcmarkets : Exchange
             await this.loadMarkets();
         }
         List<object> numericIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             // numericIds[i] = parseInt (ids[i]);
             ((IList<object>)numericIds).Add(parseInt(getValue(ids, i)));

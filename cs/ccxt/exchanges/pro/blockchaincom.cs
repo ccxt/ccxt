@@ -112,7 +112,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "info", message },
         };
         object balances = this.safeValue(message, "balances", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "currency");
@@ -589,7 +589,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         } else if (isTrue(isEqual(eventVar, "snapshot")))
         {
             object orders = this.safeValue(message, "orders", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object order = getValue(orders, i);
                 object parsedOrder = this.parseWsOrder(order);
@@ -804,7 +804,7 @@ public partial class blockchaincom : ccxt.blockchaincom
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

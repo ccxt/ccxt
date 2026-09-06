@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "fetchBorrowInterest";
         object borrowInterest = await invokeExchangeDynamically(exchange, "fetchBorrowInterest", code, symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code);
-        for (object i = 0; isLessThan(i, getArrayLength(borrowInterest)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(borrowInterest)); postFixIncrement(ref i))
         {
             testBorrowInterest(exchange, skippedProperties, method, getValue(borrowInterest, i), code, symbol);
         }

@@ -396,7 +396,7 @@ public partial class zebpay : Exchange
         object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         List<object> defaultMarkets = new List<object>() {"spot", "swap"};
         object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object type = getValue(types, i);
             if (isTrue(isEqual(type, "spot")))
@@ -476,7 +476,7 @@ public partial class zebpay : Exchange
         object minDepositString = null;
         object deposit = false;
         object withdraw = false;
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chainId");
@@ -655,7 +655,7 @@ public partial class zebpay : Exchange
         //
         object fees = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -1849,7 +1849,7 @@ public partial class zebpay : Exchange
         List<object> result = new List<object>() {};
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "symbols", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1931,7 +1931,7 @@ public partial class zebpay : Exchange
         List<object> result = new List<object>() {};
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "symbols", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1985,7 +1985,7 @@ public partial class zebpay : Exchange
             { "datetime", null },
         };
         object currencyList = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
         {
             object entry = getValue(currencyList, i);
             object account = this.account();

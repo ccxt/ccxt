@@ -843,7 +843,7 @@ public partial class tokocrypto : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object list = this.safeValue(data, "list", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
         {
             object market = getValue(list, i);
             string? baseId = this.safeString(market, "baseAsset");
@@ -860,7 +860,7 @@ public partial class tokocrypto : Exchange
             string? status = this.safeString(market, "spotTradingEnable");
             bool active = (isEqual(status, "1"));
             object permissions = this.safeValue(market, "permissions", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
             {
                 if (isTrue(isEqual(getValue(permissions, j), "TRD_GRP_003")))
                 {
@@ -1723,7 +1723,7 @@ public partial class tokocrypto : Exchange
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object balances = this.safeValue(data, "accountAssets", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -3022,7 +3022,7 @@ public partial class tokocrypto : Exchange
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);
                 if (isTrue(isLessThanOrEqual(limit, getValue(entry, 0))))

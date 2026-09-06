@@ -505,12 +505,12 @@ public partial class deepcoin : Exchange
         }
         object promises = new List<object>() {};
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
         }
         promises = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             result = this.arrayConcat(result, getValue(promises, i));
         }
@@ -687,7 +687,7 @@ public partial class deepcoin : Exchange
     {
         object result = base.setMarkets(markets, currencies);
         List<object> symbols = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = getValue(result, symbol);
@@ -1134,7 +1134,7 @@ public partial class deepcoin : Exchange
             { "datetime", null },
         };
         object balances = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? symbol = this.safeString(balance, "ccy");
@@ -1417,7 +1417,7 @@ public partial class deepcoin : Exchange
         object address = this.safeDict(addressess, 0, new Dictionary<string, object>() {});
         if (isTrue(isTrue((!isEqual(network, null))) && isTrue((isGreaterThan(length, 1)))))
         {
-            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, length); postFixIncrement(ref i))
             {
                 object entry = getValue(addressess, i);
                 if (isTrue(isEqual(getValue(entry, "network"), network)))
@@ -3560,7 +3560,7 @@ public partial class deepcoin : Exchange
         object errorList = this.safeList(data, "errorList");
         if (isTrue(!isEqual(errorList, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(errorList)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(errorList)); postFixIncrement(ref i))
             {
                 object entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
                 errorCode = this.safeString(entry, "errorCode");

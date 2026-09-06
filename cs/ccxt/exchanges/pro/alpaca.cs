@@ -312,7 +312,7 @@ public partial class alpaca : ccxt.alpaca
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -735,7 +735,7 @@ public partial class alpaca : ccxt.alpaca
 
     public virtual void handleCryptoMessage(WebSocketClient client, object message)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object data = getValue(message, i);
             string? T = this.safeString(data, "T");

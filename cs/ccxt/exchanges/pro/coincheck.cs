@@ -175,7 +175,7 @@ public partial class coincheck : ccxt.coincheck
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object data = this.safeValue(message, i);
             object trade = this.parseWsTrade(data);

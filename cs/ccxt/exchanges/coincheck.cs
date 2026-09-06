@@ -350,7 +350,7 @@ public partial class coincheck : Exchange
             { "info", response },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object currency = this.currency(code);
@@ -398,7 +398,7 @@ public partial class coincheck : Exchange
         object exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
         string status = "ok";
         object updated = null;
-        for (object i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
         {
             object exchangeStatus = getValue(exchangeStatuses, i);
             string? rawStatus = this.safeString(exchangeStatus, "status");
@@ -461,7 +461,7 @@ public partial class coincheck : Exchange
         object rawOrders = this.safeValue(response, "orders", new List<object>() {});
         object parsedOrders = this.parseOrders(rawOrders, market, since, limit);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(parsedOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsedOrders)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
                 { "status", "open" },
@@ -844,7 +844,7 @@ public partial class coincheck : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);

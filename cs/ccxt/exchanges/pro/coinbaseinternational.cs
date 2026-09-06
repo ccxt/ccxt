@@ -99,7 +99,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             object parsedSymbols = this.marketSymbols(symbols);
             object marketIds = this.marketIds(parsedSymbols);
             productIds = marketIds;
-            for (object i = 0; isLessThan(i, getArrayLength(parsedSymbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(parsedSymbols)); postFixIncrement(ref i))
             {
                 ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(parsedSymbols, i)));
             }
@@ -163,7 +163,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         List<object> messageHashes = new List<object>() {};
         List<object> productIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object marketId = this.marketId(getValue(symbols, i));
             object symbol = this.symbol(marketId);
@@ -264,7 +264,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         object symbols = this.symbols;
         List<object> output = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -562,7 +562,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         object data = this.safeList(message, "candles", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object tick = getValue(data, i);
             object parsed = this.parseOHLCV(tick, market);
@@ -791,7 +791,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public override void handleDeltas(object orderbook, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }

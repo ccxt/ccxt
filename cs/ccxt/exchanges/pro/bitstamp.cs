@@ -155,7 +155,7 @@ public partial class bitstamp : ccxt.bitstamp
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
             object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -176,7 +176,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             object delta = getValue(deltas, i);
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
@@ -568,7 +568,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "private-my_orders", this.handleOrders },
         };
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(isGreaterThan(getIndexOf(channel, key), -1)))

@@ -1019,7 +1019,7 @@ public partial class paradex : Exchange
         //
         object fees = this.safeList(response, "results", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -1380,7 +1380,7 @@ public partial class paradex : Exchange
         //     }
         //
         object trades = this.safeList(response, "results", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(trades, i))["next"] = this.safeString(response, "next");
         }
@@ -2195,7 +2195,7 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -2234,7 +2234,7 @@ public partial class paradex : Exchange
         object responseOrders = this.safeList(response, "orders", new List<object>() {});
         object parsedOrders = this.parseOrders(responseOrders);
         object errors = this.safeList(response, "errors", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(errors)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(errors)); postFixIncrement(ref i))
         {
             object error = getValue(errors, i);
             ((IList<object>)parsedOrders).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -2346,7 +2346,7 @@ public partial class paradex : Exchange
         //
         object results = this.safeList(response, "results", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object result = getValue(results, i);
             string? marketId = this.safeString(result, "market");
@@ -2663,7 +2663,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "token");
@@ -2750,7 +2750,7 @@ public partial class paradex : Exchange
         //     }
         //
         object trades = this.safeList(response, "results", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(trades, i))["next"] = this.safeString(response, "next");
         }
@@ -3027,7 +3027,7 @@ public partial class paradex : Exchange
         //
         object rows = this.safeList(response, "results", new List<object>() {});
         List<object> deposits = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
             if (isTrue(isEqual(getValue(row, "kind"), "DEPOSIT")))
@@ -3103,7 +3103,7 @@ public partial class paradex : Exchange
         //
         object rows = this.safeList(response, "results", new List<object>() {});
         List<object> deposits = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
             if (isTrue(isEqual(getValue(row, "kind"), "WITHDRAWAL")))
@@ -3819,7 +3819,7 @@ public partial class paradex : Exchange
         //
         object results = this.safeList(response, "results", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object rate = getValue(results, i);
             Int64? timestamp = this.safeInteger(rate, "created_at");

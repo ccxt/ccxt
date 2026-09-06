@@ -1110,7 +1110,7 @@ public partial class btse : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(rates);
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
         {
             object rate = getValue(rates, i);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
@@ -1204,7 +1204,7 @@ public partial class btse : Exchange
         Dictionary<string, object> totals = new Dictionary<string, object>() {};
         Dictionary<string, object> frees = new Dictionary<string, object>() {};
         Dictionary<string, object> useds = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object row = getValue(response, i);
             object assets = this.safeList(row, "assets");
@@ -1213,7 +1213,7 @@ public partial class btse : Exchange
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 object inUse = this.safeList(row, "assetsInUse", new List<object>() {});
-                for (object j = 0; isLessThan(j, getArrayLength(inUse)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(inUse)); postFixIncrement(ref j))
                 {
                     object usedRow = getValue(inUse, j);
                     object usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
@@ -1223,7 +1223,7 @@ public partial class btse : Exchange
                     }
                     ((IDictionary<string,object>)useds)[(string)usedCode] = Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance"));
                 }
-                for (object j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
                 {
                     object assetRow = getValue(assets, j);
                     object code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
@@ -1248,7 +1248,7 @@ public partial class btse : Exchange
             }
         }
         List<object> codes = new List<object>(((IDictionary<string,object>)totals).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object account = this.account();
@@ -1312,7 +1312,7 @@ public partial class btse : Exchange
             data = new List<object>() {single};
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1345,7 +1345,7 @@ public partial class btse : Exchange
         // is derived from the previous tier: 0 for the first tier, and the
         // previous tier's maxNotional for every subsequent tier
         List<object> symbolKeys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
         {
             object symbolKey = getValue(symbolKeys, i);
             object tiersList = getValue(result, symbolKey);
@@ -1563,7 +1563,7 @@ public partial class btse : Exchange
         object response = await this.publicGetPublicApiMarketV1Ticker24hr(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object row = getValue(data, i);
             // spot rows do not carry an open interest
@@ -1641,7 +1641,7 @@ public partial class btse : Exchange
         object response = await this.publicGetPublicApiMarketV1Ticker24hr(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object row = getValue(data, i);
             // spot rows do not carry a funding rate
@@ -1773,7 +1773,7 @@ public partial class btse : Exchange
             return ccxt.BaseExchange.ToTradeList(trades);
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             Int64? timestamp = this.safeInteger(trade, "timestamp");
@@ -3147,7 +3147,7 @@ public partial class btse : Exchange
         object rows = this.safeList(response, "data", ((object)response));
         object responseList = this.arrayConcat(new List<object>() {}, rows);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
         {
             object feeInfo = getValue(responseList, i);
             string? marketId = this.safeString(feeInfo, "symbol");
@@ -3242,14 +3242,14 @@ public partial class btse : Exchange
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
         Dictionary<string, object> allowed = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(typesList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(typesList)); postFixIncrement(ref i))
         {
             object historyType = getValue(typesList, i);
             ((IDictionary<string,object>)allowed)[(string)historyType] = true;
             ((IDictionary<string,object>)allowed)[(string)this.capitalize(((string)historyType).ToLower())] = true;
         }
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawRows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawRows)); postFixIncrement(ref i))
         {
             object entry = getValue(rawRows, i);
             string? type = this.safeString(entry, "type", "");
@@ -4039,7 +4039,7 @@ public partial class btse : Exchange
         object longLeverage = null;
         object shortLeverage = null;
         string? marginMode = null;
-        for (object i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
         {
             object entrty = getValue(safeResponse, i);
             Int64? leverageValue = this.safeInteger(entrty, "leverage");
@@ -4170,7 +4170,7 @@ public partial class btse : Exchange
         {
             rows = new List<object>() {response};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
             string? status = this.safeString(row, "status");

@@ -1234,7 +1234,7 @@ public partial class derive : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(tradesArray, i);
             bool isFetchTrades = !isTrue((inOp(rawTrade, "order_id")));
@@ -1357,7 +1357,7 @@ public partial class derive : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "funding_rate_history", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
@@ -2895,11 +2895,11 @@ public partial class derive : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object subaccount = getValue(response, i);
             object collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(collaterals)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(collaterals)); postFixIncrement(ref j))
             {
                 object balance = getValue(collaterals, j);
                 object code = this.safeCurrencyCode(this.safeString(balance, "currency"));

@@ -1648,7 +1648,7 @@ public partial class bullish : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> result = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
@@ -2541,7 +2541,7 @@ public partial class bullish : Exchange
         {
             object response = await this.privateGetV1AccountsTradingAccounts(parameters);
             IList<object> accounts = this.toArray(response);
-            for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
                 object account = getValue(accounts, i);
                 string? name = this.safeString(account, "tradingAccountName");
@@ -2712,7 +2712,7 @@ public partial class bullish : Exchange
             if (isTrue(!isEqual(network, null)))
             {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
-                for (object i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
                 {
                     object entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     string? networkId = this.safeString(entry, "network");
@@ -2812,7 +2812,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? symbol = this.safeString(balance, "assetSymbol");

@@ -513,7 +513,7 @@ public partial class lbank : ccxt.lbank
         }
         object rawTrade = this.safeValue(message, "trade");
         object rawTrades = this.safeValue(message, "trades", new List<object>() {rawTrade});
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = this.parseWsTrade(getValue(rawTrades, i), market);
             ((IDictionary<string,object>)trade)["symbol"] = symbol;

@@ -579,7 +579,7 @@ public partial class bigone : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = this.safeList(rawCurrency, "binding_gateways", new List<object>() {});
         object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "gateway_name");
@@ -727,7 +727,7 @@ public partial class bigone : Exchange
         //
         object markets = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             object baseAsset = this.safeDict(market, "base_asset", new Dictionary<string, object>() {});
@@ -788,7 +788,7 @@ public partial class bigone : Exchange
             }));
         }
         IList<object> contractMarkets = this.toArray(contractResponse);
-        for (object i = 0; isLessThan(i, getArrayLength(contractMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(contractMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(contractMarkets, i);
             string? baseId = this.safeString(market, "baseCurrency");
@@ -1172,7 +1172,7 @@ public partial class bigone : Exchange
     {
         List<object> bidsAsksKeys = new List<object>(((IDictionary<string,object>)bidsAsks).Keys);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(bidsAsksKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidsAsksKeys)); postFixIncrement(ref i))
         {
             object price = getValue(bidsAsksKeys, i);
             object amount = getValue(bidsAsks, price);
@@ -1527,7 +1527,7 @@ public partial class bigone : Exchange
             { "datetime", null },
         };
         object balances = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? symbol = this.safeString(balance, "asset_symbol");
@@ -1905,7 +1905,7 @@ public partial class bigone : Exchange
         object cancelled = this.safeList(data, "cancelled", new List<object>() {});
         object failed = this.safeList(data, "failed", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(cancelled)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cancelled)); postFixIncrement(ref i))
         {
             object orderId = getValue(cancelled, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -1914,7 +1914,7 @@ public partial class bigone : Exchange
                 { "status", "canceled" },
             }));
         }
-        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
         {
             object orderId = getValue(failed, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {

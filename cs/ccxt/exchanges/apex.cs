@@ -568,11 +568,11 @@ public partial class apex : Exchange
         string? name = this.safeString(currency, "displayName");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = getValue(this.options, "_temp_currencies_chains");
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             object tokens = this.safeList(chain, "tokens", new List<object>() {});
-            for (object f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
+            for (int f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
             {
                 object token = getValue(tokens, f);
                 string? tokenName = this.safeString(token, "token");
@@ -1225,7 +1225,7 @@ public partial class apex : Exchange
         List<object> rates = new List<object>() {};
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object resultList = this.safeList(data, "historyFunds", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
         {
             object entry = getValue(resultList, i);
             Int64? timestamp = this.safeInteger(entry, "fundingTimestamp");
@@ -1637,7 +1637,7 @@ public partial class apex : Exchange
         {
             assets = spotAssets;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             if (isTrue(isEqual(this.safeString(getValue(assets, i), "token", ""), code)))
             {

@@ -362,7 +362,7 @@ public partial class bitflyer : Exchange
         object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
         markets = this.arrayConcat(markets, this.toArray(eu_markets));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "product_code");
@@ -487,7 +487,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency_code");

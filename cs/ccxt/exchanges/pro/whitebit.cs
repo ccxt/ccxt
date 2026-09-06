@@ -123,7 +123,7 @@ public partial class whitebit : ccxt.whitebit
         // }
         //
         object parameters = this.safeValue(message, "params", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
         {
             object data = getValue(parameters, i);
             string? marketId = this.safeString(data, 7);
@@ -262,7 +262,7 @@ public partial class whitebit : ccxt.whitebit
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -315,7 +315,7 @@ public partial class whitebit : ccxt.whitebit
         object id = this.nonce();
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
@@ -363,7 +363,7 @@ public partial class whitebit : ccxt.whitebit
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         // watchTickers
         List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object currentMessageHash = getValue(messageHashes, i);
             if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(currentMessageHash, "tickers"), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(currentMessageHash, symbol), 0))))
@@ -455,7 +455,7 @@ public partial class whitebit : ccxt.whitebit
         }
         object data = this.safeValue(parameters, 1, new List<object>() {});
         object parsedTrades = this.parseTrades(data, market);
-        for (object j = 0; isLessThan(j, getArrayLength(parsedTrades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(parsedTrades)); postFixIncrement(ref j))
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
@@ -934,7 +934,7 @@ public partial class whitebit : ccxt.whitebit
         }
         bool isMargin = (isGreaterThanOrEqual(getIndexOf(method, "Margin"), 0));
         object data = this.safeList(message, "params", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balanceDict = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
@@ -953,7 +953,7 @@ public partial class whitebit : ccxt.whitebit
             } else
             {
                 List<object> keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(keys, j);
                     object rawBalance = this.safeDict(balanceDict, currencyId, new Dictionary<string, object>() {});
@@ -1280,7 +1280,7 @@ public partial class whitebit : ccxt.whitebit
         // as an object so we can't do indeById here
         object subs = ((WebSocketClient)client).subscriptions;
         List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
-        for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             object subscription = getValue(values, i);
             if (isTrue(!isEqual(subscription, true)))

@@ -1232,7 +1232,7 @@ public partial class xt : Exchange
         object currenciesData = this.safeList(currenciesResult, "currencies", new List<object>() {});
         Dictionary<string, object> chainsDataIndexed = this.indexBy(chainsData, "currency");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
             object entry = getValue(currenciesData, i);
             string? currencyId = this.safeString(entry, "currency");
@@ -1240,7 +1240,7 @@ public partial class xt : Exchange
             object networkEntry = this.safeDict(chainsDataIndexed, currencyId, new Dictionary<string, object>() {});
             object rawNetworks = this.safeList(networkEntry, "supportChains", new List<object>() {});
             Dictionary<string, object> networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
             {
                 object rawNetwork = getValue(rawNetworks, j);
                 string? networkId = this.safeString(rawNetwork, "chain");
@@ -1474,7 +1474,7 @@ public partial class xt : Exchange
     public override object parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseMarket(getValue(markets, i)));
         }
@@ -1614,7 +1614,7 @@ public partial class xt : Exchange
         object minPrice = null;
         object maxPrice = null;
         object amountPrecision = null;
-        for (object i = 0; isLessThan(i, getArrayLength(filters)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(filters)); postFixIncrement(ref i))
         {
             object entry = getValue(filters, i);
             string? filter = this.safeString(entry, "filter");
@@ -2192,7 +2192,7 @@ public partial class xt : Exchange
         //
         object tickers = this.safeList(response, "result", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(tickers, i), market);
             object symbol = getValue(ticker, "symbol");
@@ -2289,7 +2289,7 @@ public partial class xt : Exchange
         //
         object tickers = this.safeList(response, "result", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(tickers, i);
             // the spot and contract payloads share the same field names, so
@@ -2917,7 +2917,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString2(balance, "currency", "coin");
@@ -5339,7 +5339,7 @@ public partial class xt : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -5539,7 +5539,7 @@ public partial class xt : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object items = this.safeList(result, "items", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
             object entry = getValue(items, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -5826,7 +5826,7 @@ public partial class xt : Exchange
         object fee = this.safeDict(response, "result", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -5922,7 +5922,7 @@ public partial class xt : Exchange
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object items = this.safeList(data, "items", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
             object entry = getValue(items, i);
             ((IList<object>)result).Add(this.parseFundingHistory(entry, market));
@@ -5967,7 +5967,7 @@ public partial class xt : Exchange
     public virtual object indexPositionBreakList(object breakList)
     {
         Dictionary<string, object> breakBySymbolSide = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(breakList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(breakList)); postFixIncrement(ref i))
         {
             object breakEntry = getValue(breakList, i);
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
@@ -6083,7 +6083,7 @@ public partial class xt : Exchange
         //
         object positions = this.safeList(response, "result", new List<object>() {});
         object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -6177,7 +6177,7 @@ public partial class xt : Exchange
         object positions = this.safeList(response, "result", new List<object>() {});
         object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new List<object>() {}));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
             string? marketId = this.safeString(entry, "symbol");

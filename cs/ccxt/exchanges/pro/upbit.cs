@@ -61,7 +61,7 @@ public partial class upbit : ccxt.upbit
         }
         object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object symbol = getValue(symbols, i);
@@ -79,7 +79,7 @@ public partial class upbit : ccxt.upbit
     { "ticket", this.uuid() },
 }};
         List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
         {
             object key = getValue(channelKeys, i);
             ((IList<object>)finalMessage).Add(getValue(subscriptions, key));
@@ -297,7 +297,7 @@ public partial class upbit : ccxt.upbit
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         object data = this.safeValue(message, "orderbook_units", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             double? ask_price = this.safeFloat(entry, "ask_price");
@@ -441,14 +441,14 @@ public partial class upbit : ccxt.upbit
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
         List<object> requests = new List<object>() {};
         List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
         {
             ((IList<object>)requests).Add(getValue(subscriptions, getValue(channelKeys, i)));
         }
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        for (object i = 0; isLessThan(i, getArrayLength(requests)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(requests)); postFixIncrement(ref i))
         {
             ((IList<object>)message).Add(getValue(requests, i));
         }
@@ -749,7 +749,7 @@ public partial class upbit : ccxt.upbit
         Int64? timestamp = this.safeInteger(message, "timestamp");
         ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "currency");

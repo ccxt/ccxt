@@ -977,7 +977,7 @@ public partial class alpaca : Exchange
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
-                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                for (int i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
                 {
                     int ohlcvsLength = getArrayLength(ohlcvs);
                     if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
@@ -1155,7 +1155,7 @@ public partial class alpaca : Exchange
         List<object> results = new List<object>() {};
         object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
@@ -2042,7 +2042,7 @@ public partial class alpaca : Exchange
             {
                 ledger = activities;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
             {
                 object entry = getValue(ledger, i);
                 string? activityType = this.safeString(entry, "activity_type");
@@ -2080,7 +2080,7 @@ public partial class alpaca : Exchange
         {
             transfers = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
         {
             object entry = getValue(transfers, i);
             string? direction = this.safeString(entry, "direction");

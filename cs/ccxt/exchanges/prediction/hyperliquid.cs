@@ -214,7 +214,7 @@ public partial class hyperliquid : PredictionExchange
         }
         List<object> parts = ((string)description).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(parts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parts)); postFixIncrement(ref i))
         {
             object part = getValue(parts, i);
             int colonIndex = getIndexOf(part, ":");
@@ -308,7 +308,7 @@ public partial class hyperliquid : PredictionExchange
                 {
                     List<object> thresholdParts = ((string)thresholdsRaw).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                     List<object> thresholds = new List<object>() {};
-                    for (object i = 0; isLessThan(i, getArrayLength(thresholdParts)); postFixIncrement(ref i))
+                    for (int i = 0; isLessThan(i, getArrayLength(thresholdParts)); postFixIncrement(ref i))
                     {
                         string trimmed = ((string)getValue(thresholdParts, i)).Trim();
                         if (isTrue(isGreaterThan(((string)trimmed).Length, 0)))
@@ -436,7 +436,7 @@ public partial class hyperliquid : PredictionExchange
         object outcomesList = this.safeList(response, "outcomes", new List<object>() {});
         object questionsList = this.safeList(response, "questions", new List<object>() {});
         Dictionary<string, object> outcomesToQuestions = new Dictionary<string, object>() {};
-        for (object qi = 0; isLessThan(qi, getArrayLength(questionsList)); postFixIncrement(ref qi))
+        for (int qi = 0; isLessThan(qi, getArrayLength(questionsList)); postFixIncrement(ref qi))
         {
             object question = this.safeDict(questionsList, qi, new Dictionary<string, object>() {});
             Int64? fallbackOutcome = this.safeInteger(question, "fallbackOutcome");
@@ -446,7 +446,7 @@ public partial class hyperliquid : PredictionExchange
                 ((IDictionary<string,object>)outcomesToQuestions)[(string)fallbackKey] = question;
             }
             object namedOutcomes = this.safeList(question, "namedOutcomes", new List<object>() {});
-            for (object ni = 0; isLessThan(ni, getArrayLength(namedOutcomes)); postFixIncrement(ref ni))
+            for (int ni = 0; isLessThan(ni, getArrayLength(namedOutcomes)); postFixIncrement(ref ni))
             {
                 Int64? namedOutcomeId = this.safeInteger(namedOutcomes, ni);
                 if (isTrue(!isEqual(namedOutcomeId, null)))
@@ -465,7 +465,7 @@ public partial class hyperliquid : PredictionExchange
         {
             this.outcomes_by_id = new Dictionary<string, object>() {};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
         {
             object outcomeInfo = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
             Int64? outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
@@ -474,7 +474,7 @@ public partial class hyperliquid : PredictionExchange
             ((IList<object>)markets).Add(market);
             // Build outcomes dictionary from market outcomes
             object marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
-            for (object oi = 0; isLessThan(oi, getArrayLength(marketOutcomes)); postFixIncrement(ref oi))
+            for (int oi = 0; isLessThan(oi, getArrayLength(marketOutcomes)); postFixIncrement(ref oi))
             {
                 object outcome = this.safeDict(marketOutcomes, oi, new Dictionary<string, object>() {});
                 string? outcomeSymbol = this.safeString2(outcome, "outcome", "symbol");
@@ -669,7 +669,7 @@ public partial class hyperliquid : PredictionExchange
         object pricePrecisionDecimals = mathMax(1, mathMin(maxDecimals, subtract(significantDigits, ((string)intPart).Length)));
         object zeros = "";
         object zeroCount = subtract(pricePrecisionDecimals, 1);
-        for (object zi = 0; isLessThan(zi, zeroCount); postFixIncrement(ref zi))
+        for (int zi = 0; isLessThan(zi, zeroCount); postFixIncrement(ref zi))
         {
             zeros = add(zeros, "0");
         }
@@ -732,7 +732,7 @@ public partial class hyperliquid : PredictionExchange
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
             await this.loadOutcomes(outcomes);
-            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
                 object requestedOutcomeObj = this.safeOutcome(requested);
@@ -759,7 +759,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         object outcomesMap = ((bool) isTrue((!isEqual(this.outcomes, null)))) ? this.outcomes : new Dictionary<string, object>() {};
         List<object> outcomeHandles = new List<object>(((IDictionary<string,object>)outcomesMap).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(outcomeHandles)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomeHandles)); postFixIncrement(ref i))
         {
             object outcomeHandle = getValue(outcomeHandles, i);
             if (isTrue(isTrue(!isEqual(outcomes, null)) && !isTrue((inOp(requestedOutcomeSymbols, outcomeHandle)))))
@@ -895,12 +895,12 @@ public partial class hyperliquid : PredictionExchange
         object rawAsks = this.safeList(levels, 1, new List<object>() {});
         List<object> bids = new List<object>() {};
         List<object> asks = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
         {
             object entry = getValue(rawBids, i);
             ((IList<object>)bids).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
         {
             object entry = getValue(rawAsks, i);
             ((IList<object>)asks).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
@@ -1049,7 +1049,7 @@ public partial class hyperliquid : PredictionExchange
             { "info", response },
         };
         object balances = this.safeList(response, "balances", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? coin = this.safeString(balance, "coin");
@@ -1085,7 +1085,7 @@ public partial class hyperliquid : PredictionExchange
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
             await this.loadOutcomes(outcomes);
-            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 object requested = getValue(outcomes, i);
                 object requestedOutcomeObj = this.safeOutcome(requested);
@@ -1122,7 +1122,7 @@ public partial class hyperliquid : PredictionExchange
         }
         object mids = this.safeDict(allMids, "mids", allMids);
         List<object> positions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = this.safeDict(balances, i, new Dictionary<string, object>() {});
             string? coin = this.safeString(balance, "coin", "");
@@ -1227,7 +1227,7 @@ public partial class hyperliquid : PredictionExchange
         object normalizedHint = ((bool) isTrue((isTrue(!isEqual(sideHint, null)) && isTrue(!isEqual(sideHint, ""))))) ? ((string)sideHint).ToUpper() : null;
         if (isTrue(!isEqual(normalizedHint, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
             {
                 object oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
                 string? ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
@@ -1238,7 +1238,7 @@ public partial class hyperliquid : PredictionExchange
                 }
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
         {
             object oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
             object info = this.safeDict(oc, "info", new Dictionary<string, object>() {});
@@ -1297,7 +1297,7 @@ public partial class hyperliquid : PredictionExchange
         object inputChars = this.stringToCharsArray(outcomeInput);
         int inputCharsLength = getArrayLength(inputChars);
         bool isNumericInput = isGreaterThan(inputCharsLength, 0);
-        for (object di = 0; isLessThan(di, getArrayLength(inputChars)); postFixIncrement(ref di))
+        for (int di = 0; isLessThan(di, getArrayLength(inputChars)); postFixIncrement(ref di))
         {
             if (isTrue(isLessThan(getIndexOf(digitChars, getValue(inputChars, di)), 0)))
             {
@@ -1315,7 +1315,7 @@ public partial class hyperliquid : PredictionExchange
                 ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(candidates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(candidates)); postFixIncrement(ref i))
         {
             object key = getValue(candidates, i);
             if (isTrue(inOp(this.outcomes, key)))
@@ -1540,7 +1540,7 @@ public partial class hyperliquid : PredictionExchange
         {
             object cloids = ((bool) isTrue(((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? clientOrderId : new List<object>() {clientOrderId};
             ((IDictionary<string,object>)cancelAction)["type"] = "cancelByCloid";
-            for (object i = 0; isLessThan(i, getArrayLength(cloids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(cloids)); postFixIncrement(ref i))
             {
                 ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
                     { "asset", assetId },
@@ -1550,7 +1550,7 @@ public partial class hyperliquid : PredictionExchange
         } else
         {
             ((IDictionary<string,object>)cancelAction)["type"] = "cancel";
-            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
                     { "a", assetId },
@@ -1591,7 +1591,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
         {
             object status = getValue(statuses, i);
             object error = this.safeString(status, "error");
@@ -1657,7 +1657,7 @@ public partial class hyperliquid : PredictionExchange
         {
             rawOrders = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object order = getValue(rawOrders, i);
             ((IList<object>)ordersWithStatus).Add(this.extend(order, new Dictionary<string, object>() {
@@ -1706,7 +1706,7 @@ public partial class hyperliquid : PredictionExchange
         {
             historicalOrders = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(historicalOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(historicalOrders)); postFixIncrement(ref i))
         {
             object raw = getValue(historicalOrders, i);
             object entry = this.safeDict(raw, "order");
@@ -2125,13 +2125,13 @@ public partial class hyperliquid : PredictionExchange
             throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
         }
         List<object> lowerQueries = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
         {
             object queryString = ((string)getValue(queries, i));
             ((IList<object>)lowerQueries).Add(((string)queryString).ToLower());
         }
         int lowerQueriesLength = getArrayLength(lowerQueries);
-        for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             object mkt = getValue(marketValues, i);
             if (!isTrue(this.safeBool(mkt, "prediction", false)))
@@ -2150,12 +2150,12 @@ public partial class hyperliquid : PredictionExchange
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 object haystack = add(add(description, " "), symLower);
                 bool matches = false;
-                for (object qi = 0; isLessThan(qi, getArrayLength(lowerQueries)); postFixIncrement(ref qi))
+                for (int qi = 0; isLessThan(qi, getArrayLength(lowerQueries)); postFixIncrement(ref qi))
                 {
                     List<object> words = ((string)getValue(lowerQueries, qi)).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
                     int wordsLength = getArrayLength(words);
                     bool allWords = true;
-                    for (object wi = 0; isLessThan(wi, wordsLength); postFixIncrement(ref wi))
+                    for (int wi = 0; isLessThan(wi, wordsLength); postFixIncrement(ref wi))
                     {
                         object word = getValue(words, wi);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
@@ -2199,7 +2199,7 @@ public partial class hyperliquid : PredictionExchange
         }
         List<object> events = new List<object>() {};
         List<object> groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);
-        for (object gi = 0; isLessThan(gi, getArrayLength(groupKeys)); postFixIncrement(ref gi))
+        for (int gi = 0; isLessThan(gi, getArrayLength(groupKeys)); postFixIncrement(ref gi))
         {
             object key = getValue(groupKeys, gi);
             object groupMarkets = getValue(groupMap, key);
@@ -2590,7 +2590,7 @@ public partial class hyperliquid : PredictionExchange
         object responsePayload = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responsePayload, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
         {
             string? message = this.safeString(getValue(statuses, i), "error");
             if (isTrue(!isEqual(message, null)))

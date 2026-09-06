@@ -732,7 +732,7 @@ public partial class kraken : Exchange
         object cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object id = getValue(keys, i);
             bool isSynthetic = false;
@@ -1246,7 +1246,7 @@ public partial class kraken : Exchange
         {
             symbols = this.marketSymbols(symbols);
             List<object> marketIds = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
@@ -1261,7 +1261,7 @@ public partial class kraken : Exchange
         object tickers = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             object market = this.safeMarket(id);
@@ -1509,7 +1509,7 @@ public partial class kraken : Exchange
         object ledger = this.safeValue(result, "ledger", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)ledger).Keys);
         List<object> items = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(ledger, key);
@@ -1544,7 +1544,7 @@ public partial class kraken : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
         List<object> items = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(result, key);
@@ -1795,7 +1795,7 @@ public partial class kraken : Exchange
             { "datetime", null },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -1968,7 +1968,7 @@ public partial class kraken : Exchange
         object orderSymbols = new List<object>() {};
         object symbol = null;
         object market = null;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2325,7 +2325,7 @@ public partial class kraken : Exchange
         string? clientOrderId = this.safeString(order, "cl_ord_id", userref);
         object rawTrades = this.safeValue(order, "trades", new List<object>() {});
         List<object> trades = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(rawTrades, i);
             if (isTrue((rawTrade is string)))
@@ -2749,7 +2749,7 @@ public partial class kraken : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
             {
                 object orderTrade = getValue(orderTrades, i);
                 if (isTrue((orderTrade is string)))
@@ -2775,10 +2775,10 @@ public partial class kraken : Exchange
         object numBatches = this.parseToInt(divide(numTradeIds, batchSize));
         numBatches = this.sum(numBatches, 1);
         object result = new List<object>() {};
-        for (object j = 0; isLessThan(j, numBatches); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, numBatches); postFixIncrement(ref j))
         {
             List<object> requestIds = new List<object>() {};
-            for (object k = 0; isLessThan(k, batchSize); postFixIncrement(ref k))
+            for (int k = 0; isLessThan(k, batchSize); postFixIncrement(ref k))
             {
                 object index = this.sum(multiply(j, batchSize), k);
                 if (isTrue(isLessThan(index, numTradeIds)))
@@ -2813,7 +2813,7 @@ public partial class kraken : Exchange
             //
             object rawTrades = this.safeValue(response, "result");
             List<object> ids = new List<object>(((IDictionary<string,object>)rawTrades).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)getValue(rawTrades, getValue(ids, i)))["id"] = getValue(ids, i);
             }
@@ -2848,7 +2848,7 @@ public partial class kraken : Exchange
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
         List<object> orderIds = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
         {
             object id = getValue(orderIds, i);
             object item = getValue(result, id);
@@ -2924,7 +2924,7 @@ public partial class kraken : Exchange
         object tradesResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeDict(tradesResult, "trades", new Dictionary<string, object>() {});
         List<object> ids = new List<object>(((IDictionary<string,object>)trades).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(trades, getValue(ids, i)))["id"] = getValue(ids, i);
         }
@@ -3170,7 +3170,7 @@ public partial class kraken : Exchange
         object open = this.safeDict(result, "open", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
         List<object> orderIds = new List<object>(((IDictionary<string,object>)open).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
         {
             object id = getValue(orderIds, i);
             object item = getValue(open, id);
@@ -3271,7 +3271,7 @@ public partial class kraken : Exchange
         object closed = this.safeDict(result, "closed", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
         List<object> orderIds = new List<object>(((IDictionary<string,object>)closed).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
         {
             object id = getValue(orderIds, i);
             object item = getValue(closed, id);
@@ -3419,7 +3419,7 @@ public partial class kraken : Exchange
     public virtual object parseTransactionsByType(object type, object transactions, object code = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
         {
             object transaction = this.parseTransaction(this.extend(new Dictionary<string, object>() {
                 { "type", type },
@@ -3727,7 +3727,7 @@ public partial class kraken : Exchange
             if (isTrue(!isEqual(network, null)))
             {
                 // find best matching deposit method, or fallback to the first one
-                for (object i = 0; isLessThan(i, getArrayLength(depositMethods)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(depositMethods)); postFixIncrement(ref i))
                 {
                     string? entry = this.safeString(getValue(depositMethods, i), "method");
                     if (isTrue(isEqual(entry, null)))
@@ -4153,7 +4153,7 @@ public partial class kraken : Exchange
                     int numErrors = getArrayLength(getValue(response, "error"));
                     if (isTrue(isGreaterThan(numErrors, 0)))
                     {
-                        for (object i = 0; isLessThan(i, getArrayLength(getValue(response, "error"))); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(getValue(response, "error"))); postFixIncrement(ref i))
                         {
                             object error = getValue(getValue(response, "error"), i);
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);
@@ -4169,7 +4169,7 @@ public partial class kraken : Exchange
                     if (isTrue(inOp(result, "orders")))
                     {
                         object orders = this.safeList(result, "orders", new List<object>() {});
-                        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                         {
                             object order = getValue(orders, i);
                             string? error = this.safeString(order, "error");

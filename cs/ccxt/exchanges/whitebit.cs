@@ -885,7 +885,7 @@ public partial class whitebit : Exchange
         object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
         object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
         object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-        for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
         {
             object networkId = getValue(allNetworks, j);
             object networkCode = this.networkIdToCode(networkId, code);
@@ -989,7 +989,7 @@ public partial class whitebit : Exchange
         List<object> currenciesIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         Dictionary<string, object> depositFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
         {
             object currency = getValue(currenciesIds, i);
             object data = this.safeDict(response, currency, new Dictionary<string, object>() {});
@@ -1117,7 +1117,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object entry = getValue(currencyIds, i);
             List<object> splitEntry = ((string)entry).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
@@ -1165,7 +1165,7 @@ public partial class whitebit : Exchange
             }
         }
         List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
         {
             object code = getValue(depositWithdrawCodes, i);
             object currency = this.currency(code);
@@ -1209,7 +1209,7 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -1298,7 +1298,7 @@ public partial class whitebit : Exchange
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = getValue(markets, marketId);
@@ -1312,7 +1312,7 @@ public partial class whitebit : Exchange
             if (isTrue(!isEqual(symbols, null)))
             {
                 bool symbolFound = false;
-                for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
                 {
                     if (isTrue(isEqual(getValue(symbols, j), symbol)))
                     {
@@ -1437,7 +1437,7 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
         {
             object code = getValue(currencyKeys, i);
             object currency = getValue(currenciesData, code);
@@ -1452,7 +1452,7 @@ public partial class whitebit : Exchange
             // Find corresponding fee data for this currency
             object feeData = null;
             List<object> feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
             {
                 object feeKey = getValue(feeKeys, j);
                 object fee = this.safeDict(feesData, feeKey);
@@ -1723,7 +1723,7 @@ public partial class whitebit : Exchange
                 object response = await this.v4PrivatePostOrders(this.extend(request, parameters));
                 // Search for order in active orders response (array format)
                 IList<object> orders = this.toArray(response);
-                for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                 {
                     object order = getValue(orders, i);
                     string? orderId = this.safeString(order, "orderId");
@@ -1750,12 +1750,12 @@ public partial class whitebit : Exchange
                 object response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
                 // Search for order in executed orders response (object format)
                 List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
                     object marketNew = this.safeMarket(marketId, null, "_");
                     object marketOrders = this.safeList(response, marketId, new List<object>() {});
-                    for (object j = 0; isLessThan(j, getArrayLength(marketOrders)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(marketOrders)); postFixIncrement(ref j))
                     {
                         object order = getValue(marketOrders, j);
                         string? orderId = this.safeString(order, "id");
@@ -1798,7 +1798,7 @@ public partial class whitebit : Exchange
         bool onlyContractSymbols = true;
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
@@ -1899,7 +1899,7 @@ public partial class whitebit : Exchange
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
@@ -2067,7 +2067,7 @@ public partial class whitebit : Exchange
         {
             object results = new List<object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object marketId = getValue(keys, i);
                 object marketNew = this.safeMarket(marketId, null, "_");
@@ -2746,7 +2746,7 @@ public partial class whitebit : Exchange
     {
         List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
             object id = getValue(balanceKeys, i);
             object code = this.safeCurrencyCode(id);
@@ -2941,12 +2941,12 @@ public partial class whitebit : Exchange
         //
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object marketNew = this.safeMarket(marketId, null, "_");
             object orders = this.safeList(response, marketId, new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
             {
                 object order = this.parseOrder(getValue(orders, j), marketNew);
                 ((IList<object>)results).Add(this.extend(order, new Dictionary<string, object>() {
@@ -3466,7 +3466,7 @@ public partial class whitebit : Exchange
         //     }
         //
         object subAccounts = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
         {
             object subAccount = this.safeDict(subAccounts, i, new Dictionary<string, object>() {});
             string? accountId = this.safeString(subAccount, "id");
@@ -4191,7 +4191,7 @@ public partial class whitebit : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));

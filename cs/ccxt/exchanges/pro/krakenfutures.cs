@@ -136,7 +136,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             symbols = new List<object>() {};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)marketIds).Add(this.marketId(symbol));
@@ -388,7 +388,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             return;
         }
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parseWsPosition(rawPosition);
@@ -399,7 +399,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             callDynamically(cache, "append", new object[] {position});
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -857,7 +857,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 object totalCost = "0";
                 object totalAmount = "0";
                 object trades = getValue(previousOrder, "trades");
-                for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
                 {
                     object currentTrade = getValue(trades, i);
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(getValue(currentTrade, "cost")));
@@ -910,7 +910,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     status = "closed";
                 }
                 // get order without symbol
-                for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                 {
                     object currentOrder = getValue(orders, i);
                     if (isTrue(isEqual(getValue(currentOrder, "id"), getValue(message, "order_id"))))
@@ -986,7 +986,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         this.orders = new ArrayCacheBySymbolById(limit);
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         object cachedOrders = this.orders;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             object parsed = this.parseWsOrder(order);
@@ -1002,7 +1002,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, "orders"});
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object symbol = getValue(keys, i);
                 object messageHash = add("orders:", symbol);
@@ -1306,7 +1306,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             return;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
         {
             object bid = getValue(bids, i);
             object price = this.safeNumber(bid, "price");
@@ -1314,7 +1314,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             object bidsSide = getValue(orderbook, "bids");
             (bidsSide as IOrderBookSide).store(price, qty);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
         {
             object ask = getValue(asks, i);
             object price = this.safeNumber(ask, "price");
@@ -1524,7 +1524,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             };
-            for (object i = 0; isLessThan(i, getArrayLength(holdingKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(holdingKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(holdingKeys, i);
                 object code = this.safeCurrencyCode(key);
@@ -1547,7 +1547,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             };
-            for (object i = 0; isLessThan(i, getArrayLength(futuresKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(futuresKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(futuresKeys, i);
                 object symbol = this.safeSymbol(key);
@@ -1577,7 +1577,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             };
-            for (object i = 0; isLessThan(i, getArrayLength(flexFuturesKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(flexFuturesKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(flexFuturesKeys, i);
                 object flexFuture = this.safeValue(flexFutureCurrencies, key);
@@ -1634,7 +1634,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             this.myTrades = stored;
         }
         Dictionary<string, object> tradeSymbols = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             object parsedTrade = this.parseWsMyTrade(trade);
@@ -1645,7 +1645,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             callDynamically(stored, "append", new object[] {parsedTrade});
         }
         List<object> tradeSymbolKeys = new List<object>(((IDictionary<string,object>)tradeSymbols).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(tradeSymbolKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tradeSymbolKeys)); postFixIncrement(ref i))
         {
             object symbol = getValue(tradeSymbolKeys, i);
             object messageHash = add("myTrades:", symbol);
@@ -1712,7 +1712,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         symbols = this.marketSymbols(symbols, null, false, true, false);
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubs = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object messageHash = this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i)));
             ((IList<object>)messageHashes).Add(messageHash);

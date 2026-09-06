@@ -766,7 +766,7 @@ public partial class grvt : Exchange
         object approvedBuilder = this.safeList(currentBuilders, "results", new List<object>() {});
         int length = getArrayLength(approvedBuilder);
         bool found = false;
-        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object builderInfo = this.safeDict(approvedBuilder, i, new Dictionary<string, object>() {});
             string? builderAccountId = this.safeString(builderInfo, "builder_account_id");
@@ -1640,7 +1640,7 @@ public partial class grvt : Exchange
         };
         object spotBalances = this.safeList(response, "spot_balances", new List<object>() {});
         string? availableBalance = this.safeString(response, "available_balance");
-        for (object i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
         {
             object balance = getValue(spotBalances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -2035,7 +2035,7 @@ public partial class grvt : Exchange
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
         List<object> nonMatchedResults = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
         {
             object transfer = getValue(transfers, i);
             if (isTrue(isTrue((isTrue(isTrue(onlyMainAccount) && isTrue(isEqual(getValue(transfer, "fromAccount"), "0"))) && isTrue(isEqual(getValue(transfer, "toAccount"), "0")))) || isTrue((!isTrue(onlyMainAccount) && isTrue((isTrue(!isEqual(getValue(transfer, "fromAccount"), "0")) || isTrue(!isEqual(getValue(transfer, "toAccount"), "0"))))))))
@@ -2540,7 +2540,7 @@ public partial class grvt : Exchange
         string priceMultiplier = "1000000000";
         object orderLegs = this.safeList(order, "legs", new List<object>() {});
         List<object> legs = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orderLegs)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderLegs)); postFixIncrement(ref i))
         {
             object leg = getValue(orderLegs, i);
             object market = this.market(getValue(leg, "instrument"));
@@ -2699,7 +2699,7 @@ public partial class grvt : Exchange
             symbols = this.marketSymbols(symbols);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);

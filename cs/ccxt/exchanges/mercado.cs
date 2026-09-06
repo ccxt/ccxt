@@ -333,7 +333,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         object amountLimits = this.safeValue(this.options, "limits", new Dictionary<string, object>() {});
         IList<object> coins = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
             object coin = getValue(coins, i);
             object baseId = coin;
@@ -584,7 +584,7 @@ public partial class mercado : Exchange
             { "info", response },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -1121,10 +1121,10 @@ public partial class mercado : Exchange
     public virtual object ordersToTrades(object orders)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object trades = this.safeValue(getValue(orders, i), "trades", new List<object>() {});
-            for (object y = 0; isLessThan(y, getArrayLength(trades)); postFixIncrement(ref y))
+            for (int y = 0; isLessThan(y, getArrayLength(trades)); postFixIncrement(ref y))
             {
                 ((IList<object>)result).Add(getValue(trades, y));
             }

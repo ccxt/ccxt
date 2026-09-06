@@ -623,7 +623,7 @@ public partial class bitbank : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object pairs = this.safeValue(data, "pairs", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
         {
             object pair = getValue(pairs, i);
             string? marketId = this.safeString(pair, "name");
@@ -729,7 +729,7 @@ public partial class bitbank : Exchange
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object assets = this.safeValue(data, "assets", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object balance = getValue(assets, i);
             string? currencyId = this.safeString(balance, "asset");

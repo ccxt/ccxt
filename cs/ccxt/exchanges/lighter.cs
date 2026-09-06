@@ -721,7 +721,7 @@ public partial class lighter : Exchange
         {
             throw new BadRequest ((string)add(this.id, " pow() requires m < 100.")) ;
         }
-        for (object i = 1; isLessThan(i, c); postFixIncrement(ref i))
+        for (int i = 1; isLessThan(i, c); postFixIncrement(ref i))
         {
             r = Precise.stringMul(r, n);
         }
@@ -1423,7 +1423,7 @@ public partial class lighter : Exchange
         object swapMarkets = this.safeList(response, "order_book_details", new List<object>() {});
         object markets = this.arrayConcat(spotMarkets, swapMarkets);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");
@@ -2021,7 +2021,7 @@ public partial class lighter : Exchange
         //
         object data = this.safeList(response, "funding_rates", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             string? exchange = this.safeString(getValue(data, i), "exchange");
             if (isTrue(isEqual(exchange, "lighter")))
@@ -2109,13 +2109,13 @@ public partial class lighter : Exchange
             { "info", response },
         };
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             if (isTrue(isEqual(type, "spot")))
             {
                 object assets = this.safeList(account, "assets", new List<object>() {});
-                for (object j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
                 {
                     object asset = getValue(assets, j);
                     string? codeId = this.safeString(asset, "symbol");
@@ -2239,11 +2239,11 @@ public partial class lighter : Exchange
         //
         List<object> allPositions = new List<object>() {};
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             object positions = this.safeList(account, "positions", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(positions)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(positions)); postFixIncrement(ref j))
             {
                 ((IList<object>)allPositions).Add(getValue(positions, j));
             }
@@ -3388,7 +3388,7 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "trades", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(data, i))["account_index"] = accountIndex;
         }

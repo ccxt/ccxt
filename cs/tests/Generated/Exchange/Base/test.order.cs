@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
             });
             if (isTrue(!isEqual(getValue(entry, "trades"), null)))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(getValue(entry, "trades"))); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(getValue(entry, "trades"))); postFixIncrement(ref i))
                 {
                     testTrade(exchange, skippedNew, method, getValue(getValue(entry, "trades"), i), symbol, now);
                 }

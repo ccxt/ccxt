@@ -537,7 +537,7 @@ public partial class bitvavo : Exchange
     {
         List<object> result = new List<object>() {};
         object fees = this.fees;
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market");
@@ -698,7 +698,7 @@ public partial class bitvavo : Exchange
         string? precision = this.safeString(rawCurrency, "decimals", "8");
         object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
         // btw, absolutely all of them have 1 network atm
-        for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
         {
             object networkId = getValue(networksArray, j);
             object networkCode = this.networkIdToCode(networkId, code);
@@ -1081,7 +1081,7 @@ public partial class bitvavo : Exchange
         object maker = this.safeNumber(feesValue, "maker");
         object taker = this.safeNumber(feesValue, "taker");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1286,7 +1286,7 @@ public partial class bitvavo : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "symbol");

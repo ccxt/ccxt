@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
         int freeLength = getArrayLength(codesFree);
         int usedLength = getArrayLength(codesUsed);
         assert(isTrue((isEqual(codesLength, freeLength))) || isTrue((isEqual(codesLength, usedLength))), add("free and total and used codes have different lengths", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
         {
             object code = getValue(allCodes, i);
             // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);

@@ -423,7 +423,7 @@ public partial class derive : ccxt.derive
         if (isTrue(!isEqual(status, null)))
         {
             List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
             {
                 object topic = getValue(topics, i);
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "orderbook"), 0)))
@@ -495,7 +495,7 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.parseTrade(getValue(data, i));
             callDynamically(tradesArray, "append", new object[] {trade});
@@ -652,7 +652,7 @@ public partial class derive : ccxt.derive
         object parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
         object rawOrders = this.safeList(parameters, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object data = getValue(rawOrders, i);
             object parsed = this.parseOrder(data);
@@ -757,7 +757,7 @@ public partial class derive : ccxt.derive
         object parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
         object rawTrades = this.safeList(parameters, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = this.parseTrade(message);
             callDynamically(myTrades, "append", new object[] {trade});

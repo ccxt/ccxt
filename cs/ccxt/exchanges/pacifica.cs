@@ -1110,7 +1110,7 @@ public partial class pacifica : Exchange
             return new Dictionary<string, object>() {};
         }
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settings)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settings)); postFixIncrement(ref i))
         {
             object marketId = getValue(getValue(settings, i), "symbol");
             object market = this.safeMarket(marketId);
@@ -1933,7 +1933,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
         Int64 timestamp = this.milliseconds(); // unified sequence
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -1999,7 +1999,7 @@ public partial class pacifica : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
@@ -2071,7 +2071,7 @@ public partial class pacifica : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
@@ -2097,7 +2097,7 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             object request = this.cancelOrderRequest(id, symbol, parameters);
@@ -2109,7 +2109,7 @@ public partial class pacifica : Exchange
         }
         object clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
         parameters = this.omit(parameters, "clientOrderIds");
-        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
         {
             object cloid = getValue(clientOrderIds, i);
             Dictionary<string, object> cloidParams = new Dictionary<string, object>() {
@@ -2398,7 +2398,7 @@ public partial class pacifica : Exchange
         //
         object data = this.addPaginationCursorToResult(response);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
@@ -2455,7 +2455,7 @@ public partial class pacifica : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object info = getValue(data, i);
             object ticker = this.parseTicker(info);
@@ -3062,7 +3062,7 @@ public partial class pacifica : Exchange
         // }
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(data, i), null));
         }
@@ -3952,7 +3952,7 @@ public partial class pacifica : Exchange
             object result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
-            for (object i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(sortedKeys, i);
                 ((IDictionary<string,object>)result)[(string)key] = this.sortJsonKeys(getValue(value, key));
@@ -3961,7 +3961,7 @@ public partial class pacifica : Exchange
         } else if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> result = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(value)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(value)); postFixIncrement(ref i))
             {
                 ((IList<object>)result).Add(this.sortJsonKeys(getValue(value, i)));
             }

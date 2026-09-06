@@ -838,7 +838,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "bids", new List<object>() {} },
             { "asks", new List<object>() {} },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
         {
             object entry = getValue(entries, i);
             object entryData = this.safeDict(entry, "d", new Dictionary<string, object>() {});
@@ -859,7 +859,7 @@ public partial class deepcoin : ccxt.deepcoin
         object snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         (orderbook as IOrderBook).reset(snapshot);
         object cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (object j = 0; isLessThan(j, getArrayLength(cachedMessages)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(cachedMessages)); postFixIncrement(ref j))
         {
             object cachedMessage = getValue(cachedMessages, j);
             this.handleOrderBookMessage(client as WebSocketClient, cachedMessage, orderbook);
@@ -1182,7 +1182,7 @@ public partial class deepcoin : ccxt.deepcoin
         List<object> messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object symbolMessageHash = add(add(messageHash, "::"), symbol);

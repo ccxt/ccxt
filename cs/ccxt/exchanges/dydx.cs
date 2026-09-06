@@ -944,7 +944,7 @@ public partial class dydx : Exchange
         //
         List<object> rates = new List<object>() {};
         object rows = this.safeList(response, "historicalFunding", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
@@ -1473,7 +1473,7 @@ public partial class dydx : Exchange
         string? r = Precise.stringMul(n, "1");
         object c = this.parseToInt(m);
         // TODO: cap
-        for (object i = 1; isLessThan(i, c); postFixIncrement(ref i))
+        for (int i = 1; isLessThan(i, c); postFixIncrement(ref i))
         {
             r = Precise.stringMul(r, n);
         }
@@ -2652,7 +2652,7 @@ public partial class dydx : Exchange
         //
         object rows = this.safeList(response, "subaccounts", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object account = getValue(rows, i);
             string? accountId = this.safeString(account, "subaccountNumber");

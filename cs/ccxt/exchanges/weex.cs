@@ -966,7 +966,7 @@ public partial class weex : Exchange
         string? name = this.safeString(rawCurrency, "name");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = this.safeList(rawCurrency, "networkList", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = this.safeDict(chains, j);
             string? networkId = this.safeString(chain, "network");
@@ -1342,7 +1342,7 @@ public partial class weex : Exchange
             response = new List<object>() {response};
         }
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -2289,7 +2289,7 @@ public partial class weex : Exchange
         };
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object balances = this.safeList(response, "balances", response);
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "asset");

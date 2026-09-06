@@ -105,7 +105,7 @@ public partial class mudrex : ccxt.mudrex
         List<object> assets = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
@@ -254,7 +254,7 @@ public partial class mudrex : ccxt.mudrex
     public virtual void handleTicker(WebSocketClient client, object message)
     {
         object data = this.safeList(message, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object t = getValue(data, i);
             string? s = this.safeString(t, "s");

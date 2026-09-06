@@ -570,7 +570,7 @@ public partial class bithumb : Exchange
             //         },
             //     ]
             //
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 string? marketId = this.safeString(entry, "market");
@@ -646,13 +646,13 @@ public partial class bithumb : Exchange
             object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
             List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
             List<object> promises = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             object results = await promiseAll(promises);
-            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
                 object quote = getValue(quotes, i);
                 object quoteId = quote;
@@ -660,7 +660,7 @@ public partial class bithumb : Exchange
                 object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(currencyIds, j);
                     if (isTrue(isEqual(currencyId, "date")))
@@ -765,7 +765,7 @@ public partial class bithumb : Exchange
         if (isTrue(!isEqual(balances, null)))
         {
             List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
             {
                 object code = getValue(codes, i);
                 object account = this.account();
@@ -778,7 +778,7 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 object account = this.account();
@@ -886,7 +886,7 @@ public partial class bithumb : Exchange
             object orderBookUnits = this.safeList(result, "orderbook_units", new List<object>() {});
             List<object> bids = new List<object>() {};
             List<object> asks = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(orderBookUnits)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orderBookUnits)); postFixIncrement(ref i))
             {
                 object entry = getValue(orderBookUnits, i);
                 ((IList<object>)bids).Add(new Dictionary<string, object>() {
@@ -1110,7 +1110,7 @@ public partial class bithumb : Exchange
             List<object> marketIds = new List<object>() {};
             object symbolsForMarketIds = ((bool) isTrue((isEqual(symbols, null)))) ? this.symbols : symbols;
             int symbolsForMarketIdsLength = getArrayLength(symbolsForMarketIds);
-            for (object i = 0; isLessThan(i, symbolsForMarketIdsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, symbolsForMarketIdsLength); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbolsForMarketIds, i));
                 ((IList<object>)marketIds).Add(this.getGen2MarketId(market));
@@ -1135,7 +1135,7 @@ public partial class bithumb : Exchange
                     maxMarketIdsPerRequest = 300;
                 }
                 List<object> marketIdsChunk = new List<object>() {};
-                for (object i = 0; isLessThan(i, marketIdsLength); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, marketIdsLength); postFixIncrement(ref i))
                 {
                     ((IList<object>)marketIdsChunk).Add(getValue(marketIds, i));
                     int marketIdsChunkLength = getArrayLength(marketIdsChunk);
@@ -1183,7 +1183,7 @@ public partial class bithumb : Exchange
             //
             object responses = await promiseAll(promises);
             int responsesLength = getArrayLength(responses);
-            for (object i = 0; isLessThan(i, responsesLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, responsesLength); postFixIncrement(ref i))
             {
                 object response = getValue(responses, i);
                 if (isTrue(isTrue(isTrue(this.isDictionary(response)) && isTrue((inOp(response, "data")))) && isTrue((!isEqual(getValue(response, "data"), null)))))
@@ -1209,7 +1209,7 @@ public partial class bithumb : Exchange
                     } else
                     {
                         List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
-                        for (object j = 0; isLessThan(j, getArrayLength(ids)); postFixIncrement(ref j))
+                        for (int j = 0; isLessThan(j, getArrayLength(ids)); postFixIncrement(ref j))
                         {
                             object id = getValue(ids, j);
                             object ticker = this.safeDict(response, id);
@@ -1221,7 +1221,7 @@ public partial class bithumb : Exchange
                         }
                     }
                 }
-                for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
                 {
                     object entry = getValue(tickers, j);
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
@@ -1245,7 +1245,7 @@ public partial class bithumb : Exchange
             if (isTrue(!isEqual(symbols, null)))
             {
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
-                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
                     object symbol = getValue(symbols, i);
                     object market = this.market(symbol);
@@ -1263,13 +1263,13 @@ public partial class bithumb : Exchange
                 }
             }
             List<object> promises = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             object responses = await promiseAll(promises);
-            for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
                 object quote = getValue(quotes, i);
                 object response = getValue(responses, i);
@@ -1277,7 +1277,7 @@ public partial class bithumb : Exchange
                 Int64? timestamp = this.safeInteger(data, "date");
                 object tickers = this.omit(data, "date");
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(currencyIds, j);
                     object ticker = getValue(data, currencyId);
@@ -1796,7 +1796,7 @@ public partial class bithumb : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         object orderSymbols = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -3637,14 +3637,14 @@ public partial class bithumb : Exchange
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
         object result = "";
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(query, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object encodedKey = add(this.encodeURIComponent(key), "[]");
-                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
                 {
                     object item = getValue(value, j);
                     string? valueString = this.safeString(value, j);

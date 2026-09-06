@@ -1291,7 +1291,7 @@ public partial class hashkey : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object networks = this.safeList(rawCurrency, "chainTypes");
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "chainType");
@@ -1978,7 +1978,7 @@ public partial class hashkey : Exchange
             { "info", balance },
         };
         object balances = this.safeList(balance, "balances", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balanceEntry = getValue(balances, i);
             string? currencyId = this.safeString(balanceEntry, "asset");
@@ -3064,7 +3064,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -3100,7 +3100,7 @@ public partial class hashkey : Exchange
         }
         object result = this.safeList(response, "result", new List<object>() {});
         List<object> responseOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object responseEntry = this.safeDict(result, i, new Dictionary<string, object>() {});
             object responseOrder = this.safeDict(responseEntry, "order", new Dictionary<string, object>() {});
@@ -4028,7 +4028,7 @@ public partial class hashkey : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> rows = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
@@ -4509,7 +4509,7 @@ public partial class hashkey : Exchange
         string? marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         List<object> tiers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
         {
             object tier = getValue(riskLimits, i);
             string? initialMarginRate = this.safeString(tier, "initialMargin");
@@ -4603,7 +4603,7 @@ public partial class hashkey : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsedFee = this.parseTradingFee(fee);
@@ -4732,7 +4732,7 @@ public partial class hashkey : Exchange
         if (isTrue(isEqual(responseCodeInteger, 0)))
         {
             object result = this.safeList(response, "result", new List<object>() {}); // for batch methods
-            for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object entry = this.safeDict(result, i);
                 Int64? entryCodeInteger = this.safeInteger(entry, "code");

@@ -132,7 +132,7 @@ public partial class dydx : ccxt.dydx
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object parsedTrades = this.parseTrades(rawTrades, market);
-        for (object i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
         {
             object parsed = getValue(parsedTrades, i);
             callDynamically(stored, "append", new object[] {parsed});

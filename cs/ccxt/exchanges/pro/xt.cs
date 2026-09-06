@@ -158,7 +158,7 @@ public partial class xt : ccxt.xt
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaNonce = this.safeInteger2(delta, "i", "u");
@@ -177,14 +177,14 @@ public partial class xt : ccxt.xt
         object obBids = this.safeList(delta, "b", new List<object>() {});
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
-        for (object i = 0; isLessThan(i, getArrayLength(obBids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(obBids)); postFixIncrement(ref i))
         {
             object bid = getValue(obBids, i);
             object price = this.safeNumber(bid, 0);
             object quantity = this.safeNumber(bid, 1);
             (bids as IOrderBookSide).store(price, quantity);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(obAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(obAsks)); postFixIncrement(ref i))
         {
             object ask = getValue(obAsks, i);
             object price = this.safeNumber(ask, 0);
@@ -864,7 +864,7 @@ public partial class xt : ccxt.xt
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
@@ -923,7 +923,7 @@ public partial class xt : ccxt.xt
         object position = this.parsePosition(data);
         callDynamically(cache, "append", new object[] {position});
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1094,7 +1094,7 @@ public partial class xt : ccxt.xt
         string? spotTest = this.safeString2(firstTicker, "cv", "aq");
         object tradeType = ((bool) isTrue((!isEqual(spotTest, null)))) ? "spot" : "contract";
         List<object> newTickers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object tickerData = getValue(data, i);
             object ticker = this.parseTicker(tickerData);
@@ -1107,7 +1107,7 @@ public partial class xt : ccxt.xt
         }
         object messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(messageHashStart, "::"));
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1345,7 +1345,7 @@ public partial class xt : ccxt.xt
             if (isTrue(!isEqual(obAsks, null)))
             {
                 object asks = getValue(orderbook, "asks");
-                for (object i = 0; isLessThan(i, getArrayLength(obAsks)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(obAsks)); postFixIncrement(ref i))
                 {
                     object ask = getValue(obAsks, i);
                     object price = this.safeNumber(ask, 0);
@@ -1356,7 +1356,7 @@ public partial class xt : ccxt.xt
             if (isTrue(!isEqual(obBids, null)))
             {
                 object bids = getValue(orderbook, "bids");
-                for (object i = 0; isLessThan(i, getArrayLength(obBids)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(obBids)); postFixIncrement(ref i))
                 {
                     object bid = getValue(obBids, i);
                     object price = this.safeNumber(bid, 0);
@@ -1768,7 +1768,7 @@ public partial class xt : ccxt.xt
     {
         object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
         {
             object unsubHash = getValue(messageHashes, j);
             object subHash = getValue(subMessageHashes, j);

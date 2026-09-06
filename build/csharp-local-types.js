@@ -16,7 +16,10 @@
 // EXCEPT where C# resolves something at compile time against the declared type. Those cases
 // are rejected by csharpLocalIsSafeToRetype():
 //   - a later assignment whose value has another (or an unprovable) type
-//   - `ref` sinks: x++ / x-- / -x / +x print postFixIncrement(ref x) etc. (`ref object`)
+//   - `ref` sinks: -x / +x print prefixUnaryNeg(ref x) / prefixUnaryPlus(ref x) (`ref object`
+//     only). x++ / x-- print postFixIncrement(ref x) / postFixDecrement(ref x), which have
+//     exact (ref int) / (ref Int64) twins in Exchange.TranspileHelpers.cs, so an int / Int64
+//     local (the `for` counter family) is accepted there and rejected for every other type
 //   - compound assignment, spread, destructuring assignment
 //   - operands of `+` when the type is a string (add(string,string)/add(string,object)
 //     overloads have different null semantics than add(object,object)) and operands of `-`
@@ -406,7 +409,15 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
         }
         switch (parent.kind) {
         case ts.SyntaxKind.PostfixUnaryExpression:
-            return false; // postFixIncrement(ref x)
+            // x++ / x-- print postFixIncrement(ref x) / postFixDecrement(ref x). A `ref`
+            // argument binds only to its exact type; Exchange.TranspileHelpers.cs has the
+            // (ref object) overload plus (ref int) and (ref Int64) twins with the same
+            // unchecked +1 / -1, so an exact int / Int64 local binds. Nullable (Int64?),
+            // double and string locals have no twin and must stay `object`.
+            if (!isInt) {
+                return false;
+            }
+            break;
         case ts.SyntaxKind.PrefixUnaryExpression:
             if (parent.operator !== ts.SyntaxKind.ExclamationToken) {
                 return false; // prefixUnaryNeg(ref x) / prefixUnaryPlus(ref x)

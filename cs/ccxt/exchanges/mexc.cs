@@ -1479,7 +1479,7 @@ public partial class mexc : Exchange
         object code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = this.safeValue(rawCurrency, "networkList", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString2(chain, "netWork", "network");
@@ -1607,7 +1607,7 @@ public partial class mexc : Exchange
         //
         object data = this.safeValue(response, "symbols", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             string? id = this.safeString(market, "symbol");
@@ -1743,7 +1743,7 @@ public partial class mexc : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             string? id = this.safeString(market, "symbol");
@@ -3018,7 +3018,7 @@ public partial class mexc : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         object symbol = null;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -4221,7 +4221,7 @@ public partial class mexc : Exchange
         object response = ccxt.BaseExchange.FromDict(await this.FetchAccountHelper(marketType, query));
         object data = this.safeValue(response, "balances", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object account = getValue(data, i);
             string? currencyId = this.safeString2(account, "asset", "currency");
@@ -4354,7 +4354,7 @@ public partial class mexc : Exchange
         };
         if (isTrue(isEqual(marketType, "margin")))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(wallet)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(wallet)); postFixIncrement(ref i))
             {
                 object entry = getValue(wallet, i);
                 object bs = this.safeValue(entry, "baseAsset", new Dictionary<string, object>() {});
@@ -4373,7 +4373,7 @@ public partial class mexc : Exchange
             return this.safeBalance(result);
         } else if (isTrue(isEqual(marketType, "swap")))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(wallet)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(wallet)); postFixIncrement(ref i))
             {
                 object entry = getValue(wallet, i);
                 string? currencyId = this.safeString(entry, "currency");
@@ -4389,7 +4389,7 @@ public partial class mexc : Exchange
             return this.safeBalance(result);
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(wallet)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(wallet)); postFixIncrement(ref i))
             {
                 object entry = getValue(wallet, i);
                 string? currencyId = this.safeString(entry, "asset");
@@ -4897,7 +4897,7 @@ public partial class mexc : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object resultList = this.safeValue(data, "resultList", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
         {
             object entry = getValue(resultList, i);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
@@ -5081,7 +5081,7 @@ public partial class mexc : Exchange
         object data = this.safeValue(response, "data");
         object result = this.safeValue(data, "resultList", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -6410,7 +6410,7 @@ public partial class mexc : Exchange
     public virtual object parseTransactionFees(object response, object codes = null)
     {
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             string? currencyId = this.safeString(entry, "coin");
@@ -6458,7 +6458,7 @@ public partial class mexc : Exchange
         //
         object networkList = this.safeValue(transaction, "networkList", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
@@ -6548,7 +6548,7 @@ public partial class mexc : Exchange
         //
         object networkList = this.safeValue(fee, "networkList", new List<object>() {});
         object result = this.depositWithdrawFee(fee);
-        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
@@ -6630,7 +6630,7 @@ public partial class mexc : Exchange
         string? marginMode = null;
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
-        for (object i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(leverage)); postFixIncrement(ref i))
         {
             object entry = getValue(leverage, i);
             Int64? openType = this.safeInteger(entry, "openType");

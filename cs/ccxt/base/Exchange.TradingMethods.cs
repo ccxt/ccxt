@@ -635,7 +635,7 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
-        for (object i = 0; isLessThan(i, fetchSnapshotMaxRetries); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, fetchSnapshotMaxRetries); postFixIncrement(ref i))
         {
             try
             {

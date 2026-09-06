@@ -755,7 +755,7 @@ public partial class coinsph : Exchange
         object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
         object networkList = this.safeList(rawCurrency, "networkList", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkItem = getValue(networkList, j);
             string? network = this.safeString(networkItem, "network");
@@ -815,7 +815,7 @@ public partial class coinsph : Exchange
             object symbols = getValue(parameters, "symbols");
             int symbolsAmount = getArrayLength(symbols);
             object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
             {
                 object entry = getValue(byNumberOfSymbols, i);
                 if (isTrue(isGreaterThanOrEqual(symbolsAmount, getValue(entry, 0))))
@@ -827,7 +827,7 @@ public partial class coinsph : Exchange
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);
                 if (isTrue(isGreaterThanOrEqual(limit, getValue(entry, 0))))
@@ -945,7 +945,7 @@ public partial class coinsph : Exchange
         //
         object markets = this.safeList(response, "symbols", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1035,7 +1035,7 @@ public partial class coinsph : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             List<object> ids = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
                 object id = getValue(market, "id");
@@ -1561,7 +1561,7 @@ public partial class coinsph : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -2139,7 +2139,7 @@ public partial class coinsph : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> fees = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -2539,7 +2539,7 @@ public partial class coinsph : Exchange
         query ??= new Dictionary<string, object>();
         object encodedArrayParams = "";
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))

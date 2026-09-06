@@ -326,7 +326,7 @@ public partial class mexc : ccxt.mexc
         object messageHashPrefix = ((bool) isTrue((isEqual(isSpot, true)))) ? spotPrefix : "";
         object topic = add(messageHashPrefix, "ticker");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             object ticker = null;
@@ -443,7 +443,7 @@ public partial class mexc : ccxt.mexc
         }
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             if (isTrue(isSpot))
             {
@@ -853,7 +853,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
@@ -989,7 +989,7 @@ public partial class mexc : ccxt.mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
             object bidask = getValue(bidasks, i);
             if (isTrue(((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1137,7 +1137,7 @@ public partial class mexc : ccxt.mexc
         {
             trades = this.safeList(message, "data", new List<object>() {});
         }
-        for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
         {
             object parsedTrade = null;
             if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -1956,7 +1956,7 @@ public partial class mexc : ccxt.mexc
         }
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             if (isTrue(isSpot))
             {
@@ -2107,7 +2107,7 @@ public partial class mexc : ccxt.mexc
 
     public virtual void handleUnsubscriptions(WebSocketClient client, object messageHashes)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
@@ -2119,7 +2119,7 @@ public partial class mexc : ccxt.mexc
                 {
                     // unWatchTickers
                     List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-                    for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, j));
                     }

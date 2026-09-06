@@ -1306,7 +1306,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
         Dictionary<string, object> currenciesByCode = this.indexBy(currencies, "currency");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(products)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(products)); postFixIncrement(ref i))
         {
             object market = getValue(products, i);
             string? type = this.safeStringLower(market, "type");
@@ -1436,12 +1436,12 @@ public partial class phemex : Exchange
             { "nonce", null },
         };
         List<object> sides = new List<object>() {bidsKey, asksKey};
-        for (object i = 0; isLessThan(i, getArrayLength(sides)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(sides)); postFixIncrement(ref i))
         {
             object side = getValue(sides, i);
             List<object> orders = new List<object>() {};
             object bidasks = this.safeValue(orderbook, side);
-            for (object k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
+            for (int k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
             {
                 ((IList<object>)orders).Add(this.customParseBidAsk(getValue(bidasks, k), priceKey, amountKey, market));
             }
@@ -2354,7 +2354,7 @@ public partial class phemex : Exchange
             { "info", response },
         };
         object data = this.safeValue(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -4466,7 +4466,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object positions = this.safeValue(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             ((IList<object>)result).Add(this.parsePosition(position));
@@ -4788,7 +4788,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeValue(data, "rows", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.safeInteger(entry, "createTime");
@@ -5243,7 +5243,7 @@ public partial class phemex : Exchange
         object riskLimits = (getValue(getValue(market, "info"), "riskLimits"));
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (object i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
         {
             object tier = getValue(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
@@ -5697,7 +5697,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeValue(data, "rows");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
         {
             object item = getValue(rates, i);
             Int64? timestamp = this.safeInteger(item, "fundingTime");
@@ -6207,7 +6207,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object ranks = this.safeValue(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
         {
             object rank = getValue(ranks, i);
             ((IList<object>)result).Add(this.parseADLRank(rank));

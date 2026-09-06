@@ -54,6 +54,35 @@ public partial class BaseExchange
         return a;
     }
 
+    // Typed counterparts for locals the transpiler declares as `int` / `Int64` (for-loop
+    // counters). A `ref` argument binds only to its exact type, so `ref int` never
+    // competes with the `ref object` overload above. The arithmetic is the same unchecked
+    // `+ 1` / `- 1` the `object` overload applies to an int / Int64 box, and the return
+    // value is the incremented value exactly as above (it is only ever discarded).
+    public static int postFixIncrement(ref int a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static Int64 postFixIncrement(ref Int64 a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static int postFixDecrement(ref int a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static Int64 postFixDecrement(ref Int64 a)
+    {
+        a = a - 1;
+        return a;
+    }
+
     public static object postFixDecrement(ref object a)
     {
 

@@ -362,7 +362,7 @@ public partial class htx : ccxt.htx
             tradesCache = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.parseTrade(getValue(data, i), market);
             callDynamically(tradesCache, "append", new object[] {trade});
@@ -658,7 +658,7 @@ public partial class htx : ccxt.htx
             {
                 (orderbook as IOrderBook).reset(snapshot);
                 // unroll the accumulated deltas
-                for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
                 {
                     this.handleOrderBookMessage(client as WebSocketClient, getValue(messages, i));
                 }
@@ -734,7 +734,7 @@ public partial class htx : ccxt.htx
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1913,10 +1913,10 @@ public partial class htx : ccxt.htx
         if (isTrue(this.isEmpty(rawPositions)))
         {
             List<object> prefixes = new List<object>() {"cross:positions", "isolated:positions"};
-            for (object i = 0; isLessThan(i, getArrayLength(prefixes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(prefixes)); postFixIncrement(ref i))
             {
                 object messageHashes = this.findMessageHashes(client as WebSocketClient, getValue(prefixes, i));
-                for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
                 {
                     callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {}, getValue(messageHashes, j)});
                 }
@@ -1926,7 +1926,7 @@ public partial class htx : ccxt.htx
         List<object> newPositions = new List<object>() {};
         Dictionary<string, object> positionsByMarginMode = new Dictionary<string, object>() {};
         Int64? timestamp = this.safeInteger(message, "ts");
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parsePosition(rawPosition);
@@ -1949,12 +1949,12 @@ public partial class htx : ccxt.htx
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> marginModes = new List<object>(((IDictionary<string,object>)positionsByMarginMode).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marginModes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marginModes)); postFixIncrement(ref i))
         {
             object marginMode = getValue(marginModes, i);
             object marginModePositions = this.safeValue(positionsByMarginMode, marginMode, new List<object>() {});
             object messageHashes = this.findMessageHashes(client as WebSocketClient, add(marginMode, ":positions::"));
-            for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
             {
                 object messageHash = getValue(messageHashes, j);
                 List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -2253,7 +2253,7 @@ public partial class htx : ccxt.htx
                 object accountData = this.safeDict(message, "data", new Dictionary<string, object>() {});
                 object details = this.safeList(accountData, "details", new List<object>() {});
                 int detailsLength = getArrayLength(details);
-                for (object i = 0; isLessThan(i, detailsLength); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, detailsLength); postFixIncrement(ref i))
                 {
                     object detail = getValue(details, i);
                     string? currencyId = this.safeString(detail, "currency");
@@ -2343,7 +2343,7 @@ public partial class htx : ccxt.htx
                 } else
                 {
                     // isolated margin
-                    for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                    for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                     {
                         object isolatedBalance = getValue(data, i);
                         object account = this.account();
@@ -2361,7 +2361,7 @@ public partial class htx : ccxt.htx
             } else
             {
                 // inverse branch
-                for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                 {
                     object balance = getValue(data, i);
                     string? currencyId = this.safeString(balance, "symbol");
@@ -2431,7 +2431,7 @@ public partial class htx : ccxt.htx
     {
         object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);
             object subHash = getValue(subMessageHashes, i);
@@ -2982,7 +2982,7 @@ public partial class htx : ccxt.htx
                 object market = ((bool) isTrue((!isEqual(contractCode, null)))) ? this.safeMarket(contractCode) : null;
                 if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
-                    for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                    for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                     {
                         object parsed = this.parseWsTrade(getValue(data, i), market);
                         string? symbol = this.safeString(parsed, "symbol");
@@ -3013,7 +3013,7 @@ public partial class htx : ccxt.htx
                 object rawTrades = this.safeValue(message, "trades", new List<object>() {});
                 object marketId = this.safeValue(message, "symbol");
                 object market = this.market(marketId);
-                for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
                 {
                     object trade = getValue(rawTrades, i);
                     object parsedTrade = this.parseTrade(trade, market);

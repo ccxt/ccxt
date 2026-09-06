@@ -779,7 +779,7 @@ public partial class bitfinex : ccxt.bitfinex
             if (isTrue(isRaw))
             {
                 object deltas = getValue(message, 1);
-                for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
                 {
                     object delta = getValue(deltas, i);
                     object delta2 = getValue(delta, 2);
@@ -793,7 +793,7 @@ public partial class bitfinex : ccxt.bitfinex
             } else
             {
                 object deltas = getValue(message, 1);
-                for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
                 {
                     object delta = getValue(deltas, i);
                     object amount = this.safeNumber(delta, 2);
@@ -863,7 +863,7 @@ public partial class bitfinex : ccxt.bitfinex
         bool isRaw = (isEqual(prec, "R0"));
         int idToCheck = ((bool) isTrue(isRaw)) ? 2 : 0;
         // pepperoni pizza from bitfinex
-        for (object i = 0; isLessThan(i, depth); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, depth); postFixIncrement(ref i))
         {
             object bid = this.safeValue(bids, i);
             object ask = this.safeValue(asks, i);
@@ -990,7 +990,7 @@ public partial class bitfinex : ccxt.bitfinex
             data = new List<object> {this.safeValue(message, 2)};
         }
         Dictionary<string, object> updatedTypes = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(data, i);
             string? currencyId = this.safeString(rawBalance, 1);
@@ -1007,7 +1007,7 @@ public partial class bitfinex : ccxt.bitfinex
             ((IDictionary<string,object>)updatedTypes)[(string)((string)balanceType)] = true;
         }
         List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(updatesKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(updatesKeys)); postFixIncrement(ref i))
         {
             object type = getValue(updatesKeys, i);
             object messageHash = add("balance:", type);
@@ -1068,7 +1068,7 @@ public partial class bitfinex : ccxt.bitfinex
         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)unSubChannel);
         object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             object subHash = getValue(subMessageHashes, i);
@@ -1266,7 +1266,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 return;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object value = getValue(data, i);
                 object parsed = this.parseWsOrder(value);
@@ -1284,7 +1284,7 @@ public partial class bitfinex : ccxt.bitfinex
         string name = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, name});
         List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object symbol = getValue(keys, i);
             object market = this.market(symbol);

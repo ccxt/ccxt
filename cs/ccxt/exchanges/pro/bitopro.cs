@@ -195,7 +195,7 @@ public partial class bitopro : ccxt.bitopro
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(limit);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             callDynamically(tradesCache, "append", new object[] {getValue(trades, i)});
         }
@@ -514,7 +514,7 @@ public partial class bitopro : ccxt.bitopro
             { "timestamp", timestamp },
             { "datetime", datetime },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             string? currency = this.safeString(currencies, i);
             object balance = this.safeValue(data, currency);

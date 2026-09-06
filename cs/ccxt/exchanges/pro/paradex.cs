@@ -250,7 +250,7 @@ public partial class paradex : ccxt.paradex
             { "asks", new List<object>() {} },
         };
         object inserts = this.safeList(data, "inserts");
-        for (object i = 0; isLessThan(i, getArrayLength((IList<object>)(inserts))); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength((IList<object>)(inserts))); postFixIncrement(ref i))
         {
             object insert = this.safeDict(inserts, i);
             string? side = this.safeString(insert, "side");
@@ -332,7 +332,7 @@ public partial class paradex : ccxt.paradex
         List<object> messageHashes = new List<object>() {};
         if (isTrue(isTrue(!isEqual(symbols, null)) && isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object messageHash = add(add(channel, "."), getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(messageHash);
@@ -551,7 +551,7 @@ public partial class paradex : ccxt.paradex
             int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
                     object messageHash = add(add(channel, "."), getValue(symbols, i));
                     ((IList<object>)messageHashes).Add(messageHash);

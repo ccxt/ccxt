@@ -497,7 +497,7 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         object rows = ((bool) isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? data : this.safeList(data, "items", new List<object>() {});
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object t = getValue(rows, i);
             string? sym = this.safeString(t, "symbol");
@@ -595,7 +595,7 @@ public partial class mudrex : Exchange
                 paging = false;
                 break;
             }
-            for (object i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
             {
                 ((IList<object>)aggregated).Add(getValue(items, i));
             }
@@ -609,7 +609,7 @@ public partial class mudrex : Exchange
             }
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(aggregated)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(aggregated)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseMarket(getValue(aggregated, i)));
         }
@@ -1141,7 +1141,7 @@ public partial class mudrex : Exchange
             market = this.market(symbol);
         }
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             ((IList<object>)orders).Add(this.parseOrder(getValue(rows, i), market));
         }
@@ -1225,7 +1225,7 @@ public partial class mudrex : Exchange
         }
         IList<object> rows = this.toArray(data);
         List<object> outPos = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object p = getValue(rows, i);
             string? symRaw = this.safeString(p, "symbol");
@@ -1371,7 +1371,7 @@ public partial class mudrex : Exchange
         {
             object market = this.market(symbol);
             object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
                 if (isTrue(isTrue(!isEqual(side, null)) && isTrue(!isEqual(getValue(p, "side"), side))))
@@ -1433,7 +1433,7 @@ public partial class mudrex : Exchange
         if (isTrue(isEqual(positionId, null)))
         {
             object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
                 if (isTrue(isEqual(getValue(p, "symbol"), symbol)))

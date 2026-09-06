@@ -416,7 +416,7 @@ public partial class foxbit : Exchange
         object networks = this.safeList(rawCurrency, "networks", new List<object>() {});
         string? type = this.safeStringLower(rawCurrency, "type");
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "code");
@@ -718,7 +718,7 @@ public partial class foxbit : Exchange
         // ]
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "market_symbol");
@@ -913,7 +913,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             string? currencyId = this.safeString(account, "currency_symbol");
@@ -1118,7 +1118,7 @@ public partial class foxbit : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -2263,7 +2263,7 @@ public partial class foxbit : Exchange
                 query = this.urlencode(parameters);
                 url = add(url, add("?", query));
             }
-            for (object i = 0; isLessThan(i, getArrayLength(paramKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(paramKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(paramKeys, i);
                 object value = this.safeString(parameters, key);
@@ -2321,7 +2321,7 @@ public partial class foxbit : Exchange
         object detailsString = "";
         if (isTrue(!isEqual(details, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
             {
                 detailsString = add(add(detailsString, getValue(details, i)), " ");
             }

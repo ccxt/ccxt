@@ -319,7 +319,7 @@ public partial class woo : ccxt.woo
             object orderbook = this.safeValue(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
-            for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
             {
                 object messageItem = getValue(messages, i);
                 Int64? ts = this.safeInteger(messageItem, "ts");
@@ -370,7 +370,7 @@ public partial class woo : ccxt.woo
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -586,7 +586,7 @@ public partial class woo : ccxt.woo
         object data = this.safeValue(message, "data");
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(data, i), "symbol");
             object market = this.safeMarket(marketId);
@@ -677,7 +677,7 @@ public partial class woo : ccxt.woo
         object data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i);
             if (isTrue(isEqual(ticker, null)))
@@ -1324,7 +1324,7 @@ public partial class woo : ccxt.woo
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // algoexecutionreportv2
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object order = getValue(data, i);
                 object tradeId = this.omitZero(this.safeString(data, "tradeId"));
@@ -1456,7 +1456,7 @@ public partial class woo : ccxt.woo
             {
                 throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 if (isTrue(isEqual(symbols, null)))
                 {
@@ -1513,7 +1513,7 @@ public partial class woo : ccxt.woo
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
@@ -1567,7 +1567,7 @@ public partial class woo : ccxt.woo
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(postitionsIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(postitionsIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(postitionsIds, i);
             object market = this.safeMarket(marketId);
@@ -1643,7 +1643,7 @@ public partial class woo : ccxt.woo
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(balances, key);
@@ -1776,7 +1776,7 @@ public partial class woo : ccxt.woo
         object subscription = this.safeDict(((WebSocketClient)client).subscriptions, unsubscribeHash, new Dictionary<string, object>() {});
         object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         object unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
         {
             object subHash = getValue(subMessageHashes, i);
             object unsubHash = getValue(unsubMessageHashes, i);
