@@ -1327,6 +1327,18 @@ they are the known ways this can fail in production right now:
   a trading credential or places an order. `execute()` has no live coverage against a real venue
   yet: every strategy is exercised against stub venues in all six languages, which is not the same
   as having placed one order on one exchange.
+- `execute()` idempotency is **in-process only**. A plan already executed is refused by a ledger held
+  on the `OrderRouter` instance, and each order carries a deterministic `<planId>-<stepIndex>` client
+  order id so a venue that honours client order ids rejects the duplicate. Neither covers a restart
+  mid-route: the ledger dies with the process, and a venue that silently drops the parameter gives no
+  rejection at all. Durable idempotency needs a persistent store keyed by plan id plus a "what did
+  the venue already see?" reconciliation on resume.
+- Which venues honour a client order id — and under which name (`clientOrderId`, `newClientOrderId`,
+  `clOrdId`, `client_oid`) — is unmapped. Until it is, the venue-side half of the guarantee above
+  cannot be relied on per exchange.
+- The re-execution check-then-write is not atomic: two `execute()` calls racing on the same instance
+  can both pass the ledger check before either writes. In-process only, and it wants the durable
+  design above rather than a local lock.
 - No Redis/cross-host story yet — sharding today is same-host via IPC only (see Architecture).
 - Depth-limited exchanges (Kraken, Gate, others with capped WS depth) should fall back to REST
   `fetchOrderBook` snapshots when a requested `amount` exceeds cached depth, rather than silently
