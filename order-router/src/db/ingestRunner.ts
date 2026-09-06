@@ -6,11 +6,23 @@ import { config } from '../config.js';
 import { logger } from '../logger.js';
 import { installCrashHandlers } from '../crashHandlers.js';
 import { createPool } from './pool.js';
+import { assertSchemaVersion } from './migrations.js';
 import { startRunner, startPartitionMaintenance } from './runner.js';
 
 installCrashHandlers(logger, 'ingest');
 
 const pool = createPool(logger);
+
+// Refuse to start against a schema this build is ahead of, rather than failing later inside an
+// INSERT where it reads as a data bug. The deploy runs `db:migrate` first, so reaching this is a
+// deploy-order mistake and the message says which step was skipped.
+try {
+    await assertSchemaVersion(pool);
+} catch (err) {
+    logger.error({ err }, 'refusing to start: database schema is behind this build');
+    await pool.end();
+    process.exit(1);
+}
 
 const stopPartitions = startPartitionMaintenance(pool, logger);
 

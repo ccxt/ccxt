@@ -129,3 +129,25 @@ test('a process refuses to start against a schema behind the build', async () =>
     const current = fakePool([{ version: 1, checksum: 'x' }]);
     await assertSchemaVersion(current.pool as never, 1);
 });
+
+test('the long-lived processes actually call assertSchemaVersion at boot', async () => {
+    // The function shipped tested but never called, while its own comment claimed "called at boot by
+    // every process that talks to Postgres" -- so the guarantee it advertises (a binary ahead of its
+    // schema refuses to start, instead of failing later inside an INSERT where it reads as a data
+    // bug) did not exist. A unit test on the function alone cannot catch that; only the call site can.
+    const { readFileSync } = await import('node:fs');
+    for (const rel of [ '../db/ingestRunner.ts', '../web/index.ts' ]) {
+        const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
+        assert.match(src, /assertSchemaVersion/,
+            `${rel} must assert the schema version at boot`);
+        assert.match(src, /await assertSchemaVersion\(pool\)/,
+            `${rel} must await the assertion against its own pool`);
+    }
+    // migrate.ts is the thing that RESOLVES a mismatch and the admin CLI is what an operator reaches
+    // for when the database is behind; neither may refuse to run on that basis.
+    for (const rel of [ '../db/migrate.ts', '../cli/admin.ts' ]) {
+        const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
+        assert.doesNotMatch(src, /assertSchemaVersion/,
+            `${rel} must NOT assert the schema version: it has to work on a database that is behind`);
+    }
+});

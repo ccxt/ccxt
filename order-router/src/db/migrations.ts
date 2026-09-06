@@ -138,8 +138,11 @@ export async function applyMigrations (
     return pending;
 }
 
-// Called at boot by every process that talks to Postgres. A binary running ahead of its schema
-// produces errors that look like exchange or data bugs, hours later and far from the cause.
+// Called at boot by the two long-lived processes that talk to Postgres -- the ingest runner and
+// the web app. A binary running ahead of its schema produces errors that look like exchange or
+// data bugs, hours later and far from the cause. Deliberately NOT called by migrate.ts (it is the
+// thing that resolves the mismatch) nor by the admin CLI (an operator must be able to reach their
+// tools on a database that is behind, which is exactly when they need them).
 export async function assertSchemaVersion (
     pool: Pool, expected: number = EXPECTED_SCHEMA_VERSION,
 ): Promise<void> {

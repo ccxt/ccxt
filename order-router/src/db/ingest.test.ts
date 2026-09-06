@@ -314,3 +314,25 @@ test('rotation does not discard the tail of the old file', async () => {
         'the tail of the rotated file is drained before the new file is followed');
     assert.equal(stats.requestsInserted, 2);
 });
+
+test('the fileSize stat after the drain is guarded, so rotation cannot fail a completed pass', async () => {
+    // By the time fileSize is read the pass is DONE: the rows are inserted and the cursor has
+    // advanced. An unguarded statSync there turned that success into observer.onError, logged as
+    // "the cursor did not advance" when it demonstrably had, and drove ingest_errors_total up until
+    // /health reported 503 on an ingester doing its job. Rotation in that window is the ordinary
+    // case -- it is what the inode check at the top of ingestOnce exists to handle.
+    //
+    // Asserted at the source rather than by driving the race: nothing runs between drainFile's last
+    // read and this line, so there is no seam a fake pool can reach through. Same approach as
+    // packaging.test.ts, and it fails if the try/catch is removed.
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('./ingest.ts', import.meta.url), 'utf8');
+    const assignment = src.indexOf('stats.fileSize = statSync(path).size');
+    assert.notEqual(assignment, -1, 'the fileSize assignment moved; update this test');
+    const preceding = src.slice(0, assignment);
+    const openedTry = preceding.lastIndexOf('try {');
+    const closedBrace = preceding.lastIndexOf('} catch');
+    assert.ok(openedTry > closedBrace,
+        'stats.fileSize = statSync(...) must sit inside a try/catch: a log rotated away after the '
+        + 'drain otherwise fails a pass that already inserted its rows');
+});

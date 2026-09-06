@@ -490,7 +490,17 @@ export async function ingestOnce (
     }
 
     await drainFile(pool, path, stream, offset, inode, logger, stats);
-    stats.fileSize = statSync(path).size;
+    // Rotation between the drain above and this stat is the ordinary case, not an exotic one --
+    // it is what the inode check at the top of this function exists to handle. An unguarded stat
+    // here threw AFTER the rows were inserted and the cursor advanced, so a healthy pass was
+    // counted through observer.onError and logged as "the cursor did not advance", inflating
+    // ingest_errors_total until /health went 503 on an ingester that was working correctly.
+    // fileSize is a reporting field; not knowing it is not a failed pass.
+    try {
+        stats.fileSize = statSync(path).size;
+    } catch (err) {
+        logger.debug({ err, stream, path }, 'audit log went away after the drain; fileSize unknown for this pass');
+    }
 
     return stats;
 }
