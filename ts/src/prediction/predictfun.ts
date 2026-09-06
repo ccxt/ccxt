@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 // import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 // import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, PredictionEvent, PredictionOrderBook, PredictionTicker, Str } from '../base/types.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTrade, Str } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ export default class predictfun extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchWithdrawals': false,
                 'prediction': true,         // Prediction market support
@@ -1237,6 +1237,158 @@ export default class predictfun extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
+        });
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchTrades
+     * @description fetches the most recent settled matches for a single prediction outcome token
+     * @see https://dev.predict.fun/get-order-match-events-25663812e0
+     * @param {string} outcome unified outcome handle, or an outcome token id
+     * @param {int} [since] timestamp in ms of the earliest trade to return, applied client side
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.after] cursor from a previous response, the venue pages back from the most recent match
+     * @param {string} [params.minValueUsdtWei] only return matches worth at least this many wei
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const request: Dict = {
+            'marketId': this.safeString (info, 'marketId'),
+        };
+        // the endpoint carries no time filter, it pages back from the most recent match, so
+        // since is applied client side by parsePredictionTrades
+        const response = await this.predictfunGetV1OrdersMatches (this.extend (request, params));
+        //
+        //     {
+        //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA1VDIzOjU1OjU2WiJ9",
+        //         "data": [
+        //             {
+        //                 "amountFilled": "8409090909090909720",
+        //                 "executedAt": "2026-09-06T11:45:23.000Z",
+        //                 "priceExecuted": "111200000000000000",
+        //                 "settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
+        //                 "transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
+        //                 "taker": {
+        //                     "amount": "8409090909090909720",
+        //                     "fee": { "amount": "151363636363636374", "type": "SHARES" },
+        //                     "hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+        //                     "outcome": { "indexSet": 1, "name": "Up", "onChainId": "44616422429987613582483910707767544579739686077414897363305263997555112684875" },
+        //                     "price": "112000000000000000",
+        //                     "quoteType": "Bid",
+        //                     "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+        //                 },
+        //                 "makers": [
+        //                     {
+        //                         "amount": "1009090909090909720",
+        //                         "fee": { "amount": "0", "type": "SHARES" },
+        //                         "hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+        //                         "outcome": { "indexSet": 2, "name": "Down", "onChainId": "39857821499700810175970492505692306870421072168717601114846981613437602260320" },
+        //                         "price": "880000000000000000",
+        //                         "quoteType": "Bid",
+        //                         "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+        //                     }
+        //                 ],
+        //                 "market": { "id": 1965449 }
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const trades: any[] = [];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            const taker = this.safeDict (entry, 'taker', {});
+            const takerOutcome = this.safeDict (taker, 'outcome', {});
+            const takerIndexSet = this.safeInteger (takerOutcome, 'indexSet');
+            const outcomeIndexSet = this.safeInteger (info, 'indexSet');
+            let partyToParse = this.safeDict (entry, 'taker', {});
+            if (takerIndexSet === outcomeIndexSet) {
+                const trade = this.parsePredictionTrade (this.extend (entry, { 'partyToParse': partyToParse }), outcomeObj);
+                trade['takerOrMaker'] = 'taker';
+                trade['type'] = 'market';
+                trade['info'] = entry;
+                trades.push (trade);
+            } else {
+                const makers = this.safeList (entry, 'makers', []);
+                const makersLength = makers.length;
+                for (let j = 0; j < makersLength; j++) {
+                    const maker = makers[j];
+                    const makerOutcome = this.safeDict (maker, 'outcome', {});
+                    const makerIndexSet = this.safeInteger (makerOutcome, 'indexSet');
+                    if (makerIndexSet === outcomeIndexSet) {
+                        partyToParse = maker;
+                        const trade = this.parsePredictionTrade (this.extend (entry, { 'partyToParse': partyToParse }), outcomeObj);
+                        trade['takerOrMaker'] = 'maker';
+                        trade['type'] = 'limit';
+                        trade['info'] = entry;
+                        trades.push (trade);
+                    }
+                }
+            }
+        }
+        return trades;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parsePredictionTrade
+     * @description parses a raw order match event into a unified prediction trade for one of the two outcomes
+     * @param {object} trade the raw match event
+     * @param {object} [market] the outcome the trade belongs to
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+        const party = this.safeDict (trade, 'partyToParse', {});
+        let priceStr = this.safeString (party, 'price');
+        priceStr = Precise.stringDiv (priceStr, '1000000000000000000');
+        let amountStr = this.safeString (party, 'amount');
+        amountStr = Precise.stringDiv (amountStr, '1000000000000000000');
+        let side: Str = undefined;
+        let order: Str = undefined;
+        let fee: any = undefined;
+        const quoteType = this.safeStringLower (party, 'quoteType');
+        if (quoteType === 'bid') {
+            side = 'buy';
+        } else if (quoteType === 'ask') {
+            side = 'sell';
+        }
+        order = this.safeString (party, 'hash');
+        const rawFee = this.safeDict (party, 'fee');
+        if (rawFee !== undefined) {
+            const feeType = this.safeString (rawFee, 'type');
+            const feeCost = this.safeString (rawFee, 'amount');
+            fee = {
+                // a SHARES fee is charged in outcome tokens rather than in collateral
+                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'cost': this.parseNumber (Precise.stringDiv (feeCost, '1000000000000000000')),
+            };
+        }
+        const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
+        return this.safePredictionTrade ({
+            'id': this.safeString (trade, 'settlementId'),
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeOutcomeSymbol (undefined, market),
+            'outcomeId': this.safeString (market, 'outcomeId'),
+            'label': this.safeString (market, 'label'),
+            'market': this.safeString (market, 'market'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': this.parseNumber (priceStr),
+            'amount': this.parseNumber (amountStr),
+            'cost': undefined,
+            'fee': fee,
+            'info': trade,
         });
     }
 
