@@ -493,6 +493,10 @@ export default class predictfun extends Exchange {
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'status', 'eventId', 'slug', 'tags', 'marketVariant' ]);
         const queriesLength = queries.length;
         const result: any[] = [];
+        // the venue answers every term separately and the same category comes back for each term
+        // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
+        // caller's limit after filtering, spends a slot on a repeat instead of a distinct event
+        const seenSlugs: Dict = {};
         for (let i = 0; i < queriesLength; i++) {
             const request: Dict = {
                 'query': queries[i],
@@ -550,9 +554,17 @@ export default class predictfun extends Exchange {
             //
             const data = this.safeDict (response, 'data', {});
             const categories = this.safeList (data, 'categories', []) as any[];
-            for (let ci = 0; ci < categories.length; ci++) {
+            const categoriesLength = categories.length;
+            for (let ci = 0; ci < categoriesLength; ci++) {
                 const category = categories[ci];
-                result.push (category);
+                const categorySlug = this.safeString (category, 'slug');
+                if (categorySlug === undefined) {
+                    // nothing to key a duplicate on, keep the row rather than drop it
+                    result.push (category);
+                } else if (!(categorySlug in seenSlugs)) {
+                    seenSlugs[categorySlug] = true;
+                    result.push (category);
+                }
             }
         }
         return result;
@@ -1216,7 +1228,7 @@ export default class predictfun extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const trades: any[] = [];
+        const flattenTrades: any[] = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const entry = data[i];
@@ -1226,30 +1238,32 @@ export default class predictfun extends Exchange {
             const outcomeIndexSet = this.safeInteger (info, 'indexSet');
             let partyToParse = this.safeDict (entry, 'taker', {});
             if (takerIndexSet === outcomeIndexSet) {
-                const trade = this.parsePredictionTrade (this.extend (entry, { 'partyToParse': partyToParse }), outcomeObj);
-                trade['takerOrMaker'] = 'taker';
-                trade['type'] = 'market';
-                trade['info'] = entry;
-                trades.push (trade);
+                const takerParty: Dict = {
+                    'takerOrMaker': 'taker',
+                    'type': 'market',
+                };
+                partyToParse = this.extend (partyToParse, takerParty);
+                flattenTrades.push (this.extend (entry, { 'partyToParse': partyToParse }));
             } else {
                 const makers = this.safeList (entry, 'makers', []);
                 const makersLength = makers.length;
+                const makerParty: Dict = {
+                    'takerOrMaker': 'maker',
+                    'type': 'limit',
+                };
                 for (let j = 0; j < makersLength; j++) {
                     const maker = makers[j];
                     const makerOutcome = this.safeDict (maker, 'outcome', {});
                     const makerIndexSet = this.safeInteger (makerOutcome, 'indexSet');
                     if (makerIndexSet === outcomeIndexSet) {
                         partyToParse = maker;
-                        const trade = this.parsePredictionTrade (this.extend (entry, { 'partyToParse': partyToParse }), outcomeObj);
-                        trade['takerOrMaker'] = 'maker';
-                        trade['type'] = 'limit';
-                        trade['info'] = entry;
-                        trades.push (trade);
+                        partyToParse = this.extend (partyToParse, makerParty);
+                        flattenTrades.push (this.extend (entry, { 'partyToParse': partyToParse }));
                     }
                 }
             }
         }
-        return trades;
+        return this.parsePredictionTrades (flattenTrades, outcomeObj, since, limit);
     }
 
     /**
@@ -1297,14 +1311,14 @@ export default class predictfun extends Exchange {
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
-            'type': undefined,
+            'type': this.safeString (party, 'type'),
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.safeString (party, 'takerOrMaker'),
             'price': this.parseNumber (priceStr),
             'amount': this.parseNumber (amountStr),
             'cost': undefined,
             'fee': fee,
-            'info': trade,
+            'info': this.omit (trade, 'partyToParse'),
         });
     }
 
