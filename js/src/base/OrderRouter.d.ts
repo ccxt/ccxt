@@ -7,12 +7,14 @@ declare class OrderRouter {
     static NO_CAP: number;
     static MAX_BALANCE_ENTRIES: number;
     static MAX_BALANCE_CHARS: number;
+    static MAX_EXECUTED_PLAN_IDS: number;
     static TOLERANCE: number;
     apiKey: string;
     baseUrl: string;
     timeoutMs: number;
     maxNotionalUsd: number;
     executedPlanIds: string[];
+    executedPlanIdSet: Dict;
     /**
      * @method
      * @name OrderRouter#constructor
@@ -110,7 +112,7 @@ declare class OrderRouter {
      * @ignore
      * @method
      * @name OrderRouter#formatNumber
-     * @description formats a double as decimal text with no exponent, so that five languages produce the same string
+     * @description formats a double as decimal text with no exponent, so that six languages produce the same string
      * @param {float} value the number to format
      * @returns {string} the number as fixed-point text with trailing zeros removed
      */
@@ -254,7 +256,7 @@ declare class OrderRouter {
     /**
      * @method
      * @name OrderRouter#reconcileExecutionStep
-     * @description compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and five separate loops is five chances to omit it
+     * @description compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and six separate loops is six chances to omit it
      * @param {object} plan the plan, with any earlier resizes already applied to its steps
      * @param {int} stepIndex the step that just completed
      * @param {float} realisedOut what it actually produced, in that step's output asset — base for a buy, quote for a sell
@@ -312,6 +314,24 @@ declare class OrderRouter {
      * @returns {string} the client order id
      */
     clientOrderIdFor(planId: string, stepIndex: number): string;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#hasExecutedPlan
+     * @description reports whether this instance has executed the given plan id recently enough for the bounded ledger to still remember it
+     * @param {string} planId the plan identity from planIdentity
+     * @returns {bool} true when the id is still in the ledger
+     */
+    hasExecutedPlan(planId: string): boolean;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#recordExecutedPlan
+     * @description records one plan id in the bounded ledger, evicting the oldest entry when the cap is reached
+     * @param {string} planId the plan identity from planIdentity
+     * @returns {undefined}
+     */
+    recordExecutedPlan(planId: string): void;
     /**
      * @method
      * @name OrderRouter#execute
@@ -461,7 +481,7 @@ declare class OrderRouter {
      * @ignore
      * @method
      * @name OrderRouter#errorCodeOf
-     * @description names a caught exception by its class, which is the one label all five languages agree on
+     * @description names a caught exception by its class, which is the one label all six languages agree on
      * @param {object} e the caught exception
      * @returns {string} the exception class name, or unknown_error
      */

@@ -9,28 +9,29 @@
 //  planning / safety / reconciliation layer that sits between a routing
 //  recommendation and real orders.
 //
-//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Four sibling
+//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Five sibling
 //  implementations mirror it method for method:
 //
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      cs/ccxt/base/OrderRouter.cs
 //      go/v4/exchange_order_router.go
+//      rust/ccxt-base/src/order_router.rs
 //
-//  Every construct below is deliberately one that Python, PHP, C# and Go can
-//  express the same way. The rules that keep the five ports honest:
+//  Every construct below is deliberately one that Python, PHP, C#, Go and Rust
+//  can express the same way. The rules that keep the six ports honest:
 //
 //    - plain dictionaries and arrays only, never a language-specific container
 //    - NO NULLS in any returned structure. 0 means "unknown number", '' means
 //      "unknown string", and a boolean companion field carries "was it known?"
 //      wherever that distinction is load-bearing. Go structs and C# value types
-//      have no natural null, and a null that only exists in three of five
+//      have no natural null, and a null that only exists in three of six
 //      languages is a divergence waiting to happen
 //    - never iterate a hash map to produce ORDERED output. Build arrays and
 //      search them linearly: map iteration order differs per language
 //    - all numbers are IEEE-754 doubles and every arithmetic sequence is written
-//      in a fixed order, so the five ports agree bit for bit
-//    - ONE number grammar, hand-rolled in all five (see parseNumber). No port
+//      in a fixed order, so the six ports agree bit for bit
+//    - ONE number grammar, hand-rolled in all six (see parseNumber). No port
 //      calls its own parser: float() reads '1_000' as 1000 and '1,234.5' not at
 //      all, PCRE's \s is not JavaScript's whitespace set, strconv refuses
 //      '12abc' outright, string.Trim() eats Unicode spaces parseFloat does not.
@@ -38,7 +39,7 @@
 //      silently disappears
 //    - NaN and +/-Infinity are NOT numbers here. An infinite tolerance disables
 //      the halt verdict and an infinite rate disables the cap, so both fall back
-//      to the caller's default — in all five, identically
+//      to the caller's default — in all six, identically
 //    - violation and verdict strings are CONSTANTS, never interpolated with
 //      numbers: "25" and "25.0" are the same value and different text
 //    - no closures escape a method, no generics, no exceptions as control flow
@@ -92,7 +93,23 @@ class OrderRouter {
     //  than truncate server-side, so the client trims before sending
     static { this.MAX_BALANCE_ENTRIES = 64; }
     static { this.MAX_BALANCE_CHARS = 4096; }
-    //  relative tolerance for float comparisons; also the tolerance the five
+    //  How many executed plan ids the in-process idempotency ledger keeps. 1024 is
+    //  chosen to be far more executions than any one process performs in the window
+    //  where a duplicate is plausible (a retry loop, an operator re-running a plan,
+    //  a redelivered message), while bounding the ledger to a few tens of kilobytes
+    //  so a router held open for the life of a daemon cannot grow without limit.
+    //
+    //  THE TRADEOFF IS REAL AND IS NOT HIDDEN: eviction WEAKENS the guarantee. Once a
+    //  plan id has been pushed out by 1024 newer executions, re-executing that plan is
+    //  no longer refused in-process — it will be placed again, orders and all. The
+    //  guard is therefore "recent duplicates are refused", not "duplicates are
+    //  impossible". A process that needs the strong promise across restarts or beyond
+    //  this window needs the durable ledger the Known gaps entry calls for; until then,
+    //  callers whose plans must never re-execute should key idempotency at the venue
+    //  (the deterministic clientOrderId every step already carries) rather than rely on
+    //  this instance's memory.
+    static { this.MAX_EXECUTED_PLAN_IDS = 1024; }
+    //  relative tolerance for float comparisons; also the tolerance the six
     //  test suites compare fixture numbers with
     static { this.TOLERANCE = 1e-9; }
     /**
@@ -128,10 +145,11 @@ class OrderRouter {
         //  because the caller is the one who knows the size of their own trade.
         this.maxNotionalUsd = maxNotionalUsd;
         this.executedPlanIds = [];
+        this.executedPlanIdSet = {};
     }
     //  -----------------------------------------------------------------------
     //  small container accessors. Every port has these four; they exist so the
-    //  five implementations read line for line and so a missing key is never a
+    //  six implementations read line for line and so a missing key is never a
     //  language-specific crash.
     //  -----------------------------------------------------------------------
     /**
@@ -156,7 +174,7 @@ class OrderRouter {
             //  NaN and +/-Infinity are not numbers this class will act on. An
             //  infinite tolerance silently disables the halt verdict and an
             //  infinite rate silently disables the cap, and "the default" is
-            //  the only answer five languages can agree on for either.
+            //  the only answer six languages can agree on for either.
             if (!this.isFiniteNumber(value)) {
                 return defaultValue;
             }
@@ -177,7 +195,7 @@ class OrderRouter {
      */
     isFiniteNumber(value) {
         if (value !== value) {
-            //  the one NaN test that needs no library in any of the five
+            //  the one NaN test that needs no library in any of the six
             return false;
         }
         if (value > 1.7976931348623157e308 || value < -1.7976931348623157e308) {
@@ -201,7 +219,7 @@ class OrderRouter {
         //  and Go read '0x10' as 0 only by accident of their regex, C# trims
         //  Unicode whitespace JavaScript does not. The grammar below is
         //  JavaScript's StrDecimalLiteral prefix over the ASCII whitespace set,
-        //  and it is the SAME twenty lines in all five ports.
+        //  and it is the SAME twenty lines in all six ports.
         if (text === undefined || text === null) {
             return defaultValue;
         }
@@ -226,7 +244,7 @@ class OrderRouter {
             }
         }
         if (digits === 0) {
-            //  'Infinity', 'inf', 'NaN', '' and '٠١' all land here, in all five
+            //  'Infinity', 'inf', 'NaN', '' and '٠١' all land here, in all six
             return defaultValue;
         }
         let end = cursor;
@@ -362,7 +380,7 @@ class OrderRouter {
      * @ignore
      * @method
      * @name OrderRouter#formatNumber
-     * @description formats a double as decimal text with no exponent, so that five languages produce the same string
+     * @description formats a double as decimal text with no exponent, so that six languages produce the same string
      * @param {float} value the number to format
      * @returns {string} the number as fixed-point text with trailing zeros removed
      */
@@ -579,7 +597,7 @@ class OrderRouter {
             }
         }
         //  largest first, so trimming to the router's caps drops the smallest
-        //  holdings. Ties break on exchangeId then asset so five languages
+        //  holdings. Ties break on exchangeId then asset so six languages
         //  produce the same list from the same wallet.
         entries.sort((a, b) => {
             if (a['amount'] !== b['amount']) {
@@ -987,7 +1005,7 @@ class OrderRouter {
         else {
             //  the rounding mode is irrelevant here: a value exactly halfway
             //  between two ticks is off-grid whichever neighbour it snaps to,
-            //  so the five languages' differing round() semantics cannot change
+            //  so the six languages' differing round() semantics cannot change
             //  this predicate's answer
             rounded = Math.round(value / precision) * precision;
         }
@@ -1000,7 +1018,7 @@ class OrderRouter {
     /**
      * @method
      * @name OrderRouter#reconcileExecutionStep
-     * @description compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and five separate loops is five chances to omit it
+     * @description compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and six separate loops is six chances to omit it
      * @param {object} plan the plan, with any earlier resizes already applied to its steps
      * @param {int} stepIndex the step that just completed
      * @param {float} realisedOut what it actually produced, in that step's output asset — base for a buy, quote for a sell
@@ -1150,7 +1168,7 @@ class OrderRouter {
         const slippageBps = this.numberAt(report, 'slippageBps', OrderRouter.DEFAULT_SLIPPAGE_BPS);
         const results = this.listAt(report, 'steps');
         //  net position per (exchangeId, asset). Held in an ARRAY rather than a
-        //  map because the output order must be identical in five languages and
+        //  map because the output order must be identical in six languages and
         //  map iteration order is not.
         const positions = [];
         for (let i = results.length - 1; i >= 0; i--) {
@@ -1350,6 +1368,45 @@ class OrderRouter {
     clientOrderIdFor(planId, stepIndex) {
         return planId + '-' + this.formatNumber(stepIndex);
     }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#hasExecutedPlan
+     * @description reports whether this instance has executed the given plan id recently enough for the bounded ledger to still remember it
+     * @param {string} planId the plan identity from planIdentity
+     * @returns {bool} true when the id is still in the ledger
+     */
+    hasExecutedPlan(planId) {
+        //  a key lookup, not a scan: the ledger is capped but still up to
+        //  MAX_EXECUTED_PLAN_IDS long, and this runs on every live execution
+        return this.executedPlanIdSet[planId] !== undefined;
+    }
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#recordExecutedPlan
+     * @description records one plan id in the bounded ledger, evicting the oldest entry when the cap is reached
+     * @param {string} planId the plan identity from planIdentity
+     * @returns {undefined}
+     */
+    recordExecutedPlan(planId) {
+        if (this.hasExecutedPlan(planId)) {
+            //  already recorded; re-recording it would move it in the FIFO order and let a
+            //  repeatedly re-executed plan keep other ids alive or evict them out of turn
+            return;
+        }
+        this.executedPlanIds.push(planId);
+        this.executedPlanIdSet[planId] = true;
+        while (this.executedPlanIds.length > OrderRouter.MAX_EXECUTED_PLAN_IDS) {
+            //  FIFO: the OLDEST execution is the one whose duplicate is least likely still
+            //  in flight. Evicting it drops the refusal for that plan — see the comment on
+            //  MAX_EXECUTED_PLAN_IDS; this is a bounded memory promise, not a stronger
+            //  idempotency one.
+            const evicted = this.executedPlanIds[0];
+            this.executedPlanIds = this.executedPlanIds.slice(1);
+            delete this.executedPlanIdSet[evicted];
+        }
+    }
     //  -----------------------------------------------------------------------
     //  IMPURE: execute
     //  -----------------------------------------------------------------------
@@ -1429,7 +1486,7 @@ class OrderRouter {
             throw new BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey');
         }
         if (options['allowReexecution'] !== true) {
-            if (this.executedPlanIds.indexOf(planId) >= 0) {
+            if (this.hasExecutedPlan(planId)) {
                 throw new BadRequest('OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override');
             }
         }
@@ -1500,9 +1557,7 @@ class OrderRouter {
         //  the ledger is written BEFORE the first order goes out, never after: a run that
         //  throws half way through has still placed orders, and a guard that only records
         //  completed runs would wave through exactly the retry that double-fills.
-        if (this.executedPlanIds.indexOf(planId) < 0) {
-            this.executedPlanIds.push(planId);
-        }
+        this.recordExecutedPlan(planId);
         if (strategy === 'parallel_within_hop') {
             await this.executeParallelWithinHop(report, steps, venues, options, usdRates);
         }
@@ -1527,7 +1582,7 @@ class OrderRouter {
      * @returns {int} the number of distinct hopIndex values
      */
     hopCountOf(steps) {
-        //  an array rather than a map, so the count is the same in five
+        //  an array rather than a map, so the count is the same in six
         //  languages and does not depend on hash iteration order
         const seen = [];
         for (let i = 0; i < steps.length; i++) {
@@ -1711,7 +1766,7 @@ class OrderRouter {
             }
             const pending = [];
             //  THE CONTRACT: concurrent ACROSS venues, serialised WITHIN a venue. It is an
-            //  ordering guarantee, not a performance promise, which is what lets five very
+            //  ordering guarantee, not a performance promise, which is what lets six very
             //  different runtimes honour the same words. It used to mean three different things:
             //  TypeScript overlapped every leg on one event loop, PHP ran them in a plain
             //  sequential loop with a comment rationalising it, and Python fanned out one thread
@@ -1742,7 +1797,7 @@ class OrderRouter {
             }
             for (let g = 0; g < groupedIndices.length; g++) {
                 //  placeStep contains its own failures and never rejects, so "wait for all" means
-                //  the same thing in all five languages. Without that containment JavaScript
+                //  the same thing in all six languages. Without that containment JavaScript
                 //  rejects fast while sibling orders are still live, and Go's promiseAll waits for
                 //  every one — the same source abandoning in-flight orders differently per
                 //  language.
@@ -2128,7 +2183,7 @@ class OrderRouter {
      * @ignore
      * @method
      * @name OrderRouter#errorCodeOf
-     * @description names a caught exception by its class, which is the one label all five languages agree on
+     * @description names a caught exception by its class, which is the one label all six languages agree on
      * @param {object} e the caught exception
      * @returns {string} the exception class name, or unknown_error
      */
@@ -2188,10 +2243,13 @@ class OrderRouter {
             return 0;
         }
         let total = 0;
-        //  ccxt sets a single `fee` and, since safeOrder, a `fees` list alongside it. Reading only
-        //  one of the two would under-count on venues that report per-trade fees, so both are
-        //  summed — with `fee` skipped when it is also present in `fees`, which is how safeOrder
-        //  fills them in.
+        //  ccxt reports the same cut in up to three places, so this is a strict THREE-TIER
+        //  PRECEDENCE and never a sum across tiers: the `fees` list wins outright; if it named
+        //  no entry in this asset, the single `fee` is read; only if that named nothing either
+        //  are the per-trade fees totalled. `sawInList` is what makes each tier exclusive of
+        //  the ones below it — safeOrder fills `fee` and `fees` from the same charge, and the
+        //  per-trade fees are usually that same charge again, so adding tiers together would
+        //  double- or triple-count. Within ONE tier every matching entry IS summed.
         const fees = this.listAt(order, 'fees');
         let sawInList = false;
         for (let i = 0; i < fees.length; i++) {
@@ -2238,7 +2296,7 @@ class OrderRouter {
     isOutcomeUnknownError(errorCode) {
         //  ccxt's NetworkError family: the request failed in a way that does not tell us whether
         //  the venue processed it. Everything else in the hierarchy is the venue ANSWERING, which
-        //  means no order exists. Matched by class name so the five ports agree without depending
+        //  means no order exists. Matched by class name so the six ports agree without depending
         //  on each language's instanceof/isa mechanics.
         return errorCode === 'RequestTimeout'
             || errorCode === 'ExchangeNotAvailable'
@@ -2445,7 +2503,7 @@ class OrderRouter {
      */
     async assertPrefunded(steps, venues) {
         //  built as an array, not a map, so the first shortfall reported is the
-        //  same one in all five languages
+        //  same one in all six languages
         const required = [];
         for (let i = 0; i < steps.length; i++) {
             const step = steps[i];
