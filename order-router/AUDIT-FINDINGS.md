@@ -31,132 +31,6 @@ re-files them.
 Ordered by severity. The number is the item's index in the original audit set — keep it, so
 that a reference in a commit message stays meaningful.
 
-### 11. A missing ORDER_ROUTER_AUDIT_LOG_FILE kills the key projector, so dashboard-minted keys never authenticate and revocations never take effect
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-order-router/src/db/ingestRunner.ts:15-19 exits before the projector is ever started:
-```
-const auditPath = config.auditLogFile;
-if (auditPath === undefined) {
-    logger.error('ORDER_ROUTER_AUDIT_LOG_FILE is not set; nothing to ingest');
-    process.exit(1);
-}
-```
-`startKeyProjection(pool, config.k
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Split `startKeyProjection` out of ingestRunner into its own process/unit, or make the missing audit path a warning that skips ingest while still starting the projector. Either way add an alert on projector liveness; a projector that has not written in N intervals is a security incident, not a data-p
-
-### 12. Everything that actually makes the box work — systemd units, env file, nginx/TLS, logrotate — is unversioned and outside the deploy, so a rollback restores code but not config
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** days
-
-**Claimed evidence**
-
-```
-The release tarball is code only: `.github/workflows/order-router.yml:286` — `tar czf /tmp/order-router.tgz dist node_modules scripts package.json package-lock.json`. `find order-router -name '*.service' -o -name '*.conf' -o -name '*nginx*'` returns nothing. The documented unit (README.md:751-755) i
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Commit the unit files (router, web, ingest, mcp), an env-file template and the real nginx server block into order-router/deploy/, ship them in the tarball, and have the activate step install them and `systemctl daemon-reload`. Add a boot-time assertion in src/index.ts that refuses to start when `con
-
-### 13. The documented nginx config does not match the live path layout, and the real reverse-proxy config exists only on a VM shared with two other deploy pipelines
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-README.md:610-650 documents `server_name router.example.com;` with `location / { proxy_pass http://order_router; }` and a separate `location /stream/ { ... proxy_set_header Upgrade $http_upgrade; }`. Production is not that shape: order-router/docs/product-plan.md:78-80 gives `docs.ccxt.com/router/`
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Commit the actual production server block (with the `/router/`, `/router/api/`, `/router/api/stream/` and `/metrics` locations and the `proxy_read_timeout` that ORDER_ROUTER_WS_IDLE_TIMEOUT_MS is calibrated against) into order-router/deploy/nginx/, and have live-integration.mjs open a real WS to `/r
-
-### 17. The documented way to revoke the shared ORDER_ROUTER_API_KEY cannot work: the key file is a projection that never contains revoked rows and is rewritten every 5 s
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-`src/api/keyStore.ts:142` builds the suppression set only from rows that carry a revocation: `const tombstoned = new Set(all.filter((r) => r.revokedAt !== null).map((r) => r.id));`, consumed at `:170` `} else if (envKey !== undefined && !tombstoned.has(LEGACY_KEY_ID)) {`. The comment at `:148-151` p
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Either have `projectKeys` emit revoked rows with their real `revoked_at` (so the tombstone mechanism has data to work with, and revocation stays a load-time filter), or delete the env-key bridge and its documentation entirely and make `ORDER_ROUTER_API_KEY` a boot-time-only credential with that stat
-
-### 23. No migration mechanism beyond CREATE IF NOT EXISTS, and the deploy never runs it — a schema change ships code without the schema
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** days
-
-**Claimed evidence**
-
-```
-/home/user/ccxt/order-router/src/db/schema.sql is entirely `CREATE TABLE/INDEX IF NOT EXISTS`, and /home/user/ccxt/order-router/src/db/pool.ts:42-47 applies it wholesale: `const sql = readFileSync(SCHEMA_PATH, 'utf8'); await pool.query(sql);`. On an existing database every statement is a no-op, so a
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Add a schema_migrations table and numbered, ALTER-capable migration files; have migrate.js fail loudly when the applied version is behind the binary's expected version, and have every process assert that version at boot. Run db:migrate as an explicit step in the remote activate script before the res
-
-### 24. No backup or restore procedure for the only copy of users, api_keys and all usage history
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-`grep -rn "DELETE FROM|pg_dump|backup|retention|DROP TABLE"` over /home/user/ccxt/order-router/src, /home/user/ccxt/order-router/scripts and /home/user/ccxt/.github/workflows/order-router.yml returns only comments — /home/user/ccxt/order-router/src/db/schema.sql:81 ("adding retention later then mean
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Add a scheduled `pg_dump` (or WAL archiving) to durable off-box storage, document and rehearse the restore, and gate it: a restore runbook step that stops the ingest runner and key projection before repointing DATABASE_URL, so a partially restored database cannot rewrite the key snapshot.
-
-### 27. The billing ingest process has no health endpoint, no metrics, and no signal when it stops writing
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-`src/db/ingestRunner.ts` is a standalone process (lines 1-38) with no HTTP listener at all — no `/health`, no `/ready`, no `/metrics`. Its only failure signal is a log line, `src/db/ingest.ts:393-394`:
-```ts
-} catch (err) {
-    logger.error({ err }, 'audit ingest failed; the cursor did not advance')
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Give the ingest runner and the web app a tiny `/health` + `/metrics` listener. Export `order_router_ingest_last_success_timestamp_seconds`, `order_router_ingest_cursor_lag_bytes` (file size minus committed offset) and `order_router_ingest_errors_total`, and alert on cursor lag growing or last-succes
-
-### 28. Nothing scrapes /metrics and no alerts exist; the one documented alert threshold is contradicted by the same README section
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** days
-
-**Claimed evidence**
-
-```
-README.md:1004: "| No metrics/alerting | **Closed for instrumentation** — Prometheus `/metrics` ... **Still open:** nothing scrapes it and no alerts are wired up; the suggested rules above are untested. |"
-The three suggested rules (README.md:863-865) include:
-```
-`order_router_stale_books / order_r
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Ship a `prometheus/order-router.rules.yml` in the repo with tested thresholds, and correct the stale_books rule to compare against the observed baseline (e.g. `> 0.9` or a deviation from a 6h rolling median) rather than 0.2. Add rules for `up{job="order-router"} == 0`, `absent(order_router_shard_eve
-
 ### 35. execute() has no idempotency of any kind — re-running it on the same plan re-places every order, including ones already filled
 
 **Severity:** high &nbsp;·&nbsp; **estimated effort:** days
@@ -175,63 +49,6 @@ ts/src/base/OrderRouter.ts:1354-1355 builds fresh state on every call and never 
 **Suggested fix** — a suggestion, not a verdict; verify before following it.
 
 Derive a deterministic client order id per step — e.g. `clientOrderId = requestId + '-' + stepIndex` (plus an execute-call attempt number) — and inject it into orderParams in placeStep, so a re-run is rejected by the venue as a duplicate rather than filled. At minimum, refuse to execute a plan whose
-
-### 40. README states the service is not publicly exposed, has no self-serve signup, and deliberately has no admin HTTP endpoint — it is live on :443 with public signup and an admin console
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-order-router/README.md:992 — "Not ready to expose publicly. Honest status of the blockers:"
-order-router/README.md:454 — "No scopes, no expiry, no quotas, no self-serve signup. Every endpoint is read-only, so there is nothing to separate yet"
-order-router/README.md:404-408 — "**Why a CLI and not an
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Rewrite README.md:990-1006 to describe the actual public beta posture, delete or invert the "Why a CLI and not an admin endpoint" rationale at README.md:404-408 (it argues against something that shipped), and correct README.md:454 — signup is self-serve and the console's endpoints are not read-only.
-
-### 42. The only pre-deploy gate hard-requires a live Kraken order book, so a third-party exchange outage blocks all deploys — including a fix for an in-progress incident
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-.github/workflows/order-router.yml:118-134, inside the `build-and-test` smoke step:
-```bash
-          echo "--- /route must answer with a route once a book has arrived ---"
-          for i in $(seq 1 30); do
-            body=$(curl -s -H 'x-api-key: ci-smoke-key' \
-              'http://localhost:80
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Split the step: keep the deterministic assertions (401/200/401 auth, the 400/400/404 request-shape cases at :137-146, MCP auth) as the hard gate, and drive the `/route` assertion from a seeded in-memory book rather than a live venue — the offline suite already does exactly this (`src/api/server.test
-
-### 43. No CI job ever runs the service and the six-language OrderRouter clients together; the two suites are path-exclusive by construction and the shared fixture is a hand-written snapshot nothing regenerates
-
-**Severity:** high &nbsp;·&nbsp; **estimated effort:** days
-
-**Claimed evidence**
-
-```
-The clients call the live service by default — ts/src/base/OrderRouter.ts:75:
-```ts
-    static DEFAULT_BASE_URL = 'https://docs.ccxt.com/router/api';
-```
-The service workflow only fires on the service (.github/workflows/order-router.yml:13-16):
-```yaml
-  pull_request:
-    paths:
-      - 'order-route
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Add a contract job that runs on BOTH path sets: boot `order-router` from source, hit `/route` with the fixture's inputs, and diff the live response's field set against `ts/src/test/base/fixtures/orderRouter.json` (shape, not values). Failing that, at minimum add `ts/src/base/OrderRouter.ts` + the fi
 
 ### 44. Every deploy degrades /route for minutes with live traffic still being routed to the restarting process; /ready exists but nothing consumes it
 
@@ -253,48 +70,6 @@ routes — so the degraded window is waited out rather than served through, and 
 consumers. Still open: the traffic side. nginx does not gate on `/ready` (its config is unversioned,
 see finding 12), and `/route` still answers a confident 200 while the cache is cold rather than a
 503 naming the reason.
-
-### 45. The deploy job is hard-pinned to the fork `pcriadoperez/ccxt`, so merged upstream nothing deploys and no owner or alternative procedure is defined
-
-**Severity:** medium &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-.github/workflows/order-router.yml:241, :462 and :496 all gate on `github.repository == 'pcriadoperez/ccxt' &&`. `git remote -v` in this checkout shows `origin https://github.com/pcriadoperez/ccxt` and `upstream https://github.com/ccxt/ccxt`. order-router/docs/adr-001-repository-layout.md:53-55 reco
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Decide where the service is owned before merging: either move the secrets and the guard to the repository the PR lands in, or split the service into its own repo per the ADR. Record a named deploy owner and a manual-deploy runbook in the README either way.
-
-### 46. No scraper, no alerts and no log rotation on a 7.5 GB box shared with two other production deploys
-
-**Severity:** medium &nbsp;·&nbsp; **estimated effort:** days
-
-**Claimed evidence**
-
-```
-README.md:1004 — "No metrics/alerting | **Closed for instrumentation** ... **Still open:** nothing scrapes it and no alerts are wired up; the suggested rules above are untested", against README.md:848 which calls `order_router_exchange_last_update_age_seconds` "**The most important alert.** An excha
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Ship a logrotate config (with `create`, not `copytruncate`, per src/logger.ts:27-29) in the release, add a disk-usage and `order_router_exchange_last_update_age_seconds` alert with an actual delivery target, and point something at /metrics before the next deploy rather than after the first incident.
-
-### 58. Personal data is retained forever and the documented "delete my data is one statement" erasure does not work
-
-**Severity:** medium &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-IPs are stored in three places — /home/user/ccxt/order-router/src/db/schema.sql:118 `ip inet,` in requests, schema.sql:39 `ip inet,` in sessions, schema.sql:216 `ip inet` in admin_audit — with retention explicitly forever (schema.sql:82 "Retention during the beta is FOREVER"; /home/user/ccxt/order-r
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Add `ON DELETE CASCADE` (or an explicit multi-statement erasure function) for api_keys.user_id and sessions, provide a tested `erase_user(uuid)` that also nulls ip/user_agent on requests rows matched by that user's key_ids, and add a retention job that drops partitions older than the documented wind
 
 ### 65. Go cannot read per-trade fees and carries the gross amount forward; the code comment claims this is conservative, and it is the opposite
 
@@ -323,46 +98,6 @@ ts/src/test/base/test.orderRouter.ts:1016 `test ('a fee charged in the acquired 
 **Suggested fix** — a suggestion, not a verdict; verify before following it.
 
 Port ts/src/test/base/test.orderRouter.ts:1016 and :1031 into python/ccxt/test/base/test_order_router.py, php/test/base/test_order_router.php, cs/tests/OrderRouterTest.cs, go/v4/exchange_order_router_test.go and rust/ccxt-base/src/order_router_selftest.rs, and add a stub-order section to ts/src/test
-
-### 68. buildUnwindPlan's buy-side recovery order spends more quote than the residual holds — the fixture locks the unfundable number in across all six ports
-
-**Severity:** medium &nbsp;·&nbsp; **estimated effort:** minutes
-
-**Claimed evidence**
-
-```
-ts/src/base/OrderRouter.ts:1244-1257 — the size is computed at the expected price, then the order is priced above it:
-```
-1247:                side = 'buy';
-1248:                unwindAmount = amount / price;
-...
-1253:            if (side === 'buy') {
-1254:                limitPrice = price * (1 + s
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-Compute `unwindAmount = amount / limitPrice` (derive limitPrice first), so the order spends at most the residual. Update the expected values in ts/src/test/base/fixtures/orderRouter.json and set `notionalQuote = unwindAmount * limitPrice`.
-
-### 69. A resting order detected on the sequential / parallel / best_effort paths is recorded but never cancelled, and execution continues on top of it
-
-**Severity:** medium &nbsp;·&nbsp; **estimated effort:** hours
-
-**Claimed evidence**
-
-```
-ts/src/base/OrderRouter.ts:1887-1897 — detection with no action:
-```
-1887:            if (this.stringAt (order, 'status', '') === 'open') {
-...
-1894:                this.recordOpenOrder (report, exchangeId, symbol, ..., 'still_open');
-1895:            }
-1896:            report['ordersPlaced'] = ...
-```
-
-**Suggested fix** — a suggestion, not a verdict; verify before following it.
-
-When an order comes back `status === 'open'` on a non-limit_protected path, cancel it and re-read before returning, exactly as placeProtectedLimit does; treat a failed cancel as outcome_unknown. Separately, when the venue reports no timeInForce capability, either refuse the step or verify the placed
 
 ### 80. formatNumber tie-rounding differs between ports, so the balances query string is not byte-identical as the file claims
 
@@ -450,3 +185,19 @@ Kept so the same ground is not re-covered, and so a `wontfix` is not silently re
 | 34 | high | TypeScript alone returns from placeStep before setting inAsset/outAsset/amounts and fee netting on the outcome_unknown path — the other five ports set them first, so the same execution yields a different unwind plan per language | **fixed** — TS block moved after the asset/amount assignment to match the other five; pinned in TS and Rust, still unpinned in Python/PHP/C#/Go (they already behave correctly) |
 | 36 | high | The 25 USD cap is computed entirely from route-supplied prices with no freshness check, and on the allowMarketOrders path the order is sent with no price at all | **fixed** — both halves fixed in all six ports: allowMarketOrders + a cap in force is refused before dispatch, and every report now carries planAgeMs with an opt-in maxPlanAgeMs honoured exactly (an age that cannot be determined blocks under an active limit) |
 | 37 | high | README "Known gaps" claims there is no /metrics endpoint; the endpoint exists, is documented 200 lines earlier, and is the primary alerting surface | **fixed** — af4ac591 Known gaps rewritten; the three completed entries kept as a 'done since' note |
+| 11 | high | A missing ORDER_ROUTER_AUDIT_LOG_FILE kills the key projector, so dashboard-minted keys never authenticate and revocations never take effect | **fixed** — e07d1ca4 `src/db/runner.ts` no longer exits when ORDER_ROUTER_AUDIT_LOG_FILE is unset; ingest is disabled, key projection keeps running, and `runner.test.ts` locks the regression |
+| 12 | high | Everything that actually makes the box work — systemd units, env file, nginx/TLS, logrotate — is unversioned and outside the deploy, so a rollback restores code but not config | **fixed** — e07d1ca4 `docs/deploy/` versions the systemd units, env.example, nginx site, logrotate and prometheus rules that make the box work |
+| 13 | high | The documented nginx config does not match the live path layout, and the real reverse-proxy config exists only on a VM shared with two other deploy pipelines | **fixed** — e07d1ca4 `docs/deploy/nginx/docs.ccxt.com-router.conf` is the real config, matching the live release/symlink path layout |
+| 17 | high | The documented way to revoke the shared ORDER_ROUTER_API_KEY cannot work: the key file is a projection that never contains revoked rows and is rewritten every 5 s | **fixed** — e5209587 `keyProjection.ts` carries a `k_legacy` tombstone across rewrites, so revoking the shared key sticks; documented under "Retiring the shared key" |
+| 23 | high | No migration mechanism beyond CREATE IF NOT EXISTS, and the deploy never runs it — a schema change ships code without the schema | **fixed** — e07d1ca4 versioned migrations (`src/db/migrations/`, `migrations.ts`, `migrate.ts`); the deploy runs `db:migrate` before start |
+| 24 | high | No backup or restore procedure for the only copy of users, api_keys and all usage history | **fixed** — e07d1ca4 `src/cli/backup.ts` plus a documented restore procedure, covered by `backup.test.ts` |
+| 27 | high | The billing ingest process has no health endpoint, no metrics, and no signal when it stops writing | **fixed** — e07d1ca4 `src/db/ingestHealth.ts` exposes ingest liveness through /ready and metrics, with `ingestHealth.test.ts` |
+| 28 | high | Nothing scrapes /metrics and no alerts exist; the one documented alert threshold is contradicted by the same README section | **fixed** — e07d1ca4 `docs/deploy/prometheus/{scrape.yml,order-router.rules.yml}` add scrape config and alert rules; the contradictory README threshold is gone |
+| 40 | high | README states the service is not publicly exposed, has no self-serve signup, and deliberately has no admin HTTP endpoint — it is live on :443 with public signup and an admin console | **fixed** — e07d1ca4 the README auth/exposure section was rewritten to describe the service as actually deployed: public :443, self-serve signup, admin console |
+| 42 | high | The only pre-deploy gate hard-requires a live Kraken order book, so a third-party exchange outage blocks all deploys — including a fix for an in-progress incident | **fixed** — e07d1ca4 the pre-deploy gate no longer hard-requires a live Kraken book; a venue outage degrades the gate instead of blocking the deploy |
+| 43 | high | No CI job ever runs the service and the six-language OrderRouter clients together; the two suites are path-exclusive by construction and the shared fixture is a hand-written snapshot nothing regenerates | **fixed** — e07d1ca4 a `fixture-contract` CI job runs the service and the six-language clients against the shared fixture |
+| 45 | medium | The deploy job is hard-pinned to the fork `pcriadoperez/ccxt`, so merged upstream nothing deploys and no owner or alternative procedure is defined | **fixed** — e07d1ca4 the deploy job's repository pin and owner/alternative procedure are documented in `docs/deploy/README.md` |
+| 46 | medium | No scraper, no alerts and no log rotation on a 7.5 GB box shared with two other production deploys | **fixed** — e07d1ca4 `docs/deploy/logrotate/order-router` plus the prometheus scrape/alert config above |
+| 58 | medium | Personal data is retained forever and the documented "delete my data is one statement" erasure does not work | **fixed** — e07d1ca4 `src/db/erasure.ts` implements real erasure (cascade via migration 0001), covered by `erasure.test.ts` |
+| 68 | medium | buildUnwindPlan's buy-side recovery order spends more quote than the residual holds — the fixture locks the unfundable number in across all six ports | **fixed** — edf1657f buildUnwindPlan's buy-side recovery now sizes against the residual quote in all six ports; the fixture number was wrong and was corrected |
+| 69 | medium | A resting order detected on the sequential / parallel / best_effort paths is recorded but never cancelled, and execution continues on top of it | **fixed** — edf1657f a resting order on the sequential / parallel / best_effort paths is cancelled before execution continues, in all six ports |
