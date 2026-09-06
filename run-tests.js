@@ -392,8 +392,9 @@ const testExchange = async (exchange) => {
         selectedTests = allTests.filter (t => langKeys[t.key]);
     } else {
         // exclude TypeScript when running all tests without specific languages, and C++
-        // too: the C++ port implements --baseTests only (no HTTP layer yet), so it would
-        // report a failure on every per-exchange run. Ask for it explicitly with --cpp.
+        // too: the C++ port currently supports a single exchange (binance), so a
+        // default all-exchange run would report failures everywhere else. Ask for
+        // it explicitly with --cpp.
         selectedTests = allTests.filter (t => (t.key !== '--ts') && (t.key !== '--cpp'));
     }
 

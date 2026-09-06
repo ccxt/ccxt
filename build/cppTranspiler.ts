@@ -39,6 +39,7 @@ const TRADING_METHODS_FILE  = './cpp/ccxt/base/Exchange.TradingMethods.inc';
 const ERRORS_FILE           = './cpp/ccxt/base/Errors.h';
 const EXCHANGES_FOLDER      = './cpp/ccxt/exchanges/';
 const BASE_TESTS_FOLDER     = './cpp/tests/Generated/Base/';
+const EXCHANGE_TESTS_FOLDER = './cpp/tests/Generated/';
 const TS_BASE_TESTS_FOLDER  = './ts/src/test/base/';
 
 const DELIMITER = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
@@ -142,11 +143,19 @@ function assertNoDroppedConstructs (tsPath: string) {
 // D3 — dynamic dispatch. The backend emits `::getValue(this, m)(args)` for
 // `this[m](args)`, which is not valid C++ (the cpp backend's printDynamicCall is a
 // stub the base class never calls). Rewrite calls to the runtime registry, and bare
-// dynamic property reads to getProperty.
+// dynamic property reads to getProperty. The receiver is parameterised: Exchange
+// code dispatches on `this`, the transpiled test framework on the std::any
+// `exchange`/`mockedExchange` locals.
 //
 // Done with a scanner rather than a regex because the argument list nests parentheses.
-function rewriteDynamicDispatch (content: string): string {
-    const NEEDLE = '::getValue(this, ';
+function rewriteDynamicDispatch (content: string, receiver = 'this'): string {
+    const NEEDLE = `::getValue(${receiver}, `;
+    const callFn = receiver === 'this'
+        ? (key: string, args: string) => `callDynamically(this, ${key}, ${args})`
+        : (key: string, args: string) => `callDynamically(${receiver}, ${key}, ${args})`;
+    const readFn = receiver === 'this'
+        ? (key: string) => `getProperty(this, ${key})`
+        : (key: string) => `getProperty(${receiver}, ${key})`;
     let out = '';
     let cursor = 0;
     for (;;) {
@@ -155,9 +164,11 @@ function rewriteDynamicDispatch (content: string): string {
             out += content.slice (cursor);
             return out;
         }
-        // find the ')' closing the getValue call
-        let depth = 0;
-        let i = at + '::getValue('.length - 1;
+        // find the ')' closing the getValue call. depth starts at 1: the needle
+        // ends inside the getValue paren (right after the opening '('), so the
+        // closing ')' is the one that brings the count back to zero.
+        let depth = 1;
+        let i = at + NEEDLE.length - 1;
         let keyEnd = -1;
         for (; i < content.length; i++) {
             if (content[i] === '(') depth++;
@@ -171,16 +182,22 @@ function rewriteDynamicDispatch (content: string): string {
             return out;
         }
         const key = content.slice (at + NEEDLE.length, keyEnd);
-        if (content[keyEnd + 1] !== '(') {
+        // whitespace (including line breaks) may sit between the closing ')' and a
+        // following call paren
+        let probe = keyEnd + 1;
+        while (probe < content.length
+               && (content[probe] === ' ' || content[probe] === '\t'
+                   || content[probe] === '\n' || content[probe] === '\r')) probe++;
+        if (content[probe] !== '(') {
             // a bare property read: this[key]
-            out += content.slice (cursor, at) + `getProperty(this, ${key})`;
+            out += content.slice (cursor, at) + readFn (key);
             cursor = keyEnd + 1;
             continue;
         }
         // a dynamic call: this[key](args...) — capture the balanced argument list
         depth = 0;
         let argsEnd = -1;
-        for (i = keyEnd + 1; i < content.length; i++) {
+        for (i = probe; i < content.length; i++) {
             if (content[i] === '(') depth++;
             else if (content[i] === ')') {
                 depth--;
@@ -191,9 +208,9 @@ function rewriteDynamicDispatch (content: string): string {
             out += content.slice (cursor);
             return out;
         }
-        const args = content.slice (keyEnd + 2, argsEnd).trim ();
+        const args = content.slice (probe + 1, argsEnd).trim ();
         const argList = args.length ? `ccxt::list{${args}}` : 'ccxt::list{}';
-        out += content.slice (cursor, at) + `callDynamically(this, ${key}, ${argList})`;
+        out += content.slice (cursor, at) + callFn (key, argList);
         cursor = argsEnd + 1;
     }
 }
@@ -289,13 +306,71 @@ const ANY_PROPERTIES = [
 // Rewrites must never fire inside a string literal: ccxt error messages mention things
 // like ".options", and rewriting there produced `operator""options`. Mask literals out,
 // transform, then restore.
+//
+// Implemented as a scanner rather than a regex because ccxt comments are full of
+// quotes and escaped quotes (e.g. a line comment containing an escaped-quote JSON
+// fragment), and a regex happily "masks" a string that starts inside a comment — the
+// restore then splices foreign text into the comment and eats the following real
+// code, which is exactly how assertStaticRequestOutput got corrupted into a
+// 900-char comment.
 function outsideStringLiterals (content: string, transform: (s: string) => string): string {
     const literals: string[] = [];
-    const masked = content.replace (/"(?:[^"\\]|\\.)*"/g, (match) => {
-        literals.push (match);
-        return `\u0000LIT${literals.length - 1}\u0000`;
-    });
-    return transform (masked).replace (/\u0000LIT(\d+)\u0000/g, (_m, i) => literals[Number (i)]);
+    let out = '';
+    let i = 0;
+    let inLiteral = false;
+    let lit = '';
+    while (i < content.length) {
+        const c = content[i];
+        if (!inLiteral) {
+            if (c === '/' && content[i + 1] === '/') {
+                const end = content.indexOf ('\n', i);
+                if (end === -1) {
+                    out += content.slice (i);
+                    i = content.length;
+                    break;
+                }
+                out += content.slice (i, end);
+                i = end;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '*') {
+                const end = content.indexOf ('*/', i + 2);
+                if (end === -1) {
+                    out += content.slice (i);
+                    i = content.length;
+                    break;
+                }
+                out += content.slice (i, end + 2);
+                i = end + 2;
+                continue;
+            }
+            if (c === '"') {
+                inLiteral = true;
+                lit = '';
+                i++;
+                continue;
+            }
+            out += c;
+            i++;
+            continue;
+        }
+        // inside a double-quoted literal
+        if (c === '\\' && i + 1 < content.length) {
+            lit += content.slice (i, i + 2);
+            i += 2;
+            continue;
+        }
+        if (c === '"') {
+            literals.push (lit);
+            out += `\u0000LIT${literals.length - 1}\u0000`;
+            inLiteral = false;
+            i++;
+            continue;
+        }
+        lit += c;
+        i++;
+    }
+    return transform (out).replace (/\u0000LIT(\d+)\u0000/g, (_m, i) => '"' + literals[Number (i)] + '"');
 }
 
 function rewriteAnyMemberAccess (content: string): string {
@@ -517,8 +592,41 @@ class CppTranspilerDriver {
             assertNoDroppedConstructs ('./ts/src/' + file);
             const result: any = this.transpiler.transpileCppByPath ('./ts/src/' + file);
             overwriteFileAndFolder (EXCHANGES_FOLDER + id + '.h', this.createExchangeFile (id, result));
+            // one tiny TU per exchange: includes just this header and registers the
+            // factory creator, so the test binary never has to compile every venue
+            // into a single translation unit
+            overwriteFileAndFolder (EXCHANGES_FOLDER + 'tu_' + id + '.cpp', this.createExchangeTu (id));
             log.green ('[cpp] Transpiled', (id as any).yellow);
         }
+    }
+
+    createExchangeTu (id: string): string {
+        return [
+            '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:',
+            '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code',
+            '',
+            `#include "${id}.h"`,
+            '#include "ExchangeFactory.h"',
+            '',
+            'namespace ccxt {',
+            'namespace factory {',
+            'namespace {',
+            '',
+            `std::shared_ptr<ExchangeBase> create_${id} (std::any config) {`,
+            `    return newExchange<${id}> (config);`,
+            '}',
+            '',
+            `struct Registrar_${id} {`,
+            `    Registrar_${id} () { registerExchange ("${id}", &create_${id}); }`,
+            '};',
+            '',
+            `static Registrar_${id} g_registrar_${id};`,
+            '',
+            '} // namespace',
+            '} // namespace factory',
+            '} // namespace ccxt',
+            ''
+        ].join ('\n');
     }
 
     // The static request/response tests call methods by name ("fetchTicker") with an
@@ -778,6 +886,425 @@ class CppTranspilerDriver {
             ''
         );
     }
+
+    // -----------------------------------------------------------------------
+    // exchange tests: ts/src/test/tests.ts + ts/src/test/Exchange/** -> .inc
+    // fragments included inside the handwritten testMainClass bridge class,
+    // mirroring csharpTranspiler.transpileExchangeTests
+    // -----------------------------------------------------------------------
+
+    transpileMainTest () {
+        const tsFile = './ts/src/test/tests.ts';
+        const outFile = EXCHANGE_TESTS_FOLDER + 'testMainClass.inc';
+        const input = escapeMultilineStringLiterals (fs.readFileSync (tsFile).toString ());
+        const result: any = this.transpiler.transpileCpp (input);
+        if (process.env.CPP_DEBUG_RAW) {
+            fs.writeFileSync (process.env.CPP_DEBUG_RAW, result.content);
+        }
+        const fixed = applyExchangeTestFixes (result.content);
+        if (process.env.CPP_DEBUG_FIXED) {
+            fs.writeFileSync (process.env.CPP_DEBUG_FIXED, fixed);
+        }
+        const members = stripClassWrapper (fixed);
+        overwriteFileAndFolder (outFile,
+            createGeneratedHeader ().join ('\n') + members);
+        log.green ('[cpp] Transpiled tests.ts to', outFile.yellow);
+    }
+
+    transpileExchangeTestFiles () {
+        const folders: { dir: string, out: string }[] = [
+            { dir: './ts/src/test/Exchange/', out: EXCHANGE_TESTS_FOLDER + 'Exchange/' },
+            { dir: './ts/src/test/Exchange/base/', out: EXCHANGE_TESTS_FOLDER + 'Exchange/Base/' },
+        ];
+        const written: string[] = [];
+        for (const folder of folders) {
+            const files = fs.readdirSync (folder.dir).filter ((f) => f.endsWith ('.ts'));
+            for (const file of files) {
+                const name = file.replace ('.ts', '');
+                const source = escapeMultilineStringLiterals (
+                    fs.readFileSync (folder.dir + file).toString ());
+                let content = transpileFunctionsInChunks (this.transpiler, source, file);
+                // the sharedMethods default export object is skipped by the chunker,
+                // and call sites elsewhere reference it as `testSharedMethods.x`;
+                // the prefix is stripped so the bare member names resolve inside
+                // the bridge class
+                content = content.replace (/\btestSharedMethods\./g, '');
+                content = content.replace (/\bassert\s*\(/g, 'assertTrue(');
+                // the sharedMethods file emits free functions; inside the bridge
+                // class they become members, so `exchange` params keep their name
+                const outFile = folder.out + name + '.inc';
+                overwriteFileAndFolder (outFile,
+                    createGeneratedHeader ().join ('\n') + content);
+                written.push (outFile);
+            }
+        }
+        // an include list so the handwritten bridge class pulls in everything
+        // without hand-maintaining 70 include lines; paths are relative to
+        // Generated/Exchange/Includes.inc
+        const includesRoot = EXCHANGE_TESTS_FOLDER + 'Exchange/';
+        const includes = written
+            .map ((f) => {
+                const rel = path.relative (includesRoot, f).replace (new RegExp ('\\' + path.sep, 'g'), '/');
+                return `#include "${rel}"`;
+            })
+            .join ('\n');
+        overwriteFileAndFolder (EXCHANGE_TESTS_FOLDER + 'Exchange/Includes.inc',
+            createGeneratedHeader ().join ('\n') + includes + '\n');
+        log.green ('[cpp] Transpiled', String (written.length), 'exchange test files');
+    }
+
+    // The per-method test functions become testMainClass members (via the .inc
+    // includes), but tests.ts reaches them through the testFiles dict and
+    // callMethod -- with reflection in C#, with generated thunks here. One thunk
+    // per method, uniform signature, args unpacked by arity.
+    transpileTestRegistry () {
+        const dir = './ts/src/test/Exchange/';
+        const files = fs.readdirSync (dir).filter ((f) => f.endsWith ('.ts'));
+        const entries: string[] = [];
+        for (const file of files) {
+            const source = escapeMultilineStringLiterals (
+                fs.readFileSync (dir + file).toString ());
+            // the unified method name comes from the file name (test.fetchTicker.ts ->
+            // fetchTicker), exactly like C# BaseTest.Helpers.cs builds "test" + Upper(key)
+            // from the lowercase key. Matching the first function in the file instead is
+            // wrong -- several files define local helpers above the test function.
+            const methodName = file.replace (/^test\./, '').replace (/\.ts$/, '');
+            const fnName = 'test' + methodName.charAt (0).toUpperCase () + methodName.slice (1);
+            const fnMatch = source.match (new RegExp ('^(?:async\\s+)?function\\s+(' + fnName + ')\\s*\\(([^)]*)\\)', 'm'));
+            if (!fnMatch) {
+                log.warn ('[cpp] no function ' + fnName + ' found in ' + file + '; skipped in registry');
+                continue;
+            }
+            const name = fnMatch[1];
+            const params = fnMatch[2].split (',').map ((p) => p.trim ()).filter ((p) => p.length);
+            // first two are always (exchange, skippedProperties)
+            const extra = params.slice (2);
+            const arity = extra.length;
+            const unpack = extra.map ((p, i) => {
+                const pname = (p.split ('=')[0].split (':')[0]).trim ();
+                return `const std::any a${i} = argv.size () > ${i} ? argv[${i}] : std::any {};`;
+            }).join (' ');
+            const callArgs = extra.map ((_p, i) => `a${i}`).join (', ');
+            const call = `return self->${name} (exchange, skippedProperties${callArgs ? ', ' + callArgs : ''});`;
+            entries.push (
+`        { std::string ("${methodName}"), TestEntry { [] (testMainClass* self, std::any exchange, std::any skippedProperties, std::any args) -> std::any {
+            const auto& argv = std::any_cast<ccxt::list> (args).items ();
+            ${unpack}${call}
+        } } },`
+            );
+        }
+        const registry =
+`#pragma once
+
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+
+// One thunk per transpiled exchange test method, keyed by the unified method name
+// (testFetchTicker -> "fetchTicker"). tests.ts reaches the tests through the
+// testFiles dict + callMethod; C# resolves them by reflection, C++ by this table.
+struct TestEntry {
+    std::function<std::any (testMainClass*, std::any, std::any, std::any)> thunk;
+};
+
+inline const std::unordered_map<std::string, TestEntry>& testRegistry () {
+    static const std::unordered_map<std::string, TestEntry> registry = {
+${entries.join ('\n')}
+    };
+    return registry;
+}
+`;
+        overwriteFileAndFolder (EXCHANGE_TESTS_FOLDER + 'Exchange/TestRegistry.inc', registry);
+        log.green ('[cpp] Generated test registry with', String (entries.length), 'entries');
+    }
+}
+
+// ---------------------------------------------------------------------------
+// exchange test framework (mirrors csharpTranspiler.transpileExchangeTests)
+// ---------------------------------------------------------------------------
+
+// The tests.ts class is emitted as `class testMainClass { public: ... };`. The
+// C++ port has no partial classes, so the handwritten bridge owns the class
+// declaration (TestMainClass.Bridge.h) and this strips the generated wrapper,
+// leaving only the member list to be #included inside it -- the same D2 pattern
+// as Exchange.BaseMethods.inc.
+function stripClassWrapper (content: string): string {
+    const start = content.indexOf ('public:');
+    if (start === -1) {
+        throw new Error ('[cpp] tests.ts output has no public: section');
+    }
+    let out = content.slice (start + 'public:'.length);
+    // drop the trailing `};` that closes the class
+    out = out.replace (/\n\};\s*$/, '\n');
+    return out;
+}
+
+// All member/property access on the std::any `exchange` variable goes through the
+// runtime registry: calls -> callDynamically, assignments -> setProperty, reads ->
+// getProperty. Scanner-based because argument lists nest parentheses, and RECURSIVE:
+// an assignment RHS or a call argument list is rewritten with the same pass, so
+// nested `exchange.x` inside a captured region is not skipped.
+function rewriteExchangeAccess (content: string): string {
+    return rewriteExchangeVarImpl (content, 'exchange');
+}
+
+function rewriteExchangeVarImpl (content: string, varName: string): string {
+    const needle = varName + '.';
+    const IDENT = /[A-Za-z_]\w*/;
+    let out = '';
+    let cursor = 0;
+    while (true) {
+        const at = content.indexOf (needle, cursor);
+        if (at === -1) {
+            out += content.slice (cursor);
+            return out;
+        }
+        out += content.slice (cursor, at);
+        let i = at + needle.length;
+        while (i < content.length && /[A-Za-z_0-9]/.test (content[i])) i++;
+        const name = content.slice (at + needle.length, i);
+        if (!name || !IDENT.test (name)) {
+            out += content.slice (at, i);
+            cursor = i;
+            continue;
+        }
+        // skip whitespace to classify: call / assign / read
+        let j = i;
+        while (j < content.length && (content[j] === ' ' || content[j] === '\t')) j++;
+        if (content[j] === '(') {
+            // dynamic call with balanced args (rewritten recursively)
+            let depth = 0;
+            let end = -1;
+            for (let k = j; k < content.length; k++) {
+                if (content[k] === '(') depth++;
+                else if (content[k] === ')') {
+                    depth--;
+                    if (depth === 0) { end = k; break; }
+                }
+            }
+            if (end === -1) {
+                out += content.slice (at, i);
+                cursor = i;
+                continue;
+            }
+            const args = rewriteExchangeVarImpl (content.slice (j + 1, end).trim (), varName);
+            out += `callDynamically(${varName}, std::string("${name}"), ccxt::list{${args}})`;
+            cursor = end + 1;
+            continue;
+        }
+        if (content[j] === '=') {
+            // assignment: capture to the statement-closing ';' at depth zero
+            let depth = 0;
+            let end = -1;
+            for (let k = j + 1; k < content.length; k++) {
+                const c = content[k];
+                if (c === '(' || c === '{' || c === '[') depth++;
+                else if (c === ')' || c === '}' || c === ']') depth--;
+                else if (c === ';' && depth <= 0) { end = k; break; }
+            }
+            if (end === -1) {
+                out += content.slice (at, i);
+                cursor = i;
+                continue;
+            }
+            const rhs = rewriteExchangeVarImpl (content.slice (j + 1, end), varName);
+            out += `setProperty(${varName}, std::string("${name}"), ${rhs.trim ()});`;
+            cursor = end + 1;
+            continue;
+        }
+        // property read
+        out += `getProperty(${varName}, std::string("${name}"))`;
+        cursor = i;
+    }
+}
+
+// Same dynamic-access rewrite for other std::any locals that hold an exchange.
+function rewriteExchangeVar (content: string, varName: string): string {
+    if (varName === 'exchange') {
+        return content;
+    }
+    return content.split (`exchange.`).join (`${varName}.`);
+}
+
+function applyExchangeTestFixes (content: string): string {
+    // static tests hold their exchange in `mockedExchange` (setFetchResponse wraps
+    // it); the access rewrite applies to both names.
+    //
+    // Masking is strictly single-level per phase: applyCommonFixes has its own
+    // internal maskers (rewriteAnyMemberAccess etc.), and nesting them inside the
+    // mask used for the D3/var rewrites made those inner maskers mistake the outer
+    // LIT tokens for their own and restore them as the literal string "undefined" —
+    // which then replaced every string in the file with "std::any{}".
+    const d3AndVar = outsideStringLiterals (content, (masked) => {
+        const withD3 = rewriteDynamicDispatch (rewriteDynamicDispatch (masked, 'exchange'), 'mockedExchange');
+        return rewriteExchangeVarImpl (rewriteExchangeVarImpl (withD3, 'exchange'), 'mockedExchange');
+    });
+    const commonFixed = applyCommonFixes (d3AndVar);
+    // The backend leaks `undefined` as a bare identifier in expression contexts,
+    // and its string wrapper can produce `std::string(undefined)`. Neither is
+    // valid C++; the wrapped form goes first so the bare replacement never
+    // yields std::string(std::any{}). Masked so real string contents
+    // ("fetchEvents returned undefined") are untouched.
+    return outsideStringLiterals (commonFixed, (masked) => masked
+        .replace (/std::string\(undefined\)/g, 'std::any{}')
+        .replace (/\bundefined\b/g, 'std::any{}'));
+}
+
+// The cpp backend's emission of a multi-function file is nondeterministic across
+// processes: whole-file transpiles of test.sharedMethods.ts dropped arbitrary
+// functions run to run (same input, fresh instance, 10 vs 35 emitted). Per-function
+// chunks are stable -- calls between functions stay bare identifiers, which resolve
+// at include time -- so every top-level function is transpiled in isolation and the
+// results rejoined. Every function present in the source MUST appear in the output;
+// a silent drop aborts the build instead of shipping a hole.
+function transpileFunctionsInChunks (transpiler: Transpiler, tsSource: string, fileName: string): string {
+    const lines = tsSource.split ('\n');
+    const starts: number[] = [];
+    lines.forEach ((line, i) => {
+        if (/^(async\s+)?function\s+\w/.test (line) || /^export\s+default\s/.test (line)) {
+            starts.push (i);
+        }
+    });
+    starts.push (lines.length);
+    const expectedNames: string[] = [];
+    starts.slice (0, -1).forEach ((s) => {
+        const line = lines[s];
+        const fnMatch = line.match (/^(?:async\s+)?function\s+(\w+)/);
+        const defMatch = line.match (/^export\s+default\s+(\w+)/);
+        if (fnMatch) expectedNames.push (fnMatch[1]);
+        else if (defMatch) expectedNames.push (defMatch[1]);
+    });
+    const chunks: string[] = [];
+    for (let s = 0; s < starts.length - 1; s++) {
+        chunks.push (lines.slice (starts[s], starts[s + 1]).join ('\n'));
+    }
+    const emitted: string[] = [];
+    for (const chunk of chunks) {
+        const trimmed = chunk.trim ();
+        if (!trimmed) continue;
+        // the `export default {...}` object literal at the end of
+        // test.sharedMethods.ts is dead weight for C++ (the members are the
+        // functions above it); skip it explicitly.
+        if (trimmed.startsWith ('export default {')) continue;
+        // `export default testX;` re-exports the function defined in the previous
+        // chunk; C++ has no module system so there is nothing to emit.
+        if (/^export\s+default\s+\w+;\s*$/.test (trimmed)) continue;
+        let piece: string;
+        try {
+            piece = transpiler.transpileCpp (trimmed).content;
+        } catch (e: any) {
+            throw new Error (`[cpp] chunk of ${fileName} failed to transpile: ${e.message}\n${trimmed.slice (0, 400)}`);
+        }
+        piece = applyExchangeTestFixes (piece);
+        emitted.push (piece.trimEnd () + '\n');
+    }
+    const joined = emitted.join ('\n');
+    for (const name of expectedNames) {
+        if (!new RegExp (`\\b${name}\\s*\\(`).test (joined)) {
+            throw new Error (`[cpp] function ${name} in ${fileName} was silently dropped by the backend; the chunked transpile must be fixed before this file can ship`);
+        }
+    }
+    return joined;
+}
+
+// The backend cannot emit string literals containing real newlines: it dumps the
+// literal as a `//` comment, the enclosing statement disappears, and the brace
+// balance of the rest of the file breaks (this corrupted assertStaticRequestOutput
+// in tests.ts and cascaded into 169 phantom errors). Escaping the newlines in the
+// TS source before transpiling keeps the literal as a normal one-line string; the
+// string VALUE is unchanged ('\n' is the same character).
+function escapeMultilineStringLiterals (source: string): string {
+    let out = '';
+    let quote: string | null = null;   // ' " or `
+    let tickContent: string[] = [];    // buffer for a backtick literal (backend has no template support)
+    for (let i = 0; i < source.length; i++) {
+        const c = source[i];
+        if (quote === '`') {
+            if (c === '\\') {
+                if (source[i + 1] === '`') {   // escaped backtick
+                    tickContent.push ('`');
+                    i++;
+                } else {
+                    tickContent.push ('\\\\');
+                }
+                continue;
+            }
+            if (c === '`') {
+                // no ${} interpolation in the ccxt sources; convert to a plain
+                // double-quoted literal the backend can emit
+                out += '"' + tickContent.join ('') + '"';
+                tickContent = [];
+                quote = null;
+                continue;
+            }
+            if (c === '"') {
+                tickContent.push ('\\"');
+                continue;
+            }
+            if (c === '\n' || c === '\r') {
+                tickContent.push ('\\n');
+                if (c === '\r' && source[i + 1] === '\n') {
+                    i++;
+                }
+                continue;
+            }
+            tickContent.push (c);
+            continue;
+        }
+        if (quote === null) {
+            // comments must be passed through untouched: a stray quote or backtick
+            // inside a comment would otherwise swallow the rest of the file
+            if (c === '/' && source[i + 1] === '/') {
+                const end = source.indexOf ('\n', i);
+                if (end === -1) {
+                    out += source.slice (i);
+                    return out;
+                }
+                out += source.slice (i, end);
+                i = end - 1;
+                continue;
+            }
+            if (c === '/' && source[i + 1] === '*') {
+                const end = source.indexOf ('*/', i + 2);
+                if (end === -1) {
+                    out += source.slice (i);
+                    return out;
+                }
+                out += source.slice (i, end + 2);
+                i = end + 1;
+                continue;
+            }
+            if (c === '"' || c === "'" || c === '`') {
+                quote = c;
+                out += c;
+            } else {
+                out += c;
+            }
+            continue;
+        }
+        if (c === '\\' && quote !== '`') {
+            // keep escapes intact; the escaped char must not close the literal
+            out += c;
+            if (i + 1 < source.length) {
+                out += source[i + 1];
+                i++;
+            }
+            continue;
+        }
+        if (c === quote) {
+            quote = null;
+            out += c;
+            continue;
+        }
+        if (c === '\n' || c === '\r') {
+            out += '\\n';
+            if (c === '\r' && source[i + 1] === '\n') {
+                i++;   // CRLF -> one \n
+            }
+            continue;
+        }
+        out += c;
+    }
+    return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -788,6 +1315,7 @@ async function runMain () {
     const force = process.argv.includes ('--force');
     const baseClassOnly = process.argv.includes ('--baseClass');
     const baseTestsOnly = process.argv.includes ('--baseTests');
+    const exchangeTestsOnly = process.argv.includes ('--tests');
     const ids = process.argv.slice (2).filter ((x) => !x.startsWith ('--'));
 
     const driver = new CppTranspilerDriver ();
@@ -799,6 +1327,12 @@ async function runMain () {
     }
     if (baseTestsOnly) {
         await driver.transpileBaseTests (force);
+        return;
+    }
+    if (exchangeTestsOnly) {
+        driver.transpileMainTest ();
+        driver.transpileExchangeTestFiles ();
+        driver.transpileTestRegistry ();
         return;
     }
     if (ids.length) {
@@ -816,4 +1350,4 @@ if (isMainEntry (metaUrl)) {
     await runMain ();
 }
 
-export { CppTranspilerDriver };
+export { CppTranspilerDriver, applyExchangeTestFixes, escapeMultilineStringLiterals, stripClassWrapper };

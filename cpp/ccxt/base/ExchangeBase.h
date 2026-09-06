@@ -20,9 +20,14 @@
 #include <any>
 #include <functional>
 #include <future>
+#include <mutex>
 #include <string>
 
 namespace ccxt {
+
+// TS `throw new Error(...)` transpiles to `throw Error(...)` (the backend's NEW_TOKEN
+// is empty). TS Error = the root of the ccxt hierarchy, so alias it here.
+using Error = BaseError;
 
 // JS Number sentinels. The backend maps Number.MAX_SAFE_INTEGER to INT_MAX (2^31),
 // which is the wrong magnitude, so cppTranspiler.ts redirects it here instead.
@@ -33,7 +38,13 @@ std::any awaitValue (const std::any& value);
 std::any promiseAll (const std::any& futures);
 
 // `x instanceof T` cannot be a dynamic_cast on a std::any; the transpiler rewrites it
-// to this. Only error types are ever tested this way in the transpiled sources.
+// to this. Two argument shapes occur: caught exceptions (const std::exception&) and
+// std::any values.
+template <class T>
+bool isInstanceOf (const std::exception& e) {
+    return dynamic_cast<const T*> (&e) != nullptr;
+}
+
 template <class T>
 bool isInstanceOf (const std::any& value) {
     return value.type () == typeid (T);
@@ -121,6 +132,9 @@ public:
 
     std::any markets;
     std::any markets_by_id;
+    // guards the fetch-and-set phase of loadMarkets (C# uses the cached
+    // marketsLoading task for the same purpose)
+    std::mutex loadMarketsMutex;
     std::any currencies;
     std::any currencies_by_id;
     std::any symbols;
@@ -325,6 +339,57 @@ public:
     virtual std::any createSafeDictionary (std::any isWs = std::any {});
     virtual std::any mapToSafeMap (std::any value);
     virtual std::any initThrottler ();
+
+    // -- dynamic access (test framework + transpiled property calls) ------------------
+    // Transpiled code reads/writes members through these when the receiver is a
+    // std::any: getProperty/setProperty cover the flat field surface, callDynamically
+    // routes method calls to the generated per-exchange callMethod table first and
+    // falls back to the common helper registry.
+    virtual std::any getProperty (const std::string& name);
+    virtual std::any setProperty (const std::string& name, std::any value);
+    virtual std::any callDynamically (const std::string& name, std::any args);
+
+    // -- HTTP plumbing ----------------------------------------------------------------
+    // handleErrors is also declared on the generated Exchange class (a no-op default)
+    // and overridden per exchange (binance.h); fetch() calls it through the vtable.
+    virtual std::any handleErrors (std::any statusCode, std::any statusText,
+                                   std::any url, std::any method,
+                                   std::any responseHeaders, std::any responseBody,
+                                   std::any response, std::any requestHeaders,
+                                   std::any requestBody);
+    virtual std::any handleHttpStatusCode (std::any code, std::any reason,
+                                           std::any url, std::any method,
+                                           std::any body);
+    virtual std::any onRestResponse (std::any statusCode, std::any statusText,
+                                     std::any url, std::any method,
+                                     std::any responseHeaders, std::any responseBody,
+                                     std::any requestHeaders, std::any requestBody);
+
+    // default request headers merged into every fetch (User-Agent etc.)
+    std::any headers;
+
+    // -- generated-surface redeclarations --------------------------------------------
+    // These methods are generated into the Exchange class (.inc). Redeclaring them
+    // here (identical signatures) lets ExchangeBase code (callDynamically, fetch)
+    // reach them through the vtable; the .inc definitions become overrides.
+    virtual std::any safeNumber (std::any obj, std::any key, std::any defaultNumber = std::any {});
+    virtual std::any safeDict (std::any dictionaryOrList, std::any key, std::any defaultValue = std::any {});
+    virtual std::any safeList (std::any dictionaryOrList, std::any key, std::any defaultValue = std::any {});
+    virtual std::any parseToInt (std::any number);
+    virtual std::any parseToNumeric (std::any number);
+    virtual std::any market (std::any symbol);
+    virtual std::any marketId (std::any symbol);
+    virtual std::any currency (std::any code);
+    virtual std::any currencyId (std::any code);
+    virtual std::any checkRequiredCredentials (std::any error = true);
+    virtual std::any setMarkets (std::any markets, std::any currencies = std::any {});
+    virtual void setSandboxMode (std::any enabled);
+    virtual std::any isEmptyString (std::any value);
+
+    // -- handwritten helpers the transpiled test framework calls ----------------------
+    virtual std::any extendExchangeOptions (std::any newOptions);
+    virtual std::any convertToSafeDictionary (std::any value);
+    virtual std::any getCcxtVersion ();
     virtual std::any addFetchCache (std::any entry, std::any value = std::any {});
     virtual std::any setLastRequest (std::any value);
     virtual std::any setLastRestRequestTimestamp (std::any value = std::any {});
