@@ -955,10 +955,12 @@ await exchange.cancelOrder(exchange.safeString(order, "id"), handle);
 
 ## Order Router
 
-A client for the CCXT order-router service — a separate process holding live books across many
-venues, which answers "what is the cheapest way to turn asset A into asset B right now?", including
-bridges (`SOL -> USDT -> BTC` when no `SOL/BTC` market exists). It is **not** an exchange: it does
-not derive from `Exchange`, has no unified methods, and is constructed directly.
+Two things, either usable without the other. **A client** for the CCXT order-router service — a
+separate process holding live books across many venues, which answers "what is the cheapest way to
+turn asset A into asset B right now?", including bridges (`SOL -> USDT -> BTC` when no `SOL/BTC`
+market exists). And **an execution engine for plans you build yourself**, which needs no router
+service and no API key. It is **not** an exchange: it does not derive from `Exchange`, has no unified
+methods, and is constructed directly.
 
 ```csharp
 using dict = System.Collections.Generic.Dictionary<string, object>;
@@ -984,6 +986,52 @@ if (violations.Count == 0)
 
 `execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`
 regardless of the strategy requested** — a call that looks live but forgot the flag places nothing.
+
+### Executing your own plans
+
+`execute` takes a **plan**, not a route, and never checks where the plan came from — so your own
+strategy can supply its own trades and still get the notional cap, halt-and-reconcile between hops,
+resting-order cleanup and the unwind plan. A plan that has been through JSON or a database, or a
+hand-rebuilt tail of a halted route, is equally valid.
+
+A step is one order on one venue. Required: `exchangeId`, `symbol`, `side`, `amount`, `base`,
+`quote`. Optional: `stepIndex` (defaults to position), `hopIndex`/`legIndex` (steps sharing a
+`hopIndex` are one hop — what `parallel_within_hop` parallelises), `expectedPrice`, `limitPrice`,
+`notionalQuote`.
+
+```csharp
+var plan = new Dictionary<string, object> {
+    { "requestId", "my-strategy-0001" },        // identity; a live run refuses without one
+    { "calculatedAt", exchange.Milliseconds() },
+    { "steps", new List<object> {
+        new Dictionary<string, object> {
+            { "exchangeId", "binance" }, { "symbol", "BTC/USDT" }, { "side", "buy" },
+            { "amount", 0.01 }, { "base", "BTC" }, { "quote", "USDT" },
+            { "hopIndex", 0 }, { "expectedPrice", 64000 },
+        },
+    } },
+};
+var report = await router.Execute(plan, venues, new Dictionary<string, object> {
+    { "strategy", "sequential" }, { "live", true }, { "maxNotionalUsd", 25 },
+});
+```
+
+A live `execute` requires an identity and refuses without one: identity + step index derives each
+order's `clientOrderId`, so the same plan sent twice re-sends ids the venue has already seen and is
+rejected as a duplicate rather than filled again, and the identity is remembered in-process so a
+second `execute` of the same plan is refused before any venue is contacted. Supply it as the plan's
+`requestId` or as the options' `idempotencyKey`.
+
+Make it stable and tied to the intent (a strategy name plus the signal's timestamp). A fresh value
+per call — a wall-clock timestamp and friends — turns both protections off while looking like it
+has them on. To re-run deliberately, pass `allowReexecution`; that clears the in-process guard only,
+and the deterministic client order ids still stand. Client order ids are not honoured by every
+venue, so neither half substitutes for the other.
+
+`checkExecutionPlanSafety` is worth running on a hand-written plan first: it checks every step
+against that venue's real market rules — minimum amount, minimum cost, precision — which is where a
+hand-picked amount usually goes wrong.
+
 
 Strategies: `dry_run` (default), `sequential`, `parallel_within_hop` (concurrent across venues,
 serialised within a venue), `limit_protected` (rests a limit order and cancels it at

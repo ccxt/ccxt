@@ -8496,10 +8496,18 @@ ex.Number = "String" // "String" | "Number"
 
 # Order Router
 
-`OrderRouter` is a client for the CCXT order-router service — a separate process that holds live
-order books across many venues and answers one question: *what is the cheapest way to turn asset A
-into asset B right now?* The answer accounts for book depth, fees, and bridges (`SOL -> USDT ->
-BTC` when no `SOL/BTC` market exists).
+`OrderRouter` is two things, and you can use either half without the other.
+
+It is a **client for the CCXT order-router service** — a separate process that holds live order
+books across many venues and answers one question: *what is the cheapest way to turn asset A into
+asset B right now?* The answer accounts for book depth, fees, and bridges (`SOL -> USDT -> BTC`
+when no `SOL/BTC` market exists).
+
+It is also a **multi-venue execution engine for plans you build yourself**. `execute` takes a plan,
+not a route, and never asks where that plan came from — so your own strategy can supply its own
+list of trades and still get the notional cap, the halt-and-reconcile logic, the resting-order
+cleanup and the unwind plan. That path needs no router service and no `apiKey`. See
+[Executing your own plans](#executing-your-own-plans).
 
 It is not an exchange. It does not extend `Exchange`, has no unified methods, and is constructed
 directly:
@@ -8648,6 +8656,82 @@ silently disappears when a rate is missing is not a cap. Supply `options.usdRate
 asset in the plan. With no cap set there is nothing to evaluate, so `usdRates` is not required
 either — demanding the inputs for a check nobody asked for would be asking for something nobody
 wanted.
+
+### Executing your own plans
+
+Everything after `fetchRoute` is plain data. `execute` takes a plan dictionary and reads only its
+`steps`, its `calculatedAt` and its identity — it does not check that a route produced it. A plan
+you assemble yourself is a first-class input, and so is a plan that has been through JSON, a
+database, or a hand-rebuilt tail of a halted route.
+
+A step is a single order on a single venue. Only the first six fields are required; the rest carry
+the router's own predictions and default to `0` when you have nothing to say:
+
+| Field | Required | Meaning |
+|---|---|---|
+| `exchangeId` | yes | key into the `venues` dictionary you pass to `execute` |
+| `symbol` | yes | unified market symbol, as that exchange knows it |
+| `side` | yes | `buy` or `sell` |
+| `amount` | yes | in base units |
+| `base`, `quote` | yes | the step's currencies, used to chain hops and to size the unwind |
+| `stepIndex` | no | execution order; defaults to array position |
+| `hopIndex`, `legIndex` | no | which hop this belongs to, and which leg within it. Steps sharing a `hopIndex` are one hop — this is what `parallel_within_hop` parallelises and what reconciliation chains |
+| `expectedPrice` | no | what you expect to pay; `impactBps` and reconciliation are measured against it |
+| `limitPrice` | no | used by `limit_protected` |
+| `notionalQuote` | no | quote-side value, used by the notional cap |
+
+```javascript
+const plan = {
+    'requestId': 'my-strategy-2026-09-06-0001',
+    'calculatedAt': exchange.milliseconds (),
+    'steps': [
+        { 'exchangeId': 'binance', 'symbol': 'BTC/USDT', 'side': 'buy', 'amount': 0.01,
+          'base': 'BTC', 'quote': 'USDT', 'hopIndex': 0, 'expectedPrice': 64000 },
+        { 'exchangeId': 'kraken', 'symbol': 'ETH/USDT', 'side': 'buy', 'amount': 0.2,
+          'base': 'ETH', 'quote': 'USDT', 'hopIndex': 0, 'expectedPrice': 3200 },
+    ],
+};
+const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
+    'strategy': 'parallel_within_hop',
+    'live': true,
+    'usdRates': { 'USDT': 1 },
+    'maxNotionalUsd': 25,
+});
+```
+
+`checkExecutionPlanSafety` works on your plan too, and is worth running first: it checks each step
+against that venue's real market rules — minimum amount, minimum cost, precision — which is where a
+hand-written amount most often goes wrong.
+
+#### Identity is required for a live run
+
+A live `execute` needs an identity for the plan, and refuses without one. It is what makes a
+re-run safe: the identity plus the step index derives each order's `clientOrderId`, so a plan sent
+twice re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
+twice, and the same identity is remembered in-process so a second `execute` of the same plan is
+refused before any venue is contacted.
+
+Supply it as `plan['requestId']` (routed plans carry one already) or as `options.idempotencyKey`:
+
+```javascript
+await router.execute (plan, venues, { 'live': true, 'idempotencyKey': 'my-strategy-0001', ... });
+```
+
+Make it stable and unique to the *intent* — a strategy name plus a signal timestamp is a good one,
+`Date.now()` is not: a fresh identity on every call turns both protections off. There is
+deliberately no generated default, because the only two options are a random id, which silently
+disables the mechanism, or a fingerprint of the plan's contents, which makes two genuinely separate
+runs of an identical plan indistinguishable.
+
+To re-run a plan on purpose — say a first attempt that placed nothing — pass
+`options.allowReexecution: true`. That clears the in-process guard only; the `clientOrderId`s stay
+deterministic, so a venue that honours them still rejects orders it has actually seen.
+
+Note that `clientOrderId` support is not universal, and the two halves fail differently: the
+in-process guard always works but does not survive a restart, while the venue-side rejection
+survives anything but only on venues that honour client order ids. Neither is a substitute for the
+other, and `execute` sets `clientOrderId` on every step, overriding one passed in
+`options.orderParams` — one id reused across every step of a plan is worse than none.
 
 ## Reading the report
 
