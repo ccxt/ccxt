@@ -10,7 +10,7 @@ import log from 'ololog'
 import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { applyJavaUtilImports } from './javaUtilImports.js';
+import { applyJavaUtilImports } from './javaTranspiler.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 

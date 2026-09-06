@@ -17,7 +17,7 @@ import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
-import { applyJavaUtilImports } from './javaUtilImports.js';
+import { applyJavaUtilImports, ZERO_REQUIRED_TYPED_WHITELIST } from './javaTranspiler.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -146,53 +146,6 @@ interface MethodInfo {
     optionalParams: ParamInfo[];
     isWatch: boolean;
 }
-
-// User-facing methods with no required params for which we DO emit typed
-// zero-arg + truncation overloads. The default rule (skip if no required
-// params) protects against collisions with internal `this.method()` and
-// `this.method(null)` calls in transpiled WS Core code that expect the
-// parent's `Object... varargs` to match. For these methods we've audited
-// the TS sources, confirmed no internal zero-arg call sites remain (the
-// few that existed were updated to pass `params` / `{}`), and the typed
-// overloads are safe to emit.
-//
-// Adding to this list requires:
-//   1. `grep -r "await this\.<method>\s*(\s*)" ts/src/` returns no hits
-//   2. None of the remaining call sites pass `null` literally without an
-//      explicit cast — they should always pass a typed value
-//
-// loadMarkets / loadAccounts / loadTimeDifference / signIn etc. are NOT in
-// this list because their internal call sites are too numerous to refactor
-// (loadMarkets alone has 3000+ `this.loadMarkets()` zero-arg call sites).
-export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
-    // REST
-    'fetchBalance',
-    'fetchOrders',
-    'fetchMyTrades',
-    'fetchOpenOrders',
-    'fetchClosedOrders',
-    'fetchCanceledOrders',
-    'fetchTime',
-    'fetchStatus',
-    'fetchTickers',
-    'fetchPositions',
-    'fetchAccounts',
-    'fetchCurrencies',
-    'fetchMarkets',
-    // WebSocket variants — same zero-required-param shape, same typed return.
-    // Only includes methods that exist on at least one exchange's TS source AND
-    // have a base `Object... varargs` definition on Exchange.java (so the
-    // untyped async alias `fetchXWsAsync(Object...)` can delegate to it).
-    // `fetchCurrenciesWs` is excluded because its TS body uses `new Promise()`
-    // which doesn't transpile to Java — no base method, no delegate target.
-    'fetchBalanceWs',
-    'fetchOrdersWs',
-    'fetchMyTradesWs',
-    'fetchOpenOrdersWs',
-    'fetchClosedOrdersWs',
-    'fetchTickersWs',
-    'fetchPositionsWs',
-]);
 
 // WS subscription methods (watch*) with all-optional parameters. They get
 // typed truncation overloads only — NO async siblings (watch* methods ship
