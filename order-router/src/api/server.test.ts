@@ -1056,6 +1056,11 @@ test('an unroutable reason does not depend on whether quotes were requested', as
     const stale = book();
     stale.receivedAt = Date.now() - 600_000;
     cache.setBook(stale);
+    // An unrelated fresh book, so the service is READY (routing is refused wholesale below the
+    // readiness threshold) while every book on the queried path is still stale — which is the
+    // state this classifier distinction is actually about. It shares no asset with USDT->BTC, so
+    // it cannot become part of the answer.
+    cache.setBook(book({ exchangeId: 'coinbase', symbol: 'SOL/USDC' }));
     for (const suffix of ['', '&includeQuotes=false']) {
         const r = await app.inject({
             method: 'GET', url: `/route?from=USDT&to=BTC&amountOut=1${suffix}`, headers: AUTH });
@@ -1297,13 +1302,15 @@ test('the access log never records the amounts a caller holds', async () => {
 // keeps serving 200s at normal latency while telling every caller it cannot route — and before
 // this counter existed, noticing that meant someone reading logs.
 test('an unroutable answer increments a metric, not just a log line', async () => {
-    const { app } = await buildTestServer();
+    const { app, cache } = await buildTestServer();
     const key = AUTH;
 
     const before = await app.inject({ method: 'GET', url: '/metrics', headers: key });
     assert.equal(before.body.indexOf('order_router_unroutable_total{reason="no_market"} 1'), -1);
 
-    // No books at all, so no market exists between these two assets.
+    // A fresh book so the router is past the readiness gate, on a market that shares nothing with
+    // the pair asked for: no market exists between THESE two assets, which is the 404 under test.
+    cache.setBook(book({ exchangeId: 'coinbase', symbol: 'SOL/USDC' }));
     const route = await app.inject({ method: 'GET', url: '/route?from=DOGE&to=SHIB&amountIn=1', headers: key });
     assert.equal(route.json().unroutableReason, 'no_market');
 
@@ -1503,4 +1510,122 @@ test('a dropped stream frame is reported three ways, not silently discarded', as
     // And the client, on the next frame that does get through, can tell "the market did not move"
     // from "I missed the frames where it did".
     assert.ok(src.indexOf('...pushed, droppedFrames') !== -1, 'the client is told on the next frame');
+});
+
+// --- Refusing to route while the cache is still cold ---
+
+// The deploy's own smoke allows five minutes for the book cache to warm after a restart, and for
+// those five minutes /route answered 200. Not an error 200 either: with a handful of books in and
+// the rest still connecting, the router ranks the venues it happens to have and returns a route it
+// has no basis to call best. The caller cannot tell that answer apart from a warm one — same shape,
+// same confident fields — so a deploy silently degrades everyone's execution instead of failing
+// visibly. /ready already knows the answer; this makes /route consult it.
+test('GET /route is 503 with reason cache_cold while the service is not ready', async () => {
+    const { app, cache } = await buildTestServer();
+
+    // A book that exists but is older than the staleness cutoff: freshCount is 0, so the service is
+    // not ready, while the market itself is known — which is exactly the state that used to answer
+    // 200 rather than 404-no_market.
+    cache.setBook(book({ receivedAt: Date.now() - 600_000, exchangeTimestamp: Date.now() - 600_000 }));
+
+    const ready = await app.inject({ method: 'GET', url: '/ready' });
+    assert.equal(ready.statusCode, 503, 'precondition: this state is not ready');
+
+    for (const injection of [
+        { method: 'GET' as const, url: '/route?from=USDT&to=BTC&amountIn=100', headers: AUTH },
+        { method: 'POST' as const, url: '/route', headers: AUTH,
+            payload: { from: 'USDT', to: 'BTC', amountIn: '100' } },
+    ]) {
+        const response = await app.inject(injection);
+        assert.equal(response.statusCode, 503, `${injection.method} /route should refuse while cold`);
+        const body = response.json();
+        // Machine-readable, because the whole point is that a client can branch on it: retry the
+        // same request in a moment, rather than act on a route or give up on a bad ticker.
+        assert.equal(body.reason, 'cache_cold');
+        assert.equal(body.freshCount, 0);
+        assert.equal(body.minFreshBooksForReady, 1);
+        // Retry-After, so a well-behaved client backs off without inventing an interval.
+        assert.ok(response.headers['retry-after'] !== undefined);
+    }
+
+    // And once a fresh book lands, the same request is answered normally again.
+    cache.setBook(book());
+    const warm = await app.inject({ method: 'GET', url: '/route?from=USDT&to=BTC&amountIn=100', headers: AUTH });
+    assert.equal(warm.statusCode, 200);
+    await app.close();
+});
+
+// A malformed request is malformed whether the cache is warm or not, and telling a caller "try
+// again in a moment" about a typo would send them into a retry loop that can never succeed. So
+// validation keeps winning over the readiness gate.
+test('a 400-level /route request still gets 400, not the cold-cache 503', async () => {
+    const { app, cache } = await buildTestServer();
+    cache.setBook(book({ receivedAt: Date.now() - 600_000, exchangeTimestamp: Date.now() - 600_000 }));
+    const response = await app.inject({ method: 'GET', url: '/route?from=BTC&to=BTC&amountIn=1', headers: AUTH });
+    assert.equal(response.statusCode, 400);
+    await app.close();
+});
+
+// The probes are the one thing that must keep answering while cold — gating them on readiness
+// would make the service unable to report that it is not ready, and would take /metrics off the
+// air during exactly the window an operator is watching it.
+test('/health, /ready and /metrics keep answering while the cache is cold', async () => {
+    const { app, cache } = await buildTestServer();
+    cache.setBook(book({ receivedAt: Date.now() - 600_000, exchangeTimestamp: Date.now() - 600_000 }));
+
+    assert.equal((await app.inject({ method: 'GET', url: '/health' })).statusCode, 200);
+    assert.equal((await app.inject({ method: 'GET', url: '/ready' })).statusCode, 503);
+    assert.equal((await app.inject({ method: 'GET', url: '/metrics', headers: AUTH })).statusCode, 200);
+    await app.close();
+});
+
+// /orderbook is deliberately NOT gated, and that is the consistent treatment rather than an
+// exception to it. What makes a cold /route answer wrong is that it RANKS across the cache: a
+// missing venue silently changes the winner, and nothing in the body says so. A single book is
+// returned verbatim, with its own receivedAt, and a half-filled cache cannot make that answer
+// wrong — refusing it would only deny a caller data the router itself holds and trusts.
+test('GET /orderbook still serves a cached book while the service is not ready', async () => {
+    const { app, cache } = await buildTestServer();
+    cache.setBook(book({ exchangeId: 'kraken', symbol: 'BTC/USDT',
+        receivedAt: Date.now() - 600_000, exchangeTimestamp: Date.now() - 600_000 }));
+    assert.equal((await app.inject({ method: 'GET', url: '/ready' })).statusCode, 503);
+    const response = await app.inject({
+        method: 'GET', url: '/orderbook/kraken/BTC%2FUSDT', headers: AUTH });
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.json().exchangeId, 'kraken');
+    await app.close();
+});
+
+// The streaming twin refuses on the same condition, for the same reason, and says so in the same
+// words. A socket that opened during a deploy would otherwise push confidently-shaped frames
+// computed off a fraction of the venues, which is worse than the REST case: the caller acts on
+// them repeatedly and never sees a status code at all.
+test('WS /stream/route refuses to open while the cache is cold', async () => {
+    const { WebSocket } = await import('ws');
+    const previous = process.env['ORDER_ROUTER_API_KEY'];
+    process.env['ORDER_ROUTER_API_KEY'] = TEST_API_KEY;
+    const cache = new OrderBookCache();
+    cache.setBook(book({ receivedAt: Date.now() - 600_000, exchangeTimestamp: Date.now() - 600_000 }));
+    const app = await buildServer(cache, new FeeRegistry(), silentLogger, { rateLimitMax: 100000 });
+    try {
+        await app.listen({ port: 0, host: '127.0.0.1' });
+        const address = app.server.address();
+        const port = typeof address === 'object' && address ? address.port : 0;
+        const outcome = await new Promise<{ code: number; message: unknown }>((resolve) => {
+            let message: unknown;
+            const ws = new WebSocket(`ws://127.0.0.1:${port}/stream/route?from=USDT&to=BTC&amountIn=100`, {
+                headers: { 'x-api-key': TEST_API_KEY },
+            });
+            ws.on('message', (d: Buffer) => { message = JSON.parse(d.toString()); });
+            ws.on('close', (code: number) => resolve({ code, message }));
+            ws.on('error', () => resolve({ code: -1, message }));
+            setTimeout(() => resolve({ code: 0, message }), 3000);
+        });
+        assert.equal(outcome.code, 1013, 'try-again-later, not a policy violation: the request is fine');
+        assert.equal((outcome.message as { reason?: string })?.reason, 'cache_cold');
+    } finally {
+        await app.close();
+        if (previous === undefined) delete process.env['ORDER_ROUTER_API_KEY'];
+        else process.env['ORDER_ROUTER_API_KEY'] = previous;
+    }
 });

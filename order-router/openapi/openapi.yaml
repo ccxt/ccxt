@@ -218,6 +218,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/RouteResult' }
         '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/CacheCold' }
         '501':
           description: |
             `amountOut` was requested for a conversion that only routes over a bridge. Exact-out
@@ -273,6 +274,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/RouteResult' }
         '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/CacheCold' }
         '501':
           description: |
             Same as `GET /route`: `amountOut` was requested for a conversion that only routes over
@@ -341,6 +343,13 @@ paths:
             here, and a bridged exact-out, which REST refuses as a 501.
         '401': { $ref: '#/components/responses/Unauthorized' }
         '429': { $ref: '#/components/responses/RateLimited' }
+        '503':
+          description: |
+            Never returned as an HTTP status, for the same reason the `400` above is not: the
+            socket is closed with WebSocket code `1013` (try again later) after one JSON frame
+            carrying `reason: cache_cold`, the same body `GET /route` answers 503 with. A stream
+            carries no status codes once open, so a socket accepted while the cache was cold would
+            push cold-cache routes indefinitely and look exactly like a healthy one.
   /orderbook/{exchange}/{symbol}:
     get:
       tags: [Market data]
@@ -633,6 +642,19 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
           example: { error: exactly one of amountIn or amountOut must be supplied }
+    CacheCold:
+      description: |
+        The process is alive but not ready to route: fewer than
+        `ORDER_ROUTER_MIN_FRESH_BOOKS_FOR_READY` books are fresh, which is the same condition
+        `/ready` reports. A route ranked across a cache that is still filling is computed from
+        whichever venues happened to connect first and is presented with exactly the confidence of
+        a warm one, so it is refused instead. Typical after a restart, for as long as the
+        connectors take to repopulate the cache. Retry; do not treat it as a bad request.
+      headers:
+        retry-after: { schema: { type: integer }, description: Seconds to wait before re-asking }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/CacheColdError' }
     RateLimited:
       description: Rate limit exceeded. Bucketed per API key once the key is valid, otherwise per client IP.
       headers:
@@ -647,6 +669,20 @@ components:
       type: object
       properties:
         error: { type: string }
+    CacheColdError:
+      type: object
+      description: |
+        `reason` is the machine-readable field to branch on — it is what distinguishes "come back
+        in a moment" from a 404 (wrong ticker) or a 400 (bad request). The counts are the same
+        ones `/ready` reports, so a client can log why it was refused.
+      properties:
+        error: { type: string }
+        reason: { type: string, enum: [cache_cold] }
+        bookCount: { type: integer, example: 12 }
+        freshCount: { type: integer, example: 0 }
+        staleCount: { type: integer, example: 12 }
+        minFreshBooksForReady: { type: integer, example: 1 }
+        staleBookMs: { type: integer, example: 5000 }
     Readiness:
       type: object
       description: |

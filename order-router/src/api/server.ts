@@ -332,6 +332,38 @@ export async function buildServer (
 
     app.get('/health', async () => ({ status: 'ok', uptimeSec: process.uptime() }));
 
+    // The one definition of "can this process do its job yet". /ready reports it, and every
+    // endpoint whose answer is a RANKING ACROSS the cache refuses on it — two readers of one
+    // predicate, so a caller can never be told 'ready' by the probe and 'cache_cold' by the router
+    // in the same instant.
+    const readiness = () => {
+        const bookCount = cache.getBookCount();
+        const staleCount = cache.countStaleBooks(config.staleBookMs);
+        const freshCount = bookCount - staleCount;
+        return {
+            ready: freshCount >= config.minFreshBooksForReady,
+            bookCount,
+            freshCount,
+            staleCount,
+            minFreshBooksForReady: config.minFreshBooksForReady,
+            staleBookMs: config.staleBookMs,
+        };
+    };
+
+    // The refusal body, shared by /route and its streaming twin so the two cannot drift into
+    // describing the same condition differently. `reason` is the field a client branches on: this
+    // is a retry-in-a-moment, categorically unlike a 404 (fix your ticker) or a 400 (fix your
+    // request), and before it existed the three were indistinguishable from a 200.
+    const coldCacheBody = (state: ReturnType<typeof readiness>) => ({
+        error: 'the order book cache is still warming up; no route can be ranked yet',
+        reason: 'cache_cold',
+        bookCount: state.bookCount,
+        freshCount: state.freshCount,
+        staleCount: state.staleCount,
+        minFreshBooksForReady: state.minFreshBooksForReady,
+        staleBookMs: state.staleBookMs,
+    });
+
     // LIVENESS answers "is this process alive"; READINESS answers "can it do its job yet". They
     // are not the same question and /health only ever answered the first one — it returns 200
     // from the first millisecond of boot, before a single websocket has connected. Point a load
@@ -343,18 +375,15 @@ export async function buildServer (
     // same staleness cutoff routing already uses, so readiness cannot disagree with what /route
     // will actually do.
     app.get('/ready', async (_request, reply) => {
-        const bookCount = cache.getBookCount();
-        const staleCount = cache.countStaleBooks(config.staleBookMs);
-        const freshCount = bookCount - staleCount;
-        const ready = freshCount >= config.minFreshBooksForReady;
-        if (!ready) reply.code(503);
+        const state = readiness();
+        if (!state.ready) reply.code(503);
         return {
-            status: ready ? 'ready' : 'not_ready',
-            bookCount,
-            freshCount,
-            staleCount,
-            minFreshBooksForReady: config.minFreshBooksForReady,
-            staleBookMs: config.staleBookMs,
+            status: state.ready ? 'ready' : 'not_ready',
+            bookCount: state.bookCount,
+            freshCount: state.freshCount,
+            staleCount: state.staleCount,
+            minFreshBooksForReady: state.minFreshBooksForReady,
+            staleBookMs: state.staleBookMs,
             uptimeSec: process.uptime(),
         };
     });
@@ -506,6 +535,20 @@ export async function buildServer (
                 return { error: parsed.error };
             }
 
+            // Checked AFTER validation and BEFORE computing: a malformed request is malformed in
+            // both states, and answering 'try again in a moment' to a typo sends the caller into a
+            // retry loop that can never succeed. Everything past this point would be a ranking
+            // across a cache that is still filling — a route computed from the venues that
+            // happened to connect first, presented with exactly the confidence of a warm one.
+            const state = readiness();
+            if (!state.ready) {
+                reply.code(503);
+                // Not a guess: the deploy smoke allows five minutes for a full warm-up, and a
+                // second is the granularity a client should re-ask at.
+                reply.header('retry-after', '1');
+                return coldCacheBody(state);
+            }
+
             const result = computeRoute(cache, feeRegistry, parsed.req, parsed.opts);
 
             auditRouteRecommendation(result, parsed.req, parsed.opts, resolveKey(store, request), requestId);
@@ -560,6 +603,17 @@ export async function buildServer (
                 return;
             }
             const { req, opts } = parsed;
+
+            // The same refusal as REST. Worse if omitted, in fact: a stream pushes frame after
+            // frame with no status code anywhere on the wire, so a socket opened mid-deploy feeds
+            // a caller cold-cache routes indefinitely and looks exactly like a healthy one. 1013
+            // ('try again later') rather than 1008 — nothing is wrong with the request.
+            const coldState = readiness();
+            if (!coldState.ready) {
+                socket.send(JSON.stringify(coldCacheBody(coldState)));
+                socket.close(1013, 'cache_cold');
+                return;
+            }
 
             const pairsNow = () => candidatePairs(cache, req.from, req.to, req.bridges);
             if (pairsNow().length === 0) {

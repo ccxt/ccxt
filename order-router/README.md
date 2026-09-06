@@ -141,9 +141,44 @@ same "write path is async, read path is always local" shape, is a natural extens
 | GET | `/exchanges/status` | per-exchange WS health: connected, last update age, update/reconnect counts |
 | GET | `/symbols` | symbols currently cached |
 | GET | `/orderbook/:exchange/:symbol` | cached L2 book snapshot (symbol URL-encoded, e.g. `BTC%2FUSDT`) |
-| GET | `/route?from=&to=&amountIn=\|amountOut=` | book-walked, fee-adjusted route between two assets; multi-venue and multi-hop, optionally constrained to `balances` you hold |
+| GET | `/route?from=&to=&amountIn=\|amountOut=` | book-walked, fee-adjusted route between two assets; multi-venue and multi-hop, optionally constrained to `balances` you hold. **503 `cache_cold`** while the process is not ready (see below) |
 | POST | `/route` | the identical route, with the identical parameters, in a JSON body. **Use this when sending `balances`.** This service scrubs holdings from its own two logs, but a URL does not stay inside this process — nginx, an ALB and a CDN all log the full request line by default, and so do browser history and client-side tracing. None of that is reachable from here. GET stays the right call when you are not sending holdings. |
-| WS | `/stream/route?from=&to=&amountIn=\|amountOut=` | the same route, pushed on book change (event-driven, not polled) |
+| WS | `/stream/route?from=&to=&amountIn=\|amountOut=` | the same route, pushed on book change (event-driven, not polled). Refuses to open while the cache is cold: one `cache_cold` frame, then close `1013` |
+
+#### `503 cache_cold` — refusing to route on a half-filled cache
+
+A restart rebuilds the entire order book cache, and for the minutes that takes the router holds
+some of its venues and not others. It used to answer `/route` with a confident `200` throughout:
+the venues that had connected were ranked, the winner returned, and nothing in the body said the
+comparison was made against a fraction of the market. A caller could not tell that answer from a
+warm one, so every deploy silently degraded execution instead of failing visibly.
+
+`/route` (GET and POST) and `/stream/route` now refuse while the service is not ready — the exact
+condition `/ready` reports, `freshCount < ORDER_ROUTER_MIN_FRESH_BOOKS_FOR_READY`, evaluated from
+the same counters, so the probe and the router can never disagree:
+
+```json
+{
+  "error": "the order book cache is still warming up; no route can be ranked yet",
+  "reason": "cache_cold",
+  "bookCount": 12, "freshCount": 0, "staleCount": 12,
+  "minFreshBooksForReady": 1, "staleBookMs": 5000
+}
+```
+
+HTTP `503` with `retry-after: 1`; the stream sends the same body as one frame and closes with
+`1013` (try again later) rather than `1008`, because nothing is wrong with the request. Branch on
+`reason`, not on the status: `cache_cold` means re-ask in a moment, unlike a `404` (wrong ticker)
+or a `400` (bad request).
+
+Three things deliberately stay outside the gate. `/health`, `/ready` and `/metrics` keep answering
+— gating them would leave the service unable to report that it is not ready, and would take the
+dashboards down during the one window an operator is watching them. Request validation still wins:
+a malformed request gets its `400` cold or warm, because telling a caller to retry a typo is a
+retry loop that can never succeed. And `/orderbook/:exchange/:symbol` is **not** gated: what makes
+a cold `/route` wrong is that it *ranks across* the cache, where a missing venue silently changes
+the winner; a single book is returned verbatim with its own `receivedAt`, and a half-filled cache
+cannot make that answer wrong.
 
 ### Using `/route`
 
@@ -738,6 +773,17 @@ on its own timer (default 60s). `ORDER_ROUTER_WS_IDLE_TIMEOUT_MS` now defaults t
 reason, and the shipped config sets `proxy_read_timeout 120s` on the stream location. If you raise
 one, raise the other. This bug hides on liquid pairs — a busy book keeps the connection full of
 real data — and only appears on quiet symbols, where the stream silently drops about once a minute.
+
+**4. The readiness gate.** The shipped config runs an `auth_request` subrequest against the app's
+own `/ready` in front of `/router/api/` and `/router/api/stream/`, so a cold instance is taken out
+of rotation instead of served through — with more than one instance behind the upstream, that is
+the difference between a slow deploy and a degraded one. nginx OSS has no active health checks, so
+this is the mechanism available; the subrequest is a loopback call to a handler that reads two
+counters. `auth_request` turns any non-2xx that is not 401/403 into a `500`, so the config catches
+that with `error_page 500 = @router_cache_cold` and re-shapes it into the same `503 cache_cold`
+body the app returns (`proxy_intercept_errors` is off by default, so a real `500` from the app is
+passed through untouched). `/router/api/health`, `/ready` and `/metrics` are exact-match locations
+with `auth_request off`: the probes must answer while the gate is refusing everything else.
 
 **No IP allowlist on `/metrics`.** This section used to suggest one (`allow 10.0.0.0/8; deny all;`)
 and it cannot be used as written: `/metrics` is authenticated in the app like every other
