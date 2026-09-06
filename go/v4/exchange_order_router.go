@@ -421,17 +421,17 @@ func routerDictAt(container any, key string) map[string]any {
 func (this *OrderRouter) FormatNumber(value float64) (string, error) {
 	// JavaScript prints 1e-7 where Python prints 1e-07 and Go prints 1e-07;
 	// a fixed 12-decimal rendering with the trailing zeros trimmed is the one
-	// spelling all five languages agree on for the magnitudes a balance or an
+	// spelling all six languages agree on for the magnitudes a balance or an
 	// amount can take.
 	if math.IsNaN(value) || math.IsInf(value, 0) {
 		return "0", nil
 	}
 	if math.Abs(value) >= 1e18 {
 		// JavaScript's toFixed switches to exponent notation at 1e21 while the
-		// other four languages never do. Rather than let one language send a
+		// other five languages never do. Rather than let one language send a
 		// different string than the others, refuse — loudly, and at a magnitude
 		// no real amount reaches.
-		return "", BadRequest("OrderRouter: a number this large cannot be rendered identically in all five languages")
+		return "", BadRequest("OrderRouter: a number this large cannot be rendered identically in all six languages")
 	}
 	text := routerToFixed12(value)
 	if strings.IndexByte(text, '.') >= 0 {
@@ -452,8 +452,11 @@ func (this *OrderRouter) FormatNumber(value float64) (string, error) {
 // the exact binary value and under JavaScript's toFixed tie rule. ECMA-262
 // strips the sign BEFORE choosing n, so a tie rounds AWAY FROM ZERO on the
 // magnitude: (-0.0001220703125).toFixed(12) is -0.000122070313, not -…312.
-// strconv would round half to even here and disagree with the other four
-// languages on every value that lands exactly on a half tick, 2^-13 included.
+// strconv would round half to even here and disagree with the reference on every
+// value that lands exactly on a half tick, 2^-13 included. The other four ports
+// now implement this same rule — Python through Decimal, PHP and Rust by rounding
+// an exact 53-decimal rendering, C# through BigInteger — so all six agree and the
+// balances query string really is byte-identical.
 func routerToFixed12(value float64) string {
 	exact := new(big.Rat).SetFloat64(value)
 	if exact == nil {
@@ -2208,21 +2211,36 @@ func routerAssertChainCoherent(route map[string]any, hops []any) error {
 }
 
 // routerOrderFeeInAsset sums the fees an order charged in one asset, ignoring any other currency.
-// ccxt sets a single Fee and, since safeOrder, a Fees list alongside it; reading only one
+// ccxt sets a single Fee and, since safeOrder, a fees list alongside it; reading only one
 // under-counts on venues that report per-trade fees.
 func routerOrderFeeInAsset(order Order, asset string) float64 {
 	if asset == "" {
 		return 0
 	}
 	total := 0.0
-	// DIVERGENCE, recorded rather than hidden: the Go typed Order carries a single Fee and no
-	// Fees list, so unlike the other four ports this cannot sum per-trade fees. On a venue that
-	// reports fees only in that list, Go under-counts and carries the gross amount forward — the
-	// same conservative direction as before this change, never an over-count. Fixing it properly
-	// means adding Fees to the typed Order in exchange_types.go, which is outside this file.
+	// The Go typed Order carries a single Fee and no Fees list, so the `fees` branch the other
+	// five ports read first has no counterpart here. What it has instead is Trades, and the
+	// reference reads per-trade fees as its own last resort, so the two agree on any order that
+	// reports its cut per trade.
+	//
+	// Reading NOTHING here is the DANGEROUS direction, not a conservative one — an earlier
+	// comment on this function had it exactly backwards. An unread fee leaves outAmount GROSS,
+	// and the next hop is then sized on money the venue has already taken: the order is too big
+	// and fails, or fills against a balance that is not there. Under-stating what arrived is the
+	// safe error; over-stating it is not.
+	sawFee := false
 	fee := order.Fee
 	if fee.Currency != nil && strings.EqualFold(*fee.Currency, asset) && fee.Cost != nil {
 		total = total + *fee.Cost
+		sawFee = true
+	}
+	if !sawFee {
+		for i := 0; i < len(order.Trades); i++ {
+			tradeFee := order.Trades[i].Fee
+			if tradeFee.Currency != nil && strings.EqualFold(*tradeFee.Currency, asset) && tradeFee.Cost != nil {
+				total = total + *tradeFee.Cost
+			}
+		}
 	}
 	if !routerIsFiniteNumber(total) || total < 0 {
 		return 0

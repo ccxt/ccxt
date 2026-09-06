@@ -192,6 +192,19 @@ test ('fixture: numberAt reads one number grammar in all five languages', () => 
     }
 });
 
+test ('fixture: formatNumber spells one number one way in all six languages', () => {
+    //  formatNumber builds the balances query string. A balance spelled differently per language
+    //  is a DIFFERENT QUESTION asked of the router, so the tie cases here are load-bearing: every
+    //  port's native fixed-point formatter but JavaScript's rounds half to EVEN, and this table is
+    //  what stops five of the six quietly answering ...312 where the reference answers ...313.
+    const cases = fixture['formatNumberCases'];
+    assert.ok (cases.length > 0, 'the fixture has formatNumber cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        assert.strictEqual (router.formatNumber (testCase['value']), testCase['expected'], 'formatNumberCase ' + testCase['id']);
+    }
+});
+
 test ('fixture: buildUnwindPlan', () => {
     const cases = fixture['unwindCases'];
     assert.ok (cases.length > 0, 'the fixture has unwind cases');
@@ -424,6 +437,9 @@ class StubVenue {
     omitFillFields: boolean;
     //  {cost, currency} attached to the created order, as real venues do
     feeToCharge: any;
+    //  [{cost, currency}] attached as per-trade fees, as venues that report a fill
+    //  as a list of trades do
+    tradeFeesToCharge: any[];
     //  concurrency witness: how many createOrder calls were in flight at their peak
     inFlight: number;
     peakInFlight: number;
@@ -442,6 +458,7 @@ class StubVenue {
         this.timeoutCreate = false;
         this.omitFillFields = false;
         this.feeToCharge = undefined;
+        this.tradeFeesToCharge = [];
         this.inFlight = 0;
         this.peakInFlight = 0;
     }
@@ -507,6 +524,13 @@ class StubVenue {
         const body: any = { 'id': 'stub-order', 'status': status, 'filled': filled, 'average': average, 'cost': filled * average };
         if (this.feeToCharge !== undefined) {
             body['fee'] = this.feeToCharge;
+        }
+        if (this.tradeFeesToCharge.length > 0) {
+            const trades = [];
+            for (let i = 0; i < this.tradeFeesToCharge.length; i++) {
+                trades.push ({ 'fee': this.tradeFeesToCharge[i] });
+            }
+            body['trades'] = trades;
         }
         return body;
     }
@@ -1239,6 +1263,31 @@ test ('a well-formed route still plans normally', async () => {
     route['clientRequestedTo'] = 'BTC';
     const plan = router.buildExecutionPlan (route, {});
     assert.strictEqual (plan['steps'].length, 1);
+});
+
+test ('fixture: a fee in the acquired asset resizes what the next hop is sized on', async () => {
+    //  Fee netting is the one placeStep behaviour that CHANGES the size of the next order, and
+    //  until this section existed it was asserted in TypeScript and nowhere else — a port that
+    //  silently stopped netting would have shipped green in its own language.
+    const cases = fixture['feeNettingCases'];
+    assert.ok (cases.length > 0, 'the fixture has fee netting cases');
+    for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i];
+        const plan = router.buildExecutionPlan (oneLegRoute (testCase['side'], testCase['base'], testCase['quote'], testCase['amount'], testCase['price']), testCase['planOptions']);
+        const venue = new StubVenue ('stub');
+        if (Object.keys (testCase['fee']).length > 0) {
+            venue.feeToCharge = testCase['fee'];
+        }
+        venue.tradeFeesToCharge = testCase['tradeFees'];
+        const report = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } });
+        const step = report['steps'][0];
+        const expected = testCase['expected'];
+        const where = 'feeNettingCase ' + testCase['id'];
+        assert.ok (numbersMatch (step['filledAmount'], expected['filledAmount']), where + ': filledAmount ' + String (step['filledAmount']));
+        assert.ok (numbersMatch (router.numberAt (step, 'grossOutAmount', 0), expected['grossOutAmount']), where + ': grossOutAmount ' + String (step['grossOutAmount']));
+        assert.ok (numbersMatch (step['outAmount'], expected['outAmount']), where + ': outAmount ' + String (step['outAmount']));
+        assert.ok (numbersMatch (step['feeCost'], expected['feeCost']), where + ': feeCost ' + String (step['feeCost']));
+    }
 });
 
 test ('a fee charged in the acquired asset is netted out of what the next hop is sized on', async () => {

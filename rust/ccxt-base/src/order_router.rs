@@ -317,7 +317,7 @@ impl OrderRouter {
                 "OrderRouter: a number this large cannot be rendered identically in all six languages",
             ));
         }
-        let mut text = format!("{:.12}", value);
+        let mut text = Self::to_fixed_12(value);
         if text.contains('.') {
             while text.ends_with('0') {
                 text.pop();
@@ -330,6 +330,60 @@ impl OrderRouter {
             return Ok("0".to_string());
         }
         Ok(text)
+    }
+
+    /// Renders a finite f64 with exactly twelve decimals, from the exact binary
+    /// value and under JavaScript's toFixed tie rule.
+    ///
+    /// The reference is TypeScript, and TypeScript's toFixed is ECMA-262's: the
+    /// sign is stripped BEFORE the digits are chosen, so a tie rounds AWAY FROM
+    /// ZERO on the magnitude and (-0.0001220703125).toFixed(12) is
+    /// -0.000122070313, not -...312. Rust's `{:.12}` rounds half to EVEN and
+    /// would answer ...312, so the balances query string this feeds would differ
+    /// per language on every value landing exactly on a half tick — 2^-13
+    /// included.
+    ///
+    /// `{:.53}` is EXACT for every double whose expansion reaches the twelfth
+    /// decimal: a double is m * 2^-k and its expansion terminates at digit k, so
+    /// k <= 53 (|value| >= 2^-53) renders with no rounding at all, and anything
+    /// smaller is below 1e-16 — its digits 13 and 14 are both 0, so no carry
+    /// from digit 53 can reach the digit this rounds on.
+    fn to_fixed_12(value: f64) -> String {
+        let negative = value < 0.0;
+        // abs() rather than a negation, so a negative zero renders WITHOUT a
+        // sign: the digit walk below assumes every byte it reads is a digit.
+        let magnitude = value.abs();
+        let rendered = format!("{magnitude:.53}");
+        let dot = match rendered.find('.') {
+            Some(index) => index,
+            None => return rendered,
+        };
+        let mut integer_length = dot;
+        let digits: Vec<u8> = rendered
+            .bytes()
+            .filter(|byte| *byte != b'.')
+            .collect();
+        let keep = integer_length + 12;
+        // round half UP on the magnitude, reading the thirteenth decimal exactly
+        let round_up = digits[keep] >= b'5';
+        let mut kept: Vec<u8> = digits[..keep].to_vec();
+        if round_up {
+            let mut carry = 1u8;
+            let mut index = kept.len();
+            while index > 0 && carry == 1 {
+                index -= 1;
+                let digit = kept[index] - b'0' + carry;
+                carry = u8::from(digit >= 10);
+                kept[index] = (digit % 10) + b'0';
+            }
+            if carry == 1 {
+                kept.insert(0, b'1');
+                integer_length += 1;
+            }
+        }
+        let text = String::from_utf8_lossy(&kept).to_string();
+        let sign = if negative { "-" } else { "" };
+        format!("{}{}.{}", sign, &text[..integer_length], &text[integer_length..])
     }
 }
 
@@ -1659,6 +1713,22 @@ impl OrderRouter {
             let single = self.dict_at(order, "fee");
             if self.string_at(&single, "currency", "").to_uppercase() == asset.to_uppercase() {
                 total += self.number_at(&single, "cost", 0.0);
+                saw_in_list = true;
+            }
+        }
+        if !saw_in_list {
+            // Last resort: a venue that reports its cut only per trade. The Go
+            // port has no `fees` list on its typed Order at all, so this
+            // fallback is what lets all six ports read the same fee off the same
+            // order — and reading NOTHING here is the dangerous direction, not
+            // the safe one: an unread fee leaves out_amount GROSS, which sizes
+            // the next hop on money the venue already took.
+            let trades = self.list_at(order, "trades");
+            for trade in &trades {
+                let trade_fee = self.dict_at(trade, "fee");
+                if self.string_at(&trade_fee, "currency", "").to_uppercase() == asset.to_uppercase() {
+                    total += self.number_at(&trade_fee, "cost", 0.0);
+                }
             }
         }
         if !Self::is_finite_number(total) || total < 0.0 {

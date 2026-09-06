@@ -70,6 +70,8 @@ public class OrderRouterTest
         Run("fixture: a sequence of reconciliations on one hop", FixtureReconcileSequence);
         Run("fixture: buildUnwindPlan", FixtureBuildUnwindPlan);
         Run("fixture: numberAt reads one number grammar in all five languages", FixtureNumberAt);
+        Run("fixture: formatNumber spells one number one way in all six languages", FixtureFormatNumber);
+        RunAsync("fixture: a fee in the acquired asset resizes what the next hop is sized on", FixtureFeeNetting);
         Run("a route that does not run from the requested asset to the requested asset is refused", RouteProducesMismatch);
         Run("a route that spends an asset the caller never offered is refused", RouteSpendsMismatch);
         Run("a bridged route whose hops do not connect is refused", RouteChainBreak);
@@ -742,6 +744,57 @@ public class OrderRouterTest
         }
     }
 
+    private static void FixtureFormatNumber()
+    {
+        //  FormatNumber builds the balances query string. A balance spelled differently per
+        //  language is a DIFFERENT QUESTION asked of the router, so the tie cases here are
+        //  load-bearing: ToString("F12") rounds half to EVEN and answered ...312 where the
+        //  TypeScript reference answers ...313.
+        var router = NewRouter();
+        var cases = FixtureCases("formatNumberCases");
+        for (var i = 0; i < cases.Count; i++)
+        {
+            var testCase = ToDict(cases[i]);
+            var actual = router.FormatNumber(ToDouble(testCase["value"]));
+            EqualString(actual, (string)testCase["expected"], "formatNumberCase " + (string)testCase["id"]);
+        }
+    }
+
+    private static async Task FixtureFeeNetting()
+    {
+        //  Fee netting is the one PlaceStep behaviour that CHANGES the size of the next order.
+        //  The hand-written invariant below covers the single-fee case; this drives the same
+        //  behaviour off the shared fixture, so the six ports are pinned to one answer — the
+        //  per-trade cases included.
+        var router = NewRouter();
+        var cases = FixtureCases("feeNettingCases");
+        for (var i = 0; i < cases.Count; i++)
+        {
+            var testCase = ToDict(cases[i]);
+            var id = (string)testCase["id"];
+            var route = OneLegRoute((string)testCase["side"], (string)testCase["base"], (string)testCase["quote"], ToDouble(testCase["amount"]), ToDouble(testCase["price"]));
+            var plan = router.BuildExecutionPlan(route, ToDict(testCase["planOptions"]));
+            var venue = new StubVenue("stub");
+            var fee = ToDict(testCase["fee"]);
+            if (fee.Count > 0)
+            {
+                venue.feeOverride = fee;
+            }
+            var tradeFees = ToList(testCase["tradeFees"]);
+            if (tradeFees.Count > 0)
+            {
+                venue.tradeFeesOverride = tradeFees;
+            }
+            var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+            var step = ToDict(ToList(report["steps"])[0]);
+            var expected = ToDict(testCase["expected"]);
+            EqualNumber(step.ContainsKey("filledAmount") ? ToDouble(step["filledAmount"]) : 0, ToDouble(expected["filledAmount"]), "feeNettingCase " + id + ": filledAmount");
+            EqualNumber(router.NumberAt(step, "grossOutAmount", 0), ToDouble(expected["grossOutAmount"]), "feeNettingCase " + id + ": grossOutAmount");
+            EqualNumber(ToDouble(step["outAmount"]), ToDouble(expected["outAmount"]), "feeNettingCase " + id + ": outAmount");
+            EqualNumber(ToDouble(step["feeCost"]), ToDouble(expected["feeCost"]), "feeNettingCase " + id + ": feeCost");
+        }
+    }
+
     private static void FixtureBuildUnwindPlan()
     {
         var router = NewRouter();
@@ -1073,6 +1126,10 @@ public class OrderRouterTest
         //  `fee` and the `fees` list, exactly as safeOrder fills them in.
         public dict feeOverride = null;
 
+        //  When set, the created order carries these as per-trade fees under `trades`, and no
+        //  top-level fee at all — the shape a venue that reports a fill as a list of trades sends.
+        public list tradeFeesOverride = null;
+
         public StubVenue(string id, double fillRatio = 1, bool failCreate = false) : base(null)
         {
             this.id = id;
@@ -1158,6 +1215,15 @@ public class OrderRouterTest
             {
                 payload["fee"] = this.feeOverride;
                 payload["fees"] = new list() { this.feeOverride };
+            }
+            if (this.tradeFeesOverride != null)
+            {
+                var trades = new list();
+                for (var i = 0; i < this.tradeFeesOverride.Count; i++)
+                {
+                    trades.Add(new dict() { { "fee", this.tradeFeesOverride[i] } });
+                }
+                payload["trades"] = trades;
             }
             return new ccxt.Order(payload);
         }

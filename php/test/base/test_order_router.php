@@ -255,6 +255,11 @@ class OrderRouterStubVenue {
     public $fetchOrderThrows;
     public $cancelThrows;
     public $createdStatus;
+    //  array('cost' => , 'currency' => ) attached to the created order, as real venues do
+    public $feeToCharge;
+    //  a list of array('cost' => , 'currency' => ) attached as per-trade fees, as
+    //  venues that report a fill as a list of trades do
+    public $tradeFeesToCharge;
 
     public function __construct($id, $fillRatio = 1, $failCreate = false) {
         $this->id = $id;
@@ -272,6 +277,8 @@ class OrderRouterStubVenue {
         $this->fetchOrderThrows = false;
         $this->cancelThrows = false;
         $this->createdStatus = '';
+        $this->feeToCharge = null;
+        $this->tradeFeesToCharge = array();
     }
 
     public function fetchOrder($id, $symbol) {
@@ -319,7 +326,18 @@ class OrderRouterStubVenue {
         $filled = $amount * $this->fillRatio;
         $average = ($price === null) ? 100 : $price;
         $status = ($this->createdStatus === '') ? 'closed' : $this->createdStatus;
-        return array('id' => 'stub-order', 'status' => $status, 'filled' => $filled, 'average' => $average, 'cost' => $filled * $average);
+        $body = array('id' => 'stub-order', 'status' => $status, 'filled' => $filled, 'average' => $average, 'cost' => $filled * $average);
+        if ($this->feeToCharge !== null) {
+            $body['fee'] = $this->feeToCharge;
+        }
+        if (count($this->tradeFeesToCharge) > 0) {
+            $trades = array();
+            for ($i = 0; $i < count($this->tradeFeesToCharge); $i++) {
+                $trades[] = array('fee' => $this->tradeFeesToCharge[$i]);
+            }
+            $body['trades'] = $trades;
+        }
+        return $body;
     }
 }
 
@@ -492,6 +510,48 @@ function order_router_test_fixture_number_at($router) {
         $actual = $router->numberAt($testCase['container'], $testCase['key'], $testCase['default']);
         order_router_assert(is_int($actual) || is_float($actual), 'numberCase ' . $testCase['id'] . ': not a number');
         order_router_assert(order_router_numbers_match(floatval($actual), floatval($testCase['expected'])), 'numberCase ' . $testCase['id'] . ': expected ' . order_router_text($testCase['expected']) . ', got ' . order_router_text($actual));
+    }
+}
+
+function order_router_test_fixture_format_number($router) {
+    //  formatNumber builds the balances query string. A balance spelled differently per language
+    //  is a DIFFERENT QUESTION asked of the router, so the tie cases here are load-bearing:
+    //  PHP's '%.12F' rounds half to EVEN and answered ...312 where the TypeScript reference
+    //  answers ...313, and this table is what stops that coming back.
+    $fixture = order_router_fixture();
+    $cases = $fixture['formatNumberCases'];
+    order_router_assert(count($cases) > 0, 'the fixture has formatNumber cases');
+    for ($i = 0; $i < count($cases); $i++) {
+        $testCase = $cases[$i];
+        $actual = $router->formatNumber($testCase['value']);
+        order_router_assert($actual === $testCase['expected'], 'formatNumberCase ' . $testCase['id'] . ': expected ' . $testCase['expected'] . ', got ' . $actual);
+    }
+}
+
+function order_router_test_fixture_fee_netting($router) {
+    //  Fee netting is the one placeStep behaviour that CHANGES the size of the next order, and
+    //  until this section existed it was asserted in TypeScript and nowhere else — a port that
+    //  silently stopped netting would have shipped green in its own language.
+    $fixture = order_router_fixture();
+    $cases = $fixture['feeNettingCases'];
+    order_router_assert(count($cases) > 0, 'the fixture has fee netting cases');
+    for ($i = 0; $i < count($cases); $i++) {
+        $testCase = $cases[$i];
+        $route = order_router_one_leg_route($testCase['side'], $testCase['base'], $testCase['quote'], $testCase['amount'], $testCase['price']);
+        $plan = $router->buildExecutionPlan($route, $testCase['planOptions']);
+        $venue = new OrderRouterStubVenue('stub');
+        if (count($testCase['fee']) > 0) {
+            $venue->feeToCharge = $testCase['fee'];
+        }
+        $venue->tradeFeesToCharge = $testCase['tradeFees'];
+        $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+        $step = $report['steps'][0];
+        $expected = $testCase['expected'];
+        $where = 'feeNettingCase ' . $testCase['id'];
+        order_router_assert(order_router_numbers_match($step['filledAmount'], $expected['filledAmount']), $where . ': filledAmount ' . order_router_number_text($step['filledAmount']));
+        order_router_assert(order_router_numbers_match($router->numberAt($step, 'grossOutAmount', 0), $expected['grossOutAmount']), $where . ': grossOutAmount ' . order_router_number_text($router->numberAt($step, 'grossOutAmount', 0)));
+        order_router_assert(order_router_numbers_match($step['outAmount'], $expected['outAmount']), $where . ': outAmount ' . order_router_number_text($step['outAmount']));
+        order_router_assert(order_router_numbers_match($step['feeCost'], $expected['feeCost']), $where . ': feeCost ' . order_router_number_text($step['feeCost']));
     }
 }
 
@@ -1238,6 +1298,8 @@ function test_order_router() {
         'a bridged route whose hops do not connect is refused' => 'ccxt\order_router_test_route_chain_break',
         'a well-formed route still plans normally' => 'ccxt\order_router_test_route_well_formed_still_plans',
         'fixture: buildUnwindPlan' => 'ccxt\order_router_test_fixture_build_unwind_plan',
+        'fixture: formatNumber spells one number one way in all six languages' => 'ccxt\order_router_test_fixture_format_number',
+        'fixture: a fee in the acquired asset resizes what the next hop is sized on' => 'ccxt\order_router_test_fixture_fee_netting',
         'fixture: numberAt reads one number grammar in all five languages' => 'ccxt\order_router_test_fixture_number_at',
         'constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size' => 'ccxt\order_router_test_constructor_cap',
         'the limit price sits on the side that costs you, and only there' => 'ccxt\order_router_test_limit_price_side',

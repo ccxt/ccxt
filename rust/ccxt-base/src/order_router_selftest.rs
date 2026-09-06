@@ -939,6 +939,117 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     Ok(())
 }
 
+fn stub_fee(cost: f64, currency: &str) -> Value {
+    let mut fee = HashMap::new();
+    fee.insert("cost".to_string(), Value::Float(cost));
+    fee.insert("currency".to_string(), Value::Str(currency.to_string()));
+    Value::Map(fee)
+}
+
+fn fixture_format_number(r: &OrderRouter, f: &Value) -> Result<(), String> {
+    // format_number builds the balances query string. A balance spelled
+    // differently per language is a DIFFERENT QUESTION asked of the router, so
+    // the tie cases here are load-bearing: Rust's `{:.12}` rounds half to EVEN
+    // and answered ...312 where the TypeScript reference answers ...313.
+    for test_case in cases(f, "formatNumberCases")? {
+        let id = text(&test_case, "id");
+        let value = at(&test_case, "value")
+            .and_then(as_number)
+            .ok_or_else(|| format!("formatNumberCase {id}: no value"))?;
+        let expected = text(&test_case, "expected");
+        let actual = r.format_number(value).map_err(|e| e.to_string())?;
+        if actual != expected {
+            return Err(format!("formatNumberCase {id}: expected {expected}, got {actual}"));
+        }
+    }
+    Ok(())
+}
+
+/// The route shape the fee-netting cases plan from — the same one the
+/// TypeScript suite's oneLegRoute builds, with the direction taken from `side`
+/// so a sell case is coherent too.
+fn fee_netting_route(side: &str, base_code: &str, quote: &str, amount: f64, price: f64) -> Value {
+    let buying = side == "buy";
+    let amount_in = if buying { amount * price } else { amount };
+    let amount_out = if buying { amount } else { amount * price };
+    let mut leg = HashMap::new();
+    leg.insert("exchangeId".to_string(), Value::Str("stub".into()));
+    leg.insert("amount".to_string(), Value::Float(amount));
+    leg.insert("averagePrice".to_string(), Value::Float(price));
+    leg.insert("takerFeeRate".to_string(), Value::Float(0.0));
+    leg.insert("feeCost".to_string(), Value::Float(0.0));
+    leg.insert("effectivePrice".to_string(), Value::Float(price));
+    let mut hop = HashMap::new();
+    hop.insert("pair".to_string(), Value::Str(format!("{base_code}/{quote}")));
+    hop.insert("side".to_string(), Value::Str(side.into()));
+    hop.insert("base".to_string(), Value::Str(base_code.into()));
+    hop.insert("quote".to_string(), Value::Str(quote.into()));
+    hop.insert("amountIn".to_string(), Value::Float(amount_in));
+    hop.insert("amountOut".to_string(), Value::Float(amount_out));
+    hop.insert("legs".to_string(), Value::List(vec![Value::Map(leg)]));
+    hop.insert("fullyFillable".to_string(), Value::Bool(true));
+    let mut route = HashMap::new();
+    route.insert("from".to_string(), Value::Str(if buying { quote.into() } else { base_code.to_string() }));
+    route.insert("to".to_string(), Value::Str(if buying { base_code.to_string() } else { quote.into() }));
+    route.insert("strategy".to_string(), Value::Str("best_single".into()));
+    route.insert("exactSide".to_string(), Value::Str("in".into()));
+    route.insert("amountIn".to_string(), Value::Float(amount_in));
+    route.insert("amountOut".to_string(), Value::Float(amount_out));
+    route.insert("fullyFillable".to_string(), Value::Bool(true));
+    route.insert("fillRatio".to_string(), Value::Float(1.0));
+    route.insert("hops".to_string(), Value::List(vec![Value::Map(hop)]));
+    Value::Map(route)
+}
+
+fn fixture_fee_netting(r: &OrderRouter, f: &Value) -> Result<(), String> {
+    // Fee netting is the one place_step behaviour that CHANGES the size of the
+    // next order, and until this section existed it was asserted in TypeScript
+    // and nowhere else — a port that silently stopped netting would have shipped
+    // green in its own language.
+    for test_case in cases(f, "feeNettingCases")? {
+        let id = text(&test_case, "id");
+        let route = fee_netting_route(
+            &text(&test_case, "side"),
+            &text(&test_case, "base"),
+            &text(&test_case, "quote"),
+            r.number_at(&test_case, "amount", 0.0),
+            r.number_at(&test_case, "price", 0.0),
+        );
+        let plan_options = at(&test_case, "planOptions").cloned().unwrap_or(Value::Null);
+        let plan = r.build_execution_plan(&route, &plan_options).map_err(|e| e.to_string())?;
+        let mut venue = StubVenue::new("stub");
+        let fee = at(&test_case, "fee").cloned().unwrap_or(Value::Null);
+        let currency = r.string_at(&fee, "currency", "");
+        if !currency.is_empty() {
+            venue.fee_to_charge = Some((r.number_at(&fee, "cost", 0.0), currency));
+        }
+        for entry in r.list_at(&test_case, "tradeFees") {
+            venue.trade_fees_to_charge.push((
+                r.number_at(&entry, "cost", 0.0),
+                r.string_at(&entry, "currency", ""),
+            ));
+        }
+        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+        venues.insert("stub".to_string(), Box::new(venue));
+        let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
+            .map_err(|e| e.to_string())?;
+        let steps = r.list_at(&report, "steps");
+        if steps.len() != 1 {
+            return Err(format!("feeNettingCase {id}: expected one step, got {}", steps.len()));
+        }
+        let step = &steps[0];
+        let expected = at(&test_case, "expected").cloned().unwrap_or(Value::Null);
+        for field in ["filledAmount", "grossOutAmount", "outAmount", "feeCost"] {
+            let actual = r.number_at(step, field, 0.0);
+            let want = r.number_at(&expected, field, 0.0);
+            if !numbers_match(actual, want) {
+                return Err(format!("feeNettingCase {id}: {field} expected {want}, got {actual}"));
+            }
+        }
+    }
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // entry point
 // ---------------------------------------------------------------------------
@@ -957,6 +1068,8 @@ pub fn run() -> Result<usize, String> {
         ("fixture: buildUnwindPlan", Box::new(|| fixture_build_unwind_plan(&router()?, &fixture()?))),
         ("a buy-side unwind order never spends more quote than the residual actually holds", Box::new(|| unwind_buy_is_fundable(&router()?, &fixture()?))),
         ("fixture: numberAt reads one number grammar in all six languages", Box::new(|| fixture_number_at(&router()?, &fixture()?))),
+        ("fixture: formatNumber spells one number one way in all six languages", Box::new(|| fixture_format_number(&router()?, &fixture()?))),
+        ("fixture: a fee in the acquired asset resizes what the next hop is sized on", Box::new(|| fixture_fee_netting(&router()?, &fixture()?))),
         ("constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size", Box::new(constructor_guards)),
         ("the limit price sits on the side that costs you, and only there", Box::new(|| limit_price_side(&router()?))),
         ("an empty plan is not a safe plan", Box::new(|| empty_plan_is_not_safe(&router()?))),
@@ -1063,6 +1176,12 @@ struct StubVenue {
     /// When set, fetch_order hands this back instead of erroring — the order as
     /// it looks on the re-read after a cancel.
     reread_order: Option<(String, f64, f64, f64)>,
+    /// (cost, currency) attached to the created order as its `fee`, as real
+    /// venues report it.
+    fee_to_charge: Option<(f64, String)>,
+    /// (cost, currency) entries attached as per-trade fees, as venues that
+    /// report a fill as a list of trades do.
+    trade_fees_to_charge: Vec<(f64, String)>,
 }
 
 impl StubVenue {
@@ -1079,6 +1198,8 @@ impl StubVenue {
             cancel_fails: false,
             cancels: StdArc::new(AtomicUsize::new(0)),
             reread_order: None,
+            fee_to_charge: None,
+            trade_fees_to_charge: Vec::new(),
         }
     }
 }
@@ -1125,6 +1246,18 @@ impl RouterVenue for StubVenue {
             order.insert("filled".to_string(), Value::Float(amount));
             order.insert("average".to_string(), Value::Float(price));
             order.insert("cost".to_string(), Value::Float(amount * price));
+        }
+        if let Some((cost, currency)) = &self.fee_to_charge {
+            order.insert("fee".to_string(), stub_fee(*cost, currency));
+        }
+        if !self.trade_fees_to_charge.is_empty() {
+            let mut trades = Vec::new();
+            for (cost, currency) in &self.trade_fees_to_charge {
+                let mut trade = HashMap::new();
+                trade.insert("fee".to_string(), stub_fee(*cost, currency));
+                trades.push(Value::Map(trade));
+            }
+            order.insert("trades".to_string(), Value::List(trades));
         }
         Ok(Value::Map(order))
     }

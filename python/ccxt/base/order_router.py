@@ -67,6 +67,7 @@ import math
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal, ROUND_HALF_UP, localcontext
 from urllib.parse import quote
 
 from requests import Session
@@ -396,17 +397,17 @@ class OrderRouter:
         """
         # JavaScript prints 1e-7 where Python prints 1e-07 and Go prints 1e-07;
         # a fixed 12-decimal rendering with the trailing zeros trimmed is the
-        # one spelling all five languages agree on for the magnitudes a balance
+        # one spelling all six languages agree on for the magnitudes a balance
         # or an amount can take.
         if not math.isfinite(value):
             return '0'
         if abs(value) >= 1e18:
             # JavaScript's toFixed switches to exponent notation at 1e21 while
-            # the other four languages never do. Rather than let one language
+            # the other five languages never do. Rather than let one language
             # send a different string than the others, refuse — loudly, and at a
             # magnitude no real amount reaches.
-            raise BadRequest('OrderRouter: a number this large cannot be rendered identically in all five languages')
-        text = '%.12f' % value
+            raise BadRequest('OrderRouter: a number this large cannot be rendered identically in all six languages')
+        text = self.to_fixed_12(value)
         if text.find('.') >= 0:
             text = text.rstrip('0')
             if len(text) > 0 and text[-1] == '.':
@@ -414,6 +415,34 @@ class OrderRouter:
         if text == '' or text == '-' or text == '-0':
             return '0'
         return text
+
+    def to_fixed_12(self, value):
+        """
+        renders a finite float with exactly twelve decimals, from the exact binary value and
+        under JavaScript's toFixed tie rule
+
+        :param float value: the number to render
+        :returns str: the number with exactly twelve decimals
+        """
+        # The reference is TypeScript, and TypeScript's toFixed is ECMA-262's: the sign is
+        # stripped BEFORE the digits are chosen, so a tie rounds AWAY FROM ZERO on the magnitude
+        # and (-0.0001220703125).toFixed(12) is -0.000122070313, not -...312. Python's '%.12f'
+        # rounds half to EVEN and would answer ...312, so the balances query string this feeds
+        # would differ per language on every value landing exactly on a half tick — 2^-13
+        # included. Decimal(value) is the exact binary value, never a re-parse of a decimal
+        # rendering of it.
+        exact = Decimal(value)
+        sign = ''
+        if exact < 0:
+            sign = '-'
+            exact = -exact
+        with localcontext() as context:
+            # the default 28-digit context signals InvalidOperation on anything with more than
+            # 28 result digits — 1e17 rendered to twelve decimals needs 30
+            context.prec = 60
+            context.rounding = ROUND_HALF_UP
+            quantized = exact.quantize(Decimal(1).scaleb(-12))
+        return sign + format(quantized, 'f')
 
     # -----------------------------------------------------------------------
     # I/O: the router HTTP client
@@ -1793,6 +1822,17 @@ class OrderRouter:
             single = self.dict_at(order, 'fee')
             if self.string_at(single, 'currency', '').upper() == asset.upper():
                 total = total + self.number_at(single, 'cost', 0)
+                saw_in_list = True
+        if not saw_in_list:
+            # Last resort: a venue that reports its cut only per trade. The Go port has no
+            # `fees` list on its typed Order at all, so this fallback is what lets all six ports
+            # read the same fee off the same order — and reading NOTHING here is the dangerous
+            # direction, not the safe one: an unread fee leaves out_amount GROSS, which sizes the
+            # next hop on money the venue already took.
+            for trade in self.list_at(order, 'trades'):
+                trade_fee = self.dict_at(trade, 'fee')
+                if self.string_at(trade_fee, 'currency', '').upper() == asset.upper():
+                    total = total + self.number_at(trade_fee, 'cost', 0)
         if not self.is_finite_number(float(total)) or total < 0:
             return 0
         return total

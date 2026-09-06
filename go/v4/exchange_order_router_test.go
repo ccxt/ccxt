@@ -284,6 +284,87 @@ func TestOrderRouterFixtureBuildUnwindPlan(t *testing.T) {
 	}
 }
 
+func TestOrderRouterFixtureFormatNumber(t *testing.T) {
+	// FormatNumber builds the balances query string. A balance spelled differently per language
+	// is a DIFFERENT QUESTION asked of the router, so the tie cases here are load-bearing: every
+	// port's native fixed-point formatter but JavaScript's rounds half to EVEN, and this table is
+	// what pins all six to the reference's away-from-zero rule.
+	router := routerTestRouter(t)
+	fixture := routerFixture(t)
+	for _, testCase := range routerFixtureCases(t, fixture, "formatNumberCases") {
+		id := routerStringAt(testCase, "id", "")
+		expected := routerStringAt(testCase, "expected", "")
+		actual, err := router.FormatNumber(routerNumberAt(testCase, "value", 0))
+		if err != nil {
+			t.Fatalf("formatNumberCase %s: %v", id, err)
+		}
+		if actual != expected {
+			t.Fatalf("formatNumberCase %s: expected %s, got %s", id, expected, actual)
+		}
+	}
+}
+
+// routerFixtureFee reads one {cost, currency} entry off the fixture, returning a
+// Fee with a nil Currency when the entry is empty — which is how a case says the
+// order carries no top-level fee at all.
+func routerFixtureFee(entry map[string]any) Fee {
+	currency := routerStringAt(entry, "currency", "")
+	if currency == "" {
+		return Fee{}
+	}
+	cost := routerNumberAt(entry, "cost", 0)
+	return Fee{Cost: &cost, Currency: &currency}
+}
+
+func TestOrderRouterFixtureFeeNetting(t *testing.T) {
+	// Fee netting is the one PlaceStep behaviour that CHANGES the size of the next order, and
+	// until this section existed it was asserted in TypeScript and nowhere else — a port that
+	// silently stopped netting would have shipped green in its own language. Go is the port most
+	// exposed to that: its typed Order has no Fees list, so per-trade fees reach it only through
+	// Trades, and the last case here is what proves that path is read.
+	router := routerTestRouter(t)
+	fixture := routerFixture(t)
+	for _, testCase := range routerFixtureCases(t, fixture, "feeNettingCases") {
+		id := routerStringAt(testCase, "id", "")
+		route := routerOneLegRoute(
+			routerStringAt(testCase, "side", ""),
+			routerStringAt(testCase, "base", ""),
+			routerStringAt(testCase, "quote", ""),
+			routerNumberAt(testCase, "amount", 0),
+			routerNumberAt(testCase, "price", 0),
+		)
+		plan := routerMustPlan(router.BuildExecutionPlan(route, routerDictAt(testCase, "planOptions")))
+		venue := newOrderRouterStubVenue(1, false)
+		venue.feeToCharge = routerFixtureFee(routerDictAt(testCase, "fee"))
+		tradeFees := routerListAt(testCase, "tradeFees")
+		for i := 0; i < len(tradeFees); i++ {
+			entry, _ := tradeFees[i].(map[string]any)
+			venue.tradeFeesToCharge = append(venue.tradeFeesToCharge, routerFixtureFee(entry))
+		}
+		report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
+			"strategy": "sequential",
+			"live":     true,
+			"usdRates": map[string]any{"USDT": 1.0},
+		})
+		if err != nil {
+			t.Fatalf("feeNettingCase %s: %v", id, err)
+		}
+		steps := routerListAt(report, "steps")
+		if len(steps) != 1 {
+			t.Fatalf("feeNettingCase %s: expected one step, got %d", id, len(steps))
+		}
+		step, _ := steps[0].(map[string]any)
+		expected := routerDictAt(testCase, "expected")
+		for _, field := range []string{"filledAmount", "grossOutAmount", "outAmount", "feeCost"} {
+			actual := routerNumberAt(step, field, 0)
+			want := routerNumberAt(expected, field, 0)
+			if !routerNumbersMatch(actual, want) {
+				t.Fatalf("feeNettingCase %s: %s expected %v, got %v", id, field, want, actual)
+			}
+		}
+	}
+}
+
 //  ---------------------------------------------------------------------------
 //  invariants, asserted directly rather than through the fixture
 //  ---------------------------------------------------------------------------
@@ -659,6 +740,11 @@ type orderRouterStubVenue struct {
 	fetchOrderThrows  bool
 	cancelThrows      bool
 	createdStatus     string
+	// the fee attached to the created order, as real venues report it
+	feeToCharge Fee
+	// per-trade fees attached to the created order, which is the ONLY shape the Go
+	// typed Order can carry a per-trade cut in — it has no Fees list
+	tradeFeesToCharge []Fee
 }
 
 func newOrderRouterStubVenue(fillRatio float64, failCreate bool) *orderRouterStubVenue {
@@ -772,7 +858,18 @@ func (this *orderRouterStubVenue) CreateOrder(symbol string, typeVar string, sid
 		average = *opts.Price
 	}
 	cost := filled * average
-	return Order{Id: &id, Status: &status, Filled: &filled, Average: &average, Cost: &cost}, nil
+	order := Order{Id: &id, Status: &status, Filled: &filled, Average: &average, Cost: &cost}
+	if this.feeToCharge.Currency != nil {
+		order.Fee = this.feeToCharge
+	}
+	if len(this.tradeFeesToCharge) > 0 {
+		trades := []Trade{}
+		for i := 0; i < len(this.tradeFeesToCharge); i++ {
+			trades = append(trades, Trade{Fee: this.tradeFeesToCharge[i]})
+		}
+		order.Trades = trades
+	}
+	return order, nil
 }
 
 func routerStubVenues(venues map[string]*orderRouterStubVenue) map[string]IExchange {

@@ -258,6 +258,19 @@ def test_fixture_number_at():
         assert numbers_match(actual, case['expected']), 'numberCase ' + case['id'] + ': expected ' + str(case['expected']) + ', got ' + str(actual)
 
 
+@test('fixture: format_number spells one number one way in all six languages')
+def test_fixture_format_number():
+    # format_number builds the balances query string. A balance spelled differently per language
+    # is a DIFFERENT QUESTION asked of the router, so the tie cases here are load-bearing:
+    # Python's '%.12f' rounds half to EVEN and answered ...312 where the TypeScript reference
+    # answers ...313, and this table is what stops that coming back.
+    cases = fixture['formatNumberCases']
+    assert len(cases) > 0, 'the fixture has formatNumber cases'
+    for case in cases:
+        actual = router.format_number(case['value'])
+        assert actual == case['expected'], 'formatNumberCase ' + case['id'] + ': expected ' + case['expected'] + ', got ' + actual
+
+
 @test('fixture: build_unwind_plan')
 def test_fixture_build_unwind_plan():
     cases = fixture['unwindCases']
@@ -530,6 +543,11 @@ class StubVenue:
         self.fetch_order_throws = False
         self.cancel_throws = False
         self.created_status = ''
+        # {cost, currency} attached to the created order, as real venues do
+        self.fee_to_charge = None
+        # [{cost, currency}] attached as per-trade fees, as venues that report a
+        # fill as a list of trades do
+        self.trade_fees_to_charge = []
 
     def fetch_order(self, id, symbol):
         self.calls.append('fetchOrder:' + id)
@@ -566,7 +584,12 @@ class StubVenue:
         filled = amount * self.fill_ratio
         average = 100 if price is None else price
         status = 'closed' if self.created_status == '' else self.created_status
-        return {'id': 'stub-order', 'status': status, 'filled': filled, 'average': average, 'cost': filled * average}
+        body = {'id': 'stub-order', 'status': status, 'filled': filled, 'average': average, 'cost': filled * average}
+        if self.fee_to_charge is not None:
+            body['fee'] = self.fee_to_charge
+        if len(self.trade_fees_to_charge) > 0:
+            body['trades'] = [{'fee': fee} for fee in self.trade_fees_to_charge]
+        return body
 
 
 def two_hop_route():
@@ -1083,6 +1106,29 @@ def test_format_number():
     assert router.format_number(1000000) == '1000000'
     assert router.format_number(0.5) == '0.5'
     assert router.format_number(1e-15) == '0'
+
+
+@test('fixture: a fee in the acquired asset resizes what the next hop is sized on')
+def test_fixture_fee_netting():
+    # Fee netting is the one place_step behaviour that CHANGES the size of the next order, and
+    # until this section existed it was asserted in TypeScript and nowhere else — a port that
+    # silently stopped netting would have shipped green in its own language.
+    cases = fixture['feeNettingCases']
+    assert len(cases) > 0, 'the fixture has fee netting cases'
+    for case in cases:
+        plan = router.build_execution_plan(one_leg_route(case['side'], case['base'], case['quote'], case['amount'], case['price']), case['planOptions'])
+        venue = StubVenue('stub')
+        if len(case['fee']) > 0:
+            venue.fee_to_charge = case['fee']
+        venue.trade_fees_to_charge = case['tradeFees']
+        report = router.execute(plan, {'stub': venue}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+        step = report['steps'][0]
+        expected = case['expected']
+        where = 'feeNettingCase ' + case['id']
+        assert numbers_match(step['filledAmount'], expected['filledAmount']), where + ': filledAmount ' + str(step['filledAmount'])
+        assert numbers_match(router.number_at(step, 'grossOutAmount', 0), expected['grossOutAmount']), where + ': grossOutAmount ' + str(router.number_at(step, 'grossOutAmount', 0))
+        assert numbers_match(step['outAmount'], expected['outAmount']), where + ': outAmount ' + str(step['outAmount'])
+        assert numbers_match(step['feeCost'], expected['feeCost']), where + ': feeCost ' + str(step['feeCost'])
 
 
 # ---------------------------------------------------------------------------

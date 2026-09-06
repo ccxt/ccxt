@@ -2586,5 +2586,238 @@
                 }
             ]
         }
-    }
+    },
+    "formatNumberAbout": "formatNumber must be byte-identical in all six ports: it builds the balances query string, and a balance spelled differently per language is a different question asked of the router. The reference is TypeScript's toFixed, which is ECMA-262's \u2014 the sign is stripped BEFORE the digits are chosen, so a TIE rounds AWAY FROM ZERO on the magnitude. Python's '%.12f', PHP's '%.12F', Rust's '{:.12}' and C#'s ToString(\"F12\") all round half to EVEN and disagreed on exactly those values, which is what the 2^-13 pair below pins.",
+    "formatNumberCases": [
+        {
+            "id": "a_tie_rounds_away_from_zero",
+            "value": 0.0001220703125,
+            "expected": "0.000122070313"
+        },
+        {
+            "id": "a_negative_tie_rounds_away_from_zero_too",
+            "value": -0.0001220703125,
+            "expected": "-0.000122070313"
+        },
+        {
+            "id": "a_tie_above_one_rounds_away_from_zero",
+            "value": 8.0001220703125,
+            "expected": "8.000122070313"
+        },
+        {
+            "id": "a_negative_tie_above_one_rounds_away_from_zero",
+            "value": -8.0001220703125,
+            "expected": "-8.000122070313"
+        },
+        {
+            "id": "rounding_up_carries_through_every_nine",
+            "value": 9.9999999999999,
+            "expected": "10"
+        },
+        {
+            "id": "no_exponent_for_a_small_number",
+            "value": 1e-07,
+            "expected": "0.0000001"
+        },
+        {
+            "id": "below_the_twelfth_decimal_is_zero",
+            "value": 1e-15,
+            "expected": "0"
+        },
+        {
+            "id": "zero_is_zero",
+            "value": 0,
+            "expected": "0"
+        },
+        {
+            "id": "a_negative_that_trims_to_minus_zero_is_zero",
+            "value": -1e-15,
+            "expected": "0"
+        },
+        {
+            "id": "an_integer_keeps_no_decimal_point",
+            "value": 1000000,
+            "expected": "1000000"
+        },
+        {
+            "id": "a_half_is_a_half",
+            "value": 0.5,
+            "expected": "0.5"
+        },
+        {
+            "id": "a_large_integer_is_still_exact",
+            "value": 100000000000000000,
+            "expected": "100000000000000000"
+        }
+    ],
+    "feeNettingAbout": "Fee netting is the one placeStep behaviour that resizes the NEXT hop's order, and it was asserted only in TypeScript. Each case drives execute() against the port's own stub venue: the stub returns a filled order carrying `fee` and/or per-trade `trades[].fee` as named here, and the step the report comes back with must carry these four numbers. `grossOutAmount` is 0 when the port never set it \u2014 which is the correct answer whenever the fee was charged in some other currency.",
+    "feeNettingCases": [
+        {
+            "id": "a_fee_in_the_acquired_asset_is_netted_out",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.001,
+                "currency": "BTC"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0.099,
+                "feeCost": 0.001
+            }
+        },
+        {
+            "id": "a_fee_in_the_asset_spent_is_left_alone",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.01,
+                "currency": "USDT"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0,
+                "outAmount": 0.1,
+                "feeCost": 0
+            }
+        },
+        {
+            "id": "a_sell_nets_a_quote_fee_out_of_the_quote_received",
+            "side": "sell",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.02,
+                "currency": "USDT"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 10,
+                "outAmount": 9.98,
+                "feeCost": 0.02
+            }
+        },
+        {
+            "id": "a_fee_larger_than_the_fill_clamps_the_carry_to_zero",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.5,
+                "currency": "BTC"
+            },
+            "tradeFees": [],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0,
+                "feeCost": 0.5
+            }
+        },
+        {
+            "id": "per_trade_fees_are_summed_when_the_order_carries_no_top_level_fee",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {},
+            "tradeFees": [
+                {
+                    "cost": 0.0004,
+                    "currency": "BTC"
+                },
+                {
+                    "cost": 0.0006,
+                    "currency": "BTC"
+                }
+            ],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0.099,
+                "feeCost": 0.001
+            }
+        },
+        {
+            "id": "per_trade_fees_in_another_currency_are_left_alone",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {},
+            "tradeFees": [
+                {
+                    "cost": 0.01,
+                    "currency": "USDT"
+                }
+            ],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0,
+                "outAmount": 0.1,
+                "feeCost": 0
+            }
+        },
+        {
+            "id": "a_top_level_fee_wins_over_per_trade_fees_rather_than_double_counting",
+            "side": "buy",
+            "base": "BTC",
+            "quote": "USDT",
+            "amount": 0.1,
+            "price": 100,
+            "planOptions": {
+                "slippageBps": 0
+            },
+            "fee": {
+                "cost": 0.001,
+                "currency": "BTC"
+            },
+            "tradeFees": [
+                {
+                    "cost": 0.001,
+                    "currency": "BTC"
+                }
+            ],
+            "expected": {
+                "filledAmount": 0.1,
+                "grossOutAmount": 0.1,
+                "outAmount": 0.099,
+                "feeCost": 0.001
+            }
+        }
+    ]
 }

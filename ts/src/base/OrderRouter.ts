@@ -392,17 +392,17 @@ class OrderRouter {
     formatNumber (value: number): string {
         //  JavaScript prints 1e-7 where Python prints 1e-07 and Go prints 1e-07;
         //  a fixed 12-decimal rendering with the trailing zeros trimmed is the
-        //  one spelling all five languages agree on for the magnitudes a
+        //  one spelling all six languages agree on for the magnitudes a
         //  balance or an amount can take.
         if (!isFinite (value)) {
             return '0';
         }
         if (Math.abs (value) >= 1e18) {
             //  JavaScript's toFixed switches to exponent notation at 1e21 while
-            //  the other four languages never do. Rather than let one language
+            //  the other five languages never do. Rather than let one language
             //  send a different string than the others, refuse — loudly, and at
             //  a magnitude no real amount reaches.
-            throw new BadRequest ('OrderRouter: a number this large cannot be rendered identically in all five languages');
+            throw new BadRequest ('OrderRouter: a number this large cannot be rendered identically in all six languages');
         }
         let text = value.toFixed (12);
         if (text.indexOf ('.') >= 0) {
@@ -2156,6 +2156,21 @@ class OrderRouter {
             const single = this.dictAt (order, 'fee');
             if (this.stringAt (single, 'currency', '').toUpperCase () === asset.toUpperCase ()) {
                 total = total + this.numberAt (single, 'cost', 0);
+                sawInList = true;
+            }
+        }
+        if (!sawInList) {
+            //  Last resort: a venue that reports its cut only per trade. The Go port has no
+            //  `fees` list on its typed Order at all, so this fallback is what lets all six
+            //  ports read the same fee off the same order — and reading NOTHING here is the
+            //  dangerous direction, not the safe one: an unread fee leaves outAmount GROSS,
+            //  which sizes the next hop on money the venue already took.
+            const trades = this.listAt (order, 'trades');
+            for (let i = 0; i < trades.length; i++) {
+                const tradeFee = this.dictAt (trades[i], 'fee');
+                if (this.stringAt (tradeFee, 'currency', '').toUpperCase () === asset.toUpperCase ()) {
+                    total = total + this.numberAt (tradeFee, 'cost', 0);
+                }
             }
         }
         if (!this.isFiniteNumber (total) || total < 0) {

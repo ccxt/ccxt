@@ -56,6 +56,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -489,7 +490,7 @@ public class OrderRouter
     {
         //  JavaScript prints 1e-7 where Python prints 1e-07 and Go prints 1e-07;
         //  a fixed 12-decimal rendering with the trailing zeros trimmed is the
-        //  one spelling all five languages agree on for the magnitudes a balance
+        //  one spelling all six languages agree on for the magnitudes a balance
         //  or an amount can take.
         if (double.IsNaN(value) || double.IsInfinity(value))
         {
@@ -498,12 +499,12 @@ public class OrderRouter
         if (Math.Abs(value) >= 1e18)
         {
             //  JavaScript's toFixed switches to exponent notation at 1e21 while
-            //  the other four languages never do. Rather than let one language
+            //  the other five languages never do. Rather than let one language
             //  send a different string than the others, refuse — loudly, and at
             //  a magnitude no real amount reaches.
-            throw new BadRequest("OrderRouter: a number this large cannot be rendered identically in all five languages");
+            throw new BadRequest("OrderRouter: a number this large cannot be rendered identically in all six languages");
         }
-        var text = value.ToString("F12", CultureInfo.InvariantCulture);
+        var text = ToFixed12(value);
         if (text.IndexOf('.') >= 0)
         {
             while (text.Length > 0 && text[text.Length - 1] == '0')
@@ -520,6 +521,61 @@ public class OrderRouter
             return "0";
         }
         return text;
+    }
+
+    /// <summary>
+    /// Renders a finite double with exactly twelve decimals, from the exact binary value and
+    /// under JavaScript's toFixed tie rule.
+    ///
+    /// The reference is TypeScript, and TypeScript's toFixed is ECMA-262's: the sign is
+    /// stripped BEFORE the digits are chosen, so a tie rounds AWAY FROM ZERO on the magnitude
+    /// and (-0.0001220703125).toFixed(12) is -0.000122070313, not -...312. ToString("F12")
+    /// rounds half to EVEN and would answer ...312, so the balances query string this feeds
+    /// would differ per language on every value landing exactly on a half tick — 2^-13
+    /// included. The bits are read directly rather than through any ToString, because on .NET
+    /// Framework a high-precision "F" format is capped at fifteen significant digits and would
+    /// not carry the exact expansion this decides on.
+    /// </summary>
+    public static string ToFixed12(double value)
+    {
+        var bits = BitConverter.DoubleToInt64Bits(value);
+        var negative = bits < 0;
+        var exponent = (int)((bits >> 52) & 0x7FFL);
+        var mantissa = bits & 0xFFFFFFFFFFFFFL;
+        if (exponent == 0)
+        {
+            //  subnormal: no implicit leading bit, and the exponent is the same as 1
+            exponent = 1;
+        }
+        else
+        {
+            mantissa = mantissa | (1L << 52);
+        }
+        //  |value| == mantissa * 2^(exponent - 1075)
+        exponent = exponent - 1075;
+        var numerator = new BigInteger(mantissa) * BigInteger.Pow(10, 12);
+        var denominator = BigInteger.One;
+        if (exponent > 0)
+        {
+            numerator = numerator << exponent;
+        }
+        else
+        {
+            denominator = BigInteger.One << (-exponent);
+        }
+        BigInteger remainder;
+        var quotient = BigInteger.DivRem(numerator, denominator, out remainder);
+        if (remainder * 2 >= denominator)
+        {
+            quotient = quotient + BigInteger.One;
+        }
+        var digits = quotient.ToString(CultureInfo.InvariantCulture);
+        while (digits.Length < 13)
+        {
+            digits = "0" + digits;
+        }
+        var sign = negative ? "-" : "";
+        return sign + digits.Substring(0, digits.Length - 12) + "." + digits.Substring(digits.Length - 12);
     }
 
     /// <summary>
@@ -965,6 +1021,24 @@ public class OrderRouter
             if (this.StringAt(single, "currency", "").ToUpper() == asset.ToUpper())
             {
                 total = total + this.NumberAt(single, "cost", 0);
+                sawInList = true;
+            }
+        }
+        if (!sawInList)
+        {
+            //  Last resort: a venue that reports its cut only per trade. The Go port has no
+            //  `fees` list on its typed Order at all, so this fallback is what lets all six
+            //  ports read the same fee off the same order — and reading NOTHING here is the
+            //  dangerous direction, not the safe one: an unread fee leaves outAmount GROSS,
+            //  which sizes the next hop on money the venue already took.
+            var trades = this.ListAt(order, "trades");
+            for (var i = 0; i < trades.Count; i++)
+            {
+                var tradeFee = this.DictAt(trades[i], "fee");
+                if (this.StringAt(tradeFee, "currency", "").ToUpper() == asset.ToUpper())
+                {
+                    total = total + this.NumberAt(tradeFee, "cost", 0);
+                }
             }
         }
         if (!this.IsFiniteNumber(total) || total < 0)
@@ -2552,6 +2626,24 @@ public class OrderRouter
                 feeList.Add(FeeToDict(entry));
             }
             mapped["fees"] = feeList;
+        }
+        if (order.trades != null)
+        {
+            //  Per-trade fees are OrderFeeInAsset's last resort, and the only shape the Go port
+            //  can carry a per-trade cut in at all. Dropping them here would make C# fee-blind on
+            //  exactly the venues that report their cut per trade — which leaves outAmount GROSS
+            //  and sizes the next hop on money the venue has already taken.
+            var tradeList = new list();
+            foreach (var trade in order.trades)
+            {
+                var mappedTrade = new dict();
+                if (trade.fee != null)
+                {
+                    mappedTrade["fee"] = FeeToDict(trade.fee.Value);
+                }
+                tradeList.Add(mappedTrade);
+            }
+            mapped["trades"] = tradeList;
         }
         return mapped;
     }

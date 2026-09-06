@@ -410,7 +410,7 @@ class OrderRouter {
     public function formatNumber($value) {
         //  JavaScript prints 1e-7 where PHP prints 1.0E-7 and Go prints 1e-07;
         //  a fixed 12-decimal rendering with the trailing zeros trimmed is the
-        //  one spelling all five languages agree on for the magnitudes a
+        //  one spelling all six languages agree on for the magnitudes a
         //  balance or an amount can take.
         $number = floatval($value);
         if (!is_finite($number)) {
@@ -418,14 +418,12 @@ class OrderRouter {
         }
         if (abs($number) >= 1e18) {
             //  JavaScript's toFixed switches to exponent notation at 1e21 while
-            //  the other four languages never do. Rather than let one language
+            //  the other five languages never do. Rather than let one language
             //  send a different string than the others, refuse — loudly, and at
             //  a magnitude no real amount reaches.
-            throw new BadRequest('OrderRouter: a number this large cannot be rendered identically in all five languages');
+            throw new BadRequest('OrderRouter: a number this large cannot be rendered identically in all six languages');
         }
-        //  %F rather than %f: %f is locale-aware and would emit a comma in a
-        //  de_DE process
-        $text = sprintf('%.12F', $number);
+        $text = $this->toFixed12($number);
         if (strpos($text, '.') !== false) {
             $text = rtrim($text, '0');
             $text = rtrim($text, '.');
@@ -434,6 +432,58 @@ class OrderRouter {
             return '0';
         }
         return $text;
+    }
+
+    /**
+     * @ignore
+     * renders a finite double with exactly twelve decimals, from the exact binary value and
+     * under JavaScript's toFixed tie rule
+     * @param float $value the number to render
+     * @return string the number with exactly twelve decimals
+     */
+    public function toFixed12($value) {
+        //  The reference is TypeScript, and TypeScript's toFixed is ECMA-262's: the sign is
+        //  stripped BEFORE the digits are chosen, so a tie rounds AWAY FROM ZERO on the
+        //  magnitude and (-0.0001220703125).toFixed(12) is -0.000122070313, not -...312.
+        //  PHP's '%.12F' rounds half to EVEN and would answer ...312, so the balances query
+        //  string this feeds would differ per language on every value landing exactly on a
+        //  half tick — 2^-13 included.
+        //
+        //  %F rather than %f: %f is locale-aware and would emit a comma in a de_DE process.
+        //  53 decimals is PHP's maximum and is EXACT for every double whose expansion reaches
+        //  the twelfth decimal: a double is m * 2^-k and its expansion terminates at digit k,
+        //  so k <= 53 (|value| >= 2^-53) renders with no rounding at all, and anything smaller
+        //  is below 1e-16 — its digits 13 and 14 are both 0, so no carry from digit 53 can
+        //  reach the digit this rounds on.
+        $negative = ($value < 0);
+        //  abs() rather than a negation, so a negative zero renders WITHOUT a sign: the digit
+        //  walk below assumes every byte it reads is a digit
+        $magnitude = abs($value);
+        $rendered = sprintf('%.53F', $magnitude);
+        $dot = strpos($rendered, '.');
+        $digits = substr($rendered, 0, $dot) . substr($rendered, $dot + 1);
+        $integerLength = $dot;
+        //  round half UP on the magnitude, reading the thirteenth decimal exactly
+        $keep = $integerLength + 12;
+        $roundUp = (ord($digits[$keep]) - 48) >= 5;
+        $kept = substr($digits, 0, $keep);
+        if ($roundUp) {
+            $carry = 1;
+            for ($i = strlen($kept) - 1; $i >= 0; $i--) {
+                if ($carry === 0) {
+                    break;
+                }
+                $digit = (ord($kept[$i]) - 48) + $carry;
+                $carry = ($digit >= 10) ? 1 : 0;
+                $kept[$i] = chr(($digit % 10) + 48);
+            }
+            if ($carry === 1) {
+                $kept = '1' . $kept;
+                $integerLength = $integerLength + 1;
+            }
+        }
+        $sign = $negative ? '-' : '';
+        return $sign . substr($kept, 0, $integerLength) . '.' . substr($kept, $integerLength);
     }
 
     /**
@@ -737,6 +787,21 @@ class OrderRouter {
             $single = $this->dictAt($order, 'fee');
             if (strtoupper($this->stringAt($single, 'currency', '')) === strtoupper($asset)) {
                 $total = $total + $this->numberAt($single, 'cost', 0);
+                $sawInList = true;
+            }
+        }
+        if (!$sawInList) {
+            //  Last resort: a venue that reports its cut only per trade. The Go port has no
+            //  `fees` list on its typed Order at all, so this fallback is what lets all six
+            //  ports read the same fee off the same order — and reading NOTHING here is the
+            //  dangerous direction, not the safe one: an unread fee leaves outAmount GROSS,
+            //  which sizes the next hop on money the venue already took.
+            $trades = $this->listAt($order, 'trades');
+            for ($i = 0; $i < count($trades); $i++) {
+                $tradeFee = $this->dictAt($trades[$i], 'fee');
+                if (strtoupper($this->stringAt($tradeFee, 'currency', '')) === strtoupper($asset)) {
+                    $total = $total + $this->numberAt($tradeFee, 'cost', 0);
+                }
             }
         }
         if (!$this->isFiniteNumber($total) || $total < 0) {
