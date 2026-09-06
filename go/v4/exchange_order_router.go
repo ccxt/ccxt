@@ -139,6 +139,11 @@ type OrderRouter struct {
 	TimeoutMs      float64
 	MaxNotionalUsd float64
 
+	// ExecutedPlanIds is the in-process idempotency ledger: the identity of every
+	// plan this instance has already executed live. A slice rather than a map
+	// because it is only ever searched linearly and never iterated for output.
+	ExecutedPlanIds []string
+
 	// Transport performs the authenticated GET behind FetchRoute. It defaults
 	// to (*OrderRouter).Request; Go has no method overriding, so this field is
 	// how the offline test suite keeps itself off the network.
@@ -179,11 +184,12 @@ func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 	// because the caller is the one who knows the size of their own trade.
 	timeoutMs := routerNumberAt(config, "timeoutMs", OrderRouterDefaultTimeoutMs)
 	router := &OrderRouter{
-		ApiKey:         apiKey,
-		BaseUrl:        baseUrl,
-		TimeoutMs:      timeoutMs,
-		MaxNotionalUsd: maxNotionalUsd,
-		httpClient:     &http.Client{},
+		ApiKey:          apiKey,
+		BaseUrl:         baseUrl,
+		TimeoutMs:       timeoutMs,
+		MaxNotionalUsd:  maxNotionalUsd,
+		ExecutedPlanIds: []string{},
+		httpClient:      &http.Client{},
 	}
 	router.Transport = router.Request
 	router.NowMs = func() float64 { return float64(time.Now().UnixMilli()) }
@@ -1407,6 +1413,38 @@ type orderRouterSink struct {
 	errors     []map[string]any
 	openOrders []map[string]any
 	placed     int
+	// the resolved identity of the plan being executed. Go's placeStep is handed a
+	// sink rather than the report the other ports read this off, so it travels here.
+	planId string
+}
+
+// PlanIdentity is the stable identity of an execution, used both for the
+// re-execution guard and for the per-step client order ids. A caller-supplied
+// idempotencyKey WINS over the plan's own requestId: passing one is a deliberate
+// statement about what this execution is, and it is the only identity a
+// hand-assembled plan can have — Execute takes any dictionary of the plan shape,
+// not only the output of BuildExecutionPlan, and a plan a user built themselves
+// never went through a routing request and so never had a requestId. Nothing is
+// invented when both are absent: a generated identity would be either random,
+// which defeats both mechanisms that depend on it, or a fingerprint of the plan's
+// contents, which makes two plans that happen to agree indistinguishable.
+func (this *OrderRouter) PlanIdentity(plan map[string]any, options map[string]any) string {
+	idempotencyKey := routerStringAt(options, "idempotencyKey", "")
+	if idempotencyKey != "" {
+		return idempotencyKey
+	}
+	return routerStringAt(plan, "requestId", "")
+}
+
+// ClientOrderIdFor derives the deterministic client order id for one step, so
+// that a second run of the same plan re-sends ids the venue has already seen and
+// is rejected as a duplicate instead of filled.
+func (this *OrderRouter) ClientOrderIdFor(planId string, stepIndex float64) string {
+	text, err := this.FormatNumber(stepIndex)
+	if err != nil {
+		text = "0"
+	}
+	return planId + "-" + text
 }
 
 // Execute runs a plan against live exchange instances. THE ONLY IMPURE METHOD.
@@ -1425,6 +1463,11 @@ type orderRouterSink struct {
 //	orderTimeoutMs         float   how long limit_protected leaves an order resting, default 20000
 //	pollIntervalMs         float   how often limit_protected checks a resting order, default 1000
 //	orderParams            dict    extra params merged into every CreateOrder call
+//	idempotencyKey         string  the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
+//	allowReexecution       bool    must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
+//
+// plan is a plan from BuildExecutionPlan, or a caller-assembled plan of the same
+// shape — this method never assumes the plan came from the routing service.
 func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchange, options map[string]any) (map[string]any, error) {
 	requestedStrategy := routerStringAt(options, "strategy", "dry_run")
 	known := false
@@ -1444,6 +1487,10 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	}
 	steps := this.cloneSteps(plan)
 	report, results := this.emptyReport(plan, strategy, requestedStrategy, live, steps)
+	// resolved from BOTH the plan and the options, so a hand-assembled plan can carry
+	// an identity too; reported on every report, rehearsals included
+	planId := this.PlanIdentity(plan, options)
+	report["planId"] = planId
 	// How old the prices in this plan are. ALWAYS reported, even when nothing is enforced: a plan
 	// is a snapshot of a book, and how stale that snapshot is decides whether any number in it
 	// means anything. -1 when the route carried no calculatedAt, which is not the same as "fresh"
@@ -1473,6 +1520,24 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	}
 	if len(venues) == 0 {
 		return nil, ArgumentsRequired("OrderRouter.Execute requires a venues dictionary when live")
+	}
+	// IDEMPOTENCY, half one: a plan this instance has already run live is REFUSED, and
+	// refused here — before a single read reaches a venue. The ledger is consulted now
+	// and written only once the plan is about to be dispatched, so a caller error that
+	// placed nothing does not burn the plan. dry_run never reaches this line and never
+	// consumes a plan, because a rehearsal places nothing.
+	if planId == "" {
+		// no identity means no idempotency: neither the ledger below nor the per-step
+		// client order ids can be derived, so a re-run of this plan would be
+		// indistinguishable from a first run all the way down to the venue.
+		return nil, BadRequest("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey")
+	}
+	if !routerBoolAt(options, "allowReexecution", false) {
+		for i := 0; i < len(this.ExecutedPlanIds); i++ {
+			if this.ExecutedPlanIds[i] == planId {
+				return nil, BadRequest("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override")
+			}
+		}
 	}
 	// derived from the steps about to be executed, NEVER read off the plan: a plan
 	// that travelled through JSON, a persisted step list or a hand-rebuilt tail of
@@ -1541,6 +1606,18 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 		if err := this.assertPrefunded(steps, venues); err != nil {
 			return nil, err
 		}
+	}
+	// the ledger is written BEFORE the first order goes out, never after: a run that
+	// fails half way through has still placed orders, and a guard that only recorded
+	// completed runs would wave through exactly the retry that double-fills.
+	alreadyLedgered := false
+	for i := 0; i < len(this.ExecutedPlanIds); i++ {
+		if this.ExecutedPlanIds[i] == planId {
+			alreadyLedgered = true
+		}
+	}
+	if !alreadyLedgered {
+		this.ExecutedPlanIds = append(this.ExecutedPlanIds, planId)
 	}
 	var err error
 	if strategy == "parallel_within_hop" {
@@ -1648,10 +1725,14 @@ func (this *OrderRouter) emptyReport(plan map[string]any, strategy string, reque
 			"outAsset":        "",
 			"outAmount":       0.0,
 			"orderId":         "",
+			"clientOrderId":   "",
 			"errorCode":       "",
 		})
 	}
 	report := map[string]any{
+		// a placeholder: Execute resolves the real identity from the plan AND the
+		// options and overwrites it before anything reads this field
+		"planId":                  "",
 		"strategy":                strategy,
 		"requestedStrategy":       requestedStrategy,
 		"dryRun":                  strategy == "dry_run",
@@ -1699,7 +1780,7 @@ func routerAppendDict(report map[string]any, key string, item map[string]any) {
 // each and obeying the halt verdict.
 func (this *OrderRouter) executeSequential(report map[string]any, results []map[string]any, steps []map[string]any, venues map[string]IExchange, options map[string]any, usdRates map[string]any, strategy string) error {
 	for i := 0; i < len(steps); i++ {
-		sink := &orderRouterSink{}
+		sink := &orderRouterSink{planId: routerStringAt(report, "planId", "")}
 		result := this.placeStep(steps[i], venues, options, usdRates, strategy, sink)
 		results[i] = result
 		this.mergeSink(report, sink)
@@ -1778,7 +1859,7 @@ func (this *OrderRouter) executeParallelWithinHop(report map[string]any, results
 			// means the same thing in all five languages. Without that containment JavaScript
 			// rejects fast while sibling orders are still live and Go's WaitGroup waits for every
 			// one — the same source abandoning in-flight orders differently per language.
-			sink := &orderRouterSink{}
+			sink := &orderRouterSink{planId: routerStringAt(report, "planId", "")}
 			sinks[g] = sink
 			waitGroup.Add(1)
 			go func(indices []int, sink *orderRouterSink) {
@@ -1835,7 +1916,7 @@ func (this *OrderRouter) executeBestEffort(report map[string]any, results []map[
 			results[i]["errorCode"] = "max_orders_reached"
 			continue
 		}
-		sink := &orderRouterSink{}
+		sink := &orderRouterSink{planId: routerStringAt(report, "planId", "")}
 		results[i] = this.placeStep(steps[i], venues, options, usdRates, "best_effort", sink)
 		this.mergeSink(report, sink)
 		placed = placed + 1
@@ -1871,6 +1952,7 @@ func (this *OrderRouter) placeStep(step map[string]any, venues map[string]IExcha
 		"outAsset":        "",
 		"outAmount":       0.0,
 		"orderId":         "",
+		"clientOrderId":   "",
 		"errorCode":       "",
 		// false until an order is actually dispatched; set at each CreateOrder below
 		"placementAttempted": false,
@@ -1976,6 +2058,15 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 	for key, value := range extra {
 		orderParams[key] = value
 	}
+	// IDEMPOTENCY, half two: a client order id derived from the plan's own identity and
+	// this step's index. Deterministic, so a second run of the same plan re-sends an id
+	// the venue has already seen and is rejected as a duplicate rather than filled. It is
+	// set AFTER the caller's orderParams are copied and deliberately overrides a
+	// clientOrderId found there: one id reused across every step of a plan is worse than
+	// none at all.
+	clientOrderId := this.ClientOrderIdFor(sink.planId, routerNumberAt(step, "stepIndex", 0))
+	orderParams["clientOrderId"] = clientOrderId
+	result["clientOrderId"] = clientOrderId
 	var order Order
 	var err error
 	if strategy == "limit_protected" {

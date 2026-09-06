@@ -416,6 +416,18 @@ fn constructor_guards() -> Result<(), String> {
     Ok(())
 }
 
+/// Every route the invariant checks build gets its own requestId: execute
+/// derives both the re-execution guard key and the per-step client order ids
+/// from it, and refuses a live plan that carries neither a requestId nor an
+/// idempotencyKey. A counter, not a random value — the ids stay reproducible.
+static TEST_REQUEST_ID_COUNTER: std::sync::atomic::AtomicUsize =
+    std::sync::atomic::AtomicUsize::new(0);
+
+fn next_test_request_id() -> Value {
+    let next = TEST_REQUEST_ID_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+    Value::Str(format!("test-req-{next}"))
+}
+
 fn one_leg_route(side: &str, base_code: &str, quote: &str, amount: f64, price: f64) -> Value {
     let mut leg = HashMap::new();
     leg.insert("exchangeId".to_string(), Value::Str("stub".into()));
@@ -429,6 +441,7 @@ fn one_leg_route(side: &str, base_code: &str, quote: &str, amount: f64, price: f
     hop.insert("quote".to_string(), Value::Str(quote.into()));
     hop.insert("legs".to_string(), Value::List(vec![Value::Map(leg)]));
     let mut route = HashMap::new();
+    route.insert("requestId".to_string(), next_test_request_id());
     route.insert("from".to_string(), Value::Str(quote.into()));
     route.insert("to".to_string(), Value::Str(base_code.into()));
     route.insert("strategy".to_string(), Value::Str("best_single".into()));
@@ -458,6 +471,7 @@ fn two_hop_route() -> Value {
         Value::Map(hop)
     };
     let mut route = HashMap::new();
+    route.insert("requestId".to_string(), next_test_request_id());
     route.insert("from".to_string(), Value::Str("USDT".into()));
     route.insert("to".to_string(), Value::Str("ETH".into()));
     route.insert("strategy".to_string(), Value::Str("best_single".into()));
@@ -989,6 +1003,7 @@ fn fee_netting_route(side: &str, base_code: &str, quote: &str, amount: f64, pric
     hop.insert("legs".to_string(), Value::List(vec![Value::Map(leg)]));
     hop.insert("fullyFillable".to_string(), Value::Bool(true));
     let mut route = HashMap::new();
+    route.insert("requestId".to_string(), next_test_request_id());
     route.insert("from".to_string(), Value::Str(if buying { quote.into() } else { base_code.to_string() }));
     route.insert("to".to_string(), Value::Str(if buying { base_code.to_string() } else { quote.into() }));
     route.insert("strategy".to_string(), Value::Str("best_single".into()));
@@ -1100,6 +1115,10 @@ pub fn run() -> Result<usize, String> {
         ("execute: a market order and a notional cap are refused together", Box::new(|| a_market_order_and_a_cap_are_refused_together(&router()?))),
         ("execute: atomic_ish demands the whole route pre-funded", Box::new(|| atomic_ish_demands_the_whole_route_prefunded(&router()?))),
         ("execute: best_effort demands both of its acknowledgements", Box::new(|| best_effort_demands_its_acknowledgements(&router()?))),
+        ("execute: a live plan with no identity is refused, and an idempotencyKey supplies one", Box::new(|| live_requires_an_identity(&router()?))),
+        ("execute: every order carries a deterministic client order id derived from the plan and the step", Box::new(|| deterministic_client_order_ids(&router()?))),
+        ("execute: the same plan is refused on a second live execution unless the caller opts in", Box::new(|| reexecution_is_refused(&router()?))),
+        ("execute: a dry run never consumes a plan, and a halted live run always does", Box::new(|| a_dry_run_does_not_consume_a_plan(&router()?))),
     ];
     let _ = (&f, &r);
     for (name, check) in checks {
@@ -1182,6 +1201,8 @@ struct StubVenue {
     /// (cost, currency) entries attached as per-trade fees, as venues that
     /// report a fill as a list of trades do.
     trade_fees_to_charge: Vec<(f64, String)>,
+    /// Every params dictionary create_order was called with, in call order.
+    params_seen: StdArc<std::sync::Mutex<Vec<Value>>>,
 }
 
 impl StubVenue {
@@ -1200,6 +1221,7 @@ impl StubVenue {
             reread_order: None,
             fee_to_charge: None,
             trade_fees_to_charge: Vec::new(),
+            params_seen: StdArc::new(std::sync::Mutex::new(Vec::new())),
         }
     }
 }
@@ -1225,9 +1247,10 @@ impl RouterVenue for StubVenue {
         _side: &str,
         amount: f64,
         price: f64,
-        _params: &Value,
+        params: &Value,
     ) -> Result<Value, crate::error::ExchangeError> {
         self.orders_placed.fetch_add(1, Ordering::SeqCst);
+        self.params_seen.lock().unwrap().push(params.clone());
         if let Some(kind) = self.fail_with {
             return Err(crate::error::ExchangeError::new(kind, "stub refuses"));
         }
@@ -1623,6 +1646,9 @@ fn execute_places_the_same_trade_with_no_cap(r: &OrderRouter) -> Result<(), Stri
     bare_venues.insert("stub".to_string(), Box::new(bare_venue));
     let mut bare_options = execute_options(true, "sequential");
     OrderRouter::set_key(&mut bare_options, "usdRates", Value::Map(HashMap::new()));
+    // the same plan again on purpose: this check is about the cap, not about
+    // idempotency, so the re-execution guard is explicitly waived
+    OrderRouter::set_key(&mut bare_options, "allowReexecution", Value::Bool(true));
     let bare_report = block_on(r.execute(&plan, &bare_venues, &bare_options))
         .map_err(|e| e.to_string())?;
     if bare_counter.load(Ordering::SeqCst) != 1 {
@@ -1773,7 +1799,11 @@ fn atomic_ish_demands_the_whole_route_prefunded(r: &OrderRouter) -> Result<(), S
     let broke_counter = StdArc::clone(&broke.orders_placed);
     let mut poor_venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
     poor_venues.insert("stub".to_string(), Box::new(broke));
-    match block_on(r.execute(&plan, &poor_venues, &execute_options(true, "atomic_ish"))) {
+    // the same plan again on purpose: this check is about pre-funding, not about
+    // idempotency, so the re-execution guard is explicitly waived
+    let poor_options =
+        options_with(&execute_options(true, "atomic_ish"), "allowReexecution", Value::Bool(true));
+    match block_on(r.execute(&plan, &poor_venues, &poor_options)) {
         Err(e) if e.message.contains("pre-funded") => {}
         other => return Err(format!("an underfunded route must be refused, got {other:?}")),
     }
@@ -1863,7 +1893,10 @@ fn a_market_order_and_a_cap_are_refused_together(r: &OrderRouter) -> Result<(), 
     let uncapped_counter = StdArc::clone(&uncapped.orders_placed);
     let mut open_venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
     open_venues.insert("stub".to_string(), Box::new(uncapped));
-    let mut open_options = execute_options(true, "sequential");
+    // the same plan again on purpose: this check is about the market-order rule, not
+    // about idempotency, so the re-execution guard is explicitly waived
+    let mut open_options =
+        options_with(&execute_options(true, "sequential"), "allowReexecution", Value::Bool(true));
     OrderRouter::set_key(&mut open_options, "allowMarketOrders", Value::Bool(true));
     let open_report = block_on(r.execute(&plan, &open_venues, &open_options)).map_err(|e| e.to_string())?;
     if uncapped_counter.load(Ordering::SeqCst) != 1 {
@@ -1882,6 +1915,11 @@ fn plan_age_is_reported_and_refused_only_when_asked(r: &OrderRouter) -> Result<(
     let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
     let mut pinned = router()?;
     pinned.set_now_ms(1_060_000.0); // the plan is exactly 60s old
+    // this check deliberately runs the same plan several times to isolate the age
+    // rule, which is exactly what allowReexecution is for
+    let execute_options = |live: bool, strategy: &str| {
+        options_with(&execute_options(live, strategy), "allowReexecution", Value::Bool(true))
+    };
     let venues = |v: StubVenue| {
         let mut m: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
         m.insert("stub".to_string(), Box::new(v));
@@ -1954,4 +1992,215 @@ fn best_effort_demands_its_acknowledgements(r: &OrderRouter) -> Result<(), Strin
         Err(e) if e.message.contains("maxOrders") => Ok(()),
         other => Err(format!("expected a maxOrders refusal, got {other:?}")),
     }
+}
+
+// ---------------------------------------------------------------------------
+// idempotency (audit finding 35): execute used to build fresh state on every
+// call and consult nothing, so running the same plan twice placed every order
+// twice — including the ones that had already filled.
+// ---------------------------------------------------------------------------
+
+/// Sets one extra key on an execute options dictionary.
+fn options_with(base: &Value, key: &str, value: Value) -> Value {
+    let mut map = base.as_map().cloned().unwrap_or_default();
+    map.insert(key.to_string(), value);
+    Value::Map(map)
+}
+
+fn stub_venues(venue: StubVenue) -> BTreeMap<String, Box<dyn RouterVenue>> {
+    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+    venues.insert("stub".to_string(), Box::new(venue));
+    venues
+}
+
+fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
+    // a plan with no identity of its own — the shape a hand-assembled plan has
+    let route = options_with(
+        &one_leg_route("buy", "BTC", "USDT", 0.2, 100.0),
+        "requestId",
+        Value::Str(String::new()),
+    );
+    let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
+    let venue = StubVenue::new("stub");
+    let counter = StdArc::clone(&venue.orders_placed);
+    let venues = stub_venues(venue);
+    match block_on(r.execute(&plan, &venues, &execute_options(true, "sequential"))) {
+        Ok(_) => return Err("a live plan with no identity must be refused".to_string()),
+        Err(e) if e.is("BadRequest") => {}
+        Err(e) => return Err(format!("expected BadRequest, got {e}")),
+    }
+    if counter.load(Ordering::SeqCst) != 0 {
+        return Err("refused before a single order reached the venue".to_string());
+    }
+    // A rehearsal needs no identity: it places nothing.
+    let dry = block_on(r.execute(&plan, &venues, &execute_options(false, "sequential")))
+        .map_err(|e| e.to_string())?;
+    if !r.bool_at(&dry, "dryRun", false) {
+        return Err("a dry run needs no identity".to_string());
+    }
+    // ...and a HAND-ASSEMBLED plan is a supported input: execute takes any
+    // dictionary of the plan shape, and such a plan never went through a routing
+    // request, so requestId is the one identity it cannot have. idempotencyKey is
+    // how it supplies one.
+    let keyed_options = options_with(
+        &execute_options(true, "sequential"),
+        "idempotencyKey",
+        Value::Str("hand-built-1".to_string()),
+    );
+    let supplied = StubVenue::new("stub");
+    let seen = StdArc::clone(&supplied.params_seen);
+    let venues = stub_venues(supplied);
+    let report = block_on(r.execute(&plan, &venues, &keyed_options)).map_err(|e| e.to_string())?;
+    if r.string_at(&report, "planId", "") != "hand-built-1" {
+        return Err("the supplied key is the identity".to_string());
+    }
+    let params = seen.lock().unwrap().clone();
+    if params.is_empty() || r.string_at(&params[0], "clientOrderId", "") != "hand-built-1-0" {
+        return Err("the client order id is seeded from the supplied key".to_string());
+    }
+    // And the guard keys off it, exactly as it does off a requestId.
+    let again = stub_venues(StubVenue::new("stub"));
+    match block_on(r.execute(&plan, &again, &keyed_options)) {
+        Ok(_) => return Err("the same key must be refused a second time".to_string()),
+        Err(e) if e.is("BadRequest") => {}
+        Err(e) => return Err(format!("expected BadRequest, got {e}")),
+    }
+    // An explicit key OVERRIDES a plan's requestId: passing one is a deliberate
+    // statement about what this execution is, and the caller is closer to that
+    // than the plan is.
+    let routed = one_leg_plan(r)?;
+    let override_options = options_with(
+        &execute_options(true, "sequential"),
+        "idempotencyKey",
+        Value::Str("override-1".to_string()),
+    );
+    let overridden = StubVenue::new("stub");
+    let seen = StdArc::clone(&overridden.params_seen);
+    let venues = stub_venues(overridden);
+    let report = block_on(r.execute(&routed, &venues, &override_options)).map_err(|e| e.to_string())?;
+    if r.string_at(&report, "planId", "") != "override-1" {
+        return Err("the option overrides the plan's requestId".to_string());
+    }
+    let params = seen.lock().unwrap().clone();
+    if r.string_at(&params[0], "clientOrderId", "") != "override-1-0" {
+        return Err("and seeds the client order id".to_string());
+    }
+    Ok(())
+}
+
+fn deterministic_client_order_ids(r: &OrderRouter) -> Result<(), String> {
+    let plan = one_leg_plan(r)?;
+    let plan_id = r.string_at(&plan, "requestId", "");
+    let venue = StubVenue::new("stub");
+    let seen = StdArc::clone(&venue.params_seen);
+    let venues = stub_venues(venue);
+    // A caller-supplied clientOrderId must NOT win: one id reused across every
+    // step of a plan is worse than none at all.
+    let mut caller_params = HashMap::new();
+    caller_params.insert("clientOrderId".to_string(), Value::Str("caller-supplied".to_string()));
+    caller_params.insert("reduceOnly".to_string(), Value::Bool(true));
+    let options = options_with(
+        &execute_options(true, "sequential"),
+        "orderParams",
+        Value::Map(caller_params),
+    );
+    let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
+    if r.string_at(&report, "planId", "") != plan_id {
+        return Err("the report names the plan identity".to_string());
+    }
+    let expected = format!("{plan_id}-0");
+    let params = seen.lock().unwrap().clone();
+    if r.string_at(&params[0], "clientOrderId", "") != expected {
+        return Err(format!("expected {expected} as the client order id"));
+    }
+    if !r.bool_at(&params[0], "reduceOnly", false) {
+        return Err("the caller's other params still travel".to_string());
+    }
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[0], "clientOrderId", "") != expected {
+        return Err("and the report says what was sent".to_string());
+    }
+    // DETERMINISTIC: another instance, the same plan — the same ids, which is the
+    // whole point. A random id would be rejected by nothing.
+    let second = router()?;
+    let other = StubVenue::new("stub");
+    let other_seen = StdArc::clone(&other.params_seen);
+    let venues = stub_venues(other);
+    block_on(second.execute(&plan, &venues, &execute_options(true, "sequential")))
+        .map_err(|e| e.to_string())?;
+    let params = other_seen.lock().unwrap().clone();
+    if r.string_at(&params[0], "clientOrderId", "") != expected {
+        return Err("a second instance sends the same id".to_string());
+    }
+    Ok(())
+}
+
+fn reexecution_is_refused(r: &OrderRouter) -> Result<(), String> {
+    let plan = one_leg_plan(r)?;
+    let options = execute_options(true, "sequential");
+    let venues = stub_venues(StubVenue::new("stub"));
+    let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[0], "status", "") != "filled" {
+        return Err("the first run places the order".to_string());
+    }
+    let again = StubVenue::new("stub");
+    let counter = StdArc::clone(&again.orders_placed);
+    let venues = stub_venues(again);
+    match block_on(r.execute(&plan, &venues, &options)) {
+        Ok(_) => return Err("the second run must be refused".to_string()),
+        Err(e) if e.is("BadRequest") => {}
+        Err(e) => return Err(format!("expected BadRequest, got {e}")),
+    }
+    if counter.load(Ordering::SeqCst) != 0 {
+        return Err("not one order may be re-placed".to_string());
+    }
+    // ...and the legitimate retry path is explicit.
+    let allowed = StubVenue::new("stub");
+    let placed = StdArc::clone(&allowed.orders_placed);
+    let venues = stub_venues(allowed);
+    let retry_options = options_with(&options, "allowReexecution", Value::Bool(true));
+    let retry = block_on(r.execute(&plan, &venues, &retry_options)).map_err(|e| e.to_string())?;
+    let results = r.list_at(&retry, "steps");
+    if r.string_at(&results[0], "status", "") != "filled" || placed.load(Ordering::SeqCst) != 1 {
+        return Err("an explicit opt-in runs it again".to_string());
+    }
+    Ok(())
+}
+
+fn a_dry_run_does_not_consume_a_plan(r: &OrderRouter) -> Result<(), String> {
+    let plan = one_leg_plan(r)?;
+    let rehearsal = stub_venues(StubVenue::new("stub"));
+    block_on(r.execute(&plan, &rehearsal, &execute_options(false, "sequential")))
+        .map_err(|e| e.to_string())?;
+    let real = stub_venues(StubVenue::new("stub"));
+    let report = block_on(r.execute(&plan, &real, &execute_options(true, "sequential")))
+        .map_err(|e| e.to_string())?;
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[0], "status", "") != "filled" {
+        return Err("the rehearsal must not burn the plan".to_string());
+    }
+    // A run that FAILED still placed orders — or may have — so the retry is refused
+    // just the same. The ledger records the attempt, not the outcome.
+    let failed_plan = one_leg_plan(r)?;
+    let mut broken = StubVenue::new("stub");
+    broken.fail_with = Some("ExchangeError");
+    let venues = stub_venues(broken);
+    let failed = block_on(r.execute(&failed_plan, &venues, &execute_options(true, "sequential")))
+        .map_err(|e| e.to_string())?;
+    if !r.bool_at(&failed, "halted", false) {
+        return Err("the failing run halted".to_string());
+    }
+    let retry = StubVenue::new("stub");
+    let counter = StdArc::clone(&retry.orders_placed);
+    let venues = stub_venues(retry);
+    match block_on(r.execute(&failed_plan, &venues, &execute_options(true, "sequential"))) {
+        Ok(_) => return Err("a failed run still consumed the plan".to_string()),
+        Err(e) if e.is("BadRequest") => {}
+        Err(e) => return Err(format!("expected BadRequest, got {e}")),
+    }
+    if counter.load(Ordering::SeqCst) != 0 {
+        return Err("and the retry placed nothing".to_string());
+    }
+    Ok(())
 }

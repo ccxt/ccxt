@@ -34,6 +34,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -369,6 +370,17 @@ func TestOrderRouterFixtureFeeNetting(t *testing.T) {
 //  invariants, asserted directly rather than through the fixture
 //  ---------------------------------------------------------------------------
 
+// every route the invariant tests build gets its own requestId: Execute derives both the
+// re-execution guard key and the per-step client order ids from it, and refuses a live plan
+// that carries neither a requestId nor an idempotencyKey. A counter, not a random value — the
+// ids stay reproducible.
+var routerTestRequestIdCounter int64
+
+func routerNextTestRequestId() string {
+	next := atomic.AddInt64(&routerTestRequestIdCounter, 1)
+	return "test-req-" + strconv.FormatInt(next, 10)
+}
+
 func routerOneLegRoute(side string, base string, quote string, amount float64, price float64) map[string]any {
 	from := base
 	to := quote
@@ -381,6 +393,7 @@ func routerOneLegRoute(side string, base string, quote string, amount float64, p
 		amountOut = amount
 	}
 	return map[string]any{
+		"requestId":        routerNextTestRequestId(),
 		"from":             from,
 		"to":               to,
 		"strategy":         "best_single",
@@ -407,6 +420,7 @@ func routerOneLegRoute(side string, base string, quote string, amount float64, p
 
 func routerTwoHopRoute() map[string]any {
 	return map[string]any{
+		"requestId":        routerNextTestRequestId(),
 		"from":             "USDT",
 		"to":               "SOL",
 		"strategy":         "best_single",
@@ -745,6 +759,8 @@ type orderRouterStubVenue struct {
 	// per-trade fees attached to the created order, which is the ONLY shape the Go
 	// typed Order can carry a per-trade cut in — it has no Fees list
 	tradeFeesToCharge []Fee
+	// every params map CreateOrder was called with, in call order
+	paramsSeen []map[string]any
 }
 
 func newOrderRouterStubVenue(fillRatio float64, failCreate bool) *orderRouterStubVenue {
@@ -844,6 +860,15 @@ func (this *orderRouterStubVenue) CreateOrder(symbol string, typeVar string, sid
 		option(&opts)
 	}
 	this.record("createOrder:" + typeVar + ":" + side + ":" + strconv.FormatFloat(amount, 'f', -1, 64))
+	seen := map[string]any{}
+	if opts.Params != nil {
+		for key, value := range *opts.Params {
+			seen[key] = value
+		}
+	}
+	this.mutex.Lock()
+	this.paramsSeen = append(this.paramsSeen, seen)
+	this.mutex.Unlock()
 	if this.failCreate {
 		return Order{}, ExchangeError("stub refuses")
 	}
@@ -890,8 +915,10 @@ func TestOrderRouterPlanAgeIsReportedAndRefusedOnlyWhenAsked(t *testing.T) {
 	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
 	pinned := routerTestRouter(t)
 	pinned.NowMs = func() float64 { return 1060000 } // the plan is exactly 60s old
+	// this test deliberately runs the same plan several times to isolate the age check,
+	// which is exactly what allowReexecution is for
 	opts := func() map[string]any {
-		return map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}}
+		return map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true}
 	}
 
 	// Always reported, even with nothing enforced, and nothing is refused by default.
@@ -1115,7 +1142,9 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	}
 	allowed := newOrderRouterStubVenue(1, false)
 	allowed.features = gtcOnly
-	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true})
+	// the same plan again on purpose: this test is about the market-order opt-in, not about
+	// idempotency, so the re-execution guard is explicitly waived
+	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1130,7 +1159,7 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	// computed from is a cap that silently disappears. Refused together.
 	capped := newOrderRouterStubVenue(1, false)
 	capped.features = gtcOnly
-	underCap, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": capped}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "maxNotionalUsd": 1000.0})
+	underCap, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": capped}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "maxNotionalUsd": 1000.0, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1145,7 +1174,7 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	// rejected IOC is loud and cheap, an unintended market order is not
 	unknown := newOrderRouterStubVenue(1, false)
 	unknown.features = map[string]any{}
-	assumed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": unknown}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	assumed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": unknown}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1355,7 +1384,9 @@ func TestOrderRouterVenueSupportsIocReadsADictionary(t *testing.T) {
 	}
 	allowed := newOrderRouterStubVenue(1, false)
 	allowed.features = noIocFeatures
-	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true})
+	// the same plan again on purpose: this test is about the market-order opt-in, not about
+	// idempotency, so the re-execution guard is explicitly waived
+	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1478,7 +1509,7 @@ func TestOrderRouterOrderIdSurvivesAFailureAfterCreate(t *testing.T) {
 	// the same holds for an immediate order, which has no poll loop at all
 	other := newOrderRouterStubVenue(1, false)
 	other.createdStatus = "open"
-	okReport, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	okReport, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1606,7 +1637,7 @@ func TestOrderRouterAtomicIshDemandsTheWholeRoutePrefunded(t *testing.T) {
 		btc := 0.0
 		return Balances{Free: map[string]*float64{"USDT": &usdt, "BTC": &btc}}, nil
 	}
-	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broke}), map[string]any{"strategy": "atomic_ish", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broke}), map[string]any{"strategy": "atomic_ish", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if routerErrorCode(err) != "InsufficientFunds" {
 		t.Fatalf("an underfunded route is refused, got %v", err)
 	}
@@ -1892,5 +1923,192 @@ func TestOrderRouterFixtureReconcileSequence(t *testing.T) {
 				t.Fatalf("reconcileSequenceCase %s step %d: amount %v", id, s, steps[s]["amount"])
 			}
 		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// idempotency (audit finding 35): Execute used to build fresh state on every
+// call and consult nothing, so running the same plan twice placed every order
+// twice — including the ones that had already filled.
+// ---------------------------------------------------------------------------
+
+func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
+	router := routerTestRouter(t)
+	route := routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100)
+	route["requestId"] = ""
+	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
+	rates := map[string]any{"USDT": 1.0}
+	live := map[string]any{"strategy": "sequential", "live": true, "usdRates": rates}
+	venue := newOrderRouterStubVenue(1, false)
+	_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), live)
+	if err == nil || !strings.Contains(err.Error(), "carries no requestId") {
+		t.Fatalf("a live plan with no identity must be refused, got %v", err)
+	}
+	if len(venue.callLog()) != 0 {
+		t.Fatalf("refused before a single call reached the venue, got %v", venue.callLog())
+	}
+	// a rehearsal needs no identity: it places nothing
+	dry, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "usdRates": rates})
+	if err != nil || dry["dryRun"] != true {
+		t.Fatalf("a dry run needs no identity, got %v %v", dry["dryRun"], err)
+	}
+	// ...and a HAND-ASSEMBLED plan is a supported input: Execute takes any map of the plan
+	// shape, and such a plan never went through a routing request, so requestId is the one
+	// identity it cannot have. options idempotencyKey is how it supplies one.
+	supplied := newOrderRouterStubVenue(1, false)
+	keyed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": supplied}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates, "idempotencyKey": "hand-built-1"})
+	if err != nil {
+		t.Fatalf("a supplied idempotencyKey is an identity: %v", err)
+	}
+	if routerStringAt(keyed, "planId", "") != "hand-built-1" {
+		t.Fatalf("the supplied key is the identity, got %v", keyed["planId"])
+	}
+	if routerStringAt(keyed["steps"].([]map[string]any)[0], "status", "") != "filled" {
+		t.Fatal("and the plan executes")
+	}
+	if routerStringAt(supplied.paramsSeen[0], "clientOrderId", "") != "hand-built-1-0" {
+		t.Fatalf("the client order id is seeded from it, got %v", supplied.paramsSeen[0])
+	}
+	// and the guard keys off it, exactly as it does off a requestId
+	again := newOrderRouterStubVenue(1, false)
+	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": again}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates, "idempotencyKey": "hand-built-1"})
+	if err == nil || !strings.Contains(err.Error(), "already executed") {
+		t.Fatalf("the same key must be refused a second time, got %v", err)
+	}
+	// an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement
+	// about what this execution is, and the caller is closer to that than the plan is
+	routed := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	overridden := newOrderRouterStubVenue(1, false)
+	report, err := router.Execute(routed, routerStubVenues(map[string]*orderRouterStubVenue{"stub": overridden}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates, "idempotencyKey": "override-1"})
+	if err != nil {
+		t.Fatalf("an explicit key overrides: %v", err)
+	}
+	if routerStringAt(report, "planId", "") != "override-1" {
+		t.Fatalf("the option overrides the requestId, got %v", report["planId"])
+	}
+	if routerStringAt(overridden.paramsSeen[0], "clientOrderId", "") != "override-1-0" {
+		t.Fatalf("and seeds the client order id, got %v", overridden.paramsSeen[0])
+	}
+}
+
+func TestOrderRouterDeterministicClientOrderIds(t *testing.T) {
+	router := routerTestRouter(t)
+	route := routerTwoHopRoute()
+	route["requestId"] = "fixed-req"
+	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
+	venue := newOrderRouterStubVenue(1, false)
+	// a caller-supplied clientOrderId must NOT win: one id reused across every step of a
+	// plan is worse than none at all
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
+		"strategy":    "sequential",
+		"live":        true,
+		"usdRates":    map[string]any{"USDT": 1.0},
+		"orderParams": map[string]any{"clientOrderId": "caller-supplied", "reduceOnly": true},
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if routerStringAt(report, "planId", "") != "fixed-req" {
+		t.Fatalf("the report names the plan identity, got %v", report["planId"])
+	}
+	if len(venue.paramsSeen) != 2 {
+		t.Fatalf("expected two orders, got %d", len(venue.paramsSeen))
+	}
+	if routerStringAt(venue.paramsSeen[0], "clientOrderId", "") != "fixed-req-0" ||
+		routerStringAt(venue.paramsSeen[1], "clientOrderId", "") != "fixed-req-1" {
+		t.Fatalf("every step carries its own deterministic id, got %v", venue.paramsSeen)
+	}
+	if venue.paramsSeen[0]["reduceOnly"] != true {
+		t.Fatal("the caller's other params still travel")
+	}
+	results := report["steps"].([]map[string]any)
+	if routerStringAt(results[0], "clientOrderId", "") != "fixed-req-0" ||
+		routerStringAt(results[1], "clientOrderId", "") != "fixed-req-1" {
+		t.Fatal("and the report says what was sent")
+	}
+	// DETERMINISTIC: another instance, another day, the same plan — the same ids, which is
+	// the whole point. A random id would be rejected by nothing.
+	second := routerTestRouter(t)
+	other := newOrderRouterStubVenue(1, false)
+	if _, err := second.Execute(routerMustPlan(second.BuildExecutionPlan(route, nil)), routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}}); err != nil {
+		t.Fatalf("second instance: %v", err)
+	}
+	if routerStringAt(other.paramsSeen[0], "clientOrderId", "") != "fixed-req-0" {
+		t.Fatalf("a second instance sends the same id, got %v", other.paramsSeen[0])
+	}
+}
+
+func TestOrderRouterReexecutionIsRefused(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	options := map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}}
+	first := newOrderRouterStubVenue(1, false)
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": first}), options)
+	if err != nil {
+		t.Fatalf("the first run places the order: %v", err)
+	}
+	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "filled" {
+		t.Fatal("the first run fills")
+	}
+	again := newOrderRouterStubVenue(1, false)
+	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": again}), options)
+	if err == nil || !strings.Contains(err.Error(), "already executed") {
+		t.Fatalf("the second run must be refused, got %v", err)
+	}
+	if len(again.callLog()) != 0 {
+		t.Fatalf("not one order was re-placed, got %v", again.callLog())
+	}
+	// a plan rebuilt from the same route is the same plan: the identity travels with it
+	rebuiltRoute := routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100)
+	rebuiltRoute["requestId"] = routerStringAt(plan, "requestId", "")
+	rebuilt := routerMustPlan(router.BuildExecutionPlan(rebuiltRoute, nil))
+	third := newOrderRouterStubVenue(1, false)
+	_, err = router.Execute(rebuilt, routerStubVenues(map[string]*orderRouterStubVenue{"stub": third}), options)
+	if err == nil || !strings.Contains(err.Error(), "already executed") {
+		t.Fatalf("a rebuilt plan with the same identity is refused too, got %v", err)
+	}
+	// ...and the legitimate retry path is explicit
+	allowed := newOrderRouterStubVenue(1, false)
+	retry, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
+	if err != nil {
+		t.Fatalf("an explicit opt-in runs it again: %v", err)
+	}
+	if routerStringAt(retry["steps"].([]map[string]any)[0], "status", "") != "filled" || len(allowed.callLog()) == 0 {
+		t.Fatal("and really does place the order")
+	}
+}
+
+func TestOrderRouterDryRunDoesNotConsumeAPlan(t *testing.T) {
+	router := routerTestRouter(t)
+	rates := map[string]any{"USDT": 1.0}
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	if _, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), map[string]any{"strategy": "sequential", "usdRates": rates}); err != nil {
+		t.Fatalf("rehearsal: %v", err)
+	}
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates})
+	if err != nil {
+		t.Fatalf("the rehearsal did not burn the plan: %v", err)
+	}
+	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "filled" {
+		t.Fatal("the live run after a rehearsal fills")
+	}
+	// a run that FAILED still placed orders — or may have — so the retry is refused just the
+	// same. The ledger records the attempt, not the outcome.
+	failedPlan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	broken := newOrderRouterStubVenue(1, true)
+	failedReport, err := router.Execute(failedPlan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broken}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates})
+	if err != nil {
+		t.Fatalf("a contained failure is reported, not returned: %v", err)
+	}
+	if failedReport["halted"] != true {
+		t.Fatal("the run halted")
+	}
+	retry := newOrderRouterStubVenue(1, false)
+	_, err = router.Execute(failedPlan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": retry}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates})
+	if err == nil || !strings.Contains(err.Error(), "already executed") {
+		t.Fatalf("a failed run still consumed the plan, got %v", err)
+	}
+	if len(retry.callLog()) != 0 {
+		t.Fatalf("and the retry placed nothing, got %v", retry.callLog())
 	}
 }

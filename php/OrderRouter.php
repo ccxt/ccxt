@@ -114,6 +114,10 @@ class OrderRouter {
     public $baseUrl;
     public $timeoutMs;
     public $maxNotionalUsd;
+    //  in-process idempotency ledger: the identity of every plan this instance has
+    //  already executed live. An array rather than a map because it is only ever
+    //  searched linearly and never iterated for ordered output.
+    public $executedPlanIds;
 
     /**
      * creates a client for the CCXT order-router service
@@ -144,6 +148,7 @@ class OrderRouter {
         //  0 means NO CAP. Any positive value is honoured exactly — it is not clamped,
         //  because the caller is the one who knows the size of their own trade.
         $this->maxNotionalUsd = $maxNotionalUsd;
+        $this->executedPlanIds = array();
     }
 
     //  -----------------------------------------------------------------------
@@ -918,7 +923,7 @@ class OrderRouter {
 
     /**
      * checks a plan against per-venue market rules and, when one is set, the opt-in per-trade USD notional cap. PURE — no I/O. A step that cannot be valued in USD BLOCKS; it is never skipped, because a cap that silently disappears when a rate is missing is not a cap
-     * @param array $plan a plan from buildExecutionPlan
+     * @param array $plan a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
      * @param array $markets a dictionary of exchangeId to that exchange's markets dictionary, i.e. markets[exchangeId][symbol]
      * @param array $options check options
      *     array  usdRates       a dictionary of currency code to its USD price. USD itself is 1 implicitly; nothing else is assumed
@@ -1449,13 +1454,48 @@ class OrderRouter {
         $positions[] = array('exchangeId' => $exchangeId, 'asset' => $asset, 'amount' => $amount, 'source' => $initialSource);
     }
 
+    /**
+     * the stable identity of an execution, used both for the re-execution guard and for the per-step client order ids
+     * @param array $plan the plan
+     * @param array $options the execute options
+     * @return string the identity, or '' when neither source carries one
+     */
+    public function planIdentity($plan, $options) {
+        //  A caller-supplied idempotencyKey WINS over the plan's own requestId. Passing one is
+        //  a deliberate statement about what this execution is, and it is the only identity a
+        //  hand-assembled plan can have: execute() takes any dictionary of the plan shape, not
+        //  only the output of buildExecutionPlan, and a plan a user built themselves never went
+        //  through a routing request and so never had a requestId.
+        $idempotencyKey = $this->stringAt($options, 'idempotencyKey', '');
+        if ($idempotencyKey !== '') {
+            return $idempotencyKey;
+        }
+        //  otherwise requestId, the one field a routed plan carries that is meant to be unique;
+        //  it survives JSON, storage and a hand-rebuilt tail of a halted route. Nothing is
+        //  invented when both are absent — a generated identity would be either random, which
+        //  defeats both mechanisms that depend on it, or a fingerprint of the plan's contents,
+        //  which makes two plans that happen to agree indistinguishable. Absence is reported,
+        //  and execute refuses.
+        return $this->stringAt($plan, 'requestId', '');
+    }
+
+    /**
+     * derives the deterministic client order id for one step, so that a second run of the same plan re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
+     * @param string $planId the plan identity from planIdentity
+     * @param int $stepIndex the step's index within the plan
+     * @return string the client order id
+     */
+    public function clientOrderIdFor($planId, $stepIndex) {
+        return $planId . '-' . $this->formatNumber($stepIndex);
+    }
+
     //  -----------------------------------------------------------------------
     //  IMPURE: execute
     //  -----------------------------------------------------------------------
 
     /**
      * executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options.live !== true forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
-     * @param array $plan a plan from buildExecutionPlan
+     * @param array $plan a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
      * @param array $venues a dictionary of exchangeId to a ccxt exchange instance
      * @param array $options execution options
      *     string strategy               dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
@@ -1467,6 +1507,8 @@ class OrderRouter {
      *     int    orderTimeoutMs         how long limit_protected leaves an order resting, default 20000
      *     int    pollIntervalMs         how often limit_protected checks a resting order, default 1000
      *     array  orderParams            extra params merged into every createOrder call
+     *     string idempotencyKey         the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
+     *     bool   allowReexecution       must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
      * @return array an execution report with per-step results, openOrders, errors and the halt verdict
      */
     public function assertSyncVenues($venues) {
@@ -1517,6 +1559,10 @@ class OrderRouter {
         $strategy = $live ? $requestedStrategy : 'dry_run';
         $steps = $this->cloneSteps($plan);
         $report = $this->emptyReport($plan, $strategy, $requestedStrategy, $live, $steps);
+        //  resolved from BOTH the plan and the options, so a hand-assembled plan can carry an
+        //  identity too; reported on every report, rehearsals included
+        $planId = $this->planIdentity($plan, $options);
+        $report['planId'] = $planId;
         // How old the prices in this plan are. ALWAYS reported, even when nothing is enforced: a plan
         // is a snapshot of a book, and how stale that snapshot is decides whether any number in it
         // means anything. -1 when the route carried no calculatedAt, which is not the same as "fresh"
@@ -1543,6 +1589,22 @@ class OrderRouter {
         }
         if (count($venues) === 0) {
             throw new ArgumentsRequired('OrderRouter.execute requires a venues dictionary when live');
+        }
+        //  IDEMPOTENCY, half one: a plan this instance has already run live is REFUSED, and
+        //  refused here — before a single read reaches a venue. The ledger is consulted now and
+        //  written only once the plan is about to be dispatched, so a caller error that placed
+        //  nothing does not burn the plan. dry_run never reaches this line and never consumes a
+        //  plan, because a rehearsal places nothing.
+        if ($planId === '') {
+            //  no identity means no idempotency: neither the ledger below nor the per-step
+            //  client order ids can be derived, so a re-run of this plan would be
+            //  indistinguishable from a first run all the way down to the venue.
+            throw new BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey');
+        }
+        if ($this->fieldAt($options, 'allowReexecution') !== true) {
+            if (in_array($planId, $this->executedPlanIds, true)) {
+                throw new BadRequest('OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override');
+            }
         }
         //  derived from the steps about to be executed, NEVER read off the plan:
         //  a plan that travelled through JSON, a persisted step list or a
@@ -1606,6 +1668,12 @@ class OrderRouter {
         }
         if ($strategy === 'atomic_ish') {
             $this->assertPrefunded($steps, $venues);
+        }
+        //  the ledger is written BEFORE the first order goes out, never after: a run that
+        //  throws half way through has still placed orders, and a guard that only recorded
+        //  completed runs would wave through exactly the retry that double-fills.
+        if (!in_array($planId, $this->executedPlanIds, true)) {
+            $this->executedPlanIds[] = $planId;
         }
         if ($strategy === 'parallel_within_hop') {
             $this->executeParallelWithinHop($report, $steps, $venues, $options, $usdRates);
@@ -1709,10 +1777,14 @@ class OrderRouter {
                 'outAsset' => '',
                 'outAmount' => 0,
                 'orderId' => '',
+                'clientOrderId' => '',
                 'errorCode' => '',
             );
         }
         return array(
+            //  a placeholder: execute resolves the real identity from the plan AND the
+            //  options and overwrites it before anything reads this field
+            'planId' => '',
             'strategy' => $strategy,
             'requestedStrategy' => $requestedStrategy,
             'dryRun' => ($strategy === 'dry_run'),
@@ -1895,6 +1967,7 @@ class OrderRouter {
             'outAsset' => '',
             'outAmount' => 0,
             'orderId' => '',
+            'clientOrderId' => '',
             'errorCode' => '',
             // false until an order is actually dispatched; see the assignment at each createOrder
             'placementAttempted' => false,
@@ -1924,6 +1997,15 @@ class OrderRouter {
             for ($i = 0; $i < count($extraKeys); $i++) {
                 $orderParams[$extraKeys[$i]] = $extra[$extraKeys[$i]];
             }
+            //  IDEMPOTENCY, half two: a client order id derived from the plan's own identity and
+            //  this step's index. Deterministic, so a second run of the same plan re-sends an id
+            //  the venue has already seen and is rejected as a duplicate rather than filled. It
+            //  is set AFTER the caller's orderParams are copied and deliberately overrides a
+            //  clientOrderId found there: one id reused across every step of a plan is worse
+            //  than none at all.
+            $clientOrderId = $this->clientOrderIdFor($this->stringAt($report, 'planId', ''), $stepIndex);
+            $orderParams['clientOrderId'] = $clientOrderId;
+            $result['clientOrderId'] = $clientOrderId;
             $order = array();
             if ($strategy === 'limit_protected') {
                 $order = $this->placeProtectedLimit($venue, $step, $symbol, $side, $amount, $price, $orderParams, $options, $report, $result);

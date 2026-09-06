@@ -285,8 +285,20 @@ def test_fixture_build_unwind_plan():
 # 2. invariants, asserted directly rather than through the fixture
 # ---------------------------------------------------------------------------
 
+# every route the invariant tests build gets its own requestId: execute() derives both the
+# re-execution guard key and the per-step client order ids from it, and refuses a live plan
+# that carries none. A counter, not a random value — the ids stay reproducible.
+TEST_REQUEST_ID_COUNTER = [0]
+
+
+def next_test_request_id():
+    TEST_REQUEST_ID_COUNTER[0] = TEST_REQUEST_ID_COUNTER[0] + 1
+    return 'test-req-' + str(TEST_REQUEST_ID_COUNTER[0])
+
+
 def one_leg_route(side, base, quote, amount, price):
     return {
+        'requestId': next_test_request_id(),
         'from': quote if side == 'buy' else base,
         'to': base if side == 'buy' else quote,
         'strategy': 'best_single',
@@ -548,6 +560,8 @@ class StubVenue:
         # [{cost, currency}] attached as per-trade fees, as venues that report a
         # fill as a list of trades do
         self.trade_fees_to_charge = []
+        # every params dictionary create_order was called with, in call order
+        self.params_seen = []
 
     def fetch_order(self, id, symbol):
         self.calls.append('fetchOrder:' + id)
@@ -579,6 +593,7 @@ class StubVenue:
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.calls.append('createOrder:' + type + ':' + side + ':' + str(amount))
+        self.params_seen.append(params)
         if self.fail_create:
             raise ExchangeError('stub refuses')
         filled = amount * self.fill_ratio
@@ -594,6 +609,7 @@ class StubVenue:
 
 def two_hop_route():
     return {
+        'requestId': next_test_request_id(),
         'from': 'USDT',
         'to': 'SOL',
         'strategy': 'best_single',
@@ -711,7 +727,9 @@ def test_market_orders_need_two_keys():
     assert no_ioc.calls == [], 'defaulting to a market order is the decision the caller did not delegate'
     allowed = StubVenue('stub')
     allowed.features = {'spot': {'createOrder': {'timeInForce': ['GTC']}}}
-    placed = router.execute(plan, {'stub': allowed}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowMarketOrders': True})
+    # same plan again, on purpose: these tests are about the market-order opt-in, not about
+    # idempotency, so the re-execution guard is explicitly waived
+    placed = router.execute(plan, {'stub': allowed}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowMarketOrders': True, 'allowReexecution': True})
     assert placed['steps'][0]['status'] == 'filled'
     assert allowed.calls == ['createOrder:market:buy:0.2']
     # ...but not under a cap. assert_under_cap values the order at the plan's LIMIT price and the
@@ -719,7 +737,7 @@ def test_market_orders_need_two_keys():
     # computed from is a cap that silently disappears. The two options are refused together.
     capped = StubVenue('stub')
     capped.features = {'spot': {'createOrder': {'timeInForce': ['GTC']}}}
-    under_cap = router.execute(plan, {'stub': capped}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowMarketOrders': True, 'maxNotionalUsd': 1000})
+    under_cap = router.execute(plan, {'stub': capped}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowMarketOrders': True, 'maxNotionalUsd': 1000, 'allowReexecution': True})
     assert under_cap['steps'][0]['status'] == 'failed'
     assert under_cap['steps'][0]['errorCode'] == 'NotSupported'
     assert capped.calls == [], 'refused BEFORE dispatch: a cap checked against a price that is then discarded is worse than no cap'
@@ -727,7 +745,7 @@ def test_market_orders_need_two_keys():
     # rejected IOC is loud and cheap, an unintended market order is not
     unknown = StubVenue('stub')
     unknown.features = {}
-    assumed = router.execute(plan, {'stub': unknown}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    assumed = router.execute(plan, {'stub': unknown}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowReexecution': True})
     assert assumed['steps'][0]['status'] == 'filled'
     assert unknown.calls == ['createOrder:limit:buy:0.2']
 
@@ -847,7 +865,9 @@ def test_venue_supports_ioc_dictionary():
     assert no_ioc.calls == [], 'an IOC was never sent to a venue that cannot do one'
     allowed = StubVenue('stub')
     allowed.features = no_ioc.features
-    placed = router.execute(plan, {'stub': allowed}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowMarketOrders': True})
+    # same plan again, on purpose: these tests are about the market-order opt-in, not about
+    # idempotency, so the re-execution guard is explicitly waived
+    placed = router.execute(plan, {'stub': allowed}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowMarketOrders': True, 'allowReexecution': True})
     assert placed['steps'][0]['status'] == 'filled'
     assert allowed.calls == ['createOrder:market:buy:0.2']
 
@@ -918,7 +938,9 @@ def test_order_id_survives_a_failure_after_create():
     # the same holds for an immediate order, which has no poll loop at all
     other = StubVenue('stub')
     other.created_status = 'open'
-    ok_report = router.execute(plan, {'stub': other}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    # the same plan on purpose: this test is about the order id surviving, not about
+    # idempotency, so the re-execution guard is explicitly waived
+    ok_report = router.execute(plan, {'stub': other}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowReexecution': True})
     assert ok_report['steps'][0]['orderId'] == 'stub-order'
     # and an "immediate" order the venue reports as STILL OPEN is a resting
     # order - which is what a venue that silently drops timeInForce leaves you.
@@ -982,7 +1004,9 @@ def _():
     plan = router.build_execution_plan(route, {})
     pinned = OrderRouter({'apiKey': 'k'})
     pinned.now_ms = lambda: 1060000   # the plan is exactly 60s old
-    opts = {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}}
+    # this test deliberately runs the same plan several times to isolate the age check,
+    # which is exactly what allowReexecution is for
+    opts = {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'allowReexecution': True}
 
     # Always reported, even with nothing enforced, and nothing is refused by default: this class
     # does not decide how stale a plan the caller may trade on.
@@ -1129,6 +1153,139 @@ def test_fixture_fee_netting():
         assert numbers_match(router.number_at(step, 'grossOutAmount', 0), expected['grossOutAmount']), where + ': grossOutAmount ' + str(router.number_at(step, 'grossOutAmount', 0))
         assert numbers_match(step['outAmount'], expected['outAmount']), where + ': outAmount ' + str(step['outAmount'])
         assert numbers_match(step['feeCost'], expected['feeCost']), where + ': feeCost ' + str(step['feeCost'])
+
+
+# ---------------------------------------------------------------------------
+# idempotency(audit finding 35): execute() used to build fresh state on every
+# call and consult nothing, so running the same plan twice placed every order
+# twice — including the ones that had already filled.
+# ---------------------------------------------------------------------------
+
+@test('a live plan with no requestId is refused: without an identity there is no idempotency')
+def test_live_requires_a_plan_identity():
+    route = one_leg_route('buy', 'BTC', 'USDT', 0.2, 100)
+    route['requestId'] = ''
+    plan = router.build_execution_plan(route, {})
+    venue = StubVenue('stub')
+    raised = ''
+    try:
+        router.execute(plan, {'stub': venue}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    except BadRequest as error:
+        raised = str(error)
+    assert 'carries no requestId' in raised, 'a live plan with no identity is refused'
+    assert venue.calls == [], 'refused before a single call reached the venue'
+    # ...and a HAND-ASSEMBLED plan is a supported input: execute() takes any dictionary of the
+    # plan shape, and such a plan never went through a routing request, so requestId is the one
+    # identity it cannot have. options['idempotencyKey'] is how it supplies one.
+    supplied = StubVenue('stub')
+    keyed = router.execute(plan, {'stub': supplied}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'hand-built-1'})
+    assert keyed['planId'] == 'hand-built-1'
+    assert keyed['steps'][0]['status'] == 'filled'
+    assert supplied.params_seen[0]['clientOrderId'] == 'hand-built-1-0'
+    # and the guard keys off it, exactly as it does off a requestId
+    raised = ''
+    try:
+        router.execute(plan, {'stub': StubVenue('stub')}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'hand-built-1'})
+    except BadRequest as error:
+        raised = str(error)
+    assert 'already executed' in raised
+    # an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement about
+    # what this execution is, and the caller is closer to that than the plan is
+    routed = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    overridden = StubVenue('stub')
+    report = router.execute(routed, {'stub': overridden}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'override-1'})
+    assert report['planId'] == 'override-1'
+    assert overridden.params_seen[0]['clientOrderId'] == 'override-1-0'
+    # a rehearsal needs no identity: it places nothing
+    dry = router.execute(plan, {'stub': venue}, {'strategy': 'sequential', 'usdRates': {'USDT': 1}})
+    assert dry['dryRun'] is True
+
+
+@test('every order carries a deterministic client order id derived from the plan and the step')
+def test_deterministic_client_order_ids():
+    route = two_hop_route()
+    route['requestId'] = 'fixed-req'
+    plan = router.build_execution_plan(route, {})
+    venue = StubVenue('stub')
+    report = router.execute(plan, {'stub': venue}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+        # a caller-supplied clientOrderId must NOT win: one id reused across every step of a
+        # plan is worse than none at all
+        'orderParams': {'clientOrderId': 'caller-supplied', 'reduceOnly': True},
+    })
+    assert report['planId'] == 'fixed-req'
+    assert len(venue.params_seen) == 2
+    assert venue.params_seen[0]['clientOrderId'] == 'fixed-req-0'
+    assert venue.params_seen[1]['clientOrderId'] == 'fixed-req-1'
+    assert venue.params_seen[0]['reduceOnly'] is True, "the caller's other params still travel"
+    assert report['steps'][0]['clientOrderId'] == 'fixed-req-0', 'and the report says what was sent'
+    assert report['steps'][1]['clientOrderId'] == 'fixed-req-1'
+    # DETERMINISTIC: another instance, another day, the same plan — the same ids, which is the
+    # whole point. A random id would be rejected by nothing.
+    second = OrderRouter({'apiKey': 'k'})
+    other = StubVenue('stub')
+    second.execute(router.build_execution_plan(route, {}), {'stub': other}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    assert other.params_seen[0]['clientOrderId'] == 'fixed-req-0'
+    assert other.params_seen[1]['clientOrderId'] == 'fixed-req-1'
+
+
+@test('the same plan is refused on a second live execution, and only an explicit opt-in overrides it')
+def test_reexecution_is_refused():
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    opts = {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}}
+    first = StubVenue('stub')
+    report = router.execute(plan, {'stub': first}, opts)
+    assert report['steps'][0]['status'] == 'filled'
+    again = StubVenue('stub')
+    raised = ''
+    try:
+        router.execute(plan, {'stub': again}, opts)
+    except BadRequest as error:
+        raised = str(error)
+    assert 'already executed' in raised
+    assert again.calls == [], 'not one order was re-placed'
+    # a plan rebuilt from the same route is the same plan: the identity travels with it
+    rebuilt_route = one_leg_route('buy', 'BTC', 'USDT', 0.2, 100)
+    rebuilt_route['requestId'] = plan['requestId']
+    rebuilt = router.build_execution_plan(rebuilt_route, {})
+    third = StubVenue('stub')
+    raised = ''
+    try:
+        router.execute(rebuilt, {'stub': third}, opts)
+    except BadRequest as error:
+        raised = str(error)
+    assert 'already executed' in raised
+    assert third.calls == []
+    # ...and the legitimate retry path is explicit
+    allowed = StubVenue('stub')
+    retry = router.execute(plan, {'stub': allowed}, dict(opts, allowReexecution=True))
+    assert retry['steps'][0]['status'] == 'filled'
+    assert len(allowed.calls) > 0
+
+
+@test('a dry run never consumes a plan, and a halted live run always does')
+def test_dry_run_does_not_consume_a_plan():
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    rehearsal = StubVenue('stub')
+    router.execute(plan, {'stub': rehearsal}, {'strategy': 'sequential', 'usdRates': {'USDT': 1}})
+    real = StubVenue('stub')
+    report = router.execute(plan, {'stub': real}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    assert report['steps'][0]['status'] == 'filled', 'the rehearsal did not burn the plan'
+    # a run that FAILED still placed orders — or may have — so the retry is refused just the
+    # same. The ledger records the attempt, not the outcome.
+    failed_plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    broken = StubVenue('stub')
+    broken.fail_create = True
+    failed_report = router.execute(failed_plan, {'stub': broken}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    assert failed_report['halted'] is True
+    retry = StubVenue('stub')
+    raised = ''
+    try:
+        router.execute(failed_plan, {'stub': retry}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    except BadRequest as error:
+        raised = str(error)
+    assert 'already executed' in raised
+    assert retry.calls == []
 
 
 # ---------------------------------------------------------------------------

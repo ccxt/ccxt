@@ -116,6 +116,11 @@ pub struct OrderRouter {
     /// test pins time by setting it. A field rather than an overridable method
     /// because `OrderRouter` is a concrete struct, not a trait.
     now_ms_override: Option<f64>,
+    /// In-process idempotency ledger: the identity of every plan this instance
+    /// has already executed live. Behind a mutex because `execute` takes `&self`
+    /// — a `Vec` rather than a set, because it is only ever searched linearly and
+    /// never iterated for ordered output.
+    executed_plan_ids: std::sync::Mutex<Vec<String>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -408,6 +413,7 @@ impl OrderRouter {
             timeout_ms: DEFAULT_TIMEOUT_MS,
             max_notional_usd: NO_CAP,
             now_ms_override: None,
+            executed_plan_ids: std::sync::Mutex::new(Vec::new()),
         };
         let api_key = reader.string_at(config, "apiKey", "");
         if api_key.is_empty() {
@@ -429,7 +435,14 @@ impl OrderRouter {
         // 0 means NO CAP. Any positive value is honoured exactly — it is not
         // clamped, because the caller is the one who knows the size of their own
         // trade.
-        Ok(OrderRouter { api_key, base_url, timeout_ms, max_notional_usd, now_ms_override: None })
+        Ok(OrderRouter {
+            api_key,
+            base_url,
+            timeout_ms,
+            max_notional_usd,
+            now_ms_override: None,
+            executed_plan_ids: std::sync::Mutex::new(Vec::new()),
+        })
     }
 
     /// Pins the clock, for tests. Production never calls this.
@@ -1493,6 +1506,34 @@ const KNOWN_STRATEGIES: [&str; 6] = [
 ];
 
 impl OrderRouter {
+    /// The stable identity of an execution, used both for the re-execution guard
+    /// and for the per-step client order ids.
+    ///
+    /// A caller-supplied `idempotencyKey` WINS over the plan's own `requestId`:
+    /// passing one is a deliberate statement about what this execution is, and it
+    /// is the only identity a hand-assembled plan can have — `execute` takes any
+    /// dictionary of the plan shape, not only the output of `build_execution_plan`,
+    /// and a plan a user built themselves never went through a routing request and
+    /// so never had a `requestId`. Nothing is invented when both are absent: a
+    /// generated identity would be either random, which defeats both mechanisms
+    /// that depend on it, or a fingerprint of the plan's contents, which makes two
+    /// plans that happen to agree indistinguishable.
+    pub fn plan_identity(&self, plan: &Value, options: &Value) -> String {
+        let idempotency_key = self.string_at(options, "idempotencyKey", "");
+        if !idempotency_key.is_empty() {
+            return idempotency_key;
+        }
+        self.string_at(plan, "requestId", "")
+    }
+
+    /// Derives the deterministic client order id for one step, so that a second
+    /// run of the same plan re-sends ids the venue has already seen and is
+    /// rejected as a duplicate instead of filled.
+    pub fn client_order_id_for(&self, plan_id: &str, step_index: f64) -> String {
+        let text = self.format_number(step_index).unwrap_or_else(|_| "0".to_string());
+        format!("{plan_id}-{text}")
+    }
+
     /// Counts the distinct hops a step list spans, which is the only authority
     /// on whether a plan is multi-hop.
     fn hop_count_of(&self, steps: &[Value]) -> usize {
@@ -1552,6 +1593,7 @@ impl OrderRouter {
             result.insert("outAsset".into(), Value::Str(String::new()));
             result.insert("outAmount".into(), Value::Float(0.0));
             result.insert("orderId".into(), Value::Str(String::new()));
+            result.insert("clientOrderId".into(), Value::Str(String::new()));
             result.insert("errorCode".into(), Value::Str(String::new()));
             // False until an order is actually dispatched — a failure before
             // dispatch cannot have left anything resting on a venue.
@@ -1559,6 +1601,9 @@ impl OrderRouter {
             results.push(Value::Map(result));
         }
         let mut report = HashMap::new();
+        // A placeholder: execute resolves the real identity from the plan AND the
+        // options and overwrites it before anything reads this field.
+        report.insert("planId".into(), Value::Str(String::new()));
         report.insert("strategy".into(), Value::Str(strategy.to_string()));
         report.insert("requestedStrategy".into(), Value::Str(requested_strategy.to_string()));
         report.insert("dryRun".into(), Value::Bool(strategy == "dry_run"));
@@ -1819,6 +1864,7 @@ impl OrderRouter {
         result.insert("outAsset".into(), Value::Str(String::new()));
         result.insert("outAmount".into(), Value::Float(0.0));
         result.insert("orderId".into(), Value::Str(String::new()));
+        result.insert("clientOrderId".into(), Value::Str(String::new()));
         result.insert("errorCode".into(), Value::Str(String::new()));
         result.insert("placementAttempted".into(), Value::Bool(false));
         let mut result = Value::Map(result);
@@ -1848,7 +1894,17 @@ impl OrderRouter {
             let _ = e;
             return result;
         }
-        let order_params = self.dict_at(options, "orderParams");
+        let mut order_params = self.dict_at(options, "orderParams");
+        // IDEMPOTENCY, half two: a client order id derived from the plan's own
+        // identity and this step's index. Deterministic, so a second run of the same
+        // plan re-sends an id the venue has already seen and is rejected as a
+        // duplicate rather than filled. It is set AFTER the caller's orderParams are
+        // copied and deliberately overrides a clientOrderId found there: one id
+        // reused across every step of a plan is worse than none at all.
+        let client_order_id =
+            self.client_order_id_for(&self.string_at(report, "planId", ""), step_index);
+        Self::put(&mut order_params, "clientOrderId", Value::Str(client_order_id.clone()));
+        Self::put(&mut result, "clientOrderId", Value::Str(client_order_id));
 
         // Dispatch. `placementAttempted` is set immediately before the call and
         // not a line earlier: everything above this point is a refusal that
@@ -2351,6 +2407,15 @@ impl OrderRouter {
     /// `dry_run` is the default, and `options.live != true` forces `dry_run`
     /// regardless of the strategy requested, so a call that looks live but
     /// forgot the flag places nothing.
+    ///
+    /// `plan` is a plan from `build_execution_plan`, OR a caller-assembled plan of
+    /// the same shape — this method never assumes the plan came from the routing
+    /// service. `options.idempotencyKey` is the identity of this execution,
+    /// required when the plan carries no `requestId`; it keys the re-execution
+    /// guard, seeds the per-step client order ids, and overrides the plan's
+    /// `requestId` when both are given. `options.allowReexecution` must be exactly
+    /// true to run a plan this instance has already executed live; the DEFAULT is
+    /// refusal.
     pub async fn execute(
         &self,
         plan: &Value,
@@ -2368,6 +2433,10 @@ impl OrderRouter {
         let strategy = if live { requested_strategy.clone() } else { "dry_run".to_string() };
         let mut steps = self.clone_steps(plan);
         let mut report = self.empty_report(plan, &strategy, &requested_strategy, live, &steps);
+        // Resolved from BOTH the plan and the options, so a hand-assembled plan can
+        // carry an identity too; reported on every report, rehearsals included.
+        let plan_id = self.plan_identity(plan, options);
+        Self::put(&mut report, "planId", Value::Str(plan_id.clone()));
         // How old the prices in this plan are. ALWAYS reported, even when nothing is enforced: a plan
         // is a snapshot of a book, and how stale that snapshot is decides whether any number in it
         // means anything. -1 when the route carried no calculatedAt, which is not the same as "fresh"
@@ -2396,6 +2465,25 @@ impl OrderRouter {
             return Err(arguments_required(
                 "OrderRouter.execute requires a venues dictionary when live",
             ));
+        }
+        // IDEMPOTENCY, half one: a plan this instance has already run live is
+        // REFUSED, and refused here — before a single read reaches a venue. The
+        // ledger is consulted now and written only once the plan is about to be
+        // dispatched, so a caller error that placed nothing does not burn the plan.
+        // dry_run never reaches this line and never consumes a plan, because a
+        // rehearsal places nothing.
+        if plan_id.is_empty() {
+            // No identity means no idempotency: neither the ledger below nor the
+            // per-step client order ids can be derived, so a re-run of this plan
+            // would be indistinguishable from a first run all the way down to the
+            // venue.
+            return Err(bad_request("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey"));
+        }
+        if !self.bool_at(options, "allowReexecution", false) {
+            let ledger = self.executed_plan_ids.lock().unwrap();
+            if ledger.iter().any(|entry| entry == &plan_id) {
+                return Err(bad_request("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override"));
+            }
         }
         // Derived from the steps about to be executed, NEVER read off the plan:
         // a plan that travelled through JSON, a persisted step list or a
@@ -2468,6 +2556,16 @@ impl OrderRouter {
             // end — and then never established that it was. A short hop would
             // have sized the next one off proceeds it did not have.
             self.assert_prefunded(&steps, venues).await?;
+        }
+        // The ledger is written BEFORE the first order goes out, never after: a run
+        // that fails half way through has still placed orders, and a guard that only
+        // recorded completed runs would wave through exactly the retry that
+        // double-fills.
+        {
+            let mut ledger = self.executed_plan_ids.lock().unwrap();
+            if !ledger.iter().any(|entry| entry == &plan_id) {
+                ledger.push(plan_id.clone());
+            }
         }
         if strategy == "parallel_within_hop" {
             self.execute_parallel_within_hop(&mut report, &mut steps, venues, options, &usd_rates).await;

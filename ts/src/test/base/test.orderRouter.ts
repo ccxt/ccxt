@@ -220,8 +220,19 @@ test ('fixture: buildUnwindPlan', () => {
 //  2. invariants, asserted directly rather than through the fixture
 //  ---------------------------------------------------------------------------
 
+//  every route the invariant tests build gets its own requestId: execute() derives both
+//  the re-execution guard key and the per-step client order ids from it, and refuses a live
+//  plan that carries none. A counter, not a random value — the ids stay reproducible.
+let testRequestIdCounter = 0;
+
+function nextTestRequestId (): string {
+    testRequestIdCounter = testRequestIdCounter + 1;
+    return 'test-req-' + testRequestIdCounter.toString ();
+}
+
 function oneLegRoute (side: string, base: string, quote: string, amount: number, price: number): any {
     return {
+        'requestId': nextTestRequestId (),
         'from': (side === 'buy') ? quote : base,
         'to': (side === 'buy') ? base : quote,
         'strategy': 'best_single',
@@ -443,6 +454,8 @@ class StubVenue {
     //  concurrency witness: how many createOrder calls were in flight at their peak
     inFlight: number;
     peakInFlight: number;
+    //  every params dictionary createOrder was called with, in call order
+    paramsSeen: any[];
 
     constructor (id: string, fillRatio: number = 1, failCreate: boolean = false) {
         this.id = id;
@@ -461,6 +474,7 @@ class StubVenue {
         this.tradeFeesToCharge = [];
         this.inFlight = 0;
         this.peakInFlight = 0;
+        this.paramsSeen = [];
     }
 
     async fetchOrder (id: string, symbol: string) {
@@ -502,6 +516,7 @@ class StubVenue {
 
     async createOrder (symbol: string, type: string, side: string, amount: number, price: any = undefined, params: any = {}) {
         this.calls.push ('createOrder:' + type + ':' + side + ':' + amount.toString ());
+        this.paramsSeen.push (params);
         this.inFlight = this.inFlight + 1;
         if (this.inFlight > this.peakInFlight) {
             this.peakInFlight = this.inFlight;
@@ -538,6 +553,7 @@ class StubVenue {
 
 function twoHopRoute (): any {
     return {
+        'requestId': nextTestRequestId (),
         'from': 'USDT',
         'to': 'SOL',
         'strategy': 'best_single',
@@ -655,7 +671,9 @@ test ('a market order needs BOTH a venue that cannot do IOC and an explicit opt-
     assert.deepStrictEqual (noIoc.calls, [], 'defaulting to a market order is the decision the caller did not delegate');
     const allowed = new StubVenue ('stub');
     allowed.features = { 'spot': { 'createOrder': { 'timeInForce': [ 'GTC' ] } } };
-    const placed = await router.execute (plan, { 'stub': allowed }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'allowMarketOrders': true });
+    //  same plan again, on purpose: this test is about the market-order opt-in, not about
+    //  idempotency, so the re-execution guard is explicitly waived
+    const placed = await router.execute (plan, { 'stub': allowed }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'allowMarketOrders': true, 'allowReexecution': true });
     assert.strictEqual (placed['steps'][0]['status'], 'filled');
     assert.deepStrictEqual (allowed.calls, [ 'createOrder:market:buy:0.2' ]);
     //  ...but not under a cap. assertUnderCap values the order at the plan's LIMIT price and the
@@ -665,7 +683,7 @@ test ('a market order needs BOTH a venue that cannot do IOC and an explicit opt-
     capped.features = { 'spot': { 'createOrder': { 'timeInForce': [ 'GTC' ] } } };
     const underCap = await router.execute (plan, { 'stub': capped }, {
         'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
-        'allowMarketOrders': true, 'maxNotionalUsd': 1000,
+        'allowMarketOrders': true, 'maxNotionalUsd': 1000, 'allowReexecution': true,
     });
     assert.strictEqual (underCap['steps'][0]['status'], 'failed');
     assert.strictEqual (underCap['steps'][0]['errorCode'], 'NotSupported');
@@ -676,7 +694,7 @@ test ('a market order needs BOTH a venue that cannot do IOC and an explicit opt-
     //  rejected IOC is loud and cheap, an unintended market order is not
     const unknown = new StubVenue ('stub');
     unknown.features = {};
-    const assumed = await router.execute (plan, { 'stub': unknown }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } });
+    const assumed = await router.execute (plan, { 'stub': unknown }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'allowReexecution': true });
     assert.strictEqual (assumed['steps'][0]['status'], 'filled');
     assert.deepStrictEqual (unknown.calls, [ 'createOrder:limit:buy:0.2' ]);
 });
@@ -801,7 +819,7 @@ test ('venueSupportsIoc reads the dictionary of booleans every real exchange dec
     assert.deepStrictEqual (noIoc.calls, [], 'an IOC was never sent to a venue that cannot do one');
     const allowed = new StubVenue ('stub');
     allowed.features = noIoc.features;
-    const placed = await router.execute (plan, { 'stub': allowed }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'allowMarketOrders': true });
+    const placed = await router.execute (plan, { 'stub': allowed }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'allowMarketOrders': true, 'allowReexecution': true });
     assert.strictEqual (placed['steps'][0]['status'], 'filled');
     assert.deepStrictEqual (allowed.calls, [ 'createOrder:market:buy:0.2' ]);
 });
@@ -948,7 +966,9 @@ test ('a plan carries its age, and a stale one is refused only when asked', asyn
     //  pin the clock: the plan is exactly 60s old
     const pinned = new OrderRouter ({ 'apiKey': 'k' });
     (pinned as any).nowMs = () => 1060000;
-    const opts = { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } };
+    //  this test deliberately runs the same plan several times to isolate the age check,
+    //  which is exactly what allowReexecution is for
+    const opts = { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'allowReexecution': true };
 
     //  Always reported, even with nothing enforced. The default must not be a refusal — this
     //  class does not decide how stale a plan the caller may trade on.
@@ -1367,4 +1387,123 @@ test ('parallel_within_hop still runs different venues at the same time', async 
     }
     await router.execute (plan, { 'a': a, 'b': b }, { 'strategy': 'parallel_within_hop', 'live': true, 'usdRates': { 'USDT': 1 } });
     assert.strictEqual (peak, 2, 'different venues must still overlap');
+});
+
+//  ---------------------------------------------------------------------------
+//  idempotency (audit finding 35): execute() used to build fresh state on every
+//  call and consult nothing, so running the same plan twice placed every order
+//  twice — including the ones that had already filled.
+//  ---------------------------------------------------------------------------
+
+test ('a live plan with no requestId is refused: without an identity there is no idempotency', async () => {
+    const route = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
+    route['requestId'] = '';
+    const plan = router.buildExecutionPlan (route, {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } }),
+        /carries no requestId/,
+    );
+    assert.deepStrictEqual (venue.calls, [], 'refused before a single call reached the venue');
+    //  ...and a HAND-ASSEMBLED plan is a supported input: execute() takes any dictionary of
+    //  the plan shape, and such a plan never went through a routing request, so requestId is
+    //  the one identity it cannot have. options.idempotencyKey is how it supplies one.
+    const supplied = new StubVenue ('stub');
+    const keyed = await router.execute (plan, { 'stub': supplied }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'hand-built-1' });
+    assert.strictEqual (keyed['planId'], 'hand-built-1');
+    assert.strictEqual (keyed['steps'][0]['status'], 'filled');
+    assert.strictEqual (supplied.paramsSeen[0]['clientOrderId'], 'hand-built-1-0');
+    //  and the guard keys off it, exactly as it does off a requestId
+    await assert.rejects (
+        async () => await router.execute (plan, { 'stub': new StubVenue ('stub') }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'hand-built-1' }),
+        /already executed/,
+    );
+    //  an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement
+    //  about what this execution is, and the caller is closer to that than the plan is
+    const routed = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const overridden = new StubVenue ('stub');
+    const report = await router.execute (routed, { 'stub': overridden }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'override-1' });
+    assert.strictEqual (report['planId'], 'override-1');
+    assert.strictEqual (overridden.paramsSeen[0]['clientOrderId'], 'override-1-0');
+    //  a rehearsal needs no identity: it places nothing
+    const dry = await router.execute (plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (dry['dryRun'], true);
+});
+
+test ('every order carries a deterministic client order id derived from the plan and the step', async () => {
+    const route = twoHopRoute ();
+    route['requestId'] = 'fixed-req';
+    const plan = router.buildExecutionPlan (route, {});
+    const venue = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': venue }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+        //  a caller-supplied clientOrderId must NOT win: one id reused across every step of
+        //  a plan is worse than none at all
+        'orderParams': { 'clientOrderId': 'caller-supplied', 'reduceOnly': true },
+    });
+    assert.strictEqual (report['planId'], 'fixed-req');
+    assert.strictEqual (venue.paramsSeen.length, 2);
+    assert.strictEqual (venue.paramsSeen[0]['clientOrderId'], 'fixed-req-0');
+    assert.strictEqual (venue.paramsSeen[1]['clientOrderId'], 'fixed-req-1');
+    assert.strictEqual (venue.paramsSeen[0]['reduceOnly'], true, 'the caller\'s other params still travel');
+    assert.strictEqual (report['steps'][0]['clientOrderId'], 'fixed-req-0', 'and the report says what was sent');
+    assert.strictEqual (report['steps'][1]['clientOrderId'], 'fixed-req-1');
+    //  DETERMINISTIC: another instance, another day, the same plan — the same ids, which is
+    //  the whole point. A random id would be rejected by nothing.
+    const second = new OrderRouter ({ 'apiKey': 'k' });
+    const other = new StubVenue ('stub');
+    await second.execute (router.buildExecutionPlan (route, {}), { 'stub': other }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+    });
+    assert.strictEqual (other.paramsSeen[0]['clientOrderId'], 'fixed-req-0');
+    assert.strictEqual (other.paramsSeen[1]['clientOrderId'], 'fixed-req-1');
+});
+
+test ('the same plan is refused on a second live execution, and only an explicit opt-in overrides it', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const opts = { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } };
+    const first = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': first }, opts);
+    assert.strictEqual (report['steps'][0]['status'], 'filled');
+    const again = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (plan, { 'stub': again }, opts),
+        BadRequest,
+    );
+    assert.deepStrictEqual (again.calls, [], 'not one order was re-placed');
+    //  a plan rebuilt from the same route is the same plan: the identity travels with it
+    const rebuilt = router.buildExecutionPlan ({ ...oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), 'requestId': plan['requestId'] }, {});
+    const third = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (rebuilt, { 'stub': third }, opts),
+        /already executed/,
+    );
+    assert.deepStrictEqual (third.calls, []);
+    //  ...and the legitimate retry path is explicit
+    const allowed = new StubVenue ('stub');
+    const retry = await router.execute (plan, { 'stub': allowed }, { ...opts, 'allowReexecution': true });
+    assert.strictEqual (retry['steps'][0]['status'], 'filled');
+    assert.strictEqual (allowed.calls.length > 0, true);
+});
+
+test ('a dry run never consumes a plan, and a halted live run always does', async () => {
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const rehearsal = new StubVenue ('stub');
+    await router.execute (plan, { 'stub': rehearsal }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
+    const real = new StubVenue ('stub');
+    const report = await router.execute (plan, { 'stub': real }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (report['steps'][0]['status'], 'filled', 'the rehearsal did not burn the plan');
+    //  a run that FAILED still placed orders — or may have — so the retry is refused just
+    //  the same. The ledger records the attempt, not the outcome.
+    const failedPlan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const broken = new StubVenue ('stub');
+    broken.failCreate = true;
+    const failedReport = await router.execute (failedPlan, { 'stub': broken }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual (failedReport['halted'], true);
+    const retry = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await router.execute (failedPlan, { 'stub': retry }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } }),
+        /already executed/,
+    );
+    assert.deepStrictEqual (retry.calls, []);
 });

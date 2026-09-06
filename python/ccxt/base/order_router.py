@@ -174,6 +174,9 @@ class OrderRouter:
         # 0 means NO CAP. Any positive value is honoured exactly — it is not clamped,
         # because the caller is the one who knows the size of their own trade.
         self.max_notional_usd = max_notional_usd
+        # in-process idempotency ledger: the identity of every plan this instance has
+        # already executed live
+        self.executed_plan_ids = []
         self.session = Session()
         # guards the shared report while parallel_within_hop has legs in flight;
         # the single-threaded languages need no equivalent
@@ -747,7 +750,7 @@ class OrderRouter:
         """
         checks a plan against per-venue market rules and, when one is set, the per-trade USD notional cap. PURE — no I/O. A step that cannot be valued in USD BLOCKS while a cap is in force; it is never skipped, because a cap that silently disappears when a rate is missing is not a cap
 
-        :param dict plan: a plan from build_execution_plan
+        :param dict plan: a plan from build_execution_plan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
         :param dict markets: a dictionary of exchangeId to that exchange's markets dictionary, i.e. markets[exchangeId][symbol]
         :param dict [options]: check options
         :param dict [options['usdRates']]: a dictionary of currency code to its USD price. USD itself is 1 implicitly; nothing else is assumed
@@ -1204,6 +1207,40 @@ class OrderRouter:
         initial_source = source if produced else {}
         positions.append({'exchangeId': exchange_id, 'asset': asset, 'amount': amount, 'source': initial_source})
 
+    def plan_identity(self, plan, options):
+        """
+        the stable identity of an execution, used both for the re-execution guard and for the per-step client order ids
+
+        :param dict plan: the plan
+        :param dict options: the execute options
+        :returns str: the identity, or '' when neither source carries one
+        """
+        # A caller-supplied idempotencyKey WINS over the plan's own requestId. Passing one is
+        # a deliberate statement about what this execution is, and it is the only identity a
+        # hand-assembled plan can have: execute() takes any dictionary of the plan shape, not
+        # only the output of build_execution_plan, and a plan a user built themselves never
+        # went through a routing request and so never had a requestId.
+        idempotency_key = self.string_at(options, 'idempotencyKey', '')
+        if idempotency_key != '':
+            return idempotency_key
+        # otherwise requestId, the one field a routed plan carries that is meant to be unique;
+        # it survives JSON, storage and a hand-rebuilt tail of a halted route. Nothing is
+        # invented when both are absent — a generated identity would be either random, which
+        # defeats both mechanisms that depend on it, or a fingerprint of the plan's contents,
+        # which makes two plans that happen to agree indistinguishable. Absence is reported,
+        # and execute refuses.
+        return self.string_at(plan, 'requestId', '')
+
+    def client_order_id_for(self, plan_id, step_index):
+        """
+        derives the deterministic client order id for one step, so that a second run of the same plan re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
+
+        :param str plan_id: the plan identity from plan_identity
+        :param int step_index: the step's index within the plan
+        :returns str: the client order id
+        """
+        return plan_id + '-' + self.format_number(step_index)
+
     # -----------------------------------------------------------------------
     # IMPURE: execute
     # -----------------------------------------------------------------------
@@ -1212,7 +1249,7 @@ class OrderRouter:
         """
         executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options['live'] is not True forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
 
-        :param dict plan: a plan from build_execution_plan
+        :param dict plan: a plan from build_execution_plan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
         :param dict venues: a dictionary of exchangeId to a ccxt exchange instance
         :param dict [options]: execution options
         :param str [options['strategy']]: dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
@@ -1224,6 +1261,8 @@ class OrderRouter:
         :param int [options['orderTimeoutMs']]: how long limit_protected leaves an order resting, default 20000
         :param int [options['pollIntervalMs']]: how often limit_protected checks a resting order, default 1000
         :param dict [options['orderParams']]: extra params merged into every create_order call
+        :param str [options['idempotencyKey']]: the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
+        :param bool [options['allowReexecution']]: must be exactly True to run a plan this instance has already executed live; the DEFAULT is refusal
         :returns dict: an execution report with per-step results, openOrders, errors and the halt verdict
         """
         requested_strategy = self.string_at(options, 'strategy', 'dry_run')
@@ -1235,6 +1274,10 @@ class OrderRouter:
         strategy = requested_strategy if live else 'dry_run'
         steps = self.clone_steps(plan)
         report = self.empty_report(plan, strategy, requested_strategy, live, steps)
+        # resolved from BOTH the plan and the options, so a hand-assembled plan can carry an
+        # identity too; reported on every report, rehearsals included
+        plan_id = self.plan_identity(plan, options)
+        report['planId'] = plan_id
         # How old the prices in this plan are. ALWAYS reported, even when nothing is enforced: a plan
         # is a snapshot of a book, and how stale that snapshot is decides whether any number in it
         # means anything. -1 when the route carried no calculatedAt, which is not the same as "fresh"
@@ -1257,6 +1300,19 @@ class OrderRouter:
             return report
         if len(venues) == 0:
             raise ArgumentsRequired('OrderRouter.execute requires a venues dictionary when live')
+        # IDEMPOTENCY, half one: a plan this instance has already run live is REFUSED, and
+        # refused here — before a single read reaches a venue. The ledger is consulted now and
+        # written only once the plan is about to be dispatched, so a caller error that placed
+        # nothing does not burn the plan. dry_run never reaches this line and never consumes a
+        # plan, because a rehearsal places nothing.
+        if plan_id == '':
+            # no identity means no idempotency: neither the ledger below nor the per-step
+            # client order ids can be derived, so a re-run of this plan would be
+            # indistinguishable from a first run all the way down to the venue.
+            raise BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey')
+        if options.get('allowReexecution') is not True:
+            if plan_id in self.executed_plan_ids:
+                raise BadRequest('OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override')
         # derived from the steps about to be executed, NEVER read off the plan: a
         # plan that travelled through JSON, a persisted step list or a hand-rebuilt
         # tail of a halted route can be missing hopCount, and a refusal that a
@@ -1304,6 +1360,11 @@ class OrderRouter:
             raise ExchangeError('OrderRouter: refusing to execute, blocking safety violations: ' + blockers)
         if strategy == 'atomic_ish':
             self.assert_prefunded(steps, venues)
+        # the ledger is written BEFORE the first order goes out, never after: a run that
+        # raises half way through has still placed orders, and a guard that only recorded
+        # completed runs would wave through exactly the retry that double-fills.
+        if plan_id not in self.executed_plan_ids:
+            self.executed_plan_ids.append(plan_id)
         if strategy == 'parallel_within_hop':
             self.execute_parallel_within_hop(report, steps, venues, options, usd_rates)
         elif strategy == 'best_effort':
@@ -1397,9 +1458,13 @@ class OrderRouter:
                 'outAsset': '',
                 'outAmount': 0,
                 'orderId': '',
+                'clientOrderId': '',
                 'errorCode': '',
             })
         return {
+            # a placeholder: execute resolves the real identity from the plan AND the options
+            # and overwrites it before anything reads this field
+            'planId': '',
             'strategy': strategy,
             'requestedStrategy': requested_strategy,
             'dryRun': strategy == 'dry_run',
@@ -1596,6 +1661,7 @@ class OrderRouter:
             'outAsset': '',
             'outAmount': 0,
             'orderId': '',
+            'clientOrderId': '',
             'errorCode': '',
             # False until an order is actually dispatched; see the assignment at each create_order
             'placementAttempted': False,
@@ -1621,6 +1687,15 @@ class OrderRouter:
             extra = self.dict_at(options, 'orderParams')
             for key in extra:
                 order_params[key] = extra[key]
+            # IDEMPOTENCY, half two: a client order id derived from the plan's own identity and
+            # this step's index. Deterministic, so a second run of the same plan re-sends an id
+            # the venue has already seen and is rejected as a duplicate rather than filled. It
+            # is set AFTER the caller's orderParams are copied and deliberately overrides a
+            # clientOrderId found there: one id reused across every step of a plan is worse
+            # than none at all.
+            client_order_id = self.client_order_id_for(self.string_at(report, 'planId', ''), step_index)
+            order_params['clientOrderId'] = client_order_id
+            result['clientOrderId'] = client_order_id
             if strategy == 'limit_protected':
                 order = self.place_protected_limit(venue, step, symbol, side, amount, price, order_params, options, report, result)
             else:
