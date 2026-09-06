@@ -491,12 +491,8 @@ export default class predictfun extends Exchange {
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'status', 'eventId', 'slug', 'tags', 'marketVariant' ]);
-        const topicsBySlug: Dict = {};
-        const topicSlugs: string[] = [];
-        const marketsBySlug: Dict = {};
-        const marketSlugs: string[] = [];
-        const seenMarketIds: Dict = {};
         const queriesLength = queries.length;
+        const result: any[] = [];
         for (let i = 0; i < queriesLength; i++) {
             const request: Dict = {
                 'query': queries[i],
@@ -554,85 +550,10 @@ export default class predictfun extends Exchange {
             //
             const data = this.safeDict (response, 'data', {});
             const categories = this.safeList (data, 'categories', []) as any[];
-            const categoriesLength = categories.length;
-            for (let ci = 0; ci < categoriesLength; ci++) {
+            for (let ci = 0; ci < categories.length; ci++) {
                 const category = categories[ci];
-                const categorySlug = this.safeString (category, 'slug');
-                if ((categorySlug !== undefined) && !(categorySlug in topicsBySlug)) {
-                    topicsBySlug[categorySlug] = category;
-                    topicSlugs.push (categorySlug);
-                }
+                result.push (category);
             }
-            const rawMarkets = this.safeList (data, 'markets', []) as any[];
-            const rawMarketsLength = rawMarkets.length;
-            for (let mi = 0; mi < rawMarketsLength; mi++) {
-                const rawMarket = rawMarkets[mi];
-                const marketSlug = this.safeString (rawMarket, 'categorySlug');
-                const marketId = this.safeString (rawMarket, 'id');
-                if ((marketSlug === undefined) || (marketId === undefined) || (marketId in seenMarketIds)) {
-                    continue;
-                }
-                seenMarketIds[marketId] = true;
-                if (!(marketSlug in marketsBySlug)) {
-                    marketsBySlug[marketSlug] = [];
-                    marketSlugs.push (marketSlug);
-                }
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array
-                const bucket = marketsBySlug[marketSlug];
-                bucket.push (rawMarket);
-                marketsBySlug[marketSlug] = bucket;
-            }
-        }
-        const result: any[] = [];
-        const topicSlugsLength = topicSlugs.length;
-        for (let i = 0; i < topicSlugsLength; i++) {
-            result.push (topicsBySlug[topicSlugs[i]]);
-        }
-        const marketSlugsLength = marketSlugs.length;
-        for (let i = 0; i < marketSlugsLength; i++) {
-            const marketSlug = marketSlugs[i];
-            if (marketSlug in topicsBySlug) {
-                continue; // the enclosing category came back in full, nested markets included
-            }
-            // a market-only hit carries no category row, and the search endpoint's market rows
-            // expose neither the enclosing topic's id nor its endsAt - so fetch the category by
-            // the slug the market rows do carry, otherwise parseEvent () yields an event with an
-            // undefined id, end and created, and markets with an undefined expiry
-            const orphanMarkets = marketsBySlug[marketSlug];
-            let rawTopic: any = undefined;
-            const categoryResponse = await this.predictfunGetV1CategoriesSlug ({ 'slug': marketSlug });
-            rawTopic = this.safeDict (categoryResponse, 'data');
-            if (rawTopic === undefined) {
-                // the lookup failed - fall back to synthesizing the topic from the matched rows,
-                // which still carry the title, the description and the createdAt
-                const first = this.safeDict (orphanMarkets, 0, {});
-                // the market row's 'status' is the registration enum ('REGISTERED' /
-                // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
-                // 'RESOLVED') - copying it verbatim reports resolved: false for a resolved hit
-                const marketStatus = this.safeString (first, 'status');
-                const tradingStatus = this.safeString (first, 'tradingStatus');
-                let topicStatus: Str = undefined;
-                if ((marketStatus === 'RESOLVED') || (marketStatus === 'SETTLED')) {
-                    topicStatus = 'RESOLVED';
-                } else if (tradingStatus === 'OPEN') {
-                    topicStatus = 'OPEN';
-                }
-                rawTopic = {
-                    'slug': marketSlug,
-                    'title': this.safeString (first, 'title'),
-                    'description': this.safeString (first, 'description'),
-                    'imageUrl': this.safeString (first, 'imageUrl'),
-                    'marketVariant': this.safeString (first, 'marketVariant'),
-                    'isNegRisk': this.safeBool (first, 'isNegRisk'),
-                    'isYieldBearing': this.safeBool (first, 'isYieldBearing'),
-                    'isVisible': this.safeBool (first, 'isVisible'),
-                    'status': topicStatus,
-                    'createdAt': this.safeString (first, 'createdAt'),
-                    'markets': orphanMarkets,
-                };
-            }
-            result.push (rawTopic);
         }
         return result;
     }
@@ -947,12 +868,7 @@ export default class predictfun extends Exchange {
         //
         const marketId = this.safeString (rawMarket, 'id');
         const topicSlug = this.safeString (rawMarket, 'categorySlug');
-        let title = this.safeString (rawMarket, 'title', marketId);
-        // slug and title have a mismatch in the numbers
-        // one should clean title from commas in numbers to avoid a mismatch with the slug, which has no commas in numbers
-        if (title !== undefined) {
-            title = title.replaceAll (',0', '0');
-        }
+        const title = this.safeString (rawMarket, 'title', marketId);
         const marketSymbol = this.slugToMarketSymbol (topicSlug, title);
         const tradingStatus = this.safeString (rawMarket, 'tradingStatus');
         const status = this.safeString (rawMarket, 'status');
