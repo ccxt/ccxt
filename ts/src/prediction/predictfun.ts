@@ -1,9 +1,11 @@
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/predictfun.js';
+import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
-// import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
-// import { sha256 } from '@noble/hashes/sha2.js';
-import { ArgumentsRequired } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTrade, Str } from '../base/types.js';
+import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTrade, Str } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -32,7 +34,7 @@ export default class predictfun extends Exchange {
                 'cancelOrder': false,
                 'cancelOrders': false,
                 'createMarketBuyOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrders': false,
                 'fetchBalance': false,
                 'fetchCurrencies': false,
@@ -45,7 +47,7 @@ export default class predictfun extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenInterest': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -120,6 +122,11 @@ export default class predictfun extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': false,
+                // orders are EIP-712 signed by the maker wallet and the JWT that authorises them
+                // is a personal_sign of a server issued message - neither is needed for market
+                // data, so they are validated in authenticate () rather than on every request
+                'walletAddress': false,
+                'privateKey': false,
             },
             'fees': {
                 'trading': {
@@ -131,6 +138,8 @@ export default class predictfun extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // {"success":false,"code":400,"error":"create_order_min_order_value_not_met","message":"order must have a value of at least 0.9 USD","timestamp":"2026-09-06T14:53:22.142144615Z","trace":"895f3174c6245f432c6c4dd6f7f5ec6d"}
+                    // {"success":false,"code":400,"error":"create_order_insufficient_collateral_allowance","message":"Insufficient collateral: USDT allowance is less than the total bid amount.","timestamp":"2026-09-06T15:08:32.4965164Z","trace":"f3de7dd53f6903156840c31ac1698318"}
                 },
                 'broad': {
                 },
@@ -138,6 +147,28 @@ export default class predictfun extends Exchange {
             'options': {
                 'allowUnscopedFetchEvents': true,
                 'maxFetchEventsResults': 100,   // cap on events collected by an unscoped fetchEvents
+                'chainId': 56,                  // BNB mainnet, swapped to 97 by setSandboxMode
+                'defaultExpiration': 3600,  // default expiration for limit orders is one hour
+                'marketOrderExpiration': 300,   // market orders are only valid for five minutes
+                // the order's EIP-712 verifying contract, picked by the market's negRisk and
+                // yield-bearing flags - taken from the sdk's Constants.ts
+                'exchanges': {
+                    '56': {
+                        'CTF_EXCHANGE': '0x8BC070BEdAB741406F4B1Eb65A72bee27894B689',
+                        'NEG_RISK_CTF_EXCHANGE': '0x365fb81bd4A24D6303cd2F19c349dE6894D8d58A',
+                        'YIELD_BEARING_CTF_EXCHANGE': '0x6bEb5a40C032AFc305961162d8204CDA16DECFa5',
+                        'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE': '0x8A289d458f5a134bA40015085A8F50Ffb681B41d',
+                    },
+                    '97': {
+                        'CTF_EXCHANGE': '0x2A6413639BD3d73a20ed8C95F634Ce198ABbd2d7',
+                        'NEG_RISK_CTF_EXCHANGE': '0xd690b2bd441bE36431F6F6639D7Ad351e7B29680',
+                        'YIELD_BEARING_CTF_EXCHANGE': '0x8a6B4Fa700A1e310b106E7a48bAFa29111f66e89',
+                        'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE': '0x95D5113bc50eD201e319101bbca3e0E250662fCC',
+                    },
+                },
+                'createOrder': {
+                    'taker': '0x0000000000000000000000000000000000000000',
+                },
             },
         });
     }
@@ -1323,6 +1354,459 @@ export default class predictfun extends Exchange {
     }
 
     /**
+     * @method
+     * @name predictfun#setSandboxMode
+     * @description switches between BNB mainnet and the BNB testnet
+     * @param {bool} enable whether to use the testnet
+     * @returns {undefined}
+     */
+    override setSandboxMode (enable: boolean) {
+        super.setSandboxMode (enable);
+        // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
+        // change with it - and the venue serves the testnet without an api key
+        this.options['sandboxMode'] = enable;
+        this.options['chainId'] = (enable) ? 97 : 56;
+        this.requiredCredentials['apiKey'] = !enable;
+        // a token minted for one host is not valid on the other
+        this.options['jwtToken'] = undefined;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#hashMessage
+     * @description hashes a message the way eth_personal_sign does, prefixing it before the keccak
+     * @param {string} message the message to hash
+     * @returns {string} the 0x prefixed hash
+     */
+    hashMessage (message: string): string {
+        const binaryMessage = this.encode (message);
+        const binaryMessageLength = this.binaryLength (binaryMessage);
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0a');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#signHash
+     * @description signs a 32 byte hash with the wallet's private key
+     * @param {string} hash the hash to sign
+     * @param {string} privateKey the wallet private key
+     * @returns {string} the 65 byte signature, 0x prefixed
+     */
+    signHash (hash: string, privateKey: string): string {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart (64, '0');
+        const s = sRaw.padStart (64, '0');
+        // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        // assign before toLowerCase so the php regex matches, it only handles a bare identifier
+        const signatureHex = '0x' + r + s + v;
+        return signatureHex.toLowerCase ();
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#authenticate
+     * @description exchanges a wallet signature for the JWT that authorises order actions, and caches it
+     * @see https://dev.predict.fun/get-auth-message-25326899e0
+     * @see https://dev.predict.fun/get-jwt-with-valid-signature-25326900e0
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {string} the JWT
+     */
+    async authenticate (params = {}): Promise<Str> {
+        if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
+            throw new ArgumentsRequired (this.id + ' authenticate() requires a walletAddress and a privateKey');
+        }
+        const cached = this.safeString (this.options, 'jwtToken');
+        if (cached !== undefined) {
+            return cached;
+        }
+        const messageResponse = await this.predictfunGetV1AuthMessage (params);
+        //
+        //     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
+        //
+        const messageData = this.safeDict (messageResponse, 'data', {});
+        const message = this.safeString (messageData, 'message');
+        if (message === undefined) {
+            throw new AuthenticationError (this.id + ' authenticate() could not read the message to sign');
+        }
+        const signature = this.signHash (this.hashMessage (message), this.privateKey);
+        const request: Dict = {
+            'signer': this.walletAddress,
+            'message': message,
+            'signature': signature,
+        };
+        const response = await this.predictfunPostV1Auth (request);
+        //
+        //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const token = this.safeString (data, 'token');
+        if (token === undefined) {
+            throw new AuthenticationError (this.id + ' authenticate() did not return a token');
+        }
+        this.options['jwtToken'] = token;
+        return token;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#signPredictfunOrder
+     * @description signs a contract order with the EIP-712 scheme of the exchange that settles it
+     * @param {object} order the contract order, as sent to the venue
+     * @param {bool} isNegRisk whether the market settles through the negative risk exchange
+     * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
+     * @returns {object} a dictionary with the order hash and the signature
+     */
+    signPredictfunOrder (order: Dict, isNegRisk: boolean, isYieldBearing: boolean): Dict {
+        // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
+        // inside the domain literal to a local var, which would corrupt the domain type hash
+        const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
+        const exchanges = this.safeDict (this.options, 'exchanges', {});
+        const byChain = this.safeDict (exchanges, this.numberToString (chainIdValue), {});
+        let identifier = 'CTF_EXCHANGE';
+        if (isNegRisk && isYieldBearing) {
+            identifier = 'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE';
+        } else if (isNegRisk) {
+            identifier = 'NEG_RISK_CTF_EXCHANGE';
+        } else if (isYieldBearing) {
+            identifier = 'YIELD_BEARING_CTF_EXCHANGE';
+        }
+        const verifyingContract = this.safeString (byChain, identifier);
+        const domain: Dict = {
+            'name': 'predict.fun CTF Exchange',
+            'version': '1',
+            'chainId': chainIdValue,
+            'verifyingContract': verifyingContract,
+        };
+        const orderStruct = [
+            { 'name': 'salt', 'type': 'uint256' },
+            { 'name': 'maker', 'type': 'address' },
+            { 'name': 'signer', 'type': 'address' },
+            { 'name': 'taker', 'type': 'address' },
+            { 'name': 'tokenId', 'type': 'uint256' },
+            { 'name': 'makerAmount', 'type': 'uint256' },
+            { 'name': 'takerAmount', 'type': 'uint256' },
+            { 'name': 'expiration', 'type': 'uint256' },
+            { 'name': 'nonce', 'type': 'uint256' },
+            { 'name': 'feeRateBps', 'type': 'uint256' },
+            { 'name': 'side', 'type': 'uint8' },
+            { 'name': 'signatureType', 'type': 'uint8' },
+        ];
+        // ethEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
+        // the order hash the venue indexes the order by
+        const encoded = this.ethEncodeStructuredData (domain, { 'Order': orderStruct }, order);
+        // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
+        // the digest that gets signed - and that the venue indexes the order by - is its keccak
+        const hash = '0x' + this.hash (encoded, keccak, 'hex');
+        return {
+            'hash': hash,
+            'signature': this.signHash (hash, this.privateKey),
+        };
+    }
+
+    /**
+     * @method
+     * @name predictfun#createOrder
+     * @description creates a LIMIT or MARKET order on a single prediction outcome token
+     * @see https://dev.predict.fun/create-an-order-32534694e0
+     * @param {string} outcome unified outcome handle, or an outcome token id
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount the number of outcome shares
+     * @param {float} [price] the price per share between 0 and 1, required for a limit order
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiration] unix timestamp in seconds the limit order expires at
+     * @param {bool} [params.postOnly] reject the order if it would take liquidity
+     * @param {bool} [params.isFillOrKill] fill the order completely or cancel it
+     * @param {string} [params.slippageBps] slippage tolerance for a market order, in basis points
+     * @param {string} [params.selfTradePrevention] 'CANCEL_MAKER' | 'CANCEL_TAKER' | 'CANCEL_BOTH'
+     * @param {string} [params.salt] order salt, pin it to retry an order idempotently
+     * @param {string} [params.nonce] the maker's on chain nonce, defaults to 0
+     * @param {string} [params.feeRateBps] fee in basis points, read from the market when omitted
+     * @param {bool} [params.isNegRisk] override the market's negative risk flag
+     * @param {bool} [params.isYieldBearing] override the market's yield bearing flag
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const tokenId = this.safeString (info, 'onChainId');
+        if (tokenId === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() could not resolve the on chain token id of ' + outcome);
+        }
+        const strategy = (type === 'market') ? 'MARKET' : 'LIMIT';
+        const isMarket = (strategy === 'MARKET');
+        if ((!isMarket) && (price === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for a limit order');
+        }
+        const isBuy = (side === 'buy');
+        // amounts cross the wire as collateral wei, the venue truncates the price to three
+        // significant digits and the quantity to five, so send what it will actually use
+        const priceString = this.numberToString (price);
+        const priceWei = Precise.stringMul (priceString, '1000000000000000000');
+        const amountString = this.numberToString (amount);
+        const quantityWei = Precise.stringMul (amountString, '1000000000000000000');
+        const costWei = Precise.stringDiv (Precise.stringMul (priceWei, quantityWei), '1000000000000000000');
+        let makerAmount = quantityWei;
+        let takerAmount = costWei;
+        if (isBuy) {
+            // a buy pays collateral for shares, a sell hands over shares for collateral
+            makerAmount = costWei;
+            takerAmount = quantityWei;
+        }
+        // feeRateBps and the two exchange selectors live on the market row, not on the outcome
+        // row - signing with the wrong pair places the order under a different verifying contract
+        // and the venue answers create_order_hash_mismatch
+        const marketSymbol = this.safeString (outcomeObj, 'market');
+        const marketObj = this.safeDict (this.markets, marketSymbol, {});
+        const marketRow = this.safeDict (marketObj, 'info', {});
+        const marketFeeRateBps = this.safeString (marketRow, 'feeRateBps', '200');  // should be at least 200
+        const feeRateBps = this.safeString (params, 'feeRateBps', marketFeeRateBps);
+        const marketIsNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
+        const isNegRisk = this.safeBool (params, 'isNegRisk', marketIsNegRisk);
+        const marketIsYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
+        const isYieldBearing = this.safeBool (params, 'isYieldBearing', marketIsYieldBearing);
+        const defaultExpiration = this.safeInteger (this.options, 'defaultExpiration', 3600); // 1 hour
+        let expirationDelta = defaultExpiration;
+        let expiration = this.safeInteger (params, 'expiration');
+        if (expiration === undefined) {
+            if (isMarket) {
+                expirationDelta = this.safeInteger (this.options, 'marketOrderExpiration', defaultExpiration);
+            }
+            expiration = this.sum (this.seconds (), expirationDelta);
+        }
+        // a distinct salt per order so two identical orders do not collide on the venue
+        const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
+        let taker = '0x0000000000000000000000000000000000000000';
+        [ taker, params ] = this.handleOptionAndParams (params, 'createOrder', 'taker', taker);
+        const contractOrder: Dict = {
+            'salt': salt,
+            'maker': this.walletAddress,
+            'signer': this.walletAddress,
+            'taker': taker,
+            'tokenId': tokenId,
+            'makerAmount': this.decimalToPrecision (makerAmount, TRUNCATE, 0, DECIMAL_PLACES),
+            'takerAmount': this.decimalToPrecision (takerAmount, TRUNCATE, 0, DECIMAL_PLACES),
+            'expiration': expiration,
+            'nonce': this.safeString (params, 'nonce', '0'),
+            'feeRateBps': feeRateBps,
+            'side': isBuy ? 0 : 1,
+            'signatureType': 0, // EOA
+        };
+        const signed = this.signPredictfunOrder (contractOrder, isNegRisk, isYieldBearing);
+        const orderPayload = this.extend (contractOrder, {
+            'hash': this.safeString (signed, 'hash'),
+            'signature': this.safeString (signed, 'signature'),
+        });
+        const data: Dict = {
+            'order': orderPayload,
+            'pricePerShare': this.decimalToPrecision (priceWei, TRUNCATE, 0, DECIMAL_PLACES),
+            'strategy': strategy,
+        };
+        let postOnly = this.safeBool (params, 'isPostOnly', false);
+        [ postOnly, params ] = this.handlePostOnly (isMarket, postOnly, params);
+        if (postOnly) {
+            data['isPostOnly'] = postOnly;
+        }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (timeInForce === 'FOK') {
+            data['isFillOrKill'] = true;
+        }
+        const slippageBps = this.safeString (params, 'slippageBps');
+        if (slippageBps !== undefined) {
+            data['slippageBps'] = slippageBps;
+        }
+        const selfTradePrevention = this.safeString (params, 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            data['selfTradePrevention'] = selfTradePrevention;
+        }
+        // the JWT authorises the order, the api key only authorises the request
+        await this.authenticate ();
+        const request: Dict = {
+            'data': data,
+        };
+        const response = await this.predictfunPostV1Orders (request);
+        //
+        //     {
+        //         "data": { "id": "415455", "hash": "0x0950ef58...", "status": "OPEN" },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeDict (response, 'data', {});
+        // hand the parser the same shape fetchOrder () gets: the signed contract order plus
+        // whatever the venue echoed back
+        return this.parsePredictionOrder (this.extend ({
+            'order': orderPayload,
+            'strategy': strategy,
+            'isPostOnly': postOnly,
+        }, result), outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchOrder
+     * @description fetches one of your own orders by its hash
+     * @see https://dev.predict.fun/get-order-by-hash-25326901e0
+     * @param {string} id the order hash
+     * @param {string} [outcome] unified outcome handle the order belongs to, resolved from the order when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        await this.authenticate ();
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        // the JWT identifies the wallet whose orders can be read
+        const request: Dict = {
+            'hash': id,
+        };
+        const response = await this.predictfunGetV1OrdersHash (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "id": "415455",
+        //             "marketId": 1965449,
+        //             "currency": "USDT",
+        //             "amount": "5000000000000000000",
+        //             "amountFilled": "0",
+        //             "isNegRisk": false,
+        //             "isYieldBearing": false,
+        //             "strategy": "LIMIT",
+        //             "status": "OPEN",
+        //             "rewardEarningRate": 0,
+        //             "order": {
+        //                 "hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+        //                 "salt": "1788704531000",
+        //                 "maker": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03",
+        //                 "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03",
+        //                 "taker": "0x0000000000000000000000000000000000000000",
+        //                 "tokenId": "4376517114744224791843241875206669776046976762093128062476248465557963116737",
+        //                 "makerAmount": "50000000000000000",
+        //                 "takerAmount": "5000000000000000000",
+        //                 "expiration": "4102444800",
+        //                 "nonce": "0",
+        //                 "feeRateBps": "200",
+        //                 "side": 0,
+        //                 "signatureType": 0,
+        //                 "signature": "0x..."
+        //             }
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parsePredictionOrder (data, outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parsePredictionOrder
+     * @description parses a raw order, as returned by the create and the fetch endpoints, into a unified order
+     * @param {object} order the raw order, with the signed contract order nested under 'order'
+     * @param {object} [market] the outcome the order belongs to, resolved from the token id when omitted
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+        const contractOrder = this.safeDict (order, 'order', {});
+        const tokenId = this.safeString (contractOrder, 'tokenId');
+        const outcomeObj = this.safeOutcome (tokenId, market);
+        // the contract order carries the economics: a buy offers collateral for shares while a
+        // sell offers shares for collateral, so which leg is the size depends on the side
+        const rawSide = this.safeString (contractOrder, 'side');
+        let side: Str = undefined;
+        if ((rawSide === '0') || (rawSide === 'Bid')) {
+            side = 'buy';
+        } else if ((rawSide === '1') || (rawSide === 'Ask')) {
+            side = 'sell';
+        }
+        const makerAmount = this.safeString (contractOrder, 'makerAmount');
+        const takerAmount = this.safeString (contractOrder, 'takerAmount');
+        let amountWei = makerAmount;
+        let costWei = takerAmount;
+        if (side === 'buy') {
+            amountWei = takerAmount;
+            costWei = makerAmount;
+        }
+        let amount: Str = undefined;
+        if (amountWei !== undefined) {
+            amount = Precise.stringDiv (amountWei, '1000000000000000000');
+        }
+        let cost: Str = undefined;
+        if (costWei !== undefined) {
+            cost = Precise.stringDiv (costWei, '1000000000000000000');
+        }
+        let price: Str = undefined;
+        if ((amount !== undefined) && (cost !== undefined) && Precise.stringGt (amount, '0')) {
+            price = Precise.stringDiv (cost, amount);
+        }
+        let filled: Str = undefined;
+        const amountFilled = this.safeString (order, 'amountFilled');
+        if (amountFilled !== undefined) {
+            filled = Precise.stringDiv (amountFilled, '1000000000000000000');
+        }
+        return this.safePredictionOrder ({
+            'id': this.safeString2 (order, 'id', 'hash'),
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'type': this.safeStringLower (order, 'strategy'),
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': cost,
+            'fee': undefined,
+            'postOnly': this.safeBool (order, 'isPostOnly'),
+            'trades': undefined,
+            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', tokenId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'info': order,
+        });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parseOrderStatus
+     * @description maps a venue order status onto the unified vocabulary
+     * @param {string} [status] the raw status
+     * @returns {string} the unified status
+     */
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'OPEN': 'open',
+            'PENDING': 'open',
+            'MATCHED': 'closed',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'CANCELED': 'canceled',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
      * @ignore
      * @method
      * @name predictfun#sign
@@ -1337,8 +1821,13 @@ export default class predictfun extends Exchange {
      */
     override sign (path: any, api: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         // the venue authenticates every endpoint, so the key is required up front rather than
-        // per access level - a key-less request is answered with a 401 by the api gateway
-        this.checkRequiredCredentials ();
+        // per access level - a key-less request is answered with a 401 by the api gateway.
+        // the testnet is the exception, it is served without an api key at all
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const apiKey = this.apiKey;
+        if ((apiKey === undefined) && !sandboxMode) {
+            throw new AuthenticationError (this.id + ' sign() requires an apiKey for all endpoints');
+        }
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['predictfun'] as string);
@@ -1350,9 +1839,25 @@ export default class predictfun extends Exchange {
             }
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend ({
-            'x-api-key': this.apiKey,
-        }, existingHeaders);
+        headers = existingHeaders;
+        if (apiKey !== undefined) {
+            headers = this.extend ({
+                'x-api-key': apiKey,
+            }, existingHeaders);
+        }
+        // the api key authorises the request, the JWT authorises acting for a wallet - authenticate ()
+        // caches it, so it is attached to every call once an order action has asked for one
+        const jwtToken = this.safeString (this.options, 'jwtToken');
+        if (jwtToken !== undefined) {
+            headers['Authorization'] = 'Bearer ' + jwtToken;
+        }
+        if (method !== 'GET') {
+            if (!sandboxMode) {
+                this.checkRequiredCredentials ();
+            }
+            headers['Content-Type'] = 'application/json';
+            body = this.json (params);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
