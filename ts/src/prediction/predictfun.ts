@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 // import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 // import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, PredictionEvent, PredictionOrderBook, Str } from '../base/types.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, PredictionEvent, PredictionOrderBook, PredictionTicker, Str } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ export default class predictfun extends Exchange {
                 'fetchPosition': false,
                 'fetchPositions': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': false,
@@ -601,12 +601,8 @@ export default class predictfun extends Exchange {
             // undefined id, end and created, and markets with an undefined expiry
             const orphanMarkets = marketsBySlug[marketSlug];
             let rawTopic: any = undefined;
-            try {
-                const categoryResponse = await this.predictfunGetV1CategoriesSlug ({ 'slug': marketSlug });
-                rawTopic = this.safeDict (categoryResponse, 'data');
-            } catch (e) {
-                rawTopic = undefined;
-            }
+            const categoryResponse = await this.predictfunGetV1CategoriesSlug ({ 'slug': marketSlug });
+            rawTopic = this.safeDict (categoryResponse, 'data');
             if (rawTopic === undefined) {
                 // the lookup failed - fall back to synthesizing the topic from the matched rows,
                 // which still carry the title, the description and the createdAt
@@ -1137,6 +1133,111 @@ export default class predictfun extends Exchange {
             };
             return this.safePredictionOrderBook (noOrderbook, outcomeObj);
         }
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchTicker
+     * @description fetches the best bid and ask for a single prediction outcome token
+     * @see https://dev.predict.fun/get-market-by-id-25552989e0
+     * @param {string} outcome unified outcome handle, or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const request: Dict = {
+            'id': this.safeString (info, 'marketId'),
+        };
+        // the market detail carries a bestBid/bestAsk per outcome, already sided for the NO
+        // outcome - last price and volume live behind /last-sale and /stats, one request each,
+        // so they are left undefined rather than spending extra calls on them
+        const response = await this.predictfunGetV1MarketsId (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "id": 2107,
+        //             "title": "Will Trump acquire Greenland before 2027?",
+        //             "tradingStatus": "OPEN",
+        //             "status": "REGISTERED",
+        //             "decimalPrecision": 2,
+        //             "feeRateBps": 200,
+        //             "outcomes": [
+        //                 {
+        //                     "name": "Yes",
+        //                     "indexSet": 1,
+        //                     "onChainId": "43765171147442247918432418752066697760469767620931280624762484655579631167373",
+        //                     "bestBid": { "price": 0.02, "size": 1448.4122448979592 },
+        //                     "bestAsk": { "price": 0.032, "size": 675.29 },
+        //                     "status": null
+        //                 },
+        //                 {
+        //                     "name": "No",
+        //                     "indexSet": 2,
+        //                     "bestBid": { "price": 0.968, "size": 675.29 },
+        //                     "bestAsk": { "price": 0.98, "size": 1448.4122448979592 },
+        //                     "status": null
+        //                 }
+        //             ]
+        //         },
+        //         "success": true
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parsePredictionTicker (data, outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parsePredictionTicker
+     * @description parses a raw market detail into a unified prediction ticker for one of its outcomes
+     * @param {object} ticker the raw market object, with a nested outcomes list
+     * @param {object} [market] the outcome the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    override parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+        const info = this.safeDict (market, 'info', {});
+        const indexSet = this.safeInteger (info, 'indexSet');
+        const rawOutcomes = this.safeList (ticker, 'outcomes', []);
+        const rawOutcomesLength = rawOutcomes.length;
+        let rawOutcome: Dict = {};
+        for (let i = 0; i < rawOutcomesLength; i++) {
+            const candidate = rawOutcomes[i];
+            if (this.safeInteger (candidate, 'indexSet') === indexSet) {
+                rawOutcome = candidate;
+                break;
+            }
+        }
+        // the venue quotes each outcome on its own side of the book, so no complement is needed
+        const bestBid = this.safeDict (rawOutcome, 'bestBid', {});
+        const bestAsk = this.safeDict (rawOutcome, 'bestAsk', {});
+        const timestamp = this.milliseconds ();
+        return this.safePredictionTicker ({
+            'outcome': this.safeOutcomeSymbol (undefined, market),
+            'outcomeId': this.safeString (market, 'outcomeId'),
+            'label': this.safeString (market, 'label'),
+            'market': this.safeString (market, 'market'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeNumber (bestBid, 'price'),
+            'bidVolume': this.safeNumber (bestBid, 'size'),
+            'ask': this.safeNumber (bestAsk, 'price'),
+            'askVolume': this.safeNumber (bestAsk, 'size'),
+            'open': undefined,
+            'close': undefined,
+            'last': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        });
     }
 
     /**
