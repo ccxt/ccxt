@@ -5,9 +5,9 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint, AllGreeks } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, NullableDict, Status, Endpoint, AllGreeks } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
 
@@ -71,9 +71,9 @@ export default class paradex extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
@@ -1032,6 +1032,111 @@ export default class paradex extends Exchange {
             'markPrice': this.safeString (ticker, 'mark_price'),
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchFundingRates
+     * @description fetches the current funding rate for multiple markets
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbols = this.marketSymbols (symbols);
+        // the endpoint takes one market id, and ALL answers for every product on
+        // the venue: a single symbol is asked for by name, which is 544 bytes
+        // against 1.6 MB
+        let target = 'ALL';
+        if ((symbols !== undefined) && (symbols.length === 1)) {
+            target = this.market (symbols[0])['id'] as string;
+        }
+        const request: Dict = {
+            'market': target,
+        };
+        const response = await this.publicGetMarketsSummary (this.extend (request, params));
+        const data = this.safeList (response, 'results', []);
+        return this.parseFundingRates (data, symbols);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchFundingRate
+     * @description fetches the current funding rate
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const rates = await this.fetchFundingRates ([ market['symbol'] ], params);
+        const rate = this.safeDict (rates, market['symbol']);
+        if (rate === undefined) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);
+        }
+        return rate as FundingRate;
+    }
+
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "symbol": "BTC-USD-PERP",
+        //         "oracle_price": "68465.17449906",
+        //         "mark_price": "68465.17449906",
+        //         "last_traded_price": "68495.1",
+        //         "bid": "68477.6",
+        //         "ask": "69578.2",
+        //         "volume_24h": "5815541.397939004",
+        //         "total_volume": "584031465.525259686",
+        //         "created_at": 1718170156580,
+        //         "underlying_price": "67367.37268422",
+        //         "open_interest": "162.272",
+        //         "funding_rate": "0.01629574927887",
+        //         "price_change_rate_24h": "0.009032"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger (contract, 'created_at');
+        // the summary answers for every product, and only a perpetual funds: an
+        // option row carries an empty funding_rate and a period of zero. left
+        // without a symbol, parseFundingRates drops the row
+        const rate = this.safeString (contract, 'funding_rate');
+        const funds = market['swap'] && (rate !== undefined) && (rate !== '');
+        // the funding period belongs to the market and is not always eight hours:
+        // fetchMarkets documents one on twenty four. funding accrues each second
+        // against an index, and this rate is the amount for a whole period
+        const hours = this.safeString (this.safeDict (market, 'info', {}), 'funding_period_hours');
+        // zero hours is not an interval, and a caller annualising a rate divides by it
+        const interval = ((hours === undefined) || !Precise.stringGt (hours, '0')) ? undefined : hours + 'h';
+        return {
+            'info': contract,
+            'symbol': funds ? market['symbol'] : undefined,
+            'markPrice': this.safeNumber (contract, 'mark_price'),
+            'indexPrice': this.safeNumber (contract, 'underlying_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': interval,
+        } as FundingRate;
     }
 
     /**
@@ -3312,6 +3417,9 @@ export default class paradex extends Exchange {
         //     ]
         // }
         //
+        // every row is one observation of a rate quoted for a whole funding period,
+        // not a settled payment: paradex recomputes it each second and accrues it
+        // into funding_index, so the series cannot be summed
         const results = this.safeList (response, 'results', []) as List;
         const rates: List = [];
         for (let i = 0; i < results.length; i++) {
