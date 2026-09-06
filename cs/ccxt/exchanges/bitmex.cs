@@ -2447,7 +2447,7 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object orderType = this.capitalize(type);
+        string orderType = this.capitalize(type);
         object capitalizeOrderType = orderType;
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -2655,7 +2655,7 @@ public partial class bitmex : Exchange
         }
         object response = await this.privateDeleteOrder(this.extend(request, parameters));
         object order = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object error = this.safeString(order, "error");
+        string? error = this.safeString(order, "error");
         if (isTrue(!isEqual(error, null)))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(error, "Unable to cancel order due to existing state"), 0)))

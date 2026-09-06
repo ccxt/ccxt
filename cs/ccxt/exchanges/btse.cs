@@ -4203,7 +4203,7 @@ public partial class btse : Exchange
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
         bool isBodyDelete = isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(((string)path).StartsWith(((string)"futures/api/v3/")), true)));
-        object queryString = "";
+        string queryString = "";
         if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && !isTrue(isBodyDelete)))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

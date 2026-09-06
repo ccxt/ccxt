@@ -855,7 +855,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object pairObj = getValue(markets, i);
-            object id = this.safeStringUpper(pairObj, 0);
+            string? id = this.safeStringUpper(pairObj, 0);
             object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
             bool spot = true;
             string? type = null;
@@ -1314,7 +1314,7 @@ public partial class bitfinex : Exchange
         string? error = this.safeString(response, 0);
         if (isTrue(isEqual(error, "error")))
         {
-            object message = this.safeString(response, 2, "");
+            string? message = this.safeString(response, 2, "");
             // same message as in v1
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
             throw new ExchangeError ((string)add(add(this.id, " "), message)) ;
@@ -2220,11 +2220,11 @@ public partial class bitfinex : Exchange
         //          "Submitting 1 orders."      // Message
         //       ]
         //
-        object status = this.safeString(response, 6);
+        string? status = this.safeString(response, 6);
         if (isTrue(!isEqual(status, "SUCCESS")))
         {
-            object errorCode = this.safeString(response, 5);
-            object errorText = this.safeString(response, 7);
+            string? errorCode = this.safeString(response, 5);
+            string? errorText = this.safeString(response, 7);
             throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
         }
         object orders = this.safeList(response, 4, new List<object>() {});
@@ -3557,8 +3557,8 @@ public partial class bitfinex : Exchange
         if (isTrue(isEqual(statusCode, 500)))
         {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            object errorCode = this.safeString(response, 1, "");
-            object errorText = this.safeString(response, 2, "");
+            string? errorCode = this.safeString(response, 1, "");
+            string? errorText = this.safeString(response, 2, "");
             object feedback = add(add(this.id, " "), errorText);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorText, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
@@ -4632,11 +4632,11 @@ public partial class bitfinex : Exchange
         //         "Submitting update to exchange limit buy order for 0.0002 BTC."
         //     ]
         //
-        object status = this.safeString(response, 6);
+        string? status = this.safeString(response, 6);
         if (isTrue(!isEqual(status, "SUCCESS")))
         {
-            object errorCode = this.safeString(response, 5);
-            object errorText = this.safeString(response, 7);
+            string? errorCode = this.safeString(response, 5);
+            string? errorText = this.safeString(response, 7);
             throw new ExchangeError ((string)add(add(add(add(add(add(add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
         }
         object order = this.safeList(response, 4, new List<object>() {});

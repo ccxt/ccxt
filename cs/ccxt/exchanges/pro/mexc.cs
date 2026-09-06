@@ -483,7 +483,7 @@ public partial class mexc : ccxt.mexc
         //    }
         //
         object parsedTicker = this.parseWsBidAsk(message);
-        object symbol = this.safeString(parsedTicker, "symbol");
+        string? symbol = this.safeString(parsedTicker, "symbol");
         if (isTrue(isEqual(symbol, null)))
         {
             return;
@@ -599,7 +599,7 @@ public partial class mexc : ccxt.mexc
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframeVar);
+        string? timeframeId = this.safeString(timeframes, timeframeVar);
         object messageHash = add(add(add("candles:", symbolVar), ":"), timeframeVar);
         object ohlcv = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -1735,7 +1735,7 @@ public partial class mexc : ccxt.mexc
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        object type = ((bool) isTrue((isEqual(channel, "spot@private.account.v3.api.pb")))) ? "spot" : "swap";
+        string type = ((bool) isTrue((isEqual(channel, "spot@private.account.v3.api.pb")))) ? "spot" : "swap";
         object messageHash = add("balance:", type);
         object data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
         Int64? futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
@@ -1997,7 +1997,7 @@ public partial class mexc : ccxt.mexc
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframe);
+        string? timeframeId = this.safeString(timeframes, timeframe);
         object messageHash = add(add(add("unsubscribe:candles:", symbol), ":"), timeframe);
         object url = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))

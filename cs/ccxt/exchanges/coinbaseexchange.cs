@@ -2491,7 +2491,7 @@ public partial class coinbaseexchange : Exchange
         {
             if (isTrue(isEqual(getValue(body, 0), "{")))
             {
-                object message = this.safeString(response, "message");
+                string? message = this.safeString(response, "message");
                 object feedback = add(add(this.id, " "), message);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

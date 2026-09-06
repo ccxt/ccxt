@@ -5400,7 +5400,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object network = this.safeString(parameters, "network");
+        string? network = this.safeString(parameters, "network");
         object addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object result = null;
         if (isTrue(!isEqual(network, null)))
@@ -5454,7 +5454,7 @@ public partial class mexc : Exchange
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
-            object rawNetwork = this.safeString(parameters, "network");
+            string? rawNetwork = this.safeString(parameters, "network");
             if (isTrue(!isEqual(rawNetwork, null)))
             {
                 parameters = this.omit(parameters, "network");
@@ -6855,7 +6855,7 @@ public partial class mexc : Exchange
                     ((IDictionary<string,object>)urlParams)["recvWindow"] = this.safeInteger(this.options, "recvWindow", 5000);
                 }
             }
-            object paramsEncoded = "";
+            string paramsEncoded = "";
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys)), 0)))
             {
                 paramsEncoded = this.urlencode(urlParams);

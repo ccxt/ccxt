@@ -89,7 +89,7 @@ public partial class okx : ccxt.okx
             throw new ArgumentsRequired ((string)add(this.id, " getUrl() requires a channel argument")) ;
         }
         object isSandbox = getValue(this.options, "sandboxMode");
-        object sandboxSuffix = ((bool) isTrue((isEqual(isSandbox, true)))) ? "?brokerId=9999" : "";
+        string sandboxSuffix = ((bool) isTrue((isEqual(isSandbox, true)))) ? "?brokerId=9999" : "";
         bool isBusiness = (isEqual(access, "business"));
         bool isPublic = (isEqual(access, "public"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -436,7 +436,7 @@ public partial class okx : ccxt.okx
         object fundingRate = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            object symbol = this.safeString(fundingRate, "symbol");
+            string? symbol = this.safeString(fundingRate, "symbol");
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -901,7 +901,7 @@ public partial class okx : ccxt.okx
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseWsLiquidation(rawLiquidation);
-            object symbol = this.safeString(liquidation, "symbol");
+            string? symbol = this.safeString(liquidation, "symbol");
             if (isTrue(isEqual(this.liquidations, null)))
             {
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -1014,7 +1014,7 @@ public partial class okx : ccxt.okx
                 return;
             }
             object liquidation = this.parseWsMyLiquidation(rawLiquidation);
-            object symbol = this.safeString(liquidation, "symbol");
+            string? symbol = this.safeString(liquidation, "symbol");
             if (isTrue(isEqual(this.liquidations, null)))
             {
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -1140,7 +1140,7 @@ public partial class okx : ccxt.okx
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object name = add("candle", interval);
         object ohlcv = await this.subscribe("public", name, name, symbolVar, parameters);
         if (isTrue(this.newUpdates))
@@ -1198,7 +1198,7 @@ public partial class okx : ccxt.okx
             object sym = getValue(symbolAndTimeframe, 0);
             object tf = getValue(symbolAndTimeframe, 1);
             object marketId = this.marketId(sym);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             object channel = add("candle", interval);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -1253,7 +1253,7 @@ public partial class okx : ccxt.okx
             object sym = getValue(symbolAndTimeframe, 0);
             object tf = getValue(symbolAndTimeframe, 1);
             object marketId = this.marketId(sym);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             object channel = add("candle", interval);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },

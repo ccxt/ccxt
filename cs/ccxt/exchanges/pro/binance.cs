@@ -944,7 +944,7 @@ public partial class binance : ccxt.binance
         {
             streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
-        object watchOrderBookRate = this.safeString(this.options, "watchOrderBookRate", "100");
+        string? watchOrderBookRate = this.safeString(this.options, "watchOrderBookRate", "100");
         List<object> subParams = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -1086,7 +1086,7 @@ public partial class binance : ccxt.binance
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
-        object symbol = this.safeString(subscription, "symbol");
+        string? symbol = this.safeString(subscription, "symbol");
         object messageHash = add("orderbook::", symbol);
         try
         {
@@ -1443,7 +1443,7 @@ public partial class binance : ccxt.binance
                 object market = this.market(symbol);
                 ((IList<object>)messageHashes).Add(add("trade::", symbol));
                 object baseIdLower = this.safeStringLower(market, "baseId", "");
-                object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 object underlying = add(add(baseIdLower, ""), quoteIdLower);
                 if (!isTrue((inOp(seenUnderlyings, underlying))))
                 {
@@ -1545,7 +1545,7 @@ public partial class binance : ccxt.binance
                 ((IList<object>)subMessageHashes).Add(add("trade::", symbol));
                 ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", symbol));
                 object baseIdLower = this.safeStringLower(market, "baseId", "");
-                object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                 object underlying = add(add(baseIdLower, ""), quoteIdLower);
                 if (!isTrue((inOp(seenUnderlyings, underlying))))
                 {
@@ -1907,7 +1907,7 @@ public partial class binance : ccxt.binance
                 string? stockTicker = this.safeString2(stockMarket, "base", "id");
                 object stockTickerString = ((bool) isTrue((isEqual(stockTicker, null)))) ? "" : ((string)stockTicker).ToLower();
                 object stockTimeframeString = getValue(stockSymAndTf, 1);
-                object stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
+                string? stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
                 if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(stockInterval, "5m"))) && isTrue((!isEqual(stockInterval, "1h")))) && isTrue((!isEqual(stockInterval, "1d")))) && isTrue((!isEqual(stockInterval, "1w")))) && isTrue((!isEqual(stockInterval, "1M")))))
                 {
                     throw new BadRequest ((string)add(this.id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")) ;
@@ -1958,7 +1958,7 @@ public partial class binance : ccxt.binance
             object symAndTf = getValue(symbolsAndTimeframes, i);
             object symbolString = getValue(symAndTf, 0);
             object timeframeString = getValue(symAndTf, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             object market = this.market(symbolString);
             object marketId = getValue(market, "lowercaseId");
             if (isTrue(isEqual(marketId, null)))
@@ -2051,7 +2051,7 @@ public partial class binance : ccxt.binance
             object symAndTf = getValue(symbolsAndTimeframes, i);
             object symbolString = getValue(symAndTf, 0);
             object timeframeString = getValue(symAndTf, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             object market = this.market(symbolString);
             object marketId = getValue(market, "lowercaseId");
             if (isTrue(isEqual(marketId, null)))
@@ -2693,7 +2693,7 @@ public partial class binance : ccxt.binance
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         List<object> unsubscribeMessageHashes = new List<object>() {};
-        object suffix = "";
+        string suffix = "";
         if (isTrue(isTrue(isMarkPrice) && !isTrue(isOptionMarkPrice)))
         {
             suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
@@ -2725,7 +2725,7 @@ public partial class binance : ccxt.binance
                 {
                     // subscribe per underlying, not per contract
                     object baseIdLower = this.safeStringLower(market, "baseId", "");
-                    object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                    string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = add(add(baseIdLower, ""), quoteIdLower);
                     if (!isTrue((inOp(seenUnderlyings, underlying))))
                     {
@@ -2738,9 +2738,9 @@ public partial class binance : ccxt.binance
                     // market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
                     string? marketId = this.safeString(market, "id", "");
                     List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    object expiryDate = this.safeString(parts, 1);
+                    string? expiryDate = this.safeString(parts, 1);
                     object baseIdLower = this.safeStringLower(market, "baseId", "");
-                    object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                    string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = add(add(baseIdLower, ""), quoteIdLower);
                     object subscriptionArg = add(add(underlying, "@optionTicker@"), expiryDate);
                     if (!isTrue((inOp(seenUnderlyings, subscriptionArg))))
@@ -2766,7 +2766,7 @@ public partial class binance : ccxt.binance
                 if (isTrue(isOptionTicker))
                 {
                     // eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
-                    object expirationDate = this.safeString(parameters, "expirationDate");
+                    string? expirationDate = this.safeString(parameters, "expirationDate");
                     if (isTrue(isEqual(expirationDate, null)))
                     {
                         throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
@@ -3085,7 +3085,7 @@ public partial class binance : ccxt.binance
         {
             unifiedPrefix = "ticker";
         }
-        object channelName = null;
+        string? channelName = null;
         List<object> resolvedMessageHashes = new List<object>() {};
         object rawTickers = new List<object>() {};
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
@@ -6219,7 +6219,7 @@ public partial class binance : ccxt.binance
             string? orderId = this.safeString(trade, "order");
             object tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
             tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
-            object symbol = this.safeString(trade, "symbol");
+            string? symbol = this.safeString(trade, "symbol");
             if (isTrue(isTrue(isTrue(!isEqual(orderId, null)) && isTrue(!isEqual(tradeFee, null))) && isTrue(!isEqual(symbol, null))))
             {
                 object cachedOrders = this.orders;
@@ -6308,7 +6308,7 @@ public partial class binance : ccxt.binance
     public virtual void handleOrder(WebSocketClient client, object message)
     {
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if (isTrue(!isEqual(symbol, null)))
         {

@@ -717,7 +717,7 @@ public partial class alpaca : ccxt.alpaca
         //        "msg": "invalid syntax"
         //    }
         //
-        object code = this.safeString(message, "code");
+        string? code = this.safeString(message, "code");
         object msg = this.safeValue(message, "msg", new Dictionary<string, object>() {});
         throw new ExchangeError ((string)add(add(add(add(this.id, " code: "), code), " message: "), msg)) ;
     }

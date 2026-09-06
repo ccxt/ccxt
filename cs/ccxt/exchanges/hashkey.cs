@@ -1112,7 +1112,7 @@ public partial class hashkey : Exchange
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quoteAsset");
         object quote = this.safeCurrencyCode(quoteId);
-        object settleId = this.safeString(market, "marginToken");
+        string? settleId = this.safeString(market, "marginToken");
         object settle = this.safeCurrencyCode(settleId);
         string? baseId = this.safeString(market, "baseAsset");
         string marketType = "spot";
@@ -3624,7 +3624,7 @@ public partial class hashkey : Exchange
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
-        object paramsType = this.safeString(parameters, "type");
+        string? paramsType = this.safeString(parameters, "type");
         if (isTrue(isTrue(isTrue((!isEqual(paramsType, null))) && isTrue((!isEqual(paramsType, "spot")))) && isTrue((!isEqual(paramsType, "swap")))))
         {
             throw new BadRequest ((string)add(add(add(add(add(this.id, " "), methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;

@@ -247,7 +247,7 @@ public partial class bittrade : ccxt.bittrade
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {

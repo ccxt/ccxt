@@ -85,7 +85,7 @@ public partial class poloniex : ccxt.poloniex
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object timestamp = this.numberToString(this.milliseconds());
+        string? timestamp = this.numberToString(this.milliseconds());
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         string messageHash = "authenticated";
         var client = this.client(url);

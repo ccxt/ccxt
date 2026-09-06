@@ -1600,7 +1600,7 @@ public partial class coinbase : Exchange
                 for (int j = 0; isLessThan(j, getArrayLength(data)); postFixIncrement(ref j))
                 {
                     object quoteCurrency = getValue(data, j);
-                    object quoteId = this.safeString(quoteCurrency, "id");
+                    string? quoteId = this.safeString(quoteCurrency, "id");
                     object quote = this.safeCurrencyCode(quoteId);
                     ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                         { "id", add(add(baseId, "-"), quoteId) },
@@ -2347,7 +2347,7 @@ public partial class coinbase : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeDict(data, "rates", new Dictionary<string, object>() {});
-        object quoteId = this.safeString(data, "currency");
+        string? quoteId = this.safeString(data, "currency");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
         string delimiter = "-";
@@ -5908,7 +5908,7 @@ public partial class coinbase : Exchange
         object version = getValue(api, 0);
         bool signed = isEqual(getValue(api, 1), "private");
         bool isV3 = isEqual(version, "v3");
-        object pathPart = ((bool) isTrue((isV3))) ? "api/v3" : "v2";
+        string pathPart = ((bool) isTrue((isV3))) ? "api/v3" : "v2";
         object fullPath = add(add(add("/", pathPart), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object savedPath = fullPath;

@@ -744,7 +744,7 @@ public partial class lighter : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
@@ -1546,7 +1546,7 @@ public partial class lighter : Exchange
     {
         string? id = this.safeString(rawCurrency, "asset_id");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
-        object decimals = this.safeString(rawCurrency, "decimals");
+        string? decimals = this.safeString(rawCurrency, "decimals");
         bool isUSDC = (isEqual(code, "USDC"));
         object depositMin = null;
         object withdrawMin = null;

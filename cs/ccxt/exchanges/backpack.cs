@@ -2624,10 +2624,10 @@ public partial class backpack : Exchange
         {
             this.checkRequiredCredentials();
             string ts = ((object)this.nonce()).ToString();
-            object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
+            string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             object optionInstructions = this.safeDict(this.options, "instructions", new Dictionary<string, object>() {});
             object optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});
-            object instruction = this.safeString(optionPathInstructions, method, "");
+            string? instruction = this.safeString(optionPathInstructions, method, "");
             object payload = "";
             if (isTrue(isTrue((isEqual(path, "api/v1/orders"))) && isTrue((isEqual(method, "POST")))))
             {
@@ -2659,7 +2659,7 @@ public partial class backpack : Exchange
         }
         if (isTrue(isEqual(method, "GET")))
         {
-            object query = this.urlencode(sortedParams);
+            string query = this.urlencode(sortedParams);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 endpoint = add(endpoint, add("?", query));
@@ -2681,7 +2681,7 @@ public partial class backpack : Exchange
         {
             object order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
-            object orderQuery = this.urlencode(sortedOrder);
+            string orderQuery = this.urlencode(sortedOrder);
             payload = add(payload, add(add(add(add("instruction=", instruction), "&"), orderQuery), "&"));
             if (isTrue(isEqual(i, (subtract(getArrayLength(parameters), 1)))))
             {

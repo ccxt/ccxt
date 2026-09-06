@@ -212,7 +212,7 @@ public partial class revolutx : Exchange
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = getArrayLength(queryKeys);
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), implodedPath);
-        object queryString = "";
+        string queryString = "";
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -289,7 +289,7 @@ public partial class revolutx : Exchange
     {
         string? id = this.safeString(market, "id");
         object bs = this.safeString(market, "base", "");
-        object quote = this.safeString(market, "quote", "");
+        string? quote = this.safeString(market, "quote", "");
         object baseId = bs;
         object quoteId = quote;
         string? baseStep = this.safeString(market, "base_step");
@@ -394,7 +394,7 @@ public partial class revolutx : Exchange
             object key = getValue(keys, i);
             object market = this.safeDict(markets, key, new Dictionary<string, object>() {});
             object bs = this.safeString(market, "base");
-            object quote = this.safeString(market, "quote");
+            string? quote = this.safeString(market, "quote");
             object marketId = add(add(bs, "-"), quote);
             Dictionary<string, object> marketData = this.extend(market, new Dictionary<string, object>() {
                 { "id", marketId },

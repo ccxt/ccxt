@@ -3315,7 +3315,7 @@ public partial class polymarket : PredictionExchange
                     hasArrayParam = true;
                 }
             }
-            object querystring = ((bool) isTrue(hasArrayParam)) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
+            string querystring = ((bool) isTrue(hasArrayParam)) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
             if (isTrue(!isEqual(querystring, "")))
             {
                 url = add(url, add("?", querystring));
@@ -3783,7 +3783,7 @@ public partial class polymarket : PredictionExchange
         object outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcomeVar);
-        object tokenId = this.safeString(outcomeObj, "outcomeId");
+        string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
         object messageHash = add("orderbook::", outcomeVar);
         object subscribeHash = add("subscribe::", tokenId);
@@ -3811,7 +3811,7 @@ public partial class polymarket : PredictionExchange
         object outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcomeVar);
-        object tokenId = this.safeString(outcomeObj, "outcomeId");
+        string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
         object messageHash = add("trades::", outcomeVar);
         object subscribeHash = add("subscribe::", tokenId);
@@ -3837,7 +3837,7 @@ public partial class polymarket : PredictionExchange
         object outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcomeVar);
-        object tokenId = this.safeString(outcomeObj, "outcomeId");
+        string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
         object messageHash = add("ticker::", outcomeVar);
         object subscribeHash = add("subscribe::", tokenId);
@@ -3999,7 +3999,7 @@ public partial class polymarket : PredictionExchange
         object parsed = this.parsePredictionOrder(eventVar);
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "orders"});
-        object outcome = this.safeString(parsed, "outcome");
+        string? outcome = this.safeString(parsed, "outcome");
         if (isTrue(!isEqual(outcome, null)))
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("orders::", outcome)});
@@ -4017,7 +4017,7 @@ public partial class polymarket : PredictionExchange
         object parsed = this.parsePredictionTrade(eventVar);
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "myTrades"});
-        object outcome = this.safeString(parsed, "outcome");
+        string? outcome = this.safeString(parsed, "outcome");
         if (isTrue(!isEqual(outcome, null)))
         {
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("myTrades::", outcome)});

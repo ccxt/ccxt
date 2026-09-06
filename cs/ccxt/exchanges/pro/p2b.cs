@@ -320,7 +320,7 @@ public partial class p2b : ccxt.p2b
         object market = this.safeMarket(marketId);
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(channel, timeframes);
-        object symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol");
         object messageHash = add(add(channel, "::"), symbol);
         object parsed = this.parseOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -364,7 +364,7 @@ public partial class p2b : ccxt.p2b
         object trades = this.safeList(data, 1);
         string? marketId = this.safeString(data, 0);
         object market = this.safeMarket(marketId);
-        object symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol");
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {

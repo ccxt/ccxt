@@ -1013,7 +1013,7 @@ public partial class cex : ccxt.cex
         //         "ok": "ok"
         //     }
         //
-        object symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
+        string? symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
         object rawOrders = this.safeValue(message, "data", new List<object>() {});
         object myOrders = this.orders;
         if (isTrue(isEqual(myOrders, null)))
@@ -1628,8 +1628,8 @@ public partial class cex : ccxt.cex
         try
         {
             object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-            object error = this.safeString(data, "error");
-            object eventVar = this.safeString(message, "e", "");
+            string? error = this.safeString(data, "error");
+            string? eventVar = this.safeString(message, "e", "");
             object feedback = add(add(add(add(this.id, " "), eventVar), " "), error);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);

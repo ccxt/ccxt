@@ -303,7 +303,7 @@ public partial class mudrex : Exchange
         {
             object errors = this.safeList(response, "errors", new List<object>() {});
             object first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
-            object text = this.safeString(first, "text", this.json(response));
+            string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), text, add(add(this.id, " "), text));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, add(add(this.id, " "), text));

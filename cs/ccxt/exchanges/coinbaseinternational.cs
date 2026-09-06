@@ -1604,7 +1604,7 @@ public partial class coinbaseinternational : Exchange
         //
         string? marketId = this.safeString(market, "symbol");
         object baseId = this.safeString(market, "base_asset_name");
-        object quoteId = this.safeString(market, "quote_asset_name");
+        string? quoteId = this.safeString(market, "quote_asset_name");
         string? typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         bool isSpot = (isEqual(typeId, "SPOT"));
         object fees = this.fees;

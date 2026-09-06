@@ -2570,7 +2570,7 @@ public partial class bitteam : Exchange
         object request = this.omit(parameters, this.extractParams(path));
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
-        object query = this.urlencode(request);
+        string query = this.urlencode(request);
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -2582,7 +2582,7 @@ public partial class bitteam : Exchange
                 url = add(url, add("?", query));
             }
             object auth = add(add(this.apiKey, ":"), this.secret);
-            object auth64 = this.stringToBase64(auth);
+            string auth64 = this.stringToBase64(auth);
             object signature = add("Basic ", auth64);
             headers = new Dictionary<string, object>() {
                 { "Authorization", signature },
@@ -2613,13 +2613,13 @@ public partial class bitteam : Exchange
                 if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(url, "/ccxt/order/"), 0))) && isTrue((isEqual(method, "GET")))))
                 {
                     List<object> parts = ((string)url).Split(new [] {((string)"/order/")}, StringSplitOptions.None).ToList<object>();
-                    object orderId = this.safeString(parts, 1);
+                    string? orderId = this.safeString(parts, 1);
                     throw new OrderNotFound ((string)add(add(add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
                     List<object> parts = ((string)url).Split(new [] {((string)"/cmc/orderbook/")}, StringSplitOptions.None).ToList<object>();
-                    object symbolId = this.safeString(parts, 1);
+                    string? symbolId = this.safeString(parts, 1);
                     throw new BadSymbol ((string)add(add(add(this.id, " symbolId "), symbolId), " not found")) ;
                 }
             }

@@ -441,7 +441,7 @@ public partial class delta : Exchange
             expiry = add(add(slice(expiry, 4, null), slice(expiry, 2, 4)), slice(expiry, 0, 2));
         }
         object settle = quote;
-        object strike = this.safeString(optionParts, 2);
+        string? strike = this.safeString(optionParts, 2);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         string optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
@@ -975,7 +975,7 @@ public partial class delta : Exchange
             bool swap = (isEqual(type, "perpetual_futures"));
             bool future = (isEqual(type, "futures"));
             bool option = (isTrue(isTrue(callOptions) || isTrue(putOptions)) || isTrue(moveOptions));
-            object strike = this.safeString(market, "strike_price");
+            string? strike = this.safeString(market, "strike_price");
             string? expiryDatetime = this.safeString(market, "settlement_time");
             Int64? expiry = this.parse8601(expiryDatetime);
             object contractSize = this.safeNumber(market, "contract_value");

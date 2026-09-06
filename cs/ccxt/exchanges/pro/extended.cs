@@ -65,7 +65,7 @@ public partial class extended : ccxt.extended
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbolVar);
-        object query = this.urlencode(parameters);
+        string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), getValue(market, "id"));
         if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
@@ -599,7 +599,7 @@ public partial class extended : ccxt.extended
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object messageHash = add("fundingRate:", symbolVar);
-        object query = this.urlencode(parameters);
+        string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), getValue(market, "id"));
         if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
@@ -623,7 +623,7 @@ public partial class extended : ccxt.extended
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object fundingRate = this.parseWsFundingRate(data, null, message);
-        object symbol = this.safeString(fundingRate, "symbol");
+        string? symbol = this.safeString(fundingRate, "symbol");
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         object messageHash = add("fundingRate:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
@@ -677,7 +677,7 @@ public partial class extended : ccxt.extended
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object messageHash = add("markPrice:", symbolVar);
-        object query = this.urlencode(parameters);
+        string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), getValue(market, "id"));
         if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
@@ -744,7 +744,7 @@ public partial class extended : ccxt.extended
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object messageHash = add("trades:", symbolVar);
-        object query = this.urlencode(parameters);
+        string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), getValue(market, "id"));
         if (isTrue(isGreaterThan(((string)query).Length, 0)))
         {
@@ -842,7 +842,7 @@ public partial class extended : ccxt.extended
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string? price = this.safeString(parameters, "price");
-        object candleType = this.safeString(parameters, "candleType");
+        string? candleType = this.safeString(parameters, "candleType");
         if (isTrue(isEqual(candleType, null)))
         {
             if (isTrue(isEqual(price, "mark")))
@@ -859,7 +859,7 @@ public partial class extended : ccxt.extended
         parameters = this.omit(parameters, new List<object>() {"candleType", "price"});
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add(add("ohlcv:", symbolVar), ":"), timeframeVar), ":"), candleType);
-        object query = this.urlencode(this.extend(new Dictionary<string, object>() {
+        string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/candles/"), getValue(market, "id")), "/"), candleType), "?"), query);
@@ -903,7 +903,7 @@ public partial class extended : ccxt.extended
         }
         string? symbol = this.safeString(subscription, "symbol");
         object timeframe = this.safeString(subscription, "timeframe");
-        object candleType = this.safeString(subscription, "candleType");
+        string? candleType = this.safeString(subscription, "candleType");
         object cacheKey = ((bool) isTrue((isEqual(candleType, "trades")))) ? timeframe : add(add(timeframe, ":"), candleType);
         string? messageHash = this.safeString(subscription, "messageHash");
         ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});

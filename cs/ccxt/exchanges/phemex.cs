@@ -3579,7 +3579,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdID"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -5271,7 +5271,7 @@ public partial class phemex : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object requestPath = add("/", this.implodeParams(path, parameters));
         object url = requestPath;
-        object queryString = "";
+        string queryString = "";
         if (isTrue(isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(url, "/positions/assign")))))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

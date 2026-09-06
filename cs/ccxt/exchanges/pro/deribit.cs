@@ -183,7 +183,7 @@ public partial class deribit : ccxt.deribit
         }
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object interval = this.safeString(parameters, "interval", "100ms");
+        string? interval = this.safeString(parameters, "interval", "100ms");
         parameters = this.omit(parameters, "interval");
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -225,7 +225,7 @@ public partial class deribit : ccxt.deribit
         }
         symbols = this.marketSymbols(symbols, null, false);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object interval = this.safeString(parameters, "interval", "100ms");
+        string? interval = this.safeString(parameters, "interval", "100ms");
         parameters = this.omit(parameters, "interval");
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -469,7 +469,7 @@ public partial class deribit : ccxt.deribit
         string? channel = this.safeString(parameters, "channel", "");
         List<object> parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
-        object interval = this.safeString(parts, 2);
+        string? interval = this.safeString(parts, 2);
         object symbol = this.safeSymbol(marketId);
         object market = this.safeMarket(marketId);
         object trades = this.safeList(parameters, "data", new List<object>() {});
@@ -513,7 +513,7 @@ public partial class deribit : ccxt.deribit
             symbolVar = this.symbol(symbolVar);
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object interval = this.safeString(parameters, "interval", "raw");
+        string? interval = this.safeString(parameters, "interval", "raw");
         parameters = this.omit(parameters, "interval");
         object channel = add("user.trades.any.any.", interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -704,12 +704,12 @@ public partial class deribit : ccxt.deribit
         if (isTrue(isDetailed))
         {
             object group = this.safeString(parts, 2);
-            object depth = this.safeString(parts, 3);
-            object interval = this.safeString(parts, 4);
+            string? depth = this.safeString(parts, 3);
+            string? interval = this.safeString(parts, 4);
             descriptor = add(add(add(add(group, "."), depth), "."), interval);
         } else
         {
-            object interval = this.safeString(parts, 2);
+            string? interval = this.safeString(parts, 2);
             descriptor = ((string)interval);
         }
         string? marketId = this.safeString(data, "instrument_name");
@@ -799,9 +799,9 @@ public partial class deribit : ccxt.deribit
             symbolVar = this.symbol(symbolVar);
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object currency = this.safeString(parameters, "currency", "any");
-        object interval = this.safeString(parameters, "interval", "raw");
-        object kind = this.safeString(parameters, "kind", "any");
+        string? currency = this.safeString(parameters, "currency", "any");
+        string? interval = this.safeString(parameters, "interval", "raw");
+        string? kind = this.safeString(parameters, "kind", "any");
         parameters = this.omit(parameters, "interval", "currency", "kind");
         object channel = add(add(add(add(add("user.orders.", kind), "."), currency), "."), interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -964,7 +964,7 @@ public partial class deribit : ccxt.deribit
         string? channel = this.safeString(parameters, "channel", "");
         List<object> parts = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
-        object rawTimeframe = this.safeString(parts, 3);
+        string? rawTimeframe = this.safeString(parts, 3);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});

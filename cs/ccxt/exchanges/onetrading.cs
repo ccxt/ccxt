@@ -632,7 +632,7 @@ public partial class onetrading : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeString(parameters, "method");
+        string? method = this.safeString(parameters, "method");
         parameters = this.omit(parameters, "method");
         if (isTrue(isEqual(method, null)))
         {
@@ -1082,7 +1082,7 @@ public partial class onetrading : Exchange
             { "WEEKS", "w" },
             { "MONTHS", "M" },
         };
-        object lowercaseUnit = this.safeString(units, unit);
+        string? lowercaseUnit = this.safeString(units, unit);
         if (isTrue(isTrue((isEqual(period, null))) || isTrue((isEqual(lowercaseUnit, null)))))
         {
             throw new ExchangeError ((string)add(this.id, " parseOHLCV() missing period/unit")) ;

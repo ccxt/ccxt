@@ -744,7 +744,7 @@ public partial class woo : ccxt.woo
             throw new ExchangeError ((string)add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }
         object market = this.market(symbol);
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
         object topic = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -780,7 +780,7 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        string? interval = this.safeString(this.timeframes, timeframe, timeframe);
         string topic = "ohlcv";
         string name = "kline";
         object subHash = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
@@ -1349,7 +1349,7 @@ public partial class woo : ccxt.woo
     public virtual void handleOrder(WebSocketClient client, object message, object topic)
     {
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1771,7 +1771,7 @@ public partial class woo : ccxt.woo
         //         "data": "SPOT_BTC_USDT@orderbook"
         //     }
         //
-        object subscribeHash = this.safeString(message, "data");
+        string? subscribeHash = this.safeString(message, "data");
         object unsubscribeHash = add("unsubscribe::", subscribeHash);
         object subscription = this.safeDict(((WebSocketClient)client).subscriptions, unsubscribeHash, new Dictionary<string, object>() {});
         object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});

@@ -1009,7 +1009,7 @@ public partial class bingx : ccxt.bingx
         }
         object options = this.safeValue(this.options, marketType, new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
-        object rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframeVar);
         object subscriptionHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
         string uuid = this.uuid();
@@ -1059,7 +1059,7 @@ public partial class bingx : ccxt.bingx
         object market = this.market(symbol);
         object options = this.safeValue(this.options, getValue(market, "type"), new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
-        object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        string? rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
         object subMessageHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
         object messageHash = add("unsubscribe::", subMessageHash);
         string topic = "ohlcv";
@@ -1616,7 +1616,7 @@ public partial class bingx : ccxt.bingx
     public async virtual Task keepAliveListenKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object listenKey = this.safeString(this.options, "listenKey");
+        string? listenKey = this.safeString(this.options, "listenKey");
         if (isTrue(isEqual(listenKey, null)))
         {
             // A network error happened: we can't renew a listen key that does not exist.

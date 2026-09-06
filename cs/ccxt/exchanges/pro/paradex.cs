@@ -432,7 +432,7 @@ public partial class paradex : ccxt.paradex
         object parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object parsed = this.parseOrder(data);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         if (isTrue(isEqual(this.orders, null)))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);

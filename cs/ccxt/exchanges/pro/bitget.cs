@@ -566,7 +566,7 @@ public partial class bitget : ccxt.bitget
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes");
-        object interval = this.safeString(timeframes, timeframeVar);
+        string? interval = this.safeString(timeframes, timeframeVar);
         object messageHash = null;
         object instType = null;
         object uta = null;
@@ -624,7 +624,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         object timeframes = this.safeDict(this.options, "timeframes");
-        object interval = this.safeString(timeframes, timeframe);
+        string? interval = this.safeString(timeframes, timeframe);
         object channel = null;
         object market = this.market(symbol);
         object instType = null;
@@ -2607,7 +2607,7 @@ public partial class bitget : ccxt.bitget
                 { "uta", true },
             });
         }
-        object instTypeLower = ((bool) isTrue((isEqual(instType, null)))) ? "" : ((string)instType).ToLower();
+        string instTypeLower = ((bool) isTrue((isEqual(instType, null)))) ? "" : ((string)instType).ToLower();
         object messageHash = add("balance:", instTypeLower);
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(uta, messageHash, messageHash, args, parameters));
     }
@@ -2703,7 +2703,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object instType = this.safeStringLower(arg, "instType");
+        string? instType = this.safeStringLower(arg, "instType");
         object data = this.safeValue(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {

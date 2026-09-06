@@ -907,7 +907,7 @@ public partial class coinmate : Exchange
         object currency = this.currency(code);
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
         object methods = this.safeValue(withdrawOptions, "methods", new Dictionary<string, object>() {});
-        object method = this.safeString(methods, code);
+        string? method = this.safeString(methods, code);
         if (isTrue(isEqual(method, null)))
         {
             List<object> allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);

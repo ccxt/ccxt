@@ -401,6 +401,17 @@ public partial class BaseExchange
         }
     }
 
+    // The three `add` overloads MUST agree wherever more than one is applicable, because
+    // the declared type of a generated local picks the overload at compile time:
+    //   add(object, object): null left -> null; null right -> left unchanged
+    //   add(string, string): C# concat: null on either side -> the other side ("" for both)
+    //   add(string, object): was `a + b.ToString()`, a NullReferenceException on a null right;
+    //                        now delegates to add(string, string) so the two string overloads
+    //                        are identical for every input (a string right operand's ToString()
+    //                        is itself; a null right becomes a null string)
+    // A null LEFT still differs between (object,object) [null] and (string,*) [right operand],
+    // which is why build/csharp-local-types.js keeps a string local `object` when it is the
+    // LEFT operand of `+`: only RIGHT operands may be typed (see the proof there).
     public static string add(string a, string b)
     {
         return a + b;
@@ -408,7 +419,7 @@ public partial class BaseExchange
 
     public static string add(string a, object b)
     {
-        return add(a, b.ToString());
+        return add(a, b?.ToString());
     }
 
     // public static string add(object a, string b)

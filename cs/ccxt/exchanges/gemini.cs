@@ -2346,7 +2346,7 @@ public partial class gemini : Exchange
         if (isTrue(isEqual(result, "error")))
         {
             string? reasonInner = this.safeString(response, "reason");
-            object message = this.safeString(response, "message");
+            string? message = this.safeString(response, "message");
             object feedback = add(add(this.id, " "), message);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reasonInner, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

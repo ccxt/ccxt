@@ -185,7 +185,7 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object data = getValue(tickers, i);
-            object marketId = this.safeString(data, "market");
+            string? marketId = this.safeString(data, "market");
             object market = this.safeMarket(marketId, null, "-");
             object messageHash = add(add(eventVar, "@"), marketId);
             object ticker = this.parseTicker(data, market);
@@ -296,7 +296,7 @@ public partial class bitvavo : ccxt.bitvavo
         //         "side": "buy"
         //     }
         //
-        object marketId = this.safeString(message, "market");
+        string? marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         string name = "trades";
@@ -438,7 +438,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbolVar = getValue(market, "symbol");
         string name = "candles";
         object marketId = getValue(market, "id");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -495,10 +495,10 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string name = "candles";
-        object marketId = this.safeString(message, "market");
+        string? marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object interval = this.safeString(message, "interval");
+        string? interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
         object timeframe = this.findTimeframe(interval);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
@@ -548,7 +548,7 @@ public partial class bitvavo : ccxt.bitvavo
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!isTrue((inOp(marketIdsByInterval, interval))))
             {
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
@@ -627,7 +627,7 @@ public partial class bitvavo : ccxt.bitvavo
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!isTrue((inOp(marketIdsByInterval, interval))))
             {
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
@@ -853,7 +853,7 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         object eventVar = this.safeString(message, "event");
-        object marketId = this.safeString(message, "market");
+        string? marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         object messageHash = add(add(eventVar, "@"), getValue(market, "id"));
@@ -891,7 +891,7 @@ public partial class bitvavo : ccxt.bitvavo
         object parameters = this.safeValue(subscription, "params");
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
-        object marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
+        string? marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
         object snapshotSymbol = this.safeSymbol(marketId, null, "-");
         if (!isTrue((inOp(this.orderbooks, snapshotSymbol))))
         {
@@ -936,7 +936,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             return;
         }
-        object marketId = this.safeString(response, "market");
+        string? marketId = this.safeString(response, "market");
         object symbol = this.safeSymbol(marketId, null, "-");
         string name = "book";
         object messageHash = add(add(name, "@"), marketId);
@@ -984,7 +984,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "book";
         for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = this.safeString(marketIds, i);
+            string? marketId = this.safeString(marketIds, i);
             object symbol = this.safeSymbol(marketId, null, "-");
             object messageHash = add(add(name, "@"), marketId);
             if (!isTrue((inOp(this.orderbooks, symbol))))
@@ -1862,14 +1862,14 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual object actionAndMarketMessageHash(object action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbol = this.safeString(parameters, "market", "");
+        string? symbol = this.safeString(parameters, "market", "");
         return add(action, symbol);
     }
 
     public virtual object actionAndOrderIdMessageHash(object action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderId = this.safeString(parameters, "orderId");
+        string? orderId = this.safeString(parameters, "orderId");
         if (isTrue(isEqual(orderId, null)))
         {
             throw new ExchangeError ((string)add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;

@@ -393,7 +393,7 @@ public partial class onetrading : ccxt.onetrading
         //         "time": "2022-06-23T15:38:02.751301Z"
         //     }
         //
-        object type = this.safeString(message, "type");
+        string? type = this.safeString(message, "type");
         string? marketId = this.safeString(message, "instrument_code");
         object symbol = this.safeSymbol(marketId);
         string? dateTime = this.safeString(message, "time");
@@ -775,7 +775,7 @@ public partial class onetrading : ccxt.onetrading
         for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object order = this.parseOrder(getValue(rawOrders, i));
-            object symbol = this.safeString(order, "symbol", "");
+            string? symbol = this.safeString(order, "symbol", "");
             callDynamically(orders, "append", new object[] {order});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, add("orders:", symbol)});
             object rawTrades = this.safeValue(getValue(rawOrders, i), "trades", new List<object>() {});

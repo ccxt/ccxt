@@ -567,8 +567,8 @@ public partial class apex : ccxt.apex
             object symbolString = this.safeString(data, 0);
             object market = this.market(symbolString);
             symbolString = getValue(market, "id2");
-            object unfiedTimeframe = this.safeString(data, 1, "1");
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1, "1");
+            string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add("candle.", timeframeId), "."), symbolString));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), unfiedTimeframe));
         }
@@ -1079,7 +1079,7 @@ public partial class apex : ccxt.apex
             object success = this.safeValue(message, "success");
             if (isTrue(isTrue((!isEqual(success, null))) && isTrue((!isEqual(success, true)))))
             {
-                object ret_msg = this.safeString(message, "ret_msg");
+                string? ret_msg = this.safeString(message, "ret_msg");
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /

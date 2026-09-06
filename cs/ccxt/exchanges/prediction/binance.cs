@@ -732,7 +732,7 @@ public partial class binance : PredictionExchange
         for (int oi = 0; isLessThan(oi, rawOutcomesLength); postFixIncrement(ref oi))
         {
             object rawOutcome = getValue(rawOutcomes, oi);
-            object label = this.safeStringUpper(rawOutcome, "name");
+            string? label = this.safeStringUpper(rawOutcome, "name");
             string? tokenId = this.safeString(rawOutcome, "tokenId");
             object outcomeHandle = add(add(marketSymbol, ":"), label);
             string? price = this.safeString(rawOutcome, "price");
@@ -1111,7 +1111,7 @@ public partial class binance : PredictionExchange
         if (isTrue(isEqual(outcomeObj, null)))
         {
             string? marketId = this.safeString(order, "marketId");
-            object outcome = this.safeStringUpper(order, "outcome");
+            string? outcome = this.safeStringUpper(order, "outcome");
             object market = this.safeMarket(marketId);
             object outcomeName = this.safeString(market, "market");
             if (isTrue(isEqual(outcomeName, null)))
@@ -1511,7 +1511,7 @@ public partial class binance : PredictionExchange
         if (isTrue(isEqual(outcomeObj, null)))
         {
             string? marketId = this.safeString(position, "marketId");
-            object outcome = this.safeStringUpper(position, "outcomeName");
+            string? outcome = this.safeStringUpper(position, "outcomeName");
             object market = this.safeMarket(marketId);
             object outcomeName = this.safeString(market, "market");
             if (isTrue(isEqual(outcomeName, null)))
@@ -1699,7 +1699,7 @@ public partial class binance : PredictionExchange
         if (isTrue(isEqual(outcomeObj, null)))
         {
             string? marketId = this.safeString(trade, "marketId");
-            object outcome = this.safeStringUpper(trade, "outcome");
+            string? outcome = this.safeStringUpper(trade, "outcome");
             object market = this.safeMarket(marketId);
             object outcomeName = this.safeString(market, "market");
             if (isTrue(isEqual(outcomeName, null)))
@@ -2072,8 +2072,8 @@ public partial class binance : PredictionExchange
             for (int i = 0; isLessThan(i, failedOrdersLength); postFixIncrement(ref i))
             {
                 object failedOrder = getValue(failedOrders, i);
-                object failedOrderId = this.safeString(failedOrder, "orderId");
-                object failedReason = this.safeString(failedOrder, "reason");
+                string? failedOrderId = this.safeString(failedOrder, "orderId");
+                string? failedReason = this.safeString(failedOrder, "reason");
                 if (isTrue(isGreaterThan(i, 0)))
                 {
                     failedDetails = add(failedDetails, ", ");

@@ -717,7 +717,7 @@ public partial class apex : Exchange
         string? id2 = this.safeString(market, "crossSymbolName");
         string? quoteId = this.safeString(market, "l2PairId");
         object baseId = this.safeString(market, "baseTokenId");
-        object quote = this.safeString(market, "settleAssetId");
+        string? quote = this.safeString(market, "settleAssetId");
         object bs = this.safeCurrencyCode(baseId);
         string? settleId = this.safeString(market, "settleAssetId");
         object settle = this.safeCurrencyCode(settleId);

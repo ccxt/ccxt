@@ -361,7 +361,7 @@ public partial class nado : ccxt.nado
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
-            object timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
+            string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             object market = this.market(marketSymbol);
             ((IList<object>)markets).Add(market);
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", timeframe), ":"), getValue(market, "symbol")));
@@ -424,7 +424,7 @@ public partial class nado : ccxt.nado
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketSymbol = this.safeString(symbolAndTimeframe, 0);
-            object timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
+            string? timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
             object market = this.market(marketSymbol);
             ((IList<object>)markets).Add(market);
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", timeframe), ":"), getValue(market, "symbol")));
@@ -1181,7 +1181,7 @@ public partial class nado : ccxt.nado
         object clientSubscription = this.safeValue(((WebSocketClient)client).subscriptions, subscribeHash);
         if (isTrue(isEqual(clientSubscription, null)))
         {
-            object id = this.safeString(request, "id");
+            string? id = this.safeString(request, "id");
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)add("subscription:", id)] = new Dictionary<string, object>() {
                 { "subscribeHash", subscribeHash },
             };
@@ -1811,7 +1811,7 @@ public partial class nado : ccxt.nado
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         object ticker = this.parseWsBidAsk(message);
-        object symbol = this.safeString(ticker, "symbol");
+        string? symbol = this.safeString(ticker, "symbol");
         if (isTrue(isEqual(symbol, null)))
         {
             return;
@@ -1962,7 +1962,7 @@ public partial class nado : ccxt.nado
         //         "id": 100
         //     }
         //
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id");
         if (isTrue(isEqual(id, null)))
         {
             return;
@@ -1978,7 +1978,7 @@ public partial class nado : ccxt.nado
 
     public virtual void handleSubscription(WebSocketClient client, object message)
     {
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id");
         object subscription = this.safeDict(((WebSocketClient)client).subscriptions, add("subscription:", id));
         if (isTrue(!isEqual(subscription, null)))
         {
@@ -1990,7 +1990,7 @@ public partial class nado : ccxt.nado
 
     public virtual void handleAuthentication(WebSocketClient client, object message)
     {
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id");
         string? messageHash = this.safeString(((WebSocketClient)client).subscriptions, add("authentication:", id));
         if (isTrue(!isEqual(messageHash, null)))
         {
@@ -2002,7 +2002,7 @@ public partial class nado : ccxt.nado
 
     public virtual void handleUnsubscription(WebSocketClient client, object message)
     {
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id");
         object unsubscription = this.safeDict(((WebSocketClient)client).subscriptions, add("unsubscription:", id));
         if (isTrue(!isEqual(unsubscription, null)))
         {
@@ -2149,7 +2149,7 @@ public partial class nado : ccxt.nado
             return false;
         }
         var feedback = new ExchangeError(add(add(this.id, " "), this.json(message)));
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id");
         if (isTrue(!isEqual(id, null)))
         {
             object executeHash = add("execute:", id);
@@ -2180,7 +2180,7 @@ public partial class nado : ccxt.nado
         {
             return;
         }
-        object id = this.safeString(message, "id");
+        string? id = this.safeString(message, "id");
         bool hasResult = (inOp(message, "result"));
         object result = this.safeValue(message, "result");
         string? method = this.safeString(result, "method");

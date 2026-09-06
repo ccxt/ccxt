@@ -781,7 +781,7 @@ public partial class bybit : ccxt.bybit
             object market = this.market(getValue(data, 0));
             object symbolString = getValue(market, "symbol");
             object unfiedTimeframe = getValue(data, 1);
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add("kline.", timeframeId), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
         }
@@ -827,7 +827,7 @@ public partial class bybit : ccxt.bybit
             object market = this.market(getValue(data, 0));
             object symbolString = getValue(market, "symbol");
             object unfiedTimeframe = getValue(data, 1);
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add("kline.", timeframeId), "."), getValue(market, "id")));
             ((IList<object>)subMessageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe));
@@ -2500,7 +2500,7 @@ public partial class bybit : ccxt.bybit
         object topic = this.safeValue(message, "topic");
         object info = null;
         object rawBalances = new List<object>() {};
-        object account = null;
+        string? account = null;
         if (isTrue(isEqual(topic, "outboundAccountInfo")))
         {
             account = "spot";
@@ -2663,7 +2663,7 @@ public partial class bybit : ccxt.bybit
         if (isTrue(isEqual(authenticated, null)))
         {
             object expiresInt = add(this.milliseconds(), 10000);
-            object expires = this.numberToString(expiresInt);
+            string? expires = this.numberToString(expiresInt);
             string path = "GET/realtime";
             object auth = add(path, expires);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "hex");
@@ -2736,7 +2736,7 @@ public partial class bybit : ccxt.bybit
             object success = this.safeValue(message, "success");
             if (isTrue(isTrue((!isEqual(success, null))) && isTrue((!isEqual(success, true)))))
             {
-                object ret_msg = this.safeString(message, "ret_msg");
+                string? ret_msg = this.safeString(message, "ret_msg");
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 if (isTrue(isEqual(op, "auth")))

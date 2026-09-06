@@ -3031,7 +3031,7 @@ public partial class ndax : Exchange
             if (isTrue(isEqual(path, "Authenticate")))
             {
                 object auth = add(add(this.login, ":"), this.password);
-                object auth64 = this.stringToBase64(auth);
+                string auth64 = this.stringToBase64(auth);
                 headers = new Dictionary<string, object>() {
                     { "Authorization", add("Basic ", auth64) },
                 };

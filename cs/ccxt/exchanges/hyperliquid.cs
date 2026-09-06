@@ -376,7 +376,7 @@ public partial class hyperliquid : Exchange
             if (isTrue(inOp(spotCurrencyMapping, ((string)baseName))))
             {
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
-                object quote = this.safeString(symbolParts, 1);
+                string? quote = this.safeString(symbolParts, 1);
                 object newSymbol = add(add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
                 if (isTrue(inOp(this.markets, newSymbol)))
                 {
@@ -4680,7 +4680,7 @@ public partial class hyperliquid : Exchange
             object currency = this.currency(code);
             object currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
             object tokenName = this.safeString(currencyInfo, "name");
-            object tokenId = this.safeString(currencyInfo, "tokenId");
+            string? tokenId = this.safeString(currencyInfo, "tokenId");
             object token = add(add(tokenName, ":"), tokenId);
             Dictionary<string, object> action = new Dictionary<string, object>() {
                 { "type", "subAccountSpotTransfer" },
@@ -5549,7 +5549,7 @@ public partial class hyperliquid : Exchange
         if (isTrue(!isEqual(this.safeDict(hi3TokensByname, coin), null)))
         {
             object hip3Dict = this.safeDict(hi3TokensByname, coin);
-            object quote = this.safeString(hip3Dict, "quote", "USDC");
+            string? quote = this.safeString(hip3Dict, "quote", "USDC");
             object code = this.safeString(hip3Dict, "code", coin);
             return add(add(add(add(code, "/"), quote), ":"), quote);
         }

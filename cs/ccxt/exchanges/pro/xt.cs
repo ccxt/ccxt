@@ -74,7 +74,7 @@ public partial class xt : ccxt.xt
     public async virtual Task<object> getListenKey(object isContract)
     {
         this.checkRequiredCredentials();
-        object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), tradeType);
         if (!isTrue(isContract))
         {
@@ -237,7 +237,7 @@ public partial class xt : ccxt.xt
         {
             ((IDictionary<string,object>)subscribe)["params"] = new List<object>() {name};
         }
-        object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object messageHash = add(add(name, "::"), tradeType);
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -304,7 +304,7 @@ public partial class xt : ccxt.xt
         {
             ((IDictionary<string,object>)unsubscribe)["params"] = new List<object>() {name};
         }
-        object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
+        string tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object subMessageHash = add(add(name, "::"), tradeType);
         Dictionary<string, object> request = this.extend(unsubscribe, parameters);
         object tail = access;
@@ -437,7 +437,7 @@ public partial class xt : ccxt.xt
         }
         object options = this.safeDict(this.options, "unWatchTickers");
         string? defaultMethod = this.safeString(options, "method", "tickers");
-        object name = this.safeString(parameters, "method", defaultMethod);
+        string? name = this.safeString(parameters, "method", defaultMethod);
         if (isTrue(!isEqual(symbols, null)))
         {
             throw new NotSupported ((string)add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
@@ -587,7 +587,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object levels = this.safeString(parameters, "levels");
+        string? levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
         object name = add("depth_update@", getValue(market, "id"));
         if (isTrue(!isEqual(levels, null)))
@@ -619,7 +619,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object levels = this.safeString(parameters, "levels");
+        string? levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
         object name = add("depth_update@", getValue(market, "id"));
         if (isTrue(!isEqual(levels, null)))
@@ -1013,7 +1013,7 @@ public partial class xt : ccxt.xt
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
             object eventVar = this.safeString(message, "event");
-            object messageHashTail = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+            string messageHashTail = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object messageHash = add(add(eventVar, "::"), messageHashTail);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
@@ -1092,7 +1092,7 @@ public partial class xt : ccxt.xt
         object data = this.safeList(message, "data", new List<object>() {});
         object firstTicker = this.safeDict(data, 0);
         string? spotTest = this.safeString2(firstTicker, "cv", "aq");
-        object tradeType = ((bool) isTrue((!isEqual(spotTest, null)))) ? "spot" : "contract";
+        string tradeType = ((bool) isTrue((!isEqual(spotTest, null)))) ? "spot" : "contract";
         List<object> newTickers = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -1169,7 +1169,7 @@ public partial class xt : ccxt.xt
         if (isTrue(!isEqual(marketId, null)))
         {
             string? timeframe = this.safeString(data, "i", "");
-            object tradeType = ((bool) isTrue((inOp(data, "q")))) ? "spot" : "contract";
+            string tradeType = ((bool) isTrue((inOp(data, "q")))) ? "spot" : "contract";
             object market = this.safeMarket(marketId, null, null, tradeType);
             object symbol = getValue(market, "symbol");
             object parsed = this.parseOHLCV(data, market);
@@ -1227,7 +1227,7 @@ public partial class xt : ccxt.xt
         {
             object trade = this.parseTrade(data);
             string? i = this.safeString(data, "i");
-            object tradeType = ((bool) isTrue((!isEqual(i, null)))) ? "spot" : "contract";
+            string tradeType = ((bool) isTrue((!isEqual(i, null)))) ? "spot" : "contract";
             object market = this.safeMarket(marketId, null, null, tradeType);
             object symbol = getValue(market, "symbol");
             object eventVar = this.safeString(message, "event");
@@ -1565,7 +1565,7 @@ public partial class xt : ccxt.xt
         string? marketId = this.safeString2(order, "s", "symbol");
         if (isTrue(!isEqual(marketId, null)))
         {
-            object tradeType = ((bool) isTrue((inOp(order, "symbol")))) ? "contract" : "spot";
+            string tradeType = ((bool) isTrue((inOp(order, "symbol")))) ? "contract" : "spot";
             object market = this.safeMarket(marketId, null, null, tradeType);
             object parsed = this.parseWsOrder(order, market);
             callDynamically(orders, "append", new object[] {parsed});
@@ -1622,7 +1622,7 @@ public partial class xt : ccxt.xt
             ((IDictionary<string,object>)this.balance)[(string)code] = account;
         }
         this.balance = this.safeBalance(this.balance);
-        object tradeType = ((bool) isTrue((inOp(data, "coin")))) ? "contract" : "spot";
+        string tradeType = ((bool) isTrue((inOp(data, "coin")))) ? "contract" : "spot";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, add("balance::", tradeType)});
     }
 
@@ -1678,7 +1678,7 @@ public partial class xt : ccxt.xt
         }
         object market = this.market(tradeSymbol);
         callDynamically(stored, "append", new object[] {parsedTrade});
-        object tradeType = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? "contract" : "spot";
+        string tradeType = ((bool) isTrue((isEqual(getValue(market, "contract"), true)))) ? "contract" : "spot";
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("trade::", tradeType)});
     }
 

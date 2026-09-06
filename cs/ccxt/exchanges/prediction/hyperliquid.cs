@@ -241,11 +241,11 @@ public partial class hyperliquid : PredictionExchange
     public virtual object buildOutcomeSymbol(object desc, object side, object outcomeId)
     {
         string? underlying = this.safeString(desc, "underlying", add("OUTCOME", ((object)outcomeId).ToString()));
-        object targetPrice = this.safeString(desc, "targetPrice");
+        string? targetPrice = this.safeString(desc, "targetPrice");
         string? expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
         object expiryDate = ((bool) isTrue((!isEqual(expiry, "")))) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
-        object label = ((bool) isTrue((isEqual(side, 0)))) ? "YES" : "NO";
+        string label = ((bool) isTrue((isEqual(side, 0)))) ? "YES" : "NO";
         object bs = ((string)underlying).ToUpper();
         if (isTrue(isTrue((!isEqual(targetPrice, null))) && isTrue((!isEqual(targetPrice, "")))))
         {
@@ -276,7 +276,7 @@ public partial class hyperliquid : PredictionExchange
         string? underlying = this.safeString(desc, "underlying");
         if (isTrue(isTrue((!isEqual(underlying, null))) && isTrue((!isEqual(underlying, "")))))
         {
-            object targetPrice = this.safeString(desc, "targetPrice");
+            string? targetPrice = this.safeString(desc, "targetPrice");
             string? expiry = this.safeString(desc, "expiry", "");
             object expiryDate = ((bool) isTrue((!isEqual(expiry, "")))) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
             object bs = ((string)underlying).ToUpper();
@@ -1224,7 +1224,7 @@ public partial class hyperliquid : PredictionExchange
     public virtual object findOutcomeInMarket(object market, object sideHint = null)
     {
         object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-        object normalizedHint = ((bool) isTrue((isTrue(!isEqual(sideHint, null)) && isTrue(!isEqual(sideHint, ""))))) ? ((string)sideHint).ToUpper() : null;
+        string? normalizedHint = ((bool) isTrue((isTrue(!isEqual(sideHint, null)) && isTrue(!isEqual(sideHint, ""))))) ? ((string)sideHint).ToUpper() : null;
         if (isTrue(!isEqual(normalizedHint, null)))
         {
             for (int i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
@@ -1594,7 +1594,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
         {
             object status = getValue(statuses, i);
-            object error = this.safeString(status, "error");
+            string? error = this.safeString(status, "error");
             if (isTrue(!isEqual(error, null)))
             {
                 throw new OrderNotFound ((string)add(add(add(add(this.id, " cancelOrders() failed for "), this.safeString(requestIds, i, this.safeString(requestIds, 0))), ": "), error)) ;
@@ -1788,7 +1788,7 @@ public partial class hyperliquid : PredictionExchange
         {
             await this.loadOutcome(outcome);
             object outcomeObj = this.outcome(outcome);
-            object expected = this.safeString(outcomeObj, "outcome");
+            string? expected = this.safeString(outcomeObj, "outcome");
             if (isTrue(!isEqual(this.safeString(parsed, "outcome"), expected)))
             {
                 throw new OrderNotFound ((string)add(add(add(add(this.id, " fetchOrder() order "), id), " is not in outcome "), expected)) ;
@@ -2232,8 +2232,8 @@ public partial class hyperliquid : PredictionExchange
         object firstInfo = this.safeDict(firstMarket, "info", new Dictionary<string, object>() {});
         object desc = this.safeDict(firstInfo, "parsedDescription", new Dictionary<string, object>() {});
         object underlying = this.safeString(desc, "underlying");
-        object targetPrice = this.safeString(desc, "targetPrice");
-        object expiryRaw = this.safeString(desc, "expiry");
+        string? targetPrice = this.safeString(desc, "targetPrice");
+        string? expiryRaw = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
         object expiryDatetime = null;
         if (isTrue(isTrue((!isEqual(expiryRaw, null))) && isTrue((!isEqual(expiryRaw, "")))))

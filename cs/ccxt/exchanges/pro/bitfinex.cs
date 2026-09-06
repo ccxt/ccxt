@@ -95,7 +95,7 @@ public partial class bitfinex : ccxt.bitfinex
         object subMessageHash = add(add(channel, ":"), marketId);
         object messageHash = add(add(add("unsubscribe:", channel), ":"), marketId);
         object unSubTopic = add(add(add(add("unsubscribe", ":"), topic), ":"), symbol);
-        object channelId = this.safeString(((WebSocketClient)client).subscriptions, unSubTopic);
+        string? channelId = this.safeString(((WebSocketClient)client).subscriptions, unSubTopic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "chanId", channelId },
@@ -147,7 +147,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string channel = "candles";
         object key = add(add(add("trade:", interval), ":"), getValue(market, "id"));
         object messageHash = add(add(add(add(channel, ":"), interval), ":"), getValue(market, "id"));
@@ -185,14 +185,14 @@ public partial class bitfinex : ccxt.bitfinex
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        string? interval = this.safeString(this.timeframes, timeframe, timeframe);
         string channel = "candles";
         object subMessageHash = add(add(add(add(channel, ":"), interval), ":"), getValue(market, "id"));
         object messageHash = add("unsubscribe:", subMessageHash);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         var client = this.client(url);
         object subId = add(add(add("unsubscribe:trade:", interval), ":"), getValue(market, "id")); // trade here because we use the key
-        object channelId = this.safeString(((WebSocketClient)client).subscriptions, subId);
+        string? channelId = this.safeString(((WebSocketClient)client).subscriptions, subId);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "chanId", channelId },
@@ -470,7 +470,7 @@ public partial class bitfinex : ccxt.bitfinex
         //
         //
         object channel = this.safeValue(subscription, "channel");
-        object marketId = this.safeString(subscription, "symbol");
+        string? marketId = this.safeString(subscription, "symbol");
         object market = this.safeMarket(marketId);
         object messageHash = add(add(channel, ":"), marketId);
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -640,7 +640,7 @@ public partial class bitfinex : ccxt.bitfinex
         //  ]
         //
         object ticker = this.safeValue(message, 1);
-        object marketId = this.safeString(subscription, "symbol");
+        string? marketId = this.safeString(subscription, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = this.safeSymbol(marketId);
         object parsed = this.parseWsTicker(ticker, market);
@@ -756,7 +756,7 @@ public partial class bitfinex : ccxt.bitfinex
         //         ]
         //     ]
         //
-        object marketId = this.safeString(subscription, "symbol");
+        string? marketId = this.safeString(subscription, "symbol");
         object symbol = this.safeSymbol(marketId);
         string channel = "book";
         object messageHash = add(add(channel, ":"), marketId);
@@ -846,7 +846,7 @@ public partial class bitfinex : ccxt.bitfinex
         //
         // [ 173904, "cs", -890884919 ]
         //
-        object marketId = this.safeString(subscription, "symbol");
+        string? marketId = this.safeString(subscription, "symbol");
         object symbol = this.safeSymbol(marketId);
         string channel = "book";
         object messageHash = add(add(channel, ":"), marketId);
@@ -910,7 +910,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             await this.loadMarkets();
         }
-        object balanceType = this.safeString(parameters, "wallet", "exchange"); // exchange, margin
+        string? balanceType = this.safeString(parameters, "wallet", "exchange"); // exchange, margin
         parameters = this.omit(parameters, "wallet");
         object messageHash = add("balance:", balanceType);
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash));
@@ -1061,9 +1061,9 @@ public partial class bitfinex : ccxt.bitfinex
         //     "chanId": CHANNEL_ID
         // }
         //
-        object channelId = this.safeString(message, "chanId");
+        string? channelId = this.safeString(message, "chanId");
         object unSubChannel = add("unsubscribe:", channelId);
-        object subMessageHash = this.safeString(((WebSocketClient)client).subscriptions, unSubChannel);
+        string? subMessageHash = this.safeString(((WebSocketClient)client).subscriptions, unSubChannel);
         object subscription = this.safeDict(((WebSocketClient)client).subscriptions, add("unsubscribe:", subMessageHash));
         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)unSubChannel);
         object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
@@ -1108,11 +1108,11 @@ public partial class bitfinex : ccxt.bitfinex
             { "ticker", "ticker" },
             { "trades", "trades" },
         };
-        object unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
+        string? unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
         if (isTrue(inOp(message, "key")))
         {
             // handle ohlcv differently because the message is different
-            object key = this.safeString(message, "key");
+            string? key = this.safeString(message, "key");
             object subKeyId = add("unsubscribe:", key);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subKeyId] = channelId;
         } else

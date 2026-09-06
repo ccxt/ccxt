@@ -1215,7 +1215,7 @@ public partial class bitbank : Exchange
             string? authMethod = this.safeString(this.options, "authMethod", "timeWindow");
             bool isTimeWindow = (isEqual(authMethod, "timeWindow"));
             string requestTime = ((object)this.milliseconds()).ToString();
-            object timeWindow = this.safeString(this.options, "timeWindow", "5000");
+            string? timeWindow = this.safeString(this.options, "timeWindow", "5000");
             string nonce = ((object)this.nonce()).ToString();
             object auth = null;
             if (isTrue(isTimeWindow))

@@ -157,7 +157,7 @@ public partial class independentreserve : ccxt.independentreserve
         {
             limitVar = 100;
         }
-        object limitString = this.numberToString(limitVar);
+        string? limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
         object messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -198,7 +198,7 @@ public partial class independentreserve : ccxt.independentreserve
             return;
         }
         List<object> parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-        object depth = this.safeString(parts, 1);
+        string? depth = this.safeString(parts, 1);
         string? baseId = this.safeString(parts, 2);
         string? quoteId = this.safeString(parts, 3);
         object bs = this.safeCurrencyCode(baseId);

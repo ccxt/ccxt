@@ -21,9 +21,12 @@
 //     exact (ref int) / (ref Int64) twins in Exchange.TranspileHelpers.cs, so an int / Int64
 //     local (the `for` counter family) is accepted there and rejected for every other type
 //   - compound assignment, spread, destructuring assignment
-//   - operands of `+` when the type is a string (add(string,string)/add(string,object)
-//     overloads have different null semantics than add(object,object)) and operands of `-`
-//     when the type is int/Int64 (subtract(int,int) returns an Int32 box, not Int64)
+//   - LEFT operands of `+` / `+=` when the type is a string: the left operand's static
+//     type picks the add overload, and add(object,object) returns null for a null left
+//     where add(string,*) returns the right operand. RIGHT operands are fine: no
+//     add(object,string) overload exists, and add(string,string) / add(string,object) are
+//     identical for every input (Exchange.TranspileHelpers.cs). Operands of `-` when the
+//     type is int/Int64 (subtract(int,int) returns an Int32 box, not Int64)
 //   - typeof on a non-nullable value type (`x is int` is CS0183, an error under
 //     TreatWarningsAsErrors)
 //   - a local/parameter in the same method literally named like a C# type token
@@ -460,8 +463,16 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                 }
             }
             // overload resolution against the declared type: add(string, ...) and
-            // subtract(int, int) exist next to the (object, object) versions
-            if (isString && (op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.PlusEqualsToken)) {
+            // subtract(int, int) exist next to the (object, object) versions.
+            // `+`: the LEFT operand's static type selects the add overload family —
+            // add(object, object) returns null for a null left, add(string, *) returns
+            // the right operand — so a string local on the left (or `x += ...`, which
+            // prints `x = add(x, ...)`) must stay `object`. A string local on the RIGHT
+            // cannot change the family: with an `object` left only add(object, object)
+            // is applicable (there is no add(object, string)); with a `string` left the
+            // call moves from add(string, object) to add(string, string), which are
+            // identical for every input (Exchange.TranspileHelpers.cs).
+            if (isString && isLeftPlusOperand (n)) {
                 return false;
             }
             if (isInt && (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.MinusEqualsToken)) {
@@ -469,6 +480,12 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             }
             break;
         }
+        case ts.SyntaxKind.ParenthesizedExpression:
+            // `(x) + y` prints `add((x), y)`: the parentheses keep x's static type
+            if (isString && isLeftPlusOperand (unwrapParens (n))) {
+                return false;
+            }
+            break;
         }
     }
     // `T x = <literal>;` that is never read is CS0219 (an error under TreatWarningsAsErrors)
@@ -486,6 +503,27 @@ function unwrapValue (node) {
         current = current.parent;
     }
     return current;
+}
+
+// climb through `(x)` only — `x as string` prints `((string)x)`, whose static type is
+// string whatever x was declared as, so it is not the local's type that matters there
+function unwrapParens (node) {
+    let current = node;
+    while (current.parent && current.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    return current;
+}
+
+// is `value` the LEFT operand of a `+` / `+=`? (prints `add(value, ...)`, so value's
+// static type picks the overload)
+function isLeftPlusOperand (value) {
+    const parent = value.parent;
+    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
+        return false;
+    }
+    const op = parent.operatorToken.kind;
+    return op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.PlusEqualsToken;
 }
 
 // is `identifier` (possibly wrapped) the key of a `delete obj[key]`?

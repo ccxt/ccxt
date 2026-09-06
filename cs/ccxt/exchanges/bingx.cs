@@ -7164,7 +7164,7 @@ public partial class bingx : Exchange
                 body = this.json(parameters);
             } else
             {
-                object query = this.urlencode(parsedParams, true);
+                string query = this.urlencode(parsedParams, true);
                 url = add(url, add(add(add(add("?", query), "&"), "signature="), signature));
             }
         }

@@ -2548,7 +2548,7 @@ public partial class limitless : PredictionExchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         object rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object result = add(add(add("0x", rPadded), sPadded), v);
@@ -3570,7 +3570,7 @@ public partial class limitless : PredictionExchange
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = add("/", this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object querystring = this.urlencodeWithArrayRepeat(query);
+        string querystring = this.urlencodeWithArrayRepeat(query);
         if (isTrue(isTrue(isEqual(method, "GET")) && isTrue((!isEqual(querystring, "")))))
         {
             url = add(url, add("?", querystring));

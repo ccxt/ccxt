@@ -674,7 +674,7 @@ public partial class upbit : ccxt.upbit
     public virtual void handleOrder(WebSocketClient client, object message)
     {
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if (isTrue(isEqual(this.orders, null)))
         {

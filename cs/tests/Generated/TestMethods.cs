@@ -601,7 +601,7 @@ public partial class testMainClass
                 ((IList<object>)failedMethods).Add(testName);
             }
         }
-        object testPrefixString = ((bool) isTrue(isPublicTest)) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+        string testPrefixString = ((bool) isTrue(isPublicTest)) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
         if (isTrue(isGreaterThan(getArrayLength(failedMethods), 0)))
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
@@ -1890,8 +1890,8 @@ public partial class testMainClass
             // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
             // typed core hits constantly (its Num fields are real doubles, so an unset
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
-            object newOutputString = ((bool) isTrue((!isEqual(sanitizedNewOutput, null)))) ? ((object)sanitizedNewOutput).ToString() : "undefined";
-            object storedOutputString = ((bool) isTrue((!isEqual(sanitizedStoredOutput, null)))) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
+            string newOutputString = ((bool) isTrue((!isEqual(sanitizedNewOutput, null)))) ? ((object)sanitizedNewOutput).ToString() : "undefined";
+            string storedOutputString = ((bool) isTrue((!isEqual(sanitizedStoredOutput, null)))) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
             object messageError = add(add(add("output value mismatch:", newOutputString), " != "), storedOutputString);
             if (isTrue(isTrue(strictTypeCheck) && isTrue((!isEqual(this.lang, "C#")))))
             {
@@ -2872,7 +2872,7 @@ public partial class testMainClass
             exitScript(1);
         } else
         {
-            object prefix = ((bool) isTrue((isSync()))) ? "[SYNC]" : "";
+            string prefix = ((bool) isTrue((isSync()))) ? "[SYNC]" : "";
             object successMessage = add(add(add(add(add(add(add(add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
             dump(add("[INFO]", successMessage));
         }

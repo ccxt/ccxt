@@ -305,7 +305,7 @@ public partial class bitflyer : Exchange
             { "NOV", "11" },
             { "DEC", "12" },
         };
-        object month = this.safeString(months, monthName);
+        string? month = this.safeString(months, monthName);
         return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
@@ -372,7 +372,7 @@ public partial class bitflyer : Exchange
             bool future = (isEqual(marketType, "Futures"));
             bool spot = !isTrue(swap) && !isTrue(future);
             string type = "spot";
-            object settle = null;
+            string? settle = null;
             object baseId = null;
             object quoteId = null;
             object expiry = null;

@@ -352,7 +352,7 @@ public partial class coinex : ccxt.coinex
         bool isSpot = (!isEqual(updated, null));
         bool isSwap = (!isEqual(unrealizedPnl, null));
         object info = null;
-        object account = null;
+        string? account = null;
         object rawBalances = new List<object>() {};
         if (isTrue(isSpot))
         {

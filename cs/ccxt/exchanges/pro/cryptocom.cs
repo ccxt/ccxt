@@ -479,7 +479,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             return;
         }
-        object marketId = this.safeString(message, "instrument_name");
+        string? marketId = this.safeString(message, "instrument_name");
         string? symbolSpecificMessageHash = this.safeString(message, "subscription");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -852,7 +852,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add("candlestick", "."), interval), "."), getValue(market, "id"));
         object ohlcv = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -882,7 +882,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        string? interval = this.safeString(this.timeframes, timeframe, timeframe);
         object subMessageHash = add(add(add(add("candlestick", "."), interval), "."), getValue(market, "id"));
         object messageHash = add(add(add("unsubscribe:ohlcv:", getValue(market, "symbol")), ":"), timeframe);
         Dictionary<string, object> subExtend = new Dictionary<string, object>() {

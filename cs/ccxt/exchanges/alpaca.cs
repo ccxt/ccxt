@@ -743,7 +743,7 @@ public partial class alpaca : Exchange
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
-        object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
+        string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -909,7 +909,7 @@ public partial class alpaca : Exchange
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
-        object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];

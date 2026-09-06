@@ -1192,7 +1192,7 @@ public partial class bit2c : Exchange
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);
-            object auth = this.urlencode(query);
+            string auth = this.urlencode(query);
             if (isTrue(isEqual(method, "GET")))
             {
                 if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
