@@ -5,34 +5,35 @@ package ccxt
 //  planning / safety / reconciliation layer that sits between a routing
 //  recommendation and real orders.
 //
-//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Four sibling
+//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Five sibling
 //  implementations mirror it method for method:
 //
 //      ts/src/base/OrderRouter.ts          (the reference)
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      cs/ccxt/base/OrderRouter.cs
+//      rust/ccxt-base/src/order_router.rs
 //
-//  The rules that keep the five ports honest, all of them observed here:
+//  The rules that keep the six ports honest, all of them observed here:
 //
 //    - plain dictionaries and arrays only (map[string]any / []map[string]any),
 //      never a language-specific container
 //    - NO NULLS in any returned structure. 0 means "unknown number", "" means
 //      "unknown string". Go has no natural null for a float64 or a string, and
-//      a null that only exists in three of five languages is a divergence
+//      a null that only exists in three of six languages is a divergence
 //      waiting to happen
 //    - never iterate a hash map to produce ORDERED output. Build slices and
 //      search them linearly: Go randomises map iteration on purpose
 //    - all numbers are IEEE-754 float64 and every arithmetic sequence is written
-//      in a fixed order, so the five ports agree bit for bit
-//    - ONE number grammar, hand-rolled in all five (see routerParseFloat). No
+//      in a fixed order, so the six ports agree bit for bit
+//    - ONE number grammar, hand-rolled in all six (see routerParseFloat). No
 //      port calls its own parser: strconv.ParseFloat refuses "12abc" outright
 //      where JavaScript's parseFloat reads 12, and it reports an overflowing
 //      "1e400" as an error rather than a value. A cap read as 1234.5 in one
 //      language and 1 in another is a cap that silently disappears
 //    - NaN and +/-Inf are NOT numbers here. An infinite tolerance disables the
 //      halt verdict and an infinite rate disables the cap, so both fall back to
-//      the caller's default — in all five, identically
+//      the caller's default — in all six, identically
 //    - violation and verdict strings are CONSTANTS, never interpolated with
 //      numbers: "25" and "25.0" are the same value and different text
 //
@@ -117,7 +118,24 @@ const (
 
 	OrderRouterMaxBalanceChars = 4096
 
-	// relative tolerance for float comparisons; also the tolerance the five
+	// OrderRouterMaxExecutedPlanIds is how many executed plan ids the in-process
+	// idempotency ledger keeps. 1024 is chosen to be far more executions than any one
+	// process performs in the window where a duplicate is plausible (a retry loop, an
+	// operator re-running a plan, a redelivered message), while bounding the ledger to
+	// a few tens of kilobytes so a router held open for the life of a daemon cannot
+	// grow without limit.
+	//
+	// THE TRADEOFF IS REAL AND IS NOT HIDDEN: eviction WEAKENS the guarantee. Once a
+	// plan id has been pushed out by 1024 newer executions, re-executing that plan is
+	// no longer refused in-process — it will be placed again, orders and all. The guard
+	// is therefore "recent duplicates are refused", not "duplicates are impossible". A
+	// process that needs the strong promise across restarts or beyond this window needs
+	// the durable ledger the Known gaps entry calls for; until then, callers whose plans
+	// must never re-execute should key idempotency at the venue (the deterministic
+	// clientOrderId every step already carries) rather than rely on this instance's memory.
+	OrderRouterMaxExecutedPlanIds = 1024
+
+	// relative tolerance for float comparisons; also the tolerance the six
 	// test suites compare fixture numbers with
 	OrderRouterTolerance = 1e-9
 
@@ -140,9 +158,13 @@ type OrderRouter struct {
 	MaxNotionalUsd float64
 
 	// ExecutedPlanIds is the in-process idempotency ledger: the identity of every
-	// plan this instance has already executed live. A slice rather than a map
-	// because it is only ever searched linearly and never iterated for output.
+	// plan this instance has already executed live. TWO structures for one ledger,
+	// in every port: a FIFO slice that fixes the eviction order, and a map used as a
+	// set so the membership test is a key lookup rather than a scan whose cost grows
+	// with the ledger. They are written and evicted together and must never disagree.
 	ExecutedPlanIds []string
+
+	executedPlanIdSet map[string]bool
 
 	// Transport performs the authenticated GET behind FetchRoute. It defaults
 	// to (*OrderRouter).Request; Go has no method overriding, so this field is
@@ -189,7 +211,10 @@ func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 		TimeoutMs:       timeoutMs,
 		MaxNotionalUsd:  maxNotionalUsd,
 		ExecutedPlanIds: []string{},
-		httpClient:      &http.Client{},
+
+		executedPlanIdSet: map[string]bool{},
+
+		httpClient: &http.Client{},
 	}
 	router.Transport = router.Request
 	router.NowMs = func() float64 { return float64(time.Now().UnixMilli()) }
@@ -197,7 +222,7 @@ func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 }
 
 //  ---------------------------------------------------------------------------
-//  small container accessors. Every port has these five; they exist so the five
+//  small container accessors. Every port has these five; they exist so the six
 //  implementations read line for line and so a missing key is never a
 //  language-specific crash.
 //  ---------------------------------------------------------------------------
@@ -231,7 +256,7 @@ func routerToNumber(value any, defaultValue float64) float64 {
 	case float64:
 		// NaN and +/-Inf are not numbers this class will act on. An infinite
 		// tolerance silently disables the halt verdict and an infinite rate
-		// silently disables the cap, and "the default" is the only answer five
+		// silently disables the cap, and "the default" is the only answer six
 		// languages can agree on for either.
 		if !routerIsFiniteNumber(typed) {
 			return defaultValue
@@ -282,7 +307,7 @@ func routerToNumber(value any, defaultValue float64) float64 {
 // NaN nor an infinity.
 func routerIsFiniteNumber(value float64) bool {
 	if value != value {
-		// the one NaN test that needs no library in any of the five
+		// the one NaN test that needs no library in any of the six
 		return false
 	}
 	if value > 1.7976931348623157e308 || value < -1.7976931348623157e308 {
@@ -317,7 +342,7 @@ func routerParseFloat(text string) (float64, bool) {
 	}
 	if digits == 0 {
 		// "Infinity", "inf", "NaN", "" and a string of Arabic-Indic digits all
-		// land here, in all five
+		// land here, in all six
 		return 0, false
 	}
 	end := cursor
@@ -422,7 +447,7 @@ func routerDictAt(container any, key string) map[string]any {
 	return map[string]any{}
 }
 
-// FormatNumber renders a float64 as decimal text with no exponent, so that five
+// FormatNumber renders a float64 as decimal text with no exponent, so that six
 // languages produce the same string.
 func (this *OrderRouter) FormatNumber(value float64) (string, error) {
 	// JavaScript prints 1e-7 where Python prints 1e-07 and Go prints 1e-07;
@@ -700,7 +725,7 @@ func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string
 		}
 	}
 	// largest first, so trimming to the router's caps drops the smallest
-	// holdings. Ties break on exchangeId then asset so five languages produce
+	// holdings. Ties break on exchangeId then asset so six languages produce
 	// the same list from the same wallet.
 	sort.SliceStable(entries, func(a int, b int) bool {
 		amountA := routerNumberAt(entries[a], "amount", 0)
@@ -797,7 +822,7 @@ func routerSortedVenueIds(venues map[string]IExchange) []string {
 
 // BuildExecutionPlan flattens a RouteResult's hops and legs into a flat, ordered
 // list of orders to place. PURE — no I/O, no error, and the same input produces
-// the same output in all five languages.
+// the same output in all six languages.
 //
 // options keys:
 //
@@ -1097,7 +1122,7 @@ func (this *OrderRouter) precisionViolated(value float64, precision float64, mod
 // ReconcileExecutionStep compares what a step actually produced against what the
 // route predicted, resizes every downstream hop, and returns the proceed-or-halt
 // verdict. PURE — no I/O. The halt decision lives here rather than in the
-// execution loop because it is a money decision, and five separate loops is five
+// execution loop because it is a money decision, and six separate loops is six
 // chances to omit it.
 //
 // realisedOut is measured in that step's output asset — base for a buy, quote
@@ -1239,7 +1264,7 @@ func (this *OrderRouter) BuildUnwindPlan(report map[string]any) map[string]any {
 	slippageBps := routerNumberAt(report, "slippageBps", OrderRouterDefaultSlippageBps)
 	results := routerListAt(report, "steps")
 	// net position per (exchangeId, asset). Held in a SLICE rather than a map
-	// because the output order must be identical in five languages and Go
+	// because the output order must be identical in six languages and Go
 	// randomises map iteration on purpose.
 	positions := make([]map[string]any, 0)
 	for i := len(results) - 1; i >= 0; i-- {
@@ -1468,6 +1493,39 @@ func (this *OrderRouter) ClientOrderIdFor(planId string, stepIndex float64) stri
 //
 // plan is a plan from BuildExecutionPlan, or a caller-assembled plan of the same
 // shape — this method never assumes the plan came from the routing service.
+// HasExecutedPlan reports whether this instance has executed the given plan id recently
+// enough for the bounded ledger to still remember it.
+func (this *OrderRouter) HasExecutedPlan(planId string) bool {
+	// a key lookup, not a scan: the ledger is capped but still up to
+	// OrderRouterMaxExecutedPlanIds long, and this runs on every live execution
+	return this.executedPlanIdSet[planId]
+}
+
+// RecordExecutedPlan records one plan id in the bounded ledger, evicting the oldest entry
+// when the cap is reached.
+func (this *OrderRouter) RecordExecutedPlan(planId string) {
+	if this.executedPlanIdSet == nil {
+		// a router built as a bare struct literal rather than through NewOrderRouter
+		this.executedPlanIdSet = map[string]bool{}
+	}
+	if this.executedPlanIdSet[planId] {
+		// already recorded; re-recording it would move it in the FIFO order and let a
+		// repeatedly re-executed plan keep other ids alive or evict them out of turn
+		return
+	}
+	this.ExecutedPlanIds = append(this.ExecutedPlanIds, planId)
+	this.executedPlanIdSet[planId] = true
+	for len(this.ExecutedPlanIds) > OrderRouterMaxExecutedPlanIds {
+		// FIFO: the OLDEST execution is the one whose duplicate is least likely still in
+		// flight. Evicting it drops the refusal for that plan — see the comment on
+		// OrderRouterMaxExecutedPlanIds; this is a bounded memory promise, not a stronger
+		// idempotency one.
+		evicted := this.ExecutedPlanIds[0]
+		this.ExecutedPlanIds = this.ExecutedPlanIds[1:]
+		delete(this.executedPlanIdSet, evicted)
+	}
+}
+
 func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchange, options map[string]any) (map[string]any, error) {
 	requestedStrategy := routerStringAt(options, "strategy", "dry_run")
 	known := false
@@ -1533,10 +1591,8 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 		return nil, BadRequest("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey")
 	}
 	if !routerBoolAt(options, "allowReexecution", false) {
-		for i := 0; i < len(this.ExecutedPlanIds); i++ {
-			if this.ExecutedPlanIds[i] == planId {
-				return nil, BadRequest("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override")
-			}
+		if this.HasExecutedPlan(planId) {
+			return nil, BadRequest("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override")
 		}
 	}
 	// derived from the steps about to be executed, NEVER read off the plan: a plan
@@ -1610,15 +1666,7 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	// the ledger is written BEFORE the first order goes out, never after: a run that
 	// fails half way through has still placed orders, and a guard that only recorded
 	// completed runs would wave through exactly the retry that double-fills.
-	alreadyLedgered := false
-	for i := 0; i < len(this.ExecutedPlanIds); i++ {
-		if this.ExecutedPlanIds[i] == planId {
-			alreadyLedgered = true
-		}
-	}
-	if !alreadyLedgered {
-		this.ExecutedPlanIds = append(this.ExecutedPlanIds, planId)
-	}
+	this.RecordExecutedPlan(planId)
 	var err error
 	if strategy == "parallel_within_hop" {
 		err = this.executeParallelWithinHop(report, results, steps, venues, options, usdRates)
@@ -1657,7 +1705,7 @@ func routerVenueMarkets(venue IExchange) map[string]any {
 // routerHopCountOf counts the distinct hops a step list spans, which is the only
 // authority on whether a plan is multi-hop.
 func routerHopCountOf(steps []map[string]any) float64 {
-	// a slice rather than a map, so the count is the same in five languages and
+	// a slice rather than a map, so the count is the same in six languages and
 	// does not depend on hash iteration order
 	seen := make([]float64, 0)
 	for i := 0; i < len(steps); i++ {
@@ -1830,7 +1878,7 @@ func (this *OrderRouter) executeParallelWithinHop(report map[string]any, results
 			end = end + 1
 		}
 		// THE CONTRACT: concurrent ACROSS venues, serialised WITHIN a venue. An ordering guarantee
-		// rather than a performance promise, which is what lets five very different runtimes
+		// rather than a performance promise, which is what lets six very different runtimes
 		// honour the same words. One goroutine per LEG would put two orders in flight on a single
 		// exchange instance, whose concurrency-safety is the instance's business and not
 		// something this class can assume.
@@ -1856,7 +1904,7 @@ func (this *OrderRouter) executeParallelWithinHop(report map[string]any, results
 		var waitGroup sync.WaitGroup
 		for g := 0; g < len(grouped); g++ {
 			// placeStep contains its own failures and never returns an error, so "wait for all"
-			// means the same thing in all five languages. Without that containment JavaScript
+			// means the same thing in all six languages. Without that containment JavaScript
 			// rejects fast while sibling orders are still live and Go's WaitGroup waits for every
 			// one — the same source abandoning in-flight orders differently per language.
 			sink := &orderRouterSink{planId: routerStringAt(report, "planId", "")}
@@ -2022,7 +2070,7 @@ func routerNoteUnconfirmed(sink *orderRouterSink, result map[string]any, exchang
 
 // routerIsOutcomeUnknownError reports whether an error leaves a placement's outcome unknown.
 // ccxt's NetworkError family means the request failed without telling us whether the venue
-// processed it; everything else is the venue ANSWERING. Matched by class name so the five ports
+// processed it; everything else is the venue ANSWERING. Matched by class name so the six ports
 // agree without depending on each language's type-assertion mechanics.
 func routerIsOutcomeUnknownError(errorCode string) bool {
 	return errorCode == "RequestTimeout" || errorCode == "ExchangeNotAvailable" ||
@@ -2189,7 +2237,7 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 }
 
 // routerErrorCode names an error by its ccxt class, which is the one label all
-// five languages agree on.
+// six languages agree on.
 func routerErrorCode(err error) string {
 	if err == nil {
 		return "unknown_error"
@@ -2302,8 +2350,12 @@ func routerAssertChainCoherent(route map[string]any, hops []any) error {
 }
 
 // routerOrderFeeInAsset sums the fees an order charged in one asset, ignoring any other currency.
-// ccxt sets a single Fee and, since safeOrder, a fees list alongside it; reading only one
-// under-counts on venues that report per-trade fees.
+// ccxt reports the same cut in more than one place, so this is a strict TIERED PRECEDENCE and
+// never a sum across tiers: the reference port reads the `fees` list first, then the single
+// `fee`, and only then the per-trade fees. This port has no `fees` list on its typed Order, so
+// its two tiers are `Fee` and then, only if that named nothing in this asset, Trades — `sawFee`
+// is what makes the first tier exclusive of the second. Adding them together would double-count
+// the same charge. Within ONE tier every matching entry IS summed.
 func routerOrderFeeInAsset(order Order, asset string) float64 {
 	if asset == "" {
 		return 0
@@ -2509,7 +2561,7 @@ func (this *OrderRouter) assertUnderCap(step map[string]any, amount float64, pri
 // which is what atomic_ish actually requires.
 func (this *OrderRouter) assertPrefunded(steps []map[string]any, venues map[string]IExchange) error {
 	// built as a slice, not a map, so the first shortfall reported is the same
-	// one in all five languages
+	// one in all six languages
 	required := make([]map[string]any, 0)
 	for i := 0; i < len(steps); i++ {
 		step := steps[i]

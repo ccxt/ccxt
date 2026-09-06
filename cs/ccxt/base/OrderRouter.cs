@@ -3,16 +3,17 @@
 //  planning / safety / reconciliation layer that sits between a routing
 //  recommendation and real orders.
 //
-//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Four sibling
+//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Five sibling
 //  implementations mirror it method for method:
 //
 //      ts/src/base/OrderRouter.ts          (the reference)
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      go/v4/exchange_order_router.go
+//      rust/ccxt-base/src/order_router.rs
 //
-//  Every construct below is deliberately one that TypeScript, Python, PHP and Go
-//  can express the same way. The rules that keep the five ports honest:
+//  Every construct below is deliberately one that TypeScript, Python, PHP, Go and
+//  Rust can express the same way. The rules that keep the six ports honest:
 //
 //    - plain dictionaries and arrays only, never a language-specific container.
 //      Dictionary<string, object> and List<object> everywhere, no generics of
@@ -20,20 +21,20 @@
 //    - NO NULLS in any returned structure. 0 means "unknown number", "" means
 //      "unknown string", and a boolean companion field carries "was it known?"
 //      wherever that distinction is load-bearing. C# value types and Go structs
-//      have no natural null, and a null that only exists in three of five
+//      have no natural null, and a null that only exists in three of six
 //      languages is a divergence waiting to happen
 //    - never iterate a hash map to produce ORDERED output. Build lists and
 //      search them linearly: map iteration order differs per language
 //    - all numbers are IEEE-754 doubles and every arithmetic sequence is written
-//      in a fixed order, so the five ports agree bit for bit
-//    - ONE number grammar, hand-rolled in all five (see ParseNumber). No port
+//      in a fixed order, so the six ports agree bit for bit
+//    - ONE number grammar, hand-rolled in all six (see ParseNumber). No port
 //      calls its own parser: string.Trim() eats Unicode whitespace JavaScript's
 //      parseFloat does not, and double.TryParse has no notion of a numeric
 //      PREFIX. A cap read as 1234.5 in one language and 1 in another is a cap
 //      that silently disappears
 //    - NaN and +/-Infinity are NOT numbers here. An infinite tolerance disables
 //      the halt verdict and an infinite rate disables the cap, so both fall back
-//      to the caller's default — in all five, identically
+//      to the caller's default — in all six, identically
 //    - violation and verdict strings are CONSTANTS, never interpolated with
 //      numbers: "25" and "25.0" are the same value and different text
 //    - no closures escape a method, no LINQ over the money paths, no exceptions
@@ -129,7 +130,23 @@ public class OrderRouter
 
     public const int MaxBalanceChars = 4096;
 
-    //  relative tolerance for float comparisons; also the tolerance the five
+    //  How many executed plan ids the in-process idempotency ledger keeps. 1024 is
+    //  chosen to be far more executions than any one process performs in the window
+    //  where a duplicate is plausible (a retry loop, an operator re-running a plan, a
+    //  redelivered message), while bounding the ledger to a few tens of kilobytes so a
+    //  router held open for the life of a daemon cannot grow without limit.
+    //
+    //  THE TRADEOFF IS REAL AND IS NOT HIDDEN: eviction WEAKENS the guarantee. Once a
+    //  plan id has been pushed out by 1024 newer executions, re-executing that plan is
+    //  no longer refused in-process — it will be placed again, orders and all. The guard
+    //  is therefore "recent duplicates are refused", not "duplicates are impossible". A
+    //  process that needs the strong promise across restarts or beyond this window needs
+    //  the durable ledger the Known gaps entry calls for; until then, callers whose plans
+    //  must never re-execute should key idempotency at the venue (the deterministic
+    //  clientOrderId every step already carries) rather than rely on this instance's memory.
+    public const int MaxExecutedPlanIds = 1024;
+
+    //  relative tolerance for float comparisons; also the tolerance the six
     //  test suites compare fixture numbers with
     public const double Tolerance = 1e-9;
 
@@ -144,9 +161,13 @@ public class OrderRouter
     public double maxNotionalUsd { get; private set; }
 
     //  in-process idempotency ledger: the identity of every plan this instance has
-    //  already executed live. A list rather than a set because it is only ever
-    //  searched linearly and never iterated for ordered output.
-    public List<string> executedPlanIds { get; private set; }
+    //  already executed live. TWO structures for one ledger, in every port: a FIFO
+    //  queue that fixes the eviction order, and a HashSet so the membership test is a
+    //  hash lookup rather than a scan whose cost grows with the ledger. They are
+    //  written and evicted together and must never disagree.
+    public Queue<string> executedPlanIds { get; private set; }
+
+    private HashSet<string> executedPlanIdSet { get; set; }
 
     private readonly HttpClient httpClient = new HttpClient();
 
@@ -190,11 +211,12 @@ public class OrderRouter
         //  0 means NO CAP. Any positive value is honoured exactly — it is not clamped,
         //  because the caller is the one who knows the size of their own trade.
         this.maxNotionalUsd = configuredCap;
-        this.executedPlanIds = new List<string>();
+        this.executedPlanIds = new Queue<string>();
+        this.executedPlanIdSet = new HashSet<string>();
     }
 
     //  -----------------------------------------------------------------------
-    //  small container accessors. Every port has these; they exist so the five
+    //  small container accessors. Every port has these; they exist so the six
     //  implementations read line for line and so a missing key is never a
     //  language-specific crash.
     //  -----------------------------------------------------------------------
@@ -241,7 +263,7 @@ public class OrderRouter
             //  NaN and +/-Infinity are not numbers this class will act on. An
             //  infinite tolerance silently disables the halt verdict and an
             //  infinite rate silently disables the cap, and "the default" is the
-            //  only answer five languages can agree on for either.
+            //  only answer six languages can agree on for either.
             if (!this.IsFiniteNumber(number))
             {
                 return defaultValue;
@@ -406,7 +428,7 @@ public class OrderRouter
         //  \s is not JavaScript's whitespace set, string.Trim() removes Unicode
         //  whitespace JavaScript's parseFloat does not. The grammar below is
         //  JavaScript's StrDecimalLiteral prefix over the ASCII whitespace set,
-        //  and it is the SAME twenty lines in all five ports.
+        //  and it is the SAME twenty lines in all six ports.
         if (text == null)
         {
             return defaultValue;
@@ -439,7 +461,7 @@ public class OrderRouter
         if (digits == 0)
         {
             //  "Infinity", "inf", "NaN", "" and a string of Arabic-Indic digits
-            //  all land here, in all five
+            //  all land here, in all six
             return defaultValue;
         }
         var end = cursor;
@@ -489,7 +511,7 @@ public class OrderRouter
     }
 
     /// <summary>
-    /// Formats a double as decimal text with no exponent, so that five languages
+    /// Formats a double as decimal text with no exponent, so that six languages
     /// produce the same string.
     /// </summary>
     public string FormatNumber(double value)
@@ -842,7 +864,7 @@ public class OrderRouter
             }
         }
         //  largest first, so trimming to the router's caps drops the smallest
-        //  holdings. Ties break on exchangeId then asset so five languages
+        //  holdings. Ties break on exchangeId then asset so six languages
         //  produce the same list from the same wallet.
         entries.Sort(this.CompareBalanceEntries);
         while (entries.Count > MaxBalanceEntries)
@@ -889,7 +911,7 @@ public class OrderRouter
 
     /// <summary>
     /// Orders balance entries largest first, then by exchangeId, then by asset,
-    /// comparing strings by code unit so five languages agree on the order.
+    /// comparing strings by code unit so six languages agree on the order.
     /// </summary>
     public int CompareBalanceEntries(object first, object second)
     {
@@ -935,7 +957,7 @@ public class OrderRouter
     /// <summary>
     /// Flattens a RouteResult's hops and legs into a flat, ordered list of
     /// orders to place. PURE — no I/O, and the same input produces the same
-    /// output in all five languages.
+    /// output in all six languages.
     /// </summary>
     /// <param name="route">a RouteResult as returned by FetchRoute</param>
     /// <param name="options">
@@ -999,9 +1021,13 @@ public class OrderRouter
     }
 
     /// <summary>
-    /// Sums the fees an order charged in one asset, ignoring any other currency. ccxt sets a
-    /// single `fee` and, since safeOrder, a `fees` list alongside it; reading only one of the two
-    /// would under-count on venues that report per-trade fees.
+    /// Sums the fees an order charged in one asset, ignoring any other currency. ccxt reports the
+    /// same cut in up to three places, so this is a strict THREE-TIER PRECEDENCE and never a sum
+    /// across tiers: the `fees` list wins outright; if it named no entry in this asset, the single
+    /// `fee` is read; only if that named nothing either are the per-trade fees totalled. `sawInList`
+    /// is what makes each tier exclusive of the ones below it — safeOrder fills `fee` and `fees`
+    /// from the same charge, and the per-trade fees are usually that same charge again, so adding
+    /// tiers together would double- or triple-count. Within ONE tier every matching entry IS summed.
     /// </summary>
     public double OrderFeeInAsset(dict order, string asset)
     {
@@ -1373,7 +1399,7 @@ public class OrderRouter
         {
             //  the rounding mode is irrelevant here: a value exactly halfway
             //  between two ticks is off-grid whichever neighbour it snaps to,
-            //  so the five languages' differing round() semantics cannot change
+            //  so the six languages' differing round() semantics cannot change
             //  this predicate's answer
             rounded = RoundHalfUp(value / precision) * precision;
         }
@@ -1399,7 +1425,7 @@ public class OrderRouter
     /// Compares what a step actually produced against what the route predicted,
     /// resizes every downstream hop, and returns the proceed-or-halt verdict.
     /// PURE — no I/O. The halt decision lives here rather than in the execution
-    /// loop because it is a money decision, and five separate loops is five
+    /// loop because it is a money decision, and six separate loops is six
     /// chances to omit it.
     /// </summary>
     /// <param name="plan">the plan, with any earlier resizes already applied to its steps</param>
@@ -1581,7 +1607,7 @@ public class OrderRouter
         var slippageBps = this.NumberAt(report, "slippageBps", DefaultSlippageBps);
         var results = this.ListAt(report, "steps");
         //  net position per (exchangeId, asset). Held in a LIST rather than a
-        //  map because the output order must be identical in five languages and
+        //  map because the output order must be identical in six languages and
         //  map iteration order is not.
         var positions = new list();
         for (var i = results.Count - 1; i >= 0; i--)
@@ -1797,6 +1823,42 @@ public class OrderRouter
     }
 
     /// <summary>
+    /// Reports whether this instance has executed the given plan id recently enough for the
+    /// bounded ledger to still remember it.
+    /// </summary>
+    public bool HasExecutedPlan(string planId)
+    {
+        //  a hash lookup, not a scan: the ledger is capped but still up to
+        //  MaxExecutedPlanIds long, and this runs on every live execution
+        return this.executedPlanIdSet.Contains(planId);
+    }
+
+    /// <summary>
+    /// Records one plan id in the bounded ledger, evicting the oldest entry when the cap is
+    /// reached.
+    /// </summary>
+    public void RecordExecutedPlan(string planId)
+    {
+        if (this.HasExecutedPlan(planId))
+        {
+            //  already recorded; re-recording it would move it in the FIFO order and let a
+            //  repeatedly re-executed plan keep other ids alive or evict them out of turn
+            return;
+        }
+        this.executedPlanIds.Enqueue(planId);
+        this.executedPlanIdSet.Add(planId);
+        while (this.executedPlanIds.Count > MaxExecutedPlanIds)
+        {
+            //  FIFO: the OLDEST execution is the one whose duplicate is least likely still in
+            //  flight. Evicting it drops the refusal for that plan — see the comment on
+            //  MaxExecutedPlanIds; this is a bounded memory promise, not a stronger
+            //  idempotency one.
+            var evicted = this.executedPlanIds.Dequeue();
+            this.executedPlanIdSet.Remove(evicted);
+        }
+    }
+
+    /// <summary>
     /// Executes a plan against live exchange instances. THE ONLY IMPURE METHOD.
     /// dry_run is the default and anything other than options["live"] == true
     /// forces dry_run regardless of the strategy requested, so a call that looks
@@ -1882,7 +1944,7 @@ public class OrderRouter
         }
         if (!this.IsExactlyTrue(options, "allowReexecution"))
         {
-            if (this.executedPlanIds.Contains(planId))
+            if (this.HasExecutedPlan(planId))
             {
                 throw new BadRequest("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override");
             }
@@ -1968,10 +2030,7 @@ public class OrderRouter
         //  that throws half way through has still placed orders, and a guard that only
         //  recorded completed runs would wave through exactly the retry that
         //  double-fills.
-        if (!this.executedPlanIds.Contains(planId))
-        {
-            this.executedPlanIds.Add(planId);
-        }
+        this.RecordExecutedPlan(planId);
         if (strategy == "parallel_within_hop")
         {
             await this.ExecuteParallelWithinHop(report, steps, venues, options, usdRates);
@@ -1997,7 +2056,7 @@ public class OrderRouter
     /// </summary>
     public double HopCountOf(list steps)
     {
-        //  a list rather than a set, so the count is the same in five languages
+        //  a list rather than a set, so the count is the same in six languages
         //  and does not depend on hash iteration order
         var seen = new List<double>();
         for (var i = 0; i < steps.Count; i++)
@@ -2172,7 +2231,7 @@ public class OrderRouter
                 end = end + 1;
             }
             //  THE CONTRACT: concurrent ACROSS venues, serialised WITHIN a venue. It is an
-            //  ordering guarantee, not a performance promise, which is what lets five very
+            //  ordering guarantee, not a performance promise, which is what lets six very
             //  different runtimes honour the same words. Two legs of one hop that land on the
             //  SAME exchange instance used to run concurrently against that instance's throttle
             //  and nonce state; grouping by exchangeId means nobody ever has two orders in
@@ -2205,7 +2264,7 @@ public class OrderRouter
             for (var g = 0; g < groupedIndices.Count; g++)
             {
                 //  PlaceStep contains its own failures and never throws, so
-                //  "wait for all" means the same thing in all five languages.
+                //  "wait for all" means the same thing in all six languages.
                 //  Without that containment JavaScript rejects fast while
                 //  sibling orders are still live, and Go's promiseAll waits for
                 //  every one — the same source abandoning in-flight orders
@@ -2551,7 +2610,7 @@ public class OrderRouter
     /// <summary>
     /// Reports whether a thrown error leaves a placement's outcome genuinely unknown. ccxt's
     /// NetworkError family means the request failed without telling us whether the venue processed
-    /// it; everything else is the venue ANSWERING. Matched by class name so the five ports agree
+    /// it; everything else is the venue ANSWERING. Matched by class name so the six ports agree
     /// without depending on each language's type-test mechanics.
     /// </summary>
     /// <summary>
@@ -2662,7 +2721,7 @@ public class OrderRouter
     }
 
     /// <summary>
-    /// Names a caught exception by its class, which is the one label all five
+    /// Names a caught exception by its class, which is the one label all six
     /// languages agree on.
     /// </summary>
     public string ErrorCodeOf(Exception e)
@@ -2680,7 +2739,7 @@ public class OrderRouter
     /// </summary>
     /// <summary>
     /// Views a typed ccxt.Order as the plain dict the rest of this class reads.
-    /// C# is the only one of the five implementations whose Exchange returns a
+    /// C# is the only one of the six implementations whose Exchange returns a
     /// typed order rather than the unified dict; mapping it here keeps every
     /// call site below identical to its TypeScript, Python, PHP and Go siblings,
     /// which is what the shared fixture checks. Only the fields the router
@@ -2917,7 +2976,7 @@ public class OrderRouter
     public async Task AssertPrefunded(list steps, Dictionary<string, Exchange> venues)
     {
         //  built as a list, not a map, so the first shortfall reported is the
-        //  same one in all five languages
+        //  same one in all six languages
         var required = new list();
         for (var i = 0; i < steps.Count; i++)
         {

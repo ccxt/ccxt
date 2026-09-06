@@ -16,7 +16,7 @@
 //
 //  2. The INVARIANT half asserts the safety properties directly, in literal
 //     numbers written by hand. The fixture's expectations were produced by the
-//     reference implementation, so on their own they would only prove the five
+//     reference implementation, so on their own they would only prove the six
 //     languages agree — not that they agree on the right answer. These are the
 //     tests that would fail if the implementation itself were wrong.
 //
@@ -69,7 +69,7 @@ public class OrderRouterTest
         Run("fixture: reconcileExecutionStep", FixtureReconcileExecutionStep);
         Run("fixture: a sequence of reconciliations on one hop", FixtureReconcileSequence);
         Run("fixture: buildUnwindPlan", FixtureBuildUnwindPlan);
-        Run("fixture: numberAt reads one number grammar in all five languages", FixtureNumberAt);
+        Run("fixture: numberAt reads one number grammar in all six languages", FixtureNumberAt);
         Run("fixture: formatNumber spells one number one way in all six languages", FixtureFormatNumber);
         RunAsync("fixture: a fee in the acquired asset resizes what the next hop is sized on", FixtureFeeNetting);
         Run("a route that does not run from the requested asset to the requested asset is refused", RouteProducesMismatch);
@@ -110,6 +110,7 @@ public class OrderRouterTest
         RunAsync("every order carries a deterministic client order id derived from the plan and the step", DeterministicClientOrderIds);
         RunAsync("the same plan is refused on a second live execution, and only an explicit opt-in overrides it", ReexecutionIsRefused);
         RunAsync("a dry run never consumes a plan, and a halted live run always does", DryRunDoesNotConsumeAPlan);
+        RunAsync("the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan", LedgerIsBounded);
         RunAsync("a plan carries its age, and a stale one is refused only when asked", PlanAgeIsReportedAndRefusedOnlyWhenAsked);
         RunAsync("atomic_ish demands the whole route pre-funded", AtomicIshDemandsPrefunding);
         RunAsync("a fee charged in the acquired asset is netted out of what the hop carries forward", FeeInAcquiredAssetIsNetted);
@@ -470,7 +471,7 @@ public class OrderRouterTest
     /// <summary>
     /// Finds and reads ts/src/test/base/fixtures/orderRouter.json by walking up
     /// from the test assembly and then from the working directory, so the same
-    /// file drives all five languages no matter where the runner was launched.
+    /// file drives all six languages no matter where the runner was launched.
     /// </summary>
     public static dict LoadFixture()
     {
@@ -659,7 +660,7 @@ public class OrderRouterTest
         //  ReconcileExecutionStep is pure and cannot remember across calls, so a hop's cumulative
         //  shortfall lives on the steps themselves — written by ApplyResize. That interaction is
         //  only visible across a SEQUENCE of calls, which reconcileCases (one call each) cannot
-        //  express, and it is exactly where the five ports could silently disagree.
+        //  express, and it is exactly where the six ports could silently disagree.
         var router = NewRouter();
         var cases = FixtureCases("reconcileSequenceCases");
         for (var i = 0; i < cases.Count; i++)
@@ -683,7 +684,7 @@ public class OrderRouterTest
             {
                 //  the plan is rebuilt from the working steps on every call, exactly as Execute
                 //  does — PHP copies arrays on assignment, so a plan built once outside this loop
-                //  would mean five ports running five different tests
+                //  would mean six ports running six different tests
                 var plan = new dict() { { "steps", steps }, { "reconcileToleranceRatio", testCase["reconcileToleranceRatio"] } };
                 var call = ToDict(calls[c]);
                 var reconciliation = router.ReconcileExecutionStep(plan, ToInt(call["stepIndex"]), ToDouble(call["realisedOut"]));
@@ -1840,6 +1841,56 @@ public class OrderRouterTest
         var retry = new StubVenue("stub");
         await Rejects<BadRequest>(async () => await router.Execute(failedPlan, Venues(retry), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } }), "a failed run still consumed the plan");
         EqualCalls(retry.calls, new List<string>(), "and the retry placed nothing");
+    }
+
+    private static async Task LedgerIsBounded()
+    {
+        var bounded = NewRouter();
+        var capacity = OrderRouter.MaxExecutedPlanIds;
+        for (var i = 0; i < capacity; i++)
+        {
+            bounded.RecordExecutedPlan("plan-" + i.ToString(CultureInfo.InvariantCulture));
+        }
+        EqualNumber(bounded.executedPlanIds.Count, capacity, "the ledger fills to exactly the cap");
+        EqualBool(bounded.HasExecutedPlan("plan-0"), true, "nothing is evicted before it is full");
+        //  the cap holds no matter how far past it the process runs
+        for (var i = capacity; i < capacity + 100; i++)
+        {
+            bounded.RecordExecutedPlan("plan-" + i.ToString(CultureInfo.InvariantCulture));
+        }
+        EqualNumber(bounded.executedPlanIds.Count, capacity, "the ledger never grows past the cap");
+        //  FIFO: the OLDEST 100 are the ones that went
+        for (var i = 0; i < 100; i++)
+        {
+            EqualBool(bounded.HasExecutedPlan("plan-" + i.ToString(CultureInfo.InvariantCulture)), false, "the oldest entries are evicted first");
+        }
+        EqualBool(bounded.HasExecutedPlan("plan-100"), true, "nothing newer than the evicted window went with them");
+        EqualBool(bounded.HasExecutedPlan("plan-" + (capacity + 99).ToString(CultureInfo.InvariantCulture)), true, "the newest entry is present");
+        EqualString(bounded.executedPlanIds.Peek(), "plan-100", "the queue is still in insertion order");
+        //  re-recording an id already held must not shuffle the eviction order, or a plan
+        //  re-executed in a loop could keep itself alive forever while newer ids fall out
+        bounded.RecordExecutedPlan("plan-100");
+        EqualNumber(bounded.executedPlanIds.Count, capacity, "a duplicate record adds nothing");
+        EqualString(bounded.executedPlanIds.Peek(), "plan-100", "and does not move the entry in the queue");
+        //  AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is
+        //  the documented weakening at the cap, not an accident — if this assertion ever has
+        //  to change, the comment on MaxExecutedPlanIds has to change with it.
+        var rates = new dict() { { "USDT", 1.0 } };
+        var options = new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } };
+        var plan = bounded.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        await bounded.Execute(plan, Venues(new StubVenue("stub")), options);
+        var refused = new StubVenue("stub");
+        await Rejects<BadRequest>(async () => await bounded.Execute(plan, Venues(refused), options), "while remembered, the duplicate is refused");
+        EqualCalls(refused.calls, new List<string>(), "and it placed nothing");
+        for (var i = 0; i < capacity; i++)
+        {
+            bounded.RecordExecutedPlan("flush-" + i.ToString(CultureInfo.InvariantCulture));
+        }
+        EqualBool(bounded.HasExecutedPlan(bounded.StringAt(plan, "requestId", "")), false, "the plan has aged out of the ledger");
+        var reexecuted = new StubVenue("stub");
+        var report = await bounded.Execute(plan, Venues(reexecuted), options);
+        EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "an aged-out plan re-executes without the opt-in");
+        Ok(reexecuted.calls.Count > 0, "which means real orders — the bound costs a guarantee");
     }
 
     private static async Task UnknownStrategyRefused()

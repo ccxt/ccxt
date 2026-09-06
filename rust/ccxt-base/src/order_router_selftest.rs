@@ -20,7 +20,7 @@
 // means THIS port is wrong — that is the whole reason for running the same table
 // six times rather than trusting six readings of the same spec.
 
-use crate::order_router::{OrderRouter, NO_CAP, TOLERANCE};
+use crate::order_router::{OrderRouter, MAX_EXECUTED_PLAN_IDS, NO_CAP, TOLERANCE};
 use crate::value::{HashMap, Value};
 
 fn fixture() -> Result<Value, String> {
@@ -1119,6 +1119,7 @@ pub fn run() -> Result<usize, String> {
         ("execute: every order carries a deterministic client order id derived from the plan and the step", Box::new(|| deterministic_client_order_ids(&router()?))),
         ("execute: the same plan is refused on a second live execution unless the caller opts in", Box::new(|| reexecution_is_refused(&router()?))),
         ("execute: a dry run never consumes a plan, and a halted live run always does", Box::new(|| a_dry_run_does_not_consume_a_plan(&router()?))),
+        ("execute: the re-execution ledger is bounded, evicts oldest-first, and re-allows an evicted plan", Box::new(|| the_ledger_is_bounded(&router()?))),
     ];
     let _ = (&f, &r);
     for (name, check) in checks {
@@ -2201,6 +2202,77 @@ fn a_dry_run_does_not_consume_a_plan(r: &OrderRouter) -> Result<(), String> {
     }
     if counter.load(Ordering::SeqCst) != 0 {
         return Err("and the retry placed nothing".to_string());
+    }
+    Ok(())
+}
+
+fn the_ledger_is_bounded(r: &OrderRouter) -> Result<(), String> {
+    let capacity = MAX_EXECUTED_PLAN_IDS;
+    for i in 0..capacity {
+        r.record_executed_plan(&format!("plan-{i}"));
+    }
+    if r.executed_plan_count() != capacity {
+        return Err("the ledger fills to exactly the cap".to_string());
+    }
+    if !r.has_executed_plan("plan-0") {
+        return Err("nothing is evicted before it is full".to_string());
+    }
+    // The cap holds no matter how far past it the process runs.
+    for i in capacity..(capacity + 100) {
+        r.record_executed_plan(&format!("plan-{i}"));
+    }
+    if r.executed_plan_count() != capacity {
+        return Err("the ledger never grows past the cap".to_string());
+    }
+    // FIFO: the OLDEST 100 are the ones that went.
+    for i in 0..100 {
+        if r.has_executed_plan(&format!("plan-{i}")) {
+            return Err(format!("the oldest entries are evicted first, plan-{i} survived"));
+        }
+    }
+    if !r.has_executed_plan("plan-100") || !r.has_executed_plan(&format!("plan-{}", capacity + 99)) {
+        return Err("nothing newer than the evicted window went with them".to_string());
+    }
+    if r.executed_plan_at(0) != "plan-100" {
+        return Err("the queue is still in insertion order".to_string());
+    }
+    // Re-recording an id already held must not shuffle the eviction order, or a plan
+    // re-executed in a loop could keep itself alive forever while newer ids fall out.
+    r.record_executed_plan("plan-100");
+    if r.executed_plan_count() != capacity || r.executed_plan_at(0) != "plan-100" {
+        return Err("a duplicate record adds nothing and does not move the entry".to_string());
+    }
+    // AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is
+    // the documented weakening at the cap, not an accident — if this check ever has to
+    // change, the comment on MAX_EXECUTED_PLAN_IDS has to change with it.
+    let plan = one_leg_plan(r)?;
+    let options = execute_options(true, "sequential");
+    let venues = stub_venues(StubVenue::new("stub"));
+    block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
+    let refused = StubVenue::new("stub");
+    let counter = StdArc::clone(&refused.orders_placed);
+    let venues = stub_venues(refused);
+    match block_on(r.execute(&plan, &venues, &options)) {
+        Ok(_) => return Err("while remembered, the duplicate is refused".to_string()),
+        Err(e) if e.is("BadRequest") => {}
+        Err(e) => return Err(format!("expected BadRequest, got {e}")),
+    }
+    if counter.load(Ordering::SeqCst) != 0 {
+        return Err("and it placed nothing".to_string());
+    }
+    for i in 0..capacity {
+        r.record_executed_plan(&format!("flush-{i}"));
+    }
+    if r.has_executed_plan(&r.string_at(&plan, "requestId", "")) {
+        return Err("the plan has aged out of the ledger".to_string());
+    }
+    let reexecuted = StubVenue::new("stub");
+    let placed = StdArc::clone(&reexecuted.orders_placed);
+    let venues = stub_venues(reexecuted);
+    let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[0], "status", "") != "filled" || placed.load(Ordering::SeqCst) == 0 {
+        return Err("an aged-out plan re-executes without the opt-in, and really places".to_string());
     }
     Ok(())
 }

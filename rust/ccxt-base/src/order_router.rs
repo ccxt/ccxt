@@ -106,6 +106,84 @@ const MAX_BALANCE_ENTRIES: usize = 64;
 /// And at most this many characters in the rendered value.
 const MAX_BALANCE_CHARS: usize = 4096;
 
+/// How many executed plan ids the in-process idempotency ledger keeps. 1024 is chosen to
+/// be far more executions than any one process performs in the window where a duplicate is
+/// plausible (a retry loop, an operator re-running a plan, a redelivered message), while
+/// bounding the ledger to a few tens of kilobytes so a router held open for the life of a
+/// daemon cannot grow without limit.
+///
+/// THE TRADEOFF IS REAL AND IS NOT HIDDEN: eviction WEAKENS the guarantee. Once a plan id
+/// has been pushed out by 1024 newer executions, re-executing that plan is no longer
+/// refused in-process — it will be placed again, orders and all. The guard is therefore
+/// "recent duplicates are refused", not "duplicates are impossible". A process that needs
+/// the strong promise across restarts or beyond this window needs the durable ledger the
+/// Known gaps entry calls for; until then, callers whose plans must never re-execute should
+/// key idempotency at the venue (the deterministic clientOrderId every step already carries)
+/// rather than rely on this instance's memory.
+pub const MAX_EXECUTED_PLAN_IDS: usize = 1024;
+
+/// The bounded re-execution ledger: a FIFO queue of plan ids plus a set that answers
+/// membership in O(1). Both are private to this type so they can never fall out of step.
+#[derive(Debug)]
+pub struct ExecutedPlanLedger {
+    order: std::collections::VecDeque<String>,
+    seen: std::collections::HashSet<String>,
+}
+
+impl ExecutedPlanLedger {
+    pub fn new() -> Self {
+        ExecutedPlanLedger {
+            order: std::collections::VecDeque::new(),
+            seen: std::collections::HashSet::new(),
+        }
+    }
+
+    /// A hash lookup, not a scan: the ledger is capped but still up to
+    /// MAX_EXECUTED_PLAN_IDS long, and this runs on every live execution.
+    pub fn contains(&self, plan_id: &str) -> bool {
+        self.seen.contains(plan_id)
+    }
+
+    pub fn len(&self) -> usize {
+        self.order.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.order.is_empty()
+    }
+
+    /// The id at `index` in insertion order, oldest first.
+    pub fn at(&self, index: usize) -> Option<&String> {
+        self.order.get(index)
+    }
+
+    /// Records one plan id, evicting the oldest entry when the cap is reached.
+    pub fn record(&mut self, plan_id: String) {
+        if self.seen.contains(&plan_id) {
+            // Already recorded; re-recording it would move it in the FIFO order and let
+            // a repeatedly re-executed plan keep other ids alive or evict them out of turn.
+            return;
+        }
+        self.seen.insert(plan_id.clone());
+        self.order.push_back(plan_id);
+        while self.order.len() > MAX_EXECUTED_PLAN_IDS {
+            // FIFO: the OLDEST execution is the one whose duplicate is least likely still
+            // in flight. Evicting it drops the refusal for that plan — see the comment on
+            // MAX_EXECUTED_PLAN_IDS; this is a bounded memory promise, not a stronger
+            // idempotency one.
+            if let Some(evicted) = self.order.pop_front() {
+                self.seen.remove(&evicted);
+            }
+        }
+    }
+}
+
+impl Default for ExecutedPlanLedger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// A client for the CCXT order-router service.
 pub struct OrderRouter {
     api_key: String,
@@ -117,10 +195,12 @@ pub struct OrderRouter {
     /// because `OrderRouter` is a concrete struct, not a trait.
     now_ms_override: Option<f64>,
     /// In-process idempotency ledger: the identity of every plan this instance
-    /// has already executed live. Behind a mutex because `execute` takes `&self`
-    /// — a `Vec` rather than a set, because it is only ever searched linearly and
-    /// never iterated for ordered output.
-    executed_plan_ids: std::sync::Mutex<Vec<String>>,
+    /// has already executed live. Behind a mutex because `execute` takes `&self`.
+    /// TWO structures for one ledger, in every port: a FIFO deque that fixes the
+    /// eviction order, and a `HashSet` so the membership test is a hash lookup
+    /// rather than a scan whose cost grows with the ledger. They live under ONE
+    /// mutex because they are written and evicted together and must never disagree.
+    executed_plan_ids: std::sync::Mutex<ExecutedPlanLedger>,
 }
 
 // ---------------------------------------------------------------------------
@@ -413,7 +493,7 @@ impl OrderRouter {
             timeout_ms: DEFAULT_TIMEOUT_MS,
             max_notional_usd: NO_CAP,
             now_ms_override: None,
-            executed_plan_ids: std::sync::Mutex::new(Vec::new()),
+            executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
         };
         let api_key = reader.string_at(config, "apiKey", "");
         if api_key.is_empty() {
@@ -441,8 +521,34 @@ impl OrderRouter {
             timeout_ms,
             max_notional_usd,
             now_ms_override: None,
-            executed_plan_ids: std::sync::Mutex::new(Vec::new()),
+            executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
         })
+    }
+
+    /// Reports whether this instance has executed the given plan id recently enough for
+    /// the bounded ledger to still remember it.
+    pub fn has_executed_plan(&self, plan_id: &str) -> bool {
+        self.executed_plan_ids.lock().unwrap().contains(plan_id)
+    }
+
+    /// Records one plan id in the bounded ledger, evicting the oldest entry when full.
+    pub fn record_executed_plan(&self, plan_id: &str) {
+        self.executed_plan_ids.lock().unwrap().record(plan_id.to_string());
+    }
+
+    /// How many plan ids the ledger currently holds, and the id at one position in
+    /// insertion order. Both exist so the self-test can assert the bound and the
+    /// eviction order without reaching through the mutex itself.
+    pub fn executed_plan_count(&self) -> usize {
+        self.executed_plan_ids.lock().unwrap().len()
+    }
+
+    pub fn executed_plan_at(&self, index: usize) -> String {
+        let ledger = self.executed_plan_ids.lock().unwrap();
+        match ledger.at(index) {
+            Some(entry) => entry.clone(),
+            None => String::new(),
+        }
     }
 
     /// Pins the clock, for tests. Production never calls this.
@@ -1742,10 +1848,14 @@ impl OrderRouter {
             return 0.0;
         }
         let mut total = 0.0;
-        // ccxt sets a single `fee` and, since safeOrder, a `fees` list alongside
-        // it. Reading only one would under-count on venues that report per-trade
-        // fees, so both are summed — with `fee` skipped when it is also present
-        // in `fees`, which is how safeOrder fills them in.
+        // ccxt reports the same cut in up to three places, so this is a strict
+        // THREE-TIER PRECEDENCE and never a sum across tiers: the `fees` list wins
+        // outright; if it named no entry in this asset, the single `fee` is read;
+        // only if that named nothing either are the per-trade fees totalled.
+        // `saw_in_list` is what makes each tier exclusive of the ones below it —
+        // safeOrder fills `fee` and `fees` from the same charge, and the per-trade
+        // fees are usually that same charge again, so adding tiers together would
+        // double- or triple-count. Within ONE tier every matching entry IS summed.
         let fees = self.list_at(order, "fees");
         let mut saw_in_list = false;
         for entry in &fees {
@@ -2481,7 +2591,7 @@ impl OrderRouter {
         }
         if !self.bool_at(options, "allowReexecution", false) {
             let ledger = self.executed_plan_ids.lock().unwrap();
-            if ledger.iter().any(|entry| entry == &plan_id) {
+            if ledger.contains(&plan_id) {
                 return Err(bad_request("OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override"));
             }
         }
@@ -2563,9 +2673,7 @@ impl OrderRouter {
         // double-fills.
         {
             let mut ledger = self.executed_plan_ids.lock().unwrap();
-            if !ledger.iter().any(|entry| entry == &plan_id) {
-                ledger.push(plan_id.clone());
-            }
+            ledger.record(plan_id.clone());
         }
         if strategy == "parallel_within_hop" {
             self.execute_parallel_within_hop(&mut report, &mut steps, venues, options, &usd_rates).await;

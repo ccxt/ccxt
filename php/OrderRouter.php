@@ -5,16 +5,17 @@
 //  planning / safety / reconciliation layer that sits between a routing
 //  recommendation and real orders.
 //
-//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Four sibling
+//  This file is HAND-WRITTEN and is NOT produced by any transpiler. Five sibling
 //  implementations mirror it method for method:
 //
 //      ts/src/base/OrderRouter.ts          (the reference implementation)
 //      python/ccxt/base/order_router.py
 //      cs/ccxt/base/OrderRouter.cs
 //      go/v4/exchange_order_router.go
+//      rust/ccxt-base/src/order_router.rs
 //
-//  Every construct below is deliberately one that TypeScript, Python, C# and Go
-//  can express the same way. The rules that keep the five ports honest:
+//  Every construct below is deliberately one that TypeScript, Python, C#, Go and Rust
+//  can express the same way. The rules that keep the six ports honest:
 //
 //    - plain dictionaries and arrays only, never a language-specific container
 //    - NO NULLS in any returned structure. 0 means "unknown number", '' means
@@ -23,15 +24,15 @@
 //    - never iterate a hash map to produce ORDERED output. Build arrays and
 //      search them linearly: map iteration order differs per language
 //    - all numbers are IEEE-754 doubles and every arithmetic sequence is written
-//      in a fixed order, so the five ports agree bit for bit
-//    - ONE number grammar, hand-rolled in all five (see parseNumber). No port
+//      in a fixed order, so the six ports agree bit for bit
+//    - ONE number grammar, hand-rolled in all six (see parseNumber). No port
 //      calls its own parser: floatval answers 0 for 'abc' and PCRE's \s is not
 //      JavaScript's whitespace set, while parseFloat reads the leading numeric
 //      prefix and nothing else. A cap read as 1234.5 in one language and 1 in
 //      another is a cap that silently disappears
 //    - NaN and +/-INF are NOT numbers here. An infinite tolerance disables the
 //      halt verdict and an infinite rate disables the cap, so both fall back to
-//      the caller's default — in all five, identically
+//      the caller's default — in all six, identically
 //    - NEVER compare two numbers with ===. It compares type as well as value, so
 //      an int 0 and a float 0.0 — which the same JSON produces on different keys
 //      — would not match, and whole legs would drop out of a hop total
@@ -80,7 +81,23 @@ class OrderRouter {
     const MAX_BALANCE_ENTRIES = 64;
     const MAX_BALANCE_CHARS = 4096;
 
-    //  relative tolerance for float comparisons; also the tolerance the five
+    //  How many executed plan ids the in-process idempotency ledger keeps. 1024 is
+    //  chosen to be far more executions than any one process performs in the window
+    //  where a duplicate is plausible (a retry loop, an operator re-running a plan, a
+    //  redelivered message), while bounding the ledger to a few tens of kilobytes so a
+    //  router held open for the life of a daemon cannot grow without limit.
+    //
+    //  THE TRADEOFF IS REAL AND IS NOT HIDDEN: eviction WEAKENS the guarantee. Once a
+    //  plan id has been pushed out by 1024 newer executions, re-executing that plan is
+    //  no longer refused in-process — it will be placed again, orders and all. The guard
+    //  is therefore "recent duplicates are refused", not "duplicates are impossible". A
+    //  process that needs the strong promise across restarts or beyond this window needs
+    //  the durable ledger the Known gaps entry calls for; until then, callers whose plans
+    //  must never re-execute should key idempotency at the venue (the deterministic
+    //  clientOrderId every step already carries) rather than rely on this instance's memory.
+    const MAX_EXECUTED_PLAN_IDS = 1024;
+
+    //  relative tolerance for float comparisons; also the tolerance the six
     //  test suites compare fixture numbers with
     const TOLERANCE = 1e-9;
 
@@ -115,9 +132,12 @@ class OrderRouter {
     public $timeoutMs;
     public $maxNotionalUsd;
     //  in-process idempotency ledger: the identity of every plan this instance has
-    //  already executed live. An array rather than a map because it is only ever
-    //  searched linearly and never iterated for ordered output.
+    //  already executed live. TWO structures for one ledger, in every port: a FIFO list
+    //  that fixes the eviction order, and an array keyed by plan id so the membership
+    //  test is a key lookup rather than a scan whose cost grows with the ledger. They
+    //  are written and evicted together and must never disagree.
     public $executedPlanIds;
+    public $executedPlanIdSet;
 
     /**
      * creates a client for the CCXT order-router service
@@ -149,10 +169,11 @@ class OrderRouter {
         //  because the caller is the one who knows the size of their own trade.
         $this->maxNotionalUsd = $maxNotionalUsd;
         $this->executedPlanIds = array();
+        $this->executedPlanIdSet = array();
     }
 
     //  -----------------------------------------------------------------------
-    //  small container accessors. Every port has these; they exist so the five
+    //  small container accessors. Every port has these; they exist so the six
     //  implementations read line for line and so a missing key is never a
     //  language-specific crash.
     //  -----------------------------------------------------------------------
@@ -211,7 +232,7 @@ class OrderRouter {
             //  NaN and +/-INF are not numbers this class will act on. An infinite
             //  tolerance silently disables the halt verdict and an infinite rate
             //  silently disables the cap, and "the default" is the only answer
-            //  five languages can agree on for either.
+            //  six languages can agree on for either.
             if (!$this->isFiniteNumber($value)) {
                 return $defaultValue;
             }
@@ -231,7 +252,7 @@ class OrderRouter {
      */
     public function isFiniteNumber($value) {
         if ($value != $value) {
-            //  the one NaN test that needs no library in any of the five
+            //  the one NaN test that needs no library in any of the six
             return false;
         }
         if (($value > 1.7976931348623157e308) || ($value < -1.7976931348623157e308)) {
@@ -254,7 +275,7 @@ class OrderRouter {
         //  not JavaScript's whitespace set, C# trims Unicode whitespace
         //  JavaScript does not. The grammar below is JavaScript's
         //  StrDecimalLiteral prefix over the ASCII whitespace set, and it is the
-        //  SAME twenty lines in all five ports.
+        //  SAME twenty lines in all six ports.
         if ($text === null) {
             return $defaultValue;
         }
@@ -281,7 +302,7 @@ class OrderRouter {
         }
         if ($digits === 0) {
             //  'Infinity', 'inf', 'NaN', '' and a string of Arabic-Indic digits
-            //  all land here, in all five
+            //  all land here, in all six
             return $defaultValue;
         }
         $end = $cursor;
@@ -408,7 +429,7 @@ class OrderRouter {
 
     /**
      * @ignore
-     * formats a double as decimal text with no exponent, so that five languages produce the same string
+     * formats a double as decimal text with no exponent, so that six languages produce the same string
      * @param float $value the number to format
      * @return string the number as fixed-point text with trailing zeros removed
      */
@@ -499,7 +520,7 @@ class OrderRouter {
      */
     public function encodeUriComponent($text) {
         //  rawurlencode follows RFC 3986 and escapes ! * ' ( ), which
-        //  encodeURIComponent leaves alone; put those five back so the five
+        //  encodeURIComponent leaves alone; put those five back so the six
         //  ports send a byte-identical url
         $encoded = rawurlencode($text);
         return str_replace(array('%21', '%2A', '%27', '%28', '%29'), array('!', '*', "'", '(', ')'), $encoded);
@@ -676,7 +697,7 @@ class OrderRouter {
             }
         }
         //  largest first, so trimming to the router's caps drops the smallest
-        //  holdings. Ties break on exchangeId then asset so five languages
+        //  holdings. Ties break on exchangeId then asset so six languages
         //  produce the same list from the same wallet.
         usort($entries, function ($a, $b) {
             $amountA = floatval($a['amount']);
@@ -745,7 +766,7 @@ class OrderRouter {
     //  -----------------------------------------------------------------------
 
     /**
-     * flattens a RouteResult's hops and legs into a flat, ordered list of orders to place. PURE — no I/O, and the same input produces the same output in all five languages
+     * flattens a RouteResult's hops and legs into a flat, ordered list of orders to place. PURE — no I/O, and the same input produces the same output in all six languages
      * @param array $route a RouteResult as returned by fetchRoute
      * @param array $options plan options
      *     float slippageBps             how far the limit price is set past the expected price, default 25
@@ -775,10 +796,13 @@ class OrderRouter {
             return 0;
         }
         $total = 0;
-        //  ccxt sets a single `fee` and, since safeOrder, a `fees` list alongside it. Reading only
-        //  one of the two would under-count on venues that report per-trade fees, so both are
-        //  summed — with `fee` skipped when it is also present in `fees`, which is how safeOrder
-        //  fills them in.
+        //  ccxt reports the same cut in up to three places, so this is a strict THREE-TIER
+        //  PRECEDENCE and never a sum across tiers: the `fees` list wins outright; if it named
+        //  no entry in this asset, the single `fee` is read; only if that named nothing either
+        //  are the per-trade fees totalled. `sawInList` is what makes each tier exclusive of
+        //  the ones below it — safeOrder fills `fee` and `fees` from the same charge, and the
+        //  per-trade fees are usually that same charge again, so adding tiers together would
+        //  double- or triple-count. Within ONE tier every matching entry IS summed.
         $fees = $this->listAt($order, 'fees');
         $sawInList = false;
         for ($i = 0; $i < count($fees); $i++) {
@@ -1132,7 +1156,7 @@ class OrderRouter {
         } else {
             //  the rounding mode is irrelevant here: a value exactly halfway
             //  between two ticks is off-grid whichever neighbour it snaps to,
-            //  so the five languages' differing round() semantics cannot change
+            //  so the six languages' differing round() semantics cannot change
             //  this predicate's answer
             $rounded = round($value / $precision) * $precision;
         }
@@ -1145,7 +1169,7 @@ class OrderRouter {
     //  -----------------------------------------------------------------------
 
     /**
-     * compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and five separate loops is five chances to omit it
+     * compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and six separate loops is six chances to omit it
      * @param array $plan the plan, with any earlier resizes already applied to its steps
      * @param int $stepIndex the step that just completed
      * @param float $realisedOut what it actually produced, in that step's output asset — base for a buy, quote for a sell
@@ -1297,7 +1321,7 @@ class OrderRouter {
         $slippageBps = $this->numberAt($report, 'slippageBps', self::DEFAULT_SLIPPAGE_BPS);
         $results = $this->listAt($report, 'steps');
         //  net position per (exchangeId, asset). Held in an ARRAY rather than a
-        //  map because the output order must be identical in five languages and
+        //  map because the output order must be identical in six languages and
         //  map iteration order is not.
         $positions = array();
         for ($i = count($results) - 1; $i >= 0; $i--) {
@@ -1489,6 +1513,43 @@ class OrderRouter {
         return $planId . '-' . $this->formatNumber($stepIndex);
     }
 
+    /**
+     * @ignore
+     * reports whether this instance has executed the given plan id recently enough for the
+     * bounded ledger to still remember it
+     * @param string $planId the plan identity from planIdentity
+     * @return bool true when the id is still in the ledger
+     */
+    public function hasExecutedPlan($planId) {
+        //  a key lookup, not a scan: the ledger is capped but still up to
+        //  MAX_EXECUTED_PLAN_IDS long, and this runs on every live execution
+        return array_key_exists($planId, $this->executedPlanIdSet);
+    }
+
+    /**
+     * @ignore
+     * records one plan id in the bounded ledger, evicting the oldest entry when the cap is reached
+     * @param string $planId the plan identity from planIdentity
+     * @return void
+     */
+    public function recordExecutedPlan($planId) {
+        if ($this->hasExecutedPlan($planId)) {
+            //  already recorded; re-recording it would move it in the FIFO order and let a
+            //  repeatedly re-executed plan keep other ids alive or evict them out of turn
+            return;
+        }
+        $this->executedPlanIds[] = $planId;
+        $this->executedPlanIdSet[$planId] = true;
+        while (count($this->executedPlanIds) > self::MAX_EXECUTED_PLAN_IDS) {
+            //  FIFO: the OLDEST execution is the one whose duplicate is least likely still
+            //  in flight. Evicting it drops the refusal for that plan — see the comment on
+            //  MAX_EXECUTED_PLAN_IDS; this is a bounded memory promise, not a stronger
+            //  idempotency one.
+            $evicted = array_shift($this->executedPlanIds);
+            unset($this->executedPlanIdSet[$evicted]);
+        }
+    }
+
     //  -----------------------------------------------------------------------
     //  IMPURE: execute
     //  -----------------------------------------------------------------------
@@ -1602,7 +1663,7 @@ class OrderRouter {
             throw new BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey');
         }
         if ($this->fieldAt($options, 'allowReexecution') !== true) {
-            if (in_array($planId, $this->executedPlanIds, true)) {
+            if ($this->hasExecutedPlan($planId)) {
                 throw new BadRequest('OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override');
             }
         }
@@ -1672,9 +1733,7 @@ class OrderRouter {
         //  the ledger is written BEFORE the first order goes out, never after: a run that
         //  throws half way through has still placed orders, and a guard that only recorded
         //  completed runs would wave through exactly the retry that double-fills.
-        if (!in_array($planId, $this->executedPlanIds, true)) {
-            $this->executedPlanIds[] = $planId;
-        }
+        $this->recordExecutedPlan($planId);
         if ($strategy === 'parallel_within_hop') {
             $this->executeParallelWithinHop($report, $steps, $venues, $options, $usdRates);
         } elseif ($strategy === 'best_effort') {
@@ -1696,7 +1755,7 @@ class OrderRouter {
      * @return int the number of distinct hopIndex values
      */
     public function hopCountOf($steps) {
-        //  an array rather than a map, so the count is the same in five languages
+        //  an array rather than a map, so the count is the same in six languages
         //  and does not depend on hash iteration order
         $seen = array();
         for ($i = 0; $i < count($steps); $i++) {
@@ -1855,7 +1914,7 @@ class OrderRouter {
 
     /**
      * @ignore
-     * runs the legs of one hop as a unit and the hops strictly in order. THE CONTRACT is concurrent ACROSS venues, serialised WITHIN a venue — an ordering guarantee, not a performance promise, which is what lets five very different runtimes honour the same words. The other four ports group a hop's legs by exchangeId so no venue ever has two orders in flight; this synchronous port satisfies the same guarantee more strongly by placing every leg one after another, so it needs no grouping. placeStep contains its own failures either way, so the report is identical
+     * runs the legs of one hop as a unit and the hops strictly in order. THE CONTRACT is concurrent ACROSS venues, serialised WITHIN a venue — an ordering guarantee, not a performance promise, which is what lets six very different runtimes honour the same words. The other four ports group a hop's legs by exchangeId so no venue ever has two orders in flight; this synchronous port satisfies the same guarantee more strongly by placing every leg one after another, so it needs no grouping. placeStep contains its own failures either way, so the report is identical
      * @param array $report the report being filled in, by reference
      * @param array $steps the working steps, by reference
      * @param array $venues exchangeId to exchange instance
@@ -1873,7 +1932,7 @@ class OrderRouter {
             }
             for ($i = $cursor; $i < $end; $i++) {
                 //  placeStep contains its own failures and never throws, so
-                //  "wait for all" means the same thing in all five languages.
+                //  "wait for all" means the same thing in all six languages.
                 //  Without that containment JavaScript rejects fast while
                 //  sibling orders are still live, and Go's promiseAll waits for
                 //  every one — the same source abandoning in-flight orders
@@ -2232,7 +2291,7 @@ class OrderRouter {
 
     /**
      * @ignore
-     * names a caught exception by its class, which is the one label all five languages agree on
+     * names a caught exception by its class, which is the one label all six languages agree on
      * @param mixed $e the caught exception
      * @return string the exception class name without its namespace, or unknown_error
      */
@@ -2427,7 +2486,7 @@ class OrderRouter {
     public function assertPrefunded($steps, $venues) {
         $this->assertSyncVenues($venues);
         //  built as an array, not a map, so the first shortfall reported is the
-        //  same one in all five languages
+        //  same one in all six languages
         $required = array();
         for ($i = 0; $i < count($steps); $i++) {
             $step = $steps[$i];

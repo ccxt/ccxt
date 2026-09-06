@@ -18,7 +18,7 @@
 #
 # 2. The INVARIANT half asserts the safety properties directly, in literal
 #    numbers. The fixture's expectations were produced by the reference
-#    implementation, so on their own they would only prove the five languages
+#    implementation, so on their own they would only prove the six languages
 #    agree — not that they agree on the right answer.
 #
 # Nothing here touches the network and nothing here places an order.
@@ -223,7 +223,7 @@ def test_fixture_reconcile_sequence():
     # reconcile_execution_step is pure and cannot remember across calls, so a hop's cumulative
     # shortfall lives on the steps themselves — written by apply_resize. That interaction is only
     # visible across a SEQUENCE of calls, which reconcileCases (one call each) cannot express,
-    # and it is exactly where the five ports could silently disagree.
+    # and it is exactly where the six ports could silently disagree.
     cases = fixture['reconcileSequenceCases']
     assert len(cases) > 0, 'the fixture has reconcile sequence cases'
     for case in cases:
@@ -231,7 +231,7 @@ def test_fixture_reconcile_sequence():
         for index, call in enumerate(case['calls']):
             # the plan is rebuilt from the working steps on every call, exactly as execute() does
             # — PHP copies arrays on assignment, so a plan built once outside this loop would mean
-            # five ports running five different tests
+            # six ports running six different tests
             plan = {'steps': steps, 'reconcileToleranceRatio': case['reconcileToleranceRatio']}
             reconciliation = router.reconcile_execution_step(plan, call['stepIndex'], call['realisedOut'])
             assert numbers_match(reconciliation['scale'], case['expectedScales'][index]), \
@@ -242,7 +242,7 @@ def test_fixture_reconcile_sequence():
                 'reconcileSequenceCase ' + case['id'] + ' step ' + str(index) + ': amount ' + str(step['amount'])
 
 
-@test('fixture: number_at reads one number grammar in all five languages')
+@test('fixture: number_at reads one number grammar in all six languages')
 def test_fixture_number_at():
     # Every port hand-implements JavaScript's parseFloat prefix grammar rather
     # than calling its own parser, because every language's own parser disagrees
@@ -1286,6 +1286,55 @@ def test_dry_run_does_not_consume_a_plan():
         raised = str(error)
     assert 'already executed' in raised
     assert retry.calls == []
+
+
+
+@test('the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan')
+def test_re_execution_ledger_is_bounded():
+    bounded = OrderRouter({'apiKey': 'k'})
+    cap = OrderRouter.MAX_EXECUTED_PLAN_IDS
+    for i in range(cap):
+        bounded.record_executed_plan('plan-' + str(i))
+    assert len(bounded.executed_plan_ids) == cap, 'the ledger fills to exactly the cap'
+    assert bounded.has_executed_plan('plan-0') is True, 'and nothing is evicted before it is full'
+    # the cap holds no matter how far past it the process runs
+    for i in range(cap, cap + 100):
+        bounded.record_executed_plan('plan-' + str(i))
+    assert len(bounded.executed_plan_ids) == cap, 'the ledger never grows past the cap'
+    assert len(bounded.executed_plan_id_set) == cap, 'and the set never diverges from the list'
+    # FIFO: the OLDEST 100 are the ones that went
+    for i in range(100):
+        assert bounded.has_executed_plan('plan-' + str(i)) is False, 'the oldest entries are evicted first'
+    assert bounded.has_executed_plan('plan-100') is True, 'and nothing newer went with them'
+    assert bounded.has_executed_plan('plan-' + str(cap + 99)) is True, 'the newest entry is present'
+    assert bounded.executed_plan_ids[0] == 'plan-100', 'the list is still in insertion order'
+    # re-recording an id already held must not shuffle the eviction order, or a plan
+    # re-executed in a loop could keep itself alive forever while newer ids fall out
+    bounded.record_executed_plan('plan-100')
+    assert len(bounded.executed_plan_ids) == cap, 'a duplicate record adds nothing'
+    assert bounded.executed_plan_ids[0] == 'plan-100', 'and does not move the entry in the queue'
+    # AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is the
+    # documented weakening at the cap, not an accident — if this assertion ever has to
+    # change, the comment on MAX_EXECUTED_PLAN_IDS has to change with it.
+    opts = {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}}
+    plan = bounded.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    first = StubVenue('stub')
+    bounded.execute(plan, {'stub': first}, opts)
+    refused = StubVenue('stub')
+    raised = ''
+    try:
+        bounded.execute(plan, {'stub': refused}, opts)
+    except BadRequest as error:
+        raised = str(error)
+    assert 'already executed' in raised, 'while remembered, the duplicate is refused'
+    assert refused.calls == []
+    for i in range(cap):
+        bounded.record_executed_plan('flush-' + str(i))
+    assert bounded.has_executed_plan(plan['requestId']) is False, 'the plan has aged out of the ledger'
+    reexecuted = StubVenue('stub')
+    report = bounded.execute(plan, {'stub': reexecuted}, opts)
+    assert report['steps'][0]['status'] == 'filled', 'an aged-out plan re-executes without the opt-in'
+    assert len(reexecuted.calls) > 0, 'which means real orders — the bound costs a guarantee'
 
 
 # ---------------------------------------------------------------------------

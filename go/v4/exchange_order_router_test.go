@@ -18,7 +18,7 @@ package ccxt
 //
 //  2. The INVARIANT half asserts the safety properties directly. The fixture's
 //     expectations were produced by the reference implementation, so on their own
-//     they would only prove the five languages agree — not that they agree on the
+//     they would only prove the six languages agree — not that they agree on the
 //     right answer.
 //
 //  Nothing here touches the network and nothing here places a real order.
@@ -1887,7 +1887,7 @@ func TestOrderRouterFixtureReconcileSequence(t *testing.T) {
 	// ReconcileExecutionStep is pure and cannot remember across calls, so a hop's cumulative
 	// shortfall lives on the steps themselves — written by applyResize. That interaction is only
 	// visible across a SEQUENCE of calls, which reconcileCases (one call each) cannot express,
-	// and it is exactly where the five ports could silently disagree.
+	// and it is exactly where the six ports could silently disagree.
 	router := routerTestRouter(t)
 	fixture := routerFixture(t)
 	for _, testCase := range routerFixtureCases(t, fixture, "reconcileSequenceCases") {
@@ -1906,7 +1906,7 @@ func TestOrderRouterFixtureReconcileSequence(t *testing.T) {
 		for c := 0; c < len(calls); c++ {
 			// the plan is rebuilt from the working steps on every call, exactly as Execute does
 			// — PHP copies arrays on assignment, so a plan built once outside this loop would
-			// mean five ports running five different tests
+			// mean six ports running six different tests
 			plan := map[string]any{"steps": steps, "reconcileToleranceRatio": routerNumberAt(testCase, "reconcileToleranceRatio", 0)}
 			reconciliation, err := router.ReconcileExecutionStep(plan, int(routerNumberAt(calls[c], "stepIndex", 0)), routerNumberAt(calls[c], "realisedOut", 0))
 			if err != nil {
@@ -2110,5 +2110,78 @@ func TestOrderRouterDryRunDoesNotConsumeAPlan(t *testing.T) {
 	}
 	if len(retry.callLog()) != 0 {
 		t.Fatalf("and the retry placed nothing, got %v", retry.callLog())
+	}
+}
+
+func TestOrderRouterLedgerIsBounded(t *testing.T) {
+	bounded := routerTestRouter(t)
+	capacity := OrderRouterMaxExecutedPlanIds
+	for i := 0; i < capacity; i++ {
+		bounded.RecordExecutedPlan("plan-" + strconv.Itoa(i))
+	}
+	if len(bounded.ExecutedPlanIds) != capacity {
+		t.Fatalf("the ledger fills to exactly the cap, got %v", len(bounded.ExecutedPlanIds))
+	}
+	if !bounded.HasExecutedPlan("plan-0") {
+		t.Fatal("nothing is evicted before it is full")
+	}
+	// the cap holds no matter how far past it the process runs
+	for i := capacity; i < capacity+100; i++ {
+		bounded.RecordExecutedPlan("plan-" + strconv.Itoa(i))
+	}
+	if len(bounded.ExecutedPlanIds) != capacity {
+		t.Fatalf("the ledger never grows past the cap, got %v", len(bounded.ExecutedPlanIds))
+	}
+	if len(bounded.executedPlanIdSet) != capacity {
+		t.Fatalf("and the set never diverges from the slice, got %v", len(bounded.executedPlanIdSet))
+	}
+	// FIFO: the OLDEST 100 are the ones that went
+	for i := 0; i < 100; i++ {
+		if bounded.HasExecutedPlan("plan-" + strconv.Itoa(i)) {
+			t.Fatalf("the oldest entries are evicted first, plan-%v survived", i)
+		}
+	}
+	if !bounded.HasExecutedPlan("plan-100") || !bounded.HasExecutedPlan("plan-"+strconv.Itoa(capacity+99)) {
+		t.Fatal("nothing newer than the evicted window went with them")
+	}
+	if bounded.ExecutedPlanIds[0] != "plan-100" {
+		t.Fatalf("the slice is still in insertion order, got %v", bounded.ExecutedPlanIds[0])
+	}
+	// re-recording an id already held must not shuffle the eviction order, or a plan
+	// re-executed in a loop could keep itself alive forever while newer ids fall out
+	bounded.RecordExecutedPlan("plan-100")
+	if len(bounded.ExecutedPlanIds) != capacity || bounded.ExecutedPlanIds[0] != "plan-100" {
+		t.Fatal("a duplicate record adds nothing and does not move the entry in the queue")
+	}
+	// AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is the
+	// documented weakening at the cap, not an accident — if this assertion ever has to
+	// change, the comment on OrderRouterMaxExecutedPlanIds has to change with it.
+	rates := map[string]any{"USDT": 1.0}
+	opts := map[string]any{"strategy": "sequential", "live": true, "usdRates": rates}
+	plan := routerMustPlan(bounded.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	if _, err := bounded.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), opts); err != nil {
+		t.Fatalf("the first execution runs: %v", err)
+	}
+	refused := newOrderRouterStubVenue(1, false)
+	_, err := bounded.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": refused}), opts)
+	if err == nil || !strings.Contains(err.Error(), "already executed") {
+		t.Fatalf("while remembered, the duplicate is refused, got %v", err)
+	}
+	if len(refused.callLog()) != 0 {
+		t.Fatal("and it placed nothing")
+	}
+	for i := 0; i < capacity; i++ {
+		bounded.RecordExecutedPlan("flush-" + strconv.Itoa(i))
+	}
+	if bounded.HasExecutedPlan(routerStringAt(plan, "requestId", "")) {
+		t.Fatal("the plan has aged out of the ledger")
+	}
+	reexecuted := newOrderRouterStubVenue(1, false)
+	report, err := bounded.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": reexecuted}), opts)
+	if err != nil {
+		t.Fatalf("an aged-out plan re-executes without the opt-in: %v", err)
+	}
+	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "filled" || len(reexecuted.callLog()) == 0 {
+		t.Fatal("which means real orders — the bound costs a guarantee")
 	}
 }

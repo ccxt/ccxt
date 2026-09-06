@@ -5,21 +5,22 @@
 # planning / safety / reconciliation layer that sits between a routing
 # recommendation and real orders.
 #
-# This file is HAND-WRITTEN and is NOT produced by any transpiler. Four sibling
+# This file is HAND-WRITTEN and is NOT produced by any transpiler. Five sibling
 # implementations mirror it method for method:
 #
 #     ts/src/base/OrderRouter.ts          (the reference)
 #     php/OrderRouter.php
 #     cs/ccxt/base/OrderRouter.cs
 #     go/v4/exchange_order_router.go
+#     rust/ccxt-base/src/order_router.rs
 #
 # The four pure methods — build_execution_plan, check_execution_plan_safety,
 # reconcile_execution_step and build_unwind_plan — must return byte-identical
-# structures in all five languages for identical input. The shared fixture at
+# structures in all six languages for identical input. The shared fixture at
 # ts/src/test/base/fixtures/orderRouter.json is what proves it; the Python half
 # of that proof lives in python/ccxt/test/base/test_order_router.py.
 #
-# The rules that keep the five ports honest:
+# The rules that keep the six ports honest:
 #
 #   - plain dictionaries and lists only, never a language-specific container
 #   - NO NULLS in any returned structure. 0 means "unknown number", '' means
@@ -28,15 +29,15 @@
 #   - never iterate a hash map to produce ORDERED output. Build lists and search
 #     them linearly: map iteration order differs per language
 #   - all numbers are IEEE-754 doubles and every arithmetic sequence is written
-#     in a fixed order, so the five ports agree bit for bit
-#   - ONE number grammar, hand-rolled in all five (see parse_number). No port
+#     in a fixed order, so the six ports agree bit for bit
+#   - ONE number grammar, hand-rolled in all six (see parse_number). No port
 #     calls its own parser: float() reads '1_000' as 1000, 'inf' as an infinity
 #     and '1,234.5' not at all, while JavaScript's parseFloat reads the leading
 #     numeric prefix and nothing else. A cap read as 1234.5 in one language and
 #     1 in another is a cap that silently disappears
 #   - NaN and +/-inf are NOT numbers here. An infinite tolerance disables the
 #     halt verdict and an infinite rate disables the cap, so both fall back to
-#     the caller's default — in all five, identically
+#     the caller's default — in all six, identically
 #   - violation and verdict strings are CONSTANTS, never interpolated with
 #     numbers: "25" and "25.0" are the same value and different text
 #
@@ -142,7 +143,23 @@ class OrderRouter:
     MAX_BALANCE_ENTRIES = 64
     MAX_BALANCE_CHARS = 4096
 
-    # relative tolerance for float comparisons; also the tolerance the five
+    # How many executed plan ids the in-process idempotency ledger keeps. 1024 is chosen
+    # to be far more executions than any one process performs in the window where a
+    # duplicate is plausible(a retry loop, an operator re-running a plan, a redelivered
+    # message), while bounding the ledger to a few tens of kilobytes so a router held
+    # open for the life of a daemon cannot grow without limit.
+    #
+    # THE TRADEOFF IS REAL AND IS NOT HIDDEN: eviction WEAKENS the guarantee. Once a plan
+    # id has been pushed out by 1024 newer executions, re-executing that plan is no longer
+    # refused in-process — it will be placed again, orders and all. The guard is therefore
+    # "recent duplicates are refused", not "duplicates are impossible". A process that
+    # needs the strong promise across restarts or beyond this window needs the durable
+    # ledger the Known gaps entry calls for; until then, callers whose plans must never
+    # re-execute should key idempotency at the venue(the deterministic clientOrderId every
+    # step already carries) rather than rely on this instance's memory.
+    MAX_EXECUTED_PLAN_IDS = 1024
+
+    # relative tolerance for float comparisons; also the tolerance the six
     # test suites compare fixture numbers with
     TOLERANCE = 1e-9
 
@@ -175,8 +192,12 @@ class OrderRouter:
         # because the caller is the one who knows the size of their own trade.
         self.max_notional_usd = max_notional_usd
         # in-process idempotency ledger: the identity of every plan this instance has
-        # already executed live
+        # already executed live. TWO structures for one ledger, in every port: a FIFO list
+        # that fixes the eviction order, and a set so the membership test is a hash lookup
+        # rather than a scan whose cost grows with the ledger. They are written and evicted
+        # together and must never disagree.
         self.executed_plan_ids = []
+        self.executed_plan_id_set = set()
         self.session = Session()
         # guards the shared report while parallel_within_hop has legs in flight;
         # the single-threaded languages need no equivalent
@@ -184,7 +205,7 @@ class OrderRouter:
 
     # -----------------------------------------------------------------------
     # small container accessors. Every port has these five; they exist so the
-    # five implementations read line for line and so a missing key is never a
+    # six implementations read line for line and so a missing key is never a
     # language-specific crash. They read dictionaries AND objects, because a
     # venue's `markets` and `features` are attributes in Python and properties
     # in JavaScript.
@@ -226,7 +247,7 @@ class OrderRouter:
             # NaN and +/-Infinity are not numbers this class will act on. An
             # infinite tolerance silently disables the halt verdict and an
             # infinite rate silently disables the cap, and "the default" is the
-            # only answer five languages can agree on for either.
+            # only answer six languages can agree on for either.
             if not self.is_finite_number(value):
                 return default_value
             return value
@@ -242,7 +263,7 @@ class OrderRouter:
         :returns bool: True when the value is finite
         """
         if value != value:
-            # the one NaN test that needs no library in any of the five
+            # the one NaN test that needs no library in any of the six
             return False
         if value > 1.7976931348623157e308 or value < -1.7976931348623157e308:
             return False
@@ -262,7 +283,7 @@ class OrderRouter:
         # Go read '0x10' as 0 only by accident of their regex, C# trims Unicode
         # whitespace JavaScript does not. The grammar below is JavaScript's
         # StrDecimalLiteral prefix over the ASCII whitespace set, and it is the
-        # SAME twenty lines in all five ports.
+        # SAME twenty lines in all six ports.
         if text is None:
             return default_value
         cursor = 0
@@ -281,7 +302,7 @@ class OrderRouter:
                 cursor = cursor + 1
                 digits = digits + 1
         if digits == 0:
-            # 'Infinity', 'inf', 'NaN', '' and '١٢' all land here, in all five
+            # 'Infinity', 'inf', 'NaN', '' and '١٢' all land here, in all six
             return default_value
         end = cursor
         if cursor < len(text) and (text[cursor] == 'e' or text[cursor] == 'E'):
@@ -393,7 +414,7 @@ class OrderRouter:
 
     def format_number(self, value):
         """
-        formats a double as decimal text with no exponent, so that five languages produce the same string
+        formats a double as decimal text with no exponent, so that six languages produce the same string
 
         :param float value: the number to format
         :returns str: the number as fixed-point text with trailing zeros removed
@@ -583,7 +604,7 @@ class OrderRouter:
                     continue
                 entries.append({'exchangeId': exchange_id, 'asset': code, 'amount': amount})
         # largest first, so trimming to the router's caps drops the smallest
-        # holdings. Ties break on exchangeId then asset so five languages produce
+        # holdings. Ties break on exchangeId then asset so six languages produce
         # the same list from the same wallet.
         entries.sort(key=lambda entry: (-entry['amount'], entry['exchangeId'], entry['asset']))
         while len(entries) > OrderRouter.MAX_BALANCE_ENTRIES:
@@ -673,7 +694,7 @@ class OrderRouter:
 
     def build_execution_plan(self, route, options={}):
         """
-        flattens a RouteResult's hops and legs into a flat, ordered list of orders to place. PURE — no I/O, and the same input produces the same output in all five languages
+        flattens a RouteResult's hops and legs into a flat, ordered list of orders to place. PURE — no I/O, and the same input produces the same output in all six languages
 
         :param dict route: a RouteResult as returned by fetch_route
         :param dict [options]: plan options
@@ -933,7 +954,7 @@ class OrderRouter:
         else:
             # the rounding mode is irrelevant here: a value exactly halfway
             # between two ticks is off-grid whichever neighbour it snaps to, so
-            # the five languages' differing round() semantics cannot change this
+            # the six languages' differing round() semantics cannot change this
             # predicate's answer
             rounded = self.round_half_up(value / precision) * precision
         allowed = abs(value) * OrderRouter.TOLERANCE + 1e-15
@@ -945,7 +966,7 @@ class OrderRouter:
 
     def reconcile_execution_step(self, plan, step_index, realised_out):
         """
-        compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and five separate loops is five chances to omit it
+        compares what a step actually produced against what the route predicted, resizes every downstream hop, and returns the proceed-or-halt verdict. PURE — no I/O. The halt decision lives here rather than in the execution loop because it is a money decision, and six separate loops is six chances to omit it
 
         :param dict plan: the plan, with any earlier resizes already applied to its steps
         :param int step_index: the step that just completed
@@ -1073,7 +1094,7 @@ class OrderRouter:
         slippage_bps = self.number_at(report, 'slippageBps', OrderRouter.DEFAULT_SLIPPAGE_BPS)
         results = self.list_at(report, 'steps')
         # net position per (exchangeId, asset). Held in a LIST rather than a dict
-        # because the output order must be identical in five languages and map
+        # because the output order must be identical in six languages and map
         # iteration order is not.
         positions = []
         for i in range(len(results) - 1, -1, -1):
@@ -1241,6 +1262,38 @@ class OrderRouter:
         """
         return plan_id + '-' + self.format_number(step_index)
 
+    def has_executed_plan(self, plan_id):
+        """
+        reports whether this instance has executed the given plan id recently enough for the bounded ledger to still remember it
+
+        :param str plan_id: the plan identity from plan_identity
+        :returns bool: True when the id is still in the ledger
+        """
+        # a hash lookup, not a scan: the ledger is capped but still up to
+        # MAX_EXECUTED_PLAN_IDS long, and it runs on every live execution
+        return plan_id in self.executed_plan_id_set
+
+    def record_executed_plan(self, plan_id):
+        """
+        records one plan id in the bounded ledger, evicting the oldest entry when the cap is reached
+
+        :param str plan_id: the plan identity from plan_identity
+        :returns None:
+        """
+        if self.has_executed_plan(plan_id):
+            # already recorded; re-recording it would move it in the FIFO order and let a
+            # repeatedly re-executed plan keep other ids alive or evict them out of turn
+            return
+        self.executed_plan_ids.append(plan_id)
+        self.executed_plan_id_set.add(plan_id)
+        while len(self.executed_plan_ids) > OrderRouter.MAX_EXECUTED_PLAN_IDS:
+            # FIFO: the OLDEST execution is the one whose duplicate is least likely still in
+            # flight. Evicting it drops the refusal for that plan — see the comment on
+            # MAX_EXECUTED_PLAN_IDS; this is a bounded memory promise, not a stronger
+            # idempotency one.
+            evicted = self.executed_plan_ids.pop(0)
+            self.executed_plan_id_set.discard(evicted)
+
     # -----------------------------------------------------------------------
     # IMPURE: execute
     # -----------------------------------------------------------------------
@@ -1311,7 +1364,7 @@ class OrderRouter:
             # indistinguishable from a first run all the way down to the venue.
             raise BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey')
         if options.get('allowReexecution') is not True:
-            if plan_id in self.executed_plan_ids:
+            if self.has_executed_plan(plan_id):
                 raise BadRequest('OrderRouter: refusing to re-execute a plan this instance already executed, pass allowReexecution to override')
         # derived from the steps about to be executed, NEVER read off the plan: a
         # plan that travelled through JSON, a persisted step list or a hand-rebuilt
@@ -1363,8 +1416,7 @@ class OrderRouter:
         # the ledger is written BEFORE the first order goes out, never after: a run that
         # raises half way through has still placed orders, and a guard that only recorded
         # completed runs would wave through exactly the retry that double-fills.
-        if plan_id not in self.executed_plan_ids:
-            self.executed_plan_ids.append(plan_id)
+        self.record_executed_plan(plan_id)
         if strategy == 'parallel_within_hop':
             self.execute_parallel_within_hop(report, steps, venues, options, usd_rates)
         elif strategy == 'best_effort':
@@ -1384,7 +1436,7 @@ class OrderRouter:
         :param list steps: the working steps
         :returns int: the number of distinct hopIndex values
         """
-        # a list rather than a set, so the count is the same in five languages
+        # a list rather than a set, so the count is the same in six languages
         # and does not depend on hash iteration order
         seen = []
         for step in steps:
@@ -1547,12 +1599,12 @@ class OrderRouter:
             while end < len(steps) and self.number_at(steps[end], 'hopIndex', 0) == hop_index:
                 end = end + 1
             # place_step contains its own failures and never raises, so "wait for
-            # all" means the same thing in all five languages. Without that
+            # all" means the same thing in all six languages. Without that
             # containment JavaScript rejects fast while sibling orders are still
             # live, and Go's promiseAll waits for every one — the same source
             # abandoning in-flight orders differently per language.
             # THE CONTRACT: concurrent ACROSS venues, serialised WITHIN a venue. An ordering
-            # guarantee rather than a performance promise, which is what lets five very different
+            # guarantee rather than a performance promise, which is what lets six very different
             # runtimes honour the same words. This fan-out used to be one thread per LEG against
             # caller-supplied SYNC exchange instances, so two legs on one venue mutated that
             # instance's throttle and nonce state with no lock — the worst of the three meanings
@@ -1886,8 +1938,13 @@ class OrderRouter:
         if asset == '':
             return 0
         total = 0
-        # ccxt sets a single `fee` and, since safe_order, a `fees` list alongside it; reading only
-        # one under-counts on venues that report per-trade fees.
+        # ccxt reports the same cut in up to three places, so this is a strict THREE-TIER
+        # PRECEDENCE and never a sum across tiers: the `fees` list wins outright; if it named no
+        # entry in this asset, the single `fee` is read; only if that named nothing either are
+        # the per-trade fees totalled. `saw_in_list` is what makes each tier exclusive of the
+        # ones below it — safe_order fills `fee` and `fees` from the same charge, and the
+        # per-trade fees are usually that same charge again, so adding tiers together would
+        # double- or triple-count. Within ONE tier every matching entry IS summed.
         saw_in_list = False
         for entry in self.list_at(order, 'fees'):
             if self.string_at(entry, 'currency', '').upper() == asset.upper():
@@ -1921,7 +1978,7 @@ class OrderRouter:
         """
         # ccxt's NetworkError family: the request failed in a way that does not tell us whether the
         # venue processed it. Everything else in the hierarchy is the venue ANSWERING, which means
-        # no order exists. Matched by class name so the five ports agree without depending on each
+        # no order exists. Matched by class name so the six ports agree without depending on each
         # language's isinstance mechanics.
         return error_code in ('RequestTimeout', 'ExchangeNotAvailable', 'NetworkError', 'OnMaintenance')
 
@@ -1986,7 +2043,7 @@ class OrderRouter:
 
     def error_code_of(self, e):
         """
-        names a caught exception by its class, which is the one label all five languages agree on
+        names a caught exception by its class, which is the one label all six languages agree on
 
         :param Exception e: the caught exception
         :returns str: the exception class name, or unknown_error
@@ -2154,7 +2211,7 @@ class OrderRouter:
         :returns None:
         """
         # built as a list, not a dict, so the first shortfall reported is the
-        # same one in all five languages
+        # same one in all six languages
         required = []
         for step in steps:
             exchange_id = self.string_at(step, 'exchangeId', '')

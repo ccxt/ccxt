@@ -18,7 +18,7 @@
 //
 //  2. The INVARIANT half asserts the safety properties directly, in literal
 //     numbers written by hand. The fixture's expectations were produced by the
-//     reference implementation, so on their own they would only prove the five
+//     reference implementation, so on their own they would only prove the six
 //     languages agree — not that they agree on the right answer.
 //
 //  Nothing here touches the network and nothing here places an order.
@@ -28,7 +28,7 @@ namespace ccxt;
 
 namespace ccxt\async;
 
-// Declared here rather than in a fixture file so the suite stays one file, as its four siblings do.
+// Declared here rather than in a fixture file so the suite stays one file, as its five siblings do.
 class OrderRouterFakeAsyncVenue {
     public $id = 'stub';
     public function amountToPrecision($symbol, $amount) { return (string) $amount; }
@@ -488,7 +488,7 @@ function order_router_test_fixture_reconcile_sequence($router) {
     //  reconcileExecutionStep is pure and cannot remember across calls, so a hop's cumulative
     //  shortfall lives on the steps themselves — written by applyResize. That interaction is only
     //  visible across a SEQUENCE of calls, which reconcileCases (one call each) cannot express,
-    //  and it is exactly where the five ports could silently disagree.
+    //  and it is exactly where the six ports could silently disagree.
     $fixture = order_router_fixture();
     $cases = $fixture['reconcileSequenceCases'];
     order_router_assert(count($cases) > 0, 'the fixture has reconcile sequence cases');
@@ -1413,6 +1413,54 @@ function order_router_test_dry_run_does_not_consume_a_plan($router) {
     order_router_assert(count($retry->calls) === 0, 'and the retry placed nothing');
 }
 
+function order_router_test_ledger_is_bounded($router) {
+    $bounded = new OrderRouter(array('apiKey' => 'k'));
+    $cap = OrderRouter::MAX_EXECUTED_PLAN_IDS;
+    for ($i = 0; $i < $cap; $i++) {
+        $bounded->recordExecutedPlan('plan-' . $i);
+    }
+    order_router_assert(count($bounded->executedPlanIds) === $cap, 'the ledger fills to exactly the cap');
+    order_router_assert($bounded->hasExecutedPlan('plan-0') === true, 'nothing is evicted before it is full');
+    //  the cap holds no matter how far past it the process runs
+    for ($i = $cap; $i < $cap + 100; $i++) {
+        $bounded->recordExecutedPlan('plan-' . $i);
+    }
+    order_router_assert(count($bounded->executedPlanIds) === $cap, 'the ledger never grows past the cap');
+    order_router_assert(count($bounded->executedPlanIdSet) === $cap, 'and the set never diverges from the list');
+    //  FIFO: the OLDEST 100 are the ones that went
+    for ($i = 0; $i < 100; $i++) {
+        order_router_assert($bounded->hasExecutedPlan('plan-' . $i) === false, 'the oldest entries are evicted first');
+    }
+    order_router_assert($bounded->hasExecutedPlan('plan-100') === true, 'nothing newer went with them');
+    order_router_assert($bounded->hasExecutedPlan('plan-' . ($cap + 99)) === true, 'the newest entry is present');
+    order_router_assert($bounded->executedPlanIds[0] === 'plan-100', 'the list is still in insertion order');
+    //  re-recording an id already held must not shuffle the eviction order, or a plan
+    //  re-executed in a loop could keep itself alive forever while newer ids fall out
+    $bounded->recordExecutedPlan('plan-100');
+    order_router_assert(count($bounded->executedPlanIds) === $cap, 'a duplicate record adds nothing');
+    order_router_assert($bounded->executedPlanIds[0] === 'plan-100', 'and does not move the entry in the queue');
+    //  AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is the
+    //  documented weakening at the cap, not an accident — if this assertion ever has to
+    //  change, the comment on MAX_EXECUTED_PLAN_IDS has to change with it.
+    $opts = array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1));
+    $plan = $bounded->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $first = new OrderRouterStubVenue('stub');
+    $bounded->execute($plan, array('stub' => $first), $opts);
+    $refused = new OrderRouterStubVenue('stub');
+    order_router_assert_throws(function () use ($bounded, $plan, $refused, $opts) {
+        $bounded->execute($plan, array('stub' => $refused), $opts);
+    }, BadRequest::class, 'while remembered, the duplicate is refused');
+    order_router_assert(count($refused->calls) === 0, 'and it placed nothing');
+    for ($i = 0; $i < $cap; $i++) {
+        $bounded->recordExecutedPlan('flush-' . $i);
+    }
+    order_router_assert($bounded->hasExecutedPlan($plan['requestId']) === false, 'the plan has aged out of the ledger');
+    $reexecuted = new OrderRouterStubVenue('stub');
+    $report = $bounded->execute($plan, array('stub' => $reexecuted), $opts);
+    order_router_assert($report['steps'][0]['status'] === 'filled', 'an aged-out plan re-executes without the opt-in');
+    order_router_assert(count($reexecuted->calls) > 0, 'which means real orders — the bound costs a guarantee');
+}
+
 function test_order_router() {
     $router = new OrderRouter(array('apiKey' => 'test-key'));
     $tests = array(
@@ -1428,7 +1476,7 @@ function test_order_router() {
         'fixture: buildUnwindPlan' => 'ccxt\order_router_test_fixture_build_unwind_plan',
         'fixture: formatNumber spells one number one way in all six languages' => 'ccxt\order_router_test_fixture_format_number',
         'fixture: a fee in the acquired asset resizes what the next hop is sized on' => 'ccxt\order_router_test_fixture_fee_netting',
-        'fixture: numberAt reads one number grammar in all five languages' => 'ccxt\order_router_test_fixture_number_at',
+        'fixture: numberAt reads one number grammar in all six languages' => 'ccxt\order_router_test_fixture_number_at',
         'constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size' => 'ccxt\order_router_test_constructor_cap',
         'the limit price sits on the side that costs you, and only there' => 'ccxt\order_router_test_limit_price_side',
         'a cap that IS set binds exactly, at whatever size, and includes the slippage' => 'ccxt\order_router_test_notional_cap',
@@ -1470,6 +1518,7 @@ function test_order_router() {
         'every order carries a deterministic client order id derived from the plan and the step' => 'ccxt\order_router_test_deterministic_client_order_ids',
         'the same plan is refused on a second live execution, and only an explicit opt-in overrides it' => 'ccxt\order_router_test_reexecution_is_refused',
         'a dry run never consumes a plan, and a halted live run always does' => 'ccxt\order_router_test_dry_run_does_not_consume_a_plan',
+        'the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan' => 'ccxt\order_router_test_ledger_is_bounded',
     );
     $passed = 0;
     $failures = array();

@@ -14,7 +14,7 @@
 //
 //  2. The INVARIANT half asserts the safety properties directly, in literal
 //     numbers written by hand. The fixture's expectations were produced by this
-//     implementation, so on their own they would only prove the five languages
+//     implementation, so on their own they would only prove the six languages
 //     agree — not that they agree on the right answer. These are the tests that
 //     would fail if the implementation itself were wrong.
 //
@@ -30,7 +30,7 @@ import OrderRouter from '../../base/OrderRouter.js';
 import { BadRequest, ExchangeError, NotSupported, ArgumentsRequired, RequestTimeout } from '../../base/errors.js';
 
 const here = path.dirname (fileURLToPath (import.meta.url));
-//  The fixture lives in the TypeScript tree and is read from there by all five
+//  The fixture lives in the TypeScript tree and is read from there by all six
 //  suites, so it is resolved from the repository root rather than from this
 //  module: `here` is ts/src/test/base under tsx and js/src/test/base when this
 //  file runs as compiled output, and only one of those has a fixtures/ beside it.
@@ -154,7 +154,7 @@ test ('fixture: a sequence of reconciliations on one hop', () => {
     //  reconcileExecutionStep is pure and cannot remember across calls, so a hop's cumulative
     //  shortfall lives on the steps themselves — written by applyResize. That interaction is only
     //  visible across a SEQUENCE of calls, which reconcileCases (one call each) cannot express,
-    //  and it is exactly where the five ports could silently disagree.
+    //  and it is exactly where the six ports could silently disagree.
     const cases = fixture['reconcileSequenceCases'];
     assert.ok (cases.length > 0, 'the fixture has reconcile sequence cases');
     for (let i = 0; i < cases.length; i++) {
@@ -164,7 +164,7 @@ test ('fixture: a sequence of reconciliations on one hop', () => {
         for (let c = 0; c < calls.length; c++) {
             //  the plan is rebuilt from the working steps on every call, exactly as execute()
             //  does — PHP copies arrays on assignment, so a plan built once outside this loop
-            //  would mean five ports running five different tests
+            //  would mean six ports running six different tests
             const plan = { 'steps': steps, 'reconcileToleranceRatio': testCase['reconcileToleranceRatio'] };
             const reconciliation = router.reconcileExecutionStep (plan, calls[c]['stepIndex'], calls[c]['realisedOut']);
             assert.ok (numbersMatch (reconciliation['scale'], testCase['expectedScales'][c]), 'reconcileSequenceCase ' + testCase['id'] + ' call ' + c.toString () + ': scale ' + String (reconciliation['scale']));
@@ -176,7 +176,7 @@ test ('fixture: a sequence of reconciliations on one hop', () => {
     }
 });
 
-test ('fixture: numberAt reads one number grammar in all five languages', () => {
+test ('fixture: numberAt reads one number grammar in all six languages', () => {
     //  Every port hand-implements JavaScript's parseFloat prefix grammar rather
     //  than calling its own parser, because every language's own parser
     //  disagrees with the other four somewhere. These cases are the contract:
@@ -1338,7 +1338,7 @@ test ('a fee charged in the asset spent does not reduce what is carried forward'
 
 test ('parallel_within_hop never has two orders in flight on one venue', async () => {
     //  The contract is an ORDERING guarantee — concurrent across venues, serialised within a
-    //  venue — not a performance promise, which is what lets five very different runtimes honour
+    //  venue — not a performance promise, which is what lets six very different runtimes honour
     //  the same words. Python previously fanned out one thread per LEG against caller-supplied
     //  sync exchange instances, so two legs on one venue mutated its throttle and nonce state
     //  with no lock; this asserts the property that made that a bug.
@@ -1506,4 +1506,52 @@ test ('a dry run never consumes a plan, and a halted live run always does', asyn
         /already executed/,
     );
     assert.deepStrictEqual (retry.calls, []);
+});
+
+test ('the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan', async () => {
+    const bounded = new OrderRouter ({ 'apiKey': 'k' });
+    const cap = OrderRouter.MAX_EXECUTED_PLAN_IDS;
+    for (let i = 0; i < cap; i++) {
+        bounded.recordExecutedPlan ('plan-' + i);
+    }
+    assert.strictEqual (bounded.executedPlanIds.length, cap, 'the ledger fills to exactly the cap');
+    assert.strictEqual (bounded.hasExecutedPlan ('plan-0'), true, 'and nothing is evicted before it is full');
+    //  the cap holds no matter how far past it the process runs
+    for (let i = cap; i < cap + 100; i++) {
+        bounded.recordExecutedPlan ('plan-' + i);
+    }
+    assert.strictEqual (bounded.executedPlanIds.length, cap, 'the ledger never grows past the cap');
+    //  FIFO: the OLDEST 100 are the ones that went
+    for (let i = 0; i < 100; i++) {
+        assert.strictEqual (bounded.hasExecutedPlan ('plan-' + i), false, 'the oldest entries are evicted first');
+    }
+    assert.strictEqual (bounded.hasExecutedPlan ('plan-100'), true, 'and nothing newer than the evicted window went with them');
+    assert.strictEqual (bounded.hasExecutedPlan ('plan-' + (cap + 99)), true, 'the newest entry is present');
+    assert.strictEqual (bounded.executedPlanIds[0], 'plan-100', 'the list is still in insertion order');
+    //  re-recording an id already held must not shuffle the eviction order, or a plan
+    //  re-executed in a loop could keep itself alive forever while newer ids fall out
+    bounded.recordExecutedPlan ('plan-100');
+    assert.strictEqual (bounded.executedPlanIds.length, cap, 'a duplicate record adds nothing');
+    assert.strictEqual (bounded.executedPlanIds[0], 'plan-100', 'and does not move the entry in the queue');
+    //  AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is
+    //  the documented weakening at the cap, not an accident — if this assertion ever has
+    //  to change, the comment on MAX_EXECUTED_PLAN_IDS has to change with it.
+    const opts = { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } };
+    const plan = bounded.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const first = new StubVenue ('stub');
+    await bounded.execute (plan, { 'stub': first }, opts);
+    const refused = new StubVenue ('stub');
+    await assert.rejects (
+        async () => await bounded.execute (plan, { 'stub': refused }, opts),
+        /already executed/,
+    );
+    assert.deepStrictEqual (refused.calls, [], 'while remembered, the duplicate is refused');
+    for (let i = 0; i < cap; i++) {
+        bounded.recordExecutedPlan ('flush-' + i);
+    }
+    assert.strictEqual (bounded.hasExecutedPlan (plan['requestId']), false, 'the plan has aged out of the ledger');
+    const reexecuted = new StubVenue ('stub');
+    const report = await bounded.execute (plan, { 'stub': reexecuted }, opts);
+    assert.strictEqual (report['steps'][0]['status'], 'filled', 'and an aged-out plan re-executes without the opt-in');
+    assert.strictEqual (reexecuted.calls.length > 0, true, 'which means real orders — the bound costs a guarantee');
 });
