@@ -77,6 +77,9 @@ export default class predictfun extends Exchange {
                     'https://docs.predict.fun',
                 ],
             },
+            // predict.fun gates every endpoint behind the api key - market data included - so there
+            // is no public group to split off: a key-less GET /v1/categories, /v1/markets,
+            // /v1/search or even /v1/auth/message answers 401 "authorization error"
             'api': {
                 'predictfun': {
                     'get': {
@@ -135,7 +138,6 @@ export default class predictfun extends Exchange {
             'options': {
                 'allowUnscopedFetchEvents': true,
                 'maxFetchEventsResults': 100,   // cap on events collected by an unscoped fetchEvents
-                'warnOnFetchEventSlug': true,   // warn if fetchEvent is called without slug parameter
             },
         });
     }
@@ -176,16 +178,19 @@ export default class predictfun extends Exchange {
      * @see https://dev.predict.fun/get-category-by-slug-25326911e0
      * @param {string} id event slug
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.slug] event slug, overrides the id argument when both are given
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
     override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
-        const warnOnFetchEventSlug = this.safeBool (this.options, 'warnOnFetchEventSlug', true);
+        // the id argument is the event slug, per the base fetchEvent (id) contract - params.slug
+        // overrides it so a caller can pass the slug the same way fetchEvents () takes it
         const paramSlug = this.safeString (params, 'slug');
         let slug = id;
         if (paramSlug !== undefined) {
             slug = paramSlug;
-        } else if (warnOnFetchEventSlug) {
-            throw new ArgumentsRequired (this.id + ' fetchEvent() requires a slug parameter (or set warnOnFetchEventSlug option to false to pass the slug as the id argument)');
+        }
+        if (slug === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchEvent() requires an event slug as the id argument or a slug parameter');
         }
         const events = await this.fetchEvents (this.extend ({ 'slug': slug }, params));
         return this.safeDict (events, 0) as PredictionEvent;
@@ -223,7 +228,7 @@ export default class predictfun extends Exchange {
         }
         const slug = this.safeString2 (params, 'slug', 'eventId');
         const rest = this.omit (params, [ 'status', 'limit', 'sort', 'eventId', 'slug', 'tags', 'marketVariant' ]);
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
         let rawTopics: any[] = [];
@@ -470,16 +475,14 @@ export default class predictfun extends Exchange {
      * @see https://dev.predict.fun/search-categories-and-markets-27399810e0
      * @param {string[]} queries the search terms
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.limit] the maximum number of results per type per term, capped at 25 by the venue
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
     async fetchRawTopicsByQueries (queries: string[], params = {}): Promise<any[]> {
-        // the endpoint caps limit at 25 per result type and defaults to 10
-        let limit = this.safeInteger (params, 'limit', 10);
-        if (limit > 25) {
-            limit = 25;
-        }
+        // always ask for the venue's maximum page size - this is the per-type page size of the
+        // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
+        // applyEventFetchParams () applies to the parsed events afterwards
+        const limit = 25;
         // resolved rows are excluded unless asked for — the unified status filter drives that
         const status = this.safeString (params, 'status');
         let includeResolved = 'false';
@@ -592,22 +595,48 @@ export default class predictfun extends Exchange {
             if (marketSlug in topicsBySlug) {
                 continue; // the enclosing category came back in full, nested markets included
             }
-            // a market-only hit carries no category row — synthesize the enclosing topic from the
-            // matched market rows so parseEvent still sees the shape it expects
+            // a market-only hit carries no category row, and the search endpoint's market rows
+            // expose neither the enclosing topic's id nor its endsAt - so fetch the category by
+            // the slug the market rows do carry, otherwise parseEvent () yields an event with an
+            // undefined id, end and created, and markets with an undefined expiry
             const orphanMarkets = marketsBySlug[marketSlug];
-            const first = this.safeDict (orphanMarkets, 0, {});
-            result.push ({
-                'slug': marketSlug,
-                'title': this.safeString (first, 'title'),
-                'description': this.safeString (first, 'description'),
-                'imageUrl': this.safeString (first, 'imageUrl'),
-                'marketVariant': this.safeString (first, 'marketVariant'),
-                'isNegRisk': this.safeBool (first, 'isNegRisk'),
-                'isYieldBearing': this.safeBool (first, 'isYieldBearing'),
-                'isVisible': this.safeBool (first, 'isVisible'),
-                'status': this.safeString (first, 'status'),
-                'markets': orphanMarkets,
-            });
+            let rawTopic: any = undefined;
+            try {
+                const categoryResponse = await this.predictfunGetV1CategoriesSlug ({ 'slug': marketSlug });
+                rawTopic = this.safeDict (categoryResponse, 'data');
+            } catch (e) {
+                rawTopic = undefined;
+            }
+            if (rawTopic === undefined) {
+                // the lookup failed - fall back to synthesizing the topic from the matched rows,
+                // which still carry the title, the description and the createdAt
+                const first = this.safeDict (orphanMarkets, 0, {});
+                // the market row's 'status' is the registration enum ('REGISTERED' /
+                // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
+                // 'RESOLVED') - copying it verbatim reports resolved: false for a resolved hit
+                const marketStatus = this.safeString (first, 'status');
+                const tradingStatus = this.safeString (first, 'tradingStatus');
+                let topicStatus: Str = undefined;
+                if ((marketStatus === 'RESOLVED') || (marketStatus === 'SETTLED')) {
+                    topicStatus = 'RESOLVED';
+                } else if (tradingStatus === 'OPEN') {
+                    topicStatus = 'OPEN';
+                }
+                rawTopic = {
+                    'slug': marketSlug,
+                    'title': this.safeString (first, 'title'),
+                    'description': this.safeString (first, 'description'),
+                    'imageUrl': this.safeString (first, 'imageUrl'),
+                    'marketVariant': this.safeString (first, 'marketVariant'),
+                    'isNegRisk': this.safeBool (first, 'isNegRisk'),
+                    'isYieldBearing': this.safeBool (first, 'isYieldBearing'),
+                    'isVisible': this.safeBool (first, 'isVisible'),
+                    'status': topicStatus,
+                    'createdAt': this.safeString (first, 'createdAt'),
+                    'markets': orphanMarkets,
+                };
+            }
+            result.push (rawTopic);
         }
         return result;
     }
@@ -922,7 +951,12 @@ export default class predictfun extends Exchange {
         //
         const marketId = this.safeString (rawMarket, 'id');
         const topicSlug = this.safeString (rawMarket, 'categorySlug');
-        const title = this.safeString (rawMarket, 'title', marketId);
+        let title = this.safeString (rawMarket, 'title', marketId);
+        // slug and title have a mismatch in the numbers
+        // one should clean title from commas in numbers to avoid a mismatch with the slug, which has no commas in numbers
+        if (title !== undefined) {
+            title = title.replaceAll (',0', '0');
+        }
         const marketSymbol = this.slugToMarketSymbol (topicSlug, title);
         const tradingStatus = this.safeString (rawMarket, 'tradingStatus');
         const status = this.safeString (rawMarket, 'status');
@@ -1036,7 +1070,7 @@ export default class predictfun extends Exchange {
      * @description fetches the order book for a single prediction outcome token
      * @see https://dev.predict.fun/get-the-orderbook-for-a-market-25326908e0
      * @param {string} outcome unified outcome handle, or an outcome token id
-     * @param {int} [limit] not used by binance fetchOrderBook
+     * @param {int} [limit] not used by predictfun fetchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
@@ -1109,7 +1143,7 @@ export default class predictfun extends Exchange {
      * @ignore
      * @method
      * @name predictfun#sign
-     * @description builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints
+     * @description builds the request URL and attaches the api key header required by every endpoint
      * @param {string} path the endpoint path
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
@@ -1119,15 +1153,18 @@ export default class predictfun extends Exchange {
      * @returns {object} a dictionary with url, method, body and headers
      */
     override sign (path: any, api: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        // the venue authenticates every endpoint, so the key is required up front rather than
+        // per access level - a key-less request is answered with a 401 by the api gateway
         this.checkRequiredCredentials ();
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['predictfun'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const querystring = this.urlencode (query);
-        if (method === 'GET' && querystring) {
-            url += '?' + querystring;
+        if (method === 'GET') {
+            if (Object.keys (query).length > 0) {
+                url += '?' + this.urlencode (query);
+            }
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
         headers = this.extend ({
