@@ -871,8 +871,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             return false;
         }
-        object reason = this.safeString(message, "reason");
-        object errMsg = this.safeString(message, "message");
+        string? reason = this.safeString(message, "reason");
+        string? errMsg = this.safeString(message, "message");
         try
         {
             object feedback = add(add(add(this.id, " "), errMsg), reason);

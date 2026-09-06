@@ -1189,7 +1189,7 @@ public partial class gate : ccxt.gate
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".candlesticks");
         object messageHash = add(add(add("candles:", interval), ":"), getValue(market, "symbol"));
@@ -1794,7 +1794,7 @@ public partial class gate : ccxt.gate
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
-        object suffix = ".orders";
+        string suffix = ".orders";
         if (isTrue(isEqual(isTrigger, true)))
         {
             suffix = ((bool) isTrue((isEqual(typeId, "spot")))) ? ".priceorders" : ".autoorders";
@@ -2063,7 +2063,7 @@ public partial class gate : ccxt.gate
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseWsLiquidation(rawLiquidation);
             callDynamically(cache, "append", new object[] {liquidation});
-            object symbol = this.safeString(liquidation, "symbol");
+            string? symbol = this.safeString(liquidation, "symbol");
             object symbolLiquidations = this.safeValue(cache, symbol, new List<object>() {});
             callDynamically(client as WebSocketClient, "resolve", new object[] {symbolLiquidations, add("myLiquidations::", symbol)});
         }

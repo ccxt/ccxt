@@ -1019,7 +1019,7 @@ public partial class cryptocom : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = ((bool) isTrue(spot)) ? null : this.safeCurrencyCode(settleId);
             string? optionType = this.safeStringLower(market, "put_call");
-            object strike = this.safeString(market, "strike");
+            string? strike = this.safeString(market, "strike");
             object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
@@ -1044,7 +1044,7 @@ public partial class cryptocom : Exchange
             } else if (isTrue(isEqual(inst_type, "WARRANT")))
             {
                 type = "option";
-                object symbolOptionType = ((bool) isTrue((isEqual(optionType, "call")))) ? "C" : "P";
+                string symbolOptionType = ((bool) isTrue((isEqual(optionType, "call")))) ? "C" : "P";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }

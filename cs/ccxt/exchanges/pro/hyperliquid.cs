@@ -628,7 +628,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
             object messageHash = "tickers";
-            object dexMessage = this.safeString(data, "dex");
+            string? dexMessage = this.safeString(data, "dex");
             if (isTrue(!isEqual(dexMessage, null)))
             {
                 messageHash = add(messageHash, add(":", dexMessage));
@@ -1032,7 +1032,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? bs = this.safeString(data, "s");
         object marketId = this.coinToMarketId(bs);
         object symbol = this.safeSymbol(marketId);
-        object timeframe = this.safeString(data, "i");
+        string? timeframe = this.safeString(data, "i");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1156,7 +1156,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         parameters = this.safeDict(unifiedResult, 1, parameters);
         string? dex = this.safeString(parameters, "dex");
         bool isSpot = isTrue((isTrue((isEqual(type, "spot"))) || isTrue((isEqual(isUnifiedEnabled, true))))) && isTrue((isEqual(dex, null)));
-        object topic = ((bool) isTrue((isEqual(isSpot, true)))) ? "spotState" : "clearinghouseState";
+        string topic = ((bool) isTrue((isEqual(isSpot, true)))) ? "spotState" : "clearinghouseState";
         object messageHash = add(add("unsubscribe", ":"), topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -1612,7 +1612,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             object rawOrder = getValue(data, i);
             object order = this.parseOrder(rawOrder);
             callDynamically(stored, "append", new object[] {order});
-            object symbol = this.safeString(order, "symbol");
+            string? symbol = this.safeString(order, "symbol");
             ((IDictionary<string,object>)marketSymbols)[(string)((string)symbol)] = true;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
@@ -1659,7 +1659,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? channel = this.safeString(message, "channel", "");
         if (isTrue(isEqual(channel, "error")))
         {
-            object ret_msg = this.safeString(message, "data", "");
+            string? ret_msg = this.safeString(message, "data", "");
             if (isTrue(isGreaterThanOrEqual(getIndexOf(ret_msg, "Already subscribed"), 0)))
             {
                 // a duplicate subscribe is harmless - the server-side subscription is intact
@@ -1795,7 +1795,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        object user = this.safeStringLower(subscription, "user");
+        string? user = this.safeStringLower(subscription, "user");
         if (isTrue(!isEqual(user, null)))
         {
             object subscribeHash = add("subscribe:orderUpdates::", user);
@@ -1817,7 +1817,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        object user = this.safeStringLower(subscription, "user");
+        string? user = this.safeStringLower(subscription, "user");
         if (isTrue(!isEqual(user, null)))
         {
             object subscribeHash = add("subscribe:userFills::", user);

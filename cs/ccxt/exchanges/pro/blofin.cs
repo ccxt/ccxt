@@ -841,7 +841,7 @@ public partial class blofin : ccxt.blofin
                     market = this.market(current);
                     object tfArray = getValue(symbolsArray, i);
                     object tf = getValue(tfArray, 1);
-                    object interval = this.safeString(this.timeframes, tf, tf);
+                    string? interval = this.safeString(this.timeframes, tf, tf);
                     channel = add(channel, interval);
                 } else
                 {

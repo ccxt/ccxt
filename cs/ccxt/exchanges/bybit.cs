@@ -2317,8 +2317,8 @@ public partial class bybit : Exchange
                 settle = "USDC";
             }
         }
-        object strike = this.safeString(optionParts, 2);
-        object optionType = this.safeString(optionParts, 3);
+        string? strike = this.safeString(optionParts, 2);
+        string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         object amountPrecision = null;
@@ -3177,8 +3177,8 @@ public partial class bybit : Exchange
                 throw new ExchangeError ((string)add(this.id, " method() missing id")) ;
             }
             List<object> splitId = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            object strike = this.safeString(splitId, 2);
-            object optionLetter = this.safeString(splitId, 3);
+            string? strike = this.safeString(splitId, 2);
+            string? optionLetter = this.safeString(splitId, 3);
             bool isActive = (isEqual(status, "Trading"));
             bool isInverse = isEqual(bs, settle);
             object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions");
@@ -6348,7 +6348,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -6467,7 +6467,7 @@ public partial class bybit : Exchange
         int innerListLength = getArrayLength(innerList);
         if (isTrue(isEqual(innerListLength, 0)))
         {
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         object order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
@@ -6629,7 +6629,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -6671,7 +6671,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -8730,7 +8730,7 @@ public partial class bybit : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchOpenInterest() supports contract markets only")) ;
         }
-        object timeframe = this.safeString(parameters, "interval", "1h");
+        string? timeframe = this.safeString(parameters, "interval", "1h");
         object intervals = this.safeDict(this.options, "intervals");
         string? interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
         if (isTrue(isEqual(interval, null)))
@@ -11628,7 +11628,7 @@ public partial class bybit : Exchange
                     ((IDictionary<string,object>)headers)["X-BAPI-SIGN-TYPE"] = "2";
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
-                object queryEncoded = this.rawencode(query);
+                string queryEncoded = this.rawencode(query);
                 object auth_base = add(add(((object)timestamp).ToString(), this.apiKey), ((object)getValue(this.options, "recvWindow")).ToString());
                 object authFull = null;
                 if (isTrue(isEqual(method, "POST")))

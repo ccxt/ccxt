@@ -3174,7 +3174,7 @@ public partial class bydfi : Exchange
 
     public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
-        object methodName = ((bool) isTrue((isEqual(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
+        string methodName = ((bool) isTrue((isEqual(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
         if (isTrue(isEqual(code, null)))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a code argument")) ;
@@ -3346,7 +3346,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), api);
         object endpoint = add("/", path);
-        object query = "";
+        string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
         if (isTrue(isEqual(method, "GET")))
         {

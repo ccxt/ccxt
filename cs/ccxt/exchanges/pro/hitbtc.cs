@@ -229,8 +229,8 @@ public partial class hitbtc : ccxt.hitbtc
         object options = this.safeValue(this.options, "watchOrderBook");
         string? defaultMethod = this.safeString(options, "method", "orderbook/full");
         object name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-        object depth = this.safeString(parameters, "depth", "20");
-        object speed = this.safeString(parameters, "depth", "100");
+        string? depth = this.safeString(parameters, "depth", "20");
+        string? speed = this.safeString(parameters, "depth", "100");
         if (isTrue(isEqual(name, "orderbook/{depth}/{speed}")))
         {
             name = add(add(add(add("orderbook/D", depth), "/"), speed), "ms");
@@ -785,7 +785,7 @@ public partial class hitbtc : ccxt.hitbtc
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object name = add("candles/", period);
         object market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1581,7 +1581,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 object code = this.safeValue(error, "code");
                 string? errorMessage = this.safeString(error, "message");
-                object description = this.safeString(error, "description");
+                string? description = this.safeString(error, "description");
                 object feedback = add(add(this.id, " "), description);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);

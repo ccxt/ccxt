@@ -1123,7 +1123,7 @@ public partial class foxbit : Exchange
             object order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
             object market = this.market(symbol);
-            object type = this.safeStringUpper(order, "type");
+            string? type = this.safeStringUpper(order, "type");
             object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
             if (isTrue(isTrue(isTrue(isTrue(isTrue(!isEqual(type, "LIMIT")) && isTrue(!isEqual(type, "MARKET"))) && isTrue(!isEqual(type, "STOP_MARKET"))) && isTrue(!isEqual(type, "STOP_LIMIT"))) && isTrue(!isEqual(type, "INSTANT"))))
             {
@@ -2252,7 +2252,7 @@ public partial class foxbit : Exchange
         object url = add(getValue(getValue(this.urls, "api"), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
         Int64 timestamp = this.milliseconds();
-        object query = "";
+        string query = "";
         object signatureQuery = "";
         if (isTrue(isEqual(method, "GET")))
         {
@@ -2266,7 +2266,7 @@ public partial class foxbit : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(paramKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(paramKeys, i);
-                object value = this.safeString(parameters, key);
+                string? value = this.safeString(parameters, key);
                 if (isTrue(!isEqual(value, null)))
                 {
                     signatureQuery = add(signatureQuery, add(add(key, "="), value));
@@ -2317,7 +2317,7 @@ public partial class foxbit : Exchange
         object error = this.safeDict(response, "error");
         string? code = this.safeString(error, "code");
         object details = this.safeList(error, "details");
-        object message = this.safeString(error, "message");
+        string? message = this.safeString(error, "message");
         object detailsString = "";
         if (isTrue(!isEqual(details, null)))
         {

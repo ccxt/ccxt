@@ -261,7 +261,7 @@ public partial class bydfi : ccxt.bydfi
                 if (isTrue(!isEqual(subHash, null)))
                 {
                     List<object> parts = ((string)subHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-                    object symbol = this.safeString(parts, 1);
+                    string? symbol = this.safeString(parts, 1);
                     if (isTrue(isEqual(symbol, "all")))
                     {
                         continue;
@@ -396,7 +396,7 @@ public partial class bydfi : ccxt.bydfi
             object market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-            object interval = this.safeString(timeframes, tf, tf);
+            string? interval = this.safeString(timeframes, tf, tf);
             ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), interval));
         }
@@ -438,7 +438,7 @@ public partial class bydfi : ccxt.bydfi
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", getValue(market, "symbol")), "::"), interval));
         }

@@ -87,7 +87,7 @@ public partial class backpack : ccxt.backpack
         string instruction = "subscribe";
         string ts = ((object)this.nonce()).ToString();
         string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
-        object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
+        string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         object payload = add(add(add(add(add(add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
         object secretBytes = this.base64ToBinary(this.secret);
         object seed = this.arraySlice(secretBytes, 0, 32);
@@ -565,7 +565,7 @@ public partial class backpack : ccxt.backpack
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)topics).Add(add(add(add("kline.", interval), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("candles:", getValue(market, "symbol")), ":"), interval));
         }
@@ -610,7 +610,7 @@ public partial class backpack : ccxt.backpack
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)topics).Add(add(add(add("kline.", interval), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:candles:", getValue(market, "symbol")), ":"), interval));
         }
@@ -644,7 +644,7 @@ public partial class backpack : ccxt.backpack
         object symbol = getValue(market, "symbol");
         string? stream = this.safeString(message, "stream", "");
         List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object timeframe = this.safeString(parts, 1, "");
+        string? timeframe = this.safeString(parts, 1, "");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1569,7 +1569,7 @@ public partial class backpack : ccxt.backpack
         {
             if (isTrue(!isEqual(code, null)))
             {
-                object msg = this.safeString(error, "message");
+                string? msg = this.safeString(error, "message");
                 throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
             }
             return true;

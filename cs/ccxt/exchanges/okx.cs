@@ -2333,9 +2333,9 @@ public partial class okx : Exchange
             bs = this.safeString(optionParts, 0);
         }
         object settle = bs;
-        object expiry = this.safeString(optionParts, 2);
-        object strike = this.safeString(optionParts, 3);
-        object optionType = this.safeString(optionParts, 4);
+        string? expiry = this.safeString(optionParts, 2);
+        string? strike = this.safeString(optionParts, 3);
+        string? optionType = this.safeString(optionParts, 4);
         object datetime = ((bool) isTrue((isEqual(expiry, null)))) ? null : this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
@@ -2704,8 +2704,8 @@ public partial class okx : Exchange
             symbol = id;
         }
         Int64? expiry = null;
-        object strikePrice = null;
-        object optionType = null;
+        string? strikePrice = null;
+        string? optionType = null;
         if (isTrue(contract))
         {
             if (isTrue(!isEqual(settle, null)))
@@ -2717,7 +2717,7 @@ public partial class okx : Exchange
                 expiry = this.safeInteger(market, "expTime");
                 if (isTrue(!isEqual(expiry, null)))
                 {
-                    object ymd = this.yymmdd(expiry);
+                    string? ymd = this.yymmdd(expiry);
                     symbol = add(add(symbol, "-"), ymd);
                 }
             } else if (isTrue(option))
@@ -2727,7 +2727,7 @@ public partial class okx : Exchange
                 optionType = this.safeString(market, "optType");
                 if (isTrue(!isEqual(expiry, null)))
                 {
-                    object ymd = this.yymmdd(expiry);
+                    string? ymd = this.yymmdd(expiry);
                     symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
                     optionType = ((bool) isTrue((isEqual(optionType, "P")))) ? "put" : "call";
                 }
@@ -6776,7 +6776,7 @@ public partial class okx : Exchange
             { "dest", "4" },
             { "amt", this.numberToString(amount) },
         };
-        object network = this.safeString(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
+        string? network = this.safeString(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
         if (isTrue(!isEqual(network, null)))
         {
             object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});

@@ -3072,7 +3072,7 @@ public partial class kalshi : PredictionExchange
         object implodedPath = this.implodeParams(path, parameters);
         object url = add(add(baseUrl, "/"), implodedPath);
         object query = this.omit(parameters, this.extractParams(path));
-        object querystring = this.urlencode(query);
+        string querystring = this.urlencode(query);
         if (isTrue(isTrue(isEqual(method, "GET")) && isTrue((!isEqual(querystring, "")))))
         {
             url = add(url, add("?", querystring));

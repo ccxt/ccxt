@@ -469,8 +469,8 @@ public partial class grvt : ccxt.grvt
             string? symbolString = this.safeString(data, 0);
             object market = this.market(symbolString);
             object marketId = getValue(market, "id");
-            object unfiedTimeframe = this.safeString(data, 1, "1");
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1, "1");
+            string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add(marketId, "@"), timeframeId), "-TRADE"));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), unfiedTimeframe));
         }
@@ -909,7 +909,7 @@ public partial class grvt : ccxt.grvt
         }
         object data = this.safeDict(message, "feed");
         object position = this.parseWsPosition(data);
-        object symbol = this.safeString(position, "symbol");
+        string? symbol = this.safeString(position, "symbol");
         callDynamically(this.positions, "append", new object[] {position});
         List<object> newPositions = new List<object>() {};
         ((IList<object>)newPositions).Add(position);

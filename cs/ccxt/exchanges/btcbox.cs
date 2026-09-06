@@ -270,7 +270,7 @@ public partial class btcbox : Exchange
             object marketId = getValue(marketIds, i);
             List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object baseCurr = this.safeString(symbolParts, 0, "");
-            object quote = this.safeString(symbolParts, 1, "");
+            string? quote = this.safeString(symbolParts, 1, "");
             string quoteId = ((string)quote).ToLower();
             string id = ((string)baseCurr).ToLower();
             object res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});

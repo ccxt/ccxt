@@ -3871,7 +3871,7 @@ public partial class kucoin : Exchange
                 { "index", "index-price" },
                 { "premiumIndex", "premium-index" },
             };
-            object suffix = this.safeString(priceTypes, priceType);
+            string? suffix = this.safeString(priceTypes, priceType);
             if (isTrue(isEqual(suffix, null)))
             {
                 throw new NotSupported ((string)add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
@@ -13096,7 +13096,7 @@ public partial class kucoin : Exchange
         object apiVersions = this.safeDict(versions, api, new Dictionary<string, object>() {});
         object methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, getValue(this.options, "version"));
-        object version = this.safeString(parameters, "version", defaultVersion);
+        string? version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
         object endpoint = add(add(add("/api/", version), "/"), this.implodeParams(path, parameters));
         if (isTrue(isEqual(api, "webExchange")))
@@ -13120,7 +13120,7 @@ public partial class kucoin : Exchange
         object endpart = "";
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         object url = getValue(getValue(this.urls, "api"), api);
-        object tradeType = this.safeString(query, "tradeType");
+        string? tradeType = this.safeString(query, "tradeType");
         if (!isTrue(this.isEmpty(query)))
         {
             if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && isTrue((!isEqual(path, "orders/multi-cancel")))))
@@ -13168,7 +13168,7 @@ public partial class kucoin : Exchange
             bool isUtaFuturePrivate = isTrue(isUtaPrivate) && isTrue((isEqual(tradeType, "FUTURES")));
             bool isFuturePartner = isTrue(isFuturePrivate) || isTrue(isUtaFuturePrivate);
             partner = ((bool) isTrue(isFuturePartner)) ? this.safeValue(partner, "future", partner) : this.safeValue(partner, "spot", partner);
-            object partnerId = this.safeString(partner, "id");
+            string? partnerId = this.safeString(partner, "id");
             string? partnerSecret = this.safeString2(partner, "secret", "key");
             if (isTrue(isTrue((!isEqual(partnerId, null))) && isTrue((!isEqual(partnerSecret, null)))))
             {

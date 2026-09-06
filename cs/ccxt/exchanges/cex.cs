@@ -1357,7 +1357,7 @@ public partial class cex : Exchange
         //                "effectiveTime": null
         //
         object currency1 = this.safeString(order, "currency1");
-        object currency2 = this.safeString(order, "currency2");
+        string? currency2 = this.safeString(order, "currency2");
         object marketId = null;
         if (isTrue(isTrue(!isEqual(currency1, null)) && isTrue(!isEqual(currency2, null))))
         {
@@ -2090,7 +2090,7 @@ public partial class cex : Exchange
         if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "do_my_new_order"), 0)))
         {
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object rejectReason = this.safeString(data, "rejectReason");
+            string? rejectReason = this.safeString(data, "rejectReason");
             if (isTrue(!isEqual(rejectReason, null)))
             {
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), rejectReason, rejectReason);

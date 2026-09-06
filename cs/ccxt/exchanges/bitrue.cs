@@ -3362,7 +3362,7 @@ public partial class bitrue : Exchange
         object currency = this.currency(code);
         object accountTypes = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountTypes, fromAccount, fromAccount);
-        object toId = this.safeString(accountTypes, toAccount, toAccount);
+        string? toId = this.safeString(accountTypes, toAccount, toAccount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coinSymbol", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
@@ -3502,7 +3502,7 @@ public partial class bitrue : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(api, 0);
-        object version = this.safeString(api, 1);
+        string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
         object url = null;
         if (isTrue(isTrue((isTrue(isEqual(type, "api")) && isTrue(isEqual(version, "kline")))) || isTrue((isTrue(isEqual(type, "open")) && isTrue(isGreaterThanOrEqual(getIndexOf(path, "listenKey"), 0))))))
@@ -3647,7 +3647,7 @@ public partial class bitrue : Exchange
                 }
             }
         }
-        object message = this.safeString(response, "msg");
+        string? message = this.safeString(response, "msg");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));

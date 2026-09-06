@@ -1135,7 +1135,7 @@ public partial class kraken : ccxt.kraken
     {
         List<object> parts = ((string)data).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object integer = this.safeString(parts, 0);
-        object decimals = this.safeString(parts, 1, "");
+        string? decimals = this.safeString(parts, 1, "");
         object joinedResult = add(integer, decimals);
         object i = 0;
         while (isEqual(getValue(joinedResult, i), "0"))

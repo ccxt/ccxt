@@ -4327,7 +4327,7 @@ public partial class hitbtc : Exchange
             string payloadString = String.Join("", ((IList<object>)payload).ToArray());
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
             object secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);
-            object encoded = this.stringToBase64(secondPayload);
+            string encoded = this.stringToBase64(secondPayload);
             ((IDictionary<string,object>)headers)["Authorization"] = add("HS256 ", encoded);
         }
         return new Dictionary<string, object>() {

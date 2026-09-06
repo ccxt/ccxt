@@ -6695,7 +6695,7 @@ public partial class xt : Exchange
         }
         object url = add(getValue(getValue(this.urls, "api"), endpoint), payload);
         object query = this.omit(parameters, this.extractParams(path));
-        object urlencoded = this.urlencode(this.keysort(query));
+        string urlencoded = this.urlencode(this.keysort(query));
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
@@ -6703,8 +6703,8 @@ public partial class xt : Exchange
         {
             this.checkRequiredCredentials();
             string? defaultRecvWindow = this.safeString(this.options, "recvWindow");
-            object recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
-            object timestamp = this.numberToString(this.nonce());
+            string? recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
+            string? timestamp = this.numberToString(this.nonce());
             body = query;
             if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(payload, "/v4/order"))) || isTrue((isEqual(payload, "/future/trade/v1/order/create")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || isTrue((isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {

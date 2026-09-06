@@ -94,7 +94,7 @@ public partial class hollaex : ccxt.hollaex
         //         "time":1649751425
         //     }
         //
-        object marketId = this.safeString(message, "symbol");
+        string? marketId = this.safeString(message, "symbol");
         object channel = this.safeString(message, "topic");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -173,7 +173,7 @@ public partial class hollaex : ccxt.hollaex
         //     }
         //
         object channel = this.safeString(message, "topic");
-        object marketId = this.safeString(message, "symbol");
+        string? marketId = this.safeString(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object stored = this.safeValue(this.trades, symbol);

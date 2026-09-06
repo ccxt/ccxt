@@ -296,7 +296,7 @@ public partial class ndax : ccxt.ndax
         for (object i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
         {
             object ohlcv = getValue(payload, i);
-            object marketId = this.safeString(ohlcv, 8);
+            string? marketId = this.safeString(ohlcv, 8);
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(!isEqual(marketId, null)))
@@ -461,7 +461,7 @@ public partial class ndax : ccxt.ndax
         //     ],
         //
         object firstBidAsk = this.safeValue(payload, 0, new List<object>() {});
-        object marketId = this.safeString(firstBidAsk, 7);
+        string? marketId = this.safeString(firstBidAsk, 7);
         if (isTrue(isEqual(marketId, null)))
         {
             return;

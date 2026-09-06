@@ -712,7 +712,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         }
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object type = this.safeString(parameters, "type", "l2");
+        string? type = this.safeString(parameters, "type", "l2");
         parameters = this.omit(parameters, "type");
         object messageHash = add(add(add("orderbook:", symbol), ":"), type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -761,12 +761,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         //         "timestamp": "2022-08-08T22:03:19.014680Z"
         //     }
         //
-        object eventVar = this.safeString(message, "event");
+        string? eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "subscribed")))
         {
             return;
         }
-        object type = this.safeString(message, "channel");
+        string? type = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "symbol");
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(add("orderbook:", symbol), ":"), type);

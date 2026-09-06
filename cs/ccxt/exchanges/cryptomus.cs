@@ -1273,7 +1273,7 @@ public partial class cryptomus : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             } else
             {
-                object query = this.urlencode(parameters);
+                string query = this.urlencode(parameters);
                 if (isTrue(!isEqual(((string)query).Length, 0)))
                 {
                     url = add(url, add("?", query));
@@ -1285,7 +1285,7 @@ public partial class cryptomus : Exchange
             ((IDictionary<string,object>)headers)["sign"] = signature;
         } else
         {
-            object query = this.urlencode(parameters);
+            string query = this.urlencode(parameters);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));

@@ -100,7 +100,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object topic = add("kline_", interval);
         object messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
         object ohlcv = await this.wathPublic(market, topic, messageHash, parameters);
@@ -889,7 +889,7 @@ public partial class hashkey : ccxt.hashkey
         object data = this.safeList(message, "B", new List<object>() {});
         object balanceUpdate = this.safeDict(data, 0);
         bool isSpot = isEqual(eventVar, "outboundAccountInfo");
-        object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};

@@ -656,7 +656,7 @@ public partial class derive : ccxt.derive
         {
             object data = getValue(rawOrders, i);
             object parsed = this.parseOrder(data);
-            object symbol = this.safeString(parsed, "symbol");
+            string? symbol = this.safeString(parsed, "symbol");
             string? orderId = this.safeString(parsed, "id");
             if (isTrue(!isEqual(symbol, null)))
             {

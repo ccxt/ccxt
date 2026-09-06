@@ -348,7 +348,7 @@ public partial class bitbns : Exchange
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
             object baseId = this.safeString(market, "base");
-            object quoteId = this.safeString(market, "quote");
+            string? quoteId = this.safeString(market, "quote");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
@@ -587,7 +587,7 @@ public partial class bitbns : Exchange
             int numParts = getArrayLength(parts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
-                object currencyId = this.safeString(parts, 1);
+                string? currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(data, key);
@@ -846,7 +846,7 @@ public partial class bitbns : Exchange
             { "symbol", getValue(market, "uppercaseId") },
         };
         object response = null;
-        object tail = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopLossOrder" : "Order";
+        string tail = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopLossOrder" : "Order";
         object quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
         quoteSide = add(quoteSide, tail);
         ((IDictionary<string,object>)request)["side"] = quoteSide;

@@ -1094,7 +1094,7 @@ public partial class pacifica : ccxt.pacifica
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object isTestnet = this.isSandboxModeEnabled;
-        object parsedTf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? parsedTf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1175,7 +1175,7 @@ public partial class pacifica : ccxt.pacifica
         string? marketId = this.safeString(data, "s");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object timeframe = this.safeString(data, "i");
+        string? timeframe = this.safeString(data, "i");
         if (isTrue(isEqual(timeframe, null)))
         {
             return;
@@ -1338,7 +1338,7 @@ public partial class pacifica : ccxt.pacifica
             object rawOrder = getValue(data, i);
             object order = this.parseOrder(rawOrder);
             callDynamically(stored, "append", new object[] {order});
-            object symbol = this.safeString(order, "symbol");
+            string? symbol = this.safeString(order, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;

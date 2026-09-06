@@ -533,7 +533,7 @@ public partial class bithumb : Exchange
             return marketId;
         }
         object quoteId = this.safeString2(market, "quoteId", "quote");
-        object baseId = this.safeString2(market, "baseId", "base");
+        string? baseId = this.safeString2(market, "baseId", "base");
         return add(add(quoteId, "-"), baseId);
     }
 
@@ -770,7 +770,7 @@ public partial class bithumb : Exchange
                 object code = getValue(codes, i);
                 object account = this.account();
                 object currency = this.currency(code);
-                object lowerCurrencyId = this.safeStringLower(currency, "id");
+                string? lowerCurrencyId = this.safeStringLower(currency, "id");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balances, add("in_use_", lowerCurrencyId));
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balances, add("available_", lowerCurrencyId));
@@ -3769,7 +3769,7 @@ public partial class bithumb : Exchange
         if (isTrue(!isEqual(error, null)))
         {
             string? errorName = this.safeString(error, "name");
-            object message = this.safeString(error, "message");
+            string? message = this.safeString(error, "message");
             object feedback = add(add(this.id, " "), message);
             if (isTrue(!isEqual(errorName, null)))
             {
@@ -3788,7 +3788,7 @@ public partial class bithumb : Exchange
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //
             string? status = this.safeString(response, "status");
-            object message = this.safeString(response, "message");
+            string? message = this.safeString(response, "message");
             if (isTrue(!isEqual(status, null)))
             {
                 if (isTrue(isEqual(status, "0000")))

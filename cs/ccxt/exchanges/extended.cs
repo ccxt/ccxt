@@ -3893,7 +3893,7 @@ public partial class extended : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object version = this.safeString(api, 0);
+        string? version = this.safeString(api, 0);
         string? accessibility = this.safeString(api, 1);
         object endpoint = add("/", this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

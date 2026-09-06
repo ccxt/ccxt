@@ -4242,10 +4242,10 @@ public partial class binance : Exchange
         {
             bs = this.safeString(optionParts, 0);
         }
-        object expiry = this.safeString(optionParts, 1);
+        string? expiry = this.safeString(optionParts, 1);
         Int64? strike = this.safeInteger(optionParts, 2);
-        object strikeAsString = this.safeString(optionParts, 2);
-        object optionType = this.safeString(optionParts, 3);
+        string? strikeAsString = this.safeString(optionParts, 2);
+        string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
@@ -5293,7 +5293,7 @@ public partial class binance : Exchange
         bool? linear = null;
         bool? inverse = null;
         object symbol = add(add(bs, "/"), quote);
-        object strike = null;
+        string? strike = null;
         if (isTrue(contract))
         {
             if (isTrue(swap))
@@ -12151,7 +12151,7 @@ public partial class binance : Exchange
             object type = this.safeString(parameters, "type");
             object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
             object fromId = this.safeString(accountsByType, fromAccount);
-            object toId = this.safeString(accountsByType, toAccount);
+            string? toId = this.safeString(accountsByType, toAccount);
             if (isTrue(isEqual(type, null)))
             {
                 if (isTrue(isEqual(fromId, null)))
@@ -13049,7 +13049,7 @@ public partial class binance : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbolVar, since, limit, "8h", parameters));
         }
         string? defaultType = this.safeString2(this.options, "fetchFundingRateHistory", "defaultType", "future");
-        object type = this.safeString(parameters, "type", defaultType);
+        string? type = this.safeString(parameters, "type", defaultType);
         object market = null;
         if (isTrue(!isEqual(symbolVar, null)))
         {
@@ -15457,7 +15457,7 @@ public partial class binance : Exchange
         {
             return null;
         }
-        object domain = this.safeString(urlParts, 2);
+        string? domain = this.safeString(urlParts, 2);
         if (isTrue(isEqual(domain, null)))
         {
             return null;
@@ -15731,7 +15731,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        object message = this.safeString(response, "msg");
+        string? message = this.safeString(response, "msg");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), message, add(add(this.id, " "), message));

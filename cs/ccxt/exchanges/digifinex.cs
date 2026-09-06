@@ -5114,7 +5114,7 @@ public partial class digifinex : Exchange
         object payload = add(pathPart, request);
         object url = add(getValue(getValue(this.urls, "api"), "rest"), payload);
         object query = this.omit(parameters, this.extractParams(path));
-        object urlencoded = null;
+        string? urlencoded = null;
         if (isTrue(isTrue(isTrue(signed) && isTrue((isEqual(pathPart, "/swap/v2")))) && isTrue((isEqual(method, "POST")))))
         {
             urlencoded = json(parameters);

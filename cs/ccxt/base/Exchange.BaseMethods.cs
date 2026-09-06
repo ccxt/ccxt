@@ -6245,7 +6245,7 @@ public partial class BaseExchange
         * @returns {boolean} true if a post only order, false otherwise
         */
         parameters ??= new Dictionary<string, object>();
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
         bool ioc = isEqual(timeInForce, "IOC");
@@ -6288,7 +6288,7 @@ public partial class BaseExchange
         * @returns {Array}
         */
         parameters ??= new Dictionary<string, object>();
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.safeBool(parameters, "postOnly", false);
         bool ioc = isEqual(timeInForce, "IOC");
         bool fok = isEqual(timeInForce, "FOK");
@@ -6529,7 +6529,7 @@ public partial class BaseExchange
         * @returns {string} returns the exchange specific value for timeInForce
         */
         parameters ??= new Dictionary<string, object>();
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce"); // supported values GTC, IOC, PO
+        string? timeInForce = this.safeStringUpper(parameters, "timeInForce"); // supported values GTC, IOC, PO
         if (isTrue(!isEqual(timeInForce, null)))
         {
             string? exchangeValue = this.safeString(getValue(this.options, "timeInForce"), timeInForce);
@@ -7301,10 +7301,10 @@ public partial class BaseExchange
             object id = this.safeString(entry, "id");
             if (isTrue(isEqual(id, null)))
             {
-                object price = this.safeString(entry, "price");
-                object amount = this.safeString(entry, "amount");
+                string? price = this.safeString(entry, "price");
+                string? amount = this.safeString(entry, "amount");
                 string? timestamp = this.safeString(entry, "timestamp");
-                object side = this.safeString(entry, "side");
+                string? side = this.safeString(entry, "side");
                 // unique trade identifier
                 if (isTrue(isEqual(timestamp, null)))
                 {
@@ -7578,7 +7578,7 @@ public partial class BaseExchange
         // parse 240119 to 19JAN24
         object year = slice(date, 0, 2);
         object monthRaw = slice(date, 2, 4);
-        object month = null;
+        string? month = null;
         object day = slice(date, 4, 6);
         if (isTrue(isEqual(monthRaw, "01")))
         {
@@ -7649,7 +7649,7 @@ public partial class BaseExchange
         }
         object year = slice(date, 0, 2);
         object monthName = slice(date, 2, 5);
-        object month = this.safeString(monthMappping, monthName);
+        string? month = this.safeString(monthMappping, monthName);
         object day = slice(date, 5, 7);
         object reconstructedDate = add(add(day, month), year);
         return reconstructedDate;

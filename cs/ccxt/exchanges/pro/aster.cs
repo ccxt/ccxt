@@ -346,7 +346,7 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
+            string suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
         }
@@ -407,7 +407,7 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
+            string suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(market, "symbol")));
         }
@@ -1281,8 +1281,8 @@ public partial class aster : ccxt.aster
             }
             object market = this.market(symbolString);
             symbolString = getValue(market, "symbol");
-            object unfiedTimeframe = this.safeString(data, 1);
-            object timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1);
+            string? timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
@@ -1346,8 +1346,8 @@ public partial class aster : ccxt.aster
             }
             object market = this.market(symbolString);
             symbolString = getValue(market, "symbol");
-            object unfiedTimeframe = this.safeString(data, 1);
-            object timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1);
+            string? timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
@@ -1490,7 +1490,7 @@ public partial class aster : ccxt.aster
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "spot");
         object listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
-        object listenKey = this.safeString(listenKeyOptions, type);
+        string? listenKey = this.safeString(listenKeyOptions, type);
         if (isTrue(isEqual(listenKey, null)))
         {
             return;
@@ -1528,7 +1528,7 @@ public partial class aster : ccxt.aster
     {
         type ??= "spot";
         object listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
-        object listenKey = this.safeString(listenKeyOptions, type);
+        string? listenKey = this.safeString(listenKeyOptions, type);
         object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
         return url;
     }
@@ -2042,7 +2042,7 @@ public partial class aster : ccxt.aster
             string? orderId = this.safeString(trade, "order");
             object tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
             tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
-            object symbol = this.safeString(trade, "symbol");
+            string? symbol = this.safeString(trade, "symbol");
             if (isTrue(isTrue(isTrue(!isEqual(orderId, null)) && isTrue(!isEqual(tradeFee, null))) && isTrue(!isEqual(symbol, null))))
             {
                 object cachedOrders = this.orders;

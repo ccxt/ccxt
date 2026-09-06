@@ -1939,7 +1939,7 @@ public partial class pacifica : Exchange
             string? symbol = this.safeString(order, "symbol");
             string? side = this.safeString(order, "side");
             string? price = this.safeString(order, "price");
-            object type = this.safeString(order, "type", "limit");
+            string? type = this.safeString(order, "type", "limit");
             object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)orderParams)["timestamp"] = timestamp;
             string? amount = this.safeString(order, "amount");

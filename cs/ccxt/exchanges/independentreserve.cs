@@ -559,7 +559,7 @@ public partial class independentreserve : Exchange
         // }
         Int64? timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
         object baseId = this.safeString(ticker, "PrimaryCurrencyCode");
-        object quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
+        string? quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
         object defaultMarketId = null;
         if (isTrue(isTrue((!isEqual(baseId, null))) && isTrue((!isEqual(quoteId, null)))))
         {
@@ -928,7 +928,7 @@ public partial class independentreserve : Exchange
         object amount = this.parseNumber(amountString);
         object cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         object baseId = this.safeString(trade, "PrimaryCurrencyCode");
-        object quoteId = this.safeString(trade, "SecondaryCurrencyCode");
+        string? quoteId = this.safeString(trade, "SecondaryCurrencyCode");
         object marketId = null;
         if (isTrue(isTrue((!isEqual(baseId, null))) && isTrue((!isEqual(quoteId, null)))))
         {

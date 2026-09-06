@@ -1962,7 +1962,7 @@ public partial class hibachi : Exchange
         if (isTrue(isEqual(method, "GET")))
         {
             object request = this.omit(parameters, this.extractParams(path));
-            object query = this.urlencode(request);
+            string query = this.urlencode(request);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));

@@ -881,7 +881,7 @@ public partial class derive : Exchange
         object expiry = null;
         object strike = null;
         string? optionType = null;
-        object optionLetter = null;
+        string? optionLetter = null;
         if (isTrue(isEqual(type, "erc20")))
         {
             spot = true;
@@ -1462,7 +1462,7 @@ public partial class derive : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 

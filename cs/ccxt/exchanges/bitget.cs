@@ -3396,7 +3396,7 @@ public partial class bitget : Exchange
             }
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(bs, "/"), quote);
-            object type = null;
+            string? type = null;
             bool swap = false;
             bool spot = false;
             bool future = false;
@@ -3438,7 +3438,7 @@ public partial class bitget : Exchange
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = slice(yearPart, 2, 4);
-                    object month = this.safeString(expiryParts, 1);
+                    string? month = this.safeString(expiryParts, 1);
                     object day = slice(dayPart, 0, 2);
                     object expiryString = add(add(year, month), day);
                     type = "future";
@@ -3717,7 +3717,7 @@ public partial class bitget : Exchange
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = slice(yearPart, 2, 4);
-                    object month = this.safeString(expiryParts, 1);
+                    string? month = this.safeString(expiryParts, 1);
                     object day = slice(dayPart, 0, 2);
                     object expiryString = add(add(year, month), day);
                     type = "future";

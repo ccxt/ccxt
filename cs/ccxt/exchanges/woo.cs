@@ -3715,7 +3715,7 @@ public partial class woo : Exchange
                 {
                     if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                     {
-                        object query = this.urlencode(parameters);
+                        string query = this.urlencode(parameters);
                         url = add(url, add("?", query));
                         auth = add(auth, add("?", query));
                     }

@@ -148,7 +148,7 @@ public partial class mudrex : ccxt.mudrex
         symbolVar = getValue(market, "symbol");
         string? priceType = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         if (isTrue(isTrue(!isEqual(interval, "1s")) && isTrue(!isEqual(interval, "1m"))))
         {
             throw new NotSupported ((string)add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
@@ -207,7 +207,7 @@ public partial class mudrex : ccxt.mudrex
     {
         object error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         string? code = this.safeString(error, "code");
-        object msg = this.safeString(error, "msg");
+        string? msg = this.safeString(error, "msg");
         object feedback = add(add(this.id, " "), msg);
         if (isTrue(isEqual(code, "429")))
         {

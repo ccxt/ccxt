@@ -332,10 +332,10 @@ public partial class toobit : ccxt.toobit
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
-            object symbolStr = this.safeString(data, 0);
+            string? symbolStr = this.safeString(data, 0);
             object market = this.market(symbolStr);
             object marketId = getValue(market, "id");
-            object unfiedTimeframe = this.safeString(data, 1, "1m");
+            string? unfiedTimeframe = this.safeString(data, 1, "1m");
             string? rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
             if (isTrue(isTrue(!isEqual(selectedTimeframe, null)) && isTrue(!isEqual(selectedTimeframe, rawTimeframe))))
             {
@@ -1427,10 +1427,10 @@ public partial class toobit : ccxt.toobit
         //        "desc": "Invalid Symbols!"
         //    }
         //
-        object code = this.safeString(message, "code");
+        string? code = this.safeString(message, "code");
         if (isTrue(!isEqual(code, null)))
         {
-            object desc = this.safeString(message, "desc");
+            string? desc = this.safeString(message, "desc");
             object msg = add(add(add(add(this.id, " code: "), code), " message: "), desc);
             var exception = new ExchangeError(((string)msg)); // c# fix
             ((WebSocketClient)client).reject(exception);

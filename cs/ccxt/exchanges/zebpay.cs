@@ -2194,7 +2194,7 @@ public partial class zebpay : Exchange
             if (isTrue(isTrue(isEqual(method, "GET")) || isTrue((isTrue(isEqual(method, "DELETE")) && isTrue(isSpot)))))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
-                object queryString = this.urlencode(parameters);
+                string queryString = this.urlencode(parameters);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
                 url = add(url, add("?", queryString));
             } else
@@ -2233,7 +2233,7 @@ public partial class zebpay : Exchange
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         string? errorCode = this.safeString2(response, "code", "statusCode");
-        object message = this.safeString2(response, "msg", "statusDescription");
+        string? message = this.safeString2(response, "msg", "statusDescription");
         object feedback = add(add(this.id, " "), message);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

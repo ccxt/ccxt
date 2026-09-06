@@ -779,7 +779,7 @@ public partial class bittrade : Exchange
         {
             object market = getValue(markets, i);
             object baseId = this.safeString(market, "base-currency");
-            object quoteId = this.safeString(market, "quote-currency");
+            string? quoteId = this.safeString(market, "quote-currency");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             string? state = this.safeString(market, "state");

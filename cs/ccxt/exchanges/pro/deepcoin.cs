@@ -615,7 +615,7 @@ public partial class deepcoin : ccxt.deepcoin
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add("ohlcv", "::"), symbolVar), "::"), timeframeVar);
         object suffix = add("_", interval);
         object ohlcv = await this.watchPublic(market, messageHash, "11", parameters, suffix);
@@ -647,7 +647,7 @@ public partial class deepcoin : ccxt.deepcoin
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(timeframes, timeframe, timeframe);
+        string? interval = this.safeString(timeframes, timeframe, timeframe);
         object messageHash = add(add(add(add("ohlcv", "::"), symbol), "::"), timeframe);
         object suffix = add("_", interval);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1394,7 +1394,7 @@ public partial class deepcoin : ccxt.deepcoin
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             Int64? subId = this.safeInteger(data, "L");
             object subscription = this.safeDict(subscriptionsById, subId, new Dictionary<string, object>() {}); // original watch subscription
-            object subHash = this.safeString(subscription, "subHash");
+            string? subHash = this.safeString(subscription, "subHash");
             object unsubHash = add("unsubscribe::", subHash);
             object unsubsciption = this.safeDict(((WebSocketClient)client).subscriptions, unsubHash, new Dictionary<string, object>() {}); // unWatch subscription
             this.handleUnSubscription(client as WebSocketClient, unsubsciption);

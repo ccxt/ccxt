@@ -475,7 +475,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //         "time": "2020-01-31T20:03:41.158814Z"
         //     }
         //
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object trade = this.parseWsTrade(message);
@@ -503,7 +503,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
 
     public virtual object handleMyTrade(WebSocketClient client, object message)
     {
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object trade = this.parseWsTrade(message);
@@ -709,7 +709,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             this.orders = currentOrders;
         }
         string? type = this.safeString(message, "type");
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object messageHash = add("orders:", marketId);
@@ -895,7 +895,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //         "last_size": "0.41969131"
         //     }
         //
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object ticker = this.parseTicker(message);
@@ -1011,7 +1011,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     }
         //
         string? type = this.safeString(message, "type");
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         string name = "level2";
@@ -1087,7 +1087,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     }
         //
         string? errMsg = this.safeString(message, "message");
-        object reason = this.safeString(message, "reason");
+        string? reason = this.safeString(message, "reason");
         try
         {
             if (isTrue(isEqual(errMsg, "Authentication Failed")))

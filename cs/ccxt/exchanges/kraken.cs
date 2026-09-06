@@ -1028,7 +1028,7 @@ public partial class kraken : Exchange
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             List<object> parts = ((string)currencyId).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             string? firstPart = this.safeString(parts, 0);
-            object secondPart = this.safeString(parts, 1);
+            string? secondPart = this.safeString(parts, 1);
             return add(add(base.safeCurrencyCode(firstPart, currency), "."), secondPart);
         }
         return base.safeCurrencyCode(currencyId, currency);
@@ -2245,7 +2245,7 @@ public partial class kraken : Exchange
             }
             marketId = this.safeString(parts, 2);
             object part4 = this.safeString(parts, 4);
-            object part5 = this.safeString(parts, 5);
+            string? part5 = this.safeString(parts, 5);
             if (isTrue(isTrue(isEqual(part4, "limit")) || isTrue(isEqual(part4, "market"))))
             {
                 rawType = part4; // eg, limit, market
@@ -2421,10 +2421,10 @@ public partial class kraken : Exchange
         bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         bool isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
-        object trailingAmount = this.safeString(parameters, "trailingAmount");
-        object trailingPercent = this.safeString(parameters, "trailingPercent");
+        string? trailingAmount = this.safeString(parameters, "trailingAmount");
+        string? trailingPercent = this.safeString(parameters, "trailingPercent");
         string? trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
-        object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
+        string? trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         bool isTrailingAmountOrder = !isEqual(trailingAmount, null);
         bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
         bool isLimitOrder = isTrue((!isEqual(type, null))) && isTrue(((string)type).EndsWith(((string)"limit"))); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -3708,7 +3708,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(codeVar);
-        object network = this.safeStringUpper(parameters, "network");
+        string? network = this.safeStringUpper(parameters, "network");
         object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
         network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
         parameters = this.omit(parameters, "network");

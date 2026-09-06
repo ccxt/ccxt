@@ -475,7 +475,7 @@ public partial class nado : Exchange
         bool isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
         if (isTrue(isStopOrder))
         {
-            object triggerDirection = this.safeStringLower(parameters, "triggerDirection");
+            string? triggerDirection = this.safeStringLower(parameters, "triggerDirection");
             if (isTrue(isEqual(triggerDirection, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
@@ -491,7 +491,7 @@ public partial class nado : Exchange
             ((IDictionary<string,object>)placeOrder)["trigger"] = trigger;
         } else if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
         {
-            object triggerDirection = "";
+            string triggerDirection = "";
             if (isTrue(isBuy))
             {
                 triggerDirection = ((bool) isTrue(isStopLossOrder)) ? "above" : "below";

@@ -998,7 +998,7 @@ public partial class kucoin : ccxt.kucoin
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("candles:", symbolVar), ":"), timeframeVar);
         object uta = false;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
@@ -1060,7 +1060,7 @@ public partial class kucoin : ccxt.kucoin
         var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        object period = this.safeString(this.timeframes, timeframe, timeframe);
+        string? period = this.safeString(this.timeframes, timeframe, timeframe);
         List<object> symbolAndTimeframe = new List<object>() {symbol, timeframe};
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbols", new List<object>() {symbol} },
@@ -1925,7 +1925,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
-        object depth = this.safeString(message, "dp");
+        string? depth = this.safeString(message, "dp");
         object messageHash = add(add(add("uta:orderbook:", symbol), ":depth:"), depth);
         if (isTrue(isEqual(type, "snapshot")))
         {
@@ -2477,7 +2477,7 @@ public partial class kucoin : ccxt.kucoin
             this.handleMyTrade(client as WebSocketClient, message);
         }
         object parsed = this.parseWsOrder(data);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         string? triggerPrice = this.safeString(parsed, "triggerPrice");
         bool isTriggerOrder = (!isEqual(triggerPrice, null));
@@ -2589,7 +2589,7 @@ public partial class kucoin : ccxt.kucoin
         //
         object data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         object parsed = this.parseWsUtaOrder(data);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         if (isTrue(isEqual(this.orders, null)))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);

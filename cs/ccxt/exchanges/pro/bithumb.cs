@@ -719,7 +719,7 @@ public partial class bithumb : ccxt.bithumb
                 fallbackSymbol = this.safeSymbol(marketId, null, "_");
             }
             object parsed = this.parseWsTrade(rawTrade);
-            object symbol = this.safeString(parsed, "symbol", fallbackSymbol);
+            string? symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!isTrue((inOp(this.trades, symbol))))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -810,8 +810,8 @@ public partial class bithumb : ccxt.bithumb
         object error = this.safeDict(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            object errorName = this.safeString(error, "name", "Error");
-            object errorMessage = this.safeString(error, "message", "");
+            string? errorName = this.safeString(error, "name", "Error");
+            string? errorMessage = this.safeString(error, "message", "");
             object addedMessage = null;
             if (isTrue((isGreaterThan(((string)errorMessage).Length, 0))))
             {
@@ -836,7 +836,7 @@ public partial class bithumb : ccxt.bithumb
             }
             if (isTrue(!isEqual(errorCode, "0000")))
             {
-                object msg = this.safeString(message, "resmsg");
+                string? msg = this.safeString(message, "resmsg");
                 throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
             }
             return true;
@@ -1062,7 +1062,7 @@ public partial class bithumb : ccxt.bithumb
         //
         string messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (isTrue(isEqual(this.orders, null)))
         {

@@ -1773,7 +1773,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        message: 'Already subscribed to feed, re-requesting'
         //    }
         //
-        object errMsg = this.safeString(message, "message");
+        string? errMsg = this.safeString(message, "message");
         // Benign "already subscribed" notice: the original subscription is still
         // active and delivering data on this socket. The generic client.reject
         // below rejects every pending future on the connection, so a stray

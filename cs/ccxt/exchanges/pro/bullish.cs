@@ -674,7 +674,7 @@ public partial class bullish : ccxt.bullish
             { "topic", "assetAccounts" },
         };
         object messageHash = "balance";
-        object tradingAccountId = this.safeString(parameters, "tradingAccountId");
+        string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
         if (isTrue(!isEqual(tradingAccountId, null)))
         {
             parameters = this.omit(parameters, "tradingAccountId");
@@ -727,7 +727,7 @@ public partial class bullish : ccxt.bullish
         //         }
         //     }
         //
-        object tradingAccountId = this.safeString(message, "tradingAccountId");
+        string? tradingAccountId = this.safeString(message, "tradingAccountId");
         if (isTrue(isEqual(tradingAccountId, null)))
         {
             return;

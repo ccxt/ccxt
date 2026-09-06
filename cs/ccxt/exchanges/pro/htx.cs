@@ -398,7 +398,7 @@ public partial class htx : ccxt.htx
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
         object ohlcv = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
@@ -431,7 +431,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        string? interval = this.safeString(this.timeframes, timeframe, timeframe);
         object subMessageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
         string topic = "ohlcv";
         ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}};
@@ -602,7 +602,7 @@ public partial class htx : ccxt.htx
         //         }
         //     }
         //
-        object symbol = this.safeString(subscription, "symbol");
+        string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(subscription, "messageHash");
         if (isTrue(isEqual(messageHash, null)))
         {
@@ -993,7 +993,7 @@ public partial class htx : ccxt.htx
         bool isV5Linear = (isTrue(linear) && isTrue((isTrue(swap) || isTrue(future))));
         if (isTrue(isEqual(type, "spot")))
         {
-            object mode = null;
+            string? mode = null;
             if (isTrue(isEqual(mode, null)))
             {
                 mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
@@ -1040,7 +1040,7 @@ public partial class htx : ccxt.htx
         string? orderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
         orderType = this.safeString(parameters, "orderType", orderType);
         parameters = this.omit(parameters, "orderType");
-        object marketCode = null;
+        string? marketCode = null;
         if (isTrue(isTrue((!isEqual(market, null))) && isTrue((!isEqual(getValue(market, "lowercaseId"), null)))))
         {
             marketCode = ((string)getValue(market, "lowercaseId")).ToLower();
@@ -1435,7 +1435,7 @@ public partial class htx : ccxt.htx
             return;
         }
         string genericMessageHash = ((string)messageHash).Replace((string)add(".", getValue(market, "lowercaseId")), (string)"");
-        object lowerCaseBaseId = this.safeStringLower(market, "baseId");
+        string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
         genericMessageHash = ((string)genericMessageHash).Replace((string)add(".", lowerCaseBaseId), (string)"");
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, genericMessageHash});
     }
@@ -2006,7 +2006,7 @@ public partial class htx : ccxt.htx
         bool isV5Linear = (isTrue(linear) && isTrue((isTrue(swap) || isTrue(future))));
         if (isTrue(isEqual(type, "spot")))
         {
-            object mode = this.safeString2(this.options, "watchBalance", "mode", "2");
+            string? mode = this.safeString2(this.options, "watchBalance", "mode", "2");
             mode = this.safeString(parameters, "mode", mode);
             messageHash = add(add("accounts.update", "#"), mode);
             channel = messageHash;
@@ -3031,7 +3031,7 @@ public partial class htx : ccxt.htx
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 string genericOrderHash = ((string)messageHash).Replace((string)add(".", getValue(market, "lowercaseId")), (string)"");
-                object lowerCaseBaseId = this.safeStringLower(market, "baseId");
+                string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
                 genericOrderHash = ((string)genericOrderHash).Replace((string)add(".", lowerCaseBaseId), (string)"");
                 object genericTradesHash = add(add(genericOrderHash, ":"), "trade");
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, genericTradesHash});
@@ -3281,7 +3281,7 @@ public partial class htx : ccxt.htx
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString(parameters, "url");
-        object hostname = this.safeString(parameters, "hostname");
+        string? hostname = this.safeString(parameters, "hostname");
         string? type = this.safeString(parameters, "type");
         if (isTrue(isTrue(isTrue(isEqual(url, null)) || isTrue(isEqual(hostname, null))) || isTrue(isEqual(type, null))))
         {

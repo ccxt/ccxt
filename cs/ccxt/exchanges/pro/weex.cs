@@ -645,7 +645,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
+        string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -670,8 +670,8 @@ public partial class weex : ccxt.weex
                 throw new BadRequest ((string)add(add(add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
             }
             symbolString = getValue(market, "symbol");
-            object unifiedTimeframe = this.safeString(data, 1, "1");
-            object interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            string? unifiedTimeframe = this.safeString(data, 1, "1");
+            string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
             object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
             object messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
             ((IList<object>)channels).Add(channel);
@@ -725,7 +725,7 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
+        string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         List<object> channels = new List<object>() {};
         List<object> subHashes = new List<object>() {};
@@ -751,8 +751,8 @@ public partial class weex : ccxt.weex
                 throw new BadRequest ((string)add(add(add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
             }
             symbolString = getValue(market, "symbol");
-            object unifiedTimeframe = this.safeString(data, 1, "1");
-            object interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            string? unifiedTimeframe = this.safeString(data, 1, "1");
+            string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
             object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
             object messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
             object unSubMessageHash = add("unsubscribe::", messageHash);
@@ -1255,7 +1255,7 @@ public partial class weex : ccxt.weex
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = (!isEqual(marketType, "spot"));
-        object subHash = ((bool) isTrue(isContract)) ? "myContractTrades" : "myTrades";
+        string subHash = ((bool) isTrue(isContract)) ? "myContractTrades" : "myTrades";
         object unSubHash = add("unsubscribe::", subHash);
         string channel = "fill";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1489,7 +1489,7 @@ public partial class weex : ccxt.weex
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = (!isEqual(marketType, "spot"));
-        object subHash = ((bool) isTrue(isContract)) ? "contractOrders" : "orders";
+        string subHash = ((bool) isTrue(isContract)) ? "contractOrders" : "orders";
         object unSubHash = add("unsubscribe::", subHash);
         string channel = "orders";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

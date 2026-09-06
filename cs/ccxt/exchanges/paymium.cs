@@ -743,7 +743,7 @@ public partial class paymium : Exchange
             {
                 if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
-                    object queryString = this.urlencode(query);
+                    string queryString = this.urlencode(query);
                     auth = add(auth, queryString);
                     url = add(url, add("?", queryString));
                 }

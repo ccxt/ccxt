@@ -425,7 +425,7 @@ public partial class testMainClass : BaseTest
                     object nextTs = getValue(getValue(items, i), "timestamp");
                     if (isTrue(isTrue(!isEqual(currentTs, null)) && isTrue(!isEqual(nextTs, null))))
                     {
-                        object ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
+                        string ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
                         bool comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
                         assert(comparison, add(add(add(add(add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ((object)currentTs).ToString()), " is opposite with its next "), ((object)nextTs).ToString()), " "), exchange.json(items)));
                     }
@@ -487,7 +487,7 @@ public partial class testMainClass : BaseTest
             // find out best bid/ask price
             object bestBid = null;
             object bestAsk = null;
-            object usedMethod = null;
+            string? usedMethod = null;
             if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), false)))))
             {
                 usedMethod = "fetchOrderBook";

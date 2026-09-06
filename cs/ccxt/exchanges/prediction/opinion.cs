@@ -1075,7 +1075,7 @@ public partial class opinion : PredictionExchange
                 { "takerAmount", "0" },
             };
         }
-        object priceStr = this.decimalToPrecision(this.numberToString(price), ROUND, 6, DECIMAL_PLACES);
+        string priceStr = this.decimalToPrecision(this.numberToString(price), ROUND, 6, DECIMAL_PLACES);
         List<object> priceParts = ((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? priceInt = this.safeString(priceParts, 0, "0");
         string? priceFrac = this.safeString(priceParts, 1, "");
@@ -2032,7 +2032,7 @@ public partial class opinion : PredictionExchange
         //
         string? tokenId = this.safeString(message, "tokenId");
         object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        object sym = this.safeString(outcomeObj, "outcome");
+        string? sym = this.safeString(outcomeObj, "outcome");
         if (isTrue(isEqual(sym, null)))
         {
             return;
@@ -2087,7 +2087,7 @@ public partial class opinion : PredictionExchange
         //
         string? tokenId = this.safeString(message, "tokenId");
         object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        object sym = this.safeString(outcomeObj, "outcome");
+        string? sym = this.safeString(outcomeObj, "outcome");
         if (isTrue(isEqual(sym, null)))
         {
             return;
@@ -2148,7 +2148,7 @@ public partial class opinion : PredictionExchange
         //
         string? tokenId = this.safeString(message, "tokenId");
         object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        object sym = this.safeString(outcomeObj, "outcome");
+        string? sym = this.safeString(outcomeObj, "outcome");
         if (isTrue(isEqual(sym, null)))
         {
             return;

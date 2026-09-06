@@ -2547,7 +2547,7 @@ public partial class htx : Exchange
         {
             object market = getValue(markets, i);
             object baseId = null;
-            object quoteId = null;
+            string? quoteId = null;
             object settleId = null;
             object id = null;
             string? lowercaseId = null;
@@ -3904,7 +3904,7 @@ public partial class htx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object priceType = this.safeString2(parameters, "priceType", "price");
+        string? priceType = this.safeString2(parameters, "priceType", "price");
         parameters = this.omit(parameters, new List<object>() {"priceType", "price"});
         object until = null;
         var untilparametersVariable = this.handleParamInteger(parameters, "until");

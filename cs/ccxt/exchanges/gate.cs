@@ -1844,8 +1844,8 @@ public partial class gate : Exchange
             bs = this.safeString(marketIdBase, 0);
             expiry = slice(((string)expiry), 2, 8); // convert 20230728 to 230728
         }
-        object strike = this.safeString(optionParts, 2);
-        object optionType = this.safeString(optionParts, 3);
+        string? strike = this.safeString(optionParts, 2);
+        string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
@@ -2381,9 +2381,9 @@ public partial class gate : Exchange
                 object quote = this.safeCurrencyCode(quoteId);
                 object symbol = add(add(bs, "/"), quote);
                 object expiry = this.safeTimestamp(market, "expiration_time");
-                object strike = this.safeString(market, "strike_price");
+                string? strike = this.safeString(market, "strike_price");
                 object isCall = this.safeValue(market, "is_call");
-                object optionLetter = ((bool) isTrue((isEqual(isCall, true)))) ? "C" : "P";
+                string optionLetter = ((bool) isTrue((isEqual(isCall, true)))) ? "C" : "P";
                 string optionType = ((bool) isTrue((isEqual(isCall, true)))) ? "call" : "put";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
                 string? priceDeviate = this.safeString(market, "order_price_deviate");
@@ -8430,7 +8430,7 @@ public partial class gate : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object queryString = "";
+            string queryString = "";
             string rawQueryString = "";
             bool requiresURLEncoding = false;
             if (isTrue(isTrue((isTrue((isEqual(type, "futures"))) || isTrue((isEqual(type, "delivery"))))) && isTrue(isEqual(method, "POST"))))

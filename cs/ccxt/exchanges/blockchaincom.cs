@@ -1274,7 +1274,7 @@ public partial class blockchaincom : Exchange
         {
             await this.loadMarkets();
         }
-        object accountName = this.safeString(parameters, "account", "primary");
+        string? accountName = this.safeString(parameters, "account", "primary");
         parameters = this.omit(parameters, "account");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", accountName },
