@@ -659,10 +659,33 @@ function order_router_test_unwind_is_never_automatic($router) {
     order_router_assert($unwind['steps'][0]['exchangeId'] === 'binance', 'unwound in reverse execution order');
     order_router_assert($unwind['steps'][1]['exchangeId'] === 'mexc', 'unwound in reverse execution order');
     order_router_assert($unwind['steps'][1]['side'] === 'buy', 'leftover quote is spent buying the asset back');
-    order_router_assert(order_router_numbers_match($unwind['steps'][1]['amount'], 500), '44.5 USDT at 0.089 is 500 DOGE');
     order_router_assert($unwind['steps'][1]['reachesFrom'] === true, 'buying DOGE back gets you home');
     order_router_assert($unwind['steps'][0]['side'] === 'sell', 'leftover base is sold back');
     order_router_assert($unwind['steps'][0]['reachesFrom'] === false, 'selling SOL for USDT is not yet DOGE');
+}
+
+function order_router_test_unwind_buy_is_fundable($router) {
+    //  The residual IS the budget. Sizing the buy at the expected price and then
+    //  pricing it slippage above that orders more quote than the venue is holding:
+    //  44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225 limit costs
+    //  44.61125 - the venue rejects it for insufficient funds, or partially fills
+    //  and leaves the rest of the stranded money stranded on a halted route.
+    $fixture = order_router_fixture();
+    $unwind = $router->buildUnwindPlan($fixture['reports']['haltedCrossVenue']);
+    $buy = $unwind['steps'][1];
+    order_router_assert($buy['side'] === 'buy', 'the mexc leg is the buy');
+    $residual = 44.5;
+    $spend = $buy['amount'] * $buy['limitPrice'];
+    order_router_assert($spend <= $residual + 1e-9, 'the buy spends no more than the residual holds');
+    //  and it does not leave the residual pointlessly unspent either
+    order_router_assert($spend >= $residual - 1e-9, 'the buy spends the whole residual');
+    //  the notional the safety cap sees must be that same real spend
+    order_router_assert(order_router_numbers_match($buy['notionalQuote'], $spend), 'notionalQuote is priced at the limit the order is placed at');
+    //  the sell side is sized on the residual itself - there is no budget to run out of
+    $sell = $unwind['steps'][0];
+    order_router_assert($sell['side'] === 'sell', 'the binance leg is the sell');
+    order_router_assert(order_router_numbers_match($sell['amount'], 0.2), 'the whole 0.2 SOL residual is sold');
+    order_router_assert(order_router_numbers_match($sell['notionalQuote'], 0.2 * $sell['limitPrice']), 'the sell notional is priced at its limit too');
 }
 
 //  ---------------------------------------------------------------------------
@@ -1129,9 +1152,57 @@ function order_router_test_order_id_survives_a_failure_after_create($router) {
     order_router_assert($okReport['steps'][0]['orderId'] === 'stub-order', 'an immediate order reports its id too');
     //  and an "immediate" order the venue reports as STILL OPEN is a resting
     //  order, which is what a venue that silently drops timeInForce leaves you
-    order_router_assert(count($okReport['openOrders']) === 1, 'a still-open immediate order is reported');
-    order_router_assert($okReport['openOrders'][0]['orderId'] === 'stub-order', 'and it names the order');
-    order_router_assert($okReport['openOrders'][0]['reason'] === 'still_open', 'and says it is still open');
+    //  It is cancelled and re-read, so nothing is left resting to report.
+    order_router_assert(in_array('cancelOrder:stub-order', $other->calls, true), 'a resting order is cancelled, not merely noted');
+    order_router_assert(count($okReport['openOrders']) === 0, 'the cancel and the re-read settled it');
+}
+
+function order_router_test_a_resting_order_is_cancelled($router) {
+    //  A venue that silently drops timeInForce turns an immediate-or-cancel order
+    //  into a plain resting limit order. Recording it and continuing means the next
+    //  hop is sized on a fill that is still growing behind it, and the leftover
+    //  order stays live on a real venue after the route has returned and nobody is
+    //  watching it.
+    $strategies = array('sequential', 'parallel_within_hop', 'best_effort');
+    for ($i = 0; $i < count($strategies); $i++) {
+        $strategy = $strategies[$i];
+        $options = array('strategy' => $strategy, 'live' => true, 'usdRates' => array('USDT' => 1));
+        if ($strategy === 'best_effort') {
+            $options['acknowledgeDispersion'] = true;
+            $options['maxOrders'] = 4;
+        }
+        //  1. the cancel works: the order is gone, the re-read is what gets reported
+        $venue = new OrderRouterStubVenue('stub');
+        $venue->createdStatus = 'open';
+        $venue->fetchOrderResults = array(array('id' => 'stub-order', 'status' => 'canceled', 'filled' => 0.0001, 'average' => 100000, 'cost' => 10));
+        $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.0002, 100000), array('slippageBps' => 0));
+        $report = $router->execute($plan, array('stub' => $venue), $options);
+        order_router_assert(in_array('cancelOrder:stub-order', $venue->calls, true), $strategy . ': the resting order is cancelled');
+        order_router_assert(count($report['openOrders']) === 0, $strategy . ': nothing is left resting');
+        //  the re-read is authoritative - the cancel and a fill crossed
+        order_router_assert(order_router_numbers_match($report['steps'][0]['filledAmount'], 0.0001), $strategy . ': the fill observed AFTER the cancel is the one reported');
+        order_router_assert($report['steps'][0]['status'] === 'partial', $strategy . ': a real partial fill, not an unknown');
+        //  2. the cancel fails: the order can still fill in full after this returns,
+        //     so nothing downstream may be sized on what was observed
+        $stubborn = new OrderRouterStubVenue('stub');
+        $stubborn->createdStatus = 'open';
+        $stubborn->cancelThrows = true;
+        $plan2 = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.0002, 100000), array('slippageBps' => 0));
+        $failed = $router->execute($plan2, array('stub' => $stubborn), $options);
+        order_router_assert($failed['steps'][0]['status'] === 'outcome_unknown', $strategy . ': an uncancellable resting order is never a settled step');
+        order_router_assert(count($failed['openOrders']) === 1, $strategy . ': the operator is told what is still live');
+        order_router_assert($failed['openOrders'][0]['orderId'] === 'stub-order', $strategy . ': and it names the order');
+        order_router_assert($failed['openOrders'][0]['reason'] === 'cancel_failed', $strategy . ': and says the cancel failed');
+        //  3. the cancel is accepted and the venue still calls it open: same rule
+        $ghost = new OrderRouterStubVenue('stub');
+        $ghost->createdStatus = 'open';
+        $ghost->fetchOrderResults = array(array('id' => 'stub-order', 'status' => 'open', 'filled' => 0, 'average' => 0, 'cost' => 0));
+        $plan3 = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.0002, 100000), array('slippageBps' => 0));
+        $stillOpen = $router->execute($plan3, array('stub' => $ghost), $options);
+        order_router_assert($stillOpen['steps'][0]['status'] === 'outcome_unknown', $strategy . ': a cancel the venue ignored leaves the outcome unknown');
+        order_router_assert(count($stillOpen['openOrders']) === 1, $strategy . ': and it is reported');
+        order_router_assert($stillOpen['openOrders'][0]['reason'] === 'still_open', $strategy . ': as still open');
+    }
 }
 
 
@@ -1178,6 +1249,7 @@ function test_order_router() {
         'reconcileExecutionStep never scales a downstream order UP' => 'ccxt\order_router_test_reconcile_never_scales_up',
         'reconcileExecutionStep halts on a total miss and on an over-tolerance shortfall' => 'ccxt\order_router_test_reconcile_halts',
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
+        'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',
         'dry_run is the default: a live-looking call with live unset places nothing' => 'ccxt\order_router_test_dry_run_is_the_default',
         'execute refuses to go live without a way to value the trade in USD — when a cap is set' => 'ccxt\order_router_test_execute_refuses_unvaluable',
         'execute refuses to go live above a cap the caller set' => 'ccxt\order_router_test_execute_refuses_above_cap',
@@ -1193,6 +1265,7 @@ function test_order_router() {
         'limit_protected refuses a non-positive pollIntervalMs before placing anything' => 'ccxt\order_router_test_limit_protected_refuses_a_zero_poll_interval',
         'limit_protected keeps the fill from an order the venue canceled on the last poll' => 'ccxt\order_router_test_limit_protected_keeps_a_venue_side_cancel_fill',
         'a failure after createOrder still reports the order id and an open order' => 'ccxt\order_router_test_order_id_survives_a_failure_after_create',
+        'a resting order on an immediate path is cancelled, and a cancel that fails halts the route' => 'ccxt\order_router_test_a_resting_order_is_cancelled',
         'an unknown strategy is refused even in dry run' => 'ccxt\order_router_test_unknown_strategy_is_refused',
         'a plan carries its age, and a stale one is refused only when asked' => 'ccxt\order_router_test_plan_age_is_reported_and_refused_only_when_asked',
         'atomic_ish demands the whole route pre-funded' => 'ccxt\order_router_test_atomic_ish_demands_prefunding',

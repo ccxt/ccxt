@@ -449,10 +449,33 @@ def test_unwind_never_automatic():
     venues = [unwind['steps'][0]['exchangeId'], unwind['steps'][1]['exchangeId']]
     assert venues == ['binance', 'mexc'], 'unwound in reverse execution order'
     assert unwind['steps'][1]['side'] == 'buy', 'leftover quote is spent buying the asset back'
-    assert unwind['steps'][1]['amount'] == 500, '44.5 USDT at 0.089 is 500 DOGE'
     assert unwind['steps'][1]['reachesFrom'] is True
     assert unwind['steps'][0]['side'] == 'sell', 'leftover base is sold back'
     assert unwind['steps'][0]['reachesFrom'] is False, 'selling SOL for USDT is not yet DOGE'
+
+
+@test('a buy-side unwind order never spends more quote than the residual actually holds')
+def test_unwind_buy_is_fundable():
+    # The residual IS the budget. Sizing the buy at the expected price and then
+    # pricing it slippage above that orders more quote than the venue is holding:
+    # 44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225 limit costs
+    # 44.61125 - the venue rejects it for insufficient funds, or partially fills
+    # and leaves the rest of the stranded money stranded on a halted route.
+    unwind = router.build_unwind_plan(fixture['reports']['haltedCrossVenue'])
+    buy = unwind['steps'][1]
+    assert buy['side'] == 'buy'
+    residual = 44.5
+    spend = buy['amount'] * buy['limitPrice']
+    assert spend <= residual + 1e-9, 'buy spends ' + str(spend) + ' of a ' + str(residual) + ' residual'
+    # and it does not leave the residual pointlessly unspent either
+    assert spend >= residual - 1e-9, 'buy spends ' + str(spend) + ', short of the ' + str(residual) + ' residual'
+    # the notional the safety cap sees must be that same real spend
+    assert numbers_match(buy['notionalQuote'], spend), 'notionalQuote is priced at the limit the order is placed at'
+    # the sell side is sized on the residual itself - there is no budget to run out of
+    sell = unwind['steps'][0]
+    assert sell['side'] == 'sell'
+    assert sell['amount'] == 0.2, 'the whole 0.2 SOL residual is sold'
+    assert numbers_match(sell['notionalQuote'], 0.2 * sell['limitPrice'])
 
 
 @test('build_unwind_plan reverses the step that PRODUCED a residual, never one that consumed it')
@@ -478,7 +501,7 @@ def test_unwind_sources_the_producing_step():
     assert unwind['residualCount'] == 2, 'the leftover USDT and the bought SOL are both stranded'
     leftover = unwind['steps'][1]
     assert leftover['asset'] == 'USDT'
-    assert numbers_match(leftover['amount'], 24.5 / 0.089), '24.5 USDT at 0.089 buys back 275.28 DOGE'
+    assert numbers_match(leftover['amount'], 24.5 / (0.089 * 1.0025)), '24.5 USDT at the 0.0892225 limit buys back 274.6 DOGE'
     # sourcing the CONSUMING step instead would emit sell 24.5 SOL on SOL/USDT:
     # the wrong side of the wrong market, in an asset you do not hold
     assert leftover['symbol'] == 'DOGE/USDT', 'the market that produced the residual'
@@ -875,10 +898,55 @@ def test_order_id_survives_a_failure_after_create():
     ok_report = router.execute(plan, {'stub': other}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
     assert ok_report['steps'][0]['orderId'] == 'stub-order'
     # and an "immediate" order the venue reports as STILL OPEN is a resting
-    # order, which is what a venue that silently drops timeInForce leaves you
-    assert len(ok_report['openOrders']) == 1
-    assert ok_report['openOrders'][0]['orderId'] == 'stub-order'
-    assert ok_report['openOrders'][0]['reason'] == 'still_open'
+    # order - which is what a venue that silently drops timeInForce leaves you.
+    # It is cancelled and re-read, so nothing is left resting to report.
+    assert 'cancelOrder:stub-order' in other.calls, 'a resting order is cancelled, not merely noted'
+    assert len(ok_report['openOrders']) == 0, 'the cancel and the re-read settled it'
+
+
+@test('a resting order on an immediate path is cancelled, and a cancel that fails halts the route')
+def _():
+    # A venue that silently drops timeInForce turns an immediate-or-cancel order
+    # into a plain resting limit order. Recording it and continuing means the next
+    # hop is sized on a fill that is still growing behind it, and the leftover
+    # order stays live on a real venue after the route has returned and nobody is
+    # watching it.
+    for strategy in ['sequential', 'parallel_within_hop', 'best_effort']:
+        options = {'strategy': strategy, 'live': True, 'usdRates': {'USDT': 1}}
+        if strategy == 'best_effort':
+            options['acknowledgeDispersion'] = True
+            options['maxOrders'] = 4
+        # 1. the cancel works: the order is gone, the re-read is what gets reported
+        venue = StubVenue('stub')
+        venue.created_status = 'open'
+        venue.fetch_order_results = [{'id': 'stub-order', 'status': 'canceled', 'filled': 0.0001, 'average': 100000, 'cost': 10}]
+        plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.0002, 100000), {'slippageBps': 0})
+        report = router.execute(plan, {'stub': venue}, options)
+        assert 'cancelOrder:stub-order' in venue.calls, strategy + ': the resting order is cancelled'
+        assert len(report['openOrders']) == 0, strategy + ': nothing is left resting'
+        # the re-read is authoritative - the cancel and a fill crossed
+        assert report['steps'][0]['filledAmount'] == 0.0001, strategy + ': the fill observed AFTER the cancel is the one reported'
+        assert report['steps'][0]['status'] == 'partial', strategy + ': a real partial fill, not an unknown'
+        # 2. the cancel fails: the order can still fill in full after this returns,
+        #    so nothing downstream may be sized on what was observed
+        stubborn = StubVenue('stub')
+        stubborn.created_status = 'open'
+        stubborn.cancel_throws = True
+        plan2 = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.0002, 100000), {'slippageBps': 0})
+        failed = router.execute(plan2, {'stub': stubborn}, options)
+        assert failed['steps'][0]['status'] == 'outcome_unknown', strategy + ': an uncancellable resting order is never a settled step'
+        assert len(failed['openOrders']) == 1, strategy + ': the operator is told what is still live'
+        assert failed['openOrders'][0]['orderId'] == 'stub-order'
+        assert failed['openOrders'][0]['reason'] == 'cancel_failed'
+        # 3. the cancel is accepted and the venue still calls it open: same rule
+        ghost = StubVenue('stub')
+        ghost.created_status = 'open'
+        ghost.fetch_order_results = [{'id': 'stub-order', 'status': 'open', 'filled': 0, 'average': 0, 'cost': 0}]
+        plan3 = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.0002, 100000), {'slippageBps': 0})
+        still_open = router.execute(plan3, {'stub': ghost}, options)
+        assert still_open['steps'][0]['status'] == 'outcome_unknown', strategy + ': a cancel the venue ignored leaves the outcome unknown'
+        assert len(still_open['openOrders']) == 1
+        assert still_open['openOrders'][0]['reason'] == 'still_open'
 
 
 @test('a plan carries its age, and a stale one is refused only when asked')

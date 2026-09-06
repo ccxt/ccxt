@@ -85,6 +85,7 @@ public class OrderRouterTest
         Run("reconcileExecutionStep never scales a downstream order UP", ReconcileNeverScalesUp);
         Run("reconcileExecutionStep halts on a total miss and on an over-tolerance shortfall", ReconcileHalts);
         Run("buildUnwindPlan is never automatic and never nets across venues", UnwindNeverNetsAcrossVenues);
+        Run("a buy-side unwind order never spends more quote than the residual actually holds", UnwindBuyIsFundable);
         //  3. execute — stub venues only, and not one real order anywhere
         RunAsync("dry_run is the default: a live-looking call with live unset places nothing", DryRunIsTheDefault);
         RunAsync("execute refuses to go live without a way to value the trade in USD — when a cap is set", RefusesLiveWithoutRates);
@@ -92,6 +93,7 @@ public class OrderRouterTest
         RunAsync("sequential places IOC limit orders in plan order", SequentialPlacesIoc);
         RunAsync("sequential obeys the halt verdict and never starts the next hop", SequentialObeysHalt);
         RunAsync("a market order needs BOTH a venue that cannot do IOC and an explicit opt-in", MarketOrdersNeedBoth);
+        RunAsync("a resting order on an immediate path is cancelled, and a cancel that fails halts the route", ARestingOrderIsCancelled);
         RunAsync("parallel_within_hop contains a failing leg instead of abandoning its siblings", ParallelContainsFailure);
         RunAsync("best_effort refuses multi-hop and demands both of its acknowledgements", BestEffortRefusals);
         RunAsync("best_effort stops at maxOrders and never halts", BestEffortMaxOrders);
@@ -1005,10 +1007,36 @@ public class OrderRouterTest
         EqualString((string)ToDict(steps[0])["exchangeId"], "binance", "unwound in reverse execution order");
         EqualString((string)ToDict(steps[1])["exchangeId"], "mexc", "unwound in reverse execution order");
         EqualString((string)ToDict(steps[1])["side"], "buy", "leftover quote is spent buying the asset back");
-        EqualNumber(ToDouble(ToDict(steps[1])["amount"]), 500, "44.5 USDT at 0.089 is 500 DOGE");
         EqualBool((bool)ToDict(steps[1])["reachesFrom"], true, "that hop gets you home");
         EqualString((string)ToDict(steps[0])["side"], "sell", "leftover base is sold back");
         EqualBool((bool)ToDict(steps[0])["reachesFrom"], false, "selling SOL for USDT is not yet DOGE");
+    }
+
+    private static void UnwindBuyIsFundable()
+    {
+        //  The residual IS the budget. Sizing the buy at the expected price and
+        //  then pricing it slippage above that orders more quote than the venue
+        //  is holding: 44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the
+        //  0.0892225 limit costs 44.61125 — the venue rejects it for insufficient
+        //  funds, or partially fills and leaves the rest of the stranded money
+        //  stranded on a halted route.
+        var router = NewRouter();
+        var unwind = router.BuildUnwindPlan(FixtureSection("reports")["haltedCrossVenue"] as dict);
+        var steps = ToList(unwind["steps"]);
+        var buy = ToDict(steps[1]);
+        EqualString((string)buy["side"], "buy", "the mexc leg is the buy");
+        var residual = 44.5;
+        var spend = ToDouble(buy["amount"]) * ToDouble(buy["limitPrice"]);
+        Ok(spend <= residual + 1e-9, "the buy spends no more than the residual holds");
+        //  and it does not leave the residual pointlessly unspent either
+        Ok(spend >= residual - 1e-9, "the buy spends the whole residual");
+        //  the notional the safety cap sees must be that same real spend
+        Ok(NumbersMatch(ToDouble(buy["notionalQuote"]), spend), "notionalQuote is priced at the limit the order is placed at");
+        //  the sell side is sized on the residual itself — there is no budget to run out of
+        var sell = ToDict(steps[0]);
+        EqualString((string)sell["side"], "sell", "the binance leg is the sell");
+        EqualNumber(ToDouble(sell["amount"]), 0.2, "the whole 0.2 SOL residual is sold");
+        Ok(NumbersMatch(ToDouble(sell["notionalQuote"]), 0.2 * ToDouble(sell["limitPrice"])), "the sell notional is priced at its limit too");
     }
 
     //  -----------------------------------------------------------------------
@@ -1448,11 +1476,67 @@ public class OrderRouterTest
         var okReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         EqualString((string)ToDict(ToList(okReport["steps"])[0])["orderId"], "stub-order", "an immediate order reports its id too");
         //  and an "immediate" order the venue reports as STILL OPEN is a resting
-        //  order, which is what a venue that silently drops timeInForce leaves you
-        var stillOpen = ToList(okReport["openOrders"]);
-        EqualNumber(stillOpen.Count, 1, "a still-open immediate order is reported");
-        EqualString((string)ToDict(stillOpen[0])["orderId"], "stub-order", "and it names the order");
-        EqualString((string)ToDict(stillOpen[0])["reason"], "still_open", "and says it is still open");
+        //  order — which is what a venue that silently drops timeInForce leaves you.
+        //  It is cancelled and re-read, so nothing is left resting to report.
+        Ok(other.calls.Contains("cancelOrder:stub-order"), "a resting order is cancelled, not merely noted");
+        EqualNumber(ToList(okReport["openOrders"]).Count, 0, "the cancel and the re-read settled it");
+    }
+
+    private static async Task ARestingOrderIsCancelled()
+    {
+        //  A venue that silently drops timeInForce turns an immediate-or-cancel
+        //  order into a plain resting limit order. Recording it and continuing
+        //  means the next hop is sized on a fill that is still growing behind it,
+        //  and the leftover order stays live on a real venue after the route has
+        //  returned and nobody is watching it.
+        var router = NewRouter();
+        var strategies = new List<string>() { "sequential", "parallel_within_hop", "best_effort" };
+        for (var i = 0; i < strategies.Count; i++)
+        {
+            var strategy = strategies[i];
+            var options = new dict() { { "strategy", strategy }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } };
+            if (strategy == "best_effort")
+            {
+                options["acknowledgeDispersion"] = true;
+                options["maxOrders"] = 4.0;
+            }
+            //  1. the cancel works: the order is gone, the re-read is what gets reported
+            var venue = new StubVenue("stub");
+            venue.createdStatus = "open";
+            venue.fetchOrderResults.Add(new dict() { { "id", "stub-order" }, { "status", "canceled" }, { "filled", 0.0001 }, { "average", 100000.0 }, { "cost", 10.0 } });
+            var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.0002, 100000), new dict() { { "slippageBps", 0.0 } });
+            var report = await router.Execute(plan, Venues(venue), options);
+            Ok(venue.calls.Contains("cancelOrder:stub-order"), strategy + ": the resting order is cancelled");
+            EqualNumber(ToList(report["openOrders"]).Count, 0, strategy + ": nothing is left resting");
+            var step = ToDict(ToList(report["steps"])[0]);
+            //  the re-read is authoritative — the cancel and a fill crossed
+            EqualNumber(ToDouble(step["filledAmount"]), 0.0001, strategy + ": the fill observed AFTER the cancel is the one reported");
+            EqualString((string)step["status"], "partial", strategy + ": a real partial fill, not an unknown");
+            //  2. the cancel fails: the order can still fill in full after this returns,
+            //     so nothing downstream may be sized on what was observed
+            var stubborn = new StubVenue("stub");
+            stubborn.createdStatus = "open";
+            stubborn.cancelThrows = true;
+            var plan2 = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.0002, 100000), new dict() { { "slippageBps", 0.0 } });
+            var failed = await router.Execute(plan2, Venues(stubborn), options);
+            var failedStep = ToDict(ToList(failed["steps"])[0]);
+            EqualString((string)failedStep["status"], "outcome_unknown", strategy + ": an uncancellable resting order is never a settled step");
+            var stillLive = ToList(failed["openOrders"]);
+            EqualNumber(stillLive.Count, 1, strategy + ": the operator is told what is still live");
+            EqualString((string)ToDict(stillLive[0])["orderId"], "stub-order", strategy + ": and it names the order");
+            EqualString((string)ToDict(stillLive[0])["reason"], "cancel_failed", strategy + ": and says the cancel failed");
+            //  3. the cancel is accepted and the venue still calls it open: same rule
+            var ghost = new StubVenue("stub");
+            ghost.createdStatus = "open";
+            ghost.fetchOrderResults.Add(new dict() { { "id", "stub-order" }, { "status", "open" }, { "filled", 0.0 }, { "average", 0.0 }, { "cost", 0.0 } });
+            var plan3 = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.0002, 100000), new dict() { { "slippageBps", 0.0 } });
+            var ghosted = await router.Execute(plan3, Venues(ghost), options);
+            var ghostStep = ToDict(ToList(ghosted["steps"])[0]);
+            EqualString((string)ghostStep["status"], "outcome_unknown", strategy + ": a cancel the venue ignored leaves the outcome unknown");
+            var ghostOpen = ToList(ghosted["openOrders"]);
+            EqualNumber(ghostOpen.Count, 1, strategy + ": and it is reported");
+            EqualString((string)ToDict(ghostOpen[0])["reason"], "still_open", strategy + ": as still open");
+        }
     }
 
     private static async Task MarketOrdersNeedBoth()

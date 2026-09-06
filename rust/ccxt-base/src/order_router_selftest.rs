@@ -568,6 +568,53 @@ fn limit_price_side(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
+fn unwind_buy_is_fundable(r: &OrderRouter, f: &Value) -> Result<(), String> {
+    // The residual IS the budget. Sizing the buy at the expected price and then
+    // pricing it slippage above that orders more quote than the venue is
+    // holding: 44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225
+    // limit costs 44.61125 — the venue rejects it for insufficient funds, or
+    // partially fills and leaves the rest of the stranded money stranded on a
+    // halted route.
+    let report = named(f, "reports", "haltedCrossVenue")?;
+    let unwind = r.build_unwind_plan(&report);
+    let steps = r.list_at(&unwind, "steps");
+    if steps.len() != 2 {
+        return Err(format!("the cross-venue report strands two positions, got {}", steps.len()));
+    }
+    let buy = &steps[1];
+    if text(buy, "side") != "buy" {
+        return Err("the mexc leg is the buy".to_string());
+    }
+    let residual = 44.5f64;
+    let spend = r.number_at(buy, "amount", 0.0) * r.number_at(buy, "limitPrice", 0.0);
+    if spend > residual + 1e-9 {
+        return Err(format!("the buy spends {spend} of a {residual} residual"));
+    }
+    // And it does not leave the residual pointlessly unspent either.
+    if spend < residual - 1e-9 {
+        return Err(format!("the buy spends {spend}, short of the {residual} residual"));
+    }
+    // The notional the safety cap sees must be that same real spend.
+    if !numbers_match(r.number_at(buy, "notionalQuote", 0.0), spend) {
+        return Err("notionalQuote is priced at the limit the order is placed at".to_string());
+    }
+    // The sell side is sized on the residual itself — there is no budget to run out of.
+    let sell = &steps[0];
+    if text(sell, "side") != "sell" {
+        return Err("the binance leg is the sell".to_string());
+    }
+    if !numbers_match(r.number_at(sell, "amount", 0.0), 0.2) {
+        return Err("the whole 0.2 SOL residual is sold".to_string());
+    }
+    if !numbers_match(
+        r.number_at(sell, "notionalQuote", 0.0),
+        0.2 * r.number_at(sell, "limitPrice", 0.0),
+    ) {
+        return Err("the sell notional is priced at its limit too".to_string());
+    }
+    Ok(())
+}
+
 fn empty_plan_is_not_safe(r: &OrderRouter) -> Result<(), String> {
     // "Nothing to check" and "checked, all good" are different answers and used
     // to look identical.
@@ -908,6 +955,7 @@ pub fn run() -> Result<usize, String> {
         ("fixture: reconcileExecutionStep", Box::new(|| fixture_reconcile_execution_step(&router()?, &fixture()?))),
         ("fixture: a sequence of reconciliations on one hop", Box::new(|| fixture_reconcile_sequence(&router()?, &fixture()?))),
         ("fixture: buildUnwindPlan", Box::new(|| fixture_build_unwind_plan(&router()?, &fixture()?))),
+        ("a buy-side unwind order never spends more quote than the residual actually holds", Box::new(|| unwind_buy_is_fundable(&router()?, &fixture()?))),
         ("fixture: numberAt reads one number grammar in all six languages", Box::new(|| fixture_number_at(&router()?, &fixture()?))),
         ("constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size", Box::new(constructor_guards)),
         ("the limit price sits on the side that costs you, and only there", Box::new(|| limit_price_side(&router()?))),
@@ -931,6 +979,7 @@ pub fn run() -> Result<usize, String> {
         ("execute: a fill that stays unknown after the re-read halts instead of guessing", Box::new(|| a_fill_that_stays_unknown_halts_instead_of_guessing(&router()?))),
         ("execute: refuses to go live above a cap the caller set", Box::new(|| execute_refuses_to_go_live_above_the_cap(&router()?))),
         ("execute: the same trade goes through when nobody asked for a cap", Box::new(|| execute_places_the_same_trade_with_no_cap(&router()?))),
+        ("execute: a resting order is cancelled, and a cancel that fails halts the route", Box::new(|| a_resting_order_is_cancelled(&router()?))),
         ("execute: a throw after createOrder still reports the id and an open order", Box::new(|| a_known_order_id_survives_a_throw_after_create(&router()?))),
         ("execute: a spend the venue DID report survives an unknown fill", Box::new(|| a_reported_spend_survives_an_unknown_fill(&router()?))),
         ("execute: a report is summarised in the assets it names, not across currencies", Box::new(|| a_report_is_summarised_in_the_assets_it_names(&router()?))),
@@ -1005,6 +1054,15 @@ struct StubVenue {
     /// prefunding check passes without every other test having to declare
     /// balances it does not care about.
     free_balances: Option<Vec<(String, f64)>>,
+    /// When true, cancel_order errors — the venue refuses to take the resting
+    /// order back off the book.
+    cancel_fails: bool,
+    /// Counts cancel_order calls, so "the resting order was cancelled" is
+    /// asserted rather than assumed.
+    cancels: StdArc<AtomicUsize>,
+    /// When set, fetch_order hands this back instead of erroring — the order as
+    /// it looks on the re-read after a cancel.
+    reread_order: Option<(String, f64, f64, f64)>,
 }
 
 impl StubVenue {
@@ -1018,6 +1076,9 @@ impl StubVenue {
             created_open: false,
             reread_cost: None,
             free_balances: None,
+            cancel_fails: false,
+            cancels: StdArc::new(AtomicUsize::new(0)),
+            reread_order: None,
         }
     }
 }
@@ -1052,10 +1113,14 @@ impl RouterVenue for StubVenue {
         let mut order = HashMap::new();
         order.insert("id".to_string(), Value::Str("stub-1".to_string()));
         if self.created_open {
+            // A venue that reports the order it just accepted as still OPEN — the
+            // shape a dropped timeInForce leaves behind. It still answers with a
+            // fill, exactly as the other five ports' stubs do, so that "the order
+            // is resting" and "the fill is unknown" stay separate cases.
             order.insert("status".to_string(), Value::Str("open".to_string()));
-            return Ok(Value::Map(order));
+        } else {
+            order.insert("status".to_string(), Value::Str("closed".to_string()));
         }
-        order.insert("status".to_string(), Value::Str("closed".to_string()));
         if !self.omit_filled {
             order.insert("filled".to_string(), Value::Float(amount));
             order.insert("average".to_string(), Value::Float(price));
@@ -1064,6 +1129,15 @@ impl RouterVenue for StubVenue {
         Ok(Value::Map(order))
     }
     async fn fetch_order(&self, _id: &str, _symbol: &str) -> Result<Value, crate::error::ExchangeError> {
+        if let Some((status, filled, average, cost)) = &self.reread_order {
+            let mut order = HashMap::new();
+            order.insert("id".to_string(), Value::Str("stub-1".to_string()));
+            order.insert("status".to_string(), Value::Str(status.clone()));
+            order.insert("filled".to_string(), Value::Float(*filled));
+            order.insert("average".to_string(), Value::Float(*average));
+            order.insert("cost".to_string(), Value::Float(*cost));
+            return Ok(Value::Map(order));
+        }
         if self.omit_filled {
             // Still incomplete on the re-read: the fill stays genuinely unknown.
             let mut order = HashMap::new();
@@ -1078,6 +1152,10 @@ impl RouterVenue for StubVenue {
         Err(crate::error::ExchangeError::new("ExchangeError", "stub cannot read the order back"))
     }
     async fn cancel_order(&self, _id: &str, _symbol: &str) -> Result<Value, crate::error::ExchangeError> {
+        self.cancels.fetch_add(1, Ordering::SeqCst);
+        if self.cancel_fails {
+            return Err(crate::error::ExchangeError::new("ExchangeError", "stub refuses to cancel"));
+        }
         Ok(Value::Map(HashMap::new()))
     }
     async fn fetch_balance(&self) -> Result<Value, crate::error::ExchangeError> {
@@ -1420,6 +1498,78 @@ fn execute_places_the_same_trade_with_no_cap(r: &OrderRouter) -> Result<(), Stri
     let bare_results = r.list_at(&bare_report, "steps");
     if r.string_at(&bare_results[0], "status", "") != "filled" {
         return Err("the order fills without usdRates when no cap is set".to_string());
+    }
+    Ok(())
+}
+
+fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
+    // A venue that silently drops timeInForce turns an immediate-or-cancel order
+    // into a plain resting limit order. Recording it and continuing means the
+    // next hop is sized on a fill that is still growing behind it, and the
+    // leftover order stays live on a real venue after the route has returned and
+    // nobody is watching it.
+    for strategy in ["sequential", "parallel_within_hop", "best_effort"] {
+        let mut options = execute_options(true, strategy);
+        if strategy == "best_effort" {
+            OrderRouter::set_key(&mut options, "acknowledgeDispersion", Value::Bool(true));
+            OrderRouter::set_key(&mut options, "maxOrders", Value::Float(4.0));
+        }
+        // 1. the cancel works: the order is gone, the re-read is what gets reported
+        let plan = one_leg_plan(r)?;
+        let mut venue = StubVenue::new("stub");
+        venue.created_open = true;
+        venue.reread_order = Some(("canceled".to_string(), 0.1, 100.0, 10.0));
+        let cancels = StdArc::clone(&venue.cancels);
+        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+        venues.insert("stub".to_string(), Box::new(venue));
+        let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
+        if cancels.load(Ordering::SeqCst) != 1 {
+            return Err(format!("{strategy}: the resting order is cancelled, not merely noted"));
+        }
+        if !r.list_at(&report, "openOrders").is_empty() {
+            return Err(format!("{strategy}: nothing is left resting after the cancel"));
+        }
+        let results = r.list_at(&report, "steps");
+        // the re-read is authoritative — the cancel and a fill crossed
+        if !numbers_match(r.number_at(&results[0], "filledAmount", 0.0), 0.1) {
+            return Err(format!("{strategy}: the fill observed AFTER the cancel is the one reported"));
+        }
+        if text(&results[0], "status") != "partial" {
+            return Err(format!("{strategy}: a real partial fill, not an unknown"));
+        }
+        // 2. the cancel fails: the order can still fill in full after this
+        //    returns, so nothing downstream may be sized on what was observed
+        let plan2 = one_leg_plan(r)?;
+        let mut stubborn = StubVenue::new("stub");
+        stubborn.created_open = true;
+        stubborn.cancel_fails = true;
+        let mut venues2: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+        venues2.insert("stub".to_string(), Box::new(stubborn));
+        let failed = block_on(r.execute(&plan2, &venues2, &options)).map_err(|e| e.to_string())?;
+        let failed_steps = r.list_at(&failed, "steps");
+        if text(&failed_steps[0], "status") != "outcome_unknown" {
+            return Err(format!("{strategy}: an uncancellable resting order is never a settled step"));
+        }
+        let open = r.list_at(&failed, "openOrders");
+        if open.len() != 1 || text(&open[0], "reason") != "cancel_failed" {
+            return Err(format!("{strategy}: the operator is told what is still live"));
+        }
+        // 3. the cancel is accepted and the venue still calls it open: same rule
+        let plan3 = one_leg_plan(r)?;
+        let mut ghost = StubVenue::new("stub");
+        ghost.created_open = true;
+        ghost.reread_order = Some(("open".to_string(), 0.0, 0.0, 0.0));
+        let mut venues3: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+        venues3.insert("stub".to_string(), Box::new(ghost));
+        let ghosted = block_on(r.execute(&plan3, &venues3, &options)).map_err(|e| e.to_string())?;
+        let ghost_steps = r.list_at(&ghosted, "steps");
+        if text(&ghost_steps[0], "status") != "outcome_unknown" {
+            return Err(format!("{strategy}: a cancel the venue ignored leaves the outcome unknown"));
+        }
+        let ghost_open = r.list_at(&ghosted, "openOrders");
+        if ghost_open.len() != 1 || text(&ghost_open[0], "reason") != "still_open" {
+            return Err(format!("{strategy}: and it is reported as still open"));
+        }
     }
     Ok(())
 }

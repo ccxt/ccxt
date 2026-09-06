@@ -1175,20 +1175,31 @@ impl OrderRouter {
             let market_quote;
             if source_side == "buy" {
                 side = "sell";
-                unwind_amount = amount;
                 market_base = self.string_at(&source, "outAsset", "");
                 market_quote = self.string_at(&source, "inAsset", "");
             } else {
                 side = "buy";
-                unwind_amount = amount / price;
                 market_base = self.string_at(&source, "inAsset", "");
                 market_quote = self.string_at(&source, "outAsset", "");
             }
+            // The limit price comes FIRST, because the buy below is sized on it.
             let limit_price = if side == "buy" {
                 price * (1.0 + slippage_bps / 10000.0)
             } else {
                 price * (1.0 - slippage_bps / 10000.0)
             };
+            if side == "buy" {
+                // Size the buy on the price it is actually PLACED at, not on the
+                // expected price. A residual of 44.5 USDT sized at 0.089 is 500
+                // DOGE, but the order goes out at 0.0892225 and would need 44.61
+                // USDT to fill - 0.11 more than the venue holds. The venue rejects
+                // it for insufficient funds, or fills it partially and leaves the
+                // rest of the stranded money stranded. Dividing by limit_price
+                // spends at most the residual.
+                unwind_amount = amount / limit_price;
+            } else {
+                unwind_amount = amount;
+            }
             let mut step = HashMap::new();
             step.insert("stepIndex".into(), Value::Float(steps.len() as f64));
             step.insert("exchangeId".into(), Value::Str(exchange_id.clone()));
@@ -1204,7 +1215,14 @@ impl OrderRouter {
             step.insert("amount".into(), Value::Float(unwind_amount));
             step.insert("expectedPrice".into(), Value::Float(price));
             step.insert("limitPrice".into(), Value::Float(limit_price));
-            step.insert("notionalQuote".into(), Value::Float(unwind_amount * price));
+            // Notional at the price the order is actually placed at: this plan is
+            // fed back into check_execution_plan_safety, and a cap that was
+            // checked against the expected price under-counts what the buy above
+            // really spends.
+            step.insert(
+                "notionalQuote".into(),
+                Value::Float(unwind_amount * limit_price),
+            );
             step.insert("reachesFrom".into(), Value::Bool(counter_asset == from_asset));
             step.insert("isDestination".into(), Value::Bool(asset == to_asset));
             steps.push(Value::Map(step));
@@ -1808,7 +1826,7 @@ impl OrderRouter {
                 return result;
             }
         };
-        self.settle_order_into_result(&order, step, &mut result, venue.as_ref(), &symbol, &exchange_id, amount, price, report).await;
+        self.settle_order_into_result(&order, step, &mut result, venue.as_ref(), &symbol, &exchange_id, amount, price, report, strategy).await;
         result
     }
 }
@@ -1934,6 +1952,7 @@ impl OrderRouter {
         amount: f64,
         price: f64,
         report: &mut Value,
+        strategy: &str,
     ) {
         let mut order = order.clone();
         // "The venue said zero" and "the venue said nothing" are different facts
@@ -1947,6 +1966,31 @@ impl OrderRouter {
             // its poll. The immediate path never did, so it could only ever
             // fabricate.
             order = self.refetch_order(venue, &order_id, symbol, order.clone()).await;
+        }
+        // An order the venue explicitly calls open is RESTING, and on this path
+        // it must not be: place_immediate_order asked for immediate-or-cancel, so
+        // a venue that silently dropped the timeInForce param has left a plain
+        // limit order sitting on the book. Recording it and walking on was not
+        // enough — the next hop then trades on top of a position that keeps
+        // growing behind it, is sized from a fill that is already out of date, and
+        // the leftover order is still live after the route has ended and nobody is
+        // watching it. So it is cancelled and re-read here, exactly as
+        // place_protected_limit does on its timeout path.
+        let mut resting_cancel_failed = false;
+        if strategy != "limit_protected" && self.string_at(&order, "status", "") == "open" && !order_id.is_empty() {
+            if venue.cancel_order(&order_id, symbol).await.is_err() {
+                // The order may still be live and its fill can still move, so
+                // whatever this step reports below is a snapshot that is already
+                // stale. The status is downgraded after the amounts are filled in,
+                // not here: a cost the venue DID report is a fact, and
+                // build_unwind_plan subtracts it.
+                resting_cancel_failed = true;
+            } else {
+                // ALWAYS re-read after a cancel: the cancel and the fill can
+                // cross, and the observed order is the only authority on what
+                // actually happened.
+                order = self.refetch_order(venue, &order_id, symbol, order.clone()).await;
+            }
         }
         let filled_known = self.has_number_at(&order, "filled");
         let filled = self.number_at(&order, "filled", 0.0);
@@ -2029,13 +2073,21 @@ impl OrderRouter {
         } else {
             Self::put(result, "status", Value::Str("partial".into()));
         }
-        if self.string_at(&order, "status", "") == "open" {
-            // An order the venue explicitly calls open is RESTING. It should not
-            // be, on either path: place_protected_limit only returns a closed or
-            // canceled order, and place_immediate_order asked for
-            // immediate-or-cancel. A venue that silently dropped the timeInForce
-            // param leaves a plain limit order sitting there, and 'unfilled' on
-            // its own reads like nothing happened.
+        if resting_cancel_failed {
+            // A resting order this class could not cancel is the worst outcome
+            // there is: it can still fill, in full, after the route has returned.
+            // Sizing the next hop on the fill recorded above would trade against a
+            // position that is still moving, so the step is marked unknown and
+            // execute_sequential stops here.
+            Self::put(result, "status", Value::Str("outcome_unknown".into()));
+            self.record_open_order(report, exchange_id, symbol, &self.string_at(result, "orderId", ""), "cancel_failed");
+        } else if self.string_at(&order, "status", "") == "open" {
+            // Cancelled — or on the limit_protected path, cancelled by
+            // place_protected_limit — and the venue STILL calls it open. The order
+            // is live whatever this class asked for, so the same rule applies:
+            // report it, and refuse to size anything downstream from a fill that
+            // can still grow.
+            Self::put(result, "status", Value::Str("outcome_unknown".into()));
             self.record_open_order(report, exchange_id, symbol, &self.string_at(result, "orderId", ""), "still_open");
         }
         Self::put(report, "ordersPlaced", Value::Float(self.number_at(report, "ordersPlaced", 0.0) + 1.0));

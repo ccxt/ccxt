@@ -1294,20 +1294,31 @@ func (this *OrderRouter) BuildUnwindPlan(report map[string]any) map[string]any {
 		counterAsset := routerStringAt(source, "inAsset", "")
 		if sourceSide == "buy" {
 			side = "sell"
-			unwindAmount = amount
 			marketBase = routerStringAt(source, "outAsset", "")
 			marketQuote = routerStringAt(source, "inAsset", "")
 		} else {
 			side = "buy"
-			unwindAmount = amount / price
 			marketBase = routerStringAt(source, "inAsset", "")
 			marketQuote = routerStringAt(source, "outAsset", "")
 		}
+		// the limit price comes FIRST, because the buy below is sized on it.
 		limitPrice := 0.0
 		if side == "buy" {
 			limitPrice = price * (1 + slippageBps/10000)
 		} else {
 			limitPrice = price * (1 - slippageBps/10000)
+		}
+		if side == "buy" {
+			// Size the buy on the price it is actually PLACED at, not on the
+			// expected price. A residual of 44.5 USDT sized at 0.089 is 500 DOGE,
+			// but the order goes out at 0.0892225 and would need 44.61 USDT to
+			// fill - 0.11 more than the venue holds. The venue rejects it for
+			// insufficient funds, or fills it partially and leaves the rest of the
+			// stranded money stranded. Dividing by limitPrice spends at most the
+			// residual.
+			unwindAmount = amount / limitPrice
+		} else {
+			unwindAmount = amount
 		}
 		steps = append(steps, map[string]any{
 			"stepIndex":  float64(len(steps)),
@@ -1324,7 +1335,11 @@ func (this *OrderRouter) BuildUnwindPlan(report map[string]any) map[string]any {
 			"amount":        unwindAmount,
 			"expectedPrice": price,
 			"limitPrice":    limitPrice,
-			"notionalQuote": unwindAmount * price,
+			// notional at the price the order is actually placed at: this plan is
+			// fed back into CheckExecutionPlanSafety, and a cap that was checked
+			// against the expected price under-counts what the buy above really
+			// spends.
+			"notionalQuote": unwindAmount * limitPrice,
 			"reachesFrom":   counterAsset == fromAsset,
 			"isDestination": asset == toAsset,
 		})
@@ -1978,6 +1993,27 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 		// path never did, so it could only ever fabricate.
 		order = routerRefetchOrder(venue, routerStringAt(result, "orderId", ""), symbol, order)
 	}
+	// An order the venue explicitly calls open is RESTING, and on this path it must not be:
+	// placeImmediateOrder asked for immediate-or-cancel, so a venue that silently dropped the
+	// timeInForce param has left a plain limit order sitting on the book. Recording it and
+	// walking on was not enough — the next hop then trades on top of a position that keeps
+	// growing behind it, is sized from a fill that is already out of date, and the leftover
+	// order is still live after the route has ended and nobody is watching it. So it is
+	// cancelled and re-read here, exactly as placeProtectedLimit does on its timeout path.
+	restingCancelFailed := false
+	if strategy != "limit_protected" && routerDerefString(order.Status) == "open" && routerStringAt(result, "orderId", "") != "" {
+		if _, cancelErr := venue.CancelOrder(routerStringAt(result, "orderId", ""), WithCancelOrderSymbol(symbol)); cancelErr != nil {
+			// the order may still be live and its fill can still move, so whatever this step
+			// reports below is a snapshot that is already stale. The status is downgraded after
+			// the amounts are filled in, not here: a cost the venue DID report is a fact, and
+			// BuildUnwindPlan subtracts it.
+			restingCancelFailed = true
+		} else {
+			// ALWAYS re-read after a cancel: the cancel and the fill can cross, and the observed
+			// order is the only authority on what actually happened
+			order = routerRefetchOrder(venue, routerStringAt(result, "orderId", ""), symbol, order)
+		}
+	}
 	filledKnown := routerHasFloat(order.Filled)
 	filled := routerDerefFloat(order.Filled)
 	averageKnown := routerHasFloat(order.Average) || routerHasFloat(order.Price)
@@ -2039,12 +2075,19 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 	} else {
 		result["status"] = "partial"
 	}
-	if routerDerefString(order.Status) == "open" {
-		// an order the venue explicitly calls open is RESTING. It should not be,
-		// on either path: placeProtectedLimit only returns a closed or canceled
-		// order, and placeImmediateOrder asked for immediate-or-cancel. A venue
-		// that silently dropped the timeInForce param leaves a plain limit order
-		// sitting there, and "unfilled" on its own reads like nothing happened.
+	if restingCancelFailed {
+		// a resting order this class could not cancel is the worst outcome there is: it can
+		// still fill, in full, after the route has returned. Sizing the next hop on the fill
+		// recorded above would trade against a position that is still moving, so the step is
+		// marked unknown and executeSequential stops here.
+		result["status"] = "outcome_unknown"
+		routerRecordOpenOrder(sink, exchangeId, symbol, routerStringAt(result, "orderId", ""), "cancel_failed")
+	} else if routerDerefString(order.Status) == "open" {
+		// cancelled — or on the limit_protected path, cancelled by placeProtectedLimit — and
+		// the venue STILL calls it open. The order is live whatever this class asked for, so
+		// the same rule applies: report it, and refuse to size anything downstream from a fill
+		// that can still grow.
+		result["status"] = "outcome_unknown"
 		routerRecordOpenOrder(sink, exchangeId, symbol, routerStringAt(result, "orderId", ""), "still_open")
 	}
 	sink.placed = sink.placed + 1

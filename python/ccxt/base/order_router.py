@@ -1092,18 +1092,28 @@ class OrderRouter:
             counter_asset = self.string_at(source, 'inAsset', '')
             if source_side == 'buy':
                 side = 'sell'
-                unwind_amount = amount
                 market_base = self.string_at(source, 'outAsset', '')
                 market_quote = self.string_at(source, 'inAsset', '')
             else:
                 side = 'buy'
-                unwind_amount = amount / price
                 market_base = self.string_at(source, 'inAsset', '')
                 market_quote = self.string_at(source, 'outAsset', '')
+            # the limit price comes FIRST, because the buy below is sized on it.
             if side == 'buy':
                 limit_price = price * (1 + slippage_bps / 10000)
             else:
                 limit_price = price * (1 - slippage_bps / 10000)
+            if side == 'buy':
+                # Size the buy on the price it is actually PLACED at, not on the
+                # expected price. A residual of 44.5 USDT sized at 0.089 is 500
+                # DOGE, but the order goes out at 0.0892225 and would need 44.61
+                # USDT to fill - 0.11 more than the venue holds. The venue rejects
+                # it for insufficient funds, or fills it partially and leaves the
+                # rest of the stranded money stranded. Dividing by limit_price
+                # spends at most the residual.
+                unwind_amount = amount / limit_price
+            else:
+                unwind_amount = amount
             steps.append({
                 'stepIndex': len(steps),
                 'exchangeId': exchange_id,
@@ -1119,7 +1129,11 @@ class OrderRouter:
                 'amount': unwind_amount,
                 'expectedPrice': price,
                 'limitPrice': limit_price,
-                'notionalQuote': unwind_amount * price,
+                # notional at the price the order is actually placed at: this
+                # plan is fed back into check_execution_plan_safety, and a cap
+                # that was checked against the expected price under-counts what
+                # the buy above really spends.
+                'notionalQuote': unwind_amount * limit_price,
                 'reachesFrom': counter_asset == from_asset,
                 'isDestination': asset == to_asset,
             })
@@ -1590,6 +1604,27 @@ class OrderRouter:
                 # One re-read, exactly as place_protected_limit already does after its poll. The
                 # immediate path never did, so it could only ever fabricate.
                 order = self.refetch_order(venue, self.string_at(result, 'orderId', ''), symbol, order)
+            # An order the venue explicitly calls open is RESTING, and on this path it must
+            # not be: place_immediate_order asked for immediate-or-cancel, so a venue that
+            # silently dropped the timeInForce param has left a plain limit order sitting on
+            # the book. Recording it and walking on was not enough - the next hop then trades
+            # on top of a position that keeps growing behind it, is sized from a fill that is
+            # already out of date, and the leftover order is still live after the route has
+            # ended and nobody is watching it. So it is cancelled and re-read here, exactly as
+            # place_protected_limit does on its timeout path.
+            resting_cancel_failed = False
+            if strategy != 'limit_protected' and self.string_at(order, 'status', '') == 'open' and result['orderId'] != '':
+                try:
+                    venue.cancel_order(self.string_at(result, 'orderId', ''), symbol)
+                    # ALWAYS re-read after a cancel: the cancel and the fill can cross, and the
+                    # observed order is the only authority on what actually happened
+                    order = self.refetch_order(venue, self.string_at(result, 'orderId', ''), symbol, order)
+                except Exception:
+                    # the order may still be live and its fill can still move, so whatever this
+                    # step reports below is a snapshot that is already stale. The status is
+                    # downgraded after the amounts are filled in, not here: a cost the venue DID
+                    # report is a fact, and build_unwind_plan subtracts it.
+                    resting_cancel_failed = True
             filled_known = self.has_number_at(order, 'filled')
             filled = self.number_at(order, 'filled', 0)
             average_known = self.has_number_at(order, 'average') or self.has_number_at(order, 'price')
@@ -1646,13 +1681,19 @@ class OrderRouter:
                 result['status'] = 'filled'
             else:
                 result['status'] = 'partial'
-            if self.string_at(order, 'status', '') == 'open':
-                # an order the venue explicitly calls open is RESTING. It should
-                # not be, on either path: place_protected_limit only returns a
-                # closed or canceled order, and place_immediate_order asked for
-                # immediate-or-cancel. A venue that silently dropped the
-                # timeInForce param leaves a plain limit order sitting there, and
-                # 'unfilled' on its own reads like nothing happened.
+            if resting_cancel_failed:
+                # a resting order this class could not cancel is the worst outcome there is:
+                # it can still fill, in full, after the route has returned. Sizing the next hop
+                # on the fill recorded above would trade against a position that is still
+                # moving, so the step is marked unknown and execute_sequential stops here.
+                result['status'] = 'outcome_unknown'
+                self.record_open_order(report, exchange_id, symbol, self.string_at(result, 'orderId', ''), 'cancel_failed')
+            elif self.string_at(order, 'status', '') == 'open':
+                # cancelled - or on the limit_protected path, cancelled by
+                # place_protected_limit - and the venue STILL calls it open. The order is
+                # live whatever this class asked for, so the same rule applies: report it,
+                # and refuse to size anything downstream from a fill that can still grow.
+                result['status'] = 'outcome_unknown'
                 self.record_open_order(report, exchange_id, symbol, self.string_at(result, 'orderId', ''), 'still_open')
             with self.lock:
                 report['ordersPlaced'] = self.number_at(report, 'ordersPlaced', 0) + 1

@@ -373,10 +373,32 @@ test ('buildUnwindPlan is never automatic and never nets across venues', () => {
     const venues = [ unwind['steps'][0]['exchangeId'], unwind['steps'][1]['exchangeId'] ];
     assert.deepStrictEqual (venues, [ 'binance', 'mexc' ], 'unwound in reverse execution order');
     assert.strictEqual (unwind['steps'][1]['side'], 'buy', 'leftover quote is spent buying the asset back');
-    assert.strictEqual (unwind['steps'][1]['amount'], 500, '44.5 USDT at 0.089 is 500 DOGE');
     assert.strictEqual (unwind['steps'][1]['reachesFrom'], true);
     assert.strictEqual (unwind['steps'][0]['side'], 'sell', 'leftover base is sold back');
     assert.strictEqual (unwind['steps'][0]['reachesFrom'], false, 'selling SOL for USDT is not yet DOGE');
+});
+
+test ('a buy-side unwind order never spends more quote than the residual actually holds', () => {
+    //  The residual IS the budget. Sizing the buy at the expected price and then
+    //  pricing it slippage above that orders more quote than the venue is holding:
+    //  44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225 limit costs
+    //  44.61125 — the venue rejects it for insufficient funds, or partially fills
+    //  and leaves the rest of the stranded money stranded on a halted route.
+    const unwind = router.buildUnwindPlan (fixture['reports']['haltedCrossVenue']);
+    const buy = unwind['steps'][1];
+    assert.strictEqual (buy['side'], 'buy');
+    const residual = 44.5;
+    const spend = buy['amount'] * buy['limitPrice'];
+    assert.ok (spend <= residual + 1e-9, 'buy spends ' + String (spend) + ' of a ' + String (residual) + ' residual');
+    //  and it does not leave the residual pointlessly unspent either
+    assert.ok (spend >= residual - 1e-9, 'buy spends ' + String (spend) + ', short of the ' + String (residual) + ' residual');
+    //  the notional the safety cap sees must be that same real spend
+    assert.ok (numbersMatch (buy['notionalQuote'], spend), 'notionalQuote is priced at the limit the order is placed at');
+    //  the sell side is sized on the residual itself — there is no budget to run out of
+    const sell = unwind['steps'][0];
+    assert.strictEqual (sell['side'], 'sell');
+    assert.strictEqual (sell['amount'], 0.2, 'the whole 0.2 SOL residual is sold');
+    assert.ok (numbersMatch (sell['notionalQuote'], 0.2 * sell['limitPrice']));
 });
 
 //  ---------------------------------------------------------------------------
@@ -836,10 +858,60 @@ test ('a failure after createOrder still reports the order id and an open order'
     const okReport = await router.execute (overCap, { 'stub': other }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } });
     assert.strictEqual (okReport['steps'][0]['orderId'], 'stub-order');
     //  and an "immediate" order the venue reports as STILL OPEN is a resting
-    //  order, which is what a venue that silently drops timeInForce leaves you
-    assert.strictEqual (okReport['openOrders'].length, 1);
-    assert.strictEqual (okReport['openOrders'][0]['orderId'], 'stub-order');
-    assert.strictEqual (okReport['openOrders'][0]['reason'], 'still_open');
+    //  order — which is what a venue that silently drops timeInForce leaves you.
+    //  It is cancelled and re-read, so nothing is left resting to report.
+    assert.ok (other.calls.indexOf ('cancelOrder:stub-order') !== -1, 'a resting order is cancelled, not merely noted');
+    assert.strictEqual (okReport['openOrders'].length, 0, 'the cancel and the re-read settled it');
+});
+
+test ('a resting order on an immediate path is cancelled, and a cancel that fails halts the route', async () => {
+    //  A venue that silently drops timeInForce turns an immediate-or-cancel
+    //  order into a plain resting limit order. Recording it and continuing means
+    //  the next hop is sized on a fill that is still growing behind it, and the
+    //  leftover order stays live on a real venue after the route has returned
+    //  and nobody is watching it.
+    const strategies = [ 'sequential', 'parallel_within_hop', 'best_effort' ];
+    for (let i = 0; i < strategies.length; i++) {
+        const strategy = strategies[i];
+        const options: any = { 'strategy': strategy, 'live': true, 'usdRates': { 'USDT': 1 } };
+        if (strategy === 'best_effort') {
+            options['acknowledgeDispersion'] = true;
+            options['maxOrders'] = 4;
+        }
+        //  1. the cancel works: the order is gone, the re-read is what gets reported
+        const venue = new StubVenue ('stub');
+        venue.createdStatus = 'open';
+        venue.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'canceled', 'filled': 0.0001, 'average': 100000, 'cost': 10 } ];
+        const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+        const report = await router.execute (plan, { 'stub': venue }, options);
+        assert.ok (venue.calls.indexOf ('cancelOrder:stub-order') !== -1, strategy + ': the resting order is cancelled');
+        assert.strictEqual (report['openOrders'].length, 0, strategy + ': nothing is left resting');
+        //  the re-read is authoritative — the cancel and a fill crossed
+        assert.strictEqual (report['steps'][0]['filledAmount'], 0.0001, strategy + ': the fill observed AFTER the cancel is the one reported');
+        assert.strictEqual (report['steps'][0]['status'], 'partial', strategy + ': a real partial fill, not an unknown');
+
+        //  2. the cancel fails: the order can still fill in full after this returns,
+        //     so nothing downstream may be sized on what was observed
+        const stubborn = new StubVenue ('stub');
+        stubborn.createdStatus = 'open';
+        stubborn.cancelThrows = true;
+        const plan2 = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+        const failed = await router.execute (plan2, { 'stub': stubborn }, options);
+        assert.strictEqual (failed['steps'][0]['status'], 'outcome_unknown', strategy + ': an uncancellable resting order is never a settled step');
+        assert.strictEqual (failed['openOrders'].length, 1, strategy + ': the operator is told what is still live');
+        assert.strictEqual (failed['openOrders'][0]['orderId'], 'stub-order');
+        assert.strictEqual (failed['openOrders'][0]['reason'], 'cancel_failed');
+
+        //  3. the cancel is accepted and the venue still calls it open: same rule
+        const ghost = new StubVenue ('stub');
+        ghost.createdStatus = 'open';
+        ghost.fetchOrderResults = [ { 'id': 'stub-order', 'status': 'open', 'filled': 0, 'average': 0, 'cost': 0 } ];
+        const plan3 = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.0002, 100000), { 'slippageBps': 0 });
+        const stillOpen = await router.execute (plan3, { 'stub': ghost }, options);
+        assert.strictEqual (stillOpen['steps'][0]['status'], 'outcome_unknown', strategy + ': a cancel the venue ignored leaves the outcome unknown');
+        assert.strictEqual (stillOpen['openOrders'].length, 1);
+        assert.strictEqual (stillOpen['openOrders'][0]['reason'], 'still_open');
+    }
 });
 
 test ('a plan carries its age, and a stale one is refused only when asked', async () => {

@@ -586,14 +586,54 @@ func TestOrderRouterUnwindIsNeverAutomaticAndNeverNetsAcrossVenues(t *testing.T)
 	if routerStringAt(steps[0], "exchangeId", "") != "binance" || routerStringAt(steps[1], "exchangeId", "") != "mexc" {
 		t.Fatal("residuals are unwound in reverse execution order")
 	}
-	if routerStringAt(steps[1], "side", "") != "buy" || routerNumberAt(steps[1], "amount", 0) != 500 {
-		t.Fatal("leftover quote is spent buying the asset back: 44.5 USDT at 0.089 is 500 DOGE")
+	if routerStringAt(steps[1], "side", "") != "buy" {
+		t.Fatal("leftover quote is spent buying the asset back")
 	}
 	if routerBoolAt(steps[1], "reachesFrom", false) != true {
 		t.Fatal("buying DOGE back reaches the from-asset")
 	}
 	if routerStringAt(steps[0], "side", "") != "sell" || routerBoolAt(steps[0], "reachesFrom", true) != false {
 		t.Fatal("selling SOL for USDT is not yet DOGE")
+	}
+}
+
+func TestOrderRouterUnwindBuyNeverSpendsMoreThanTheResidualHolds(t *testing.T) {
+	// The residual IS the budget. Sizing the buy at the expected price and then
+	// pricing it slippage above that orders more quote than the venue is holding:
+	// 44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225 limit costs
+	// 44.61125 - the venue rejects it for insufficient funds, or partially fills
+	// and leaves the rest of the stranded money stranded on a halted route.
+	router := routerTestRouter(t)
+	fixture := routerFixture(t)
+	unwind := router.BuildUnwindPlan(routerDictAt(routerDictAt(fixture, "reports"), "haltedCrossVenue"))
+	steps := unwind["steps"].([]map[string]any)
+	buy := steps[1]
+	if routerStringAt(buy, "side", "") != "buy" {
+		t.Fatal("the mexc leg is the buy")
+	}
+	residual := 44.5
+	spend := routerNumberAt(buy, "amount", 0) * routerNumberAt(buy, "limitPrice", 0)
+	if spend > residual+1e-9 {
+		t.Fatalf("the buy spends %v of a %v residual", spend, residual)
+	}
+	// and it does not leave the residual pointlessly unspent either
+	if spend < residual-1e-9 {
+		t.Fatalf("the buy spends %v, short of the %v residual", spend, residual)
+	}
+	// the notional the safety cap sees must be that same real spend
+	if !routerNumbersMatch(routerNumberAt(buy, "notionalQuote", 0), spend) {
+		t.Fatal("notionalQuote is priced at the limit the order is placed at")
+	}
+	// the sell side is sized on the residual itself - there is no budget to run out of
+	sell := steps[0]
+	if routerStringAt(sell, "side", "") != "sell" {
+		t.Fatal("the binance leg is the sell")
+	}
+	if !routerNumbersMatch(routerNumberAt(sell, "amount", 0), 0.2) {
+		t.Fatal("the whole 0.2 SOL residual is sold")
+	}
+	if !routerNumbersMatch(routerNumberAt(sell, "notionalQuote", 0), 0.2*routerNumberAt(sell, "limitPrice", 0)) {
+		t.Fatal("the sell notional is priced at its limit too")
 	}
 }
 
@@ -1349,10 +1389,97 @@ func TestOrderRouterOrderIdSurvivesAFailureAfterCreate(t *testing.T) {
 		t.Fatal("an immediate order reports its id too")
 	}
 	// and an "immediate" order the venue reports as STILL OPEN is a resting
-	// order, which is what a venue that silently drops timeInForce leaves you
-	stillOpen := okReport["openOrders"].([]map[string]any)
-	if len(stillOpen) != 1 || routerStringAt(stillOpen[0], "orderId", "") != "stub-order" || routerStringAt(stillOpen[0], "reason", "") != "still_open" {
-		t.Fatalf("a still-open immediate order is reported, got %v", stillOpen)
+	// order — which is what a venue that silently drops timeInForce leaves you.
+	// It is cancelled and re-read, so nothing is left resting to report.
+	if !routerCallLogHas(other.callLog(), "cancelOrder:stub-order") {
+		t.Fatal("a resting order is cancelled, not merely noted")
+	}
+	if stillOpen := okReport["openOrders"].([]map[string]any); len(stillOpen) != 0 {
+		t.Fatalf("the cancel and the re-read settled it, got %v", stillOpen)
+	}
+}
+
+func routerCallLogHas(log []string, call string) bool {
+	for i := 0; i < len(log); i++ {
+		if log[i] == call {
+			return true
+		}
+	}
+	return false
+}
+
+func TestOrderRouterARestingOrderIsCancelled(t *testing.T) {
+	// A venue that silently drops timeInForce turns an immediate-or-cancel order
+	// into a plain resting limit order. Recording it and continuing means the next
+	// hop is sized on a fill that is still growing behind it, and the leftover
+	// order stays live on a real venue after the route has returned and nobody is
+	// watching it.
+	router := routerTestRouter(t)
+	strategies := []string{"sequential", "parallel_within_hop", "best_effort"}
+	for _, strategy := range strategies {
+		options := map[string]any{"strategy": strategy, "live": true, "usdRates": map[string]any{"USDT": 1.0}}
+		if strategy == "best_effort" {
+			options["acknowledgeDispersion"] = true
+			options["maxOrders"] = 4.0
+		}
+		// 1. the cancel works: the order is gone, the re-read is what gets reported
+		venue := newOrderRouterStubVenue(1, false)
+		venue.createdStatus = "open"
+		venue.fetchOrderResults = []Order{routerStubOrder("stub-order", "canceled", 0.0001, 100000, 10)}
+		plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.0002, 100000), map[string]any{"slippageBps": 0.0}))
+		report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), options)
+		if err != nil {
+			t.Fatalf("%s: execute: %v", strategy, err)
+		}
+		if !routerCallLogHas(venue.callLog(), "cancelOrder:stub-order") {
+			t.Fatalf("%s: the resting order is cancelled", strategy)
+		}
+		if open := report["openOrders"].([]map[string]any); len(open) != 0 {
+			t.Fatalf("%s: nothing is left resting, got %v", strategy, open)
+		}
+		step := report["steps"].([]map[string]any)[0]
+		// the re-read is authoritative — the cancel and a fill crossed
+		if !routerNumbersMatch(routerNumberAt(step, "filledAmount", 0), 0.0001) {
+			t.Fatalf("%s: the fill observed AFTER the cancel is the one reported", strategy)
+		}
+		if routerStringAt(step, "status", "") != "partial" {
+			t.Fatalf("%s: a real partial fill, not an unknown, got %v", strategy, routerStringAt(step, "status", ""))
+		}
+		// 2. the cancel fails: the order can still fill in full after this returns,
+		//    so nothing downstream may be sized on what was observed
+		stubborn := newOrderRouterStubVenue(1, false)
+		stubborn.createdStatus = "open"
+		stubborn.cancelThrows = true
+		plan2 := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.0002, 100000), map[string]any{"slippageBps": 0.0}))
+		failed, err := router.Execute(plan2, routerStubVenues(map[string]*orderRouterStubVenue{"stub": stubborn}), options)
+		if err != nil {
+			t.Fatalf("%s: execute: %v", strategy, err)
+		}
+		failedStep := failed["steps"].([]map[string]any)[0]
+		if routerStringAt(failedStep, "status", "") != "outcome_unknown" {
+			t.Fatalf("%s: an uncancellable resting order is never a settled step, got %v", strategy, routerStringAt(failedStep, "status", ""))
+		}
+		open := failed["openOrders"].([]map[string]any)
+		if len(open) != 1 || routerStringAt(open[0], "orderId", "") != "stub-order" || routerStringAt(open[0], "reason", "") != "cancel_failed" {
+			t.Fatalf("%s: the operator is told what is still live, got %v", strategy, open)
+		}
+		// 3. the cancel is accepted and the venue still calls it open: same rule
+		ghost := newOrderRouterStubVenue(1, false)
+		ghost.createdStatus = "open"
+		ghost.fetchOrderResults = []Order{routerStubOrder("stub-order", "open", 0, 0, 0)}
+		plan3 := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.0002, 100000), map[string]any{"slippageBps": 0.0}))
+		ghosted, err := router.Execute(plan3, routerStubVenues(map[string]*orderRouterStubVenue{"stub": ghost}), options)
+		if err != nil {
+			t.Fatalf("%s: execute: %v", strategy, err)
+		}
+		ghostStep := ghosted["steps"].([]map[string]any)[0]
+		if routerStringAt(ghostStep, "status", "") != "outcome_unknown" {
+			t.Fatalf("%s: a cancel the venue ignored leaves the outcome unknown", strategy)
+		}
+		ghostOpen := ghosted["openOrders"].([]map[string]any)
+		if len(ghostOpen) != 1 || routerStringAt(ghostOpen[0], "reason", "") != "still_open" {
+			t.Fatalf("%s: and it is reported as still open, got %v", strategy, ghostOpen)
+		}
 	}
 }
 
