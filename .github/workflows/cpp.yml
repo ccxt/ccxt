@@ -48,6 +48,8 @@ jobs:
       run: |
         npm run transpileCppBaseClass
         npm run transpileCppBaseTests
+    - name: Transpile exchange test framework
+      run: npm run transpileCppTests
     - name: Emit implicit API and transpile binance
       # The port currently validates one exchange (binance) end to end.
       # Extend this list as more exchanges pass the static gates locally.
@@ -65,6 +67,9 @@ jobs:
     - name: binance smoke test
       run: cpp/build/ccxt-smoke-binance
     - name: binance static request tests
-      run: cpp/build/ccxt-static-binance --requestTests
+      # runs through the transpiled tests.ts, like the C# port
+      run: cpp/build/ccxt-tests binance --requestTests
     - name: binance static response tests
-      run: cpp/build/ccxt-static-binance --responseTests
+      run: cpp/build/ccxt-tests binance --responseTests
+    - name: binance live tests (public endpoints)
+      run: node run-tests binance --cpp
