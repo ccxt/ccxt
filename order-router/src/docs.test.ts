@@ -298,3 +298,31 @@ test('live-integration.mjs exits 2, not 1, when the deployment rejects the suppl
         server.close();
     }
 });
+
+test('the nginx readiness gate exempts exactly the endpoints the app leaves ungated', async () => {
+    // The app gates /route and /stream/route ONLY: those RANK ACROSS the cache, so a venue that
+    // has not connected silently changes which one wins. /orderbook, /symbols and
+    // /exchanges/status rank nothing -- they report what the cache holds, which is the truth a
+    // caller most wants during a restart -- and the README argues that carve-out at length.
+    //
+    // nginx gates on a PREFIX, so `location /router/api/` swept all of them up and the documented
+    // behaviour was not the behaviour for anyone arriving through the proxy, which is everyone.
+    // This test exists because the two live in different files and nothing else ties them together.
+    const { readFileSync } = await import('node:fs');
+    const conf = readFileSync(new URL('../docs/deploy/nginx/docs.ccxt.com-router.conf', import.meta.url), 'utf8');
+    const server = readFileSync(new URL('./api/server.ts', import.meta.url), 'utf8');
+
+    // Locations carrying `auth_request off` — the ones nginx serves while cold.
+    const exempt = [ ...conf.matchAll(/location\s+(=\s+)?(\S+)\s*\{[^}]*auth_request\s+off/g) ]
+        .map((m) => m[2]);
+    for (const path of [ '/router/api/orderbook/', '/router/api/symbols', '/router/api/exchanges/status' ]) {
+        assert.ok(exempt.indexOf(path) !== -1,
+            `${path} is served while cold by the app, so nginx must not gate it (add auth_request off)`);
+    }
+    // The converse: the two the app DOES refuse must stay gated, or the proxy would pass a cold
+    // ranking straight through.
+    assert.match(conf, /location\s+\/router\/api\/stream\/\s*\{[^}]*auth_request\s+\/_router_ready_gate/,
+        'the stream must stay gated');
+    assert.ok(server.indexOf("reason: 'cache_cold'") !== -1,
+        'the app still refuses cold; if this moved, revisit the nginx exemptions above');
+});

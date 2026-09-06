@@ -350,6 +350,9 @@ export async function buildServer (
         };
     };
 
+    // Seconds a cold-cache refusal asks the caller to wait. See the header set on the 503.
+    const COLD_CACHE_RETRY_AFTER_SECONDS = 5;
+
     // The refusal body, shared by /route and its streaming twin so the two cannot drift into
     // describing the same condition differently. `reason` is the field a client branches on: this
     // is a retry-in-a-moment, categorically unlike a 404 (fix your ticker) or a 400 (fix your
@@ -543,9 +546,15 @@ export async function buildServer (
             const state = readiness();
             if (!state.ready) {
                 reply.code(503);
-                // Not a guess: the deploy smoke allows five minutes for a full warm-up, and a
-                // second is the granularity a client should re-ask at.
-                reply.header('retry-after', '1');
+                // The warm-up is MINUTES (the deploy smoke allows five), so `1` asked every
+                // compliant client to poll once a second for the whole window -- per client,
+                // against the instance least able to absorb it. Five seconds costs a caller at
+                // most five seconds of staleness on a multi-minute wait, and cuts that load by 80%.
+                // Deliberately a flat value, not derived from freshCount: the fill rate is not
+                // linear (venues connect in bursts), so a computed ETA would read as a promise the
+                // number cannot keep. The body carries freshCount and minFreshBooksForReady for a
+                // caller that wants to make its own decision.
+                reply.header('retry-after', String(COLD_CACHE_RETRY_AFTER_SECONDS));
                 return coldCacheBody(state);
             }
 

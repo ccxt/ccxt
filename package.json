@@ -274,7 +274,7 @@
     "test-order-router-go": "go -C go/v4 test -run TestOrderRouter -count=1 .",
     "test-order-router-rust": "cargo test --manifest-path rust/Cargo.toml -p ccxt-base --lib order_router",
     "test-order-router-rust//note": "runs against ccxt-base alone, NOT the ti-rust binary: ti-rust links the 180 generated venue wrappers and needs more memory than some machines have. The suite touches only Value and OrderRouter, both in ccxt-base. `npm run ti-rust -- --orderRouterTests` drives the identical checks from the same source in CI.",
-    "test-order-router": "npm run test-order-router-js && npm run test-order-router-py && npm run test-order-router-php && npm run test-order-router-cs && npm run test-order-router-go && npm run test-order-router-rust",
+    "test-order-router": "npm run test-order-router-ts && npm run test-order-router-js && npm run test-order-router-py && npm run test-order-router-php && npm run test-order-router-cs && npm run test-order-router-go && npm run test-order-router-rust",
     "test-base-rest-ts": "npm run ti-ts  -- --baseTests && npm run test-order-router-ts",
     "test-base-rest-js": "npm run ti-js  -- --baseTests && npm run test-order-router-js",
     "test-base-rest-py": "npm run ti-py  -- --baseTests && npm run test-order-router-py",

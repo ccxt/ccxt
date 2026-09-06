@@ -1545,7 +1545,12 @@ test('GET /route is 503 with reason cache_cold while the service is not ready', 
         assert.equal(body.freshCount, 0);
         assert.equal(body.minFreshBooksForReady, 1);
         // Retry-After, so a well-behaved client backs off without inventing an interval.
-        assert.ok(response.headers['retry-after'] !== undefined);
+        // Not 1: the warm-up is minutes, and a one-second retry-after asks every compliant
+        // client to poll once a second for the whole window, against the instance least able
+        // to absorb it.
+        const retryAfter = Number(response.headers['retry-after']);
+        assert.ok(Number.isFinite(retryAfter), 'retry-after present and numeric');
+        assert.ok(retryAfter >= 5, `retry-after should be a multi-second wait, got ${retryAfter}`);
     }
 
     // And once a fresh book lands, the same request is answered normally again.
