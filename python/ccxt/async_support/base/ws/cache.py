@@ -15,6 +15,15 @@ class Delegate:
 
 
 class BaseCache(list):
+    """Mutable cache for serialized use on its owning asyncio event loop.
+
+    Cache reads and writes are synchronous but are not protected against other
+    threads. Keep access on the owning loop, or externally synchronize all
+    reads and mutations, including changes through returned row references.
+    Slices are shallow lists, not thread-safe snapshots; concurrent deque
+    mutation during slice traversal may raise RuntimeError.
+    """
+
     # implicitly called magic methods don't invoke __getattribute__
     # https://docs.python.org/3/reference/datamodel.html#special-method-lookup
     # all method lookups obey the descriptor protocol
