@@ -100,6 +100,11 @@ jobs:
         # so without this step hand-written go/v4 tests never execute in CI
         if: env.important_modified == 'true'
         run: go test -C go -count=1 ./v4
+      - name: Run ArrayCache Race Tests
+        # Scalar counter races (notably timestamp polling) can pass ordinary
+        # unit tests; keep the race detector as an explicit regression gate.
+        if: env.important_modified == 'true'
+        run: go test -C go -race -count=1 -run '^TestArrayCache' ./v4
       - name: Build Ws
         run: go build -C go ./v4/pro
       - name: Build prediction

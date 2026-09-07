@@ -39,6 +39,9 @@ func NewBaseCache(MaxSize int) *BaseCache {
 	return &BaseCache{MaxSize: MaxSize, Data: make([]any, 0)}
 }
 
+// Clear resets only the base storage. Subclasses with indexes or counters must
+// clear Data and all their metadata under one Mu critical section instead of
+// calling this method and then acquiring Mu again to reset their own fields.
 func (c *BaseCache) Clear() {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
