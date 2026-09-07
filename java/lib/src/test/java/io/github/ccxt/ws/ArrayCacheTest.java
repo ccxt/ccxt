@@ -24,6 +24,83 @@ import java.util.concurrent.TimeUnit;
  */
 class ArrayCacheTest {
 
+    @Test
+    void nativeFacadesAndImmutableFallbacks() {
+        var plain = new ArrayCache();
+        var first = item("symbol", "A", "id", "1");
+        plain.append(first);
+        assertArrayEquals(new Object[] { first }, plain.toArray(new Object[0]));
+        assertEquals(-1, plain.indexOfIdentity(new Object()));
+        assertTrue(ArrayCache.mergeInto("immutable primitive", "updated primitive"));
+        assertTrue(ArrayCache.mergeInto(row(1), "different shape"));
+        var longer = row(1);
+        assertTrue(ArrayCache.mergeInto(longer, row(1, 2, 3)));
+        assertEquals(row(1, 2, 3), longer);
+        assertFalse(ArrayCache.mergeInto(List.of(1), row(1, 2)));
+        assertTrue(ArrayCache.mergeInto(Map.of("a", 1), row(1)));
+        var outcomes = new ArrayCache.ArrayCacheByOutcomeById();
+        outcomes.append(item("outcome", "yes", "id", "1"));
+        assertEquals(1, outcomes.getLimit("yes", null));
+        var sides = new ArrayCache.ArrayCacheBySymbolBySide(1);
+        sides.append(item("symbol", "A", "side", "long"));
+        sides.append(item("symbol", "A", "side", "short"));
+        assertEquals(2, sides.size(), "side cache intentionally ignores capacity");
+        for (boolean orphan : new boolean[] { false, true }) {
+            var cache = new ArrayCache.ArrayCacheBySymbolById();
+            var immutable = Map.<String, Object>of("symbol", "A", "id", "1");
+            cache.append(immutable);
+            if (orphan) cache.remove(0);
+            var update = item("symbol", "A", "id", "1", "value", 2);
+            cache.append(update);
+            assertEquals(1, cache.size());
+            assertSame(update, cache.get(0));
+            cache.append(update);
+            assertSame(update, cache.get(0));
+            var candles = new ArrayCache.ArrayCacheByTimestamp();
+            candles.append(List.of(100, 1));
+            if (orphan) candles.remove(0);
+            var candle = row(100, 2);
+            candles.append(candle);
+            assertSame(candle, candles.hashmap.get("100"));
+            assertEquals(orphan ? 0 : 1, candles.size());
+            candles.append(candle);
+            assertEquals(1, candles.getLimit(null, null));
+        }
+        var malformed = new ArrayCache.ArrayCacheByTimestamp();
+        malformed.append(row());
+        malformed.append("no timestamp");
+        assertEquals(1, malformed.size());
+        assertEquals(1, malformed.getLimit(null, null));
+    }
+
+    @Test
+    void evictionAfterPollingPreservesIndependentWindows() {
+        var outcomes = new ArrayCache.ArrayCacheByOutcomeById(1);
+        outcomes.append(item("outcome", "yes", "id", "1"));
+        outcomes.append(item("outcome", "no", "id", "2"));
+        assertEquals(1, outcomes.size());
+        assertEquals("no", at(outcomes, 0, "outcome"));
+        var cache = new ArrayCache.ArrayCacheBySymbolById(2);
+        cache.append(item("symbol", "A", "id", "1"));
+        cache.append(item("symbol", "A", "id", "2"));
+        cache.getLimit("A", null);
+        cache.getLimit(null, null);
+        cache.append(item("symbol", "A", "id", "2"));
+        cache.append(item("symbol", "A", "id", "3"));
+        assertEquals(2, cache.getLimit("A", null));
+        assertEquals(2, cache.getLimit(null, null));
+        cache.append(item("symbol", "B", "id", "4"));
+        cache.hashmap.remove("A"); // Public exchange-facing index may be cleared independently.
+        cache.append(item("symbol", "B", "id", "5"));
+        assertEquals(List.of("4", "5"), order(cache, "id"));
+        assertEquals(2, cache.getLimit("B", null));
+        var inheritedRows = new ArrayCache.ArrayCacheBySymbolById(1);
+        inheritedRows.add(item("symbol", "A", "id", "1"));
+        inheritedRows.append(item("symbol", "B", "id", "2"));
+        assertEquals(List.of("2"), order(inheritedRows, "id"));
+        assertEquals(1, inheritedRows.getLimit(null, null));
+    }
+
     // ─── helpers ───
 
     private static Map<String, Object> item(Object... kv) {

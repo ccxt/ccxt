@@ -1,9 +1,174 @@
 package ccxt
 
 import (
+	"reflect"
 	"sync"
 	"testing"
 )
+
+func TestArrayCacheNativeHelpers(t *testing.T) {
+	base := NewBaseCache(1)
+	base.AppendInternal("first")
+	base.AppendInternal("second")
+	if !reflect.DeepEqual(base.Data, []any{"second"}) {
+		t.Fatal("base eviction failed")
+	}
+	base.Clear()
+	if len(base.Data) != 0 {
+		t.Fatal("base clear failed")
+	}
+	for _, size := range []any{int(2), int64(2), float64(2), nil} {
+		plain, candles := NewArrayCache(size), NewArrayCacheByTimestamp(size)
+		want := 2
+		if size == nil {
+			want = 0
+		}
+		if plain.MaxSize != want || candles.MaxSize != want {
+			t.Fatal("capacity conversion changed")
+		}
+	}
+	for _, stamp := range []any{int(7), int32(7), int64(7), float32(7), float64(7)} {
+		got, ok := cacheTimestampOf([]any{stamp})
+		if !ok || got != 7 {
+			t.Fatalf("timestamp conversion failed: %T", stamp)
+		}
+	}
+	for _, row := range []any{nil, []any{}, []any{"7"}} {
+		if _, ok := cacheTimestampOf(row); ok {
+			t.Fatal("invalid timestamp accepted")
+		}
+	}
+	cache := NewArrayCache(nil)
+	cache.keyField = ""
+	cache.Append(map[string]any{"symbol": "A"})
+	cache.Mu.Lock()
+	cache.resetUpdateTrackersLocked()
+	cache.Mu.Unlock()
+	if cache.GetLimit(nil, nil) != 0 || cache.GetLimit("A", 5) != 5 {
+		t.Fatal("tracker reset failed")
+	}
+	var absent *Set
+	absent.Clear()
+	if absent.Size() != 0 {
+		t.Fatal("nil set must be empty")
+	}
+	set := NewSet()
+	set.Add("A")
+	if !set.Contains("A") || set.Size() != 1 {
+		t.Fatal("set addition failed")
+	}
+	set.Remove("A")
+	if set.Contains("A") {
+		t.Fatal("set removal failed")
+	}
+	set.Add("B")
+	set.Clear()
+	if set.Size() != 0 {
+		t.Fatal("set clear failed")
+	}
+}
+
+func TestArrayCacheEvictionAndPolling(t *testing.T) {
+	for _, field := range []string{"symbol", "outcome"} {
+		cache := NewArrayCacheBySymbolById(2).ArrayCache
+		if field == "outcome" {
+			cache = NewArrayCacheByOutcomeById(2).ArrayCache
+		}
+		for i := 0; i < 6; i++ {
+			cache.Append(map[string]any{field: ToString(i), "id": ToString(i)})
+		}
+		if len(cache.ToArray()) != 2 || len(cache.Hashmap) != 2 || ToString(cache.GetLimit(nil, 1)) != "1" {
+			t.Fatal("eviction must remove old rows, buckets and counts")
+		}
+		cache.Append(map[string]any{field: "5", "id": "5"})
+		if cache.GetLimit(nil, nil) != 1 {
+			t.Fatal("global poll must reset on append")
+		}
+		cache.Clear()
+		if len(cache.ToArray()) != 0 || len(cache.Hashmap) != 0 || cache.GetLimit(nil, nil) != 0 {
+			t.Fatal("clear must reset every view")
+		}
+	}
+	outcomes := NewArrayCacheByOutcomeById()
+	outcomes.Append(map[string]any{"outcome": "yes", "id": "1"})
+	if ToString(outcomes.GetLimit("yes", 3)) != "1" {
+		t.Fatal("outcome polling must delegate")
+	}
+	plain := NewArrayCache(1)
+	plain.Append(map[string]any{"symbol": "A"})
+	plain.GetLimit("A", nil)
+	plain.Append(map[string]any{"symbol": "A"})
+	if plain.GetLimit("A", nil) != 1 {
+		t.Fatal("plain symbol poll must reset")
+	}
+	plain.Append("non-map row")
+	plain.Append("next row")
+	if !reflect.DeepEqual(plain.ToArray(), []any{"next row"}) {
+		t.Fatal("non-map eviction must preserve FIFO order")
+	}
+	candles := NewArrayCacheByTimestamp(1)
+	candles.Append([]any{100, 1})
+	candles.Append([]any{100, 2})
+	if !reflect.DeepEqual(candles.ToArray()[0], []any{100, 2}) {
+		t.Fatal("same-shaped merge failed")
+	}
+	if ToString(candles.GetLimit(nil, 2)) != "1" {
+		t.Fatal("timestamp cap failed")
+	}
+	candles.Append([]any{200, 3})
+	if len(candles.Hashmap) != 1 || candles.Hashmap[100] != nil || candles.GetLimit(nil, nil) != 1 {
+		t.Fatal("timestamp eviction/reset failed")
+	}
+}
+
+func TestArrayCacheRemoveVariants(t *testing.T) {
+	type removable interface {
+		Append(any)
+		Remove(string)
+		ToArray() []any
+	}
+	for _, cache := range []removable{NewArrayCache(nil), NewArrayCacheBySymbolById(), NewArrayCacheByOutcomeById(), NewArrayCacheBySymbolBySide(), NewArrayCacheByTimestamp(nil)} {
+		cache.Append(map[string]any{"symbol": "A", "outcome": "yes", "id": "1", "side": "long"})
+		cache.Append(map[string]any{"symbol": "B", "outcome": "no", "id": "2", "side": "short"})
+		cache.Append([]any{100, 1})
+		cache.Remove("A")
+		rows := cache.ToArray()
+		if len(rows) != 2 || rows[0].(map[string]any)["symbol"] != "B" {
+			t.Fatalf("%T: removal changed surviving rows: %v", cache, rows)
+		}
+		cache.Remove("missing")
+		if len(cache.ToArray()) != 2 {
+			t.Fatal("unknown removal must not drop rows")
+		}
+	}
+}
+
+func TestArrayCacheTimestampNativeRows(t *testing.T) {
+	cache := NewArrayCacheByTimestamp(2)
+	cache.Append([]any{100, 1, 2})
+	cache.Append([]any{200, 2})
+	cache.Append([]any{100, 9})
+	if !reflect.DeepEqual(cache.ToArray()[0], []any{100, 9}) {
+		t.Fatal("shorter row must lose its tail")
+	}
+	cache.Append([]any{100, 8, 7, 6})
+	if !reflect.DeepEqual(cache.Hashmap[100], []any{100, 8, 7, 6}) {
+		t.Fatal("longer row must grow")
+	}
+	cache.Mu.Lock()
+	// The public index can be orphaned or contain a non-list reference. Pin
+	// the native fallback without imposing a new validation contract.
+	cache.mergeRow(100, cache.Hashmap[100], "replacement")
+	cache.mergeRow(300, nil, []any{300, 3})
+	cache.Mu.Unlock()
+	if cache.Hashmap[100] != "replacement" || !reflect.DeepEqual(cache.Hashmap[300], []any{300, 3}) {
+		t.Fatal("fallback must publish the replacement index")
+	}
+	cache.Clear()
+	if len(cache.ToArray()) != 0 || len(cache.Hashmap) != 0 || cache.GetLimit(nil, nil) != 0 {
+		t.Fatal("timestamp clear must reset both views")
+	}
+}
 
 func TestArrayCacheRawKeyTypes(t *testing.T) {
 	for _, field := range []string{"symbol", "outcome"} {

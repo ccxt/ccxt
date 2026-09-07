@@ -463,6 +463,17 @@ function test_php_duplicate_tokens_preserve_first_match() {
 }
 
 function test_ws_cache_php() {
+    $facade = new BaseCache();
+    $facade[0] = array('symbol' => 'A');
+    check(isset($facade[0]) && !isset($facade[1]), 'ArrayAccess existence follows count');
+    check((string) $facade === print_r($facade->deque, true), 'string conversion retains array representation');
+    check($facade->get_limit(null, 5) === null, 'base limit fallback remains a no-op');
+    $plain = new ArrayCache();
+    $plain->append(array('symbol' => 'A'));
+    check($plain->getLimit(null, null) === 1, 'plain global poll counts append');
+    $plain->append(array('symbol' => 'A'));
+    check($plain->getLimit(null, null) === 1, 'plain global poll defers reset to append');
+    check($plain->getLimit('A', null) === 2, 'global poll preserves symbol count');
     test_php_duplicate_tokens_preserve_first_match();
     test_php_repeated_tail_updates();
     test_php_field_wise_merge();

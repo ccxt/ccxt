@@ -4,7 +4,7 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.append(root)
 
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide  # noqa: F402
+from ccxt.async_support.base.ws.cache import BaseCache, ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide  # noqa: F402
 
 # ----------------------------------------------------------------------------
 # hand-written python-only test (not transpiled, this file is NOT generated -
@@ -544,7 +544,41 @@ def test_duplicate_tokens_preserve_first_match():
         assert 'updated' not in original
 
 
+def test_list_facade_and_base_fallback():
+    row = {'symbol': 'A', 'value': 1}
+    cache = ArrayCache()
+    cache.append(row)
+    assert repr(cache) == repr([row])
+    assert cache + [2] == [row, 2]
+    assert len(cache) == 1
+    assert row in cache
+    assert list(reversed(cache)) == [row]
+    replacement = {'symbol': 'B'}
+    cache[0] = replacement
+    assert cache[0] is replacement
+    del cache[0]
+    assert len(cache) == 0
+    # The base fallback is intentionally a no-op, not a counter implementation.
+    assert BaseCache().get_limit(None, 5) is None
+
+
+def test_reappend_stored_reference():
+    for cache, row in (
+        (ArrayCacheByTimestamp(2), [0, 1]),
+        (ArrayCacheBySymbolById(2), {'symbol': 'A', 'id': '1'}),
+        (ArrayCacheByOutcomeById(2), {'outcome': 'YES', 'id': '1'}),
+        (ArrayCacheBySymbolBySide(), {'symbol': 'A', 'side': 'long'}),
+    ):
+        cache.append(row)
+        cache.append(row)
+        assert len(cache) == 1
+        assert cache[0] is row
+        assert cache.get_limit(None, None) == 1
+
+
 def test_ws_cache_python_regressions():
+    test_list_facade_and_base_fallback()
+    test_reappend_stored_reference()
     test_duplicate_tokens_preserve_first_match()
     test_slices_match_lists()
     test_slice_bounds_can_mutate_cache()
