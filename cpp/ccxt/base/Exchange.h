@@ -226,6 +226,7 @@ public:
     // GENERATED — do not edit; regenerate with `npm run transpileCpp -- --baseClass`.
     #include "Exchange.BaseMethods.inc"
     #include "Exchange.TradingMethods.inc"
+    #include "Exchange.Dispatch.inc"
 };
 
 // The supported way to build an exchange. It completes construction first, so the

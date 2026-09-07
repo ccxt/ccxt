@@ -9,11 +9,21 @@
 // `hash(payload, sha256, 'hex')` resolves without any rewriting.
 
 #include "Value.h"
+#include "Errors.h"
 
 #include <any>
 #include <string>
 
 namespace ccxt {
+
+// The TS ecdsa() free function from crypto.ts. The real implementation needs
+// deterministic RFC-6979 signing over secp256k1 (OpenSSL's ECDSA_do_sign draws a
+// random nonce and cannot reproduce the pinned (r, s, v) vectors) -- part of the
+// crypto milestone. The name must exist because generated exchange sign() paths
+// reference it even on branches the hmac path takes.
+inline std::any ecdsa (std::any, std::any, std::any, std::any) {
+    throw NotSupported ("ecdsa requires deterministic RFC-6979 signing; not implemented in the C++ port yet");
+}
 
 // Digest selectors. Generated code passes these positionally into hash()/hmac(); they
 // are plain strings so an unknown algorithm fails loudly at the call rather than

@@ -59,7 +59,18 @@ public:
     static bool isAmd64 () { return true; }
     static std::any isNullValue (std::any value) { return !value.has_value (); }
     static std::any close (std::any) { return std::any {}; }
-    static std::any getRootException (std::any exc) { return exc; }
+
+    // Called inside catch blocks: `std::any e = getRootException (ex)`. The call
+    // itself would slice `ex` down to std::exception (losing the concrete ccxt
+    // error type), so ignore the argument and capture the in-flight exception —
+    // std::current_exception() is still valid here. isInstanceOf/exceptionMessage
+    // understand the exception_ptr payload.
+    static std::any getRootException (std::any exc) {
+        if (auto p = std::current_exception ()) {
+            return std::any (p);
+        }
+        return exc;
+    }
 
     static void exitScript (std::any code = std::any (0)) {
         // The transpiled initInner calls exitScript(0) on success. Terminating here
@@ -200,6 +211,16 @@ public:
     }
 
     static std::string exceptionMessage (const std::any& e) {
+        // getRootException wraps the in-flight exception_ptr; unwrap for the message
+        if (e.type () == typeid (std::exception_ptr)) {
+            try {
+                std::rethrow_exception (std::any_cast<std::exception_ptr> (e));
+            } catch (const std::exception& real) {
+                return std::string ("[") + typeid (real).name () + "] " + real.what ();
+            } catch (...) {
+                return "[unknown exception]";
+            }
+        }
         return std::string ("[std::any] ") + str (e);
     }
 
