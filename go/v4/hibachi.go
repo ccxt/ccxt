@@ -2262,7 +2262,7 @@ func (this *HibachiCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(method, "GET")) {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query string = this.Urlencode(request)
-		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+		if IsTrue(!IsEqual(GetLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}
