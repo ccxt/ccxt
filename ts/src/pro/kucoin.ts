@@ -3486,6 +3486,10 @@ export default class kucoin extends kucoinRest {
             if (client.url.indexOf ('connectId=private') >= 0) {
                 type = 'private';
             }
+            // Match the negotiation cache key; spot tokens can also contain "Futures".
+            if (client.url.indexOf ('connectId=' + type + 'Futures') >= 0) {
+                type += 'Futures';
+            }
             this.options['urls'][type] = undefined;
         }
         this.handleErrors (1, '', client.url, '', {}, data, message, {}, {});
