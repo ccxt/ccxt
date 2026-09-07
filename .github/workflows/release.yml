@@ -73,8 +73,32 @@ jobs:
         run: pip install build twine
       - name: export exchanges (remove later)
         run: npm run export-exchanges
-      - name: Transpile and Build TMP REMOVE
-        run: npm run force-build
+      - name: Pre-transpile
+        run: npm run pre-transpile
+      - name: Transpile Go
+        run: npm run force-transpileGO
+      - name: Build Go
+        run: npm run buildGO
+      - name: Transpile Python and PHP
+        run: npm run force-transpile-fast
+      - name: Transpile C#
+        run: npm run force-transpileCS
+      - name: Build C#
+        run: npm run buildCS
+      - name: Transpile Java
+        run: npm run force-transpileJava
+      - name: Build Java
+        run: npm run buildJava
+      - name: Transpile Rust
+        run: npm run transpileRust
+      - name: Build Rust
+        run: npm run buildRust
+      - name: Check Python syntax
+        run: npm run check-python-syntax
+      - name: Check PHP syntax
+        run: npm run check-php-syntax
+      - name: Update badges
+        run: npm run update-badges
       - name: Base tests Rest
         run: npm run test-base-rest
       - name: Base tests Ws
