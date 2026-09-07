@@ -407,6 +407,7 @@ class StubVenue {
         this.fillRatio = fillRatio;
         this.failCreate = failCreate;
         this.calls = [];
+        this.failCreateTimes = 0;
         this.markets = permissiveStubMarkets['stub'];
         this.features = { 'spot': { 'createOrder': { 'timeInForce': ['GTC', 'IOC'] } } };
         this.fetchOrderResults = [];
@@ -464,6 +465,10 @@ class StubVenue {
         this.inFlight = this.inFlight - 1;
         if (this.timeoutCreate) {
             throw new RequestTimeout('stub timed out');
+        }
+        if (this.failCreateTimes > 0) {
+            this.failCreateTimes = this.failCreateTimes - 1;
+            throw new ExchangeError('stub refuses, for now');
         }
         if (this.failCreate) {
             throw new ExchangeError('stub refuses');
@@ -1408,4 +1413,86 @@ test('the re-execution ledger is bounded, evicts oldest-first, and says so by re
     const report = await bounded.execute(plan, { 'stub': reexecuted }, opts);
     assert.strictEqual(report['steps'][0]['status'], 'filled', 'and an aged-out plan re-executes without the opt-in');
     assert.strictEqual(reexecuted.calls.length > 0, true, 'which means real orders — the bound costs a guarantee');
+});
+test('onStep sees every step and can stop the route', async () => {
+    //  The one thing a caller cannot do from outside execute(): look at what just happened and
+    //  decide not to continue. Before this hook the method was opaque from call to return.
+    const plan = router.buildExecutionPlan(twoHopRoute(), {});
+    const venue = new StubVenue('stub');
+    const seen = [];
+    const report = await router.execute(plan, { 'stub': venue }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+        'onStep': (event) => {
+            seen.push(event);
+            return (event['stepIndex'] === 0) ? 'halt' : '';
+        },
+    });
+    assert.strictEqual(seen.length, 1, 'the hook is not called for steps that never ran');
+    assert.strictEqual(seen[0]['stepIndex'], 0);
+    assert.strictEqual(seen[0]['status'], 'filled');
+    assert.strictEqual(seen[0]['stepsRemaining'], plan['steps'].length - 1);
+    assert.ok(seen[0]['reconciliation'] !== undefined, 'the verdict it is judging is in the event');
+    assert.strictEqual(report['halted'], true);
+    assert.strictEqual(report['haltReason'], 'halted_by_on_step');
+    assert.strictEqual(report['haltStepIndex'], 0);
+    assert.strictEqual(report['steps'][1]['status'], 'skipped');
+    assert.strictEqual(report['ordersPlaced'], 1, 'the step after the halt was never placed');
+    assert.strictEqual(venue.calls.length, 1);
+});
+test('an onStep that throws is recorded, and does not take the run down with it', async () => {
+    //  The report is the ONLY account of orders that are already live. An exception raised by
+    //  observability code must never destroy it — trigger.dev logs and ignores hook errors for
+    //  the same reason.
+    const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const venue = new StubVenue('stub');
+    const report = await router.execute(plan, { 'stub': venue }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+        'onStep': () => { throw new Error('hook is broken'); },
+    });
+    assert.strictEqual(report['halted'], false, 'the route finished');
+    assert.strictEqual(report['steps'][0]['status'], 'filled');
+    const codes = report['errors'].map((e) => e['code']);
+    assert.ok(codes.some((c) => c.indexOf('on_step_hook_failed') === 0), 'the broken hook is reported rather than swallowed, got ' + JSON.stringify(codes));
+});
+test('onStep can only narrow: it cannot resume a route the reconciliation already halted', async () => {
+    //  The halt is a money decision made in one pure place precisely so it cannot be omitted.
+    //  A hook that could wave it through would be a way to omit it.
+    const plan = router.buildExecutionPlan(twoHopRoute(), {});
+    const starved = new StubVenue('stub', 0.1);
+    const report = await router.execute(plan, { 'stub': starved }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+        'onStep': () => 'continue',
+    });
+    assert.strictEqual(report['halted'], true);
+    assert.strictEqual(report['haltReason'], 'shortfall_exceeds_tolerance', 'the reconciliation reason survives, it is not replaced by the hook');
+    assert.strictEqual(report['ordersPlaced'], 1, 'the hook did not wave the route onward');
+    assert.strictEqual(report['steps'][1]['status'], 'skipped');
+});
+test('retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome', async () => {
+    //  A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
+    //  original client order id would have the venue reject the retry as a duplicate of the very
+    //  order it just refused, so each attempt carries its own.
+    const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const relents = new StubVenue('stub');
+    relents.failCreateTimes = 1;
+    const report = await router.execute(plan, { 'stub': relents }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+        'retryFailedSteps': 2, 'retryDelayMs': 0,
+    });
+    assert.strictEqual(report['steps'][0]['status'], 'filled', 'the retry succeeded');
+    assert.strictEqual(report['steps'][0]['attempt'], 1, 'the report says which attempt won');
+    const ids = relents.paramsSeen.map((pp) => pp['clientOrderId']);
+    assert.strictEqual(ids.length, 2);
+    assert.notStrictEqual(ids[0], ids[1], 'a retry must not reuse the rejected order id');
+    assert.ok(ids[1].indexOf('-r1') !== -1, 'the retry is marked as such, got ' + ids[1]);
+    //  the outcome the policy must NEVER touch
+    const unknown = new StubVenue('stub');
+    unknown.timeoutCreate = true;
+    const plan2 = router.buildExecutionPlan({ ...oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), 'requestId': 'unknown-1' }, {});
+    const second = await router.execute(plan2, { 'stub': unknown }, {
+        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+        'retryFailedSteps': 5, 'retryDelayMs': 0,
+    });
+    assert.strictEqual(second['steps'][0]['status'], 'outcome_unknown');
+    assert.strictEqual(unknown.calls.length, 1, 'an order whose outcome is unknown may already be live; it is never re-placed');
 });
