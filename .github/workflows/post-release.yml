@@ -33,6 +33,11 @@ jobs:
         with:
           file: CHANGELOG.md
           github_token: ${{ steps.app-token.outputs.token }}
+          # CHANGELOG.md is the ccxt library's changelog. This tool renders *every* GitHub
+          # release in the repo, so the sub-package releases cut by mcp-release.yml
+          # (ccxt-mcp-vX.Y.Z and the moving ccxt-mcp-latest) were being interleaved with the
+          # ccxt versions as if they were library releases. -i takes a regex of tags to skip.
+          args: -i ^ccxt-mcp-
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
