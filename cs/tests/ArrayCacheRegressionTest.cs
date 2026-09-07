@@ -54,6 +54,7 @@ public partial class BaseTest
         testArrayCacheBySymbolByIdSharedHashmap();
         testArrayCacheKeyScanPreservesConversions();
         testArrayCacheStringKeyFallbacks();
+        testArrayCacheConcurrentUpdates();
     }
 
     // 1. THE CRITICAL ONE. ArrayCacheByTimestamp(3) fed 10 distinct timestamps
@@ -369,6 +370,40 @@ public partial class BaseTest
         finally
         {
             System.Globalization.CultureInfo.CurrentCulture = previousCulture;
+        }
+    }
+
+    private void testArrayCacheConcurrentUpdates()
+    {
+        foreach (ArrayCache cache in new ArrayCache[] { new ArrayCacheBySymbolById(32), new ArrayCacheByOutcomeById(32), new ArrayCacheBySymbolBySide() })
+        {
+            var field = (cache is ArrayCacheByOutcomeById) ? "outcome" : "symbol";
+            var key = (cache is ArrayCacheBySymbolBySide) ? "side" : "id";
+            var workers = new List<Task>();
+            for (var worker = 0; worker < 4; worker++)
+            {
+                workers.Add(Task.Run(() =>
+                {
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        cache.append(new Dictionary<string, object> { { field, "A" }, { key, (i % 32).ToString() }, { "value", i } });
+                        Assert(cache.Count <= 32, "concurrent append must not duplicate keys");
+                        var limit = Convert.ToInt32(cache.getLimit("A", null));
+                        Assert(limit >= 0 && limit <= 32, "concurrent polling must keep counters bounded");
+                    }
+                }));
+            }
+            Assert(Task.WaitAll(workers.ToArray(), 30000), "cache workers must finish without deadlock");
+            var seen = new HashSet<object>();
+            // Stored rows remain shared mutable dictionaries, not immutable
+            // snapshots. Inspect their contents only after writers finish.
+            foreach (Dictionary<string, object> row in cache)
+            {
+                seen.Add(row[key]);
+            }
+            Assert(cache.Count == 32 && seen.Count == 32, "concurrent updates must retain all distinct keys");
+            cache.clear();
+            Assert(cache.Count == 0 && Convert.ToInt32(cache.getLimit(null, null)) == 0, "clear must reset the concurrent workload");
         }
     }
 

@@ -18,7 +18,6 @@ class ArrayCacheBySymbolById extends ArrayCache {
     public function append($item) {
         $key = $this->as_string($item[$this->key_field]);
         $id = $this->as_string($item['id']);
-        $token = $this->index_key($key, $id);
         if (array_key_exists($key, $this->hashmap)) {
             $by_id = &$this->hashmap[$key];
         } else {
@@ -43,13 +42,12 @@ class ArrayCacheBySymbolById extends ArrayCache {
             # yield "BTC/USDT12", whereas "9:BTC/USDT12" and "8:BTC/USDT12"
             # are distinct for every possible pair
             $last_index = count($this->index) - 1;
-            $at_tail = ($last_index >= 0) && ($this->index[$last_index] === $token);
-            $index = $at_tail ? $last_index : array_search($token, $this->index, true);
+            $index = array_search($this->index_key($key, $id), $this->index, true);
             # a miss must not splice - array_splice() coerces false to 0 and
             # would silently remove the first row
-            if ($at_tail && count($this->deque) === $last_index + 1 && array_is_list($this->deque)) {
-                // Private tokens are unique. Pop avoids array_splice copying
-                // the whole array when the updated row is already last.
+            if ($index !== false && $index === $last_index && count($this->deque) === $last_index + 1 && array_is_list($this->deque)) {
+                // Preserve first-match lookup even if public hashmap edits
+                // left duplicate tokens. Pop avoids copying a dense array.
                 array_pop($this->index);
                 array_pop($this->deque);
             } elseif ($index !== false) {
@@ -89,7 +87,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         # this allows us to effectively pass by reference
         $this->deque[] = &$item;
-        $this->index[] = $token;
+        $this->index[] = $this->index_key($key, $id);
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
             # the global poll consumes only the global scope: the symbol-scoped

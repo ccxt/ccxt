@@ -20,7 +20,6 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
     public function append($item) {
         $symbol = $this->as_string($item['symbol']);
         $side = $this->as_string($item['side']);
-        $token = $this->index_key($symbol, $side);
         if (array_key_exists($symbol, $this->hashmap)) {
             $by_side = &$this->hashmap[$symbol];
         } else {
@@ -40,11 +39,10 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
             # key is ambiguous, so the symbol is length prefixed, which makes
             # the encoding injective and cannot splice the wrong position out
             $last_index = count($this->index) - 1;
-            $at_tail = ($last_index >= 0) && ($this->index[$last_index] === $token);
-            $index = $at_tail ? $last_index : array_search($token, $this->index, true);
+            $index = array_search($this->index_key($symbol, $side), $this->index, true);
             # a miss must not splice - array_splice() coerces false to 0 and
             # would silently remove the first row
-            if ($at_tail && count($this->deque) === $last_index + 1 && array_is_list($this->deque)) {
+            if ($index !== false && $index === $last_index && count($this->deque) === $last_index + 1 && array_is_list($this->deque)) {
                 // Keep the public deque's sparse-array fallback, but avoid
                 // copying a dense array just to remove its final element.
                 array_pop($this->index);
@@ -58,7 +56,7 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
         }
         # this allows us to effectively pass by reference
         $this->deque[] = &$item;
-        $this->index[] = $token;
+        $this->index[] = $this->index_key($symbol, $side);
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
             # the global poll consumes only the global scope: the symbol-scoped

@@ -441,7 +441,29 @@ function test_php_repeated_tail_updates() {
     }
 }
 
+function test_php_duplicate_tokens_preserve_first_match() {
+    foreach (array(
+        array(new ArrayCacheBySymbolById(), 'symbol', 'id'),
+        array(new ArrayCacheByOutcomeById(), 'outcome', 'id'),
+        array(new ArrayCacheBySymbolBySide(), 'symbol', 'side'),
+    ) as $variant) {
+        list($cache, $first, $second) = $variant;
+        $cache->append(array($first => 'A', $second => '1', 'generation' => 'original'));
+        $cache->append(array($first => 'A', $second => '2'));
+        $original = &$cache[0];
+        unset($cache->hashmap['A']['1']);
+        $cache->append(array($first => 'A', $second => '1', 'generation' => 'replacement'));
+        $cache->append(array($first => 'A', $second => '1', 'updated' => true));
+        check(array_column($cache->deque, $second) === array('2', '1', '1'), 'duplicate tokens remove first match');
+        check(!isset($original['updated']), 'detached original is not updated');
+        $cache[1]['alias'] = true;
+        check($cache[2]['alias'] === true, 'duplicate rows retain shared references');
+        unset($original);
+    }
+}
+
 function test_ws_cache_php() {
+    test_php_duplicate_tokens_preserve_first_match();
     test_php_repeated_tail_updates();
     test_php_field_wise_merge();
     test_php_two_field_match();

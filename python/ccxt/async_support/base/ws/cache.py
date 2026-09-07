@@ -55,9 +55,11 @@ class BaseCache(list):
             count = len(indices)
             if count == 0:
                 return []
-            if count <= 64 or abs(step) != 1:
+            if count <= 64 or abs(step) != 1 or len(deque) != size:
                 # Keep direct probes for small or strided slices: walking all
                 # skipped entries can cost more than indexing those rows.
+                # A slice bound's __index__ can mutate storage; retain the
+                # original indexing errors if normalization changed its size.
                 return [deque[i] for i in indices]
             # Repeated deque indexing makes a full slice quadratic. Traverse
             # once from the nearer end, so small tail slices stay cheap too.
@@ -226,9 +228,7 @@ class ArrayCacheBySymbolById(ArrayCache):
             if reference is not item:
                 reference.update(item)
             item = reference
-            # The private index has unique tokens. Repeated updates of the
-            # newest row can avoid scanning the entire retained window.
-            index = len(self._index) - 1 if self._index and self._index[-1] == token else self._index.index(token)
+            index = self._index.index(token)
             # move the order to the end of the deque
             del self._deque[index]
             del self._index[index]
@@ -316,7 +316,7 @@ class ArrayCacheBySymbolBySide(ArrayCache):
             if reference is not item:
                 reference.update(item)
             item = reference
-            index = len(self._index) - 1 if self._index and self._index[-1] == token else self._index.index(token)
+            index = self._index.index(token)
             # move the position to the end of the deque
             del self._deque[index]
             del self._index[index]

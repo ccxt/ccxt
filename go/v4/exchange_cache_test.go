@@ -1,6 +1,65 @@
 package ccxt
 
-import "testing"
+import (
+	"sync"
+	"testing"
+)
+
+func TestArrayCacheRawKeyTypes(t *testing.T) {
+	for _, field := range []string{"symbol", "outcome"} {
+		for _, raw := range []any{1, int64(1), float64(1), true, "1"} {
+			cache := NewArrayCacheBySymbolById(3).ArrayCache
+			if field == "outcome" {
+				cache = NewArrayCacheByOutcomeById(3).ArrayCache
+			}
+			original := map[string]any{field: raw, "id": raw, "retained": true}
+			cache.Append(original)
+			cache.Append(map[string]any{field: "other", "id": raw})
+			// Merge a normalized string, then a raw value into the same bucket.
+			// Both scan operands must use the post-merge values.
+			cache.Append(map[string]any{field: ToString(raw), "id": ToString(raw)})
+			cache.Append(map[string]any{field: "last", "id": "last"})
+			cache.Append(map[string]any{field: raw, "id": raw, "updated": true})
+			rows := cache.ToArray()
+			if len(rows) != 3 || rows[0].(map[string]any)[field] != "other" || rows[1].(map[string]any)[field] != "last" || rows[2].(map[string]any)[field] != raw {
+				t.Fatalf("%s / %T: raw-key update changed order: %v", field, raw, rows)
+			}
+			rows[2].(map[string]any)["alias"] = true
+			if original["alias"] != true || original["retained"] != true || original["updated"] != true {
+				t.Fatal("raw-key update must retain the stored map identity and fields")
+			}
+		}
+	}
+}
+
+func TestArrayCacheConcurrentAppendAndSnapshot(t *testing.T) {
+	// Snapshots copy the slice, not its mutable maps. Inspect row contents
+	// only after writers finish; polling GetLimit concurrently is not safe.
+	for _, cache := range []*ArrayCache{NewArrayCacheBySymbolById(32).ArrayCache, NewArrayCacheByOutcomeById(32).ArrayCache} {
+		var workers sync.WaitGroup
+		for worker := 0; worker < 4; worker++ {
+			workers.Add(1)
+			go func() {
+				defer workers.Done()
+				for i := 0; i < 1000; i++ {
+					cache.Append(map[string]any{cache.keyField: "A", "id": i % 32, "value": i})
+					if len(cache.ToArray()) > 32 {
+						t.Error("concurrent append exceeded capacity")
+					}
+				}
+			}()
+		}
+		workers.Wait()
+		rows := cache.ToArray()
+		seen := make(map[any]bool)
+		for _, row := range rows {
+			seen[row.(map[string]any)["id"]] = true
+		}
+		if len(rows) != 32 || len(seen) != 32 || cache.GetLimit(nil, nil) != 32 {
+			t.Fatal("concurrent append lost rows, duplicated keys or changed counters")
+		}
+	}
+}
 
 func TestArrayCacheUpdateScanUsesRawKeys(t *testing.T) {
 	cache := NewArrayCacheBySymbolById(3)
@@ -10,8 +69,8 @@ func TestArrayCacheUpdateScanUsesRawKeys(t *testing.T) {
 	cache.Append(map[string]any{"symbol": "A", "id": "2"})
 	// The bucket normalizes ids to strings, but the row scan compares raw
 	// values after merging. Hoisting must not substitute the normalized id.
-	cache.Append(map[string]any{"symbol": "A", "id": "1", "updated": 1})
-	cache.Append(map[string]any{"symbol": "A", "id": "1", "updated": 2})
+	cache.Append(map[string]any{"symbol": "A", "id": 1, "updated": 1})
+	cache.Append(map[string]any{"symbol": "A", "id": 1, "updated": 2})
 	rows := cache.ToArray()
 	if len(rows) != 3 || rows[0].(map[string]any)["symbol"] != "B" || rows[1].(map[string]any)["id"] != "2" {
 		t.Fatalf("update changed order or evicted a row: %v", rows)
