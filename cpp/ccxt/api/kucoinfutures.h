@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../exchanges/kucoin.h"
 
 namespace ccxt {
 

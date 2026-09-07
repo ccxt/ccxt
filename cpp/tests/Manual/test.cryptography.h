@@ -1,13 +1,15 @@
 #pragma once
 
-// HAND-WRITTEN, not generated.
-//
-// ts/src/test/base/test.cryptography.ts carries a `// NO_AUTO_TRANSPILE` marker: it
-// imports @noble/hashes and @noble/curves directly, so no backend can transpile it and
-// every port keeps a hand-maintained copy (see cs/tests/Generated/Base/test.cryptography.cs,
-// which is likewise written by hand despite living under Generated/). This file is the
-// C++ copy; it lives under tests/Manual/ rather than tests/Generated/ so the directory
-// does not misreport where it came from.
+// TEMPORARY hand-written stand-in — the correct shape (matching C#) is a dedicated
+// transpileCryptoTests () in build/cppTranspiler.ts, mirroring
+// transpileCryptoTestsToCSharp: ts/src/test/base/test.cryptography.ts has
+// NO_AUTO_TRANSPILE (its imports name @noble digest objects), but it IS machine-
+// transpiled per-file with extra post-processing — see the TS comment "even though
+// no AUTO_TRANSP flag here, this file is manually transpiled". Replacing this file
+// with that transpilation needs runtime work first: deterministic ECDSA (RFC 6979)
+// over secp256k1, RSA PKCS#1 v1.5 via PEM, and a ccxt-shaped jwt(); until those
+// exist the transpiled asserts cannot pass, so this copy carries the subset the
+// current runtime supports.
 //
 // Assertions are transcribed verbatim from the TS source. The ecdsa / rsa / jwt cases
 // are NOT here -- see the note at the bottom.

@@ -2,6 +2,9 @@
 
 #include <curl/curl.h>
 
+#include <openssl/sha.h>
+#include <openssl/rand.h>
+
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
@@ -953,6 +956,11 @@ std::string ExchangeBase::queryString (const std::any& params, bool encodeKeys,
 
 std::any ExchangeBase::milliseconds () { return getCurrentTimestamp (); }
 
+std::any ExchangeBase::microseconds () {
+    // TS microseconds(): Date.now() * 1000 — microseconds since the epoch
+    return std::any (toLong (getCurrentTimestamp ()) * 1000);
+}
+
 std::any ExchangeBase::seconds () {
     return std::any (static_cast<long long> (toLong (getCurrentTimestamp ()) / 1000));
 }
@@ -1412,13 +1420,26 @@ std::any ExchangeBase::setProperty (const std::string& name, std::any value) {
 }
 
 std::any ExchangeBase::callDynamically (const std::string& name, std::any args) {
-    // unified methods first: the generated per-exchange callMethod table
+    // unified methods first: the generated per-exchange callMethod table. A name that
+    // has already missed every table goes straight to the hand-written helper
+    // registry below -- the miss scan is ~800 string comparisons plus an exception
+    // throw/catch, which the test framework would otherwise pay per market per call.
+    const bool knownMiss = [this, &name] () {
+        std::lock_guard<std::mutex> guard (this->tableMissCacheMutex);
+        return this->tableMissCache.count (name) > 0;
+    } ();
     std::exception_ptr underlying;
-    try {
-        return this->callMethod (std::string (name), args.has_value () ? args : std::any (list {}));
-    } catch (...) {
-        underlying = std::current_exception ();
-        // fall through to the helper registry below
+    if (!knownMiss) {
+        try {
+            return this->callMethod (std::string (name), args.has_value () ? args : std::any (list {}));
+        } catch (...) {
+            underlying = std::current_exception ();
+            // fall through to the helper registry below
+        }
+        {
+            std::lock_guard<std::mutex> guard (this->tableMissCacheMutex);
+            this->tableMissCache.insert (name);
+        }
     }
     const auto& argv = isList (args) ? std::any_cast<list> (args).items () : std::vector<std::any> {};
     const std::any a0 = argv.size () > 0 ? argv[0] : std::any {};
@@ -1448,6 +1469,7 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     if (name == "sortBy") return this->sortBy (a0, a1, a2);
     if (name == "sum") return this->sum (a0, a1, a2, a3);
     if (name == "numberToString") return this->numberToString (a0);
+    if (name == "parseNumber") return this->parseNumber (a0, a1);
     if (name == "parseToInt") return this->parseToInt (a0);
     if (name == "parseToNumeric") return this->parseToNumeric (a0);
     if (name == "isDictionary") return isDict (a0);
@@ -1621,10 +1643,18 @@ std::any ExchangeBase::base58ToBinary (std::any value) { return std::any (fromBa
 
 std::any ExchangeBase::binaryToBase58 (std::any value) { return std::any (toBase58 (asBytes (value))); }
 
-std::any ExchangeBase::binaryConcat (std::any a, std::any b) {
+std::any ExchangeBase::binaryConcat (std::any a, std::any b, std::any c, std::any d, std::any e) {
+    // TS binaryConcat = concatBytes -- variadic byte concatenation. The C++ runtime
+    // models binaries as `bytes`; non-set parts (std::any{}) are skipped so the
+    // variadic TS call sites compile.
     std::vector<unsigned char> out = asBytes (a).data ();
-    const std::vector<unsigned char>& tail = asBytes (b).data ();
-    out.insert (out.end (), tail.begin (), tail.end ());
+    for (const std::any& part : { b, c, d, e }) {
+        if (!part.has_value ()) {
+            continue;
+        }
+        const std::vector<unsigned char>& tail = asBytes (part).data ();
+        out.insert (out.end (), tail.begin (), tail.end ());
+    }
     return std::any (bytes (std::move (out)));
 }
 
@@ -1747,6 +1777,167 @@ std::any ExchangeBase::ymdhms (std::any timestamp, std::any infix) {
 std::any ExchangeBase::callMethod (std::any name, std::any) {
     throw NotSupported ("callMethod is only implemented on generated exchanges, not the base ("
                         + str (name) + ")");
+}
+
+// The transpiler drops the TS bodies below (BigInt / zklink SDK), so they live here,
+// exactly like their C# counterparts in cs/ccxt/base/Exchange.cs.
+
+std::any ExchangeBase::randNumber (std::any size) {
+    // TS: build a digit string, parseInt it. Return the number (double), matching the
+    // call shape `toString(this->randNumber (12))` in the generated apex code.
+    static std::mt19937 rng (std::random_device {} ());
+    std::uniform_int_distribution<int> digit (0, 9);
+    std::string number;
+    const long long n = size.has_value () ? toLong (size) : 0;
+    for (long long i = 0; i < n; i++) {
+        number += static_cast<char> ('0' + digit (rng));
+    }
+    if (number.empty ()) {
+        return std::any (0.0);
+    }
+    return std::any (std::stod (number));
+}
+
+std::any ExchangeBase::remove0xPrefix (std::any hexData) {
+    if (!hexData.has_value () || !isStr (hexData)) {
+        return hexData;
+    }
+    std::string s = std::any_cast<std::string> (hexData);
+    if (s.size () >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+        s.erase (0, 2);
+    }
+    return std::any (s);
+}
+
+std::shared_future<std::any> ExchangeBase::getZKContractSignatureObj (std::any, std::any) {
+    // same contract as C# Exchange.cs: zklink is a node SDK that does not exist here
+    return std::async (std::launch::deferred, [] () -> std::any {
+        throw NotSupported ("Apex currently does not support create order in C++ language");
+    }).share ();
+}
+
+std::shared_future<std::any> ExchangeBase::getZKTransferSignatureObj (std::any, std::any) {
+    return std::async (std::launch::deferred, [] () -> std::any {
+        throw NotSupported ("Apex currently does not support create order in C++ language");
+    }).share ();
+}
+
+std::any ExchangeBase::intToBase16 (std::any number) {
+    // TS: elem.toString(16) -- hex without the 0x prefix
+    char buffer[32];
+    std::snprintf (buffer, sizeof (buffer), "%llx", static_cast<unsigned long long> (toLong (number)));
+    return std::any (std::string (buffer));
+}
+
+std::any ExchangeBase::exceptionMessage (std::any exc, std::any includeStack) {
+    // TS: '[' + exc.constructor.name + '] ' + (includeStack ? exc.stack : exc.message),
+    // truncated to 100000 chars. C++ has no stack traces; the type name + what() is
+    // the faithful equivalent.
+    (void) includeStack;
+    std::string message;
+    if (exc.type () == typeid (std::exception_ptr)) {
+        try {
+            std::rethrow_exception (std::any_cast<std::exception_ptr> (exc));
+        } catch (const std::exception& e) {
+            message = std::string ("[") + typeid (e).name () + "] " + e.what ();
+        } catch (...) {
+            message = "[unknown]";
+        }
+    } else if (exc.has_value ()) {
+        message = str (exc);
+    } else {
+        message = "[undefined]";
+    }
+    const std::size_t length = std::min<std::size_t> (100000, message.length ());
+    return std::any (message.substr (0, length));
+}
+
+std::any ExchangeBase::fixStringifiedJsonMembers (std::any content) {
+    // TS: strip backslashes and the quotes around stringified nested JSON values
+    // ("takeProfit":"{...}" -> "takeProfit":{...}), used by bingx.
+    std::string s = str (content);
+    std::string::size_type pos;
+    while ((pos = s.find ('\\')) != std::string::npos) {
+        s.erase (pos, 1);
+    }
+    pos = 0;
+    while ((pos = s.find ("\"{", pos)) != std::string::npos) {
+        s.replace (pos, 2, "{");
+        pos += 1;
+    }
+    pos = 0;
+    while ((pos = s.find ("}\"", pos)) != std::string::npos) {
+        s.replace (pos, 2, "}");
+        pos += 1;
+    }
+    return std::any (s);
+}
+
+std::any ExchangeBase::randomBytes (std::any size) {
+    const long long n = size.has_value () ? toLong (size) : 0;
+    if (n < 0) {
+        throw ArgumentsRequired ("randomBytes size must be non-negative");
+    }
+    std::vector<unsigned char> buffer (static_cast<std::size_t> (n));
+    if (n > 0 && RAND_bytes (buffer.data (), static_cast<int> (n)) != 1) {
+        throw ExchangeError ("randomBytes: RAND_bytes failed");
+    }
+    return std::any (bytes (std::move (buffer)));
+}
+
+std::any ExchangeBase::uuid5 (std::any nspace, std::any name) {
+    // TS: sha1(namespaceBytes ++ utf8(nameBytes)) with UUID-v5 version/variant bits
+    std::string ns = nspace.has_value () ? str (nspace) : std::string ();
+    std::string nsHex;
+    for (char ch : ns) {
+        if (ch != '-') {
+            nsHex += ch;
+        }
+    }
+    std::vector<unsigned char> data;
+    for (std::size_t i = 0; i + 1 < nsHex.length (); i += 2) {
+        data.push_back (static_cast<unsigned char> (std::stoul (nsHex.substr (i, 2), nullptr, 16)));
+    }
+    const std::string nameStr = name.has_value () ? str (name) : std::string ();
+    data.insert (data.end (), nameStr.begin (), nameStr.end ());
+
+    unsigned char digest[SHA_DIGEST_LENGTH];
+    SHA1 (data.data (), data.size (), digest);
+    digest[6] = static_cast<unsigned char> ((digest[6] & 0x0f) | 0x50);
+    digest[8] = static_cast<unsigned char> ((digest[8] & 0x3f) | 0x80);
+
+    char hex[33];
+    for (int i = 0; i < 16; i++) {
+        std::snprintf (hex + i * 2, 3, "%02x", digest[i]);
+    }
+    hex[32] = '\0';
+    std::string h (hex);
+    return std::any (h.substr (0, 8) + "-" + h.substr (8, 4) + "-" + h.substr (12, 4)
+                     + "-" + h.substr (16, 4) + "-" + h.substr (20, 12));
+}
+
+std::any ExchangeBase::convertToBigInt (std::any) {
+    throw NotSupported ("convertToBigInt requires a bigint runtime; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::ethAbiEncode (std::any, std::any) {
+    throw NotSupported ("ethAbiEncode requires ethers.js ABI encoding; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::ethEncodeStructuredData (std::any, std::any, std::any) {
+    throw NotSupported ("ethEncodeStructuredData requires EIP-712 typed-data encoding; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::ethGetAddressFromPrivateKey (std::any) {
+    throw NotSupported ("ethGetAddressFromPrivateKey requires keccak-256; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::starknetEncodeStructuredData (std::any) {
+    throw NotSupported ("starknetEncodeStructuredData requires starknet pedersen hashing; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::starknetSign (std::any, std::any) {
+    throw NotSupported ("starknetSign requires starknet curve signing; not implemented in the C++ port yet");
 }
 
 std::shared_future<std::any> ExchangeBase::fetchMarkets (std::any) {
