@@ -13,7 +13,7 @@ public:
   using bitfinexApi::bitfinexApi;
   std::any describe() override {
     return this->deepExtend(
-        bitfinexApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("bitfinex")},
             {std::string("name"), std::string("Bitfinex")},
@@ -10953,8 +10953,7 @@ public:
         return awaitValue(
             this->fetchTradingFee(::getValue(args, 0), ::getValue(args, 1)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

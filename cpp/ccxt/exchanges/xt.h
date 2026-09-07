@@ -13,7 +13,7 @@ public:
   using xtApi::xtApi;
   std::any describe() override {
     return this->deepExtend(
-        xtApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("xt")},
             {std::string("name"), std::string("XT")},
@@ -8414,13 +8414,13 @@ public:
                 std::any method = std::string("GET"),
                 std::any params = ccxt::dict{}, std::any headers = std::any{},
                 std::any body = std::any{}) override {
-    std::any signed = isEqual(::getValue(api, 0), std::string("private"));
+    std::any signedFlag = isEqual(::getValue(api, 0), std::string("private"));
     std::any endpoint = ::getValue(api, 1);
     std::any request = add(std::string("/"), this->implodeParams(path, params));
     std::any payload = std::any{};
     if (isTrue(isTrue((isEqual(endpoint, std::string("spot")))) ||
                isTrue((isEqual(endpoint, std::string("user")))))) {
-      if (isTrue(signed)) {
+      if (isTrue(signedFlag)) {
         payload = add(add(std::string("/"), this->version), request);
       } else {
         payload = add(
@@ -8438,7 +8438,7 @@ public:
     headers = ccxt::dict{
         {std::string("Content-Type"), std::string("application/json")},
     };
-    if (isTrue(signed)) {
+    if (isTrue(signedFlag)) {
       this->checkRequiredCredentials();
       std::any defaultRecvWindow =
           this->safeString(this->options, std::string("recvWindow"));
@@ -13875,8 +13875,7 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

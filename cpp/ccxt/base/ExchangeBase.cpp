@@ -493,7 +493,9 @@ std::any ExchangeBase::keysort (std::any obj) {
     return std::any (out);
 }
 
-std::any ExchangeBase::omit (std::any obj, std::any keys) {
+std::any ExchangeBase::omit (std::any obj, std::any keys, std::any k2, std::any k3, std::any k4) {
+    // TS omit is variadic: omit(obj, 'a', 'b') or omit(obj, ['a', 'b']); the extra
+    // C++ parameters cover the spread form up to the widest generated call site.
     if (!isDict (obj)) {
         return obj;
     }
@@ -504,6 +506,11 @@ std::any ExchangeBase::omit (std::any obj, std::any keys) {
         }
     } else if (keys.has_value ()) {
         drop.insert (str (keys));
+    }
+    for (const std::any& extra : { k2, k3, k4 }) {
+        if (extra.has_value ()) {
+            drop.insert (str (extra));
+        }
     }
     dict out;
     for (const auto& kv : std::any_cast<dict> (obj).entries ()) {
@@ -1688,7 +1695,7 @@ std::any ExchangeBase::eddsa (std::any, std::any, std::any) {
     throw NotSupported ("ed25519 signing is not implemented in the C++ port yet; only hmac keys work");
 }
 
-std::any ExchangeBase::jwt (std::any, std::any, std::any, std::any) {
+std::any ExchangeBase::jwt (std::any, std::any, std::any, std::any, std::any) {
     throw NotSupported ("jwt is not implemented in the C++ port yet");
 }
 

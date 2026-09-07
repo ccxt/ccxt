@@ -299,7 +299,8 @@ public:
     virtual std::any filterBy (std::any array, std::any key, std::any value);
     virtual std::any inArray (std::any needle, std::any haystack);
     virtual std::any keysort (std::any obj);
-    virtual std::any omit (std::any obj, std::any keys);
+    virtual std::any omit (std::any obj, std::any keys, std::any k2 = std::any {},
+                           std::any k3 = std::any {}, std::any k4 = std::any {});
     virtual std::any omitZero (std::any value);
     virtual std::any toArray (std::any value);
     virtual std::any unique (std::any array);
@@ -343,7 +344,7 @@ public:
     virtual std::any rsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
     virtual std::any eddsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
     virtual std::any jwt (std::any data, std::any secretKey, std::any algorithm = std::any {},
-                          std::any isRsa = std::any {});
+                          std::any isRsa = std::any {}, std::any opts = std::any {});
     virtual std::any strip (std::any value);
     virtual std::any uuid ();
     virtual std::any uuid16 ();

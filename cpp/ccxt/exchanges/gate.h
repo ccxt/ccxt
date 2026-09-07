@@ -13,7 +13,7 @@ public:
   using gateApi::gateApi;
   std::any describe() override {
     return this->deepExtend(
-        gateApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("gate")},
             {std::string("name"), std::string("Gate")},
@@ -2645,7 +2645,7 @@ public:
   }
 
   void setSandboxMode(std::any enable) override {
-    gateApi::setSandboxMode(enable);
+    Exchange::setSandboxMode(enable);
     ::setValue(this->options, std::string("sandboxMode"), enable);
   }
 
@@ -2848,7 +2848,7 @@ public:
       // handle expired option contracts
       return this->createExpiredOptionMarket(marketId);
     }
-    return gateApi::safeMarket(marketId, market, delimiter, marketType);
+    return Exchange::safeMarket(marketId, market, delimiter, marketType);
   }
 
   /**
@@ -18291,8 +18291,7 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

@@ -13,7 +13,7 @@ public:
   using bingxApi::bingxApi;
   std::any describe() override {
     return this->deepExtend(
-        bingxApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("bingx")},
             {std::string("name"), std::string("BingX")},
@@ -8682,7 +8682,7 @@ public:
         for (std::any j = 0; isLessThan(j, getArrayLength(value));
              postFixIncrement(j)) {
           std::any arrayElement = ::getValue(value, j);
-          std::any isString = (isString(arrayElement));
+          std::any isString = (::isString(arrayElement));
           if (isTrue(isString)) {
             if (isTrue(isGreaterThan(j, 0))) {
               arrStr =
@@ -8926,7 +8926,7 @@ public:
   std::any nonce() override { return this->milliseconds(); }
 
   void setSandboxMode(std::any enable) override {
-    bingxApi::setSandboxMode(enable);
+    Exchange::setSandboxMode(enable);
     ::setValue(this->options, std::string("sandboxMode"), enable);
   }
 
@@ -14237,8 +14237,7 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

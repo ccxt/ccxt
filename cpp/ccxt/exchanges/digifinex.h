@@ -13,7 +13,7 @@ public:
   using digifinexApi::digifinexApi;
   std::any describe() override {
     return this->deepExtend(
-        digifinexApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("digifinex")},
             {std::string("name"), std::string("DigiFinex")},
@@ -5850,8 +5850,8 @@ public:
         this->safeString(this->options, std::string("defaultType"));
     std::any isMargin = this->safeBool(params, std::string("margin"), false);
     std::any marginMode = std::any{};
-    std::any marginModeparamsVariable = digifinexApi::handleMarginModeAndParams(
-        methodName, params, defaultValue);
+    std::any marginModeparamsVariable =
+        Exchange::handleMarginModeAndParams(methodName, params, defaultValue);
     marginMode = ::getValue(marginModeparamsVariable, 0);
     params = ::getValue(marginModeparamsVariable, 1);
     if (isTrue(!isEqual(marginMode, std::any{}))) {
@@ -6293,7 +6293,7 @@ public:
                 std::any method = std::string("GET"),
                 std::any params = ccxt::dict{}, std::any headers = std::any{},
                 std::any body = std::any{}) override {
-    std::any signed = isEqual(::getValue(api, 0), std::string("private"));
+    std::any signedFlag = isEqual(::getValue(api, 0), std::string("private"));
     std::any endpoint = ::getValue(api, 1);
     std::any pathPart = (isTrue((isEqual(endpoint, std::string("spot"))))
                              ? std::any(std::string("/v3"))
@@ -6305,14 +6305,14 @@ public:
                        payload);
     std::any query = this->omit(params, this->extractParams(path));
     std::any urlencoded = std::any{};
-    if (isTrue(isTrue(isTrue(signed) &&
+    if (isTrue(isTrue(isTrue(signedFlag) &&
                       isTrue((isEqual(pathPart, std::string("/swap/v2"))))) &&
                isTrue((isEqual(method, std::string("POST")))))) {
       urlencoded = jsonStringify(params);
     } else {
       urlencoded = this->urlencode(this->keysort(query));
     }
-    if (isTrue(signed)) {
+    if (isTrue(signedFlag)) {
       std::any auth = std::any{};
       std::any nonce = std::any{};
       if (isTrue(isEqual(pathPart, std::string("/swap/v2")))) {
@@ -11683,8 +11683,7 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

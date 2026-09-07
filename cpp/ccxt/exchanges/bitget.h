@@ -13,7 +13,7 @@ public:
   using bitgetApi::bitgetApi;
   std::any describe() override {
     return this->deepExtend(
-        bitgetApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("bitget")},
             {std::string("name"), std::string("Bitget")},
@@ -4655,14 +4655,14 @@ public:
                      std::any amountStep = this->safeString(
                          market, std::string("sizeMultiplier"));
                      Precise precise = Precise(priceStep);
-                     precise.decimals =
-                         mathMax(precise.decimals, priceDecimals);
+                     precise.decimals = static_cast<int>(
+                         toLong(mathMax(precise.decimals, priceDecimals)));
                      precise.reduce();
                      std::any priceString = toString(precise);
                      pricePrecision = this->parseNumber(priceString);
                      Precise preciseAmount = Precise(amountStep);
-                     preciseAmount.decimals =
-                         mathMax(preciseAmount.decimals, amountDecimals);
+                     preciseAmount.decimals = static_cast<int>(toLong(
+                         mathMax(preciseAmount.decimals, amountDecimals)));
                      preciseAmount.reduce();
                      std::any amountString = toString(preciseAmount);
                      amountPrecision = this->parseNumber(amountString);
@@ -16880,7 +16880,7 @@ public:
                 std::any method = std::string("GET"),
                 std::any params = ccxt::dict{}, std::any headers = std::any{},
                 std::any body = std::any{}) override {
-    std::any signed = isEqual(::getValue(api, 0), std::string("private"));
+    std::any signedFlag = isEqual(::getValue(api, 0), std::string("private"));
     std::any endpoint = ::getValue(api, 1);
     std::any pathPart = std::string("/api");
     std::any request = add(std::string("/"), this->implodeParams(path, params));
@@ -16890,7 +16890,7 @@ public:
                 ::getValue(this->urls, std::string("api")), endpoint)),
             payload);
     std::any query = this->omit(params, this->extractParams(path));
-    if (isTrue(!isTrue(signed) &&
+    if (isTrue(!isTrue(signedFlag) &&
                isTrue((isEqual(method, std::string("GET")))))) {
       std::any keys = getObjectKeys(query);
       std::any keysLength = getArrayLength(keys);
@@ -16898,7 +16898,7 @@ public:
         url = add(add(url, std::string("?")), this->urlencode(query));
       }
     }
-    if (isTrue(signed)) {
+    if (isTrue(signedFlag)) {
       this->checkRequiredCredentials();
       std::any timestamp = toString(this->nonce());
       std::any auth = add(add(timestamp, method), payload);
@@ -16919,8 +16919,8 @@ public:
           url = add(url, queryInner);
           // bitget signs the raw (non-percent-encoded) query string, so the
           // signature must use the decoded values (e.g. non-ascii market ids).
-          // sort explicitly (true) so the signed order matches the url order in
-          // Go, where map iteration is not ordered (keysort's order is
+          // sort explicitly (true) so the signedFlag order matches the url
+          // order in Go, where map iteration is not ordered (keysort's order is
           // otherwise lost)
           auth = add(
               auth, add(std::string("?"), this->rawencode(sortedParams, true)));
@@ -22334,8 +22334,7 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

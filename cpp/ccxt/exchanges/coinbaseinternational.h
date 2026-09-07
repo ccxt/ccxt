@@ -13,7 +13,7 @@ public:
   using coinbaseinternationalApi::coinbaseinternationalApi;
   std::any describe() override {
     return this->deepExtend(
-        coinbaseinternationalApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("coinbaseinternational")},
             {std::string("name"), std::string("Coinbase International")},
@@ -3365,7 +3365,7 @@ public:
                 std::any params = ccxt::dict{}, std::any headers = std::any{},
                 std::any body = std::any{}) override {
     std::any version = ::getValue(api, 0);
-    std::any signed = isEqual(::getValue(api, 1), std::string("private"));
+    std::any signedFlag = isEqual(::getValue(api, 1), std::string("private"));
     std::any fullPath =
         add(add(add(std::string("/"), version), std::string("/")),
             this->implodeParams(path, params));
@@ -3381,7 +3381,7 @@ public:
     std::any url = add(::getValue(::getValue(this->urls, std::string("api")),
                                   std::string("rest")),
                        fullPath);
-    if (isTrue(signed)) {
+    if (isTrue(signedFlag)) {
       this->checkRequiredCredentials();
       std::any nonce = toString(this->nonce());
       std::any payload = std::string("");
@@ -8695,8 +8695,7 @@ public:
         return awaitValue(
             this->fetchTradingFee(::getValue(args, 0), ::getValue(args, 1)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

@@ -289,9 +289,11 @@ function rewritePreciseCalls (content: string): string {
 
 // A TS local may share a name with a helper (`const isArray = Array.isArray(x)`), and in
 // C++ the name is in scope inside its own initialiser, so the call resolves to the
-// half-declared variable. Qualify the call.
+// half-declared variable. Qualify the call. The initialiser may be wrapped in
+// parentheses and clang-format may have broken the line, so whitespace and opening
+// parens are tolerated between `=` and the call.
 function rewriteSelfShadowingLocals (content: string): string {
-    return content.replace (/std::any (\w+) = \1\(/g, 'std::any $1 = ::$1(');
+    return content.replace (/std::any (\w+) =(\s*\(*)\1\(/g, 'std::any $1 =$2::$1(');
 }
 
 // Property and method access on std::any locals. C# casts these (`(client as
@@ -383,16 +385,59 @@ function rewriteAnyMemberAccess (content: string): string {
                   '::getValue($1, std::string("$2"))'));
 }
 
+// Precise.decimals is a plain int, but the generated code assigns helper results to it
+// (`precise.decimals = mathMax(precise.decimals, priceDecimals)`). A regex cannot wrap
+// an expression with nested parens, so scan to the statement's closing `;`.
+function rewriteDecimalsAssignments (content: string): string {
+    const MARK = '.decimals = ';
+    let out = '';
+    let cursor = 0;
+    for (;;) {
+        const at = content.indexOf (MARK, cursor);
+        if (at === -1) {
+            out += content.slice (cursor);
+            return out;
+        }
+        out += content.slice (cursor, at);
+        let i = at + MARK.length;
+        let depth = 0;
+        while (i < content.length) {
+            const c = content[i];
+            if (c === '(') {
+                depth++;
+            } else if (c === ')') {
+                depth--;
+            } else if (c === ';' && depth === 0) {
+                break;
+            }
+            i++;
+        }
+        const expr = content.slice (at + MARK.length, i).trim ();
+        out += MARK + 'static_cast<int> (toLong (' + expr + '))';
+        cursor = i;
+    }
+}
+
+// TS locals may be C++ reserved words (`const signed = ...` in several sign()
+// overrides). Rename them mask-aware so error-message text containing the word is
+// untouched; comments are fair game.
+function rewriteReservedIdentifiers (content: string): string {
+    return outsideStringLiterals (content, (masked) =>
+        masked.replace (/\bsigned\b/g, 'signedFlag'));
+}
+
 function applyCommonFixes (content: string): string {
     return rewriteRethrow (
         rewriteErrorClassValues (
         rewriteInstanceOf (
             rewritePreciseCalls (
+                rewriteDecimalsAssignments (
                 rewriteSelfShadowingLocals (
+                rewriteReservedIdentifiers (
                 rewriteAnyMemberAccess (
                 rewriteWsClientAccess (
                     rewriteAsyncLambdasMutable (
-                        rewriteDynamicDispatch (content)))))))));
+                        rewriteDynamicDispatch (content)))))))))));
 }
 
 // ---------------------------------------------------------------------------

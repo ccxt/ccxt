@@ -15,7 +15,7 @@ public:
     std::any rlOthers = 40;
     std::any rlOrders = 20;
     return this->deepExtend(
-        grvtApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("grvt")},
             {std::string("name"), std::string("GRVT")},
@@ -10143,8 +10143,7 @@ public:
         return awaitValue(
             this->fetchTradingFee(::getValue(args, 0), ::getValue(args, 1)));
     }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };
