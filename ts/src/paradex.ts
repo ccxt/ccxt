@@ -1052,8 +1052,11 @@ export default class paradex extends Exchange {
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         let target = 'ALL';
-        if ((symbols !== undefined) && (symbols.length === 1)) {
-            target = this.market (symbols[0])['id'] as string;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                target = this.market (symbols[0])['id'] as string;
+            }
         }
         const request: Dict = {
             'market': target,
