@@ -4,8 +4,8 @@ import Exchange from '../abstract/prediction/predictfun.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, OrderNotFound } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTrade, Str } from '../base/types.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFound } from '../base/errors.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -52,8 +52,8 @@ export default class predictfun extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
-                'fetchPositions': false,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -559,6 +559,9 @@ export default class predictfun extends Exchange {
         // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
         // caller's limit after filtering, spends a slot on a repeat instead of a distinct event
         const seenSlugs: Dict = {};
+        // market rows whose category row did not come back, bucketed by the slug they carry
+        const orphanMarkets: Dict = {};
+        const orphanSlugs: string[] = [];
         for (let i = 0; i < queriesLength; i++) {
             const request: Dict = {
                 'query': queries[i],
@@ -627,6 +630,66 @@ export default class predictfun extends Exchange {
                     seenSlugs[categorySlug] = true;
                     result.push (category);
                 }
+            }
+            // a term can match a market whose category row is not in the response - those rows are
+            // the other half of the payload and would otherwise be dropped, so bucket them by the
+            // categorySlug they carry
+            const rawMarkets = this.safeList (data, 'markets', []) as any[];
+            const rawMarketsLength = rawMarkets.length;
+            for (let mi = 0; mi < rawMarketsLength; mi++) {
+                const rawMarket = rawMarkets[mi];
+                const marketSlug = this.safeString (rawMarket, 'categorySlug');
+                if (marketSlug !== undefined) {
+                    if (marketSlug in orphanMarkets) {
+                        // push through a local and write the slice back - the go transpiler's
+                        // AppendToArray reassigns only a local copy of a map-stored array
+                        const bucket = orphanMarkets[marketSlug];
+                        bucket.push (rawMarket);
+                        orphanMarkets[marketSlug] = bucket;
+                    } else {
+                        orphanMarkets[marketSlug] = [ rawMarket ];
+                        orphanSlugs.push (marketSlug);
+                    }
+                }
+            }
+        }
+        // whatever the category rows did not claim is a market-only hit: synthesize the enclosing
+        // topic from the market rows themselves, without spending a request per slug
+        const orphanSlugsLength = orphanSlugs.length;
+        for (let i = 0; i < orphanSlugsLength; i++) {
+            const orphanSlug = orphanSlugs[i];
+            if (!(orphanSlug in seenSlugs)) {
+                seenSlugs[orphanSlug] = true;
+                const markets = orphanMarkets[orphanSlug];
+                const first = this.safeDict (markets, 0, {});
+                // the market row's 'status' is the registration enum ('REGISTERED' /
+                // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
+                // 'RESOLVED') - copying it verbatim would report resolved: false for a resolved hit
+                const marketStatus = this.safeString (first, 'status');
+                const tradingStatus = this.safeString (first, 'tradingStatus');
+                let topicStatus: Str = undefined;
+                if ((marketStatus === 'RESOLVED') || (marketStatus === 'SETTLED')) {
+                    topicStatus = 'RESOLVED';
+                } else if (tradingStatus === 'OPEN') {
+                    topicStatus = 'OPEN';
+                }
+                result.push ({
+                    // these rows carry no topic id and no endsAt, so the slug stands in as the id:
+                    // it is what the venue addresses the topic by, and it keeps the event out of
+                    // the caches and filters that key on an id being present
+                    'id': orphanSlug,
+                    'slug': orphanSlug,
+                    'title': this.safeString (first, 'title'),
+                    'description': this.safeString (first, 'description'),
+                    'imageUrl': this.safeString (first, 'imageUrl'),
+                    'marketVariant': this.safeString (first, 'marketVariant'),
+                    'isNegRisk': this.safeBool (first, 'isNegRisk'),
+                    'isYieldBearing': this.safeBool (first, 'isYieldBearing'),
+                    'isVisible': this.safeBool (first, 'isVisible'),
+                    'status': topicStatus,
+                    'createdAt': this.safeString (first, 'createdAt'),
+                    'markets': markets,
+                });
             }
         }
         return result;
@@ -1339,7 +1402,14 @@ export default class predictfun extends Exchange {
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const party = this.safeDict (trade, 'partyToParse', {});
+        const takerOrMaker = this.safeString (party, 'takerOrMaker');
+        // a resting maker fills at its own price, so the party price is the execution price for
+        // that leg. the taker's party price is only its limit: the settlement records what it
+        // actually paid, and the difference is the price improvement the book gave it
         let priceStr = this.safeString (party, 'price');
+        if (takerOrMaker === 'taker') {
+            priceStr = this.safeString (trade, 'priceExecuted', priceStr);
+        }
         priceStr = Precise.stringDiv (priceStr, '1000000000000000000');
         let amountStr = this.safeString (party, 'amount');
         amountStr = Precise.stringDiv (amountStr, '1000000000000000000');
@@ -1375,7 +1445,7 @@ export default class predictfun extends Exchange {
             'market': this.safeString (market, 'market'),
             'type': this.safeString (party, 'type'),
             'side': side,
-            'takerOrMaker': this.safeString (party, 'takerOrMaker'),
+            'takerOrMaker': takerOrMaker,
             'price': this.parseNumber (priceStr),
             'amount': this.parseNumber (amountStr),
             'cost': undefined,
@@ -1687,7 +1757,14 @@ export default class predictfun extends Exchange {
         if (timeInForce === 'FOK') {
             data['isFillOrKill'] = true;
         }
-        params = this.omit (params, [ 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing' ]);
+        // documented, and the venue takes it inside data rather than as a top level key
+        const selfTradePrevention = this.safeStringUpper (params, 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            data['selfTradePrevention'] = selfTradePrevention;
+        }
+        // every param the method consumes itself has to come out, otherwise it survives into the
+        // extend below and is posted as a top level key next to 'data'
+        params = this.omit (params, [ 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing', 'slippageBps', 'salt', 'nonce', 'expiration', 'selfTradePrevention', 'taker' ]);
         // the JWT authorises the order, the api key only authorises the request
         const request: Dict = {
             'data': data,
@@ -1729,6 +1806,193 @@ export default class predictfun extends Exchange {
             'cost': undefined,
             'fee': undefined,
             'trades': [],
+        });
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchPositions
+     * @description fetches the outcome shares the wallet holds
+     * @see https://dev.predict.fun/get-positions-32675933e0
+     * @see https://dev.predict.fun/get-positions-by-address-32675934e0
+     * @param {string[]} [outcomes] unified outcome handles to keep, all of them when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] read another wallet's positions, which needs no JWT
+     * @param {string} [params.marketId] only positions on this market
+     * @param {bool} [params.isResolved] only resolved, or only unresolved, positions
+     * @param {string} [params.sort] 'AMOUNT_DESC' | 'EVENT_BLOCK_ASC' | 'EVENT_BLOCK_DESC' | 'SHARES_VALUE_DESC' | 'RETURN_DESC'
+     * @param {int} [params.first] the maximum number of positions to return
+     * @param {string} [params.after] cursor from a previous response
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+            await this.loadOutcomes (outcomes);
+        }
+        const address = this.safeString (params, 'address');
+        let response = undefined;
+        if (address !== undefined) {
+            // the by-address endpoint reads any wallet and is happy with just the api key
+            const request: Dict = {
+                'address': address,
+            };
+            const rest = this.omit (params, 'address');
+            response = await this.predictfunGetV1PositionsAddress (this.extend (request, rest));
+        } else {
+            // the JWT is what names the wallet whose positions come back
+            await this.authenticate ();
+            response = await this.predictfunGetV1Positions (params);
+        }
+        //
+        //     {
+        //         "cursor": "eyJtYXJrZXRJZCI6MjAzMjU3OCwib3V0Y29tZUlkIjo0MDAyOTQ3fQ==",
+        //         "data": [
+        //             {
+        //                 "id": "eyJtYXJrZXRJZCI6MjAzMjU4MSwib3V0Y29tZUlkIjo0MDAyOTUyfQ==",
+        //                 "amount": "11819508771929824562",
+        //                 "averageBuyPriceUsd": "0.57",
+        //                 "pnlUsd": 0,
+        //                 "valueUsd": 6.74,
+        //                 "market": { "id": 2032581, "categorySlug": "btc-updown-5m-1788776400", "status": "REGISTERED", "tradingStatus": "OPEN" },
+        //                 "outcome": {
+        //                     "indexSet": 1,
+        //                     "name": "Up",
+        //                     "onChainId": "104613341090911893615899927839535241203421132680281479852748534361460565051967",
+        //                     "status": null,
+        //                     "bestBid": { "price": 0.57, "size": 192.88842738205366 },
+        //                     "bestAsk": { "price": 0.58, "size": 58 }
+        //                 }
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const rows = this.safeList (response, 'data', []);
+        const parsed = this.parsePredictionPositions (rows);
+        if (outcomesLength === 0) {
+            return parsed;
+        }
+        // the venue filters by marketId only, so a set of outcome handles is applied here
+        const wanted: Dict = {};
+        const wantedOutcomes = this.toArray (outcomes);
+        for (let i = 0; i < outcomesLength; i++) {
+            const outcomeObj = this.outcome (wantedOutcomes[i]);
+            const wantedId = this.safeString (outcomeObj, 'outcomeId', '');
+            wanted[wantedId] = true;
+        }
+        const result: PredictionPosition[] = [];
+        const parsedLength = parsed.length;
+        for (let i = 0; i < parsedLength; i++) {
+            const position = parsed[i];
+            const outcomeId = this.safeString (position, 'outcomeId');
+            if ((outcomeId !== undefined) && (outcomeId in wanted)) {
+                result.push (position);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchPosition
+     * @description fetches the shares the wallet holds of a single outcome
+     * @see https://dev.predict.fun/get-positions-32675933e0
+     * @param {string} outcome unified outcome handle, or an outcome token id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] read another wallet's position, which needs no JWT
+     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        // scope the call to the outcome's market so the wallet's other positions are not paged through
+        const request: Dict = {
+            'marketId': this.safeString (info, 'marketId'),
+        };
+        const positions = await this.fetchPositions ([ outcome ], this.extend (request, params));
+        const position = this.safeDict (positions, 0);
+        if (position === undefined) {
+            throw new NotSupported (this.id + ' fetchPosition() found no position on ' + outcome);
+        }
+        return position as PredictionPosition;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parsePredictionPosition
+     * @description parses a raw position row into the unified position structure
+     * @param {object} position the raw position row
+     * @param {object} [market] not used by predictfun parsePredictionPosition
+     * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+     */
+    override parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+        const rawOutcome = this.safeDict (position, 'outcome', {});
+        const rawMarket = this.safeDict (position, 'market', {});
+        const tokenId = this.safeString (rawOutcome, 'onChainId');
+        const outcomeObj = this.safeOutcome (tokenId, market);
+        // shares are collateral wei, the usd figures come back already scaled
+        const contracts = Precise.stringDiv (this.safeString (position, 'amount'), '1000000000000000000');
+        const entryPrice = this.safeString (position, 'averageBuyPriceUsd');
+        const notional = this.safeString (position, 'valueUsd');
+        const pnl = this.safeString (position, 'pnlUsd');
+        // what the shares cost, which is also the collateral committed to the position
+        const collateral = Precise.stringMul (entryPrice, contracts);
+        let markPrice = undefined;
+        if ((notional !== undefined) && (contracts !== undefined) && Precise.stringGt (contracts, '0')) {
+            markPrice = Precise.stringDiv (notional, contracts);
+        }
+        let percentage = undefined;
+        if ((pnl !== undefined) && (collateral !== undefined) && Precise.stringGt (collateral, '0')) {
+            percentage = Precise.stringMul (Precise.stringDiv (pnl, collateral), '100');
+        }
+        // a resolved market reports the outcome as WON or LOST, an open one leaves it null
+        const outcomeStatus = this.safeString (rawOutcome, 'status');
+        const marketStatus = this.safeString (rawMarket, 'status');
+        const resolved = (marketStatus === 'RESOLVED') || (marketStatus === 'SETTLED') || (outcomeStatus === 'WON') || (outcomeStatus === 'LOST');
+        let won = undefined;
+        let settleFraction = undefined;
+        let payout = undefined;
+        if (resolved) {
+            won = (outcomeStatus === 'WON');
+            settleFraction = (won) ? '1' : '0';
+            // a winning share redeems for one unit of collateral, a losing one for nothing
+            payout = (won) ? contracts : '0';
+        }
+        // pnl is realized once the market has resolved, unrealized while it is still trading
+        let realizedPnl = undefined;
+        let unrealizedPnl = pnl;
+        if (resolved) {
+            realizedPnl = pnl;
+            unrealizedPnl = undefined;
+        }
+        return this.safePredictionPosition ({
+            'id': this.safeString (position, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': 1,
+            'side': 'long', // holding outcome shares is always a long, the short of an outcome is the other side
+            'notional': this.parseNumber (notional),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'realizedPnl': this.parseNumber (realizedPnl),
+            'collateral': this.parseNumber (collateral),
+            'entryPrice': this.parseNumber (entryPrice),
+            'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
+            'percentage': this.parseNumber (percentage),
+            'resolved': resolved,
+            'won': won,
+            'settleFraction': this.parseNumber (settleFraction),
+            'payout': this.parseNumber (payout),
+            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', tokenId),
+            'label': this.safeString (outcomeObj, 'label', this.safeStringUpper (rawOutcome, 'name')),
+            'market': this.safeString (outcomeObj, 'market'),
+            'info': position,
         });
     }
 
@@ -2113,6 +2377,14 @@ export default class predictfun extends Exchange {
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
         const message = this.safeString (response, 'message');
         this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+        // the venue also answers 401 when the request was authorised but acted on someone else's
+        // order - that case is matched above and has already thrown, so reaching here with a 401
+        // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
+        // or aged out before its window closes is replayed for the life of the process
+        if (statusCode === 401) {
+            this.options['jwtToken'] = undefined;
+            this.options['jwtTokenExpiresAt'] = 0;
+        }
         const error = this.safeString (response, 'error');
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
@@ -2164,10 +2436,29 @@ export default class predictfun extends Exchange {
         }
         // the api key authorises the request, the JWT authorises acting for a wallet - authenticate ()
         // caches it, so it is attached to every call once an order action has asked for one
+        // the JWT is scoped to one wallet, so it only goes to the endpoints that act for a wallet.
+        // attaching it to public reads would hand the venue a wallet credential they do not need.
+        // note v1/positions/{address} reads someone else's positions and is deliberately absent,
+        // as is v1/orders/matches, which is the public trade feed
+        const walletPaths = [
+            'v1/orders',
+            'v1/orders/{hash}',
+            'v1/orders/remove',
+            'v1/orders/remove-by-hash',
+            'v1/account',
+            'v1/account/activity',
+            'v1/account/referral',
+            'v1/positions',
+            'v1/oauth/finalize',
+            'v1/oauth/orders',
+            'v1/oauth/orders/create',
+            'v1/oauth/orders/cancel',
+            'v1/oauth/positions',
+        ];
         const jwtToken = this.safeString (this.options, 'jwtToken');
-        if (jwtToken !== undefined) {
-            // unlike the api key, the JWT IS required on the testnet: order actions there answer
-            // 401 without it, so it is attached on both hosts
+        // unlike the api key, the JWT IS required on the testnet: wallet endpoints there answer
+        // 401 without it, so it is attached on both hosts
+        if ((jwtToken !== undefined) && this.inArray (path, walletPaths)) {
             headers['Authorization'] = 'Bearer ' + jwtToken;
         }
         if (method !== 'GET') {
