@@ -1860,8 +1860,11 @@ impl ParadexCore {
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         let mut target: Value = Value::Str("ALL".to_string());
-        if is_true(&(!is_equal(&symbols, &Value::Null))) && is_true(&(is_equal(&get_array_length(&symbols), &Value::Int(1)))) {
-            target = get_value(&self.market(get_value(&symbols, &Value::Int(0))), &Value::Str("id".to_string()));
+        if !is_equal(&symbols, &Value::Null) {
+            let mut symbolsLength: Value = get_array_length(&symbols);
+            if is_equal(&symbolsLength, &Value::Int(1)) {
+                target = get_value(&self.market(get_value(&symbols, &Value::Int(0))), &Value::Str("id".to_string()));
+            }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1930,7 +1933,7 @@ impl ParadexCore {
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         let mut rate: Value = self.safe_string_k(contract.clone(), "funding_rate", &[]);
-        let mut funds: bool = is_true(&get_value(&market, &Value::Str("swap".to_string()))) && is_true(&(!is_equal(&rate, &Value::Null))) && is_true(&(!is_equal(&rate, &Value::Str("".to_string()))));
+        let mut funds: bool = is_true(&(is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) && is_true(&(!is_equal(&rate, &Value::Null))) && is_true(&(!is_equal(&rate, &Value::Str("".to_string()))));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
@@ -1939,7 +1942,10 @@ impl ParadexCore {
     m
 })]), Value::Str("funding_period_hours".to_string()), &[]);
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        let mut interval: Value = ternary(is_true(&(is_true(&(is_equal(&hours, &Value::Null))) || !is_true(&crate::precise::Precise::stringGt(&hours, &Value::Str("0".to_string()))))), Value::Null, add(&hours, &Value::Str("h".to_string())));
+        let mut interval: Value = Value::Null;
+        if is_true(&(!is_equal(&hours, &Value::Null))) && is_true(&crate::precise::Precise::stringGt(&hours, &Value::Str("0".to_string()))) {
+            interval = add(&hours, &Value::Str("h".to_string()));
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());

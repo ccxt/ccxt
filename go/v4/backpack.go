@@ -2947,7 +2947,7 @@ func (this *BackpackCore) Sign(path any, optionalArgs ...any) any {
 			payload = this.GenerateBatchPayload(sortedParams, ts, recvWindow, instruction)
 		} else {
 			var queryString any = this.Urlencode(sortedParams)
-			if IsTrue(IsGreaterThan(GetArrayLength(queryString), 0)) {
+			if IsTrue(IsGreaterThan(GetLength(queryString), 0)) {
 				queryString = Add(queryString, "&")
 			}
 			payload = Add(Add(Add(Add(Add(Add(Add("instruction=", instruction), "&"), queryString), "timestamp="), ts), "&window="), recvWindow)
@@ -2969,7 +2969,7 @@ func (this *BackpackCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(method, "GET")) {
 		var query string = this.Urlencode(sortedParams)
-		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+		if IsTrue(!IsEqual(GetLength(query), 0)) {
 			endpoint = Add(endpoint, Add("?", query))
 		}
 	}

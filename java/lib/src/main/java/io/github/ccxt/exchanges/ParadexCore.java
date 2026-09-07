@@ -1363,9 +1363,13 @@ public class ParadexCore extends ParadexApi
             // the venue: a single symbol is asked for by name, which is 544 bytes
             // against 1.6 MB
             Object target = "ALL";
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(symbols), 1)))))
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                target = ((String)Helpers.GetValue(this.market(Helpers.GetValue(symbols, 0)), "id"));
+                Object symbolsLength = Helpers.getArrayLength(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
+                {
+                    target = ((String)Helpers.GetValue(this.market(Helpers.GetValue(symbols, 0)), "id"));
+                }
             }
             final Object finalTarget = target;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1436,14 +1440,19 @@ public class ParadexCore extends ParadexApi
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         String rate = this.safeString(contract, "funding_rate");
-        Object funds = Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && Helpers.isTrue((!Helpers.isEqual(rate, null)))) && Helpers.isTrue((!Helpers.isEqual(rate, "")));
+        Object funds = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(rate, null)))) && Helpers.isTrue((!Helpers.isEqual(rate, "")));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
         String hours = this.safeString(this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        Object interval = ((Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(hours, null))) || !Helpers.isTrue(Precise.stringGt(hours, "0")))))) ? null : Helpers.add(hours, "h");
+        Object interval = null;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hours, null))) && Helpers.isTrue(Precise.stringGt(hours, "0"))))
+        {
+            interval = Helpers.add(hours, "h");
+        }
         final Object finalMarket = market;
+        final Object finalInterval = interval;
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", ((Helpers.isTrue(funds))) ? Helpers.GetValue(finalMarket, "symbol") : null );
@@ -1462,7 +1471,7 @@ public class ParadexCore extends ParadexApi
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", interval );
+            put( "interval", finalInterval );
         }};
     }
 
