@@ -1288,9 +1288,13 @@ public partial class paradex : Exchange
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         object target = "ALL";
-        if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue((isEqual(getArrayLength(symbols), 1)))))
+        if (isTrue(!isEqual(symbols, null)))
         {
-            target = ((string)getValue(this.market(getValue(symbols, 0)), "id"));
+            int symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                target = ((string)getValue(this.market(getValue(symbols, 0)), "id"));
+            }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", target },
@@ -1352,13 +1356,17 @@ public partial class paradex : Exchange
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         string? rate = this.safeString(contract, "funding_rate");
-        bool funds = isTrue(isTrue(getValue(market, "swap")) && isTrue((!isEqual(rate, null)))) && isTrue((!isEqual(rate, "")));
+        bool funds = isTrue(isTrue((isEqual(getValue(market, "swap"), true))) && isTrue((!isEqual(rate, null)))) && isTrue((!isEqual(rate, "")));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
         object hours = this.safeString(this.safeDict(market, "info", new Dictionary<string, object>() {}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        object interval = ((bool) isTrue((isTrue((isEqual(hours, null))) || !isTrue(Precise.stringGt(hours, "0"))))) ? null : add(hours, "h");
+        object interval = null;
+        if (isTrue(isTrue((!isEqual(hours, null))) && isTrue(Precise.stringGt(hours, "0"))))
+        {
+            interval = add(hours, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", ((bool) isTrue(funds)) ? getValue(market, "symbol") : null },
