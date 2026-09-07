@@ -24,11 +24,8 @@ export default class coinbaseinternational extends Exchange {
             'certified': false,
             'pro': true,
             'rateLimit': 100, // 10 requests per second
-            'version': 'v1',
+            'version': 'v2',
             'userAgent': this.userAgents['chrome'],
-            'headers': {
-                'CB-VERSION': '2018-05-30',
-            },
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -120,11 +117,7 @@ export default class coinbaseinternational extends Exchange {
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625',
                 'api': {
-                    'rest': 'https://api.international.coinbase.com/api',
-                    'v2': 'https://drb.coinbase.com/api/v2',
-                },
-                'test': {
-                    'rest': 'https://api-n5e1.coinbase.com/api',
+                    'rest': 'https://drb.coinbase.com/api/v2',
                 },
                 'www': 'https://international.coinbase.com',
                 'doc': [
@@ -172,9 +165,6 @@ export default class coinbaseinternational extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
-                            'assets': { 'cost': 1 } as Endpoint<List>,
-                            'assets/{assets}': { 'cost': 1 } as Endpoint<Dict>,
-                            'assets/{asset}/networks': { 'cost': 1 } as Endpoint<List>,
                             'instruments': { 'cost': 1 } as Endpoint<List>,
                             'instruments/{instrument}': { 'cost': 1 } as Endpoint<Dict>,
                             'instruments/{instrument}/quote': { 'cost': 1 } as Endpoint<Dict>,
@@ -277,9 +267,6 @@ export default class coinbaseinternational extends Exchange {
             'options': {
                 'brokerId': 'nfqkvdjp',
                 'portfolio': '', // default portfolio id
-                'withdraw': {
-                    'method': 'v1PrivatePostTransfersWithdraw', // use v1PrivatePostTransfersWithdrawCounterparty for counterparty withdrawals
-                },
                 'networksById': {
                     'ethereum': 'ETH',
                     'arbitrum': 'ARBITRUM',
@@ -1357,182 +1344,204 @@ export default class coinbaseinternational extends Exchange {
     /**
      * @method
      * @name coinbaseinternational#fetchMarkets
-     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
      * @description retrieves data on all markets for coinbaseinternational
+     * @see https://docs.cloud.coinbase.com/intx/reference/getinstruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.v1PublicGetInstruments (params);
+        const response = await this.v2PublicPostGetInstruments (params);
         //
-        //    [
-        //        {
-        //           "instrument_id":"149264164756389888",
-        //           "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        //           "symbol":"ETH-PERP",
-        //           "type":"PERP",
-        //           "base_asset_id":"118059611793145856",
-        //           "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        //           "base_asset_name":"ETH",
-        //           "quote_asset_id":"1",
-        //           "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //           "quote_asset_name":"USDC",
-        //           "base_increment":"0.0001",
-        //           "quote_increment":"0.01",
-        //           "price_band_percent":"0.02",
-        //           "market_order_percent":"0.0075",
-        //           "qty_24hr":"44434.8131",
-        //           "notional_24hr":"110943454.279785",
-        //           "avg_daily_qty":"1099171.6025",
-        //           "avg_daily_notional":"2637240145.456987",
-        //           "previous_day_qty":"78909.3939",
-        //           "open_interest":"1270.749",
-        //           "position_limit_qty":"1831.9527",
-        //           "position_limit_adq_pct":"0.05",
-        //           "replacement_cost":"0.23",
-        //           "base_imf":"0.1",
-        //           "min_notional_value":"10",
-        //           "funding_interval":"3600000000000",
-        //           "trading_state":"TRADING",
-        //           "quote":{
-        //              "best_bid_price":"2490.8",
-        //              "best_bid_size":"9.0515",
-        //              "best_ask_price":"2490.81",
-        //              "best_ask_size":"4.8486",
-        //              "trade_price":"2490.39",
-        //              "trade_qty":"0.9508",
-        //              "index_price":"2490.5",
-        //              "mark_price":"2490.8",
-        //              "settlement_price":"2490.81",
-        //              "limit_up":"2615.42",
-        //              "limit_down":"2366.34",
-        //              "predicted_funding":"0.000009",
-        //              "timestamp":"2024-02-10T16:07:39.454Z"
-        //           }
-        //        },
-        //        ...
-        //    ]
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1788770469,
+        //         "result": [
+        //             {
+        //                 "block_trade_tick_size": 0.01,
+        //                 "lot_size": 100,
+        //                 "settlement_currency": "USDC",
+        //                 "index_id": 34000004,
+        //                 "creation_timestamp": 1786804445000,
+        //                 "state": "open",
+        //                 "max_liquidation_commission": 0.01,
+        //                 "base_currency_uuid": "b1646860-6b23-5f7d-a506-cba0902f0ca9",
+        //                 "taker_commission": 3.5e-4,
+        //                 "base_currency": "AAVE",
+        //                 "kind": "future",
+        //                 "underlying_type": "crypto",
+        //                 "instrument_id": 675320,
+        //                 "is_active": true,
+        //                 "instrument_type": "linear",
+        //                 "future_type": "linear",
+        //                 "expiration_timestamp": 32503708800000,
+        //                 "max_leverage": 50,
+        //                 "counter_currency": "USDC",
+        //                 "tick_size_steps": [],
+        //                 "quote_currency_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+        //                 "maker_commission": 1.5e-4,
+        //                 "tick_size": 0.01,
+        //                 "settlement_period": "perpetual",
+        //                 "product_group": "TIER_3",
+        //                 "block_trade_commission": 2.5e-4,
+        //                 "min_trade_amount": 0.01,
+        //                 "contract_size": 0.01,
+        //                 "price_index": "aave_usdc",
+        //                 "quote_currency": "USDC",
+        //                 "instrument_name": "AAVE_USDC-PERPETUAL",
+        //                 "max_non_default_leverage": 5.0,
+        //                 "block_trade_min_trade_amount": 200000
+        //             },
+        //             {
+        //                 "state": "open",
+        //                 "price_index": "eth_usd",
+        //                 "kind": "option",
+        //                 "instrument_name": "ETH-25JUN27-5500-P",
+        //                 "maker_commission": 0.0003,
+        //                 "taker_commission": 0.0003,
+        //                 "instrument_type": "reversed",
+        //                 "instrument_id": 677208,
+        //                 "expiration_timestamp": 1813910400000,
+        //                 "underlying_type": "crypto",
+        //                 "product_group": "ETH",
+        //                 "creation_timestamp": 1787173020000,
+        //                 "is_active": true,
+        //                 "contract_size": 1.0,
+        //                 "tick_size": 0.0001,
+        //                 "strike": 5.5e3,
+        //                 "counter_currency": "USD",
+        //                 "option_type": "put",
+        //                 "block_trade_commission": 0.0003,
+        //                 "min_trade_amount": 1,
+        //                 "block_trade_min_trade_amount": 250,
+        //                 "block_trade_tick_size": 0.0001,
+        //                 "settlement_currency": "ETH",
+        //                 "settlement_period": "month",
+        //                 "base_currency": "ETH",
+        //                 "index_id": 2000033,
+        //                 "quote_currency": "ETH",
+        //                 "tick_size_steps": [
+        //                     {
+        //                         "tick_size": 0.0005,
+        //                         "above_price": 0.005
+        //                     }
+        //                 ],
+        //                 "lot_size": 10,
+        //                 "base_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+        //                 "quote_currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4"
+        //             }
+        //         ],
+        //         "usIn": 1788770471610519,
+        //         "usOut": 1788770471610767,
+        //         "usDiff": 248,
+        //         "testnet": false
+        //     }
         //
-        return this.parseMarkets (response);
+        const instruments = this.safeList (response, 'result', []);
+        const parsedMarkets = this.parseMarkets (instruments);
+        return parsedMarkets;
     }
 
     override parseMarket (market: Dict): Market {
-        //
-        //   {
-        //       "instrument_id":"149264164756389888",
-        //       "instrument_uuid":"e9360798-6a10-45d6-af05-67c30eb91e2d",
-        //       "symbol":"ETH-PERP",
-        //       "type":"PERP",
-        //       "base_asset_id":"118059611793145856",
-        //       "base_asset_uuid":"d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
-        //       "base_asset_name":"ETH",
-        //       "quote_asset_id":"1",
-        //       "quote_asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
-        //       "quote_asset_name":"USDC",
-        //       "base_increment":"0.0001",
-        //       "quote_increment":"0.01",
-        //       "price_band_percent":"0.02",
-        //       "market_order_percent":"0.0075",
-        //       "qty_24hr":"44434.8131",
-        //       "notional_24hr":"110943454.279785",
-        //       "avg_daily_qty":"1099171.6025",
-        //       "avg_daily_notional":"2637240145.456987",
-        //       "previous_day_qty":"78909.3939",
-        //       "open_interest":"1270.749",
-        //       "position_limit_qty":"1831.9527",
-        //       "position_limit_adq_pct":"0.05",
-        //       "replacement_cost":"0.23",
-        //       "base_imf":"0.1",
-        //       "min_notional_value":"10",
-        //       "funding_interval":"3600000000000",
-        //       "trading_state":"TRADING",
-        //       "quote":{
-        //          "best_bid_price":"2490.8",
-        //          "best_bid_size":"9.0515",
-        //          "best_ask_price":"2490.81",
-        //          "best_ask_size":"4.8486",
-        //          "trade_price":"2490.39",
-        //          "trade_qty":"0.9508",
-        //          "index_price":"2490.5",
-        //          "mark_price":"2490.8",
-        //          "settlement_price":"2490.81",
-        //          "limit_up":"2615.42",
-        //          "limit_down":"2366.34",
-        //          "predicted_funding":"0.000009",
-        //          "timestamp":"2024-02-10T16:07:39.454Z"
-        //       }
-        //    }
-        //
-        const marketId = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'base_asset_name');
-        const quoteId = this.safeString (market, 'quote_asset_name');
-        const typeId = this.safeString (market, 'type'); // 'SPOT', 'PERP'
-        const isSpot = (typeId === 'SPOT');
-        const fees = this.fees;
-        let symbol = baseId + '/' + quoteId;
-        let settleId: Str = undefined;
+        const instrumentName = this.safeString (market, 'instrument_name');
+        const lowercaseId = this.safeStringLower (market, 'instrument_name');
+        const baseId = this.safeString (market, 'base_currency');
+        const quoteId = this.safeString (market, 'counter_currency');
+        const settleId = this.safeString (market, 'settlement_currency', quoteId);
+        const kind = this.safeString (market, 'kind');
+        const settlementPeriod = this.safeString (market, 'settlement_period');
+        const isSpot = (kind === 'spot');
+        const isPerpetual = (settlementPeriod === 'perpetual');
+        const isFuture = (kind === 'future') && !isPerpetual;
+        const isOption = (kind === 'option');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        let type = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        } else if (isFuture) {
+            type = 'future';
+        } else if (isOption) {
+            type = 'option';
+        }
+        let symbol = base + '/' + quote;
         if (!isSpot) {
-            settleId = quoteId;
-            symbol += ':' + quoteId;
+            symbol = symbol + ':' + settle;
         }
-        const isLinear = isSpot ? undefined : (settleId === quoteId);
-        const isInverse = isSpot ? undefined : (settleId !== quoteId);
-        if (marketId === undefined) {
-            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        const linear = settle === quote;
+        const inverse = settle !== quote;
+        const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
+        const tickSize = this.safeNumber (market, 'tick_size');
+        const expiry = this.safeInteger (market, 'expiration_timestamp');
+        const active = this.safeBool (market, 'is_active');
+        const strike = this.safeNumber (market, 'strike');
+        const optionType = this.safeString (market, 'option_type');
+        if (isOption || isFuture) {
+            const expiryString = this.yymmdd (expiry, '');
+            symbol = symbol + '-' + expiryString;
         }
-        return this.safeMarketStructure ({
-            'id': marketId,
-            'lowercaseId': marketId.toLowerCase (),
+        if (isOption) {
+            let optionTypeLetter = 'P';
+            if (optionType === 'call') {
+                optionTypeLetter = 'C';
+            }
+            const strikeString = this.numberToString (strike);
+            symbol = symbol + '-' + strikeString + '-' + optionTypeLetter;
+        }
+        const marketStructure = {
+            'id': instrumentName,
+            'lowercaseId': lowercaseId,
             'symbol': symbol,
-            'base': baseId,
-            'quote': quoteId,
-            'settle': settleId,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': isSpot ? 'spot' : 'swap',
+            'type': type,
             'spot': isSpot,
             'margin': false,
-            'swap': !isSpot,
-            'future': false,
-            'option': false,
-            'active': this.safeString (market, 'trading_state') === 'TRADING',
+            'swap': isPerpetual,
+            'future': isFuture,
+            'option': isOption,
+            'active': active,
             'contract': !isSpot,
-            'linear': isLinear,
-            'inverse': isInverse,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
-            'contractSize': isSpot ? undefined : 1,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.safeNumber (market, 'taker_commission'),
+            'maker': this.safeNumber (market, 'maker_commission'),
+            'contractSize': this.safeNumber (market, 'contract_size'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': strike,
+            'optionType': optionType,
             'precision': {
-                'amount': this.safeNumber (market, 'base_increment'),
-                'price': this.safeNumber (market, 'quote_increment'),
-                'cost': this.safeNumber (market, 'quote_increment'),
+                'amount': minTradeAmount,
+                'price': tickSize,
             },
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': this.safeNumber (market, 'base_imf'),
+                    'max': this.safeNumber (market, 'max_leverage'),
                 },
                 'amount': {
-                    'min': undefined,
-                    'max': isSpot ? undefined : this.safeNumber (market, 'position_limit_qty'),
+                    'min': minTradeAmount,
+                    'max': undefined,
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'min_notional_value'),
+                    'min': undefined,
                     'max': undefined,
                 },
             },
             'info': market,
-            'created': undefined,
-        });
+            'created': this.safeInteger (market, 'creation_timestamp'),
+        };
+        const parsedMarket = this.safeMarketStructure (marketStructure);
+        return parsedMarket;
     }
 
     /**
@@ -2426,6 +2435,37 @@ export default class coinbaseinternational extends Exchange {
         return token;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description exchanges a CDP JWT for a Deribit gateway access token
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/derivatives/technical#authentication
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {string} a Deribit gateway access token
+     */
+    async authenticateV2 (params = {}): Promise<string> {
+        const now = this.milliseconds ();
+        const token = this.token;
+        const tokenExpires = this.safeInteger (this.options, 'v2TokenExpires');
+        if ((token !== undefined) && (tokenExpires !== undefined) && (now < tokenExpires)) {
+            return token;
+        }
+        const response = await this['v2PublicPostAuth'] (params);
+        const result = this.safeDict (response, 'result', {});
+        const accessToken = this.safeString (result, 'access_token');
+        const expiresIn = this.safeInteger (result, 'expires_in');
+        if (accessToken === undefined) {
+            throw new AuthenticationError (this.id + ' public/auth did not return an access token');
+        }
+        if (expiresIn === undefined) {
+            throw new AuthenticationError (this.id + ' public/auth did not return an expiry');
+        }
+        const tokenExpiresInMilliseconds = expiresIn * 1000;
+        this.token = accessToken;
+        this.options['v2TokenExpires'] = this.sum (now, tokenExpiresInMilliseconds);
+        return accessToken;
+    }
+
     override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         if (version === 'v2') {
@@ -2445,8 +2485,8 @@ export default class coinbaseinternational extends Exchange {
                     'token': this.createAuthToken (seconds, useEddsa),
                 }, params);
             } else if (access === 'private') {
-                if (this.token === '') {
-                    throw new AuthenticationError (this.id + ' requires a Deribit access token; call public/auth and set exchange.token before private requests');
+                if ((this.token === undefined) || (this.token === '')) {
+                    throw new AuthenticationError (this.id + ' requires an access token from public/auth');
                 }
                 headers = {
                     'Authorization': 'Bearer ' + this.token,
@@ -2460,39 +2500,10 @@ export default class coinbaseinternational extends Exchange {
             };
             body = this.json (request);
             headers = this.extend ({ 'Content-Type': 'application/json' }, headers);
-            const url = this.urls['api']['v2'];
+            const url = this.urls['api']['rest'];
             return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         }
-        const signed = api[1] === 'private';
-        let fullPath = '/' + version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        const savedPath = '/api' + fullPath;
-        if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (query).length > 0) {
-                fullPath += '?' + this.urlencodeWithArrayRepeat (query);
-            }
-        }
-        const url = this.urls['api']['rest'] + fullPath;
-        if (signed) {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            let payload = '';
-            if (method !== 'GET') {
-                if (Object.keys (query).length > 0) {
-                    body = this.json (query);
-                    payload = body;
-                }
-            }
-            const auth = nonce + method + savedPath + payload;
-            const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
-            headers = {
-                'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-ACCESS-SIGN': signature,
-                'CB-ACCESS-PASSPHRASE': this.password,
-                'CB-ACCESS-KEY': this.apiKey,
-            };
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        throw new NotSupported (this.id + ' no longer supports the deprecated INTX API');
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
