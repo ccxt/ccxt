@@ -56,7 +56,10 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	if len(desc2) > 0 {
 		desc = desc2[0].(bool)
 	}
-	list := array.([]any)
+	// ts parity: sortBy must not mutate the caller's slice (array.slice().sort(...))
+	input := array.([]any)
+	list := make([]any, len(input))
+	copy(list, input)
 
 	if str, ok := value1.(string); ok {
 		sort.Slice(list, func(i, j int) bool {
@@ -106,7 +109,10 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 	if len(desc2) > 0 {
 		desc = desc2[0].(bool)
 	}
-	list := array.([]any)
+	// ts parity: sortBy2 must not mutate the caller's slice (array.slice().sort(...))
+	input := array.([]any)
+	list := make([]any, len(input))
+	copy(list, input)
 
 	if str, ok := key1.(string); ok {
 		key2Str, _ := key2.(string)
