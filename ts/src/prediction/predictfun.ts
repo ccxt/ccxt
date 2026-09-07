@@ -1041,7 +1041,7 @@ export default class predictfun extends Exchange {
             const outcomeHandle = marketSymbol + ':' + label;
             let winner: Bool = undefined;
             const outcomeStatus = this.safeString (rawOutcome, 'status');
-            let settleFractionRaw = undefined;
+            let settleFractionRaw: Num = undefined;
             if (outcomeStatus !== undefined) {
                 winner = (outcomeStatus === 'WON');
                 if (winner) {
@@ -1949,11 +1949,11 @@ export default class predictfun extends Exchange {
         const pnl = this.safeString (position, 'pnlUsd');
         // what the shares cost, which is also the collateral committed to the position
         const collateral = Precise.stringMul (entryPrice, contracts);
-        let markPrice = undefined;
+        let markPrice: Str = undefined;
         if ((notional !== undefined) && (contracts !== undefined) && Precise.stringGt (contracts, '0')) {
             markPrice = Precise.stringDiv (notional, contracts);
         }
-        let percentage = undefined;
+        let percentage: Str = undefined;
         if ((pnl !== undefined) && (collateral !== undefined) && Precise.stringGt (collateral, '0')) {
             percentage = Precise.stringMul (Precise.stringDiv (pnl, collateral), '100');
         }
@@ -1974,8 +1974,8 @@ export default class predictfun extends Exchange {
             payout = (won) ? contracts : '0';
         }
         // pnl is realized once the market has resolved, unrealized while it is still trading
-        let realizedPnl = undefined;
-        let unrealizedPnl = pnl;
+        let realizedPnl: Str = undefined;
+        let unrealizedPnl: Str = pnl;
         if (resolved) {
             realizedPnl = pnl;
             unrealizedPnl = undefined;
