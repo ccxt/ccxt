@@ -17,6 +17,17 @@
 #include <string>
 #include <vector>
 
+bool isTrue (const std::any& v);
+// `!isDictionary(x)` etc.: the backend emits JS `!` on std::any operands. JS semantics:
+// `!x` is the negation of x's truthiness, exactly like isTrue. Lives in namespace ccxt
+// (NOT global) — a global operator!(const std::any&) makes every STL `!` ambiguous via
+// std::any's converting constructor (shared_ptr, vector<bool>::reference, …).
+namespace ccxt {
+inline bool operator! (const std::any& v) {
+    return !isTrue (v);
+}
+}
+
 // ---------------------------------------------------------------------------
 // element access — must be global-qualified callable
 // ---------------------------------------------------------------------------

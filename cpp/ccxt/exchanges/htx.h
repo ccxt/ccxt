@@ -13,7 +13,7 @@ public:
   using htxApi::htxApi;
   std::any describe() override {
     return this->deepExtend(
-        htxApi::describe(),
+        Exchange::describe(),
         ccxt::dict{
             {std::string("id"), std::string("htx")},
             {std::string("name"), std::string("HTX")},
@@ -5643,7 +5643,7 @@ public:
     std::any networkTitle = this->safeValue(
         ::getValue(this->options, std::string("networkNamesByChainIds")),
         networkId, networkId);
-    return htxApi::networkIdToCode(networkTitle, currencyCode);
+    return Exchange::networkIdToCode(networkTitle, currencyCode);
   }
 
   std::any networkCodeToId(std::any networkCode,
@@ -5652,7 +5652,7 @@ public:
       return std::any{};
     }
     if (isTrue(isEqual(currencyCode, std::any{}))) {
-      return htxApi::networkCodeToId(networkCode);
+      return Exchange::networkCodeToId(networkCode);
     }
     std::any keys = getObjectKeys(
         ::getValue(this->options, std::string("networkChainIdsByNames")));
@@ -5670,7 +5670,7 @@ public:
       return ::getValue(uniqueNetworkIds, networkCode);
     } else {
       std::any networkTitle =
-          htxApi::networkCodeToId(networkCode, currencyCode);
+          Exchange::networkCodeToId(networkCode, currencyCode);
       return this->safeValue(uniqueNetworkIds, networkTitle, networkTitle);
     }
   }
@@ -10240,7 +10240,9 @@ public:
   }
 
   std::any parseTransaction(std::any transaction,
-                            std::any currency = std::any{}) override {
+                            std::any currency = std::any{},
+                            std::any p2 = std::any{},
+                            std::any p3 = std::any{}) override {
     //
     // fetchDeposits
     //
@@ -14928,8 +14930,14 @@ public:
     if (which == "parseTransaction") {
       if (count <= 1)
         return this->parseTransaction(::getValue(args, 0));
-      if (count >= 2)
+      if (count == 2)
         return this->parseTransaction(::getValue(args, 0), ::getValue(args, 1));
+      if (count == 3)
+        return this->parseTransaction(::getValue(args, 0), ::getValue(args, 1),
+                                      ::getValue(args, 2));
+      if (count >= 4)
+        return this->parseTransaction(::getValue(args, 0), ::getValue(args, 1),
+                                      ::getValue(args, 2), ::getValue(args, 3));
     }
     if (which == "parseTransactionStatus") {
       if (true)
@@ -15622,180 +15630,6 @@ public:
         return std::any{};
       }
     }
-    if (which == "watchLiquidations") {
-      if (count <= 1)
-        return awaitValue(this->watchLiquidations(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchLiquidations(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchLiquidations(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->watchLiquidations(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "watchLiquidationsForSymbols") {
-      if (count <= 1)
-        return awaitValue(
-            this->watchLiquidationsForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchLiquidationsForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchLiquidationsForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchLiquidationsForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "watchMyLiquidations") {
-      if (count <= 1)
-        return awaitValue(this->watchMyLiquidations(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchMyLiquidations(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchMyLiquidations(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchMyLiquidations(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "watchMyLiquidationsForSymbols") {
-      if (count <= 1)
-        return awaitValue(
-            this->watchMyLiquidationsForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchMyLiquidationsForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchMyLiquidationsForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchMyLiquidationsForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "unWatchOrders") {
-      if (count <= 0)
-        return awaitValue(this->unWatchOrders());
-      if (count == 1)
-        return awaitValue(this->unWatchOrders(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchOrders(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchTrades") {
-      if (count <= 1)
-        return awaitValue(this->unWatchTrades(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchTrades(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchTradesForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->unWatchTradesForSymbols(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->unWatchTradesForSymbols(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
-    }
-    if (which == "watchOHLCVForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->watchOHLCVForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchOHLCVForSymbols(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchOHLCVForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchOHLCVForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "unWatchOHLCVForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->unWatchOHLCVForSymbols(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->unWatchOHLCVForSymbols(::getValue(args, 0),
-                                                       ::getValue(args, 1)));
-    }
-    if (which == "unWatchOrderBookForSymbols") {
-      if (count <= 1)
-        return awaitValue(
-            this->unWatchOrderBookForSymbols(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->unWatchOrderBookForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchPositions") {
-      if (count <= 0)
-        return awaitValue(this->unWatchPositions());
-      if (count == 1)
-        return awaitValue(this->unWatchPositions(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchPositions(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchTicker") {
-      if (count <= 1)
-        return awaitValue(this->unWatchTicker(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchTicker(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchMarkPrice") {
-      if (count <= 1)
-        return awaitValue(this->unWatchMarkPrice(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchMarkPrice(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchMarkPrices") {
-      if (count <= 0)
-        return awaitValue(this->unWatchMarkPrices());
-      if (count == 1)
-        return awaitValue(this->unWatchMarkPrices(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchMarkPrices(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchDepositAddresses") {
-      if (count <= 0)
-        return awaitValue(this->fetchDepositAddresses());
-      if (count == 1)
-        return awaitValue(this->fetchDepositAddresses(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchDepositAddresses(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-    }
-    if (which == "fetchMarginMode") {
-      if (count <= 1)
-        return awaitValue(this->fetchMarginMode(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchMarginMode(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchMarginModes") {
-      if (count <= 0)
-        return awaitValue(this->fetchMarginModes());
-      if (count == 1)
-        return awaitValue(this->fetchMarginModes(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchMarginModes(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchOrderBook") {
-      if (count <= 1)
-        return awaitValue(this->unWatchOrderBook(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchOrderBook(::getValue(args, 0), ::getValue(args, 1)));
-    }
     if (which == "parseCurrencies") {
       if (true)
         return this->parseCurrencies(::getValue(args, 0));
@@ -15807,12 +15641,6 @@ public:
     if (which == "parseMarkets") {
       if (true)
         return this->parseMarkets(::getValue(args, 0));
-    }
-    if (which == "fetchCrossBorrowRates") {
-      if (count <= 0)
-        return awaitValue(this->fetchCrossBorrowRates());
-      if (count >= 1)
-        return awaitValue(this->fetchCrossBorrowRates(::getValue(args, 0)));
     }
     if (which == "parseFundingRateHistory") {
       if (count <= 1)
@@ -15846,71 +15674,6 @@ public:
       if (count >= 2)
         return this->parseWsOHLCV(::getValue(args, 0), ::getValue(args, 1));
     }
-    if (which == "fetchFundingIntervals") {
-      if (count <= 0)
-        return awaitValue(this->fetchFundingIntervals());
-      if (count == 1)
-        return awaitValue(this->fetchFundingIntervals(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchFundingIntervals(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-    }
-    if (which == "watchFundingRate") {
-      if (count <= 1)
-        return awaitValue(this->watchFundingRate(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchFundingRate(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchFundingRates") {
-      if (count <= 0)
-        return awaitValue(this->watchFundingRates());
-      if (count == 1)
-        return awaitValue(this->watchFundingRates(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchFundingRates(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchFundingRates") {
-      if (count <= 0)
-        return awaitValue(this->unWatchFundingRates());
-      if (count == 1)
-        return awaitValue(this->unWatchFundingRates(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->unWatchFundingRates(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-    }
-    if (which == "watchFundingRatesForSymbols") {
-      if (count <= 1)
-        return awaitValue(
-            this->watchFundingRatesForSymbols(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->watchFundingRatesForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "createDepositAddress") {
-      if (count <= 1)
-        return awaitValue(this->createDepositAddress(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->createDepositAddress(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-    }
-    if (which == "fetchLeverage") {
-      if (count <= 1)
-        return awaitValue(this->fetchLeverage(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchLeverage(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchLeverages") {
-      if (count <= 0)
-        return awaitValue(this->fetchLeverages());
-      if (count == 1)
-        return awaitValue(this->fetchLeverages(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchLeverages(::getValue(args, 0), ::getValue(args, 1)));
-    }
     if (which == "addMargin") {
       if (count <= 2)
         return awaitValue(
@@ -15919,30 +15682,12 @@ public:
         return awaitValue(this->addMargin(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
     }
-    if (which == "reduceMargin") {
-      if (count <= 2)
-        return awaitValue(
-            this->reduceMargin(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->reduceMargin(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
     if (which == "setMargin") {
       if (count <= 2)
         return awaitValue(
             this->setMargin(::getValue(args, 0), ::getValue(args, 1)));
       if (count >= 3)
         return awaitValue(this->setMargin(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "fetchLongShortRatio") {
-      if (count <= 1)
-        return awaitValue(this->fetchLongShortRatio(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchLongShortRatio(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchLongShortRatio(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
     }
     if (which == "fetchLongShortRatioHistory") {
@@ -15987,27 +15732,11 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4)));
     }
-    if (which == "setMarginMode") {
-      if (count <= 1)
-        return awaitValue(this->setMarginMode(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->setMarginMode(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->setMarginMode(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
     if (which == "signIn") {
       if (count <= 0)
         return awaitValue(this->signIn());
       if (count >= 1)
         return awaitValue(this->signIn(::getValue(args, 0)));
-    }
-    if (which == "fetchPaymentMethods") {
-      if (count <= 0)
-        return awaitValue(this->fetchPaymentMethods());
-      if (count >= 1)
-        return awaitValue(this->fetchPaymentMethods(::getValue(args, 0)));
     }
     if (which == "parseToInt") {
       if (true)
@@ -16268,110 +15997,6 @@ public:
       if (count >= 2)
         return this->safeTicker(::getValue(args, 0), ::getValue(args, 1));
     }
-    if (which == "fetchBorrowRate") {
-      if (count <= 2)
-        return awaitValue(
-            this->fetchBorrowRate(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchBorrowRate(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "borrowMargin") {
-      if (count <= 2)
-        return awaitValue(
-            this->borrowMargin(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->borrowMargin(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->borrowMargin(::getValue(args, 0), ::getValue(args, 1),
-                               ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "repayMargin") {
-      if (count <= 2)
-        return awaitValue(
-            this->repayMargin(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->repayMargin(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->repayMargin(::getValue(args, 0), ::getValue(args, 1),
-                              ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchSpotOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->fetchSpotOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchSpotOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchSpotOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->fetchSpotOHLCV(::getValue(args, 0), ::getValue(args, 1),
-                                 ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchSpotOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "fetchContractOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->fetchContractOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchContractOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchContractOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->fetchContractOHLCV(::getValue(args, 0), ::getValue(args, 1),
-                                     ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchContractOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "fetchOHLCVWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchOHLCVWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOHLCVWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchOHLCVWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->fetchOHLCVWs(::getValue(args, 0), ::getValue(args, 1),
-                               ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchOHLCVWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "watchOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->watchOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->watchOHLCV(::getValue(args, 0), ::getValue(args, 1),
-                             ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->watchOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
     if (which == "convertTradingViewToOHLCV") {
       if (count <= 1)
         return this->convertTradingViewToOHLCV(::getValue(args, 0));
@@ -16435,19 +16060,6 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6), ::getValue(args, 7));
-    }
-    if (which == "fetchWebEndpoint") {
-      if (count <= 3)
-        return awaitValue(this->fetchWebEndpoint(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->fetchWebEndpoint(::getValue(args, 0), ::getValue(args, 1),
-                                   ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchWebEndpoint(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
     }
     if (which == "marketIds") {
       if (count <= 0)
@@ -16542,25 +16154,6 @@ public:
       if (true)
         return this->defaultNetworkCode(::getValue(args, 0));
     }
-    if (which == "selectNetworkCodeFromUnifiedNetworks") {
-      if (true)
-        return this->selectNetworkCodeFromUnifiedNetworks(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    }
-    if (which == "selectNetworkIdFromRawNetworks") {
-      if (true)
-        return this->selectNetworkIdFromRawNetworks(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    }
-    if (which == "selectNetworkKeyFromNetworks") {
-      if (count <= 3)
-        return this->selectNetworkKeyFromNetworks(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-      if (count >= 4)
-        return this->selectNetworkKeyFromNetworks(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3));
-    }
     if (which == "safeNumber2") {
       if (count <= 3)
         return this->safeNumber2(::getValue(args, 0), ::getValue(args, 1),
@@ -16626,18 +16219,6 @@ public:
       if (count >= 3)
         return this->parseLeverageTiers(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    }
-    if (which == "loadTradingLimits") {
-      if (count <= 0)
-        return awaitValue(this->loadTradingLimits());
-      if (count == 1)
-        return awaitValue(this->loadTradingLimits(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->loadTradingLimits(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->loadTradingLimits(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
     }
     if (which == "safePosition") {
       if (true)
@@ -16856,22 +16437,6 @@ public:
         return this->getListFromObjectValues(::getValue(args, 0),
                                              ::getValue(args, 1));
     }
-    if (which == "getSymbolsForMarketType") {
-      if (count <= 0)
-        return this->getSymbolsForMarketType();
-      if (count == 1)
-        return this->getSymbolsForMarketType(::getValue(args, 0));
-      if (count == 2)
-        return this->getSymbolsForMarketType(::getValue(args, 0),
-                                             ::getValue(args, 1));
-      if (count == 3)
-        return this->getSymbolsForMarketType(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-      if (count >= 4)
-        return this->getSymbolsForMarketType(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3));
-    }
     if (which == "filterByArray") {
       if (count <= 2)
         return this->filterByArray(::getValue(args, 0), ::getValue(args, 1));
@@ -16891,69 +16456,6 @@ public:
       if (count >= 4)
         return this->filterOutByArray(::getValue(args, 0), ::getValue(args, 1),
                                       ::getValue(args, 2), ::getValue(args, 3));
-    }
-    if (which == "fetch2") {
-      if (count <= 1)
-        return awaitValue(this->fetch2(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetch2(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetch2(::getValue(args, 0), ::getValue(args, 1),
-                                       ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(this->fetch2(::getValue(args, 0), ::getValue(args, 1),
-                                       ::getValue(args, 2),
-                                       ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->fetch2(::getValue(args, 0), ::getValue(args, 1),
-                                       ::getValue(args, 2), ::getValue(args, 3),
-                                       ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->fetch2(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->fetch2(::getValue(args, 0), ::getValue(args, 1),
-                                       ::getValue(args, 2), ::getValue(args, 3),
-                                       ::getValue(args, 4), ::getValue(args, 5),
-                                       ::getValue(args, 6)));
-    }
-    if (which == "request") {
-      if (count <= 1)
-        return awaitValue(this->request(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->request(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->request(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->request(::getValue(args, 0), ::getValue(args, 1),
-                          ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->request(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->request(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->request(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "loadAccounts") {
-      if (count <= 0)
-        return awaitValue(this->loadAccounts());
-      if (count == 1)
-        return awaitValue(this->loadAccounts(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->loadAccounts(::getValue(args, 0), ::getValue(args, 1)));
     }
     if (which == "buildOHLCVC") {
       if (count <= 1)
@@ -16984,16 +16486,6 @@ public:
         return this->parseTradingViewOHLCV(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4));
-    }
-    if (which == "fetchLedgerEntry") {
-      if (count <= 1)
-        return awaitValue(this->fetchLedgerEntry(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchLedgerEntry(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchLedgerEntry(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
     }
     if (which == "parseOrderBookBidAsk") {
       if (count <= 1)
@@ -17045,69 +16537,9 @@ public:
       if (true)
         return this->oath();
     }
-    if (which == "fetchBalanceWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchBalanceWs());
-      if (count >= 1)
-        return awaitValue(this->fetchBalanceWs(::getValue(args, 0)));
-    }
     if (which == "parseBalance") {
       if (true)
         return this->parseBalance(::getValue(args, 0));
-    }
-    if (which == "watchBalance") {
-      if (count <= 0)
-        return awaitValue(this->watchBalance());
-      if (count >= 1)
-        return awaitValue(this->watchBalance(::getValue(args, 0)));
-    }
-    if (which == "fetchPartialBalance") {
-      if (count <= 1)
-        return awaitValue(this->fetchPartialBalance(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchPartialBalance(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-    }
-    if (which == "fetchFreeBalance") {
-      if (count <= 0)
-        return awaitValue(this->fetchFreeBalance());
-      if (count >= 1)
-        return awaitValue(this->fetchFreeBalance(::getValue(args, 0)));
-    }
-    if (which == "fetchUsedBalance") {
-      if (count <= 0)
-        return awaitValue(this->fetchUsedBalance());
-      if (count >= 1)
-        return awaitValue(this->fetchUsedBalance(::getValue(args, 0)));
-    }
-    if (which == "fetchTotalBalance") {
-      if (count <= 0)
-        return awaitValue(this->fetchTotalBalance());
-      if (count >= 1)
-        return awaitValue(this->fetchTotalBalance(::getValue(args, 0)));
-    }
-    if (which == "fetchTransactionFee") {
-      if (count <= 1)
-        return awaitValue(this->fetchTransactionFee(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchTransactionFee(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-    }
-    if (which == "fetchTransactionFees") {
-      if (count <= 0)
-        return awaitValue(this->fetchTransactionFees());
-      if (count == 1)
-        return awaitValue(this->fetchTransactionFees(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchTransactionFees(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-    }
-    if (which == "fetchDepositWithdrawFee") {
-      if (count <= 1)
-        return awaitValue(this->fetchDepositWithdrawFee(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchDepositWithdrawFee(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
     }
     if (which == "getSupportedMapping") {
       if (count <= 1)
@@ -17115,20 +16547,6 @@ public:
       if (count >= 2)
         return this->getSupportedMapping(::getValue(args, 0),
                                          ::getValue(args, 1));
-    }
-    if (which == "fetchCrossBorrowRate") {
-      if (count <= 1)
-        return awaitValue(this->fetchCrossBorrowRate(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchCrossBorrowRate(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-    }
-    if (which == "fetchIsolatedBorrowRate") {
-      if (count <= 1)
-        return awaitValue(this->fetchIsolatedBorrowRate(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchIsolatedBorrowRate(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
     }
     if (which == "requireValue") {
       if (count <= 1)
@@ -17229,85 +16647,6 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4));
     }
-    if (which == "fetchSpotTickers") {
-      if (count <= 0)
-        return awaitValue(this->fetchSpotTickers());
-      if (count == 1)
-        return awaitValue(this->fetchSpotTickers(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchSpotTickers(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchContractTickers") {
-      if (count <= 0)
-        return awaitValue(this->fetchContractTickers());
-      if (count == 1)
-        return awaitValue(this->fetchContractTickers(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchContractTickers(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-    }
-    if (which == "fetchOrderBooks") {
-      if (count <= 0)
-        return awaitValue(this->fetchOrderBooks());
-      if (count == 1)
-        return awaitValue(this->fetchOrderBooks(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOrderBooks(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchOrderBooks(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "unWatchTickers") {
-      if (count <= 0)
-        return awaitValue(this->unWatchTickers());
-      if (count == 1)
-        return awaitValue(this->unWatchTickers(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchTickers(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "unWatchFundingRate") {
-      if (count <= 1)
-        return awaitValue(this->unWatchFundingRate(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchFundingRate(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "createTwapOrder") {
-      if (count <= 4)
-        return awaitValue(
-            this->createTwapOrder(::getValue(args, 0), ::getValue(args, 1),
-                                  ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createTwapOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "createConvertTrade") {
-      if (count <= 3)
-        return awaitValue(this->createConvertTrade(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->createConvertTrade(::getValue(args, 0), ::getValue(args, 1),
-                                     ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createConvertTrade(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "fetchConvertTrade") {
-      if (count <= 1)
-        return awaitValue(this->fetchConvertTrade(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchConvertTrade(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchConvertTrade(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
     if (which == "fetchConvertTradeHistory") {
       if (count <= 0)
         return awaitValue(this->fetchConvertTradeHistory());
@@ -17323,29 +16662,6 @@ public:
         return awaitValue(this->fetchConvertTradeHistory(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3)));
-    }
-    if (which == "fetchPositionMode") {
-      if (count <= 0)
-        return awaitValue(this->fetchPositionMode());
-      if (count == 1)
-        return awaitValue(this->fetchPositionMode(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchPositionMode(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchADLRank") {
-      if (count <= 1)
-        return awaitValue(this->fetchADLRank(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchADLRank(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchPositionADLRank") {
-      if (count <= 1)
-        return awaitValue(this->fetchPositionADLRank(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchPositionADLRank(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
     }
     if (which == "setTakeProfitAndStopLossParams") {
       if (count <= 4)
@@ -17371,123 +16687,6 @@ public:
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6), ::getValue(args, 7));
     }
-    if (which == "createSpotOrders") {
-      if (count <= 1)
-        return awaitValue(this->createSpotOrders(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->createSpotOrders(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "createContractOrders") {
-      if (count <= 1)
-        return awaitValue(this->createContractOrders(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->createContractOrders(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-    }
-    if (which == "cancelSpotOrder") {
-      if (count <= 1)
-        return awaitValue(this->cancelSpotOrder(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->cancelSpotOrder(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->cancelSpotOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "cancelContractOrder") {
-      if (count <= 1)
-        return awaitValue(this->cancelContractOrder(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->cancelContractOrder(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->cancelContractOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "cancelAllSpotOrders") {
-      if (count <= 0)
-        return awaitValue(this->cancelAllSpotOrders());
-      if (count == 1)
-        return awaitValue(this->cancelAllSpotOrders(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->cancelAllSpotOrders(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-    }
-    if (which == "cancelAllContractOrders") {
-      if (count <= 0)
-        return awaitValue(this->cancelAllContractOrders());
-      if (count == 1)
-        return awaitValue(this->cancelAllContractOrders(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->cancelAllContractOrders(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
-    }
-    if (which == "cancelOrdersForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->cancelOrdersForSymbols(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->cancelOrdersForSymbols(::getValue(args, 0),
-                                                       ::getValue(args, 1)));
-    }
-    if (which == "fetchMyLiquidations") {
-      if (count <= 0)
-        return awaitValue(this->fetchMyLiquidations());
-      if (count == 1)
-        return awaitValue(this->fetchMyLiquidations(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchMyLiquidations(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchMyLiquidations(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->fetchMyLiquidations(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "fetchGreeks") {
-      if (count <= 1)
-        return awaitValue(this->fetchGreeks(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchGreeks(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchAllGreeks") {
-      if (count <= 0)
-        return awaitValue(this->fetchAllGreeks());
-      if (count == 1)
-        return awaitValue(this->fetchAllGreeks(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchAllGreeks(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchOptionChain") {
-      if (count <= 1)
-        return awaitValue(this->fetchOptionChain(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchOptionChain(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchOption") {
-      if (count <= 1)
-        return awaitValue(this->fetchOption(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchOption(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchConvertQuote") {
-      if (count <= 2)
-        return awaitValue(
-            this->fetchConvertQuote(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchConvertQuote(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchConvertQuote(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
-    }
     if (which == "fetchDepositsWithdrawals") {
       if (count <= 0)
         return awaitValue(this->fetchDepositsWithdrawals());
@@ -17503,46 +16702,6 @@ public:
         return awaitValue(this->fetchDepositsWithdrawals(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3)));
-    }
-    if (which == "fetchDepositsWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchDepositsWs());
-      if (count == 1)
-        return awaitValue(this->fetchDepositsWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchDepositsWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchDepositsWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchDepositsWs(::getValue(args, 0), ::getValue(args, 1),
-                                  ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchWithdrawalsWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchWithdrawalsWs());
-      if (count == 1)
-        return awaitValue(this->fetchWithdrawalsWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchWithdrawalsWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchWithdrawalsWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchWithdrawalsWs(::getValue(args, 0), ::getValue(args, 1),
-                                     ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchContractDepositAddress") {
-      if (count <= 1)
-        return awaitValue(
-            this->fetchContractDepositAddress(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchContractDepositAddress(
-            ::getValue(args, 0), ::getValue(args, 1)));
     }
     if (which == "account") {
       if (true)
@@ -17638,29 +16797,9 @@ public:
       if (true)
         return this->integerPrecisionToAmount(::getValue(args, 0));
     }
-    if (which == "loadTimeDifference") {
-      if (count <= 0)
-        return awaitValue(this->loadTimeDifference());
-      if (count >= 1)
-        return awaitValue(this->loadTimeDifference(::getValue(args, 0)));
-    }
     if (which == "implodeHostname") {
       if (true)
         return this->implodeHostname(::getValue(args, 0));
-    }
-    if (which == "fetchMarketLeverageTiers") {
-      if (count <= 1)
-        return awaitValue(this->fetchMarketLeverageTiers(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchMarketLeverageTiers(::getValue(args, 0),
-                                                         ::getValue(args, 1)));
-    }
-    if (which == "createSubAccount") {
-      if (count <= 1)
-        return awaitValue(this->createSubAccount(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->createSubAccount(::getValue(args, 0), ::getValue(args, 1)));
     }
     if (which == "safeCurrencyCode") {
       if (count <= 1)
@@ -17839,16 +16978,6 @@ public:
         return this->handleTriggerPricesAndParams(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
     }
-    if (which == "handleTriggerDirectionAndParams") {
-      if (count <= 1)
-        return this->handleTriggerDirectionAndParams(::getValue(args, 0));
-      if (count == 2)
-        return this->handleTriggerDirectionAndParams(::getValue(args, 0),
-                                                     ::getValue(args, 1));
-      if (count >= 3)
-        return this->handleTriggerDirectionAndParams(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    }
     if (which == "handleTriggerAndParams") {
       if (true)
         return this->handleTriggerAndParams(::getValue(args, 0));
@@ -17871,24 +17000,6 @@ public:
         return this->handlePostOnly(::getValue(args, 0), ::getValue(args, 1),
                                     ::getValue(args, 2));
     }
-    if (which == "fetchTradingFees") {
-      if (count <= 0)
-        return awaitValue(this->fetchTradingFees());
-      if (count >= 1)
-        return awaitValue(this->fetchTradingFees(::getValue(args, 0)));
-    }
-    if (which == "fetchTradingFeesWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchTradingFeesWs());
-      if (count >= 1)
-        return awaitValue(this->fetchTradingFeesWs(::getValue(args, 0)));
-    }
-    if (which == "fetchConvertCurrencies") {
-      if (count <= 0)
-        return awaitValue(this->fetchConvertCurrencies());
-      if (count >= 1)
-        return awaitValue(this->fetchConvertCurrencies(::getValue(args, 0)));
-    }
     if (which == "parseOpenInterests") {
       if (count <= 1)
         return this->parseOpenInterests(::getValue(args, 0));
@@ -17909,67 +17020,6 @@ public:
         return this->parseOpenInterestsHistory(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3));
-    }
-    if (which == "fetchFundingInterval") {
-      if (count <= 1)
-        return awaitValue(this->fetchFundingInterval(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchFundingInterval(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-    }
-    if (which == "fetchMarkOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->fetchMarkOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchMarkOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchMarkOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->fetchMarkOHLCV(::getValue(args, 0), ::getValue(args, 1),
-                                 ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchMarkOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "fetchIndexOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->fetchIndexOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchIndexOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchIndexOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->fetchIndexOHLCV(::getValue(args, 0), ::getValue(args, 1),
-                                  ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchIndexOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "fetchPremiumIndexOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->fetchPremiumIndexOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchPremiumIndexOHLCV(::getValue(args, 0),
-                                                       ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchPremiumIndexOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(this->fetchPremiumIndexOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchPremiumIndexOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
     }
     if (which == "handleTimeInForce") {
       if (count <= 0)
@@ -18014,13 +17064,6 @@ public:
       if (true)
         return this->depositWithdrawFee(::getValue(args, 0));
     }
-    if (which == "assignDefaultDepositWithdrawFees") {
-      if (count <= 1)
-        return this->assignDefaultDepositWithdrawFees(::getValue(args, 0));
-      if (count >= 2)
-        return this->assignDefaultDepositWithdrawFees(::getValue(args, 0),
-                                                      ::getValue(args, 1));
-    }
     if (which == "parseIncomes") {
       if (count <= 1)
         return this->parseIncomes(::getValue(args, 0));
@@ -18054,22 +17097,6 @@ public:
         return this->parseWsOHLCVs(::getValue(args, 0), ::getValue(args, 1),
                                    ::getValue(args, 2), ::getValue(args, 3),
                                    ::getValue(args, 4));
-    }
-    if (which == "fetchTransactions") {
-      if (count <= 0)
-        return awaitValue(this->fetchTransactions());
-      if (count == 1)
-        return awaitValue(this->fetchTransactions(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchTransactions(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchTransactions(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchTransactions(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
     }
     if (which == "filterByArrayPositions") {
       if (count <= 2)
@@ -18112,16 +17139,6 @@ public:
         return this->createOHLCVObject(::getValue(args, 0), ::getValue(args, 1),
                                        ::getValue(args, 2));
     }
-    if (which == "handleMaxEntriesPerRequestAndParams") {
-      if (count <= 1)
-        return this->handleMaxEntriesPerRequestAndParams(::getValue(args, 0));
-      if (count == 2)
-        return this->handleMaxEntriesPerRequestAndParams(::getValue(args, 0),
-                                                         ::getValue(args, 1));
-      if (count >= 3)
-        return this->handleMaxEntriesPerRequestAndParams(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2));
-    }
     if (which == "fetchPaginatedCallDynamic") {
       if (count <= 1)
         return awaitValue(this->fetchPaginatedCallDynamic(::getValue(args, 0)));
@@ -18148,28 +17165,6 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6)));
-    }
-    if (which == "safeDeterministicCall") {
-      if (count <= 1)
-        return awaitValue(this->safeDeterministicCall(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->safeDeterministicCall(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->safeDeterministicCall(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(this->safeDeterministicCall(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->safeDeterministicCall(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->safeDeterministicCall(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
     }
     if (which == "fetchPaginatedCallDeterministic") {
       if (count <= 1)
@@ -18267,13 +17262,6 @@ public:
     if (which == "sortCursorPaginatedResult") {
       if (true)
         return this->sortCursorPaginatedResult(::getValue(args, 0));
-    }
-    if (which == "removeRepeatedElementsFromArray") {
-      if (count <= 1)
-        return this->removeRepeatedElementsFromArray(::getValue(args, 0));
-      if (count >= 2)
-        return this->removeRepeatedElementsFromArray(::getValue(args, 0),
-                                                     ::getValue(args, 1));
     }
     if (which == "removeRepeatedTradesFromArray") {
       if (true)
@@ -18453,75 +17441,6 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3));
     }
-    if (which == "fetchTransfer") {
-      if (count <= 1)
-        return awaitValue(this->fetchTransfer(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchTransfer(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchTransfer(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "unWatchOHLCV") {
-      if (count <= 1)
-        return awaitValue(this->unWatchOHLCV(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->unWatchOHLCV(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->unWatchOHLCV(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "withdrawWs") {
-      if (count <= 3)
-        return awaitValue(this->withdrawWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->withdrawWs(::getValue(args, 0), ::getValue(args, 1),
-                             ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->withdrawWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "unWatchMyTrades") {
-      if (count <= 0)
-        return awaitValue(this->unWatchMyTrades());
-      if (count == 1)
-        return awaitValue(this->unWatchMyTrades(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchMyTrades(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchOrdersByStatusWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchOrdersByStatusWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchOrdersByStatusWs(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchOrdersByStatusWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(this->fetchOrdersByStatusWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->fetchOrdersByStatusWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "unWatchBidsAsks") {
-      if (count <= 0)
-        return awaitValue(this->unWatchBidsAsks());
-      if (count == 1)
-        return awaitValue(this->unWatchBidsAsks(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->unWatchBidsAsks(::getValue(args, 0), ::getValue(args, 1)));
-    }
     if (which == "cleanUnsubscription") {
       if (count <= 3) {
         this->cleanUnsubscription(::getValue(args, 0), ::getValue(args, 1),
@@ -18544,25 +17463,6 @@ public:
       if (true)
         return this->timeframeFromMilliseconds(::getValue(args, 0));
     }
-    if (which == "isUTAEnabled") {
-      if (count <= 0)
-        return awaitValue(this->isUTAEnabled());
-      if (count >= 1)
-        return awaitValue(this->isUTAEnabled(::getValue(args, 0)));
-    }
-    if (which == "closeAllPositions") {
-      if (count <= 0)
-        return awaitValue(this->closeAllPositions());
-      if (count >= 1)
-        return awaitValue(this->closeAllPositions(::getValue(args, 0)));
-    }
-    if (which == "editOrders") {
-      if (count <= 1)
-        return awaitValue(this->editOrders(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->editOrders(::getValue(args, 0), ::getValue(args, 1)));
-    }
     if (which == "fetchCanceledAndClosedOrders") {
       if (count <= 0)
         return awaitValue(this->fetchCanceledAndClosedOrders());
@@ -18579,275 +17479,6 @@ public:
         return awaitValue(this->fetchCanceledAndClosedOrders(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3)));
-    }
-    if (which == "fetchPositionHistory") {
-      if (count <= 1)
-        return awaitValue(this->fetchPositionHistory(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchPositionHistory(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchPositionHistory(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->fetchPositionHistory(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "fetchPositionsHistory") {
-      if (count <= 0)
-        return awaitValue(this->fetchPositionsHistory());
-      if (count == 1)
-        return awaitValue(this->fetchPositionsHistory(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchPositionsHistory(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchPositionsHistory(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->fetchPositionsHistory(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "fetchPositionsRisk") {
-      if (count <= 0)
-        return awaitValue(this->fetchPositionsRisk());
-      if (count == 1)
-        return awaitValue(this->fetchPositionsRisk(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchPositionsRisk(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchPositionsForSymbol") {
-      if (count <= 1)
-        return awaitValue(this->fetchPositionsForSymbol(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchPositionsForSymbol(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
-    }
-    if (which == "fetchPositionsForSymbolWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchPositionsForSymbolWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(this->fetchPositionsForSymbolWs(::getValue(args, 0),
-                                                          ::getValue(args, 1)));
-    }
-    if (which == "watchPosition") {
-      if (count <= 0)
-        return awaitValue(this->watchPosition());
-      if (count == 1)
-        return awaitValue(this->watchPosition(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchPosition(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchMyTradesForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->watchMyTradesForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchMyTradesForSymbols(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchMyTradesForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchMyTradesForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "watchTradesForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->watchTradesForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchTradesForSymbols(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchTradesForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchTradesForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "fetchBidsAsks") {
-      if (count <= 0)
-        return awaitValue(this->fetchBidsAsks());
-      if (count == 1)
-        return awaitValue(this->fetchBidsAsks(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchBidsAsks(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchMarkPrice") {
-      if (count <= 1)
-        return awaitValue(this->fetchMarkPrice(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchMarkPrice(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchMarkPrices") {
-      if (count <= 0)
-        return awaitValue(this->fetchMarkPrices());
-      if (count == 1)
-        return awaitValue(this->fetchMarkPrices(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchMarkPrices(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchBidsAsks") {
-      if (count <= 0)
-        return awaitValue(this->watchBidsAsks());
-      if (count == 1)
-        return awaitValue(this->watchBidsAsks(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchBidsAsks(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchMarkPrice") {
-      if (count <= 1)
-        return awaitValue(this->watchMarkPrice(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchMarkPrice(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchMarkPrices") {
-      if (count <= 0)
-        return awaitValue(this->watchMarkPrices());
-      if (count == 1)
-        return awaitValue(this->watchMarkPrices(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchMarkPrices(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchL3OrderBook") {
-      if (count <= 1)
-        return awaitValue(this->fetchL3OrderBook(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchL3OrderBook(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchL3OrderBook(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "watchOrderBookForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->watchOrderBookForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchOrderBookForSymbols(::getValue(args, 0),
-                                                         ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->watchOrderBookForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "watchOrdersForSymbols") {
-      if (count <= 1)
-        return awaitValue(this->watchOrdersForSymbols(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->watchOrdersForSymbols(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchOrdersForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->watchOrdersForSymbols(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "cancelAllOrdersWs") {
-      if (count <= 0)
-        return awaitValue(this->cancelAllOrdersWs());
-      if (count == 1)
-        return awaitValue(this->cancelAllOrdersWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->cancelAllOrdersWs(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "cancelOrderWs") {
-      if (count <= 1)
-        return awaitValue(this->cancelOrderWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->cancelOrderWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->cancelOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "cancelOrdersWs") {
-      if (count <= 1)
-        return awaitValue(this->cancelOrdersWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->cancelOrdersWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->cancelOrdersWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "createLimitBuyOrderWs") {
-      if (count <= 3)
-        return awaitValue(this->createLimitBuyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->createLimitBuyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "createLimitOrderWs") {
-      if (count <= 4)
-        return awaitValue(
-            this->createLimitOrderWs(::getValue(args, 0), ::getValue(args, 1),
-                                     ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createLimitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "createLimitSellOrderWs") {
-      if (count <= 3)
-        return awaitValue(this->createLimitSellOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->createLimitSellOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "createMarketBuyOrderWs") {
-      if (count <= 2)
-        return awaitValue(this->createMarketBuyOrderWs(::getValue(args, 0),
-                                                       ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->createMarketBuyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "createMarketOrderWithCostWs") {
-      if (count <= 3)
-        return awaitValue(this->createMarketOrderWithCostWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->createMarketOrderWithCostWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "createMarketOrderWs") {
-      if (count <= 3)
-        return awaitValue(this->createMarketOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(this->createMarketOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createMarketOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "createMarketSellOrderWs") {
-      if (count <= 2)
-        return awaitValue(this->createMarketSellOrderWs(::getValue(args, 0),
-                                                        ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->createMarketSellOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
     }
     if (which == "createOrderWithTakeProfitAndStopLossWs") {
       if (count <= 4)
@@ -18872,445 +17503,6 @@ public:
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6), ::getValue(args, 7)));
-    }
-    if (which == "createOrderWs") {
-      if (count <= 4)
-        return awaitValue(
-            this->createOrderWs(::getValue(args, 0), ::getValue(args, 1),
-                                ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createOrdersWs") {
-      if (count <= 1)
-        return awaitValue(this->createOrdersWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->createOrdersWs(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "createPostOnlyOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createPostOnlyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createPostOnlyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createPostOnlyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createReduceOnlyOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createReduceOnlyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createReduceOnlyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createReduceOnlyOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createStopLimitOrderWs") {
-      if (count <= 5)
-        return awaitValue(this->createStopLimitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createStopLimitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createStopLossOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createStopLossOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createStopLossOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createStopLossOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createStopLossOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "createStopMarketOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createStopMarketOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createStopMarketOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "createStopOrderWs") {
-      if (count <= 4)
-        return awaitValue(
-            this->createStopOrderWs(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createStopOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createStopOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createStopOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "createTakeProfitOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createTakeProfitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTakeProfitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTakeProfitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createTakeProfitOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "createTrailingAmountOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createTrailingAmountOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTrailingAmountOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTrailingAmountOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count == 7)
-        return awaitValue(this->createTrailingAmountOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-      if (count >= 8)
-        return awaitValue(this->createTrailingAmountOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6), ::getValue(args, 7)));
-    }
-    if (which == "createTrailingPercentOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createTrailingPercentOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTrailingPercentOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTrailingPercentOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count == 7)
-        return awaitValue(this->createTrailingPercentOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-      if (count >= 8)
-        return awaitValue(this->createTrailingPercentOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6), ::getValue(args, 7)));
-    }
-    if (which == "createTriggerOrderWs") {
-      if (count <= 4)
-        return awaitValue(this->createTriggerOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTriggerOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTriggerOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createTriggerOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "editOrderWs") {
-      if (count <= 4)
-        return awaitValue(
-            this->editOrderWs(::getValue(args, 0), ::getValue(args, 1),
-                              ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->editOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->editOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->editOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "fetchClosedOrdersWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchClosedOrdersWs());
-      if (count == 1)
-        return awaitValue(this->fetchClosedOrdersWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchClosedOrdersWs(::getValue(args, 0),
-                                                    ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchClosedOrdersWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->fetchClosedOrdersWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "fetchMyTradesWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchMyTradesWs());
-      if (count == 1)
-        return awaitValue(this->fetchMyTradesWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchMyTradesWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchMyTradesWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchMyTradesWs(::getValue(args, 0), ::getValue(args, 1),
-                                  ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchOpenOrdersWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchOpenOrdersWs());
-      if (count == 1)
-        return awaitValue(this->fetchOpenOrdersWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOpenOrdersWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchOpenOrdersWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchOpenOrdersWs(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchOrderBookWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchOrderBookWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOrderBookWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchOrderBookWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "fetchOrderWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchOrderWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOrderWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchOrderWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "fetchOrdersWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchOrdersWs());
-      if (count == 1)
-        return awaitValue(this->fetchOrdersWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOrdersWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchOrdersWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchOrdersWs(::getValue(args, 0), ::getValue(args, 1),
-                                ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchPositionWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchPositionWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchPositionWs(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchPositionsWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchPositionsWs());
-      if (count == 1)
-        return awaitValue(this->fetchPositionsWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchPositionsWs(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchTickerWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchTickerWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchTickerWs(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchTickersWs") {
-      if (count <= 0)
-        return awaitValue(this->fetchTickersWs());
-      if (count == 1)
-        return awaitValue(this->fetchTickersWs(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchTickersWs(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchTradesWs") {
-      if (count <= 1)
-        return awaitValue(this->fetchTradesWs(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchTradesWs(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->fetchTradesWs(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->fetchTradesWs(::getValue(args, 0), ::getValue(args, 1),
-                                ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "loadOrderBook") {
-      if (count <= 3)
-        return awaitValue(this->loadOrderBook(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->loadOrderBook(::getValue(args, 0), ::getValue(args, 1),
-                                ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->loadOrderBook(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "watchTrades") {
-      if (count <= 1)
-        return awaitValue(this->watchTrades(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchTrades(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchTrades(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->watchTrades(::getValue(args, 0), ::getValue(args, 1),
-                              ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "fetchRestOrderBookSafe") {
-      if (count <= 1)
-        return awaitValue(this->fetchRestOrderBookSafe(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchRestOrderBookSafe(::getValue(args, 0),
-                                                       ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchRestOrderBookSafe(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "watchOrderBook") {
-      if (count <= 1)
-        return awaitValue(this->watchOrderBook(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchOrderBook(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->watchOrderBook(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "fetchL2OrderBook") {
-      if (count <= 1)
-        return awaitValue(this->fetchL2OrderBook(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchL2OrderBook(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchL2OrderBook(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "editLimitBuyOrder") {
-      if (count <= 3)
-        return awaitValue(this->editLimitBuyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->editLimitBuyOrder(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->editLimitBuyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "editLimitSellOrder") {
-      if (count <= 3)
-        return awaitValue(this->editLimitSellOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->editLimitSellOrder(::getValue(args, 0), ::getValue(args, 1),
-                                     ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->editLimitSellOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "editLimitOrder") {
-      if (count <= 4)
-        return awaitValue(
-            this->editLimitOrder(::getValue(args, 0), ::getValue(args, 1),
-                                 ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->editLimitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->editLimitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
     }
     if (which == "editOrder") {
       if (count <= 4)
@@ -19350,22 +17542,6 @@ public:
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6)));
     }
-    if (which == "watchPositions") {
-      if (count <= 0)
-        return awaitValue(this->watchPositions());
-      if (count == 1)
-        return awaitValue(this->watchPositions(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchPositions(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchPositions(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->watchPositions(::getValue(args, 0), ::getValue(args, 1),
-                                 ::getValue(args, 2), ::getValue(args, 3)));
-    }
     if (which == "watchPositionForSymbols") {
       if (count <= 0)
         return awaitValue(this->watchPositionForSymbols());
@@ -19381,148 +17557,6 @@ public:
         return awaitValue(this->watchPositionForSymbols(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
             ::getValue(args, 3)));
-    }
-    if (which == "watchTicker") {
-      if (count <= 1)
-        return awaitValue(this->watchTicker(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchTicker(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchTickers") {
-      if (count <= 0)
-        return awaitValue(this->watchTickers());
-      if (count == 1)
-        return awaitValue(this->watchTickers(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->watchTickers(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "fetchOrderWithClientOrderId") {
-      if (count <= 1)
-        return awaitValue(
-            this->fetchOrderWithClientOrderId(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->fetchOrderWithClientOrderId(
-            ::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchOrderWithClientOrderId(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "fetchOrderStatus") {
-      if (count <= 1)
-        return awaitValue(this->fetchOrderStatus(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->fetchOrderStatus(::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->fetchOrderStatus(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "fetchUnifiedOrder") {
-      if (count <= 1)
-        return awaitValue(this->fetchUnifiedOrder(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->fetchUnifiedOrder(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "createTrailingAmountOrder") {
-      if (count <= 4)
-        return awaitValue(this->createTrailingAmountOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTrailingAmountOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTrailingAmountOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count == 7)
-        return awaitValue(this->createTrailingAmountOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-      if (count >= 8)
-        return awaitValue(this->createTrailingAmountOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6), ::getValue(args, 7)));
-    }
-    if (which == "createMarketOrderWithCost") {
-      if (count <= 3)
-        return awaitValue(this->createMarketOrderWithCost(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->createMarketOrderWithCost(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "createMarketSellOrderWithCost") {
-      if (count <= 2)
-        return awaitValue(this->createMarketSellOrderWithCost(
-            ::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->createMarketSellOrderWithCost(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "createTriggerOrder") {
-      if (count <= 4)
-        return awaitValue(
-            this->createTriggerOrder(::getValue(args, 0), ::getValue(args, 1),
-                                     ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTriggerOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTriggerOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createTriggerOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "createStopLossOrder") {
-      if (count <= 4)
-        return awaitValue(this->createStopLossOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createStopLossOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createStopLossOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createStopLossOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "createTakeProfitOrder") {
-      if (count <= 4)
-        return awaitValue(this->createTakeProfitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createTakeProfitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createTakeProfitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createTakeProfitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
     }
     if (which == "createOrderWithTakeProfitAndStopLoss") {
       if (count <= 4)
@@ -19548,193 +17582,7 @@ public:
             ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
             ::getValue(args, 6), ::getValue(args, 7)));
     }
-    if (which == "cancelOrderWithClientOrderId") {
-      if (count <= 1)
-        return awaitValue(
-            this->cancelOrderWithClientOrderId(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->cancelOrderWithClientOrderId(
-            ::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->cancelOrderWithClientOrderId(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "cancelOrdersWithClientOrderIds") {
-      if (count <= 1)
-        return awaitValue(
-            this->cancelOrdersWithClientOrderIds(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(this->cancelOrdersWithClientOrderIds(
-            ::getValue(args, 0), ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->cancelOrdersWithClientOrderIds(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "cancelUnifiedOrder") {
-      if (count <= 1)
-        return awaitValue(this->cancelUnifiedOrder(::getValue(args, 0)));
-      if (count >= 2)
-        return awaitValue(
-            this->cancelUnifiedOrder(::getValue(args, 0), ::getValue(args, 1)));
-    }
-    if (which == "watchOrders") {
-      if (count <= 0)
-        return awaitValue(this->watchOrders());
-      if (count == 1)
-        return awaitValue(this->watchOrders(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchOrders(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchOrders(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->watchOrders(::getValue(args, 0), ::getValue(args, 1),
-                              ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "watchMyTrades") {
-      if (count <= 0)
-        return awaitValue(this->watchMyTrades());
-      if (count == 1)
-        return awaitValue(this->watchMyTrades(::getValue(args, 0)));
-      if (count == 2)
-        return awaitValue(
-            this->watchMyTrades(::getValue(args, 0), ::getValue(args, 1)));
-      if (count == 3)
-        return awaitValue(this->watchMyTrades(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(
-            this->watchMyTrades(::getValue(args, 0), ::getValue(args, 1),
-                                ::getValue(args, 2), ::getValue(args, 3)));
-    }
-    if (which == "createLimitOrder") {
-      if (count <= 4)
-        return awaitValue(
-            this->createLimitOrder(::getValue(args, 0), ::getValue(args, 1),
-                                   ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createLimitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "createMarketOrder") {
-      if (count <= 3)
-        return awaitValue(this->createMarketOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count == 4)
-        return awaitValue(
-            this->createMarketOrder(::getValue(args, 0), ::getValue(args, 1),
-                                    ::getValue(args, 2), ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createMarketOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    if (which == "createLimitBuyOrder") {
-      if (count <= 3)
-        return awaitValue(this->createLimitBuyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->createLimitBuyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "createLimitSellOrder") {
-      if (count <= 3)
-        return awaitValue(this->createLimitSellOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-      if (count >= 4)
-        return awaitValue(this->createLimitSellOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-    }
-    if (which == "createMarketBuyOrder") {
-      if (count <= 2)
-        return awaitValue(this->createMarketBuyOrder(::getValue(args, 0),
-                                                     ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->createMarketBuyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "createMarketSellOrder") {
-      if (count <= 2)
-        return awaitValue(this->createMarketSellOrder(::getValue(args, 0),
-                                                      ::getValue(args, 1)));
-      if (count >= 3)
-        return awaitValue(this->createMarketSellOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
-    }
-    if (which == "createPostOnlyOrder") {
-      if (count <= 4)
-        return awaitValue(this->createPostOnlyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createPostOnlyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createPostOnlyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createReduceOnlyOrder") {
-      if (count <= 4)
-        return awaitValue(this->createReduceOnlyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createReduceOnlyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createReduceOnlyOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createStopOrder") {
-      if (count <= 4)
-        return awaitValue(
-            this->createStopOrder(::getValue(args, 0), ::getValue(args, 1),
-                                  ::getValue(args, 2), ::getValue(args, 3)));
-      if (count == 5)
-        return awaitValue(this->createStopOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count == 6)
-        return awaitValue(this->createStopOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-      if (count >= 7)
-        return awaitValue(this->createStopOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5),
-            ::getValue(args, 6)));
-    }
-    if (which == "createStopLimitOrder") {
-      if (count <= 5)
-        return awaitValue(this->createStopLimitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-      if (count >= 6)
-        return awaitValue(this->createStopLimitOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4), ::getValue(args, 5)));
-    }
-    if (which == "createStopMarketOrder") {
-      if (count <= 4)
-        return awaitValue(this->createStopMarketOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3)));
-      if (count >= 5)
-        return awaitValue(this->createStopMarketOrder(
-            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
-            ::getValue(args, 3), ::getValue(args, 4)));
-    }
-    // not defined on this exchange: fall back to the transpiled base
-    // Exchange methods (Exchange.Dispatch.inc), then the hand-written tier
+    // not defined on this exchange: fall back to the TS parent class
     return Exchange::callMethod(name, args);
   }
 };

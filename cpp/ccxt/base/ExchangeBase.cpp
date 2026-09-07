@@ -16,9 +16,11 @@
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include <set>
+#include <sstream>
 #include <thread>
 
 namespace ccxt {
@@ -493,7 +495,10 @@ std::any ExchangeBase::keysort (std::any obj) {
     return std::any (out);
 }
 
-std::any ExchangeBase::omit (std::any obj, std::any keys) {
+std::any ExchangeBase::omit (std::any obj, std::any keys, std::any k2, std::any k3,
+                             std::any k4, std::any k5, std::any k6, std::any k7) {
+    // TS omit is variadic: omit(obj, 'a', 'b') or omit(obj, ['a', 'b']); the extra
+    // C++ parameters cover the spread form up to the widest generated call site.
     if (!isDict (obj)) {
         return obj;
     }
@@ -504,6 +509,11 @@ std::any ExchangeBase::omit (std::any obj, std::any keys) {
         }
     } else if (keys.has_value ()) {
         drop.insert (str (keys));
+    }
+    for (const std::any& extra : { k2, k3, k4, k5, k6, k7 }) {
+        if (extra.has_value ()) {
+            drop.insert (str (extra));
+        }
     }
     dict out;
     for (const auto& kv : std::any_cast<dict> (obj).entries ()) {
@@ -1428,18 +1438,19 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
         std::lock_guard<std::mutex> guard (this->tableMissCacheMutex);
         return this->tableMissCache.count (name) > 0;
     } ();
-    std::exception_ptr underlying;
     if (!knownMiss) {
         try {
             return this->callMethod (std::string (name), args.has_value () ? args : std::any (list {}));
-        } catch (...) {
-            underlying = std::current_exception ();
-            // fall through to the helper registry below
+        } catch (const DispatchMiss&) {
+            // genuine table miss: record it and fall through to the helper registry
+            {
+                std::lock_guard<std::mutex> guard (this->tableMissCacheMutex);
+                this->tableMissCache.insert (name);
+            }
         }
-        {
-            std::lock_guard<std::mutex> guard (this->tableMissCacheMutex);
-            this->tableMissCache.insert (name);
-        }
+        // any other exception is the dispatched method's own error (offline proxy,
+        // NotSupported stub, exchange error): propagate it untouched -- falling through
+        // here would mask it behind "no handler" and poison the cache
     }
     const auto& argv = isList (args) ? std::any_cast<list> (args).items () : std::vector<std::any> {};
     const std::any a0 = argv.size () > 0 ? argv[0] : std::any {};
@@ -1487,12 +1498,8 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     if (name == "sleep") return this->sleep (a0);
     if (name == "getCcxtVersion") return this->getCcxtVersion ();
     if (name == "fetch") return this->fetch (a0, a1, a2, a3);
-    // No dynamic handler at all: surface the original callMethod failure — it is
-    // almost always the real error (markets not loaded, bad symbol, ...), and the
-    // generic "no handler" message hid exactly that.
-    if (underlying) {
-        std::rethrow_exception (underlying);
-    }
+    // No dynamic handler at all -- the only way here is a cached DispatchMiss that the
+    // helper registry also does not cover.
     throw NotSupported ("callDynamically: no handler for \"" + name + "\"");
 }
 
@@ -1643,12 +1650,13 @@ std::any ExchangeBase::base58ToBinary (std::any value) { return std::any (fromBa
 
 std::any ExchangeBase::binaryToBase58 (std::any value) { return std::any (toBase58 (asBytes (value))); }
 
-std::any ExchangeBase::binaryConcat (std::any a, std::any b, std::any c, std::any d, std::any e) {
-    // TS binaryConcat = concatBytes -- variadic byte concatenation. The C++ runtime
-    // models binaries as `bytes`; non-set parts (std::any{}) are skipped so the
-    // variadic TS call sites compile.
-    std::vector<unsigned char> out = asBytes (a).data ();
-    for (const std::any& part : { b, c, d, e }) {
+std::any ExchangeBase::binaryConcat (std::any a, std::any b, std::any c, std::any d,
+                                     std::any e, std::any f, std::any g) {
+    // TS binaryConcat = concatBytes -- variadic byte concatenation, including the
+    // zero-arg call hibachi uses to initialise an empty byte array. The C++ runtime
+    // models binaries as `bytes`; non-set parts (std::any{}) are skipped.
+    std::vector<unsigned char> out;
+    for (const std::any& part : { a, b, c, d, e, f, g }) {
         if (!part.has_value ()) {
             continue;
         }
@@ -1688,7 +1696,7 @@ std::any ExchangeBase::eddsa (std::any, std::any, std::any) {
     throw NotSupported ("ed25519 signing is not implemented in the C++ port yet; only hmac keys work");
 }
 
-std::any ExchangeBase::jwt (std::any, std::any, std::any, std::any) {
+std::any ExchangeBase::jwt (std::any, std::any, std::any, std::any, std::any) {
     throw NotSupported ("jwt is not implemented in the C++ port yet");
 }
 
@@ -1775,8 +1783,7 @@ std::any ExchangeBase::ymdhms (std::any timestamp, std::any infix) {
 // Loading markets needs the HTTP layer, which this iteration stubs out. They exist so
 // a derived exchange's generated override binds; calling one fails loudly.
 std::any ExchangeBase::callMethod (std::any name, std::any) {
-    throw NotSupported ("callMethod is only implemented on generated exchanges, not the base ("
-                        + str (name) + ")");
+    throw DispatchMiss (str (name));
 }
 
 // The transpiler drops the TS bodies below (BigInt / zklink SDK), so they live here,
@@ -1932,12 +1939,260 @@ std::any ExchangeBase::ethGetAddressFromPrivateKey (std::any) {
     throw NotSupported ("ethGetAddressFromPrivateKey requires keccak-256; not implemented in the C++ port yet");
 }
 
-std::any ExchangeBase::starknetEncodeStructuredData (std::any) {
+std::any ExchangeBase::starknetEncodeStructuredData (std::any, std::any, std::any, std::any) {
     throw NotSupported ("starknetEncodeStructuredData requires starknet pedersen hashing; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::retrieveStarkAccount (std::any, std::any, std::any) {
+    throw NotSupported ("retrieveStarkAccount requires starknet-crypto (pedersen/poseidon); not implemented in the C++ port yet");
 }
 
 std::any ExchangeBase::starknetSign (std::any, std::any) {
     throw NotSupported ("starknetSign requires starknet curve signing; not implemented in the C++ port yet");
+}
+
+// dydx protobuf signing: mirrors the C# Exchange.cs stubs verbatim
+
+std::any ExchangeBase::encodeDydxTxForSigning (std::any, std::any, std::any, std::any, std::any, std::any) {
+    throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
+}
+
+std::any ExchangeBase::encodeDydxTxForSimulation (std::any, std::any, std::any, std::any) {
+    throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
+}
+
+std::any ExchangeBase::encodeDydxTxRaw (std::any, std::any) {
+    throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
+}
+
+std::any ExchangeBase::retrieveDydxCredentials (std::any) {
+    throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
+}
+
+std::shared_future<std::any> ExchangeBase::loadDydxProtos () {
+    return std::async (std::launch::deferred, [] () -> std::any {
+        throw NotSupported ("Dydx currently does not support create order / transfer asset in C++ language");
+    }).share ();
+}
+
+std::any ExchangeBase::toDydxLong (std::any value) {
+    // TS: BigInt(value).toString() -- string representation of an integral number
+    return std::any (str (value));
+}
+
+std::any ExchangeBase::extendedStarknetSign (std::any, std::any) {
+    throw NotSupported ("extendedStarknetSign requires starknet curve signing; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::extendedStarknetComputePoseidonHashOnElements (std::any) {
+    throw NotSupported ("extendedStarknetComputePoseidonHashOnElements requires starknet poseidon hashing; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::extendedStarknetGetSelectorFromName (std::any) {
+    throw NotSupported ("extendedStarknetGetSelectorFromName requires starknet hashing; not implemented in the C++ port yet");
+}
+
+std::any ExchangeBase::parseDate (std::any value) {
+    // functions/time.ts parseDate: a GMT-prefixed string parses via Date.parse, anything
+    // else goes through parse8601; non-strings yield undefined
+    if (!isStr (value) || str (value).empty ()) {
+        return std::any {};
+    }
+    const std::string x = std::any_cast<std::string> (value);
+    if (x.find ("GMT") != std::string::npos) {
+        // RFC 1123 form: "Tue, 22 Apr 2025 12:00:00 GMT"
+        std::tm tm {};
+        std::istringstream stream (x);
+        stream >> std::get_time (&tm, "%a, %d %b %Y %H:%M:%S GMT");
+        if (!stream.fail ()) {
+            std::time_t epoch = timegm (&tm);
+            return std::any (static_cast<double> (epoch) * 1000.0);
+        }
+        return std::any {};
+    }
+    return this->parse8601 (value);
+}
+
+// msgpack encoder (packb). Minimal, spec-conformant: nil/bool/int/float/str/bin/array/map.
+// hyperliquid packs its action payloads with this before hashing; numbers arrive as
+// JS doubles but msgpack-packing an integral double as float64 breaks hyperliquid's
+// hashing, so integral values are encoded as int64 like the TS messagepack module does.
+namespace {
+    void putByte (std::vector<unsigned char>& out, unsigned char byte) {
+        out.push_back (byte);
+    }
+    void putBigEndian64 (std::vector<unsigned char>& out, unsigned long long value) {
+        for (int shift = 56; shift >= 0; shift -= 8) {
+            out.push_back (static_cast<unsigned char> ((value >> shift) & 0xff));
+        }
+    }
+    void putBigEndian32 (std::vector<unsigned char>& out, unsigned long value) {
+        for (int shift = 24; shift >= 0; shift -= 8) {
+            out.push_back (static_cast<unsigned char> ((value >> shift) & 0xff));
+        }
+    }
+    void msgpackAppend (std::vector<unsigned char>& out, const std::any& value) {
+        if (!value.has_value ()) {
+            putByte (out, 0xc0);   // nil
+            return;
+        }
+        if (isBool (value)) {
+            putByte (out, std::any_cast<bool> (value) ? 0xc3 : 0xc2);
+            return;
+        }
+        if (isNum (value)) {
+            const double d = toDouble (value);
+            if (d == std::floor (d) && d >= -9223372036854775808.0 && d <= 9223372036854775807.0) {
+                const long long n = static_cast<long long> (d);
+                if (n >= 0) {
+                    putByte (out, 0xcf);
+                } else {
+                    putByte (out, 0xd3);
+                }
+                putBigEndian64 (out, static_cast<unsigned long long> (n));
+            } else {
+                putByte (out, 0xcb);   // float64
+                const unsigned long long bits = [&d] () {
+                    union { double f; unsigned long long u; } u;
+                    u.f = d;
+                    return u.u;
+                } ();
+                putBigEndian64 (out, bits);
+            }
+            return;
+        }
+        if (isStr (value)) {
+            const std::string s = std::any_cast<std::string> (value);
+            const std::size_t n = s.size ();
+            if (n < 32) {
+                putByte (out, static_cast<unsigned char> (0xa0 | n));
+            } else if (n < 65536) {
+                putByte (out, 0xda);
+                putBigEndian32 (out, static_cast<unsigned long> (n) & 0xffff);
+            } else {
+                putByte (out, 0xdb);
+                putBigEndian64 (out, static_cast<unsigned long long> (n));
+            }
+            out.insert (out.end (), s.begin (), s.end ());
+            return;
+        }
+        if (isBytes (value)) {
+            const std::vector<unsigned char> b = asBytes (value).data ();
+            const std::size_t n = b.size ();
+            if (n < 256) {
+                putByte (out, 0xc4);
+                putByte (out, static_cast<unsigned char> (n));
+            } else if (n < 65536) {
+                putByte (out, 0xc5);
+                putBigEndian32 (out, static_cast<unsigned long> (n) & 0xffff);
+            } else {
+                putByte (out, 0xc6);
+                putBigEndian64 (out, static_cast<unsigned long long> (n));
+            }
+            out.insert (out.end (), b.begin (), b.end ());
+            return;
+        }
+        if (isList (value)) {
+            const std::vector<std::any> items = std::any_cast<list> (value).items ();
+            const std::size_t n = items.size ();
+            if (n < 16) {
+                putByte (out, static_cast<unsigned char> (0x90 | n));
+            } else if (n < 65536) {
+                putByte (out, 0xdc);
+                putBigEndian32 (out, static_cast<unsigned long> (n) & 0xffff);
+            } else {
+                putByte (out, 0xdd);
+                putBigEndian64 (out, static_cast<unsigned long long> (n));
+            }
+            for (const auto& item : items) {
+                msgpackAppend (out, item);
+            }
+            return;
+        }
+        if (isDict (value)) {
+            const std::vector<OrderedMap::entry> entries = std::any_cast<dict> (value).entries ();
+            const std::size_t n = entries.size ();
+            if (n < 16) {
+                putByte (out, static_cast<unsigned char> (0x80 | n));
+            } else if (n < 65536) {
+                putByte (out, 0xde);
+                putBigEndian32 (out, static_cast<unsigned long> (n) & 0xffff);
+            } else {
+                putByte (out, 0xdf);
+                putBigEndian64 (out, static_cast<unsigned long long> (n));
+            }
+            for (const auto& kv : entries) {
+                msgpackAppend (out, std::any (kv.first));
+                msgpackAppend (out, kv.second);
+            }
+            return;
+        }
+        throw ExchangeError ("packb: cannot msgpack-serialize value of type " + std::string (value.type ().name ()));
+    }
+}   // namespace
+
+std::any ExchangeBase::packb (std::any data) {
+    std::vector<unsigned char> out;
+    msgpackAppend (out, data);
+    return std::any (bytes (std::move (out)));
+}
+
+std::any ExchangeBase::urlencodeBase64 (std::any data) {
+    // base64url: standard base64 of the input bytes, drop '=' padding, '+'->'-', '/'->'_'
+    static const char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const bytes b = asBytes (data);
+    const std::vector<unsigned char>& input = b.data ();
+    std::string out;
+    out.reserve ((input.size () + 2) / 3 * 4);
+    for (std::size_t i = 0; i < input.size (); i += 3) {
+        const std::size_t rem = input.size () - i;
+        const unsigned int n = (static_cast<unsigned int> (input[i]) << 16)
+            | (rem > 1 ? static_cast<unsigned int> (input[i + 1]) << 8 : 0)
+            | (rem > 2 ? static_cast<unsigned int> (input[i + 2]) : 0);
+        out += b64[(n >> 18) & 63];
+        out += b64[(n >> 12) & 63];
+        out += rem > 1 ? b64[(n >> 6) & 63] : '=';
+        out += rem > 2 ? b64[n & 63] : '=';
+    }
+    while (!out.empty () && out.back () == '=') {
+        out.pop_back ();
+    }
+    for (char& c : out) {
+        if (c == '+') c = '-';
+        else if (c == '/') c = '_';
+    }
+    return std::any (out);
+}
+
+// lighter signing: stubs until a lighter-native milestone (C# has real implementations
+// in Exchange.Lighter.cs backed by the vendor .so)
+
+#define LIGHTER_STUB_DEF(NAME) \
+    std::any ExchangeBase::NAME (std::any, std::any, std::any, std::any, std::any) { \
+        throw NotSupported (std::string (#NAME) + " requires the lighter native library; not implemented in the C++ port yet"); \
+    }
+
+LIGHTER_STUB_DEF (lighterCreateAuthToken)
+LIGHTER_STUB_DEF (lighterCreateClient)
+LIGHTER_STUB_DEF (lighterGenerateApiKey)
+LIGHTER_STUB_DEF (lighterSignApproveIntegrator)
+LIGHTER_STUB_DEF (lighterSignCancelAllOrders)
+LIGHTER_STUB_DEF (lighterSignCancelOrder)
+LIGHTER_STUB_DEF (lighterSignChangePubkey)
+LIGHTER_STUB_DEF (lighterSignCreateGroupedOrders)
+LIGHTER_STUB_DEF (lighterSignCreateOrder)
+LIGHTER_STUB_DEF (lighterSignCreateSubAccount)
+LIGHTER_STUB_DEF (lighterSignModifyOrder)
+LIGHTER_STUB_DEF (lighterSignTransfer)
+LIGHTER_STUB_DEF (lighterSignUpdateLeverage)
+LIGHTER_STUB_DEF (lighterSignUpdateMargin)
+LIGHTER_STUB_DEF (lighterSignWithdraw)
+#undef LIGHTER_STUB_DEF
+
+std::shared_future<std::any> ExchangeBase::loadLighterLibrary (std::any, std::any, std::any, std::any, std::any, std::any) {
+    return std::async (std::launch::deferred, [] () -> std::any {
+        throw NotSupported ("loadLighterLibrary requires the lighter native library; not implemented in the C++ port yet");
+    }).share ();
 }
 
 std::shared_future<std::any> ExchangeBase::fetchMarkets (std::any) {

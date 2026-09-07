@@ -13,8 +13,10 @@ endif ()
 
 # The generated exchange headers are single translation units of several thousand lines
 # of std::any expressions. -O0 keeps them compiling in seconds rather than minutes; the
-# base-test binary is a correctness gate, not a benchmark.
-set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+# base-test binary is a correctness gate, not a benchmark. Debug info is skipped (-g0):
+# it dominates compile time on these half-megabyte TUs and the port is debugged through
+# error messages, not gdb.
+set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g0")
 
 find_package (Threads REQUIRED)
 

@@ -75,6 +75,18 @@ struct Callback {
     explicit operator bool () const { return value.has_value (); }
 };
 
+// Thrown by the generated dispatch tables (and the base callMethod fallback) when a
+// method name is genuinely absent. ExchangeBase::callDynamically uses this sentinel --
+// and ONLY this -- to mark a name in its negative cache: caching on ANY exception would
+// poison the cache with expected control flow (InvalidProxySettings from the offline
+// proxy in static request tests, NotSupported from stubbed base methods), making the
+// second call to a perfectly dispatchable method skip the table and report "no handler".
+class DispatchMiss : public NotSupported {
+public:
+    explicit DispatchMiss (const std::string& name)
+        : NotSupported ("callDynamically: no handler for \"" + name + "\"") {}
+};
+
 class ExchangeBase {
 public:
     ExchangeBase () = default;
@@ -177,8 +189,10 @@ public:
     // are real implementations; the ethers.js/keccak/starknet-crypto backed ones are
     // explicit unsupported stubs until the crypto milestone (keccak-256 + secp256k1
     // signing + EIP-712 + starknet pedersen), mirroring how C# stubs zklink.
-    std::any binaryConcat (std::any a, std::any b, std::any c = std::any {},
-                           std::any d = std::any {}, std::any e = std::any {});
+    std::any binaryConcat (std::any a = std::any {}, std::any b = std::any {},
+                           std::any c = std::any {}, std::any d = std::any {},
+                           std::any e = std::any {}, std::any f = std::any {},
+                           std::any g = std::any {});
     std::any intToBase16 (std::any number);
     std::any exceptionMessage (std::any exc, std::any includeStack = std::any (true));
     std::any fixStringifiedJsonMembers (std::any content);
@@ -188,8 +202,60 @@ public:
     std::any ethAbiEncode (std::any types, std::any args);
     std::any ethEncodeStructuredData (std::any domain, std::any messageTypes, std::any messageData);
     std::any ethGetAddressFromPrivateKey (std::any privateKey);
-    std::any starknetEncodeStructuredData (std::any data);
+    std::any starknetEncodeStructuredData (std::any domain = {}, std::any messageTypes = {}, std::any messageData = {}, std::any address = {});
     std::any starknetSign (std::any message, std::any privateKey);
+    std::any retrieveStarkAccount (std::any signature = {}, std::any accountClassHash = {}, std::any accountProxyClassHash = {});
+
+    // dydx protobuf signing family: C# stubs these in Exchange.cs ("Dydx currently
+    // does not support create order / transfer asset in C# language"); the C++ port
+    // mirrors that contract until the protobuf milestone.
+    std::any encodeDydxTxForSigning (std::any message, std::any memo, std::any chainId,
+                                     std::any account, std::any authenticators, std::any fee);
+    std::any encodeDydxTxForSimulation (std::any message, std::any memo,
+                                        std::any sequence, std::any publicKey);
+    std::any encodeDydxTxRaw (std::any signDoc, std::any signature);
+    std::any retrieveDydxCredentials (std::any privateKey);
+    std::shared_future<std::any> loadDydxProtos ();
+    std::any toDydxLong (std::any value);
+
+    // starknet (extended) crypto — same stub contract as starknetSign above
+    std::any extendedStarknetSign (std::any message, std::any privateKey);
+    std::any extendedStarknetComputePoseidonHashOnElements (std::any elements);
+    std::any extendedStarknetGetSelectorFromName (std::any name);
+
+    // parseDate is an imported free function (functions/time.ts) the transpiler drops
+    std::any parseDate (std::any value);
+    // packb = msgpack serialize (encode.ts imports static_dependencies/messagepack);
+    // C# bundles MiniMessagePacker (Exchange.Encode.cs), C++ gets its own below
+    std::any packb (std::any data);
+    // urlencodeBase64 = base64url (base64 minus '=' padding, '+'->'-', '/'->'_'),
+    // used by modetrade and friends for header payloads
+    std::any urlencodeBase64 (std::any data);
+
+    // lighter (Lighter.xyz) signing: C# implements these against the lighter native
+    // library (Exchange.Lighter.cs); the C++ port stubs them until a lighter milestone
+    #define LIGHTER_STUB(NAME) \
+        std::any NAME (std::any a = std::any{}, std::any b = std::any{}, std::any c = std::any{}, \
+                       std::any d = std::any{}, std::any e = std::any{})
+    LIGHTER_STUB (lighterCreateAuthToken);
+    LIGHTER_STUB (lighterCreateClient);
+    LIGHTER_STUB (lighterGenerateApiKey);
+    LIGHTER_STUB (lighterSignApproveIntegrator);
+    LIGHTER_STUB (lighterSignCancelAllOrders);
+    LIGHTER_STUB (lighterSignCancelOrder);
+    LIGHTER_STUB (lighterSignChangePubkey);
+    LIGHTER_STUB (lighterSignCreateGroupedOrders);
+    LIGHTER_STUB (lighterSignCreateOrder);
+    LIGHTER_STUB (lighterSignCreateSubAccount);
+    LIGHTER_STUB (lighterSignModifyOrder);
+    LIGHTER_STUB (lighterSignTransfer);
+    LIGHTER_STUB (lighterSignUpdateLeverage);
+    LIGHTER_STUB (lighterSignUpdateMargin);
+    LIGHTER_STUB (lighterSignWithdraw);
+    #undef LIGHTER_STUB
+    std::shared_future<std::any> loadLighterLibrary (std::any path = std::any{}, std::any chainId = std::any{},
+                                                     std::any privateKey = std::any{}, std::any apiKeyIndex = std::any{},
+                                                     std::any accountIndex = std::any{}, std::any createClient = std::any{});
     // callDynamically memoizes which names are NOT in any generated dispatch table:
     // the test framework calls base helpers (safeString, parseNumber, json, ...) via
     // the dynamic path per market, and without the cache each call linearly scans
@@ -299,7 +365,10 @@ public:
     virtual std::any filterBy (std::any array, std::any key, std::any value);
     virtual std::any inArray (std::any needle, std::any haystack);
     virtual std::any keysort (std::any obj);
-    virtual std::any omit (std::any obj, std::any keys);
+    virtual std::any omit (std::any obj, std::any keys, std::any k2 = std::any {},
+                           std::any k3 = std::any {}, std::any k4 = std::any {},
+                           std::any k5 = std::any {}, std::any k6 = std::any {},
+                           std::any k7 = std::any {});
     virtual std::any omitZero (std::any value);
     virtual std::any toArray (std::any value);
     virtual std::any unique (std::any array);
@@ -343,7 +412,7 @@ public:
     virtual std::any rsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
     virtual std::any eddsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
     virtual std::any jwt (std::any data, std::any secretKey, std::any algorithm = std::any {},
-                          std::any isRsa = std::any {});
+                          std::any isRsa = std::any {}, std::any opts = std::any {});
     virtual std::any strip (std::any value);
     virtual std::any uuid ();
     virtual std::any uuid16 ();
@@ -497,6 +566,8 @@ public:
     // Call a unified method by name with a positional argument list. Each generated
     // exchange overrides this with a table built from its own signatures (see
     // createDispatchTable in build/cppTranspiler.ts); the base has no methods to offer.
+    // A name absent from every table surfaces as DispatchMiss (see ExchangeBase.cpp),
+    // which is the ONLY signal callDynamically's negative cache records.
     virtual std::any callMethod (std::any name, std::any args);
 };
 
