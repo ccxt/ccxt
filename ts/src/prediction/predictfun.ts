@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/predictfun.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, OrderNotFound } from '../base/errors.js';
 import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTrade, Str } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -31,12 +31,13 @@ export default class predictfun extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
-                'cancelOrders': false,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'createMarketBuyOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': false,
                 'fetchBalance': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDeposits': false,
                 'fetchEvent': true,
@@ -46,9 +47,10 @@ export default class predictfun extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenInterest': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
@@ -109,7 +111,9 @@ export default class predictfun extends Exchange {
                         'v1/auth': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/orders/remove': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/orders': { 'cost': 1 } as Endpoint<Dict>,
-                        'orders/remove-by-hash': { 'cost': 1 } as Endpoint<Dict>,
+                        // the docs list this one as /orders/remove-by-hash, but that 404s - the
+                        // live path carries the v1 prefix like every other endpoint
+                        'v1/orders/remove-by-hash': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/account/referral': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/oauth/finalize': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/oauth/orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -136,17 +140,44 @@ export default class predictfun extends Exchange {
                     'taker': 0.02,  // default feeRateBps of 200 applied per order
                 },
             },
+            // the venue answers { success: false, code, error, message } - 'error' is a stable
+            // slug so the exact map is keyed on that, the broad map on the message prose
             'exceptions': {
                 'exact': {
                     // {"success":false,"code":400,"error":"create_order_min_order_value_not_met","message":"order must have a value of at least 0.9 USD","timestamp":"2026-09-06T14:53:22.142144615Z","trace":"895f3174c6245f432c6c4dd6f7f5ec6d"}
                     // {"success":false,"code":400,"error":"create_order_insufficient_collateral_allowance","message":"Insufficient collateral: USDT allowance is less than the total bid amount.","timestamp":"2026-09-06T15:08:32.4965164Z","trace":"f3de7dd53f6903156840c31ac1698318"}
+                    'unauthorized': AuthenticationError,
+                    'bad_request': BadRequest,
+                    'not_found': BadRequest,
+                    'create_order_hash_mismatch': InvalidOrder,
+                    'create_order_insufficient_collateral_allowance': InsufficientFunds,
+                    'create_order_insufficient_shares_allowance': InsufficientFunds,
+                    'create_order_min_order_value_not_met': InvalidOrder,
+                    'create_order_price_out_of_range': InvalidOrder,
+                    'create_order_market_not_trading': MarketClosed,
                 },
                 'broad': {
+                    // a 401 that is really a permission problem: the hash belongs to another wallet
+                    'do not belong to this wallet': OrderNotFound,
+                    'order hash must be a': BadRequest,
+                    'Orderbook not found': BadSymbol,
+                    'market not found': BadSymbol,
+                    'not currently trading': MarketClosed,
+                    'allowance is less than': InsufficientFunds,
+                    'price per share must be': InvalidOrder,
+                    'must have a value of at least': InvalidOrder,
                 },
             },
             'options': {
                 'allowUnscopedFetchEvents': true,
                 'maxFetchEventsResults': 100,   // cap on events collected by an unscoped fetchEvents
+                // the venue issues JWTs with a flat 24h lifetime (exp - iat = 86400 on every token
+                // it hands out), and documents none of it, so the window is configurable here
+                'tokenExpiresIn': 86400000,
+                // the price a market order is signed at when the caller names none - the extremes
+                // of the range the venue accepts, so the order crosses whatever is resting
+                'marketBuyPrice': 0.99,
+                'marketSellPrice': 0.01,
                 'chainId': 56,                  // BNB mainnet, swapped to 97 by setSandboxMode
                 'defaultExpiration': 3600,  // default expiration for limit orders is one hour
                 'marketOrderExpiration': 300,   // market orders are only valid for five minutes
@@ -1369,6 +1400,7 @@ export default class predictfun extends Exchange {
         this.requiredCredentials['apiKey'] = !enable;
         // a token minted for one host is not valid on the other
         this.options['jwtToken'] = undefined;
+        this.options['jwtTokenExpiresAt'] = 0;
     }
 
     /**
@@ -1425,8 +1457,12 @@ export default class predictfun extends Exchange {
         if ((this.walletAddress === undefined) || (this.privateKey === undefined)) {
             throw new ArgumentsRequired (this.id + ' authenticate() requires a walletAddress and a privateKey');
         }
+        const now = this.milliseconds ();
         const cached = this.safeString (this.options, 'jwtToken');
-        if (cached !== undefined) {
+        const expiresAt = this.safeInteger (this.options, 'jwtTokenExpiresAt', 0);
+        // a token outlives its window silently: the venue answers 401 on every order action once
+        // it lapses, so re-issue before that rather than after the first failure
+        if ((cached !== undefined) && (now < expiresAt)) {
             return cached;
         }
         const messageResponse = await this.predictfunGetV1AuthMessage (params);
@@ -1454,6 +1490,10 @@ export default class predictfun extends Exchange {
             throw new AuthenticationError (this.id + ' authenticate() did not return a token');
         }
         this.options['jwtToken'] = token;
+        // measured from before the round trip, so the cached window closes a little early rather
+        // than a little late
+        const tokenExpiresIn = this.safeInteger (this.options, 'tokenExpiresIn', 86400000);
+        this.options['jwtTokenExpiresAt'] = this.sum (now, tokenExpiresIn);
         return token;
     }
 
@@ -1523,7 +1563,7 @@ export default class predictfun extends Exchange {
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount the number of outcome shares
-     * @param {float} [price] the price per share between 0 and 1, required for a limit order
+     * @param {float} [price] the price per share between 0 and 1, required for a limit order; a market order without one is signed at 0.99 to buy or 0.01 to sell, the worst price it accepts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiration] unix timestamp in seconds the limit order expires at
      * @param {bool} [params.postOnly] reject the order if it would take liquidity
@@ -1538,10 +1578,10 @@ export default class predictfun extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        await this.authenticate ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const info = this.safeDict (outcomeObj, 'info', {});
-        const tokenId = this.safeString (info, 'onChainId');
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         if (tokenId === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() could not resolve the on chain token id of ' + outcome);
         }
@@ -1553,17 +1593,40 @@ export default class predictfun extends Exchange {
         const isBuy = (side === 'buy');
         // amounts cross the wire as collateral wei, the venue truncates the price to three
         // significant digits and the quantity to five, so send what it will actually use
-        const priceString = this.numberToString (price);
-        const priceWei = Precise.stringMul (priceString, '1000000000000000000');
-        const amountString = this.numberToString (amount);
+        // the venue sizes an order from both legs and refuses anything else: a limitless style
+        // takerAmount sentinel of 1 is rejected as create_order_min_order_value_not_met (the order
+        // value is read off the taker leg) and signing at the maximum price of 1 is rejected as
+        // create_order_price_out_of_range (it wants 0 < price < 1)
+        const amountString: Str = this.numberToString (amount);
+        let priceString = this.numberToString (price);
+        if (price === undefined) {
+            // a priceless limit order already threw above, so this is a market order. it still
+            // has to name a price, so it takes the aggressive end of the
+            // range the venue allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill
+            // happens at the book's own prices, this is only the worst price the order accepts -
+            // which is also the collateral the maker leg has to cover
+            priceString = (isBuy) ? this.numberToString (this.safeNumber (this.options, 'marketBuyPrice', 0.99)) : this.numberToString (this.safeNumber (this.options, 'marketSellPrice', 0.01));
+        }
         const quantityWei = Precise.stringMul (amountString, '1000000000000000000');
-        const costWei = Precise.stringDiv (Precise.stringMul (priceWei, quantityWei), '1000000000000000000');
+        const priceWei = Precise.stringMul (priceString, '1000000000000000000');
+        // the collateral leg follows from the price and the size, exactly as for a limit order -
+        // both legs have to agree or the venue rejects the order
+        const costWei = Precise.stringMul (priceString, quantityWei);
         let makerAmount = quantityWei;
         let takerAmount = costWei;
         if (isBuy) {
             // a buy pays collateral for shares, a sell hands over shares for collateral
             makerAmount = costWei;
             takerAmount = quantityWei;
+        }
+        const slippageBps = this.safeString (params, 'slippageBps', '0');
+        if (Precise.stringGt (slippageBps, '0')) {
+            if (isBuy) {
+                // widen what the taker is willing to pay, capped at one unit of collateral a share
+                makerAmount = Precise.stringMin (Precise.stringDiv (Precise.stringMul (makerAmount, Precise.stringAdd ('10000', slippageBps)), '10000'), quantityWei);
+            } else {
+                takerAmount = Precise.stringMax (Precise.stringDiv (Precise.stringMul (takerAmount, Precise.stringSub ('10000', slippageBps)), '10000'), '0');
+            }
         }
         // feeRateBps and the two exchange selectors live on the market row, not on the outcome
         // row - signing with the wrong pair places the order under a different verifying contract
@@ -1584,7 +1647,8 @@ export default class predictfun extends Exchange {
             if (isMarket) {
                 expirationDelta = this.safeInteger (this.options, 'marketOrderExpiration', defaultExpiration);
             }
-            expiration = this.sum (this.seconds (), expirationDelta);
+            const now = this.seconds ();
+            expiration = this.sum (now, expirationDelta);
         }
         // a distinct salt per order so two identical orders do not collide on the venue
         const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
@@ -1623,34 +1687,131 @@ export default class predictfun extends Exchange {
         if (timeInForce === 'FOK') {
             data['isFillOrKill'] = true;
         }
-        const slippageBps = this.safeString (params, 'slippageBps');
-        if (slippageBps !== undefined) {
-            data['slippageBps'] = slippageBps;
-        }
-        const selfTradePrevention = this.safeString (params, 'selfTradePrevention');
-        if (selfTradePrevention !== undefined) {
-            data['selfTradePrevention'] = selfTradePrevention;
-        }
+        params = this.omit (params, [ 'isPostOnly', 'timeInForce', 'isFillOrKill', 'feeRateBps', 'isNegRisk', 'isYieldBearing' ]);
         // the JWT authorises the order, the api key only authorises the request
-        await this.authenticate ();
         const request: Dict = {
             'data': data,
         };
-        const response = await this.predictfunPostV1Orders (request);
+        const response = await this.predictfunPostV1Orders (this.extend (request, params));
         //
         //     {
-        //         "data": { "id": "415455", "hash": "0x0950ef58...", "status": "OPEN" },
-        //         "success": true
+        //         "data": {
+        //             "code": "OK",
+        //             "orderHash": "0x5ae1a7893b1a804530151dec3866cd0bb8ffe4e4c3640aca1b3ab5ef26c57747",
+        //             "orderId": "415535",
+        //             "removalLockedUntil": null
+        //         },
+        //         "success ": true
         //     }
         //
         const result = this.safeDict (response, 'data', {});
-        // hand the parser the same shape fetchOrder () gets: the signed contract order plus
-        // whatever the venue echoed back
-        return this.parsePredictionOrder (this.extend ({
-            'order': orderPayload,
-            'strategy': strategy,
-            'isPostOnly': postOnly,
-        }, result), outcomeObj);
+        // the venue answers with an id and a hash and nothing else - no price, size, side or
+        // status - so the returned order is built from what was requested and signed, with only
+        // the identifiers taken from the response
+        return this.safePredictionOrder ({
+            'id': this.safeString2 (result, 'orderHash', 'hash'),
+            'clientOrderId': undefined,
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': undefined,
+            'outcome': this.safeString (outcomeObj, 'outcome', outcome),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'type': type,
+            'side': side,
+            // the price actually signed, which for a market order is the 0.99 / 0.01 default
+            'price': this.parseNumber (priceString),
+            'amount': this.parseNumber (amountString),
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': undefined,
+            'trades': [],
+        });
+    }
+
+    /**
+     * @method
+     * @name predictfun#cancelOrder
+     * @description removes one of your own orders from the order book
+     * @see https://dev.predict.fun/remove-orders-by-hash-38139973e0
+     * @param {string} id the order hash, as returned by createOrder
+     * @param {string} [outcome] unified outcome handle the order belongs to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        const orders = await this.cancelOrders ([ id ], outcome, params);
+        const order = this.safeDict (orders, 0);
+        if (order === undefined) {
+            throw new OrderNotFound (this.id + ' cancelOrder() could not remove ' + id);
+        }
+        return order as PredictionOrder;
+    }
+
+    /**
+     * @method
+     * @name predictfun#cancelOrders
+     * @description removes several of your own orders from the order book, up to a hundred at a time
+     * @see https://dev.predict.fun/remove-orders-by-hash-38139973e0
+     * @param {string[]} ids the order hashes, as returned by createOrder
+     * @param {string} [outcome] unified outcome handle the orders belong to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        const idsLength = ids.length;
+        if (idsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires at least one order hash');
+        }
+        if (idsLength > 100) {
+            throw new BadRequest (this.id + ' cancelOrders() takes at most 100 order hashes per call');
+        }
+        // the JWT identifies the signer whose orders may be pulled
+        await this.authenticate ();
+        const request: Dict = {
+            'data': {
+                'hashes': ids,
+            },
+        };
+        // this only pulls the orders off the book, it does not cancel them on chain
+        const response = await this.predictfunPostV1OrdersRemoveByHash (this.extend (request, params));
+        //
+        //     {
+        //         "removed": [ "0xebf11bdff189b8609c9ae66bebb20b94742865a2d94970856f3fb6b0896f9ec0" ],
+        //         "rejected": [],
+        //         "noop": [ "0x00de1b3b4d8647c371022c3b952c82d89298ed3746d4677e582ef9808bbdc6cf" ],
+        //         "success": true
+        //     }
+        //
+        const rejected = this.safeList (response, 'rejected', []);
+        const rejectedLength = rejected.length;
+        if (rejectedLength > 0) {
+            throw new OrderNotFound (this.id + ' cancelOrders() was refused for ' + this.json (rejected));
+        }
+        // the venue reports hashes only, so each one becomes a row the shared order parser can
+        // read: it takes the hash off orderHash and the status through parseOrderStatus
+        const removed = this.safeList (response, 'removed', []);
+        const noop = this.safeList (response, 'noop', []);
+        const rows: Dict[] = [];
+        const removedLength = removed.length;
+        for (let i = 0; i < removedLength; i++) {
+            rows.push (this.extend (response, { 'orderHash': removed[i], 'status': 'CANCELLED' }));
+        }
+        const noopLength = noop.length;
+        for (let i = 0; i < noopLength; i++) {
+            // accepted, but nothing was resting to pull: the order had already filled, expired,
+            // was never booked, or had been removed before - so the status is left unknown
+            rows.push (this.extend (response, { 'orderHash': noop[i] }));
+        }
+        return this.parsePredictionOrders (rows, outcomeObj);
     }
 
     /**
@@ -1678,38 +1839,129 @@ export default class predictfun extends Exchange {
         //
         //     {
         //         "data": {
-        //             "id": "415455",
-        //             "marketId": 1965449,
-        //             "currency": "USDT",
-        //             "amount": "5000000000000000000",
+        //             "amount": "10000000000000000000",
         //             "amountFilled": "0",
+        //             "currency": "USDT",
+        //             "id": "415537",
         //             "isNegRisk": false,
-        //             "isYieldBearing": false,
-        //             "strategy": "LIMIT",
-        //             "status": "OPEN",
-        //             "rewardEarningRate": 0,
+        //             "isYieldBearing": true,
+        //             "marketId": 2004048,
         //             "order": {
-        //                 "hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
-        //                 "salt": "1788704531000",
-        //                 "maker": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03",
-        //                 "signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03",
-        //                 "taker": "0x0000000000000000000000000000000000000000",
-        //                 "tokenId": "4376517114744224791843241875206669776046976762093128062476248465557963116737",
-        //                 "makerAmount": "50000000000000000",
-        //                 "takerAmount": "5000000000000000000",
-        //                 "expiration": "4102444800",
-        //                 "nonce": "0",
-        //                 "feeRateBps": "200",
-        //                 "side": 0,
-        //                 "signatureType": 0,
-        //                 "signature": "0x..."
-        //             }
+        //             "expiration": 1788717567,
+        //             "feeRateBps": "200",
+        //             "hash": "0xd0933a7528d1f4d8f82861a097a8e44298806f072a76bc9ec9c423707c94dfe7",
+        //             "maker": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+        //             "makerAmount": "5000000000000000000",
+        //             "nonce": "0",
+        //             "salt": "1788713967425",
+        //             "side": 0,
+        //             "signature": "0x019cfd569d6d678a5ba900d43d93dfd55b3ef98c38d5b9bd243ac356a1fbffaa351e417d534195aa43bf20f07c6b82c25e7c49591f7c74565c3b9fa75b298bbb1c",
+        //             "signatureType": 0,
+        //             "signer": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+        //             "taker": "0x0000000000000000000000000000000000000000",
+        //             "takerAmount": "10000000000000000000",
+        //             "tokenId": "21794117812663370870023674333212505719146120894214542748572818978538793884650"},
+        //             "rewardEarningRate": 0,
+        //             "status": "CANCELLED",
+        //             "strategy": "LIMIT"
         //         },
         //         "success": true
         //     }
         //
         const data = this.safeDict (response, 'data', {});
         return this.parsePredictionOrder (data, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchOpenOrders
+     * @description fetches your own orders that are still resting on the book
+     * @see https://dev.predict.fun/get-orders-25326902e0
+     * @param {string} [outcome] unified outcome handle to filter by, all outcomes when omitted
+     * @param {int} [since] not used by predictfun fetchOpenOrders, the venue returns no order timestamps
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        const request: Dict = {
+            'status': 'OPEN',
+        };
+        return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchClosedOrders
+     * @description fetches your own orders that filled
+     * @see https://dev.predict.fun/get-orders-25326902e0
+     * @param {string} [outcome] unified outcome handle to filter by, all outcomes when omitted
+     * @param {int} [since] not used by predictfun fetchClosedOrders, the venue returns no order timestamps
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        // the venue's status filter is an enum of OPEN and FILLED only - expired and cancelled
+        // orders cannot be asked for, so a closed order here means one that filled
+        const request: Dict = {
+            'status': 'FILLED',
+        };
+        return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name predictfun#fetchOrders
+     * @description fetches your own orders
+     * @see https://dev.predict.fun/get-orders-25326902e0
+     * @param {string} [outcome] unified outcome handle to filter by, all outcomes when omitted
+     * @param {int} [since] not used by predictfun fetchOrders, the venue returns no order timestamps
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] 'OPEN' | 'FILLED' | 'EXPIRED' | 'CANCELLED'
+     * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
+     * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+        }
+        // the JWT identifies the wallet whose orders are returned
+        await this.authenticate ();
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['first'] = limit;
+        }
+        const response = await this.predictfunGetV1Orders (this.extend (request, params));
+        //
+        //     {
+        //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA2VDE1OjA4OjMyWiJ9",
+        //         "data": [
+        //             {
+        //                 "id": "415455",
+        //                 "marketId": 1965449,
+        //                 "currency": "USDT",
+        //                 "amount": "5000000000000000000",
+        //                 "amountFilled": "0",
+        //                 "isNegRisk": false,
+        //                 "isYieldBearing": true,
+        //                 "strategy": "LIMIT",
+        //                 "status": "OPEN",
+        //                 "order": { "hash": "0x0950ef58...", "tokenId": "43765171...", "makerAmount": "50000000000000000", "takerAmount": "5000000000000000000", "side": 0 }
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        // since is deliberately not forwarded: the rows carry no timestamp, so the shared
+        // since filter would drop every one of them
+        return this.parsePredictionOrders (data, outcomeObj, since, limit);
     }
 
     /**
@@ -1722,45 +1974,69 @@ export default class predictfun extends Exchange {
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     override parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
-        const contractOrder = this.safeDict (order, 'order', {});
-        const tokenId = this.safeString (contractOrder, 'tokenId');
+        //
+        // fetchOrder
+        //     {
+        //         "amount": "10000000000000000000",
+        //         "amountFilled": "0",
+        //         "currency": "USDT",
+        //         "id": "415537",
+        //         "isNegRisk": false,
+        //         "isYieldBearing": true,
+        //         "marketId": 2004048,
+        //         "order": {
+        //             "expiration": 1788717567,
+        //             "feeRateBps": "200",
+        //             "hash": "0xd0933a7528d1f4d8f82861a097a8e44298806f072a76bc9ec9c423707c94dfe7",
+        //             "maker": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+        //             "makerAmount": "5000000000000000000",
+        //             "nonce": "0",
+        //             "salt": "1788713967425",
+        //             "side": 0,
+        //             "signature": "0x019cfd569d6d678a5ba900d43d93dfd55b3ef98c38d5b9bd243ac356a1fbffaa351e417d534195aa43bf20f07c6b82c25e7c49591f7c74565c3b9fa75b298bbb1c",
+        //             "signatureType": 0,
+        //             "signer": "0x78C7b44105eB616B48d4A4328D4Ded1c3B53AF31",
+        //             "taker": "0x0000000000000000000000000000000000000000",
+        //             "takerAmount": "10000000000000000000",
+        //             "tokenId": "21794117812663370870023674333212505719146120894214542748572818978538793884650"
+        //         },
+        //         "rewardEarningRate": 0,
+        //         "status": "CANCELLED",
+        //         "strategy": "LIMIT"
+        //     }
+        //
+        const data = this.safeDict2 (order, 'order', 'data');
+        // the fetch endpoints nest the hash inside the contract order, the create endpoint
+        // returns it at the top level as orderHash - accept either
+        const topLevelHash = this.safeString2 (order, 'hash', 'orderHash');
+        const orderHash = this.safeString (data, 'hash', topLevelHash);
+        const tokenId = this.safeString (data, 'tokenId');
         const outcomeObj = this.safeOutcome (tokenId, market);
         // the contract order carries the economics: a buy offers collateral for shares while a
         // sell offers shares for collateral, so which leg is the size depends on the side
-        const rawSide = this.safeString (contractOrder, 'side');
+        const rawSide = this.safeString (data, 'side');
         let side: Str = undefined;
         if ((rawSide === '0') || (rawSide === 'Bid')) {
             side = 'buy';
         } else if ((rawSide === '1') || (rawSide === 'Ask')) {
             side = 'sell';
         }
-        const makerAmount = this.safeString (contractOrder, 'makerAmount');
-        const takerAmount = this.safeString (contractOrder, 'takerAmount');
+        const makerAmount = this.safeString (data, 'makerAmount');
+        const takerAmount = this.safeString (data, 'takerAmount');
         let amountWei = makerAmount;
         let costWei = takerAmount;
         if (side === 'buy') {
             amountWei = takerAmount;
             costWei = makerAmount;
         }
-        let amount: Str = undefined;
-        if (amountWei !== undefined) {
-            amount = Precise.stringDiv (amountWei, '1000000000000000000');
-        }
-        let cost: Str = undefined;
-        if (costWei !== undefined) {
-            cost = Precise.stringDiv (costWei, '1000000000000000000');
-        }
-        let price: Str = undefined;
-        if ((amount !== undefined) && (cost !== undefined) && Precise.stringGt (amount, '0')) {
-            price = Precise.stringDiv (cost, amount);
-        }
-        let filled: Str = undefined;
+        const amount = Precise.stringDiv (amountWei, '1000000000000000000');
+        const cost = Precise.stringDiv (costWei, '1000000000000000000');
+        const price = Precise.stringDiv (cost, amount);
         const amountFilled = this.safeString (order, 'amountFilled');
-        if (amountFilled !== undefined) {
-            filled = Precise.stringDiv (amountFilled, '1000000000000000000');
-        }
+        const filled = Precise.stringDiv (amountFilled, '1000000000000000000');
+        const filledCost = Precise.stringMul (filled, price);
         return this.safePredictionOrder ({
-            'id': this.safeString2 (order, 'id', 'hash'),
+            'id': orderHash,
             'clientOrderId': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1773,10 +2049,11 @@ export default class predictfun extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'cost': cost,
+            'filledCost': filledCost,
             'fee': undefined,
             'postOnly': this.safeBool (order, 'isPostOnly'),
             'trades': undefined,
-            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj),
+            'outcome': this.safeOutcomeSymbol (tokenId, outcomeObj),
             'outcomeId': this.safeString (outcomeObj, 'outcomeId', tokenId),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
@@ -1804,6 +2081,46 @@ export default class predictfun extends Exchange {
             'REJECTED': 'rejected',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleErrors
+     * @description maps the venue's error slugs and messages onto the unified exceptions
+     * @param {int} statusCode the http status code
+     * @param {string} statusText the http status text
+     * @param {string} url the request url
+     * @param {string} method the http method
+     * @param {object} responseHeaders the response headers
+     * @param {string} responseBody the raw response body
+     * @param {object} response the parsed response
+     * @param {object} requestHeaders the request headers
+     * @param {object} requestBody the request body
+     * @returns {undefined} nothing, it throws when the venue reported a failure
+     */
+    override handleErrors (statusCode: Int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
+            return undefined;
+        }
+        const success = this.safeBool (response, 'success', true);
+        if (success) {
+            return undefined;
+        }
+        const feedback = this.id + ' ' + responseBody;
+        // the message is matched first because it is the more specific of the two: several
+        // distinct failures share a generic slug, notably 'unauthorized', which the venue also
+        // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
+        const message = this.safeString (response, 'message');
+        this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+        const error = this.safeString (response, 'error');
+        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+        // a 400 is a rejected request or a business rule, not a transport outage - the base would
+        // otherwise map the bare status onto a retryable network error
+        if (statusCode === 400) {
+            throw new BadRequest (feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 
     /**
@@ -1840,7 +2157,7 @@ export default class predictfun extends Exchange {
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
         headers = existingHeaders;
-        if (apiKey !== undefined) {
+        if ((apiKey !== undefined) && (!sandboxMode)) {
             headers = this.extend ({
                 'x-api-key': apiKey,
             }, existingHeaders);
@@ -1849,6 +2166,8 @@ export default class predictfun extends Exchange {
         // caches it, so it is attached to every call once an order action has asked for one
         const jwtToken = this.safeString (this.options, 'jwtToken');
         if (jwtToken !== undefined) {
+            // unlike the api key, the JWT IS required on the testnet: order actions there answer
+            // 401 without it, so it is attached on both hosts
             headers['Authorization'] = 'Bearer ' + jwtToken;
         }
         if (method !== 'GET') {
