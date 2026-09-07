@@ -127,6 +127,11 @@ class OrderRouter:
     DEFAULT_SLIPPAGE_BPS = 25
     DEFAULT_RECONCILE_TOLERANCE = 0.02
 
+    # How long retryFailedSteps waits before re-placing a step the venue rejected. A second is
+    # the shortest delay that lets a transient cause clear(a rate limit window, a momentary
+    # balance lag) without turning a retry budget into a burst against a venue that just said no.
+    DEFAULT_RETRY_DELAY_MS = 1000
+
     # NO_CAP is the default: this class does not decide how much of your money you
     # may trade. `maxNotionalUsd` is an OPT-IN guardrail — set it and it is honoured
     # exactly, at whatever value you choose; leave it unset and no notional check runs
@@ -1252,15 +1257,23 @@ class OrderRouter:
         # and execute refuses.
         return self.string_at(plan, 'requestId', '')
 
-    def client_order_id_for(self, plan_id, step_index):
+    def client_order_id_for(self, plan_id, step_index, attempt=0):
         """
         derives the deterministic client order id for one step, so that a second run of the same plan re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
 
         :param str plan_id: the plan identity from plan_identity
         :param int step_index: the step's index within the plan
+        :param int [attempt]: the retry attempt, 0 for the first
         :returns str: the client order id
         """
-        return plan_id + '-' + self.format_number(step_index)
+        # Attempt 0 is unsuffixed, so the id a plan sends on its first run is unchanged.
+        # A RETRY, by contrast, must carry a NEW id: retryFailedSteps only ever retries a
+        # step the venue definitively rejected, which makes the retry a genuinely new order —
+        # and re-sending the original id would have the venue reject it as a duplicate of the
+        # order it just refused, turning the retry into a guaranteed no-op.
+        if attempt <= 0:
+            return plan_id + '-' + self.format_number(step_index)
+        return plan_id + '-' + self.format_number(step_index) + '-r' + self.format_number(attempt)
 
     def has_executed_plan(self, plan_id):
         """
@@ -1316,6 +1329,9 @@ class OrderRouter:
         :param dict [options['orderParams']]: extra params merged into every create_order call
         :param str [options['idempotencyKey']]: the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
         :param bool [options['allowReexecution']]: must be exactly True to run a plan this instance has already executed live; the DEFAULT is refusal
+        :param int [options['retryFailedSteps']]: how many times to re-place a step the venue DEFINITIVELY REJECTED, default 0. An outcome_unknown step is never retried at any setting: it may already be a live position, and re-placing it is the double-fill this class exists to prevent. Each retry carries its own client order id
+        :param int [options['retryDelayMs']]: how long to wait before a retry, default 1000
+        :param callable [options['onStep']]: called after each step completes and reconciles, never mid-order, with one event dict describing that step. Return 'halt' to stop the route cleanly(haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that raises is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
         :returns dict: an execution report with per-step results, openOrders, errors and the halt verdict
         """
         requested_strategy = self.string_at(options, 'strategy', 'dry_run')
@@ -1512,6 +1528,8 @@ class OrderRouter:
                 'orderId': '',
                 'clientOrderId': '',
                 'errorCode': '',
+                # which retry produced this result; 0 unless retryFailedSteps re-placed it
+                'attempt': 0,
             })
         return {
             # a placeholder: execute resolves the real identity from the plan AND the options
@@ -1554,7 +1572,7 @@ class OrderRouter:
         results = self.list_at(report, 'steps')
         for i in range(len(steps)):
             step = steps[i]
-            result = self.place_step(step, venues, options, usd_rates, strategy, report)
+            result = self.place_step_with_retry(step, venues, options, usd_rates, strategy, report)
             results[i] = result
             status = self.string_at(result, 'status', '')
             if status in ('failed', 'outcome_unknown'):
@@ -1564,6 +1582,8 @@ class OrderRouter:
                 # 'nothing_filled' — asserting the one thing we do not know.
                 report['haltReason'] = 'order_failed' if status == 'failed' else 'outcome_unknown'
                 report['haltStepIndex'] = i
+                # the hook is told about a halt it did not cause, and cannot undo it
+                self.call_on_step(options, report, result, {}, i, len(steps))
                 self.mark_remaining_skipped(results, i + 1)
                 return
             reconciliation = self.reconcile_execution_step({'steps': steps, 'reconcileToleranceRatio': self.number_at(report, 'reconcileToleranceRatio', OrderRouter.DEFAULT_RECONCILE_TOLERANCE)}, i, self.number_at(result, 'outAmount', 0))
@@ -1576,6 +1596,15 @@ class OrderRouter:
             if self.string_at(reconciliation, 'verdict', '') == 'halt':
                 report['halted'] = True
                 report['haltReason'] = self.string_at(reconciliation, 'reason', '')
+                report['haltStepIndex'] = i
+                self.call_on_step(options, report, result, reconciliation, i, len(steps))
+                self.mark_remaining_skipped(results, i + 1)
+                return
+            # the caller's own verdict, consulted only once the route is otherwise sound. It can
+            # stop the route; it cannot restart one the reconciliation above already stopped.
+            if self.call_on_step(options, report, result, reconciliation, i, len(steps)) == 'halt':
+                report['halted'] = True
+                report['haltReason'] = 'halted_by_on_step'
                 report['haltStepIndex'] = i
                 self.mark_remaining_skipped(results, i + 1)
                 return
@@ -1631,6 +1660,7 @@ class OrderRouter:
                     report['halted'] = True
                     report['haltReason'] = 'order_failed' if status == 'failed' else 'outcome_unknown'
                     report['haltStepIndex'] = i
+                    self.call_on_step(options, report, result, {}, i, len(steps))
                     self.mark_remaining_skipped(results, end)
                     return
                 reconciliation = self.reconcile_execution_step({'steps': steps, 'reconcileToleranceRatio': self.number_at(report, 'reconcileToleranceRatio', OrderRouter.DEFAULT_RECONCILE_TOLERANCE)}, i, self.number_at(result, 'outAmount', 0))
@@ -1639,6 +1669,13 @@ class OrderRouter:
                 if self.string_at(reconciliation, 'verdict', '') == 'halt':
                     report['halted'] = True
                     report['haltReason'] = self.string_at(reconciliation, 'reason', '')
+                    report['haltStepIndex'] = i
+                    self.call_on_step(options, report, result, reconciliation, i, len(steps))
+                    self.mark_remaining_skipped(results, end)
+                    return
+                if self.call_on_step(options, report, result, reconciliation, i, len(steps)) == 'halt':
+                    report['halted'] = True
+                    report['haltReason'] = 'halted_by_on_step'
                     report['haltStepIndex'] = i
                     self.mark_remaining_skipped(results, end)
                     return
@@ -1653,7 +1690,7 @@ class OrderRouter:
         :returns None:
         """
         for position in indices:
-            results[position] = self.place_step(steps[position], venues, options, usd_rates, 'parallel_within_hop', report)
+            results[position] = self.place_step_with_retry(steps[position], venues, options, usd_rates, 'parallel_within_hop', report)
 
     def execute_best_effort(self, report, steps, venues, options, usd_rates):
         """
@@ -1674,10 +1711,101 @@ class OrderRouter:
                 results[i]['status'] = 'skipped'
                 results[i]['errorCode'] = 'max_orders_reached'
                 continue
-            results[i] = self.place_step(steps[i], venues, options, usd_rates, 'best_effort', report)
+            results[i] = self.place_step_with_retry(steps[i], venues, options, usd_rates, 'best_effort', report)
             placed = placed + 1
             # no reconciliation and no halt: that is the whole point of the
-            # strategy, and why it is refused on anything but a single hop
+            # strategy, and why it is refused on anything but a single hop. The hook is still
+            # offered every step, and stopping early is the one thing it may do here — that is
+            # a smaller commitment than the strategy's own contract, never a larger one.
+            if self.call_on_step(options, report, results[i], {}, i, len(steps)) == 'halt':
+                report['halted'] = True
+                report['haltReason'] = 'halted_by_on_step'
+                report['haltStepIndex'] = i
+                self.mark_remaining_skipped(results, i + 1)
+                return
+
+    def place_step_with_retry(self, step, venues, options, usd_rates, strategy, report):
+        """
+        places one step, re-placing it up to options['retryFailedSteps'] times when — and ONLY when — the venue definitively rejected it
+
+        :param dict step: the step to trade
+        :param dict venues: exchangeId to exchange instance
+        :param dict options: the execute options
+        :param dict usd_rates: currency code to USD price
+        :param str strategy: the strategy in force
+        :param dict report: the report, for openOrders and errors
+        :returns dict: the step result of the last attempt
+        """
+        max_retries = self.number_at(options, 'retryFailedSteps', 0)
+        retry_delay_ms = self.number_at(options, 'retryDelayMs', OrderRouter.DEFAULT_RETRY_DELAY_MS)
+        attempt = 0
+        result = {}
+        while True:
+            step['attempt'] = attempt
+            result = self.place_step(step, venues, options, usd_rates, strategy, report)
+            status = self.string_at(result, 'status', '')
+            # 'failed' is the ONLY retryable outcome, and the distinction is the whole safety
+            # argument. A failed step was refused by the venue: nothing was placed, so placing
+            # it again cannot double-fill. An 'outcome_unknown' step may ALREADY be a live
+            # position that simply could not be read back, and re-placing that is precisely the
+            # double-fill this class exists to prevent. It is never retried, at any setting.
+            if status != 'failed' or attempt >= max_retries:
+                return result
+            attempt = attempt + 1
+            if retry_delay_ms > 0:
+                self.sleep(retry_delay_ms)
+
+    def call_on_step(self, options, report, result, reconciliation, step_index, steps_total):
+        """
+        hands the caller's onStep hook one finished step and returns its verdict, treating any failure of the hook as 'no opinion'
+
+        :param dict options: the execute options, which may carry onStep
+        :param dict report: the report so far
+        :param dict result: the finished step result
+        :param dict reconciliation: the step's reconciliation, empty when it halted before reconciling
+        :param int step_index: the step's index
+        :param int steps_total: how many steps the plan has
+        :returns str: 'halt' to stop, anything else to continue
+        """
+        on_step = options.get('onStep')
+        if on_step is None:
+            return ''
+        event = {
+            'planId': self.string_at(report, 'planId', ''),
+            'stepIndex': step_index,
+            'hopIndex': self.number_at(result, 'hopIndex', 0),
+            'legIndex': self.number_at(result, 'legIndex', 0),
+            'exchangeId': self.string_at(result, 'exchangeId', ''),
+            'symbol': self.string_at(result, 'symbol', ''),
+            'side': self.string_at(result, 'side', ''),
+            'status': self.string_at(result, 'status', ''),
+            'requestedAmount': self.number_at(result, 'requestedAmount', 0),
+            'filledAmount': self.number_at(result, 'filledAmount', 0),
+            'outAsset': self.string_at(result, 'outAsset', ''),
+            'outAmount': self.number_at(result, 'outAmount', 0),
+            'orderId': self.string_at(result, 'orderId', ''),
+            'clientOrderId': self.string_at(result, 'clientOrderId', ''),
+            'errorCode': self.string_at(result, 'errorCode', ''),
+            'attempt': self.number_at(result, 'attempt', 0),
+            'reconciliation': reconciliation,
+            'ordersPlaced': self.number_at(report, 'ordersPlaced', 0),
+            'halted': self.bool_at(report, 'halted', False),
+            'haltReason': self.string_at(report, 'haltReason', ''),
+            'stepsTotal': steps_total,
+            'stepsRemaining': steps_total - (step_index + 1),
+        }
+        try:
+            verdict = on_step(event)
+            if verdict == 'halt':
+                return 'halt'
+            return ''
+        except Exception as e:
+            # A hook that raises must NOT take the run with it. Everything placed so far is
+            # recorded in this report, and losing it to an exception raised by observability
+            # code would destroy the only account of orders that are already live. The failure
+            # is recorded and the run proceeds exactly as if the hook had no opinion.
+            self.record_error(report, step_index, self.string_at(result, 'exchangeId', ''), self.string_at(result, 'symbol', ''), 'on_step_hook_failed:' + self.error_code_of(e))
+            return ''
 
     def place_step(self, step, venues, options, usd_rates, strategy, report):
         """
@@ -1745,9 +1873,11 @@ class OrderRouter:
             # is set AFTER the caller's orderParams are copied and deliberately overrides a
             # clientOrderId found there: one id reused across every step of a plan is worse
             # than none at all.
-            client_order_id = self.client_order_id_for(self.string_at(report, 'planId', ''), step_index)
+            attempt = self.number_at(step, 'attempt', 0)
+            client_order_id = self.client_order_id_for(self.string_at(report, 'planId', ''), step_index, attempt)
             order_params['clientOrderId'] = client_order_id
             result['clientOrderId'] = client_order_id
+            result['attempt'] = attempt
             if strategy == 'limit_protected':
                 order = self.place_protected_limit(venue, step, symbol, side, amount, price, order_params, options, report, result)
             else:
