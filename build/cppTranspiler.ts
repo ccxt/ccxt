@@ -223,8 +223,22 @@ function rewriteDynamicDispatch (content: string, receiver = 'this'): string {
 // names so unrelated identifiers (and real constants like TRUNCATE) are left alone.
 function rewriteErrorClassValues (content: string): string {
     const alternation = ERROR_NAMES.join ('|');
-    const asDictValue = new RegExp (`(\\{ std::string\\("[^"]*"\\), )(${alternation})( \\})`, 'g');
-    return content.replace (asDictValue, '$1std::string("$2")$3');
+    // the class may sit on its own line (clang-format wraps long exception maps) and
+    // the key may contain escaped quotes ('subscription cluster does not \"exist\"'),
+    // both of which the old single-line form missed
+    const asDictValue = new RegExp (`(\\{\\s*std::string\\((?:\\u0000LIT\\d+\\u0000|\\\"(?:[^\\\"\\\\]|\\\\.)*\\\")\\),\\s*)(${alternation})(\\s*[,}])`, 'g');
+    // some exchanges spell exact entries as [ErrorClass, 'message'] tuples: the class
+    // sits inside a list literal instead of a dict value position
+    const asListValue = new RegExp (`(ccxt::list\\{\\s*)(${alternation})(\\s*,)`, 'g');
+    // any remaining bare class used as a VALUE: safeString(..., errorCode, ExchangeError)
+    // passes the class as the default argument. Exclusions keep the valid C++ forms
+    // intact: throw <Class>(, ::<Class>, isInstanceOf<<Class>>, ccxt.<Class>.
+    const asBareValue = new RegExp (`(?<![\\w:>.]|throw\\s)(${alternation})(\\s*[,)])`, 'g');
+    // run on masked source so error-message text mentioning a class name is untouched
+    return outsideStringLiterals (content, (masked) => masked
+        .replace (asDictValue, '$1std::string("$2")$3')
+        .replace (asListValue, '$1std::string("$2")$3')
+        .replace (asBareValue, 'std::string("$1")$2'));
 }
 
 // D3c — SUPER_TOKEN is 'base', copy-pasted from the C# backend, so `super.foo()`
@@ -289,9 +303,11 @@ function rewritePreciseCalls (content: string): string {
 
 // A TS local may share a name with a helper (`const isArray = Array.isArray(x)`), and in
 // C++ the name is in scope inside its own initialiser, so the call resolves to the
-// half-declared variable. Qualify the call.
+// half-declared variable. Qualify the call. The initialiser may be wrapped in
+// parentheses and clang-format may have broken the line, so whitespace and opening
+// parens are tolerated between `=` and the call.
 function rewriteSelfShadowingLocals (content: string): string {
-    return content.replace (/std::any (\w+) = \1\(/g, 'std::any $1 = ::$1(');
+    return content.replace (/std::any (\w+) =(\s*\(*)\1\(/g, 'std::any $1 =$2::$1(');
 }
 
 // Property and method access on std::any locals. C# casts these (`(client as
@@ -383,16 +399,99 @@ function rewriteAnyMemberAccess (content: string): string {
                   '::getValue($1, std::string("$2"))'));
 }
 
+// Precise.decimals is a plain int, but the generated code assigns helper results to it
+// (`precise.decimals = mathMax(precise.decimals, priceDecimals)`). A regex cannot wrap
+// an expression with nested parens, so scan to the statement's closing `;`.
+function rewriteDecimalsAssignments (content: string): string {
+    const MARK = '.decimals = ';
+    let out = '';
+    let cursor = 0;
+    for (;;) {
+        const at = content.indexOf (MARK, cursor);
+        if (at === -1) {
+            out += content.slice (cursor);
+            return out;
+        }
+        out += content.slice (cursor, at);
+        let i = at + MARK.length;
+        let depth = 0;
+        while (i < content.length) {
+            const c = content[i];
+            if (c === '(') {
+                depth++;
+            } else if (c === ')') {
+                depth--;
+            } else if (c === ';' && depth === 0) {
+                break;
+            }
+            i++;
+        }
+        const expr = content.slice (at + MARK.length, i).trim ();
+        out += MARK + 'static_cast<int> (toLong (' + expr + '))';
+        cursor = i;
+    }
+}
+
+// TS locals may be C++ reserved words (`const signed = ...` in several sign()
+// overrides, `const auto = ...` in okx). Rename them mask-aware so error-message text
+// containing the word is untouched; comments are fair game.
+function rewriteReservedIdentifiers (content: string): string {
+    return outsideStringLiterals (content, (masked) => masked
+        .replace (/\bsigned\b/g, 'signedFlag')
+        .replace (/\bauto\b/g, 'autoFlag'));
+}
+
+// The transpiler can shadow a global helper with a same-named local (okx: `const isArray
+// = Array.isArray(params)` declares std::any isArray, and a later Array.isArray call
+// emits bare `isArray(...)` which then resolves to the local). Rename the local and
+// qualify the call sites.
+const SHADOWED_HELPERS: Record<string, string> = { isArray: 'isArrayFlag' };
+function rewriteShadowedHelperNames (content: string): string {
+    let out = content;
+    for (const [name, rename] of Object.entries (SHADOWED_HELPERS)) {
+        if (!new RegExp (`\\bstd::any ${name} =`).test (out)) {
+            continue;
+        }
+        out = outsideStringLiterals (out, (masked) => masked
+            .replace (new RegExp (`(?<!:)\\b${name}\\(`, 'g'), `::${name}(`)
+            .replace (new RegExp (`(?<!:)\\b${name}\\b`, 'g'), rename));
+    }
+    return out;
+}
+
+// TS lets parseTransaction overrides declare fewer params than the widest one (foxbit
+// adds since/limit; alpaca/aster don't). C++ override requires the exact parameter
+// list, so extend shorter exchange-level declarations with trailing std::any defaults
+// to match the (already extended) base virtual signature.
+const OVERRIDE_ARITY: Record<string, number> = { parseTransaction: 4 };
+function extendOverrideSignatures (content: string): string {
+    let out = content;
+    for (const [name, arity] of Object.entries (OVERRIDE_ARITY)) {
+        out = out.replace (new RegExp (`\\b${name}\\(([^)]*)\\) override`, 'g'), (whole, params) => {
+            const parts = params.split (',').filter ((p: string) => p.trim ().length);
+            let fixed = params;
+            for (let n = parts.length; n < arity; n++) {
+                fixed += (parts.length || fixed.trim ().length ? ', ' : '') + `std::any p${n} = std::any{}`;
+            }
+            return `${name}(${fixed}) override`;
+        });
+    }
+    return out;
+}
+
 function applyCommonFixes (content: string): string {
     return rewriteRethrow (
         rewriteErrorClassValues (
         rewriteInstanceOf (
             rewritePreciseCalls (
+                rewriteDecimalsAssignments (
                 rewriteSelfShadowingLocals (
+                rewriteShadowedHelperNames (
+                rewriteReservedIdentifiers (
                 rewriteAnyMemberAccess (
                 rewriteWsClientAccess (
                     rewriteAsyncLambdasMutable (
-                        rewriteDynamicDispatch (content)))))))));
+                        rewriteDynamicDispatch (extendOverrideSignatures (content)))))))))))));
 }
 
 // ---------------------------------------------------------------------------
@@ -488,6 +587,14 @@ class CppTranspilerDriver {
 
         const header = createGeneratedHeader ().join ('\n')
             + '\n// Included inside the body of class ccxt::Exchange - see Exchange.h.\n\n';
+
+        // C++ override requires the exact parameter list, but TS lets foxbit declare
+        // parseTransaction with two extra defaulted params. Extend the base virtual
+        // with matching defaults so the override remains virtual-dispatched
+        // (parseTransactions routes through this->parseTransaction) instead of hiding.
+        baseMethods = baseMethods.replace (
+            /virtual std::any parseTransaction\(std::any transaction, std::any currency = std::any\{\}\)/,
+            'virtual std::any parseTransaction(std::any transaction, std::any currency = std::any{}, std::any since = std::any{}, std::any limit = std::any{})');
 
         overwriteFileAndFolder (BASE_METHODS_FILE, header + applyCommonFixes (baseMethods) + '\n');
         log.green ('[cpp] Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
