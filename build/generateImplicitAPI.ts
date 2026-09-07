@@ -1114,11 +1114,15 @@ function createCppHeader(exchange: Exchange, parent: string){
     // The C++ port has no partial classes, so the implicit API is its own class and the
     // exchange class derives from it (binance : binanceApi : Exchange), matching the
     // chain the C++ transpiler emits. Everything is header-only, as the rest of the
-    // port is: the generated exchange includes this file.
+    // port is: the generated exchange includes this file. For a derived exchange
+    // (bequant -> hitbtc) the API tier derives from the parent EXCHANGE so the
+    // unified-method overrides stay in the chain: bequant : bequantApi : hitbtc :
+    // hitbtcApi : Exchange. Endpoint methods all route through the base callEndpoint,
+    // which reads the most-derived describe(), so no per-tier dispatch exists.
     const header = [
         '#pragma once',
         '',
-        '#include "../base/Exchange.h"',
+        (parent === 'Exchange') ? '#include "../base/Exchange.h"' : `#include "../exchanges/${parent}.h"`,
         '',
         'namespace ccxt {',
         '',

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../exchanges/bybit.h"
 
 namespace ccxt {
 

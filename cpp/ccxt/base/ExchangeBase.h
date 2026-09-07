@@ -22,6 +22,7 @@
 #include <future>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 
 namespace ccxt {
 
@@ -38,8 +39,9 @@ std::any awaitValue (const std::any& value);
 std::any promiseAll (const std::any& futures);
 
 // `x instanceof T` cannot be a dynamic_cast on a std::any; the transpiler rewrites it
-// to this. Two argument shapes occur: caught exceptions (const std::exception&) and
-// std::any values.
+// to this. Three argument shapes occur: caught exceptions (const std::exception&),
+// std::any values, and std::any-wrapped exception_ptr (from getRootException, which
+// preserves the concrete ccxt error type across the std::exception catch slicing).
 template <class T>
 bool isInstanceOf (const std::exception& e) {
     return dynamic_cast<const T*> (&e) != nullptr;
@@ -47,6 +49,15 @@ bool isInstanceOf (const std::exception& e) {
 
 template <class T>
 bool isInstanceOf (const std::any& value) {
+    if (value.type () == typeid (std::exception_ptr)) {
+        try {
+            std::rethrow_exception (std::any_cast<std::exception_ptr> (value));
+        } catch (const T&) {
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
     return value.type () == typeid (T);
 }
 
@@ -110,6 +121,24 @@ public:
     // fields in TS, not methods - the transpiled code reads and assigns them
     std::any reduceFees;
     std::any isSandboxModeEnabled;
+    // more TS class fields the transpiled exchange code touches. Some of these are
+    // consumed by hand-written members with C++ types (the proxy callbacks live in the
+    // Callback fields above), so they are excluded there.
+    std::any httpExceptions;
+    std::any marketsLoading;
+    std::any lastRestRequestTimestamp;
+    std::any enableLastHttpResponse;
+    std::any enableLastJsonResponse;
+    std::any enableLastResponseHeaders;
+    std::any fetchHistoryCache;
+    std::any triggerOrders;
+    std::any fundingRates;
+    std::any userAgent;
+    std::any userAgents;
+    std::any statusTexts;
+    std::any httpStatusTexts;
+    std::any accountId;
+    std::any status;
 
     // -- rate limiting --------------------------------------------------------------
     // These carry TS class-field defaults (ts/src/base/Exchange.ts:362-367), which are
@@ -135,6 +164,39 @@ public:
     // guards the fetch-and-set phase of loadMarkets (C# uses the cached
     // marketsLoading task for the same purpose)
     std::mutex loadMarketsMutex;
+    // The transpiler drops a few base methods whose TS bodies use constructs the
+    // backend cannot express. C# hand-writes the same ones (Exchange.cs):
+    // randNumber is a real implementation, the zklink-SDK ZK signers are explicit
+    // unsupported stubs ("Apex currently does not support create order in ...").
+    std::any randNumber (std::any size);
+    std::any remove0xPrefix (std::any hexData);
+    virtual std::shared_future<std::any> getZKContractSignatureObj (std::any seed, std::any params = std::any {});
+    virtual std::shared_future<std::any> getZKTransferSignatureObj (std::any seed, std::any params = std::any {});
+
+    // More TS base methods the C++ backend drops or cannot express. The simple ones
+    // are real implementations; the ethers.js/keccak/starknet-crypto backed ones are
+    // explicit unsupported stubs until the crypto milestone (keccak-256 + secp256k1
+    // signing + EIP-712 + starknet pedersen), mirroring how C# stubs zklink.
+    std::any binaryConcat (std::any a, std::any b, std::any c = std::any {},
+                           std::any d = std::any {}, std::any e = std::any {});
+    std::any intToBase16 (std::any number);
+    std::any exceptionMessage (std::any exc, std::any includeStack = std::any (true));
+    std::any fixStringifiedJsonMembers (std::any content);
+    std::any randomBytes (std::any size);
+    std::any uuid5 (std::any name, std::any nspace = std::any {});
+    std::any convertToBigInt (std::any value);
+    std::any ethAbiEncode (std::any types, std::any args);
+    std::any ethEncodeStructuredData (std::any domain, std::any messageTypes, std::any messageData);
+    std::any ethGetAddressFromPrivateKey (std::any privateKey);
+    std::any starknetEncodeStructuredData (std::any data);
+    std::any starknetSign (std::any message, std::any privateKey);
+    // callDynamically memoizes which names are NOT in any generated dispatch table:
+    // the test framework calls base helpers (safeString, parseNumber, json, ...) via
+    // the dynamic path per market, and without the cache each call linearly scans
+    // the per-exchange table plus the ~500-branch base table and then throws to
+    // reach the hand-written registry -- minutes of CPU per exchange's test run.
+    std::unordered_set<std::string> tableMissCache;
+    std::mutex tableMissCacheMutex;
     std::any currencies;
     std::any currencies_by_id;
     std::any symbols;
@@ -263,7 +325,6 @@ public:
     virtual std::any binaryToBase64 (std::any value);
     virtual std::any base58ToBinary (std::any value);
     virtual std::any binaryToBase58 (std::any value);
-    virtual std::any binaryConcat (std::any a, std::any b);
     virtual std::any binaryLength (std::any value);
     virtual std::any isBinaryMessage (std::any value);
     // TS encode()/decode() are utf8 decode/encode -- string <-> raw octets
@@ -315,6 +376,7 @@ public:
 
     // -- time -----------------------------------------------------------------------
     virtual std::any milliseconds ();
+    virtual std::any microseconds ();
     virtual std::any seconds ();
     virtual std::any iso8601 (std::any timestamp);
     virtual std::any parseTimeframe (std::any timeframe);

@@ -36,6 +36,7 @@ if (process.platform === 'win32') {
 const TS_BASE_FILE          = './ts/src/base/Exchange.ts';
 const BASE_METHODS_FILE     = './cpp/ccxt/base/Exchange.BaseMethods.inc';
 const TRADING_METHODS_FILE  = './cpp/ccxt/base/Exchange.TradingMethods.inc';
+const BASE_DISPATCH_FILE    = './cpp/ccxt/base/Exchange.Dispatch.inc';
 const ERRORS_FILE           = './cpp/ccxt/base/Errors.h';
 const EXCHANGES_FOLDER      = './cpp/ccxt/exchanges/';
 const BASE_TESTS_FOLDER     = './cpp/tests/Generated/Base/';
@@ -495,6 +496,29 @@ class CppTranspilerDriver {
             overwriteFileAndFolder (TRADING_METHODS_FILE, header + applyCommonFixes (tradingMethods) + '\n');
             log.green ('[cpp] Transpiled trading methods to', (TRADING_METHODS_FILE as any).yellow);
         }
+
+        // dispatch table over the transpiled base surface: tests and pagination reach
+        // base methods (parsePrecision, networkIdToCode, checkProxySettings, ...) via
+        // callDynamically, which in C# is reflection; here it is Exchange::callMethod
+        // chaining up to ExchangeBase::callMethod (the hand-written helpers).
+        const dispatchBranches = this.buildDispatchBranches (
+            applyCommonFixes (baseMethods) + '\n' + applyCommonFixes (tradingMethods));
+        const dispatch = [
+            createGeneratedHeader ().join ('\n'),
+            '// Included inside the body of class ccxt::Exchange - see Exchange.h.',
+            '',
+            '    virtual std::any callMethod (std::any name, std::any args) override {',
+            '        const std::string which = ::toString(name).has_value()',
+            '            ? std::any_cast<std::string>(::toString(name)) : std::string();',
+            '        const long count = ccxt::isList(args)',
+            '            ? static_cast<long>(std::any_cast<ccxt::list>(args).size()) : 0;',
+            ...dispatchBranches,
+            '        return ExchangeBase::callMethod (name, args);',
+            '    }',
+            ''
+        ].join ('\n');
+        overwriteFileAndFolder (BASE_DISPATCH_FILE, dispatch);
+        log.green ('[cpp] Generated base dispatch table to', (BASE_DISPATCH_FILE as any).yellow);
     }
 
     // -----------------------------------------------------------------------
@@ -590,8 +614,13 @@ class CppTranspilerDriver {
         for (const file of files) {
             const id = path.basename (file, '.ts');
             assertNoDroppedConstructs ('./ts/src/' + file);
+            // the TS parent class: super-calls and the dispatch fallback must reach the
+            // parent's unified-method overrides for derived exchanges (bequant -> hitbtc)
+            const source = fs.readFileSync ('./ts/src/' + file).toString ();
+            const parentMatch = /\bclass\s+\w+\s+extends\s+(\w+)/.exec (source);
+            const tsParent = parentMatch ? parentMatch[1] : 'Exchange';
             const result: any = this.transpiler.transpileCppByPath ('./ts/src/' + file);
-            overwriteFileAndFolder (EXCHANGES_FOLDER + id + '.h', this.createExchangeFile (id, result));
+            overwriteFileAndFolder (EXCHANGES_FOLDER + id + '.h', this.createExchangeFile (id, result, tsParent));
             // one tiny TU per exchange: includes just this header and registers the
             // factory creator, so the test binary never has to compile every venue
             // into a single translation unit
@@ -636,7 +665,7 @@ class CppTranspilerDriver {
     // read positionally out of the list, so a fixture that supplies fewer arguments
     // than the signature declares simply leaves the rest undefined -- exactly what the
     // TS harness does by spreading a short array.
-    createDispatchTable (id: string, content: string): string {
+    createDispatchTable (id: string, content: string, tsParent = 'Exchange'): string {
         // Unified methods an exchange does NOT override are inherited from the base
         // class, and the fixtures call those by name too (fetchFundingInterval,
         // cancelOrderWithClientOrderId, ...). Scanning only the exchange's own class
@@ -648,7 +677,9 @@ class CppTranspilerDriver {
                 scanned += '\n' + fs.readFileSync (fragment).toString ();
             }
         }
-        return this.buildDispatchTable (id, scanned);
+        // a derived exchange (bequant -> hitbtc) must fall through to its TS parent's
+        // dispatch table, so the parent's unified-method overrides stay reachable
+        return this.buildDispatchTable (id, scanned, tsParent);
     }
 
     // Splits the parameter list that starts just after `openAt` (immediately following
@@ -680,7 +711,28 @@ class CppTranspilerDriver {
         return parameters;
     }
 
-    buildDispatchTable (id: string, content: string): string {
+    buildDispatchTable (id: string, content: string, fallback = 'Exchange'): string {
+        const branches = this.buildDispatchBranches (content);
+        return [
+            '    // GENERATED dispatch table - see createDispatchTable in build/cppTranspiler.ts',
+            '    virtual std::any callMethod (std::any name, std::any args) override {',
+            '        const std::string which = ::toString(name).has_value()',
+            '            ? std::any_cast<std::string>(::toString(name)) : std::string();',
+            '        const long count = ccxt::isList(args)',
+            '            ? static_cast<long>(std::any_cast<ccxt::list>(args).size()) : 0;',
+            ...branches,
+            '        // not defined on this exchange: fall back to the TS parent class',
+            `        return ${fallback}::callMethod (name, args);`,
+            '    }',
+            ''
+        ].join ('\n');
+    }
+
+    // The branch list for a callMethod dispatch table over every method defined in
+    // `content`. Shared by the per-exchange tables and the base Exchange table --
+    // the emitted member surfaces differ only in return type:
+    // std::shared_future<std::any> (await + unwrap), std::any (plain), void/bool.
+    buildDispatchBranches (content: string): string[] {
         // `virtual` is optional: the backend emits it on some methods and only
         // `override` on others. Only the NAME is matched here -- the parameter list is
         // scanned by hand below, because a default value can itself contain parentheses
@@ -688,12 +740,13 @@ class CppTranspilerDriver {
         // truncates there. That silently gave fetchOHLCV an arity of 2 instead of 5, so
         // the dispatcher dropped timeframe/since/limit and every OHLCV fixture built a
         // request with default values.
-        const signature = /^[ \t]*(?:virtual )?std::shared_future<std::any> (\w+)\(/gm;
+        const signature = /^[ \t]*(?:virtual )?(std::shared_future<std::any>|std::any|void|bool) (\w+)\(/gm;
         const seen = new Set<string> ();
         const branches: string[] = [];
         let match: RegExpExecArray | null;
         while ((match = signature.exec (content)) !== null) {
-            const name = match[1];
+            const returnType = match[1];
+            const name = match[2];
             if (seen.has (name)) {
                 continue;
             }
@@ -708,6 +761,18 @@ class CppTranspilerDriver {
             // has no such thing, and passing an explicit std::any{} OVERRIDES the
             // default. fetchOHLCV(symbol) must leave timeframe as "1m", not undefined --
             // passing undefined dropped `interval` from every ohlcv request.
+            const wrap = (call: string) => {
+                if (returnType === 'std::shared_future<std::any>') {
+                    return `return awaitValue(${call});`;
+                }
+                if (returnType === 'void') {
+                    return `{ ${call}; return std::any {}; }`;
+                }
+                if (returnType === 'bool') {
+                    return `return std::any(${call});`;
+                }
+                return `return ${call};`;
+            };
             const arms: string[] = [];
             for (let n = required; n <= arity; n++) {
                 const passed: string[] = [];
@@ -718,28 +783,17 @@ class CppTranspilerDriver {
                     ? ((n === required) ? 'true' : `count >= ${n}`)
                     : ((n === required) ? `count <= ${n}` : `count == ${n}`);
                 arms.push (
-                    `            if (${test}) return awaitValue(this->${name}(${passed.join (', ')}));`
+                    `            if (${test}) ${wrap (`this->${name}(${passed.join (', ')})`)}`
                 );
             }
             branches.push (
                 `        if (which == "${name}") {\n${arms.join ('\n')}\n        }`
             );
         }
-        return [
-            '    // GENERATED dispatch table - see createDispatchTable in build/cppTranspiler.ts',
-            '    virtual std::any callMethod (std::any name, std::any args) override {',
-            '        const std::string which = ::toString(name).has_value()',
-            '            ? std::any_cast<std::string>(::toString(name)) : std::string();',
-            '        const long count = ccxt::isList(args)',
-            '            ? static_cast<long>(std::any_cast<ccxt::list>(args).size()) : 0;',
-            ...branches,
-            `        throw NotSupported (std::string("${id} has no unified method ") + which);`,
-            '    }',
-            ''
-        ].join ('\n');
+        return branches;
     }
 
-    createExchangeFile (id: string, result: any): string {
+    createExchangeFile (id: string, result: any, tsParent = 'Exchange'): string {
         let content = result.content as string;
         // the abstract tier carries the implicit API methods (see generateImplicitAPI)
         const parent = id + 'Api';
@@ -749,10 +803,14 @@ class CppTranspilerDriver {
         // compile. Pull the parent's in explicitly.
         content = content.replace (/^(class\s+\w+\s*:\s*public\s+\w+\s*\n?\{\s*\npublic:\n)/m,
                                    `$1    using ${parent}::${parent};\n`);
-        content = rewriteSuperCalls (content, parent);
+        // super/base calls resolve to the TS parent (hitbtc for bequant) so derived
+        // exchanges reach their parent's unified-method overrides
+        content = rewriteSuperCalls (content, tsParent);
         content = applyCommonFixes (content);
-        // append the dispatch table inside the class body, just before its closing `};`
-        const dispatch = this.createDispatchTable (id, content);
+        // append the dispatch table inside the class body, just before its closing `};`.
+        // The fallback is the TS parent's table: Exchange::callMethod for root
+        // exchanges, hitbtc::callMethod for derived ones.
+        const dispatch = this.createDispatchTable (id, content, tsParent);
         const lastBrace = content.lastIndexOf ('};');
         if (lastBrace !== -1) {
             content = content.slice (0, lastBrace) + dispatch + content.slice (lastBrace);
