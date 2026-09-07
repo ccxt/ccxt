@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 import ccxt from '../../js/ccxt.js';
 // Fetches every builder trade on Extended through the raw private endpoint
 // (GET /api/v1/builder/trades) and follows the response cursor until the last

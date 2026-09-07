@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 import ccxt from '../../js/ccxt.js';
 async function example() {
     const exchange = new ccxt.grvt({});
