@@ -1580,7 +1580,7 @@ class bingx extends bingx$1["default"] {
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return (max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -1592,12 +1592,17 @@ class bingx extends bingx$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         let response;
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOrderBook', market, params);
+        if (limit !== undefined) {
+            if (marketType === 'spot') {
+                request['limit'] = Math.min(limit, 1000); // api maximum 1000
+            }
+            else {
+                request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
+            }
+        }
         if (marketType === 'spot') {
             response = await this.spotV1PublicGetMarketDepth(this.extend(request, params));
         }
