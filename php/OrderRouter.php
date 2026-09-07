@@ -65,6 +65,11 @@ class OrderRouter {
     const DEFAULT_SLIPPAGE_BPS = 25;
     const DEFAULT_RECONCILE_TOLERANCE = 0.02;
 
+    //  How long retryFailedSteps waits before re-placing a step the venue rejected. A second is
+    //  the shortest delay that lets a transient cause clear (a rate limit window, a momentary
+    //  balance lag) without turning a retry budget into a burst against a venue that just said no.
+    const DEFAULT_RETRY_DELAY_MS = 1000;
+
     //  NO_CAP is the default: this class does not decide how much of your money you
     //  may trade. $maxNotionalUsd is an OPT-IN guardrail — set it and it is honoured
     //  exactly, at whatever value you choose; leave it unset and no notional check runs
@@ -1828,6 +1833,8 @@ class OrderRouter {
                 'orderId' => '',
                 'clientOrderId' => '',
                 'errorCode' => '',
+                //  which retry produced this result; 0 unless retryFailedSteps re-placed it
+                'attempt' => 0,
             );
         }
         return array(
@@ -1871,7 +1878,7 @@ class OrderRouter {
     public function executeSequential(&$report, &$steps, $venues, $options, $usdRates, $strategy) {
         for ($i = 0; $i < count($steps); $i++) {
             $step = $steps[$i];
-            $result = $this->placeStep($step, $venues, $options, $usdRates, $strategy, $report);
+            $result = $this->placeStepWithRetry($step, $venues, $options, $usdRates, $strategy, $report);
             $report['steps'][$i] = $result;
             $status = $this->stringAt($result, 'status', '');
             if ($status === 'failed' || $status === 'outcome_unknown') {
@@ -1881,6 +1888,8 @@ class OrderRouter {
                 // 'nothing_filled' — asserting the one thing we do not know.
                 $report['haltReason'] = ($status === 'failed') ? 'order_failed' : 'outcome_unknown';
                 $report['haltStepIndex'] = $i;
+                //  the hook is told about a halt it did not cause, and cannot undo it
+                $this->callOnStep($options, $report, $result, array(), $i, count($steps));
                 $this->markRemainingSkipped($report['steps'], $i + 1);
                 return;
             }
@@ -1895,6 +1904,17 @@ class OrderRouter {
             if ($this->stringAt($reconciliation, 'verdict', '') === 'halt') {
                 $report['halted'] = true;
                 $report['haltReason'] = $this->stringAt($reconciliation, 'reason', '');
+                $report['haltStepIndex'] = $i;
+                $this->callOnStep($options, $report, $result, $reconciliation, $i, count($steps));
+                $this->markRemainingSkipped($report['steps'], $i + 1);
+                return;
+            }
+            //  the caller's own verdict, consulted only once the route is otherwise sound. It
+            //  can stop the route; it cannot restart one the reconciliation above already
+            //  stopped.
+            if ($this->callOnStep($options, $report, $result, $reconciliation, $i, count($steps)) === 'halt') {
+                $report['halted'] = true;
+                $report['haltReason'] = 'halted_by_on_step';
                 $report['haltStepIndex'] = $i;
                 $this->markRemainingSkipped($report['steps'], $i + 1);
                 return;
@@ -1927,7 +1947,7 @@ class OrderRouter {
                 //  sibling orders are still live, and Go's promiseAll waits for
                 //  every one — the same source abandoning in-flight orders
                 //  differently per language.
-                $legResult = $this->placeStep($steps[$i], $venues, $options, $usdRates, 'parallel_within_hop', $report);
+                $legResult = $this->placeStepWithRetry($steps[$i], $venues, $options, $usdRates, 'parallel_within_hop', $report);
                 $report['steps'][$i] = $legResult;
             }
             for ($i = $cursor; $i < $end; $i++) {
@@ -1937,6 +1957,7 @@ class OrderRouter {
                     $report['halted'] = true;
                     $report['haltReason'] = ($status === 'failed') ? 'order_failed' : 'outcome_unknown';
                     $report['haltStepIndex'] = $i;
+                    $this->callOnStep($options, $report, $result, array(), $i, count($steps));
                     $this->markRemainingSkipped($report['steps'], $end);
                     return;
                 }
@@ -1946,6 +1967,14 @@ class OrderRouter {
                 if ($this->stringAt($reconciliation, 'verdict', '') === 'halt') {
                     $report['halted'] = true;
                     $report['haltReason'] = $this->stringAt($reconciliation, 'reason', '');
+                    $report['haltStepIndex'] = $i;
+                    $this->callOnStep($options, $report, $result, $reconciliation, $i, count($steps));
+                    $this->markRemainingSkipped($report['steps'], $end);
+                    return;
+                }
+                if ($this->callOnStep($options, $report, $result, $reconciliation, $i, count($steps)) === 'halt') {
+                    $report['halted'] = true;
+                    $report['haltReason'] = 'halted_by_on_step';
                     $report['haltStepIndex'] = $i;
                     $this->markRemainingSkipped($report['steps'], $end);
                     return;
@@ -1974,11 +2003,111 @@ class OrderRouter {
                 $report['steps'][$i]['errorCode'] = 'max_orders_reached';
                 continue;
             }
-            $stepResult = $this->placeStep($steps[$i], $venues, $options, $usdRates, 'best_effort', $report);
+            $stepResult = $this->placeStepWithRetry($steps[$i], $venues, $options, $usdRates, 'best_effort', $report);
             $report['steps'][$i] = $stepResult;
             $placed = $placed + 1;
             //  no reconciliation and no halt: that is the whole point of the
-            //  strategy, and why it is refused on anything but a single hop
+            //  strategy, and why it is refused on anything but a single hop. The hook is still
+            //  offered every step, and stopping early is the one thing it may do here — that is
+            //  a smaller commitment than the strategy's own contract, never a larger one.
+            if ($this->callOnStep($options, $report, $stepResult, array(), $i, count($steps)) === 'halt') {
+                $report['halted'] = true;
+                $report['haltReason'] = 'halted_by_on_step';
+                $report['haltStepIndex'] = $i;
+                $this->markRemainingSkipped($report['steps'], $i + 1);
+                return;
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * places one step, re-placing it up to $options['retryFailedSteps'] times when — and ONLY when — the venue definitively rejected it
+     * @param array $step the step to trade
+     * @param array $venues exchangeId to exchange instance
+     * @param array $options the execute options
+     * @param array $usdRates currency code to USD price
+     * @param string $strategy the strategy in force
+     * @param array $report the report, for openOrders and errors, by reference
+     * @return array the step result of the last attempt
+     */
+    public function placeStepWithRetry($step, $venues, $options, $usdRates, $strategy, &$report) {
+        $maxRetries = $this->numberAt($options, 'retryFailedSteps', 0);
+        $retryDelayMs = $this->numberAt($options, 'retryDelayMs', self::DEFAULT_RETRY_DELAY_MS);
+        $attempt = 0;
+        $result = array();
+        while (true) {
+            $step['attempt'] = $attempt;
+            $result = $this->placeStep($step, $venues, $options, $usdRates, $strategy, $report);
+            $status = $this->stringAt($result, 'status', '');
+            //  'failed' is the ONLY retryable outcome, and the distinction is the whole safety
+            //  argument. A failed step was refused by the venue: nothing was placed, so placing
+            //  it again cannot double-fill. An 'outcome_unknown' step may ALREADY be a live
+            //  position that simply could not be read back, and re-placing that is precisely the
+            //  double-fill this class exists to prevent. It is never retried, at any setting.
+            if ($status !== 'failed' || $attempt >= $maxRetries) {
+                return $result;
+            }
+            $attempt = $attempt + 1;
+            if ($retryDelayMs > 0) {
+                $this->sleep($retryDelayMs);
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * hands the caller's onStep hook one finished step and returns its verdict, treating any failure of the hook as 'no opinion'
+     * @param array $options the execute options, which may carry onStep
+     * @param array $report the report so far, by reference
+     * @param array $result the finished step result
+     * @param array $reconciliation the step's reconciliation, empty when it halted before reconciling
+     * @param int $stepIndex the step's index
+     * @param int $stepsTotal how many steps the plan has
+     * @return string 'halt' to stop, anything else to continue
+     */
+    public function callOnStep($options, &$report, $result, $reconciliation, $stepIndex, $stepsTotal) {
+        if (!isset($options['onStep'])) {
+            return '';
+        }
+        $onStep = $options['onStep'];
+        $event = array(
+            'planId' => $this->stringAt($report, 'planId', ''),
+            'stepIndex' => $stepIndex,
+            'hopIndex' => $this->numberAt($result, 'hopIndex', 0),
+            'legIndex' => $this->numberAt($result, 'legIndex', 0),
+            'exchangeId' => $this->stringAt($result, 'exchangeId', ''),
+            'symbol' => $this->stringAt($result, 'symbol', ''),
+            'side' => $this->stringAt($result, 'side', ''),
+            'status' => $this->stringAt($result, 'status', ''),
+            'requestedAmount' => $this->numberAt($result, 'requestedAmount', 0),
+            'filledAmount' => $this->numberAt($result, 'filledAmount', 0),
+            'outAsset' => $this->stringAt($result, 'outAsset', ''),
+            'outAmount' => $this->numberAt($result, 'outAmount', 0),
+            'orderId' => $this->stringAt($result, 'orderId', ''),
+            'clientOrderId' => $this->stringAt($result, 'clientOrderId', ''),
+            'errorCode' => $this->stringAt($result, 'errorCode', ''),
+            'attempt' => $this->numberAt($result, 'attempt', 0),
+            'reconciliation' => $reconciliation,
+            'ordersPlaced' => $this->numberAt($report, 'ordersPlaced', 0),
+            'halted' => $this->boolAt($report, 'halted', false),
+            'haltReason' => $this->stringAt($report, 'haltReason', ''),
+            'stepsTotal' => $stepsTotal,
+            'stepsRemaining' => $stepsTotal - ($stepIndex + 1),
+        );
+        try {
+            $verdict = call_user_func($onStep, $event);
+            if ($verdict === 'halt') {
+                return 'halt';
+            }
+            return '';
+        } catch (\Throwable $e) {
+            //  A hook that throws must NOT take the run with it. Everything placed so far is
+            //  recorded in this report, and losing it to an exception raised by observability
+            //  code would destroy the only account of orders that are already live. The failure
+            //  is recorded and the run proceeds exactly as if the hook had no opinion.
+            $this->recordError($report, $stepIndex, $this->stringAt($result, 'exchangeId', ''), $this->stringAt($result, 'symbol', ''), 'on_step_hook_failed:' . $this->errorCodeOf($e));
+            return '';
         }
     }
 
@@ -2052,6 +2181,8 @@ class OrderRouter {
             //  once the order returns. (An id derived from the plan identity used to be forced
             //  onto every step, but venues disagree on its length and charset, so it was
             //  rejected exactly where it mattered.)
+            $attempt = $this->numberAt($step, 'attempt', 0);
+            $result['attempt'] = $attempt;
             $order = array();
             if ($strategy === 'limit_protected') {
                 $order = $this->placeProtectedLimit($venue, $step, $symbol, $side, $amount, $price, $orderParams, $options, $report, $result);

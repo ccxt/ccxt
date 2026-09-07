@@ -760,6 +760,10 @@ type orderRouterStubVenue struct {
 	tradeFeesToCharge []Fee
 	// every params map CreateOrder was called with, in call order
 	paramsSeen []map[string]any
+	// refuse this many CreateOrder calls, then behave: a venue that rejects and then relents
+	failCreateTimes int
+	// every CreateOrder times out, so the outcome of the placement is unknowable
+	timeoutCreate bool
 }
 
 func newOrderRouterStubVenue(fillRatio float64, failCreate bool) *orderRouterStubVenue {
@@ -867,7 +871,18 @@ func (this *orderRouterStubVenue) CreateOrder(symbol string, typeVar string, sid
 	}
 	this.mutex.Lock()
 	this.paramsSeen = append(this.paramsSeen, seen)
+	relent := false
+	if this.failCreateTimes > 0 {
+		this.failCreateTimes = this.failCreateTimes - 1
+		relent = true
+	}
 	this.mutex.Unlock()
+	if this.timeoutCreate {
+		return Order{}, RequestTimeout("stub timed out")
+	}
+	if relent {
+		return Order{}, ExchangeError("stub refuses, for now")
+	}
 	if this.failCreate {
 		return Order{}, ExchangeError("stub refuses")
 	}
@@ -2193,4 +2208,172 @@ func TestOrderRouterLedgerIsBounded(t *testing.T) {
 	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "filled" || len(reexecuted.callLog()) == 0 {
 		t.Fatal("which means real orders — the bound costs a guarantee")
 	}
+}
+
+// The one thing a caller cannot do from outside Execute: look at what just happened and decide
+// not to continue. Before this hook the method was opaque from call to return.
+func TestOrderRouterOnStepSeesEveryStepAndCanStopTheRoute(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerTwoHopRoute(), map[string]any{}))
+	venue := newOrderRouterStubVenue(1, false)
+	seen := []map[string]any{}
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
+		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"onStep": func(event map[string]any) string {
+			seen = append(seen, event)
+			if routerNumberAt(event, "stepIndex", -1) == 0 {
+				return "halt"
+			}
+			return ""
+		},
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if len(seen) != 1 {
+		t.Fatalf("the hook is not called for steps that never ran, got %d", len(seen))
+	}
+	if routerNumberAt(seen[0], "stepIndex", -1) != 0 || routerStringAt(seen[0], "status", "") != "filled" {
+		t.Fatalf("the event describes the step that just finished, got %v", seen[0])
+	}
+	steps := routerListAt(plan, "steps")
+	if routerNumberAt(seen[0], "stepsRemaining", -1) != float64(len(steps)-1) {
+		t.Fatalf("it says how much of the route is left, got %v", seen[0]["stepsRemaining"])
+	}
+	if _, present := seen[0]["reconciliation"]; !present {
+		t.Fatal("the verdict it is judging is in the event")
+	}
+	if routerBoolAt(report, "halted", false) != true || routerStringAt(report, "haltReason", "") != "halted_by_on_step" {
+		t.Fatalf("the hook stops the route and says so, got %v", report["haltReason"])
+	}
+	if routerNumberAt(report, "haltStepIndex", -1) != 0 {
+		t.Fatalf("at the step it judged, got %v", report["haltStepIndex"])
+	}
+	results := report["steps"].([]map[string]any)
+	if routerStringAt(results[1], "status", "") != "skipped" {
+		t.Fatalf("the rest of the route is skipped, got %v", results[1]["status"])
+	}
+	if routerNumberAt(report, "ordersPlaced", 0) != 1 {
+		t.Fatalf("the step after the halt was never placed, got %v", report["ordersPlaced"])
+	}
+	if len(routerCallsOfKind(venue.callLog(), "createOrder")) != 1 {
+		t.Fatalf("and the venue saw exactly one order, got %v", venue.callLog())
+	}
+}
+
+// The report is the ONLY account of orders that are already live. A panic raised by
+// observability code must never destroy it.
+func TestOrderRouterOnStepThatPanicsIsRecordedAndDoesNotTakeTheRunDown(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), map[string]any{}))
+	venue := newOrderRouterStubVenue(1, false)
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
+		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"onStep": func(event map[string]any) string { panic(ExchangeError("hook is broken")) },
+	})
+	if err != nil {
+		t.Fatalf("a panicking hook must not become an error from Execute: %v", err)
+	}
+	if routerBoolAt(report, "halted", false) != false {
+		t.Fatal("the route finished")
+	}
+	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "filled" {
+		t.Fatal("and the step that was placed is reported as placed")
+	}
+	found := false
+	for _, entry := range report["errors"].([]map[string]any) {
+		if strings.Index(routerStringAt(entry, "code", ""), "on_step_hook_failed") == 0 {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("the broken hook is reported rather than swallowed, got %v", report["errors"])
+	}
+}
+
+// The halt is a money decision made in one pure place precisely so it cannot be omitted. A hook
+// that could wave it through would be a way to omit it.
+func TestOrderRouterOnStepCanOnlyNarrow(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerTwoHopRoute(), map[string]any{}))
+	starved := newOrderRouterStubVenue(0.1, false)
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": starved}), map[string]any{
+		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"onStep": func(event map[string]any) string { return "continue" },
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if routerBoolAt(report, "halted", false) != true {
+		t.Fatal("the reconciliation halted the route")
+	}
+	if routerStringAt(report, "haltReason", "") != "shortfall_exceeds_tolerance" {
+		t.Fatalf("the reconciliation reason survives, it is not replaced by the hook, got %v", report["haltReason"])
+	}
+	if routerNumberAt(report, "ordersPlaced", 0) != 1 {
+		t.Fatalf("the hook did not wave the route onward, got %v", report["ordersPlaced"])
+	}
+	if routerStringAt(report["steps"].([]map[string]any)[1], "status", "") != "skipped" {
+		t.Fatal("the rest of the route is skipped")
+	}
+}
+
+// A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the original
+// client order id would have the venue reject the retry as a duplicate of the very order it just
+// refused, so each attempt carries its own.
+func TestOrderRouterRetryFailedStepsUsesANewClientOrderIdAndNeverRetriesAnUnknownOutcome(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), map[string]any{}))
+	relents := newOrderRouterStubVenue(1, false)
+	relents.failCreateTimes = 1
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": relents}), map[string]any{
+		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"retryFailedSteps": 2.0, "retryDelayMs": 0.0,
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	step := report["steps"].([]map[string]any)[0]
+	if routerStringAt(step, "status", "") != "filled" {
+		t.Fatalf("the retry succeeded, got %v", step["status"])
+	}
+	if routerNumberAt(step, "attempt", -1) != 1 {
+		t.Fatalf("the report says which attempt won, got %v", step["attempt"])
+	}
+	if len(relents.paramsSeen) != 2 {
+		t.Fatalf("expected two placements, got %d", len(relents.paramsSeen))
+	}
+	for i := 0; i < 2; i++ {
+		if _, present := relents.paramsSeen[i]["clientOrderId"]; present {
+			t.Fatalf("no client order id is injected on any attempt, got %v", relents.paramsSeen[i])
+		}
+	}
+	// the outcome the policy must NEVER touch
+	unknown := newOrderRouterStubVenue(1, false)
+	unknown.timeoutCreate = true
+	plan2 := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), map[string]any{}))
+	second2, err := router.Execute(plan2, routerStubVenues(map[string]*orderRouterStubVenue{"stub": unknown}), map[string]any{
+		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"retryFailedSteps": 5.0, "retryDelayMs": 0.0,
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if routerStringAt(second2["steps"].([]map[string]any)[0], "status", "") != "outcome_unknown" {
+		t.Fatalf("a timed-out placement is an unknown outcome, got %v", second2["steps"].([]map[string]any)[0])
+	}
+	if len(routerCallsOfKind(unknown.callLog(), "createOrder")) != 1 {
+		t.Fatalf("an order whose outcome is unknown may already be live; it is never re-placed, got %v", unknown.callLog())
+	}
+}
+
+// routerCallsOfKind selects the recorded calls of one kind from a stub's call log.
+func routerCallsOfKind(log []string, kind string) []string {
+	picked := []string{}
+	for _, call := range log {
+		if strings.Index(call, kind+":") == 0 {
+			picked = append(picked, call)
+		}
+	}
+	return picked
 }

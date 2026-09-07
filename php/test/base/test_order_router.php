@@ -273,6 +273,10 @@ class OrderRouterStubVenue {
     public $tradeFeesToCharge;
     //  every params array createOrder was called with, in call order
     public $paramsSeen;
+    //  createOrder never answers: the outcome is unknown, not a rejection
+    public $timeoutCreate;
+    //  refuse this many createOrder calls, then behave: a venue that rejects and then relents
+    public $failCreateTimes;
 
     public function __construct($id, $fillRatio = 1, $failCreate = false) {
         $this->id = $id;
@@ -293,6 +297,8 @@ class OrderRouterStubVenue {
         $this->feeToCharge = null;
         $this->tradeFeesToCharge = array();
         $this->paramsSeen = array();
+        $this->timeoutCreate = false;
+        $this->failCreateTimes = 0;
     }
 
     public function fetchOrder($id, $symbol) {
@@ -335,6 +341,13 @@ class OrderRouterStubVenue {
     public function createOrder($symbol, $type, $side, $amount, $price = null, $params = array()) {
         $this->calls[] = 'createOrder:' . $type . ':' . $side . ':' . order_router_number_text($amount);
         $this->paramsSeen[] = $params;
+        if ($this->timeoutCreate) {
+            throw new RequestTimeout('stub timed out');
+        }
+        if ($this->failCreateTimes > 0) {
+            $this->failCreateTimes = $this->failCreateTimes - 1;
+            throw new ExchangeError('stub refuses, for now');
+        }
         if ($this->failCreate) {
             throw new ExchangeError('stub refuses');
         }
@@ -1416,6 +1429,117 @@ function order_router_test_dry_run_does_not_consume_a_plan($router) {
     order_router_assert(count($retry->calls) === 0, 'and the retry placed nothing');
 }
 
+//  the stub records reads and cancels in the same list, so orders are counted by prefix —
+//  the TypeScript reference counts the whole list, which there contains only createOrder
+function order_router_count_create_calls($venue) {
+    $total = 0;
+    for ($i = 0; $i < count($venue->calls); $i++) {
+        if (strpos($venue->calls[$i], 'createOrder') === 0) {
+            $total = $total + 1;
+        }
+    }
+    return $total;
+}
+
+function order_router_test_on_step_sees_every_step($router) {
+    //  The one thing a caller cannot do from outside execute(): look at what just happened and
+    //  decide not to continue. Before this hook the method was opaque from call to return.
+    $plan = $router->buildExecutionPlan(order_router_two_hop_route(), array());
+    $venue = new OrderRouterStubVenue('stub');
+    $seen = array();
+    $onStep = function ($event) use (&$seen) {
+        $seen[] = $event;
+        return ($event['stepIndex'] === 0) ? 'halt' : '';
+    };
+    $report = $router->execute($plan, array('stub' => $venue), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'onStep' => $onStep,
+    ));
+    order_router_assert(count($seen) === 1, 'the hook is not called for steps that never ran');
+    order_router_assert($seen[0]['stepIndex'] === 0, 'the first step is the one it saw');
+    order_router_assert($seen[0]['status'] === 'filled', 'and it saw the outcome');
+    order_router_assert($seen[0]['stepsRemaining'] === count($plan['steps']) - 1, 'it is told how much is left');
+    order_router_assert(is_array($seen[0]['reconciliation']), 'the verdict it is judging is in the event');
+    order_router_assert($report['halted'] === true, 'the route stopped');
+    order_router_assert($report['haltReason'] === 'halted_by_on_step', 'and says who stopped it');
+    order_router_assert($report['haltStepIndex'] === 0, 'at the step the hook judged');
+    order_router_assert($report['steps'][1]['status'] === 'skipped', 'the rest is skipped');
+    order_router_assert($report['ordersPlaced'] === 1, 'the step after the halt was never placed');
+    order_router_assert(order_router_count_create_calls($venue) === 1, 'exactly one order reached the venue');
+}
+
+function order_router_test_on_step_that_throws_is_recorded($router) {
+    //  The report is the ONLY account of orders that are already live. An exception raised by
+    //  observability code must never destroy it — trigger.dev logs and ignores hook errors for
+    //  the same reason.
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $venue = new OrderRouterStubVenue('stub');
+    $onStep = function ($event) {
+        throw new \RuntimeException('hook is broken');
+    };
+    $report = $router->execute($plan, array('stub' => $venue), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'onStep' => $onStep,
+    ));
+    order_router_assert($report['halted'] === false, 'the route finished');
+    order_router_assert($report['steps'][0]['status'] === 'filled', 'and the step is reported');
+    $found = false;
+    $codes = array();
+    for ($i = 0; $i < count($report['errors']); $i++) {
+        $codes[] = $report['errors'][$i]['code'];
+        if (strpos($report['errors'][$i]['code'], 'on_step_hook_failed') === 0) {
+            $found = true;
+        }
+    }
+    order_router_assert($found, 'the broken hook is reported rather than swallowed, got ' . json_encode($codes));
+}
+
+function order_router_test_on_step_can_only_narrow($router) {
+    //  The halt is a money decision made in one pure place precisely so it cannot be omitted.
+    //  A hook that could wave it through would be a way to omit it.
+    $plan = $router->buildExecutionPlan(order_router_two_hop_route(), array());
+    $starved = new OrderRouterStubVenue('stub', 0.1);
+    $onStep = function ($event) {
+        return 'continue';
+    };
+    $report = $router->execute($plan, array('stub' => $starved), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'onStep' => $onStep,
+    ));
+    order_router_assert($report['halted'] === true, 'the route still halted');
+    order_router_assert($report['haltReason'] === 'shortfall_exceeds_tolerance', 'the reconciliation reason survives, it is not replaced by the hook');
+    order_router_assert($report['ordersPlaced'] === 1, 'the hook did not wave the route onward');
+    order_router_assert($report['steps'][1]['status'] === 'skipped', 'and the rest is skipped');
+}
+
+function order_router_test_retry_failed_steps($router) {
+    //  A rejected order was not placed, so re-placing it cannot double-fill. No client order id
+    //  is injected on either attempt, so the venue's own identifier generation applies to the
+    //  retry exactly as it did to the first try.
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $relents = new OrderRouterStubVenue('stub');
+    $relents->failCreateTimes = 1;
+    $report = $router->execute($plan, array('stub' => $relents), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'retryFailedSteps' => 2, 'retryDelayMs' => 0,
+    ));
+    order_router_assert($report['steps'][0]['status'] === 'filled', 'the retry succeeded');
+    order_router_assert($report['steps'][0]['attempt'] === 1, 'the report says which attempt won');
+    order_router_assert(count($relents->paramsSeen) === 2, 'two placements went out');
+    order_router_assert(!array_key_exists('clientOrderId', $relents->paramsSeen[0]), 'no client order id is injected on the first try');
+    order_router_assert(!array_key_exists('clientOrderId', $relents->paramsSeen[1]), 'nor on the retry');
+    //  the outcome the policy must NEVER touch
+    $unknown = new OrderRouterStubVenue('stub');
+    $unknown->timeoutCreate = true;
+    $plan2 = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $second = $router->execute($plan2, array('stub' => $unknown), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'retryFailedSteps' => 5, 'retryDelayMs' => 0,
+    ));
+    order_router_assert($second['steps'][0]['status'] === 'outcome_unknown', 'the outcome is unknown, not failed');
+    order_router_assert(order_router_count_create_calls($unknown) === 1, 'an order whose outcome is unknown may already be live; it is never re-placed');
+}
+
 function order_router_test_ledger_is_bounded($router) {
     $bounded = new OrderRouter(array('apiKey' => 'k'));
     $cap = OrderRouter::MAX_EXECUTED_PLAN_IDS;
@@ -1522,6 +1646,10 @@ function test_order_router() {
         'the same plan is refused on a second live execution, and only an explicit opt-in overrides it' => 'ccxt\order_router_test_reexecution_is_refused',
         'a dry run never consumes a plan, and a halted live run always does' => 'ccxt\order_router_test_dry_run_does_not_consume_a_plan',
         'the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan' => 'ccxt\order_router_test_ledger_is_bounded',
+        'onStep sees every step and can stop the route' => 'ccxt\order_router_test_on_step_sees_every_step',
+        'an onStep that throws is recorded, and does not take the run down with it' => 'ccxt\order_router_test_on_step_that_throws_is_recorded',
+        'onStep can only narrow: it cannot resume a route the reconciliation already halted' => 'ccxt\order_router_test_on_step_can_only_narrow',
+        'retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome' => 'ccxt\order_router_test_retry_failed_steps',
     );
     $passed = 0;
     $failures = array();

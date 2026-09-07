@@ -81,6 +81,11 @@ class OrderRouter {
 
     static DEFAULT_RECONCILE_TOLERANCE = 0.02;
 
+    //  How long retryFailedSteps waits before re-placing a step the venue rejected. A second is
+    //  the shortest delay that lets a transient cause clear (a rate limit window, a momentary
+    //  balance lag) without turning a retry budget into a burst against a venue that just said no.
+    static DEFAULT_RETRY_DELAY_MS = 1000;
+
     //  NO_CAP is the default: this class does not decide how much of your money you
     //  may trade. `maxNotionalUsd` is an OPT-IN guardrail — set it and it is honoured
     //  exactly, at whatever value you choose; leave it unset and no notional check runs
@@ -1462,6 +1467,9 @@ class OrderRouter {
      * @param {object} [options.orderParams] extra params merged into every createOrder call
      * @param {string} [options.idempotencyKey] the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard, and OVERRIDES the plan's requestId when both are given
      * @param {bool} [options.allowReexecution] must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
+     * @param {int} [options.retryFailedSteps] how many times to re-place a step the venue DEFINITIVELY REJECTED, default 0. An outcome_unknown step is never retried at any setting: it may already be a live position, and re-placing it is the double-fill this class exists to prevent. Each retry carries its own client order id
+     * @param {int} [options.retryDelayMs] how long to wait before a retry, default 1000
+     * @param {function} [options.onStep] called after each step completes and reconciles, never mid-order, with one event object describing that step. Return 'halt' to stop the route cleanly (haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that throws is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
      * @returns {object} an execution report with per-step results, openOrders, errors and the halt verdict
      */
     async execute (plan: Dict, venues: Dict, options: Dict = {}): Promise<Dict> {
@@ -1701,6 +1709,8 @@ class OrderRouter {
                 'orderId': '',
                 'clientOrderId': '',
                 'errorCode': '',
+                //  which retry produced this result; 0 unless retryFailedSteps re-placed it
+                'attempt': 0,
             });
         }
         return {
@@ -1747,7 +1757,7 @@ class OrderRouter {
         const results = this.listAt (report, 'steps');
         for (let i = 0; i < steps.length; i++) {
             const step = steps[i];
-            const result = await this.placeStep (step, venues, options, usdRates, strategy, report);
+            const result = await this.placeStepWithRetry (step, venues, options, usdRates, strategy, report);
             results[i] = result;
             const status = this.stringAt (result, 'status', '');
             if (status === 'failed' || status === 'outcome_unknown') {
@@ -1758,6 +1768,8 @@ class OrderRouter {
                 //  either way; the difference is whether the operator is told a position may exist.
                 report['haltReason'] = (status === 'failed') ? 'order_failed' : 'outcome_unknown';
                 report['haltStepIndex'] = i;
+                //  the hook is told about a halt it did not cause, and cannot undo it
+                this.callOnStep (options, report, result, {}, i, steps.length);
                 this.markRemainingSkipped (results, i + 1);
                 return;
             }
@@ -1772,6 +1784,16 @@ class OrderRouter {
             if (this.stringAt (reconciliation, 'verdict', '') === 'halt') {
                 report['halted'] = true;
                 report['haltReason'] = this.stringAt (reconciliation, 'reason', '');
+                report['haltStepIndex'] = i;
+                this.callOnStep (options, report, result, reconciliation, i, steps.length);
+                this.markRemainingSkipped (results, i + 1);
+                return;
+            }
+            //  the caller's own verdict, consulted only once the route is otherwise sound. It can
+            //  stop the route; it cannot restart one the reconciliation above already stopped.
+            if (this.callOnStep (options, report, result, reconciliation, i, steps.length) === 'halt') {
+                report['halted'] = true;
+                report['haltReason'] = 'halted_by_on_step';
                 report['haltStepIndex'] = i;
                 this.markRemainingSkipped (results, i + 1);
                 return;
@@ -1848,6 +1870,7 @@ class OrderRouter {
                     report['halted'] = true;
                     report['haltReason'] = (status === 'failed') ? 'order_failed' : 'outcome_unknown';
                     report['haltStepIndex'] = i;
+                    this.callOnStep (options, report, result, {}, i, steps.length);
                     this.markRemainingSkipped (results, end);
                     return;
                 }
@@ -1857,6 +1880,14 @@ class OrderRouter {
                 if (this.stringAt (reconciliation, 'verdict', '') === 'halt') {
                     report['halted'] = true;
                     report['haltReason'] = this.stringAt (reconciliation, 'reason', '');
+                    report['haltStepIndex'] = i;
+                    this.callOnStep (options, report, result, reconciliation, i, steps.length);
+                    this.markRemainingSkipped (results, end);
+                    return;
+                }
+                if (this.callOnStep (options, report, result, reconciliation, i, steps.length) === 'halt') {
+                    report['halted'] = true;
+                    report['haltReason'] = 'halted_by_on_step';
                     report['haltStepIndex'] = i;
                     this.markRemainingSkipped (results, end);
                     return;
@@ -1882,7 +1913,7 @@ class OrderRouter {
         //  strictly one at a time: this is the "serialised within a venue" half of the contract
         for (let i = 0; i < indices.length; i++) {
             const stepPosition = indices[i];
-            results[stepPosition] = await this.placeStep (steps[stepPosition], venues, options, usdRates, 'parallel_within_hop', report);
+            results[stepPosition] = await this.placeStepWithRetry (steps[stepPosition], venues, options, usdRates, 'parallel_within_hop', report);
         }
     }
 
@@ -1908,10 +1939,113 @@ class OrderRouter {
                 results[i]['errorCode'] = 'max_orders_reached';
                 continue;
             }
-            results[i] = await this.placeStep (steps[i], venues, options, usdRates, 'best_effort', report);
+            results[i] = await this.placeStepWithRetry (steps[i], venues, options, usdRates, 'best_effort', report);
             placed = placed + 1;
             //  no reconciliation and no halt: that is the whole point of the
-            //  strategy, and why it is refused on anything but a single hop
+            //  strategy, and why it is refused on anything but a single hop. The hook is still
+            //  offered every step, and stopping early is the one thing it may do here — that is
+            //  a smaller commitment than the strategy's own contract, never a larger one.
+            if (this.callOnStep (options, report, results[i], {}, i, steps.length) === 'halt') {
+                report['halted'] = true;
+                report['haltReason'] = 'halted_by_on_step';
+                report['haltStepIndex'] = i;
+                this.markRemainingSkipped (results, i + 1);
+                return;
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#placeStepWithRetry
+     * @description places one step, re-placing it up to options.retryFailedSteps times when — and ONLY when — the venue definitively rejected it
+     * @param {object} step the step to trade
+     * @param {object} venues exchangeId to exchange instance
+     * @param {object} options the execute options
+     * @param {object} usdRates currency code to USD price
+     * @param {string} strategy the strategy in force
+     * @param {object} report the report, for openOrders and errors
+     * @returns {object} the step result of the last attempt
+     */
+    async placeStepWithRetry (step: Dict, venues: Dict, options: Dict, usdRates: Dict, strategy: string, report: Dict): Promise<Dict> {
+        const maxRetries = this.numberAt (options, 'retryFailedSteps', 0);
+        const retryDelayMs = this.numberAt (options, 'retryDelayMs', OrderRouter.DEFAULT_RETRY_DELAY_MS);
+        let attempt = 0;
+        let result: Dict = {};
+        for (;;) {
+            step['attempt'] = attempt;
+            result = await this.placeStep (step, venues, options, usdRates, strategy, report);
+            const status = this.stringAt (result, 'status', '');
+            //  'failed' is the ONLY retryable outcome, and the distinction is the whole safety
+            //  argument. A failed step was refused by the venue: nothing was placed, so placing
+            //  it again cannot double-fill. An 'outcome_unknown' step may ALREADY be a live
+            //  position that simply could not be read back, and re-placing that is precisely the
+            //  double-fill this class exists to prevent. It is never retried, at any setting.
+            if (status !== 'failed' || attempt >= maxRetries) {
+                return result;
+            }
+            attempt = attempt + 1;
+            if (retryDelayMs > 0) {
+                await this.sleep (retryDelayMs);
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#callOnStep
+     * @description hands the caller's onStep hook one finished step and returns its verdict, treating any failure of the hook as 'no opinion'
+     * @param {object} options the execute options, which may carry onStep
+     * @param {object} report the report so far
+     * @param {object} result the finished step result
+     * @param {object} reconciliation the step's reconciliation, empty when it halted before reconciling
+     * @param {int} stepIndex the step's index
+     * @param {int} stepsTotal how many steps the plan has
+     * @returns {string} 'halt' to stop, anything else to continue
+     */
+    callOnStep (options: Dict, report: Dict, result: Dict, reconciliation: Dict, stepIndex: number, stepsTotal: number): string {
+        if (options['onStep'] === undefined) {
+            return '';
+        }
+        const event: Dict = {
+            'planId': this.stringAt (report, 'planId', ''),
+            'stepIndex': stepIndex,
+            'hopIndex': this.numberAt (result, 'hopIndex', 0),
+            'legIndex': this.numberAt (result, 'legIndex', 0),
+            'exchangeId': this.stringAt (result, 'exchangeId', ''),
+            'symbol': this.stringAt (result, 'symbol', ''),
+            'side': this.stringAt (result, 'side', ''),
+            'status': this.stringAt (result, 'status', ''),
+            'requestedAmount': this.numberAt (result, 'requestedAmount', 0),
+            'filledAmount': this.numberAt (result, 'filledAmount', 0),
+            'outAsset': this.stringAt (result, 'outAsset', ''),
+            'outAmount': this.numberAt (result, 'outAmount', 0),
+            'orderId': this.stringAt (result, 'orderId', ''),
+            'clientOrderId': this.stringAt (result, 'clientOrderId', ''),
+            'errorCode': this.stringAt (result, 'errorCode', ''),
+            'attempt': this.numberAt (result, 'attempt', 0),
+            'reconciliation': reconciliation,
+            'ordersPlaced': this.numberAt (report, 'ordersPlaced', 0),
+            'halted': this.boolAt (report, 'halted', false),
+            'haltReason': this.stringAt (report, 'haltReason', ''),
+            'stepsTotal': stepsTotal,
+            'stepsRemaining': stepsTotal - (stepIndex + 1),
+        };
+        try {
+            const verdict = options['onStep'] (event);
+            if (verdict === 'halt') {
+                return 'halt';
+            }
+            return '';
+        } catch (e) {
+            //  A hook that throws must NOT take the run with it. Everything placed so far is
+            //  recorded in this report, and losing it to an exception raised by observability
+            //  code would destroy the only account of orders that are already live. The failure
+            //  is recorded and the run proceeds exactly as if the hook had no opinion.
+            this.recordError (report, stepIndex, this.stringAt (result, 'exchangeId', ''), this.stringAt (result, 'symbol', ''), 'on_step_hook_failed:' + this.errorCodeOf (e));
+            return '';
         }
     }
 
@@ -1987,6 +2121,8 @@ class OrderRouter {
             //  once the order returns. (An id derived from the plan identity used to be forced
             //  onto every step, but venues disagree on its length and charset, so it was
             //  rejected exactly where it mattered.)
+            const attempt = this.numberAt (step, 'attempt', 0);
+            result['attempt'] = attempt;
             let order: Dict = {};
             if (strategy === 'limit_protected') {
                 order = await this.placeProtectedLimit (venue, step, symbol, side, amount, price, orderParams, options, report, result);

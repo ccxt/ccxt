@@ -38,6 +38,7 @@ from ccxt.base.errors import ArgumentsRequired  # noqa: E402
 from ccxt.base.errors import BadRequest  # noqa: E402
 from ccxt.base.errors import ExchangeError  # noqa: E402
 from ccxt.base.errors import NotSupported  # noqa: E402
+from ccxt.base.errors import RequestTimeout  # noqa: E402
 from ccxt.base.order_router import OrderRouter  # noqa: E402
 
 fixture_path = os.path.join(repo_root, 'ts', 'src', 'test', 'base', 'fixtures', 'orderRouter.json')
@@ -562,6 +563,10 @@ class StubVenue:
         self.trade_fees_to_charge = []
         # every params dictionary create_order was called with, in call order
         self.params_seen = []
+        # create_order never answers: the outcome is unknown, not a rejection
+        self.timeout_create = False
+        # refuse this many create_order calls, then behave: a venue that rejects and then relents
+        self.fail_create_times = 0
 
     def fetch_order(self, id, symbol):
         self.calls.append('fetchOrder:' + id)
@@ -594,6 +599,11 @@ class StubVenue:
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.calls.append('createOrder:' + type + ':' + side + ':' + str(amount))
         self.params_seen.append(params)
+        if self.timeout_create:
+            raise RequestTimeout('stub timed out')
+        if self.fail_create_times > 0:
+            self.fail_create_times = self.fail_create_times - 1
+            raise ExchangeError('stub refuses, for now')
         if self.fail_create:
             raise ExchangeError('stub refuses')
         filled = amount * self.fill_ratio
@@ -608,6 +618,16 @@ class StubVenue:
         if len(self.trade_fees_to_charge) > 0:
             body['trades'] = [{'fee': fee} for fee in self.trade_fees_to_charge]
         return body
+
+
+def count_create_calls(venue):
+    #  the stub records reads and cancels in the same list, so orders are counted by prefix —
+    #  the TypeScript reference counts the whole list, which there contains only createOrder
+    total = 0
+    for entry in venue.calls:
+        if entry.find('createOrder') == 0:
+            total = total + 1
+    return total
 
 
 def two_hop_route():
@@ -1337,6 +1357,104 @@ def test_re_execution_ledger_is_bounded():
     report = bounded.execute(plan, {'stub': reexecuted}, opts)
     assert report['steps'][0]['status'] == 'filled', 'an aged-out plan re-executes without the opt-in'
     assert len(reexecuted.calls) > 0, 'which means real orders — the bound costs a guarantee'
+
+
+@test('onStep sees every step and can stop the route')
+def test_on_step_sees_every_step_and_can_stop_the_route():
+    #  The one thing a caller cannot do from outside execute(): look at what just happened and
+    #  decide not to continue. Before this hook the method was opaque from call to return.
+    plan = router.build_execution_plan(two_hop_route(), {})
+    venue = StubVenue('stub')
+    seen = []
+
+    def on_step(event):
+        seen.append(event)
+        return 'halt' if event['stepIndex'] == 0 else ''
+    report = router.execute(plan, {'stub': venue}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+        'onStep': on_step,
+    })
+    assert len(seen) == 1, 'the hook is not called for steps that never ran'
+    assert seen[0]['stepIndex'] == 0
+    assert seen[0]['status'] == 'filled'
+    assert seen[0]['stepsRemaining'] == len(plan['steps']) - 1
+    assert seen[0]['reconciliation'] is not None, 'the verdict it is judging is in the event'
+    assert report['halted'] is True
+    assert report['haltReason'] == 'halted_by_on_step'
+    assert report['haltStepIndex'] == 0
+    assert report['steps'][1]['status'] == 'skipped'
+    assert report['ordersPlaced'] == 1, 'the step after the halt was never placed'
+    assert count_create_calls(venue) == 1
+
+
+@test('an onStep that throws is recorded, and does not take the run down with it')
+def test_an_on_step_that_throws_is_recorded():
+    #  The report is the ONLY account of orders that are already live. An exception raised by
+    #  observability code must never destroy it — trigger.dev logs and ignores hook errors for
+    #  the same reason.
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    venue = StubVenue('stub')
+
+    def on_step(event):
+        raise ExchangeError('hook is broken')
+    report = router.execute(plan, {'stub': venue}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+        'onStep': on_step,
+    })
+    assert report['halted'] is False, 'the route finished'
+    assert report['steps'][0]['status'] == 'filled'
+    codes = [entry['code'] for entry in report['errors']]
+    found = False
+    for code in codes:
+        if code.find('on_step_hook_failed') == 0:
+            found = True
+    assert found, 'the broken hook is reported rather than swallowed, got ' + json.dumps(codes)
+
+
+@test('onStep can only narrow: it cannot resume a route the reconciliation already halted')
+def test_on_step_can_only_narrow():
+    #  The halt is a money decision made in one pure place precisely so it cannot be omitted.
+    #  A hook that could wave it through would be a way to omit it.
+    plan = router.build_execution_plan(two_hop_route(), {})
+    starved = StubVenue('stub', 0.1)
+    report = router.execute(plan, {'stub': starved}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+        'onStep': lambda event: 'continue',
+    })
+    assert report['halted'] is True
+    assert report['haltReason'] == 'shortfall_exceeds_tolerance', 'the reconciliation reason survives, it is not replaced by the hook'
+    assert report['ordersPlaced'] == 1, 'the hook did not wave the route onward'
+    assert report['steps'][1]['status'] == 'skipped'
+
+
+@test('retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome')
+def test_retry_failed_steps():
+    #  A rejected order was not placed, so re-placing it cannot double-fill. No client order id
+    #  is injected on either attempt, so the venue's own identifier generation applies to the
+    #  retry exactly as it did to the first try.
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    relents = StubVenue('stub')
+    relents.fail_create_times = 1
+    report = router.execute(plan, {'stub': relents}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+        'retryFailedSteps': 2, 'retryDelayMs': 0,
+    })
+    assert report['steps'][0]['status'] == 'filled', 'the retry succeeded'
+    assert report['steps'][0]['attempt'] == 1, 'the report says which attempt won'
+    assert len(relents.params_seen) == 2, 'two placements went out'
+    assert 'clientOrderId' not in relents.params_seen[0], 'no client order id is injected on the first try'
+    assert 'clientOrderId' not in relents.params_seen[1], 'nor on the retry'
+    #  the outcome the policy must NEVER touch
+    unknown = StubVenue('stub')
+    unknown.timeout_create = True
+    plan2 = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    second = router.execute(plan2, {'stub': unknown}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
+        'retryFailedSteps': 5, 'retryDelayMs': 0,
+    })
+    assert second['steps'][0]['status'] == 'outcome_unknown'
+    assert count_create_calls(unknown) == 1, 'an order whose outcome is unknown may already be live; it is never re-placed'
+
 
 
 # ---------------------------------------------------------------------------

@@ -100,6 +100,12 @@ const (
 
 	OrderRouterDefaultReconcileTolerance = 0.02
 
+	// OrderRouterDefaultRetryDelayMs is how long retryFailedSteps waits before re-placing a
+	// step the venue rejected. A second is the shortest delay that lets a transient cause
+	// clear (a rate limit window, a momentary balance lag) without turning a retry budget
+	// into a burst against a venue that just said no.
+	OrderRouterDefaultRetryDelayMs = 1000.0
+
 	// OrderRouterNoCap is the default: this type does not decide how much of your
 	// money you may trade. MaxNotionalUsd is an OPT-IN guardrail — set it and it is
 	// honoured exactly, at whatever value you choose; leave it unset and no
@@ -1480,6 +1486,9 @@ func (this *OrderRouter) PlanIdentity(plan map[string]any, options map[string]an
 //	orderParams            dict    extra params merged into every CreateOrder call
 //	idempotencyKey         string  the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard, and OVERRIDES the plan's requestId when both are given
 //	allowReexecution       bool    must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
+//	retryFailedSteps       float   how many times to re-place a step the venue DEFINITIVELY REJECTED, default 0. An outcome_unknown step is never retried at any setting: it may already be a live position, and re-placing it is the double-fill this class exists to prevent. Each retry carries its own client order id
+//	retryDelayMs           float   how long to wait before a retry, default 1000
+//	onStep                 func    an OrderRouterOnStep called after each step completes and reconciles, never mid-order, with one event map describing that step. Return "halt" to stop the route cleanly (haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that panics is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
 //
 // plan is a plan from BuildExecutionPlan, or a caller-assembled plan of the same
 // shape — this method never assumes the plan came from the routing service.
@@ -1764,6 +1773,8 @@ func (this *OrderRouter) emptyReport(plan map[string]any, strategy string, reque
 			"orderId":         "",
 			"clientOrderId":   "",
 			"errorCode":       "",
+			// which retry produced this result; 0 unless retryFailedSteps re-placed it
+			"attempt": 0.0,
 		})
 	}
 	report := map[string]any{
@@ -1818,7 +1829,7 @@ func routerAppendDict(report map[string]any, key string, item map[string]any) {
 func (this *OrderRouter) executeSequential(report map[string]any, results []map[string]any, steps []map[string]any, venues map[string]IExchange, options map[string]any, usdRates map[string]any, strategy string) error {
 	for i := 0; i < len(steps); i++ {
 		sink := &orderRouterSink{planId: routerStringAt(report, "planId", "")}
-		result := this.placeStep(steps[i], venues, options, usdRates, strategy, sink)
+		result := this.placeStepWithRetry(steps[i], venues, options, usdRates, strategy, sink)
 		results[i] = result
 		this.mergeSink(report, sink)
 		if status := routerStringAt(result, "status", ""); status == "failed" || status == "outcome_unknown" {
@@ -1831,6 +1842,8 @@ func (this *OrderRouter) executeSequential(report map[string]any, results []map[
 				report["haltReason"] = "outcome_unknown"
 			}
 			report["haltStepIndex"] = float64(i)
+			// the hook is told about a halt it did not cause, and cannot undo it
+			this.callOnStep(options, report, result, map[string]any{}, i, len(steps))
 			this.markRemainingSkipped(results, i+1)
 			return nil
 		}
@@ -1848,6 +1861,16 @@ func (this *OrderRouter) executeSequential(report map[string]any, results []map[
 		if routerStringAt(reconciliation, "verdict", "") == "halt" {
 			report["halted"] = true
 			report["haltReason"] = routerStringAt(reconciliation, "reason", "")
+			report["haltStepIndex"] = float64(i)
+			this.callOnStep(options, report, result, reconciliation, i, len(steps))
+			this.markRemainingSkipped(results, i+1)
+			return nil
+		}
+		// the caller's own verdict, consulted only once the route is otherwise sound. It can
+		// stop the route; it cannot restart one the reconciliation above already stopped.
+		if this.callOnStep(options, report, result, reconciliation, i, len(steps)) == "halt" {
+			report["halted"] = true
+			report["haltReason"] = "halted_by_on_step"
 			report["haltStepIndex"] = float64(i)
 			this.markRemainingSkipped(results, i+1)
 			return nil
@@ -1903,7 +1926,7 @@ func (this *OrderRouter) executeParallelWithinHop(report map[string]any, results
 				defer waitGroup.Done()
 				// strictly one at a time within this venue
 				for _, index := range indices {
-					results[index] = this.placeStep(steps[index], venues, options, usdRates, "parallel_within_hop", sink)
+					results[index] = this.placeStepWithRetry(steps[index], venues, options, usdRates, "parallel_within_hop", sink)
 				}
 			}(grouped[g], sink)
 		}
@@ -1920,6 +1943,7 @@ func (this *OrderRouter) executeParallelWithinHop(report map[string]any, results
 					report["haltReason"] = "outcome_unknown"
 				}
 				report["haltStepIndex"] = float64(i)
+				this.callOnStep(options, report, result, map[string]any{}, i, len(steps))
 				this.markRemainingSkipped(results, end)
 				return nil
 			}
@@ -1932,6 +1956,14 @@ func (this *OrderRouter) executeParallelWithinHop(report map[string]any, results
 			if routerStringAt(reconciliation, "verdict", "") == "halt" {
 				report["halted"] = true
 				report["haltReason"] = routerStringAt(reconciliation, "reason", "")
+				report["haltStepIndex"] = float64(i)
+				this.callOnStep(options, report, result, reconciliation, i, len(steps))
+				this.markRemainingSkipped(results, end)
+				return nil
+			}
+			if this.callOnStep(options, report, result, reconciliation, i, len(steps)) == "halt" {
+				report["halted"] = true
+				report["haltReason"] = "halted_by_on_step"
 				report["haltStepIndex"] = float64(i)
 				this.markRemainingSkipped(results, end)
 				return nil
@@ -1954,13 +1986,115 @@ func (this *OrderRouter) executeBestEffort(report map[string]any, results []map[
 			continue
 		}
 		sink := &orderRouterSink{planId: routerStringAt(report, "planId", "")}
-		results[i] = this.placeStep(steps[i], venues, options, usdRates, "best_effort", sink)
+		results[i] = this.placeStepWithRetry(steps[i], venues, options, usdRates, "best_effort", sink)
 		this.mergeSink(report, sink)
 		placed = placed + 1
-		// no reconciliation and no halt: that is the whole point of the strategy,
-		// and why it is refused on anything but a single hop
+		// no reconciliation and no halt: that is the whole point of the strategy, and why it
+		// is refused on anything but a single hop. The hook is still offered every step, and
+		// stopping early is the one thing it may do here — that is a smaller commitment than
+		// the strategy's own contract, never a larger one.
+		if this.callOnStep(options, report, results[i], map[string]any{}, i, len(steps)) == "halt" {
+			report["halted"] = true
+			report["haltReason"] = "halted_by_on_step"
+			report["haltStepIndex"] = float64(i)
+			this.markRemainingSkipped(results, i+1)
+			return nil
+		}
 	}
 	return nil
+}
+
+// OrderRouterOnStep is the shape of the options["onStep"] callback: it is handed
+// one event describing a finished step and returns "halt" to stop the route.
+// SYNCHRONOUS by design — it sits between orders on the money path, so do no
+// network I/O in it.
+type OrderRouterOnStep func(event map[string]any) string
+
+// placeStepWithRetry places one step, re-placing it up to
+// options["retryFailedSteps"] times when — and ONLY when — the venue definitively
+// rejected it.
+func (this *OrderRouter) placeStepWithRetry(step map[string]any, venues map[string]IExchange, options map[string]any, usdRates map[string]any, strategy string, sink *orderRouterSink) map[string]any {
+	maxRetries := routerNumberAt(options, "retryFailedSteps", 0)
+	retryDelayMs := routerNumberAt(options, "retryDelayMs", OrderRouterDefaultRetryDelayMs)
+	attempt := 0.0
+	for {
+		step["attempt"] = attempt
+		result := this.placeStep(step, venues, options, usdRates, strategy, sink)
+		status := routerStringAt(result, "status", "")
+		// "failed" is the ONLY retryable outcome, and the distinction is the whole safety
+		// argument. A failed step was refused by the venue: nothing was placed, so placing
+		// it again cannot double-fill. An "outcome_unknown" step may ALREADY be a live
+		// position that simply could not be read back, and re-placing that is precisely the
+		// double-fill this class exists to prevent. It is never retried, at any setting.
+		if status != "failed" || attempt >= maxRetries {
+			return result
+		}
+		attempt = attempt + 1
+		if retryDelayMs > 0 {
+			time.Sleep(time.Duration(retryDelayMs) * time.Millisecond)
+		}
+	}
+}
+
+// callOnStep hands the caller's onStep hook one finished step and returns its
+// verdict, treating any failure of the hook as "no opinion".
+func (this *OrderRouter) callOnStep(options map[string]any, report map[string]any, result map[string]any, reconciliation map[string]any, stepIndex int, stepsTotal int) (verdict string) {
+	raw, present := options["onStep"]
+	if !present || raw == nil {
+		return ""
+	}
+	var hook OrderRouterOnStep
+	switch typed := raw.(type) {
+	case OrderRouterOnStep:
+		hook = typed
+	case func(map[string]any) string:
+		hook = typed
+	default:
+		// an options value of any other shape is not a hook at all. Refusing the whole
+		// execution over an observability callback would be the larger failure, so a value
+		// that cannot be called is treated exactly like no hook.
+		return ""
+	}
+	event := map[string]any{
+		"planId":          routerStringAt(report, "planId", ""),
+		"stepIndex":       float64(stepIndex),
+		"hopIndex":        routerNumberAt(result, "hopIndex", 0),
+		"legIndex":        routerNumberAt(result, "legIndex", 0),
+		"exchangeId":      routerStringAt(result, "exchangeId", ""),
+		"symbol":          routerStringAt(result, "symbol", ""),
+		"side":            routerStringAt(result, "side", ""),
+		"status":          routerStringAt(result, "status", ""),
+		"requestedAmount": routerNumberAt(result, "requestedAmount", 0),
+		"filledAmount":    routerNumberAt(result, "filledAmount", 0),
+		"outAsset":        routerStringAt(result, "outAsset", ""),
+		"outAmount":       routerNumberAt(result, "outAmount", 0),
+		"orderId":         routerStringAt(result, "orderId", ""),
+		"clientOrderId":   routerStringAt(result, "clientOrderId", ""),
+		"errorCode":       routerStringAt(result, "errorCode", ""),
+		"attempt":         routerNumberAt(result, "attempt", 0),
+		"reconciliation":  reconciliation,
+		"ordersPlaced":    routerNumberAt(report, "ordersPlaced", 0),
+		"halted":          routerBoolAt(report, "halted", false),
+		"haltReason":      routerStringAt(report, "haltReason", ""),
+		"stepsTotal":      float64(stepsTotal),
+		"stepsRemaining":  float64(stepsTotal - (stepIndex + 1)),
+	}
+	// A hook that PANICS must NOT take the run with it — the Go form of the try/catch the
+	// other ports use. Everything placed so far is recorded in this report, and losing it to
+	// a panic raised by observability code would destroy the only account of orders that are
+	// already live. The failure is recorded and the run proceeds as if the hook had no
+	// opinion.
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			code := routerErrorCode(routerRecoveredError(recovered))
+			routerAppendDict(report, "errors", routerErrorRecord(float64(stepIndex), routerStringAt(result, "exchangeId", ""), routerStringAt(result, "symbol", ""), "on_step_hook_failed:"+code))
+			verdict = ""
+		}
+	}()
+	if hook(event) == "halt" {
+		return "halt"
+	}
+	return ""
 }
 
 // placeStep places one order for one step and NEVER returns an error and never
@@ -2101,6 +2235,8 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 	// returns. (An id derived from the plan identity used to be forced onto every step, but
 	// venues disagree on its length and charset, so it was rejected exactly where it
 	// mattered.)
+	attempt := routerNumberAt(step, "attempt", 0)
+	result["attempt"] = attempt
 	var order Order
 	var err error
 	if strategy == "limit_protected" {

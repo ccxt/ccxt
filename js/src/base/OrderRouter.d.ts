@@ -4,6 +4,7 @@ declare class OrderRouter {
     static DEFAULT_TIMEOUT_MS: number;
     static DEFAULT_SLIPPAGE_BPS: number;
     static DEFAULT_RECONCILE_TOLERANCE: number;
+    static DEFAULT_RETRY_DELAY_MS: number;
     static NO_CAP: number;
     static MAX_BALANCE_ENTRIES: number;
     static MAX_BALANCE_CHARS: number;
@@ -340,6 +341,9 @@ declare class OrderRouter {
      * @param {object} [options.orderParams] extra params merged into every createOrder call
      * @param {string} [options.idempotencyKey] the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard, and OVERRIDES the plan's requestId when both are given
      * @param {bool} [options.allowReexecution] must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
+     * @param {int} [options.retryFailedSteps] how many times to re-place a step the venue DEFINITIVELY REJECTED, default 0. An outcome_unknown step is never retried at any setting: it may already be a live position, and re-placing it is the double-fill this class exists to prevent. Each retry carries its own client order id
+     * @param {int} [options.retryDelayMs] how long to wait before a retry, default 1000
+     * @param {function} [options.onStep] called after each step completes and reconciles, never mid-order, with one event object describing that step. Return 'halt' to stop the route cleanly (haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that throws is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
      * @returns {object} an execution report with per-step results, openOrders, errors and the halt verdict
      */
     execute(plan: Dict, venues: Dict, options?: Dict): Promise<Dict>;
@@ -427,6 +431,34 @@ declare class OrderRouter {
      * @returns {undefined}
      */
     executeBestEffort(report: Dict, steps: Dict[], venues: Dict, options: Dict, usdRates: Dict): Promise<void>;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#placeStepWithRetry
+     * @description places one step, re-placing it up to options.retryFailedSteps times when — and ONLY when — the venue definitively rejected it
+     * @param {object} step the step to trade
+     * @param {object} venues exchangeId to exchange instance
+     * @param {object} options the execute options
+     * @param {object} usdRates currency code to USD price
+     * @param {string} strategy the strategy in force
+     * @param {object} report the report, for openOrders and errors
+     * @returns {object} the step result of the last attempt
+     */
+    placeStepWithRetry(step: Dict, venues: Dict, options: Dict, usdRates: Dict, strategy: string, report: Dict): Promise<Dict>;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#callOnStep
+     * @description hands the caller's onStep hook one finished step and returns its verdict, treating any failure of the hook as 'no opinion'
+     * @param {object} options the execute options, which may carry onStep
+     * @param {object} report the report so far
+     * @param {object} result the finished step result
+     * @param {object} reconciliation the step's reconciliation, empty when it halted before reconciling
+     * @param {int} stepIndex the step's index
+     * @param {int} stepsTotal how many steps the plan has
+     * @returns {string} 'halt' to stop, anything else to continue
+     */
+    callOnStep(options: Dict, report: Dict, result: Dict, reconciliation: Dict, stepIndex: number, stepsTotal: number): string;
     /**
      * @ignore
      * @method
