@@ -95,6 +95,12 @@ jobs:
         run: npm run force-transpileJava
       - name: Build Java
         run: npm run buildJava
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Transpile Rust
         run: npm run transpileRust
       - name: Build Rust
@@ -212,24 +218,17 @@ jobs:
 
                echo "Creating GitHub release from ${VERSION}…"
                gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
-      - name: Install Rust toolchain
-        run: |
-          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-          fi
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Generate Rust sources
-        run: npm run transpileRust
       - name: Publish Rust crates
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
           CARGO_BUILD_JOBS: "2"
         run: |
           set -e
-          # `--allow-dirty` is required, not a shortcut: the transpiled Rust
-          # output is generated at build time and deliberately not committed,
-          # and cargo lists package files from git. Without it the crates would
-          # publish missing every exchange.
+          # The transpiled Rust output is committed by the release commit above,
+          # so cargo's git-based file listing already sees every exchange.
+          # `--allow-dirty` is kept as a safety net for a working tree left
+          # dirty after the rebase/push, which would otherwise abort the
+          # publish outright.
           #
           # ccxt-base first — the other three depend on it, and crates.io will
           # reject them until its version is live in the index. `cargo publish`
