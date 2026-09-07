@@ -34,10 +34,16 @@ jobs:
           file: CHANGELOG.md
           github_token: ${{ steps.app-token.outputs.token }}
           # CHANGELOG.md is the ccxt library's changelog. This tool renders *every* GitHub
-          # release in the repo, so the sub-package releases cut by mcp-release.yml
-          # (ccxt-mcp-vX.Y.Z and the moving ccxt-mcp-latest) were being interleaved with the
-          # ccxt versions as if they were library releases. -i takes a regex of tags to skip.
-          args: -i ^ccxt-mcp-
+          # release in the repo, so non-library releases were being interleaved with the ccxt
+          # versions as if they were library releases: the sub-package releases cut by
+          # mcp-release.yml (ccxt-mcp-vX.Y.Z and the moving ccxt-mcp-latest), and 8 historical
+          # go/vX.Y.Z Go-module releases. -i takes a regex of tags to skip.
+          #
+          # A denylist, not `-e` (allowlist): ccxt's own tag convention is not uniform — 137
+          # releases predate the `v` prefix (4.0.3, 4.3.22 …), 76 of which render in
+          # CHANGELOG.md today, and an allowlist anchored on `^v` would delete them all on the
+          # next regeneration, since the file is rebuilt from scratch each run.
+          args: -i ^(ccxt-mcp-|go/)
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
