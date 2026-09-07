@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../exchanges/okx.h"
 
 namespace ccxt {
 
