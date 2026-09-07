@@ -1119,7 +1119,10 @@ export default class paradex extends Exchange {
         // against an index, and this rate is the amount for a whole period
         const hours = this.safeString (this.safeDict (market, 'info', {}), 'funding_period_hours');
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        const interval = ((hours === undefined) || !Precise.stringGt (hours, '0')) ? undefined : hours + 'h';
+        let interval = undefined;
+        if ((hours !== undefined) && Precise.stringGt (hours, '0')) {
+            interval = hours + 'h';
+        }
         return {
             'info': contract,
             'symbol': funds ? market['symbol'] : undefined,
