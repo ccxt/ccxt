@@ -31,7 +31,7 @@ interface Exchange {
     predictfunPostV1Auth (params?: {}): Promise<Dict>;
     predictfunPostV1OrdersRemove (params?: {}): Promise<Dict>;
     predictfunPostV1Orders (params?: {}): Promise<Dict>;
-    predictfunPostOrdersRemoveByHash (params?: {}): Promise<Dict>;
+    predictfunPostV1OrdersRemoveByHash (params?: {}): Promise<Dict>;
     predictfunPostV1AccountReferral (params?: {}): Promise<Dict>;
     predictfunPostV1OauthFinalize (params?: {}): Promise<Dict>;
     predictfunPostV1OauthOrders (params?: {}): Promise<Dict>;
