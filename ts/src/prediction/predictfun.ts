@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/predictfun.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFound } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, OrderNotFound } from '../base/errors.js';
 import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -676,7 +676,11 @@ export default class predictfun extends Exchange {
                 result.push ({
                     // these rows carry no topic id and no endsAt, so the slug stands in as the id:
                     // it is what the venue addresses the topic by, and it keeps the event out of
-                    // the caches and filters that key on an id being present
+                    // the caches and filters that key on an id being present.
+                    // the missing endsAt is a known and accepted limit of synthesizing without a
+                    // request: a market-only hit has no 'end', so its markets have no expiry and
+                    // applyEventFetchParams () has nothing to filter or sort them on. recovering
+                    // it would cost one GET /v1/categories/{slug} per orphan slug
                     'id': orphanSlug,
                     'slug': orphanSlug,
                     'title': this.safeString (first, 'title'),
@@ -1005,6 +1009,9 @@ export default class predictfun extends Exchange {
         //
         const marketId = this.safeString (rawMarket, 'id');
         const topicSlug = this.safeString (rawMarket, 'categorySlug');
+        // the same handle parseEvent () derives for the enclosing event - stamping it here is what
+        // lets every outcome-addressed structure (order, ticker, trade, position) report an event
+        const eventHandle = (topicSlug !== undefined) ? this.shortenSlug (topicSlug) : undefined;
         const title = this.safeString (rawMarket, 'title', marketId);
         const marketSymbol = this.slugToMarketSymbol (topicSlug, title);
         const tradingStatus = this.safeString (rawMarket, 'tradingStatus');
@@ -1050,6 +1057,7 @@ export default class predictfun extends Exchange {
                 'outcomeId': tokenId,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
+                'event': eventHandle,
                 'label': label,
                 'price': undefined, // todo check
                 'active': active,
@@ -1273,6 +1281,7 @@ export default class predictfun extends Exchange {
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
+            'event': this.safeString (market, 'event'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -1796,6 +1805,7 @@ export default class predictfun extends Exchange {
             'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
+            'event': this.safeString (outcomeObj, 'event'),
             'type': type,
             'side': side,
             // the price actually signed, which for a market order is the 0.99 / 0.01 default
@@ -1913,11 +1923,9 @@ export default class predictfun extends Exchange {
             'marketId': this.safeString (info, 'marketId'),
         };
         const positions = await this.fetchPositions ([ outcome ], this.extend (request, params));
-        const position = this.safeDict (positions, 0);
-        if (position === undefined) {
-            throw new NotSupported (this.id + ' fetchPosition() found no position on ' + outcome);
-        }
-        return position as PredictionPosition;
+        // holding none of an outcome is an ordinary read, so the empty slot is returned rather
+        // than raised - the same shape polymarket and binance answer with
+        return this.safeDict (positions, 0) as PredictionPosition;
     }
 
     /**
@@ -1949,14 +1957,17 @@ export default class predictfun extends Exchange {
         if ((pnl !== undefined) && (collateral !== undefined) && Precise.stringGt (collateral, '0')) {
             percentage = Precise.stringMul (Precise.stringDiv (pnl, collateral), '100');
         }
-        // a resolved market reports the outcome as WON or LOST, an open one leaves it null
+        // a settled outcome reports WON or LOST, an open one leaves the field null - and the
+        // market can read RESOLVED while the outcome has not been marked yet, so the two are
+        // tracked apart: the position is resolved, but which side won is not yet known
         const outcomeStatus = this.safeString (rawOutcome, 'status');
         const marketStatus = this.safeString (rawMarket, 'status');
-        const resolved = (marketStatus === 'RESOLVED') || (marketStatus === 'SETTLED') || (outcomeStatus === 'WON') || (outcomeStatus === 'LOST');
-        let won = undefined;
-        let settleFraction = undefined;
-        let payout = undefined;
-        if (resolved) {
+        const settled = (outcomeStatus === 'WON') || (outcomeStatus === 'LOST');
+        const resolved = settled || (marketStatus === 'RESOLVED') || (marketStatus === 'SETTLED');
+        let won: Bool = undefined;
+        let settleFraction: Str = undefined;
+        let payout: Str = undefined;
+        if (settled) {
             won = (outcomeStatus === 'WON');
             settleFraction = (won) ? '1' : '0';
             // a winning share redeems for one unit of collateral, a losing one for nothing
@@ -1992,6 +2003,7 @@ export default class predictfun extends Exchange {
             'outcomeId': this.safeString (outcomeObj, 'outcomeId', tokenId),
             'label': this.safeString (outcomeObj, 'label', this.safeStringUpper (rawOutcome, 'name')),
             'market': this.safeString (outcomeObj, 'market'),
+            'event': this.safeString (outcomeObj, 'event'),
             'info': position,
         });
     }
@@ -2321,6 +2333,7 @@ export default class predictfun extends Exchange {
             'outcomeId': this.safeString (outcomeObj, 'outcomeId', tokenId),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
+            'event': this.safeString (outcomeObj, 'event'),
             'info': order,
         });
     }
