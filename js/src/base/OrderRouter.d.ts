@@ -298,22 +298,12 @@ declare class OrderRouter {
      * @ignore
      * @method
      * @name OrderRouter#planIdentity
-     * @description the stable identity of an execution, used both for the re-execution guard and for the per-step client order ids. options.idempotencyKey wins, then the plan's own requestId; nothing is ever invented, because a random identity defeats the point of both mechanisms
+     * @description the stable identity of an execution, used for the re-execution guard. options.idempotencyKey wins, then the plan's own requestId; nothing is ever invented, because a random identity defeats the point of the guard
      * @param {object} plan the plan
      * @param {object} options the execute options
      * @returns {string} the identity, or '' when neither source carries one
      */
     planIdentity(plan: Dict, options: Dict): string;
-    /**
-     * @ignore
-     * @method
-     * @name OrderRouter#clientOrderIdFor
-     * @description derives the deterministic client order id for one step, so that a second run of the same plan re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
-     * @param {string} planId the plan identity from planIdentity
-     * @param {int} stepIndex the step's index within the plan
-     * @returns {string} the client order id
-     */
-    clientOrderIdFor(planId: string, stepIndex: number): string;
     /**
      * @ignore
      * @method
@@ -348,7 +338,7 @@ declare class OrderRouter {
      * @param {int} [options.orderTimeoutMs] how long limit_protected leaves an order resting, default 20000
      * @param {int} [options.pollIntervalMs] how often limit_protected checks a resting order, default 1000
      * @param {object} [options.orderParams] extra params merged into every createOrder call
-     * @param {string} [options.idempotencyKey] the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
+     * @param {string} [options.idempotencyKey] the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard, and OVERRIDES the plan's requestId when both are given
      * @param {bool} [options.allowReexecution] must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
      * @returns {object} an execution report with per-step results, openOrders, errors and the halt verdict
      */

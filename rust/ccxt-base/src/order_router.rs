@@ -118,8 +118,8 @@ const MAX_BALANCE_CHARS: usize = 4096;
 /// "recent duplicates are refused", not "duplicates are impossible". A process that needs
 /// the strong promise across restarts or beyond this window needs the durable ledger the
 /// Known gaps entry calls for; until then, callers whose plans must never re-execute should
-/// key idempotency at the venue (the deterministic clientOrderId every step already carries)
-/// rather than rely on this instance's memory.
+/// key idempotency at the venue themselves (a clientOrderId passed in options.orderParams, on
+/// venues that honour one) rather than rely on this instance's memory.
 pub const MAX_EXECUTED_PLAN_IDS: usize = 1024;
 
 /// The bounded re-execution ledger: a FIFO queue of plan ids plus a set that answers
@@ -1612,8 +1612,7 @@ const KNOWN_STRATEGIES: [&str; 6] = [
 ];
 
 impl OrderRouter {
-    /// The stable identity of an execution, used both for the re-execution guard
-    /// and for the per-step client order ids.
+    /// The stable identity of an execution, used for the re-execution guard.
     ///
     /// A caller-supplied `idempotencyKey` WINS over the plan's own `requestId`:
     /// passing one is a deliberate statement about what this execution is, and it
@@ -1621,8 +1620,8 @@ impl OrderRouter {
     /// dictionary of the plan shape, not only the output of `build_execution_plan`,
     /// and a plan a user built themselves never went through a routing request and
     /// so never had a `requestId`. Nothing is invented when both are absent: a
-    /// generated identity would be either random, which defeats both mechanisms
-    /// that depend on it, or a fingerprint of the plan's contents, which makes two
+    /// generated identity would be either random, which defeats the guard that
+    /// depends on it, or a fingerprint of the plan's contents, which makes two
     /// plans that happen to agree indistinguishable.
     pub fn plan_identity(&self, plan: &Value, options: &Value) -> String {
         let idempotency_key = self.string_at(options, "idempotencyKey", "");
@@ -1630,14 +1629,6 @@ impl OrderRouter {
             return idempotency_key;
         }
         self.string_at(plan, "requestId", "")
-    }
-
-    /// Derives the deterministic client order id for one step, so that a second
-    /// run of the same plan re-sends ids the venue has already seen and is
-    /// rejected as a duplicate instead of filled.
-    pub fn client_order_id_for(&self, plan_id: &str, step_index: f64) -> String {
-        let text = self.format_number(step_index).unwrap_or_else(|_| "0".to_string());
-        format!("{plan_id}-{text}")
     }
 
     /// Counts the distinct hops a step list spans, which is the only authority
@@ -2004,17 +1995,13 @@ impl OrderRouter {
             let _ = e;
             return result;
         }
-        let mut order_params = self.dict_at(options, "orderParams");
-        // IDEMPOTENCY, half two: a client order id derived from the plan's own
-        // identity and this step's index. Deterministic, so a second run of the same
-        // plan re-sends an id the venue has already seen and is rejected as a
-        // duplicate rather than filled. It is set AFTER the caller's orderParams are
-        // copied and deliberately overrides a clientOrderId found there: one id
-        // reused across every step of a plan is worse than none at all.
-        let client_order_id =
-            self.client_order_id_for(&self.string_at(report, "planId", ""), step_index);
-        Self::put(&mut order_params, "clientOrderId", Value::Str(client_order_id.clone()));
-        Self::put(&mut result, "clientOrderId", Value::Str(client_order_id));
+        let order_params = self.dict_at(options, "orderParams");
+        // No clientOrderId is set here. Whatever the caller put in options.orderParams
+        // travels as-is, and each exchange's create_order keeps sending whatever
+        // identifier it generates on its own; the id the venue reports back is
+        // recorded on the result once the order returns. (An id derived from the
+        // plan identity used to be forced onto every step, but venues disagree on
+        // its length and charset, so it was rejected exactly where it mattered.)
 
         // Dispatch. `placementAttempted` is set immediately before the call and
         // not a line earlier: everything above this point is a refusal that
@@ -2032,7 +2019,10 @@ impl OrderRouter {
             .await
         };
         let order = match order {
-            Ok(placed) => placed,
+            Ok(placed) => {
+                Self::put(&mut result, "clientOrderId", Value::Str(self.string_at(&placed, "clientOrderId", "")));
+                placed
+            }
             Err(e) => {
                 Self::put(&mut result, "errorCode", Value::Str(e.kind.clone()));
                 self.record_error(report, step_index, &exchange_id, &symbol, &e.kind);
@@ -2522,10 +2512,9 @@ impl OrderRouter {
     /// the same shape — this method never assumes the plan came from the routing
     /// service. `options.idempotencyKey` is the identity of this execution,
     /// required when the plan carries no `requestId`; it keys the re-execution
-    /// guard, seeds the per-step client order ids, and overrides the plan's
-    /// `requestId` when both are given. `options.allowReexecution` must be exactly
-    /// true to run a plan this instance has already executed live; the DEFAULT is
-    /// refusal.
+    /// guard and overrides the plan's `requestId` when both are given.
+    /// `options.allowReexecution` must be exactly true to run a plan this instance
+    /// has already executed live; the DEFAULT is refusal.
     pub async fn execute(
         &self,
         plan: &Value,
@@ -2583,10 +2572,8 @@ impl OrderRouter {
         // dry_run never reaches this line and never consumes a plan, because a
         // rehearsal places nothing.
         if plan_id.is_empty() {
-            // No identity means no idempotency: neither the ledger below nor the
-            // per-step client order ids can be derived, so a re-run of this plan
-            // would be indistinguishable from a first run all the way down to the
-            // venue.
+            // No identity means no idempotency: the ledger below cannot key on it,
+            // so a re-run of this plan would be indistinguishable from a first run.
             return Err(bad_request("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey"));
         }
         if !self.bool_at(options, "allowReexecution", false) {

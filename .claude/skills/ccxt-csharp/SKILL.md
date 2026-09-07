@@ -1016,17 +1016,15 @@ var report = await router.Execute(plan, venues, new Dictionary<string, object> {
 });
 ```
 
-A live `execute` requires an identity and refuses without one: identity + step index derives each
-order's `clientOrderId`, so the same plan sent twice re-sends ids the venue has already seen and is
-rejected as a duplicate rather than filled again, and the identity is remembered in-process so a
-second `execute` of the same plan is refused before any venue is contacted. Supply it as the plan's
-`requestId` or as the options' `idempotencyKey`.
+A live `execute` requires an identity and refuses without one: the identity is remembered in-process
+so a second `execute` of the same plan is refused before any venue is contacted. Supply it as the
+plan's `requestId` or as the options' `idempotencyKey`. `execute` never sets a `clientOrderId` of its
+own: each exchange's `CreateOrder` keeps sending whatever identifier it generates internally, and a
+`clientOrderId` you put in the options' `orderParams` travels untouched (to every step alike).
 
 Make it stable and tied to the intent (a strategy name plus the signal's timestamp). A fresh value
-per call — a wall-clock timestamp and friends — turns both protections off while looking like it
-has them on. To re-run deliberately, pass `allowReexecution`; that clears the in-process guard only,
-and the deterministic client order ids still stand. Client order ids are not honoured by every
-venue, so neither half substitutes for the other.
+per call — a wall-clock timestamp and friends — turns the guard off while looking like it is on. To
+re-run deliberately, pass `allowReexecution`. The guard does not survive a restart.
 
 `checkExecutionPlanSafety` is worth running on a hand-written plan first: it checks every step
 against that venue's real market rules — minimum amount, minimum cost, precision — which is where a

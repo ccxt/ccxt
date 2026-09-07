@@ -370,10 +370,9 @@ func TestOrderRouterFixtureFeeNetting(t *testing.T) {
 //  invariants, asserted directly rather than through the fixture
 //  ---------------------------------------------------------------------------
 
-// every route the invariant tests build gets its own requestId: Execute derives both the
-// re-execution guard key and the per-step client order ids from it, and refuses a live plan
-// that carries neither a requestId nor an idempotencyKey. A counter, not a random value — the
-// ids stay reproducible.
+// every route the invariant tests build gets its own requestId: Execute derives the
+// re-execution guard key from it, and refuses a live plan that carries neither a requestId
+// nor an idempotencyKey. A counter, not a random value — the ids stay reproducible.
 var routerTestRequestIdCounter int64
 
 func routerNextTestRequestId() string {
@@ -884,6 +883,12 @@ func (this *orderRouterStubVenue) CreateOrder(symbol string, typeVar string, sid
 	}
 	cost := filled * average
 	order := Order{Id: &id, Status: &status, Filled: &filled, Average: &average, Cost: &cost}
+	if value, ok := seen["clientOrderId"]; ok {
+		// a real venue echoes the client order id it was given
+		if text, isText := value.(string); isText {
+			order.ClientOrderId = &text
+		}
+	}
 	if this.feeToCharge.Currency != nil {
 		order.Fee = this.feeToCharge
 	}
@@ -1966,8 +1971,8 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 	if routerStringAt(keyed["steps"].([]map[string]any)[0], "status", "") != "filled" {
 		t.Fatal("and the plan executes")
 	}
-	if routerStringAt(supplied.paramsSeen[0], "clientOrderId", "") != "hand-built-1-0" {
-		t.Fatalf("the client order id is seeded from it, got %v", supplied.paramsSeen[0])
+	if _, present := supplied.paramsSeen[0]["clientOrderId"]; present {
+		t.Fatalf("no client order id is injected, got %v", supplied.paramsSeen[0])
 	}
 	// and the guard keys off it, exactly as it does off a requestId
 	again := newOrderRouterStubVenue(1, false)
@@ -1986,55 +1991,59 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 	if routerStringAt(report, "planId", "") != "override-1" {
 		t.Fatalf("the option overrides the requestId, got %v", report["planId"])
 	}
-	if routerStringAt(overridden.paramsSeen[0], "clientOrderId", "") != "override-1-0" {
-		t.Fatalf("and seeds the client order id, got %v", overridden.paramsSeen[0])
+	if _, present := overridden.paramsSeen[0]["clientOrderId"]; present {
+		t.Fatalf("and no client order id is injected, got %v", overridden.paramsSeen[0])
 	}
 }
 
-func TestOrderRouterDeterministicClientOrderIds(t *testing.T) {
+func TestOrderRouterClientOrderIdIsNeverInjected(t *testing.T) {
 	router := routerTestRouter(t)
 	route := routerTwoHopRoute()
 	route["requestId"] = "fixed-req"
 	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
-	venue := newOrderRouterStubVenue(1, false)
-	// a caller-supplied clientOrderId must NOT win: one id reused across every step of a
-	// plan is worse than none at all
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
-		"strategy":    "sequential",
-		"live":        true,
-		"usdRates":    map[string]any{"USDT": 1.0},
-		"orderParams": map[string]any{"clientOrderId": "caller-supplied", "reduceOnly": true},
-	})
+	// by default nothing is injected: each exchange's CreateOrder sends whatever identifier
+	// it generates on its own
+	bare := newOrderRouterStubVenue(1, false)
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": bare}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
 	if routerStringAt(report, "planId", "") != "fixed-req" {
 		t.Fatalf("the report names the plan identity, got %v", report["planId"])
 	}
-	if len(venue.paramsSeen) != 2 {
-		t.Fatalf("expected two orders, got %d", len(venue.paramsSeen))
+	if len(bare.paramsSeen) != 2 {
+		t.Fatalf("expected two orders, got %d", len(bare.paramsSeen))
 	}
-	if routerStringAt(venue.paramsSeen[0], "clientOrderId", "") != "fixed-req-0" ||
-		routerStringAt(venue.paramsSeen[1], "clientOrderId", "") != "fixed-req-1" {
-		t.Fatalf("every step carries its own deterministic id, got %v", venue.paramsSeen)
+	for i := 0; i < 2; i++ {
+		if _, present := bare.paramsSeen[i]["clientOrderId"]; present {
+			t.Fatalf("no client order id is forced onto the order, got %v", bare.paramsSeen[i])
+		}
+	}
+	results := report["steps"].([]map[string]any)
+	if routerStringAt(results[0], "clientOrderId", "") != "" {
+		t.Fatal("the report carries what the venue reported, which is nothing")
+	}
+	// a caller-supplied clientOrderId is forwarded as-is, alongside the caller's other params
+	second := routerTestRouter(t)
+	venue := newOrderRouterStubVenue(1, false)
+	supplied, err := second.Execute(routerMustPlan(second.BuildExecutionPlan(route, nil)), routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
+		"strategy":    "sequential",
+		"live":        true,
+		"usdRates":    map[string]any{"USDT": 1.0},
+		"orderParams": map[string]any{"clientOrderId": "caller-supplied", "reduceOnly": true},
+	})
+	if err != nil {
+		t.Fatalf("execute with orderParams: %v", err)
+	}
+	if routerStringAt(venue.paramsSeen[0], "clientOrderId", "") != "caller-supplied" ||
+		routerStringAt(venue.paramsSeen[1], "clientOrderId", "") != "caller-supplied" {
+		t.Fatalf("the caller's id travels untouched on every step, got %v", venue.paramsSeen)
 	}
 	if venue.paramsSeen[0]["reduceOnly"] != true {
 		t.Fatal("the caller's other params still travel")
 	}
-	results := report["steps"].([]map[string]any)
-	if routerStringAt(results[0], "clientOrderId", "") != "fixed-req-0" ||
-		routerStringAt(results[1], "clientOrderId", "") != "fixed-req-1" {
-		t.Fatal("and the report says what was sent")
-	}
-	// DETERMINISTIC: another instance, another day, the same plan — the same ids, which is
-	// the whole point. A random id would be rejected by nothing.
-	second := routerTestRouter(t)
-	other := newOrderRouterStubVenue(1, false)
-	if _, err := second.Execute(routerMustPlan(second.BuildExecutionPlan(route, nil)), routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}}); err != nil {
-		t.Fatalf("second instance: %v", err)
-	}
-	if routerStringAt(other.paramsSeen[0], "clientOrderId", "") != "fixed-req-0" {
-		t.Fatalf("a second instance sends the same id, got %v", other.paramsSeen[0])
+	if routerStringAt(supplied["steps"].([]map[string]any)[0], "clientOrderId", "") != "caller-supplied" {
+		t.Fatal("and the report says what the venue recorded")
 	}
 }
 

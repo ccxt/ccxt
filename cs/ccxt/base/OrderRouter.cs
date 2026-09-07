@@ -142,8 +142,9 @@ public class OrderRouter
     //  is therefore "recent duplicates are refused", not "duplicates are impossible". A
     //  process that needs the strong promise across restarts or beyond this window needs
     //  the durable ledger the Known gaps entry calls for; until then, callers whose plans
-    //  must never re-execute should key idempotency at the venue (the deterministic
-    //  clientOrderId every step already carries) rather than rely on this instance's memory.
+    //  must never re-execute should key idempotency at the venue themselves (a clientOrderId
+    //  passed in options orderParams, on venues that honour one) rather than rely on this
+    //  instance's memory.
     public const int MaxExecutedPlanIds = 1024;
 
     //  relative tolerance for float comparisons; also the tolerance the six
@@ -1791,15 +1792,15 @@ public class OrderRouter
     //  -----------------------------------------------------------------------
 
     /// <summary>
-    /// The stable identity of an execution, used both for the re-execution guard
-    /// and for the per-step client order ids. A caller-supplied idempotencyKey
-    /// WINS over the plan's own requestId: passing one is a deliberate statement
+    /// The stable identity of an execution, used for the re-execution guard. A
+    /// caller-supplied idempotencyKey WINS over the plan's own requestId: passing
+    /// one is a deliberate statement
     /// about what this execution is, and it is the only identity a hand-assembled
     /// plan can have — Execute takes any dictionary of the plan shape, not only the
     /// output of BuildExecutionPlan, and a plan a user built themselves never went
     /// through a routing request and so never had a requestId. Nothing is invented
     /// when both are absent: a generated identity would be either random, which
-    /// defeats both mechanisms that depend on it, or a fingerprint of the plan's
+    /// defeats the guard that depends on it, or a fingerprint of the plan's
     /// contents, which makes two plans that happen to agree indistinguishable.
     /// </summary>
     public string PlanIdentity(dict plan, dict options)
@@ -1810,16 +1811,6 @@ public class OrderRouter
             return idempotencyKey;
         }
         return this.StringAt(plan, "requestId", "");
-    }
-
-    /// <summary>
-    /// Derives the deterministic client order id for one step, so that a second
-    /// run of the same plan re-sends ids the venue has already seen and is
-    /// rejected as a duplicate instead of filled.
-    /// </summary>
-    public string ClientOrderIdFor(string planId, double stepIndex)
-    {
-        return planId + "-" + this.FormatNumber(stepIndex);
     }
 
     /// <summary>
@@ -1873,8 +1864,8 @@ public class OrderRouter
     /// be enforced without it), allowMarketOrders, maxOrders,
     /// acknowledgeDispersion, orderTimeoutMs, pollIntervalMs, orderParams,
     /// idempotencyKey (the identity of this execution, required when the plan
-    /// carries no requestId; it keys the re-execution guard and seeds the per-step
-    /// client order ids, and OVERRIDES the plan's requestId when both are given)
+    /// carries no requestId; it keys the re-execution guard, and OVERRIDES the
+    /// plan's requestId when both are given)
     /// and allowReexecution (must be exactly true to run a plan this instance has
     /// already executed live; the DEFAULT is refusal).
     /// </param>
@@ -1937,9 +1928,8 @@ public class OrderRouter
         //  this line and never consumes a plan, because a rehearsal places nothing.
         if (planId == "")
         {
-            //  no identity means no idempotency: neither the ledger below nor the
-            //  per-step client order ids can be derived, so a re-run of this plan would
-            //  be indistinguishable from a first run all the way down to the venue.
+            //  no identity means no idempotency: the ledger below cannot key on it, so a
+            //  re-run of this plan would be indistinguishable from a first run.
             throw new BadRequest("OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey");
         }
         if (!this.IsExactlyTrue(options, "allowReexecution"))
@@ -2404,15 +2394,12 @@ public class OrderRouter
             {
                 orderParams[entry.Key] = entry.Value;
             }
-            //  IDEMPOTENCY, half two: a client order id derived from the plan's own
-            //  identity and this step's index. Deterministic, so a second run of the same
-            //  plan re-sends an id the venue has already seen and is rejected as a
-            //  duplicate rather than filled. It is set AFTER the caller's orderParams are
-            //  copied and deliberately overrides a clientOrderId found there: one id
-            //  reused across every step of a plan is worse than none at all.
-            var clientOrderId = this.ClientOrderIdFor(this.StringAt(report, "planId", ""), stepIndex);
-            orderParams["clientOrderId"] = clientOrderId;
-            result["clientOrderId"] = clientOrderId;
+            //  No clientOrderId is set here. Whatever the caller put in options orderParams
+            //  travels as-is, and each exchange's CreateOrder keeps sending whatever
+            //  identifier it generates on its own; the id the venue reports back is
+            //  recorded on the result once the order returns. (An id derived from the plan
+            //  identity used to be forced onto every step, but venues disagree on its
+            //  length and charset, so it was rejected exactly where it mattered.)
             dict order = null;
             if (strategy == "limit_protected")
             {
@@ -2423,6 +2410,7 @@ public class OrderRouter
                 order = await this.PlaceImmediateOrder(venue, symbol, side, amount, price, orderParams, options, result);
             }
             result["orderId"] = this.StringAt(order, "id", "");
+            result["clientOrderId"] = this.StringAt(order, "clientOrderId", "");
             //  "the venue said zero" and "the venue said nothing" are different facts that used to
             //  produce the same number: a venue omitting filled yielded 0, reconciliation read that
             //  as nothing_filled and halted the route while a real position existed.
@@ -2750,6 +2738,8 @@ public class OrderRouter
     {
         var mapped = new dict();
         mapped["id"] = order.id;
+        //  the id the venue recorded for the order, so the report can say what it actually carries
+        mapped["clientOrderId"] = order.clientOrderId;
         mapped["status"] = order.status;
         mapped["filled"] = order.filled;
         mapped["average"] = order.average;
