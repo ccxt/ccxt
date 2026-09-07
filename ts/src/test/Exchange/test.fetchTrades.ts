@@ -70,7 +70,7 @@ async function testFetchTradesSideSequenceHelper (exchange: Exchange, skippedPro
     //   every exchange (see the `timestampSort` skip), so scan a locally-sorted copy instead of
     //   relying on the order `trades` was actually returned in
     //
-    const sortedTrades = exchange.sortBy (trades.slice (), 'timestamp');
+    const sortedTrades = exchange.sortBy (trades, 'timestamp');
     let lastTs = undefined;
     let lastPrice = undefined;
     let lastSide = undefined;
