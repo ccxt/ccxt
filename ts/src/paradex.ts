@@ -1110,7 +1110,7 @@ export default class paradex extends Exchange {
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         const rate = this.safeString (contract, 'funding_rate');
-        const funds = market['swap'] && (rate !== undefined) && (rate !== '');
+        const funds = (market['swap'] === true) && (rate !== undefined) && (rate !== '');
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
