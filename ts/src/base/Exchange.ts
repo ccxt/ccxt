@@ -192,7 +192,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.77';
+    static ccxtVersion = '4.5.78';
 
     options: Dict;
 
