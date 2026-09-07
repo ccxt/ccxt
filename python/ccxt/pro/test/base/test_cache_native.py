@@ -426,7 +426,87 @@ def test_eviction_drops_the_empty_outer_bucket():
     assert sorted(list(multi.hashmap['BTC/USDT'].keys())) == ['1', '3']
 
 
+def test_slices_match_lists():
+    # Exercise forward/reverse/strided slices against Python's own list rules,
+    # including clipped bounds, empty caches and steps larger than Py_ssize_t.
+    for size in (0, 1, 2, 9, 100, 257):
+        cache = ArrayCache()
+        rows = [{'symbol': 'BTC/USDT', 'i': i} for i in range(size)]
+        for row in rows:
+            cache.append(row)
+        bounds = (None, -size - 1, -size, -2, -1, 0, 1, 2, size - 1, size, size + 1)
+        for start in bounds:
+            for stop in bounds:
+                for step in (None, 1, 2, 3, -1, -2, -3, 10**30, -10**30):
+                    selection = slice(start, stop, step)
+                    expected = rows[selection]
+                    actual = cache[selection]
+                    assert type(actual) is list
+                    assert actual == expected, (size, selection)
+                    assert all(a is b for a, b in zip(actual, expected))
+        try:
+            cache[::0]
+            assert False, 'a zero slice step must raise'
+        except ValueError:
+            pass
+        snapshot = cache[:]
+        snapshot.clear()
+        assert len(cache) == size
+
+
+def test_repeated_tail_updates():
+    for cache, first, second in (
+        (ArrayCacheBySymbolById(3), 'symbol', 'id'),
+        (ArrayCacheByOutcomeById(3), 'outcome', 'id'),
+        (ArrayCacheBySymbolBySide(), 'symbol', 'side'),
+    ):
+        rows = [{first: 'A', second: str(i), 'retained': i} for i in range(3)]
+        for row in rows:
+            cache.append(row)
+        assert cache.get_limit('A', None) == 3
+        assert cache.get_limit(None, None) == 3
+        for i in range(5):
+            cache.append({first: 'A', second: '2', 'updated': i})
+            assert list(cache) == rows
+            assert cache[-1] is rows[-1]
+            assert cache[-1]['retained'] == 2
+            assert cache[-1]['updated'] == i
+            assert len(cache._index) == 3
+        assert cache.get_limit('A', None) == 1
+        assert cache.get_limit(None, None) == 1
+        # Move the middle row, then repeat it at the tail. The private index
+        # must stay aligned through both paths and through the next eviction.
+        cache.append({first: 'A', second: '1', 'updated': 6})
+        cache.append({first: 'A', second: '1', 'updated': 7})
+        assert [row[second] for row in cache] == ['0', '2', '1']
+        assert cache[-1] is rows[1]
+        cache.append({first: 'B', second: '3'})
+        expected = ['0', '2', '1', '3'] if second == 'side' else ['2', '1', '3']
+        assert [row[second] for row in cache] == expected
+        assert len(cache._index) == len(cache)
+        cache.clear()
+        cache.append({first: 'A', second: '1'})
+        cache.append({first: 'A', second: '1', 'updated': 8})
+        assert len(cache) == 1
+        assert cache[0]['updated'] == 8
+        # The inherited pop can desynchronize the deque from its private
+        # index. Preserve the previous index error, rather than removing a
+        # different row through a negative index.
+        cache.clear()
+        for row in rows:
+            cache.append(row)
+        cache.pop()
+        try:
+            cache.append({first: 'A', second: '2'})
+            assert False, 'a stale positional index must still raise'
+        except IndexError:
+            pass
+        assert [row[second] for row in cache] == ['0', '1']
+
+
 def test_ws_cache_python_regressions():
+    test_slices_match_lists()
+    test_repeated_tail_updates()
     test_max_size_zero_is_unbounded()
     test_index_token_does_not_collide_across_the_field_boundary()
     test_numeric_id_does_not_raise()

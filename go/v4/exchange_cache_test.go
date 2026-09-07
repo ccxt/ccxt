@@ -2,6 +2,40 @@ package ccxt
 
 import "testing"
 
+func TestArrayCacheUpdateScanUsesRawKeys(t *testing.T) {
+	cache := NewArrayCacheBySymbolById(3)
+	first := map[string]any{"symbol": "A", "id": 1, "retained": true}
+	cache.Append(first)
+	cache.Append(map[string]any{"symbol": "B", "id": 1})
+	cache.Append(map[string]any{"symbol": "A", "id": "2"})
+	// The bucket normalizes ids to strings, but the row scan compares raw
+	// values after merging. Hoisting must not substitute the normalized id.
+	cache.Append(map[string]any{"symbol": "A", "id": "1", "updated": 1})
+	cache.Append(map[string]any{"symbol": "A", "id": "1", "updated": 2})
+	rows := cache.ToArray()
+	if len(rows) != 3 || rows[0].(map[string]any)["symbol"] != "B" || rows[1].(map[string]any)["id"] != "2" {
+		t.Fatalf("update changed order or evicted a row: %v", rows)
+	}
+	if first["updated"] != 2 || rows[2].(map[string]any)["retained"] != true {
+		t.Fatal("update must merge into the stored map")
+	}
+	if cache.GetLimit(nil, nil) != 3 || cache.GetLimit("A", nil) != 2 {
+		t.Fatal("updates must count distinct keys independently")
+	}
+}
+
+func BenchmarkArrayCacheRepeatedTail(b *testing.B) {
+	cache := NewArrayCacheBySymbolById(1000)
+	for i := 0; i < 1000; i++ {
+		cache.Append(map[string]any{"symbol": "A", "id": i})
+	}
+	update := map[string]any{"symbol": "A", "id": 999, "updated": true}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cache.Append(update)
+	}
+}
+
 // Pins the Cache.ts counter split (#29869 / kroitor on #29895):
 // newUpdatesBySymbol is an int count; seenUpdatesBySymbol holds distinct ids/sides.
 // GetLimit reads the int. Do not call GetLimit in the middle of a window you still

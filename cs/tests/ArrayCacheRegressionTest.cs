@@ -52,6 +52,8 @@ public partial class BaseTest
         testArrayCacheBySymbolByIdMutatesStoredReference();
         testArrayCacheBySymbolBySideMutatesStoredReference();
         testArrayCacheBySymbolByIdSharedHashmap();
+        testArrayCacheKeyScanPreservesConversions();
+        testArrayCacheStringKeyFallbacks();
     }
 
     // 1. THE CRITICAL ONE. ArrayCacheByTimestamp(3) fed 10 distinct timestamps
@@ -312,6 +314,62 @@ public partial class BaseTest
         var bySide = new ArrayCacheBySymbolBySide();
         bySide.append(new Dictionary<string, object>() { { "symbol", "BTC/USDT" }, { "side", "long" }, { "contracts", 1 } });
         Assert((bySide as ArrayCache).hashmap.ContainsKey("BTC/USDT"), "ArrayCacheBySymbolBySide must populate the base ArrayCache.hashmap too");
+    }
+
+    private void testArrayCacheKeyScanPreservesConversions()
+    {
+        foreach (var variant in new[] { "id", "outcome", "side" })
+        {
+            ArrayCache cache = variant == "side" ? new ArrayCacheBySymbolBySide() :
+                variant == "outcome" ? new ArrayCacheByOutcomeById(3) : new ArrayCacheBySymbolById(3);
+            var keyField = variant == "outcome" ? "outcome" : "symbol";
+            var subKey = variant == "side" ? "side" : "id";
+            var numeric = new Dictionary<string, object> { { keyField, "A" }, { subKey, 1 }, { "retained", true } };
+            var other = new Dictionary<string, object> { { keyField, "B" }, { subKey, "1" } };
+            var tail = new Dictionary<string, object> { { keyField, "A" }, { subKey, "2" } };
+            cache.append(numeric);
+            cache.append(other);
+            cache.append(tail);
+            // Incoming numeric keys must retain SafeString's conversion rules.
+            cache.append(new Dictionary<string, object> { { keyField, "B" }, { subKey, 1 }, { "updated", 1 } });
+            Assert(object.ReferenceEquals(cache[0], numeric) && object.ReferenceEquals(cache[1], tail), "scan must match both fields and preserve order");
+            Assert(object.ReferenceEquals(cache[2], other), "numeric update must keep the stored reference");
+            cache.append(new Dictionary<string, object> { { keyField, "A" }, { subKey, "1" }, { "updated", 2 } });
+            cache.append(new Dictionary<string, object> { { keyField, "A" }, { subKey, "1" }, { "updated", 3 } });
+            Assert(cache.Count == 3 && object.ReferenceEquals(cache[2], numeric), "repeated tail update must not evict or duplicate");
+            Assert((bool)numeric["retained"] && (int)numeric["updated"] == 3, "partial updates must keep fields and references");
+            Assert(Convert.ToInt32(cache.getLimit(null, null)) == 3 && Convert.ToInt32(cache.getLimit("A", null)) == 2, "scan optimization must preserve update scopes");
+        }
+    }
+
+    private sealed class CacheKeyProbe : ArrayCache
+    {
+        public static string ReadKey(object row, string field) => cacheStringKey(row, field);
+    }
+
+    private sealed class DerivedCacheRow : Dictionary<string, object> { }
+
+    private void testArrayCacheStringKeyFallbacks()
+    {
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("fr-FR");
+            foreach (var value in new object[] { "1", "", null, 1, 1L, 1.5, 1.5m, 1.5f, true, new object() })
+            {
+                var row = new Dictionary<string, object> { { "id", value } };
+                foreach (var shape in new object[] { row, new System.Collections.ObjectModel.ReadOnlyDictionary<string, object>(row), new DerivedCacheRow { { "id", value } } })
+                {
+                    Assert(CacheKeyProbe.ReadKey(shape, "id") == ccxt.Exchange.SafeString(shape, "id"), "cache key conversion must match SafeString for " + shape.GetType() + "/" + value);
+                    Assert(CacheKeyProbe.ReadKey(shape, "missing") == null, "missing fields must retain the null fallback");
+                }
+            }
+            Assert(CacheKeyProbe.ReadKey(null, "id") == null, "null rows must retain the null fallback");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = previousCulture;
+        }
     }
 
     private static object cache_get(object row, string key)

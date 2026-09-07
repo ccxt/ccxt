@@ -393,7 +393,56 @@ function test_php_consume_resets_the_seen_set() {
 
 // ----------------------------------------------------------------------------
 
+function test_php_repeated_tail_updates() {
+    foreach (array(
+        array(new ArrayCacheBySymbolById(3), 'symbol', 'id'),
+        array(new ArrayCacheByOutcomeById(3), 'outcome', 'id'),
+        array(new ArrayCacheBySymbolBySide(), 'symbol', 'side'),
+    ) as $variant) {
+        list($cache, $first, $second) = $variant;
+        for ($i = 0; $i < 3; $i++) {
+            $cache->append(array($first => 'A', $second => strval($i), 'retained' => $i));
+        }
+        $reference = &$cache[2];
+        check($cache->getLimit('A', null) === 3, 'initial symbol count');
+        check($cache->getLimit(null, null) === 3, 'initial global count');
+        for ($i = 0; $i < 5; $i++) {
+            $cache->append(array($first => 'A', $second => '2', 'updated' => $i));
+            check(count($cache) === 3, 'tail update keeps size');
+            check(array_column($cache->deque, $second) === array('0', '1', '2'), 'tail update keeps order');
+            check($reference['updated'] === $i && $reference['retained'] === 2, 'tail update keeps references and unmentioned fields');
+            check(array_keys($cache->deque) === array(0, 1, 2), 'deque remains a list');
+            check(iterator_to_array($cache) === $cache->deque, 'iteration agrees with indexed access');
+            check(json_decode(json_encode($cache), true) === $cache->deque, 'JSON remains an array');
+        }
+        check($cache->getLimit('A', null) === 1, 'repeated tail counts once per symbol');
+        check($cache->getLimit(null, null) === 1, 'repeated tail counts once globally');
+        $cache->append(array($first => 'A', $second => '1', 'updated' => 6));
+        $cache->append(array($first => 'A', $second => '1', 'updated' => 7));
+        check(array_column($cache->deque, $second) === array('0', '2', '1'), 'middle and tail paths agree');
+        $cache->append(array($first => 'B', $second => '3'));
+        $expected = ($second === 'side') ? array('0', '2', '1', '3') : array('2', '1', '3');
+        check(array_column($cache->deque, $second) === $expected, 'eviction keeps index aligned');
+        $cache->clear();
+        $cache->append(array($first => 'A', $second => '1'));
+        $cache->append(array($first => 'A', $second => '1', 'updated' => 8));
+        check(count($cache) === 1 && $cache[0]['updated'] === 8, 'clear resets the tail index');
+        unset($reference);
+        // Public ArrayAccess can leave holes. Preserve array_splice's existing
+        // renumbering behavior when the backing array is no longer a list.
+        $cache->clear();
+        for ($i = 0; $i < 3; $i++) {
+            $cache->append(array($first => 'A', $second => strval($i)));
+        }
+        unset($cache[0]);
+        $cache->append(array($first => 'A', $second => '2'));
+        check(array_keys($cache->deque) === array(0, 1, 2), 'sparse deque is renumbered as before');
+        check(array_column($cache->deque, $second) === array('1', '2', '2'), 'sparse deque retains existing splice semantics');
+    }
+}
+
 function test_ws_cache_php() {
+    test_php_repeated_tail_updates();
     test_php_field_wise_merge();
     test_php_two_field_match();
     test_php_strict_index_search();
