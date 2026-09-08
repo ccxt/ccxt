@@ -4218,9 +4218,13 @@ func (this *KucoinCore) HandleErrorMessage(client any, message any) any {
 	//
 	var data any = this.SafeString2(message, "data", "reason", "")
 	if ccxt.IsTrue(ccxt.IsEqual(data, "token is expired")) {
-		var typeVar string = "public"
+		var typeVar any = "public"
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId=private"), 0)) {
 			typeVar = "private"
+		}
+		// Match the negotiation cache key; spot tokens can also contain "Futures".
+		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), ccxt.Add(ccxt.Add("connectId=", typeVar), "Futures")), 0)) {
+			typeVar = ccxt.Add(typeVar, "Futures")
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "urls"), typeVar, nil)
 	}
