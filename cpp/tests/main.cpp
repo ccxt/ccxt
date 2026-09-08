@@ -59,6 +59,8 @@
 #include "Generated/Base/test.urlencode.h"
 #include "Generated/Base/test.urlencodeNested.h"
 #include "Generated/Base/test.urlencodeWithArrayRepeat.h"
+#include "Generated/Base/Ws/test.cache.h"
+#include "Generated/Base/Ws/test.orderBook.h"
 
 #include <exception>
 #include <iostream>
@@ -116,6 +118,8 @@ const std::vector<Case> CORE = {
     { "urlencodeWithArrayRepeat",      testUrlencodeWithArrayRepeat },
     { "rawencode",                     testRawencode },
     { "timeframes",                    testTimeframes },
+    { "wsCache",                       testWsCache },
+    { "wsOrderBook",                   testWsOrderBook },
 };
 
 // Transpiled and compiled by CMake into the tree, but NOT gated yet. Each is blocked on

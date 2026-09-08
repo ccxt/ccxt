@@ -462,9 +462,11 @@ public:
     // -- logging --------------------------------------------------------------------
     virtual std::any log (std::any value);
     virtual std::any aggregate (std::any bidasks);
-    // WS OrderBook factory; the pro layer is a non-goal this iteration, so this
-    // yields a plain container rather than a live, checksum-tracking order book.
+    // WS OrderBook factories (ts/src/base/Exchange.ts orderBook/indexedOrderBook/
+    // countedOrderBook) — return live ws::WsOrderBook handles
     virtual std::any orderBook (std::any snapshot = std::any {}, std::any depth = std::any {});
+    virtual std::any indexedOrderBook (std::any snapshot = std::any {}, std::any depth = std::any {});
+    virtual std::any countedOrderBook (std::any snapshot = std::any {}, std::any depth = std::any {});
     virtual std::any totp (std::any key);
 
     // -- concurrency / cache plumbing -----------------------------------------------
