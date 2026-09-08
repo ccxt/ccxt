@@ -822,7 +822,7 @@ class okx extends \ccxt\async\okx {
         }
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchliquidationsForSymbols', $market, $params);
+        list($type, $params) = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $market, $params);
         $channel = 'liquidation-orders';
         if ($type === 'spot') {
             $type = 'SWAP';
