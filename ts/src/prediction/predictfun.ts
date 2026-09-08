@@ -179,6 +179,15 @@ export default class predictfun extends Exchange {
                 'marketBuyPrice': 0.99,
                 'marketSellPrice': 0.01,
                 'chainId': 56,                  // BNB mainnet, swapped to 97 by setSandboxMode
+                // where approve () broadcasts, and the collateral it approves - both chain scoped
+                'rpcUrls': {
+                    '56': 'https://bsc-dataseed.bnbchain.org/',
+                    '97': 'https://bsc-testnet-dataseed.bnbchain.org/',
+                },
+                'collateral': {
+                    '56': '0x55d398326f99059fF775485246999027B3197955',
+                    '97': '0xB32171ecD878607FFc4F8FC0bCcE6852BB3149E0',
+                },
                 'defaultExpiration': 3600,  // default expiration for limit orders is one hour
                 'marketOrderExpiration': 300,   // market orders are only valid for five minutes
                 // the order's EIP-712 verifying contract, picked by the market's negRisk and
@@ -1590,17 +1599,7 @@ export default class predictfun extends Exchange {
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
         const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
-        const exchanges = this.safeDict (this.options, 'exchanges', {});
-        const byChain = this.safeDict (exchanges, this.numberToString (chainIdValue), {});
-        let identifier = 'CTF_EXCHANGE';
-        if (isNegRisk && isYieldBearing) {
-            identifier = 'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE';
-        } else if (isNegRisk) {
-            identifier = 'NEG_RISK_CTF_EXCHANGE';
-        } else if (isYieldBearing) {
-            identifier = 'YIELD_BEARING_CTF_EXCHANGE';
-        }
-        const verifyingContract = this.safeString (byChain, identifier);
+        const verifyingContract = this.exchangeAddress (isNegRisk, isYieldBearing);
         const domain: Dict = {
             'name': 'predict.fun CTF Exchange',
             'version': '1',
@@ -2406,6 +2405,135 @@ export default class predictfun extends Exchange {
             throw new BadRequest (feedback);
         }
         throw new ExchangeError (feedback);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#exchangeAddress
+     * @description the exchange contract a market settles through, which is what its orders are signed against and what its collateral has to be approved to
+     * @param {bool} isNegRisk whether the market settles through the negative risk exchange
+     * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
+     * @returns {string} the contract address on the active chain
+     */
+    exchangeAddress (isNegRisk: boolean, isYieldBearing: boolean): Str {
+        const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
+        const exchanges = this.safeDict (this.options, 'exchanges', {});
+        const byChain = this.safeDict (exchanges, this.numberToString (chainIdValue), {});
+        let identifier = 'CTF_EXCHANGE';
+        if (isNegRisk && isYieldBearing) {
+            identifier = 'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE';
+        } else if (isNegRisk) {
+            identifier = 'NEG_RISK_CTF_EXCHANGE';
+        } else if (isYieldBearing) {
+            identifier = 'YIELD_BEARING_CTF_EXCHANGE';
+        }
+        return this.safeString (byChain, identifier);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#signEvmTransaction
+     * @description builds and signs an EIP-1559 transaction, returning the raw signed hex
+     * @param {object} tx the transaction fields
+     * @param {string} privateKey the wallet private key
+     * @returns {string} the signed raw transaction
+     */
+    override signEvmTransaction (tx: Dict, privateKey: string): string {
+        const accessList = this.rlpEncodeList ([]);
+        const fields = [
+            this.rlpEncodeBytes (this.intToRlpHex (this.safeInteger (tx, 'chainId'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'nonce'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxPriorityFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'maxFeePerGas'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'gasLimit'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'to'))),
+            this.rlpEncodeBytes (this.hexToRlpBytes (this.safeString (tx, 'value', '0x0'))),
+            this.rlpEncodeBytes (this.remove0xPrefix (this.safeString (tx, 'data', '0x'))),
+            accessList,
+        ];
+        const payload = '02' + this.rlpEncodeList (fields);
+        const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
+        const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
+        let rHex = this.safeString (signature, 'r');
+        let sHex = this.safeString (signature, 's');
+        rHex = this.padHexToEven (rHex);
+        sHex = this.padHexToEven (sHex);
+        const yParity = this.safeInteger (signature, 'v');
+        const signedFields: string[] = [];
+        for (let i = 0; i < fields.length; i++) {
+            signedFields.push (fields[i]);
+        }
+        signedFields.push (this.rlpEncodeBytes (this.intToRlpHex (yParity)));
+        signedFields.push (this.rlpEncodeBytes (rHex));
+        signedFields.push (this.rlpEncodeBytes (sHex));
+        return '0x02' + this.rlpEncodeList (signedFields);
+    }
+
+    /**
+     * @method
+     * @name predictfun#approve
+     * @description sets the on-chain USDT allowance the exchange needs before a wallet can buy - without it every order is refused with create_order_insufficient_collateral_allowance. sends a real transaction signed with the privateKey and waits for the receipt, so the wallet needs BNB for gas
+     * @see https://dev.predict.fun/how-to-create-or-cancel-orders-679306m0
+     * @param {string} [outcome] unified outcome handle, used to pick the exchange its market settles through
+     * @param {object} [params] extra parameters
+     * @param {string} [params.spender] approve this contract instead of resolving it from the outcome
+     * @param {string} [params.token] the collateral token, defaults to USDT on the active chain
+     * @param {float} [params.amount] the allowance in USDT, unlimited when omitted
+     * @param {string} [params.owner] the token holder, defaults to walletAddress or the address of the privateKey
+     * @param {string} [params.rpcUrl] the rpc to broadcast through, defaults to the public endpoint for the chain
+     * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
+     * @returns {object} the transaction receipt
+     */
+    async approve (outcome: Str = undefined, params = {}): Promise<any> {
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the on-chain transaction');
+        }
+        const chainId = this.safeInteger (this.options, 'chainId', 56);
+        const chainKey = this.numberToString (chainId);
+        const rpcUrls = this.safeDict (this.options, 'rpcUrls', {});
+        const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (rpcUrls, chainKey));
+        const collaterals = this.safeDict (this.options, 'collateral', {});
+        const token = this.safeString (params, 'token', this.safeString (collaterals, chainKey));
+        let spender = this.safeString (params, 'spender');
+        if (spender === undefined) {
+            // which of the four exchanges settles a market is a property of the market, so an
+            // allowance granted for one of them buys nothing on the others
+            if (outcome === undefined) {
+                throw new ArgumentsRequired (this.id + ' approve() requires an outcome to resolve the exchange to approve, or an explicit params.spender');
+            }
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            const marketSymbol = this.safeString (outcomeObj, 'market');
+            const marketObj = this.safeDict (this.markets, marketSymbol, {});
+            const marketRow = this.safeDict (marketObj, 'info', {});
+            const isNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
+            const isYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
+            spender = this.exchangeAddress (isNegRisk, isYieldBearing);
+        }
+        if ((rpcUrl === undefined) || (token === undefined) || (spender === undefined)) {
+            throw new ArgumentsRequired (this.id + ' approve() could not resolve the rpcUrl, the token or the spender for chain ' + chainKey);
+        }
+        let owner = this.safeString (params, 'owner', this.walletAddress);
+        if (owner === undefined) {
+            owner = this.ethGetAddressFromPrivateKey (this.privateKey);
+        }
+        const gasLimit = this.safeString (params, 'gasLimit', '0x186a0');
+        let amountHex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        const amount = this.safeString (params, 'amount');
+        if (amount !== undefined) {
+            // the collateral has eighteen decimals, so the scaled amount runs past what a float
+            // can hold - it has to stay a string all the way into the bigint
+            const scaled = Precise.stringMul (amount, '1000000000000000000');
+            const amountInt = this.decimalToPrecision (scaled, TRUNCATE, 0, DECIMAL_PLACES);
+            const amountBase16 = this.intToBase16 (this.convertToBigInt (amountInt));
+            amountHex = amountBase16.padStart (64, '0');
+        }
+        // approve(spender, amount) -> selector 0x095ea7b3
+        const approveData = '0x095ea7b3' + this.padHexAddress (spender) + amountHex;
+        const txHash = await this.sendEvmTransaction (rpcUrl, chainId, owner, token, '0x0', approveData, gasLimit);
+        return await this.waitForTransactionReceipt (rpcUrl, txHash);
     }
 
     /**
