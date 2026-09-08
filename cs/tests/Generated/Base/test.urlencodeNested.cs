@@ -14,7 +14,7 @@ public partial class BaseTest
             });
             // todo: add nulls
             // todo: add key sort (for different langs)
-            object dict2 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict2 = new Dictionary<string, object>() {
                 { "b", new Dictionary<string, object>() {
                     { "c", 2 },
                     { "target", "+&" },

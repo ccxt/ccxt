@@ -2091,7 +2091,7 @@ class weex(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' createOrder() only supports swap markets in sandbox mode')
             return await self.create_spot_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating spot orders
 
@@ -2149,7 +2149,7 @@ class weex(Exchange, ImplicitAPI):
         # timeInForce is passed directly from params
         return self.extend(request, params)
 
-    async def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating contract orders
 

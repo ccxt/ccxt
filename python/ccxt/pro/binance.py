@@ -2385,6 +2385,20 @@ class binance(ccxt.async_support.binance):
             timestamp = self.safe_integer_n(message, ['C', 'E', 'time'])
         market = self.safe_market(marketId, None, None, marketType)
         last = self.safe_string_2(message, 'c', 'price')
+        # A coin-margined stream counts `v` in contracts and puts the
+        # base asset in `q`, one field over from a linear stream, and
+        # `parseTicker` reads the same pair. Only the full ticker
+        # carries `w`, so a miniTicker uses the contract size.
+        baseVolume = self.safe_string(message, 'v')
+        quoteVolume = self.safe_string(message, 'q')
+        if market['inverse'] is True:
+            contracts = baseVolume
+            baseVolume = quoteVolume
+            weightedAverage = self.safe_string(message, 'w')
+            if weightedAverage is None:
+                quoteVolume = Precise.string_mul(contracts, self.safe_string(market, 'contractSize'))
+            else:
+                quoteVolume = Precise.string_mul(baseVolume, weightedAverage)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -2403,8 +2417,8 @@ class binance(ccxt.async_support.binance):
             'change': self.safe_string(message, 'p'),
             'percentage': self.safe_string(message, 'P'),
             'average': None,
-            'baseVolume': self.safe_string(message, 'v'),
-            'quoteVolume': self.safe_string(message, 'q'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': message,
         }, market)
 

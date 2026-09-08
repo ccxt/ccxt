@@ -301,7 +301,7 @@ class btcmarkets extends Exchange {
         ));
     }
 
-    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_with_method(mixed $method, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_with_method(...))($method, $code, $since, $limit, $params);
     }
 
@@ -873,7 +873,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker_2(string $symbol, $params = array()) {
+    public function fetch_ticker_2(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker_2(...))($symbol, $params);
     }
 

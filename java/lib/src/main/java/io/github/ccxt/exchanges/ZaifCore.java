@@ -335,8 +335,8 @@ public class ZaifCore extends ZaifApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "currency_pair");
-        Object name = this.safeString(market, "name");
+        String id = this.safeString(market, "currency_pair");
+        String name = this.safeString(market, "name");
         if (Helpers.isTrue(Helpers.isEqual(name, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing name")) ;
@@ -414,7 +414,7 @@ public class ZaifCore extends ZaifApi
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             Object code = this.safeCurrencyCode(currencyId);
-            Object balance = this.safeString(funds, currencyId);
+            String balance = this.safeString(funds, currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", balance);
             Helpers.addElementToObject(account, "total", balance);
@@ -503,10 +503,10 @@ public class ZaifCore extends ZaifApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
-        Object vwap = this.safeString(ticker, "vwap");
-        Object baseVolume = this.safeString(ticker, "volume");
+        String vwap = this.safeString(ticker, "vwap");
+        String baseVolume = this.safeString(ticker, "volume");
         Object quoteVolume = Precise.stringMul(baseVolume, vwap);
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -586,13 +586,13 @@ public class ZaifCore extends ZaifApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object side = this.safeString(trade, "trade_type");
+        String side = this.safeString(trade, "trade_type");
         side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
         Object timestamp = this.safeTimestamp(trade, "date");
-        Object id = this.safeString2(trade, "id", "tid");
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object marketId = this.safeString(trade, "currency_pair");
+        String id = this.safeString2(trade, "id", "tid");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String marketId = this.safeString(trade, "currency_pair");
         Object symbol = this.safeSymbol(marketId, market, "_");
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -779,14 +779,14 @@ public class ZaifCore extends ZaifApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object side = this.safeString(order, "action");
+        String side = this.safeString(order, "action");
         side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
         Object timestamp = this.safeTimestamp(order, "timestamp");
-        Object marketId = this.safeString(order, "currency_pair");
+        String marketId = this.safeString(order, "currency_pair");
         Object symbol = this.safeSymbol(marketId, market, "_");
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "amount");
-        Object id = this.safeString2(order, "id", "order_id");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "amount");
+        String id = this.safeString2(order, "id", "order_id");
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1074,7 +1074,7 @@ public class ZaifCore extends ZaifApi
         //     {"error": "unsupported currency_pair"}
         //
         Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-        Object error = this.safeString(response, "error");
+        String error = this.safeString(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);

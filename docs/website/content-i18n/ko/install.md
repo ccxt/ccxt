@@ -210,7 +210,7 @@ tokio = { version = "1", features = ["full"] }
 
 `ccxt`에는 REST 거래소가, `ccxt-pro`에는 WebSocket(`watch*`) 거래소가 들어 있으며 스트리밍이 필요할 때만 추가하면 됩니다. 둘 다 비동기이며 Tokio 런타임이 필요합니다.
 
-```Rust
+```rust
 use ccxt::{Binance, Params};
 
 let mut exchange = Binance::new(None);

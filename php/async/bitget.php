@@ -1944,7 +1944,7 @@ class bitget extends Exchange {
             // use the api to determine if the account is $uta or not
             $accountIsUTa = false;
             try {
-                Async\await($this->privateUtaGetV3AccountSettings($params));
+                Async\await($this->privateUtaGetV3AccountSettings());
                 $accountIsUTa = true;
             } catch (Exception $e) {
                 $accountIsUTa = false;
@@ -5886,7 +5886,7 @@ class bitget extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_uta_orders(array $orders, $params = array()) {
+    public function create_uta_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_uta_orders(...))($orders, $params);
     }
 
@@ -6464,7 +6464,7 @@ class bitget extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_uta_orders(...))($ids, $symbol, $params);
     }
 
@@ -7714,7 +7714,7 @@ class bitget extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_uta_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
     }
 

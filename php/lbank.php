@@ -1914,7 +1914,7 @@ class lbank extends Exchange {
         return $this->fetch_order_default($id, $symbol, $params);
     }
 
-    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()): array {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -1952,7 +1952,7 @@ class lbank extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()): array {
         // Id can be a list of ids delimited by a comma
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');

@@ -679,7 +679,7 @@ func (this *WeexCore) HandleTrade(client any, message any) {
 		var trade any = this.ParseWsTrade(rawTrade, market)
 		ccxt.AppendToArray(&newTrades, trade)
 	}
-	var sorted any = this.SortBy(newTrades, "timestamp")
+	var sorted []any = this.SortBy(newTrades, "timestamp")
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(sorted)); j++ {
 		var sortedTrade any = ccxt.GetValue(sorted, j)
 		tradesArray.(ccxt.Appender).Append(sortedTrade)

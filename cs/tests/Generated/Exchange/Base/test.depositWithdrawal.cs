@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testDepositWithdrawal(BaseExchange exchange, object skippedProperties, object method, object entry, object requestedCode, object now)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "id", "1234" },
             { "txid", "0x1345FEG45EAEF7" },
@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
             { "updated", 1502962946233 },
             { "fee", new Dictionary<string, object>() {} },
         };
-        object emptyAllowedFor = new List<object>() {"address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom"}; // below we still do assertion for to/from
+        List<object> emptyAllowedFor = new List<object>() {"address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom"}; // below we still do assertion for to/from
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "currency"), requestedCode);

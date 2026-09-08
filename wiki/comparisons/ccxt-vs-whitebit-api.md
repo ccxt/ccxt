@@ -12,7 +12,7 @@ The question that decides between them: **is WhiteBIT the only venue you will ev
 
 ## TL;DR
 
-- **Pick the official WhiteBIT SDKs** if WhiteBIT is your only venue, you want request and response shapes named exactly as `docs.whitebit.com` names them, or you work in a language CCXT does not target — Rust, Kotlin, Ruby, Swift and C++ all appear in WhiteBIT's own examples.
+- **Pick the official WhiteBIT SDKs** if WhiteBIT is your only venue, you want request and response shapes named exactly as `docs.whitebit.com` names them, or you work in a language CCXT does not target — Kotlin, Ruby, Swift and C++ all appear in WhiteBIT's own examples.
 - **Pick CCXT** if you want WhiteBIT alongside other exchanges under one API, spot, margin and futures in one client, unified errors, and a rate limiter and nonce handler you did not write.
 - **CCXT is not a lowest common denominator.** All 111 WhiteBIT endpoints are generated as [implicit methods](/docs/exchanges/whitebit/implicit-api), signed and rate-limited like the unified ones.
 
@@ -21,7 +21,7 @@ The question that decides between them: **is WhiteBIT the only venue you will ev
 | | **CCXT** | **Official WhiteBIT SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (WhiteBIT is one of them) | WhiteBIT only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, PHP, TypeScript, Rust — separate codebases; examples in 14 languages |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Go, PHP, TypeScript, Rust — separate codebases; examples in 14 languages |
 | Install | `pip install ccxt` / `npm i ccxt` | `pip install whitebit-python-sdk` and the per-language equivalents |
 | Products in one client | spot, margin and futures | spot, collateral trading and account management in the Python SDK |
 | Unified market data + trading API | yes — same method names on every exchange | no — WhiteBIT's own request and response shapes |
@@ -181,9 +181,9 @@ price = exchange.price_to_precision('BTC/USDT', 95123.456789)
 
 CCXT maps WhiteBIT's error payloads onto a [typed exception tree](/docs/manual#error-handling) — `InsufficientFunds`, `InvalidOrder`, `OrderNotFound`, `RateLimitExceeded`, `AuthenticationError`, `InvalidNonce`, `NetworkError` and 34 more, all descending from `BaseError`. `InvalidNonce` in particular is worth having as its own type here, because it is the failure you will actually hit while getting concurrency right.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures.
 
 <!-- tabs:start -->
 
@@ -226,7 +226,7 @@ ticker, err := exchange.FetchTicker("BTC/USDT")
 
 <!-- tabs:end -->
 
-WhiteBIT's SDKs cover Python, Go, PHP, TypeScript and Rust, but as separate codebases with separate idioms and separate coverage — not one API expressed seven ways.
+WhiteBIT's SDKs cover Python, Go, PHP, TypeScript and Rust, but as separate codebases with separate idioms and separate coverage — not one API expressed eight ways.
 
 ### Nothing is hidden — the implicit API
 
@@ -236,14 +236,14 @@ Alongside the 67 unified capabilities, **all 111 WhiteBIT endpoints are generate
 
 An honest list, and this venue has more genuine concessions than most:
 
-- **A Rust SDK, and CCXT has no Rust binding.** [`whitebit-exchange/rust-sdk`](https://github.com/whitebit-exchange/rust-sdk) exists; CCXT targets seven languages and Rust is not one of them. If your execution service is Rust, this is decisive.
-- **The `api-quickstart` repository covers fourteen languages.** Python, PHP, JavaScript, TypeScript, Node.js, Bun, Go, Java, Kotlin, .NET, Ruby, C++, Swift and Google Apps Script. Several of those are languages CCXT does not target at all. If you are writing in Kotlin or Swift, WhiteBIT's own example is your fastest path.
+- **A Rust SDK written as Rust.** [`whitebit-exchange/rust-sdk`](https://github.com/whitebit-exchange/rust-sdk) is first-party and idiomatic to the language. CCXT reaches Rust as well, but through a crate generated from its TypeScript source, so it carries CCXT's vocabulary rather than the venue's.
+- **The `api-quickstart` repository covers fourteen languages.** Python, PHP, JavaScript, TypeScript, Node.js, Bun, Go, Java, Kotlin, .NET, Ruby, C++, Swift and Google Apps Script. Kotlin, Ruby, C++, Swift and Google Apps Script are outside CCXT's eight targets entirely. If you are writing in one of those, WhiteBIT's own example is your fastest path.
 - **Collateral trading is modelled in WhiteBIT's own vocabulary.** The Python SDK exposes collateral positions and OCO orders with WhiteBIT's field names. CCXT unifies what is common across venues; a product surface specific to one exchange reaches you through the implicit API rather than a unified wrapper.
 - **First-party tooling beyond the SDKs.** A CLI, a Homebrew tap and an MCP server all come from the same organisation and track the same API.
 - **Field names match the docs.** When you are reading `docs.whitebit.com` while debugging, the SDK's payload lines up field for field. A unified structure is one hop of indirection away.
 - **A smaller install if you only need one exchange.** One SDK covering one venue is a smaller dependency than a library covering 104.
 
-If WhiteBIT is your only venue — and especially if you are writing in Rust, Kotlin or Swift — the official SDKs are the better choice.
+If WhiteBIT is your only venue — and especially if you are writing in Kotlin, Ruby or Swift — the official SDKs are the better choice.
 
 ## Migrating from the WhiteBIT SDK to CCXT
 

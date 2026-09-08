@@ -1180,7 +1180,7 @@ func (this *Bitfinex) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Bitfinex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bitfinex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bitfinex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bitfinex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1216,7 +1216,7 @@ func (this *Bitfinex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, er
 func (this *Bitfinex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bitfinex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bitfinex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bitfinex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

@@ -3622,7 +3622,6 @@ class htx extends htx$1["default"] {
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const entry = data[i];
-                    const symbol = this.safeSymbol(this.safeString(entry, 'symbol'));
                     const balances = this.safeValue(entry, 'list');
                     const subResult = {};
                     for (let j = 0; j < balances.length; j++) {
@@ -3633,8 +3632,13 @@ class htx extends htx$1["default"] {
                             subResult[code] = this.parseMarginBalanceHelper(balance, code, subResult);
                         }
                     }
-                    result[symbol] = this.safeBalance(subResult);
+                    const subCodes = Object.keys(subResult);
+                    for (let j = 0; j < subCodes.length; j++) {
+                        const subCode = subCodes[j];
+                        result = this.mergeBalanceAccount(result, subCode, subResult[subCode]);
+                    }
                 }
+                result = this.safeBalance(result);
             }
             else {
                 const balances = this.safeValue(data, 'list', []);

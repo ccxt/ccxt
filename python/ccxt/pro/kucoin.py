@@ -3213,6 +3213,9 @@ class kucoin(ccxt.async_support.kucoin):
             type = 'public'
             if client.url.find('connectId=private') >= 0:
                 type = 'private'
+            # Match the negotiation cache key; spot tokens can also contain "Futures".
+            if client.url.find('connectId=' + type + 'Futures') >= 0:
+                type += 'Futures'
             self.options['urls'][type] = None
         self.handle_errors(1, '', client.url, '', {}, data, message, {}, {})
         return False

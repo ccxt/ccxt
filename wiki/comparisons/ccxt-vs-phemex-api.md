@@ -21,7 +21,7 @@ So the real choice is not between two SDKs. It is between [CCXT](/docs/manual) a
 | | **CCXT** | **Phemex sample clients / raw API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Phemex is one of them) | Phemex only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Java, C++, Node.js sample repos, each written separately |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Java, C++, Node.js sample repos, each written separately |
 | Install | `pip install ccxt` / `npm i ccxt` | `git clone` a sample repo, or write your own client |
 | Phemex products in one client | spot and perpetual swap | one code path per product family |
 | Scaled integers (`priceEp`, `qtyEv`, `Er`) | decoded to decimals from each market's `priceScale` / `valueScale` / `ratioScale` | your code |

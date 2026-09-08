@@ -1565,7 +1565,7 @@ public class LimitlessCore extends LimitlessApi
             Object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
             // sizes are scaled by 10^decimals, USDC uses 6 decimals
             Object scaleStr = this.parsePrecision(this.numberToString(Helpers.opNeg(decimals)));
-            Object outcomeLabel = this.safeStringLower(Helpers.GetValue(outcomeObj, "info"), "outcomeLabel", "yes");
+            String outcomeLabel = (String)this.safeStringLower(Helpers.GetValue(outcomeObj, "info"), "outcomeLabel", "yes");
             Object isYes = !Helpers.isEqual(outcomeLabel, "no");
             Object rawBids = this.safeList(response, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawAsks = this.safeList(response, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1639,7 +1639,7 @@ public class LimitlessCore extends LimitlessApi
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object slug = this.safeString(Helpers.GetValue(outcomeObj, "info"), "slug");
-            Object outcomeLabel = this.safeStringUpper(Helpers.GetValue(outcomeObj, "info"), "outcomeLabel");
+            String outcomeLabel = (String)this.safeStringUpper(Helpers.GetValue(outcomeObj, "info"), "outcomeLabel");
             Object interval = this.safeString(this.timeframes, timeframe, "1d");
             Object response = (this.limitlessPublicGetMarketsSlugHistoricalPrice(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "slug", slug );
@@ -1696,7 +1696,7 @@ public class LimitlessCore extends LimitlessApi
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawHistory)); i++)
                     {
                         Object series = this.safeDict(rawHistory, i, new java.util.HashMap<String, Object>() {{}});
-                        Object title = this.safeStringUpper(series, "title", "");
+                        String title = (String)this.safeStringUpper(series, "title", "");
                         if (Helpers.isTrue(Helpers.isEqual(title, null)))
                         {
                             throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing title")) ;
@@ -3062,7 +3062,7 @@ public class LimitlessCore extends LimitlessApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object item = this.safeDict(data, i);
-                Object strategy = this.safeStringLower(item, "strategy");
+                String strategy = (String)this.safeStringLower(item, "strategy");
                 if (Helpers.isTrue(!Helpers.isEqual(strategy, null)))
                 {
                     Object buyIndex = Helpers.getIndexOf(strategy, "buy");
@@ -3171,7 +3171,7 @@ public class LimitlessCore extends LimitlessApi
         Object price = this.safeString(trade, "outcomeTokenPrice");
         Object amount = this.safeString(trade, "outcomeTokenAmount");
         Object cost = this.safeString(trade, "collateralAmount");
-        Object rawSide = this.safeStringLower(trade, "strategy");
+        String rawSide = (String)this.safeStringLower(trade, "strategy");
         if (Helpers.isTrue(Helpers.isEqual(rawSide, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parsePredictionTrade() missing rawSide")) ;
@@ -3708,7 +3708,7 @@ public class LimitlessCore extends LimitlessApi
             for (var i = 0; Helpers.isLessThan(i, categoriesLength); i++)
             {
                 Object category = Helpers.GetValue(categories, i);
-                Object name = this.safeStringLower(category, "name", "");
+                String name = (String)this.safeStringLower(category, "name", "");
                 Object categoryId = this.safeString(category, "id");
                 Object matched = false;
                 for (var wi = 0; Helpers.isLessThan(wi, Helpers.getArrayLength(wanted)); wi++)

@@ -21,7 +21,7 @@ The question that decides between them: **do you want BitMEX's payloads, or stru
 | | **CCXT** | **Official BitMEX connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BitMEX is one of them) | BitMEX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | hand-vetted: C#, Node, Python, VBA, mIRC; auto-generated from Swagger: ~15 more |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | hand-vetted: C#, Node, Python, VBA, mIRC; auto-generated from Swagger: ~15 more |
 | How the client is produced | hand-written and tested per exchange | generated from the Swagger 2.0 spec (`swagger.json`, 120 operations) |
 | Unified market data + trading API | yes — same names on every exchange | no — BitMEX's own operation names |
 | Instrument model | spot / swap / future resolved into unified symbols | one `/instrument` namespace, 98 fields, disambiguated by a `typ` code |
@@ -185,7 +185,7 @@ Real advantages, not throat-clearing:
 - **Total coverage, automatically.** The generated clients come from `swagger.json`, which currently describes 120 operations across 29 tags. Anything BitMEX adds to the spec appears in a regenerated client without anyone writing a parser. CCXT's unified layer models what it has modelled.
 - **Names that match the reference exactly.** `Order_new`, `Quote_get`, `Instrument_getActive`, `OrderBook_getL2` — you can read BitMEX's API Explorer and type the call. No mapping step.
 - **A Delta Server you can run instead of writing client code.** `official-ws/delta-server` is a local webserver that maintains BitMEX state from the WebSocket feed and serves it over HTTP, which is a genuinely different and sometimes better architecture than embedding a streaming client in your process.
-- **Language reach beyond CCXT's seven.** The auto-generated directory covers Ruby, Scala, Swift, Objective-C, Clojure, C++ and others. If your service is written in one of those, a generated BitMEX client exists and a CCXT binding does not.
+- **Language reach beyond CCXT's eight.** The auto-generated directory covers Ruby, Scala, Swift, Objective-C, Clojure, C++ and others. If your service is written in one of those, a generated BitMEX client exists and a CCXT binding does not.
 
 If BitMEX is your only venue and you value one-to-one fidelity with its Swagger spec — or you want the Delta Server architecture — the official connectors are the better fit.
 

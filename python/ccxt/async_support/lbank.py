@@ -1842,7 +1842,7 @@ class lbank(Exchange, ImplicitAPI):
             return await self.fetch_order_supplement(id, symbol, params)
         return await self.fetch_order_default(id, symbol, params)
 
-    async def fetch_order_supplement(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order_supplement(self, id: str, symbol: Str = None, params={}) -> Order:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         if self.markets is None:
@@ -1877,7 +1877,7 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'data', {})
         return self.parse_order(result)
 
-    async def fetch_order_default(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order_default(self, id: str, symbol: Str = None, params={}) -> Order:
         # Id can be a list of ids delimited by a comma
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')

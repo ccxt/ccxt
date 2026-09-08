@@ -13,7 +13,7 @@ If you trade only crypto, and only at Alpaca, those SDKs are a reasonable defaul
 ## TL;DR
 
 - **Pick alpaca-py** if Alpaca is your whole platform — equities, options and crypto in one account — and you want request/response models that mirror Alpaca's own reference, plus the Broker API for building an investment app.
-- **Pick CCXT** if crypto is the point and Alpaca is one venue among several. The same `fetch_ticker` / `create_order` calls work on Alpaca, Binance, Coinbase, Kraken and 100 more, in seven languages.
+- **Pick CCXT** if crypto is the point and Alpaca is one venue among several. The same `fetch_ticker` / `create_order` calls work on Alpaca, Binance, Coinbase, Kraken and 100 more, in eight languages.
 - **CCXT does not cover Alpaca's equities or options.** It is a crypto library. If you need stocks and crypto in one client, that is what alpaca-py is for, and running both is a normal setup.
 
 ## At a glance
@@ -22,7 +22,7 @@ If you trade only crypto, and only at Alpaca, those SDKs are a reasonable defaul
 | --- | --- | --- |
 | Venues covered | 104 (Alpaca is one of them) | Alpaca only |
 | Asset classes | crypto (spot, margin, swaps, futures, options on other venues) | stocks, options and crypto |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, .NET/C#, Node, Go, Java — separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, .NET/C#, Node, Go, Java — separate codebases |
 | Packages to install | **1** (`ccxt`) | one per language (`alpaca-py` for Python) |
 | Unified market data + trading API | yes — 38 capabilities on `alpaca` | no — Alpaca's own request models and payloads |
 | Programming model | call a method, get a value | build a request object, pass it to a client method |
@@ -167,7 +167,7 @@ for exchange_id in ['alpaca', 'coinbase', 'kraken', 'binance']:
 
 The official SDK cannot do that, by design. It is Alpaca's client for Alpaca.
 
-### Seven languages, one API
+### Eight languages, one API
 
 Alpaca publishes official SDKs for Python, .NET/C#, Node, Go and Java — genuinely good language coverage for a broker. They are five separate codebases, though, with their own idioms and release schedules. CCXT is written once in TypeScript and transpiled, so the method names, arguments and return structures are identical everywhere:
 

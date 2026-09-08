@@ -4,6 +4,7 @@ name: MCP Release
 # (manual dispatch, maintainer allowlist, Node 24, npm publish with provenance via OIDC).
 # The version is bumped by the workflow itself — same `build/smart-bump.sh` + commit-back
 # pattern as release.yml — so a release is a dispatch, never a hand-edited package.json.
+# One dispatch ships all three channels: npm, the MCP registry entry, and the .mcpb bundle.
 # npm auth uses OIDC trusted publishing — configure a trusted publisher for the `ccxt-mcp`
 # package on npmjs pointing at this workflow (one-time setup).
 on:
@@ -109,6 +110,60 @@ jobs:
             exit 1
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      # Register the release with the MCP registry (io.github.ccxt/ccxt-mcp) so MCP hosts can
+      # discover it. Runs last: the registry proves namespace ownership by reading `mcpName`
+      # out of the *published* npm tarball, so npm must be live first, and keeping it after the
+      # commit-back means a registry hiccup leaves npm and master consistent with each other.
+      #
+      # Auth is GitHub OIDC — `login github-oidc` exchanges the Actions token for a registry
+      # JWT and derives the namespace from the `repository_owner` claim, which is `ccxt` here.
+      # That is why this belongs in CI and not on a laptop: an interactive `login github` only
+      # grants `io.github.<user>/*` unless the org has approved the registry's OAuth app, so a
+      # maintainer publishing by hand gets a 403 on the org namespace.
+      # Pinned + checksum-verified, not `latest`: this runs inside a job holding id-token:
+      # write (npm trusted publishing) and the App token that checkout persisted into
+      # .git/config — a contents:write credential for protected master. An unpinned binary
+      # from a third-party release would execute with all of that in reach.
+      - name: Install mcp-publisher
+        working-directory: ${{ runner.temp }}
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+        run: |
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          asset="mcp-publisher_${os}_${arch}.tar.gz"
+          base="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl -fsSL -o "$asset" "${base}/${asset}"
+          curl -fsSL -o checksums.txt "${base}/registry_${MCP_PUBLISHER_VERSION#v}_checksums.txt"
+          grep " ${asset}\$" checksums.txt | sha256sum -c -
+          tar xzf "$asset" mcp-publisher
+      # continue-on-error: the `bundle` job is `needs: publish`, so failing this step would
+      # skip the .mcpb build entirely — leaving the published npm version with no matching
+      # bundle and `ccxt-mcp-latest` (the one-click URL in the docs) pinned to the previous
+      # release. A registry outage must not cost the desktop bundle; the ::error:: annotation
+      # still marks the run, and the registry entry is then the only casualty.
+      - name: Publish to the MCP registry (OIDC)
+        continue-on-error: true
+        run: |
+          "${RUNNER_TEMP}/mcp-publisher" login github-oidc
+          # npm's CDN can lag its own publish response, and the registry rejects a server whose
+          # tarball it cannot read yet; a re-run costs a Prod approval and a burnt version, so
+          # absorb that window here rather than failing the release over propagation
+          for attempt in 1 2 3 4 5; do
+            if "${RUNNER_TEMP}/mcp-publisher" publish; then
+              echo "published to the registry on attempt ${attempt}"
+              exit 0
+            fi
+            echo "registry publish failed, retrying (${attempt})..."
+            [ "$attempt" -lt 5 ] && sleep 20
+          done
+          # Deliberately no recovery instruction here: Actions re-runs whole jobs, never single
+          # steps, and re-running `publish` restarts at `Set new version`, recomputes the same
+          # number and dies at `npm publish` on the immutable version. A manual publish hits the
+          # org-namespace 403 this step exists to route around. The registry simply catches up
+          # on the next release — it tracks the latest version, so nothing needs backfilling.
+          echo "::error::registry publish failed after 5 attempts — ccxt-mcp@${{ steps.bump.outputs.version }} is on npm and master is bumped; the registry entry will catch up on the next release, no manual action required"
+          exit 1
 
   # Build the Claude Desktop .mcpb bundle and attach it to a GitHub Release so users can
   # one-click install (Settings -> Extensions) or curl a stable URL. Runs after the npm

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Luno API and official Luno SDKs -->
 <!-- description: Luno publishes Python, Go and PHP SDKs. They are compared with CCXT's luno class on symbols, language coverage, streaming, rate limits and error handling. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Luno's own SDKs cover Python, Go and PHP with one method per endpoint. CCXT gives Luno 25 unified capabilities in seven languages — but only two watch* methods, against Go's fuller streaming client. -->
+<!-- summary: Luno's own SDKs cover Python, Go and PHP with one method per endpoint. CCXT gives Luno 25 unified capabilities in eight languages — but only two watch* methods, against Go's fuller streaming client. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Luno API and official Luno SDKs
@@ -15,7 +15,7 @@ The question that decides between them: **is Luno the only venue you will ever t
 ## TL;DR
 
 - **Pick a Luno SDK** if Luno is your only venue, you work in Python, Go or PHP, and you want field names identical to Luno's reference — or if you need the fuller streaming behaviour in `luno-go`.
-- **Pick CCXT** if you want unified symbols, structures and error types across Luno and everything else, in seven languages, from one dependency.
+- **Pick CCXT** if you want unified symbols, structures and error types across Luno and everything else, in eight languages, from one dependency.
 - **Streaming is the honest caveat.** CCXT implements only two `watch*` methods for Luno — `watch_order_book` and `watch_trades` — and both require API credentials, because Luno's Streaming API is authenticated even for market data.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides between them: **is Luno the only venue you will ever t
 | | **CCXT** | **Official Luno SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Luno is one of them) | Luno only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Go, PHP (the Java SDK repository is archived) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Go, PHP (the Java SDK repository is archived) |
 | Symbols | `'BTC/ZAR'`, `'ETH/ZAR'` | `XBTZAR`, `ETHZAR` |
 | Unified capabilities | 25, of which 18 are `fetch*` | one method per endpoint |
 | WebSockets | 2 methods — `watch_order_book`, `watch_trades` | `luno-go/streaming` maintains a book and auto-reconnects; `luno-python` has a stream client; `luno-php` — not published as a streaming client |
@@ -136,9 +136,9 @@ Both maintain a live book from Luno's Streaming API, and both require credential
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
-Luno publishes Python, Go and PHP; the Java SDK repository is archived. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java with identical method names and return structures:
+Luno publishes Python, Go and PHP; the Java SDK repository is archived. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with identical method names and return structures:
 
 <!-- tabs:start -->
 

@@ -1510,7 +1510,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger2(trade, "t", "T");
-        Object side = this.safeStringLower(trade, "S");
+        String side = (String)this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
         Object m = this.safeValue(trade, "m");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))

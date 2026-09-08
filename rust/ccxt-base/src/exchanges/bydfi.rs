@@ -1071,8 +1071,8 @@ impl BydfiCore {
         let mut result: Value = Value::Int(1000);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_504: bool = true;
-            while { if !__for_first_504 { i = add(&i, &Value::Int(1)); } __for_first_504 = false; is_less_than(&i, &get_array_length(&limits)) } {
+            let mut __for_first_505: bool = true;
+            while { if !__for_first_505 { i = add(&i, &Value::Int(1)); } __for_first_505 = false; is_less_than(&i, &get_array_length(&limits)) } {
             if is_equal(&limit, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" getClosestLimit() requires a limit argument".to_string()))));
             }
@@ -1822,11 +1822,11 @@ impl BydfiCore {
             m
         });
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
+        let mut isStopLossOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitPrice, &Value::Null);
         let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
-        let mut isTailingStopOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
+        let mut isTailingStopOrder: bool = !is_equal(&trailingPercent, &Value::Null);
         let mut stopPrice: Value = Value::Null;
         if is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder) {
             stopPrice = ternary(is_true(&isStopLossOrder), stopLossPrice.clone(), takeProfitPrice.clone());
@@ -1944,8 +1944,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_505: bool = true;
-            while { if !__for_first_505 { i = add(&i, &Value::Int(1)); } __for_first_505 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_506: bool = true;
+            while { if !__for_first_506 { i = add(&i, &Value::Int(1)); } __for_first_506 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2042,8 +2042,8 @@ impl BydfiCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_506: bool = true;
-            while { if !__for_first_506 { i = add(&i, &Value::Int(1)); } __for_first_506 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_507: bool = true;
+            while { if !__for_first_507 { i = add(&i, &Value::Int(1)); } __for_first_507 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
@@ -2543,8 +2543,8 @@ impl BydfiCore {
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("createTime".to_string()), Value::Str("ctime".to_string()), &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "orderType", &[]);
         let mut stopPrice: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("activatePrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
-        let mut isStopLossOrder: Value = Value::Bool(is_true(&(is_equal(&rawType, &Value::Str("STOP".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("STOP_MARKET".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("TRAILING_STOP_MARKET".to_string())))));
-        let mut isTakeProfitOrder: Value = Value::Bool(is_true(&(is_equal(&rawType, &Value::Str("TAKE_PROFIT".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("TAKE_PROFIT_MARKET".to_string())))));
+        let mut isStopLossOrder: bool = is_true(&(is_equal(&rawType, &Value::Str("STOP".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("STOP_MARKET".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("TRAILING_STOP_MARKET".to_string()))));
+        let mut isTakeProfitOrder: bool = is_true(&(is_equal(&rawType, &Value::Str("TAKE_PROFIT".to_string())))) || is_true(&(is_equal(&rawType, &Value::Str("TAKE_PROFIT_MARKET".to_string()))));
         let mut rawTimeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut timeInForce: Value = self.parse_order_time_in_force(rawTimeInForce.clone());
         let mut postOnly: Value = Value::Null;
@@ -2909,9 +2909,9 @@ impl BydfiCore {
         let mut rawPositionSide: Value = self.safe_string_lower(position.clone(), Value::Str("positionSide".to_string()), &[]);
         let mut positionSide: Value = self.parse_position_side(buyOrSell.clone());
         let mut hedged: Value = Value::Null;
-        let mut isFetchPositionsHistory: Value = Value::Bool(false);
+        let mut isFetchPositionsHistory: bool = false;
         if !is_equal(&rawPositionSide, &Value::Null) {
-            isFetchPositionsHistory = Value::Bool(true);
+            isFetchPositionsHistory = true;
             if !is_equal(&rawPositionSide, &Value::Str("both".to_string())) {
                 positionSide = rawPositionSide.clone();
                 hedged = Value::Bool(true);
@@ -3445,8 +3445,8 @@ impl BydfiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i = add(&i, &Value::Int(1)); } __for_first_507 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_508: bool = true;
+            while { if !__for_first_508 { i = add(&i, &Value::Int(1)); } __for_first_508 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset", &[]);

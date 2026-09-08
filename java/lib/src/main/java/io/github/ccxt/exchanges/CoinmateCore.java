@@ -510,9 +510,9 @@ public class CoinmateCore extends CoinmateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object market = Helpers.GetValue(data, i);
-                Object id = this.safeString(market, "name");
-                Object baseId = this.safeString(market, "firstCurrency");
-                Object quoteId = this.safeString(market, "secondCurrency");
+                String id = this.safeString(market, "name");
+                String baseId = this.safeString(market, "firstCurrency");
+                String quoteId = this.safeString(market, "secondCurrency");
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -900,7 +900,7 @@ public class CoinmateCore extends CoinmateApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transaction, "timestamp");
-        Object currencyId = this.safeString(transaction, "amountCurrency");
+        String currencyId = this.safeString(transaction, "amountCurrency");
         Object code = this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -965,7 +965,7 @@ public class CoinmateCore extends CoinmateApi
             Object currency = this.currency(code);
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             Object methods = this.safeValue(withdrawOptions, "methods", new java.util.HashMap<String, Object>() {{}});
-            Object method = this.safeString(methods, code);
+            String method = this.safeString(methods, code);
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
                 Object allowedCurrencies = Helpers.objectKeys(methods);
@@ -1116,17 +1116,17 @@ public class CoinmateCore extends CoinmateApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "currencyPair");
+        String marketId = this.safeString(trade, "currencyPair");
         market = this.safeMarket(marketId, market, "_");
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object side = this.safeStringLower2(trade, "type", "tradeType");
-        Object type = this.safeStringLower(trade, "orderType");
-        Object orderId = this.safeString(trade, "orderId");
-        Object id = this.safeString(trade, "transactionId");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String side = (String)this.safeStringLower2(trade, "type", "tradeType");
+        String type = (String)this.safeStringLower(trade, "orderType");
+        String orderId = this.safeString(trade, "orderId");
+        String id = this.safeString(trade, "transactionId");
         Object timestamp = this.safeInteger2(trade, "timestamp", "createdTimestamp");
         Object fee = null;
-        Object feeCostString = this.safeString(trade, "fee");
+        String feeCostString = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             final Object finalFeeCostString = feeCostString;
@@ -1136,7 +1136,7 @@ public class CoinmateCore extends CoinmateApi
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
-        Object takerOrMaker = this.safeString(trade, "feeType");
+        String takerOrMaker = this.safeString(trade, "feeType");
         takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(takerOrMaker, "MAKER"))))) ? "maker" : "taker";
         final Object finalMarket_2 = market;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1241,8 +1241,8 @@ public class CoinmateCore extends CoinmateApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object makerString = this.safeString(data, "maker");
-            Object takerString = this.safeString(data, "taker");
+            String makerString = this.safeString(data, "maker");
+            String takerString = this.safeString(data, "taker");
             Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
             Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
             return new java.util.HashMap<String, Object>() {{
@@ -1403,18 +1403,18 @@ public class CoinmateCore extends CoinmateApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
+        String id = this.safeString(order, "id");
         Object timestamp = this.safeInteger(order, "timestamp");
-        Object side = this.safeStringLower(order, "type");
-        Object priceString = this.safeString(order, "price");
-        Object amountString = this.safeString(order, "originalAmount");
-        Object remainingString = this.safeString2(order, "remainingAmount", "amount");
+        String side = (String)this.safeStringLower(order, "type");
+        String priceString = this.safeString(order, "price");
+        String amountString = this.safeString(order, "originalAmount");
+        String remainingString = this.safeString2(order, "remainingAmount", "amount");
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
         Object type = this.parseOrderType(this.safeString(order, "orderTradeType"));
-        Object averageString = this.safeString(order, "avgPrice");
-        Object marketId = this.safeString(order, "currencyPair");
+        String averageString = this.safeString(order, "avgPrice");
+        String marketId = this.safeString(order, "currencyPair");
         Object symbol = this.safeSymbol(marketId, market, "_");
-        Object clientOrderId = this.safeString(order, "clientOrderId");
+        String clientOrderId = this.safeString(order, "clientOrderId");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", clientOrderId );
@@ -1508,7 +1508,7 @@ public class CoinmateCore extends CoinmateApi
             {
                 throw new InvalidOrder((String)Helpers.add(Helpers.add(this.id, " createOrder() does not support order type "), type)) ;
             }
-            Object id = this.safeString(response, "data");
+            String id = this.safeString(response, "data");
             final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
@@ -1650,7 +1650,7 @@ public class CoinmateCore extends CoinmateApi
         //     {"error":true,"errorMessage":"Api internal error","data":null}
         //     {"error":true,"errorMessage":"Access denied.","data":null}
         //
-        Object errorMessage = this.safeString(response, "errorMessage");
+        String errorMessage = this.safeString(response, "errorMessage");
         if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

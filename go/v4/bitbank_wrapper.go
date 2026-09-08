@@ -513,7 +513,7 @@ func (this *Bitbank) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Bitbank) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bitbank) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bitbank) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bitbank) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -555,7 +555,7 @@ func (this *Bitbank) FetchCurrencies(params ...any) (Currencies, error) {
 func (this *Bitbank) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bitbank) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bitbank) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bitbank) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

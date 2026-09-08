@@ -13,7 +13,7 @@ Both work. The question that decides between them: **is Bitfinex the only venue 
 ## TL;DR
 
 - **Pick the official Bitfinex SDKs** if Bitfinex is your only venue and you want typed models named exactly the way Bitfinex's own reference names them — `Notification[Order]`, `TradingPairTicker`, `tBTCUSD`.
-- **Pick CCXT** if you want one dependency covering Bitfinex spot, margin and perpetuals, in seven languages, with the same method names you will use on the next exchange.
+- **Pick CCXT** if you want one dependency covering Bitfinex spot, margin and perpetuals, in eight languages, with the same method names you will use on the next exchange.
 - **Choosing CCXT does not hide the venue.** All 136 Bitfinex endpoints CCXT knows about are callable as [implicit methods](/docs/exchanges/bitfinex/implicit-api), signed and rate-limited.
 
 ## At a glance
@@ -21,7 +21,7 @@ Both work. The question that decides between them: **is Bitfinex the only venue 
 | | **CCXT** | **Official Bitfinex SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitfinex is one of them) | Bitfinex only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Node.js, Go, Ruby, PHP — separate repositories, coverage varies |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Node.js, Go, Ruby, PHP — separate repositories, coverage varies |
 | Packages to install | 1 (`ccxt`) | one per language |
 | Unified market data + trading API | yes — same names on every exchange | no — Bitfinex's own request/response shapes |
 | Response format | named unified structures | Python SDK maps arrays to dataclasses; raw v2 returns positional arrays |
@@ -158,7 +158,7 @@ Bitfinex documents its rate limit as varying per endpoint, "in the range of 10 t
 
 Private Bitfinex requests are signed with `bfx-apikey`, `bfx-nonce` and `bfx-signature`, where the signature is an HMAC-SHA384 over the path, nonce and body. Nonces must increase monotonically per key, which is exactly the thing that breaks when two processes share one key. CCXT implements the scheme and the nonce discipline once, in the base class, for every language.
 
-### Seven languages, one API
+### Eight languages, one API
 
 <!-- tabs:start -->
 
@@ -187,7 +187,7 @@ ticker, err := exchange.FetchTicker("BTC/USD")
 
 <!-- tabs:end -->
 
-Bitfinex publishes connectors in five languages too, but they are five codebases with five sets of idioms and five release schedules — not one API expressed seven ways.
+Bitfinex publishes connectors in five languages too, but they are five codebases with five sets of idioms and five release schedules — not one API expressed eight ways.
 
 ### One error hierarchy
 

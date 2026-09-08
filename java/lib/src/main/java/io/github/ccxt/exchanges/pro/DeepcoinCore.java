@@ -88,6 +88,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             }} );
             put( "streaming", new java.util.HashMap<String, Object>() {{
                 put( "ping", "ping");
+                put( "keepAlive", 15000 );
             }} );
         }});
     }

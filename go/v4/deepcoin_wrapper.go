@@ -1162,7 +1162,7 @@ func (this *Deepcoin) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Deepcoin) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Deepcoin) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Deepcoin) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Deepcoin) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1195,7 +1195,7 @@ func (this *Deepcoin) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, er
 func (this *Deepcoin) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
-func (this *Deepcoin) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Deepcoin) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Deepcoin) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

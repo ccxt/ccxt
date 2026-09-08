@@ -17,7 +17,7 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 	// as in `watchOrderBook`, a pending subscription can not be cancelled, so the
 	// loop has to be bounded by the deadline alone. waiting for every requested
 	// symbol to be seen would hang forever whenever one of them stays idle.
-	var maxIdleTime any = 5000
+	var maxIdleTime int = 5000
 	var currentTime any = exchange.Milliseconds()
 	var deadline any = Add(currentTime, 15000)
 	var idle bool = false

@@ -1867,7 +1867,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
-		var secret any = this.Base64ToBinary(this.Secret)
+		var secret []byte = this.Base64ToBinary(this.Secret)
 		var auth any = Add(Add(method, request), nonce)
 		if (method == "GET") || (method == "DELETE") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {

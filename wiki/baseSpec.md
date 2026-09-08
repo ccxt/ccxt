@@ -1865,7 +1865,7 @@ fetch all the accounts associated with a profile
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 
 | Param | Type | Required | Description |
@@ -3288,6 +3288,7 @@ fetch the current funding rate
 * [modetrade](/exchanges/modetrade.md#fetchfundingrate)
 * [nado](/exchanges/nado.md#fetchfundingrate)
 * [okx](/exchanges/okx.md#fetchfundingrate)
+* [paradex](/exchanges/paradex.md#fetchfundingrate)
 * [phemex](/exchanges/phemex.md#fetchfundingrate)
 * [whitebit](/exchanges/whitebit.md#fetchfundingrate)
 * [woo](/exchanges/woo.md#fetchfundingrate)
@@ -3400,6 +3401,7 @@ fetch the current funding rate for multiple symbols
 * [nado](/exchanges/nado.md#fetchfundingrates)
 * [okx](/exchanges/okx.md#fetchfundingrates)
 * [pacifica](/exchanges/pacifica.md#fetchfundingrates)
+* [paradex](/exchanges/paradex.md#fetchfundingrates)
 * [toobit](/exchanges/toobit.md#fetchfundingrates)
 * [weex](/exchanges/weex.md#fetchfundingrates)
 * [whitebit](/exchanges/whitebit.md#fetchfundingrates)
@@ -5949,6 +5951,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [independentreserve](/exchanges/independentreserve.md#fetchticker)
 * [indodax](/exchanges/indodax.md#fetchticker)
 * [kraken](/exchanges/kraken.md#fetchticker)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchticker)
 * [kucoin](/exchanges/kucoin.md#fetchticker)
 * [latoken](/exchanges/latoken.md#fetchticker)
 * [lbank](/exchanges/lbank.md#fetchticker)

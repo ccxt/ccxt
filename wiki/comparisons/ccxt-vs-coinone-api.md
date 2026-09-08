@@ -21,7 +21,7 @@ That makes the comparison here **CCXT against your own HTTP client**, and the qu
 | | **CCXT** | **Raw Coinone API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Coinone is one of them) | Coinone only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any language you write the signer in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any language you write the signer in |
 | Installable client library | yes — `ccxt` | none published by Coinone |
 | Unified market data + trading API | yes — 18 unified capabilities, 11 `fetch*` methods | Coinone's own request/response shapes |
 | WebSockets | yes — 3 `watch*` methods (ticker, order book, trades) | `wss://public-ws-api.coinone.co.kr` — 6 public channels plus private streams |

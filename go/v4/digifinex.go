@@ -703,7 +703,7 @@ func (this *DigifinexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any)
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	var groupedById map[string]any = this.GroupBy(data, "currency")
-	var values any = ObjectValues(groupedById)
+	var values []any = ObjectValues(groupedById)
 
 	ch <- this.ParseCurrencies(values)
 	return nil
@@ -4375,7 +4375,7 @@ func (this *DigifinexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil

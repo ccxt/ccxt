@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the BTC Markets API -->
 <!-- description: BTC Markets publishes one client per language and most are dormant. Compare CCXT and those official clients on coverage, streaming, rate limits and upkeep. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: BTC Markets' official clients are one small repository per language, most last touched between 2019 and 2024, and the Node SDK is archived. CCXT covers the same v3 API from a maintained dependency in seven languages — but has no WebSocket support for this venue. -->
+<!-- summary: BTC Markets' official clients are one small repository per language, most last touched between 2019 and 2024, and the Node SDK is archived. CCXT covers the same v3 API from a maintained dependency in eight languages — but has no WebSocket support for this venue. -->
 <!-- weight: 100 -->
 
 # CCXT vs the BTC Markets API
@@ -13,7 +13,7 @@ The question that decides between them is narrower than usual here, because the 
 ## TL;DR
 
 - **Pick an official BTC Markets client** if you want the smallest possible dependency for one language, you only need a handful of endpoints, and — importantly — you need the **WebSocket feed**, which CCXT does not implement for this exchange.
-- **Pick CCXT** if you want maintained REST coverage, unified structures, a built-in rate limiter and typed errors, in any of seven languages, with the option to add a second exchange without a second integration.
+- **Pick CCXT** if you want maintained REST coverage, unified structures, a built-in rate limiter and typed errors, in any of eight languages, with the option to add a second exchange without a second integration.
 - **The gap is streaming.** CCXT implements 20 unified capabilities and all 35 BTC Markets endpoints for REST, and **zero `watch*` methods** for `btcmarkets`. If live socket data is the requirement, this page will not talk you out of the vendor client.
 
 ## At a glance
@@ -21,7 +21,7 @@ The question that decides between them is narrower than usual here, because the 
 | | **CCXT** | **Official BTC Markets clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (BTC Markets is one of them) | BTC Markets only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | separate repositories: Python, .NET, Rust, Node/TypeScript, Java, Go, Swift |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | separate repositories: Python, .NET, Rust, Node/TypeScript, Java, Go, Swift |
 | Packages to install | **1** (`ccxt`) | clone a repository, or `npm install btcmarkets-node-sdk` |
 | Unified market data + trading API | yes — same method names across every exchange | no — BTC Markets' own request/response shapes |
 | Unified capabilities implemented | 20 for `btcmarkets` | varies per repository |
@@ -119,9 +119,9 @@ CCXT implements exactly that signing scheme internally, so it is not code you wr
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in all of them. BTC Markets publishes a *different repository* per language, written at different times by different people, with different coverage — the Go and Swift clients have not been pushed since 2019, the Rust one is from 2026.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in all of them. BTC Markets publishes a *different repository* per language, written at different times by different people, with different coverage — the Go and Swift clients have not been pushed since 2019, the Rust one is from 2026.
 
 <!-- tabs:start -->
 
@@ -202,7 +202,7 @@ An honest list, and the first item is decisive for some readers:
 - **They have WebSockets. CCXT does not, for this venue.** `btcmarkets-node-sdk` subscribes to `trade`, `tick`, `orderbook`, `heartbeat`, `orderChange` and `fundChange` with a few lines. CCXT implements **zero** `watch*` methods for `btcmarkets`, so live socket data means the vendor SDK, another library, or your own client.
 - **A much smaller dependency.** If all you need is three REST calls in Node, a single small wrapper is a smaller install and a smaller attack surface than a library covering 104 exchanges.
 - **Payload names match the BTC Markets docs exactly.** `bestBid`, `volume24h`, `marketId` — when you are reading the vendor reference while debugging, a one-to-one mapping is one less hop than CCXT's deliberate abstraction.
-- **Rust and Swift clients exist at all.** CCXT does not ship those languages. If your service is in Rust, `api-v3-client-rust` is the only first-party option.
+- **A Swift client exists at all.** CCXT does not ship Swift, so for an iOS or macOS client `api-v3-client-swift` is the only first-party option — and `api-v3-client-rust` is first-party where CCXT's Rust crate is third-party by design.
 
 If you are writing Node, need the WebSocket feed, and BTC Markets is the only venue you will ever touch, the archived Node SDK is still the more direct route — with the caveat that "archived" means you own it now.
 

@@ -1930,7 +1930,7 @@ export default class lbank extends Exchange {
         return await this.fetchOrderDefault (id, symbol, params);
     }
 
-    async fetchOrderSupplement (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrderSupplement (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1968,7 +1968,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOrderDefault (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrderDefault (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         // Id can be a list of ids delimited by a comma
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');

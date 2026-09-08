@@ -89,7 +89,10 @@ class WsClient extends Client["default"] {
         }
         this.connection.onerror = this.onError.bind(this);
         this.connection.onclose = this.onClose.bind(this);
-        if (platform.isNode && !platform.isBun) {
+        if (platform.isBun) {
+            this.connection.addEventListener('pong', this.onPong.bind(this));
+        }
+        else if (platform.isNode) {
             this.connection
                 .on('ping', this.onPing.bind(this))
                 .on('pong', this.onPong.bind(this))

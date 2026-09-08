@@ -867,18 +867,6 @@ impl Exchange {
         }}
     }
 
-    fn proxy_str(&self) -> Option<&str> {
-        // Honour `proxy` first (legacy CCXT setter), then the scheme-
-        // specific aliases. Offline broker-id / static tests rely on
-        // `httpsProxy` pointing at a fake host so requests fail locally
-        // instead of leaving the machine.
-        for v in [&self.proxy, &self.httpsProxy, &self.https_proxy, &self.httpProxy, &self.http_proxy] {
-            if let Value::Str(s) = v {
-                if !s.is_empty() { return Some(s.as_str()); }
-            }
-        }
-        None
-    }
 
     fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
@@ -1008,12 +996,6 @@ impl Exchange {
     }
     pub fn microseconds(&self) -> Value {
         match self.milliseconds() { Value::Int(n) => Value::Int(n * 1000), v => v }
-    }
-    /// Typed i64 access for hand-written code that needs a raw timestamp.
-    fn milliseconds_i64(&self) -> i64 {
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as i64).unwrap_or(0)
     }
 
     pub fn iso8601(&self, ts: Value) -> Value {
@@ -2240,7 +2222,7 @@ fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
     } else if ty.starts_with("uint") || ty.starts_with("int") {
         // uint256 (e.g. polymarket tokenId) exceeds u128 — use BigInt. Signed
         // intN uses two's-complement, sign-extended to 32 bytes.
-        use num_bigint::{BigInt, Sign};
+        use num_bigint::BigInt;
         let n: BigInt = match v {
             Value::Int(i)   => BigInt::from(*i),
             Value::Float(f) => BigInt::from(*f as i64),

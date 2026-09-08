@@ -359,6 +359,8 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
     if (field.kind === 'dict') {
         const value = field.elementType === undefined ? '' : field.elementType.trim ();
         if (ir.byName[value] === undefined) {
+            // a literal `Dictionary<any>` (CurrencyInterface.networks) is a bag the port
+            // may have given a synthesised value type — its own declaration wins
             return undefined;
         }
         return 'map[string]' + goTypeName (value);
@@ -367,6 +369,11 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
         return undefined;
     }
     const resolved = resolveTs (ir, field.tsType);
+    if (resolved === 'Dictionary<any>') {
+        // the `Dict` / `NullableDict` aliases (TradingFeeInterface.tiers): a free-form
+        // map with no declared value type — the untyped Go map
+        return 'map[string]any';
+    }
     if (resolved === 'string') {
         return '*string';
     }
@@ -430,7 +437,11 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === 'map[string]any') {
-        return isInfo ? 'GetInfo(' + accessor + ')' : undefined;
+        if (isInfo) {
+            return 'GetInfo(' + accessor + ')';
+        }
+        // a free-form `Dict` member: keep whatever map the payload carries, nil otherwise
+        return 'SafeMapTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === '[]string') {
         return helpers['NewStringArray'] ? 'NewStringArray(' + accessor + '["' + key + '"])' : undefined;

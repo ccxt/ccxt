@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Coins.ph API and its official connectors -->
 <!-- description: Coins.ph publishes connectors in Python, Java, JavaScript and Go. Compared with CCXT on distribution, structures, WebSockets and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Coins.ph maintains four official connectors, one per language, with uneven distribution and coverage. CCXT ships 30 unified capabilities and all 78 raw endpoints in seven languages — but has no WebSocket support for this venue. -->
+<!-- summary: Coins.ph maintains four official connectors, one per language, with uneven distribution and coverage. CCXT ships 30 unified capabilities and all 78 raw endpoints in eight languages — but has no WebSocket support for this venue. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Coins.ph API and its official connectors
@@ -15,7 +15,7 @@ The question that decides between them and [CCXT](/docs/manual) is whether you a
 ## TL;DR
 
 - **Use the official connectors** if you need Coins.ph's non-trading product lines (Convert, Fiat, P2P transfer, invoice payment), or if you want streaming and are working in Python.
-- **Pick CCXT** if you want spot trading and market data behind an API shared with 103 other venues, installable from one package in seven languages, with unified structures and a built-in rate limiter.
+- **Pick CCXT** if you want spot trading and market data behind an API shared with 103 other venues, installable from one package in eight languages, with unified structures and a built-in rate limiter.
 - **Know the gap up front:** CCXT has **no WebSocket support for Coins.ph** — zero `watch*` methods. Coins.ph documents WebSocket streams and the official Python connector wraps them. If you need live streams here, that is the connector's job, not CCXT's.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides between them and [CCXT](/docs/manual) is whether you a
 | | **CCXT** | **Official Coins.ph connectors** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Coins.ph is one of them) | Coins.ph only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Java, JavaScript/TypeScript, Go — four separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Java, JavaScript/TypeScript, Go — four separate codebases |
 | Packages to install | 1 (`ccxt`) | one per language; `coins-js-api` is on npm, the Python connector is installed by cloning the repo |
 | Unified market data + trading API | yes — 30 unified capabilities, 20 `fetch*` methods | no — Coins.ph's own request/response shapes |
 | Product lines covered | spot trading, market data, deposits and withdrawals | spot trading, wallet, convert, fiat, P2P transfer, invoice payment |
@@ -113,9 +113,9 @@ CCXT encodes those per-endpoint weights in the exchange definition — including
 
 Signed endpoints take an `X-COINS-APIKEY` header and an HMAC-SHA256 signature over the full query string, plus a millisecond `timestamp` and an optional `recvWindow` (default 5000ms, maximum 60000ms). The server rejects a request whose timestamp falls outside that window, which turns a drifting clock into an intermittent authentication failure. CCXT computes the signature, manages the timestamp and exposes `options.recvWindow` if you need to widen it.
 
-### Seven languages, one API
+### Eight languages, one API
 
-Coins.ph maintains four connectors as four codebases. CCXT is written once in TypeScript and transpiled to seven languages with identical method names and return structures:
+Coins.ph maintains four connectors as four codebases. CCXT is written once in TypeScript and transpiled to eight languages with identical method names and return structures:
 
 <!-- tabs:start -->
 

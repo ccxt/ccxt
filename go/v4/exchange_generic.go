@@ -42,11 +42,6 @@ func numericSortValue(v any) (float64, bool) {
 // int64 tiers as 1, 10, 2, ... which scrambled leverage tier ladders and any other
 // sortBy over a numeric field once it crossed a digit-count boundary
 func compareSortValues(a any, b any) bool {
-	// Safe* accessors yield pointer-carried scalars; comparing them raw would fall
-	// through to the %v branch and order prices by their ADDRESS, which silently
-	// scrambles order-book sides and OHLCV ladders
-	a = derefScalar(a)
-	b = derefScalar(b)
 	aF, aOk := numericSortValue(a)
 	bF, bOk := numericSortValue(b)
 	if aOk && bOk {
@@ -59,14 +54,17 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	var desc bool
 	var defaultValue any = "a"
 	if len(desc2) > 0 {
-		desc = derefScalar(desc2[0]).(bool)
+		desc = desc2[0].(bool)
 	}
-	list := derefScalar(array).([]any)
+	// ts parity: sortBy must not mutate the caller's slice (array.slice().sort(...))
+	input := array.([]any)
+	list := make([]any, len(input))
+	copy(list, input)
 
-	if str, ok := derefScalar(value1).(string); ok {
+	if str, ok := value1.(string); ok {
 		sort.Slice(list, func(i, j int) bool {
-			a := derefScalar(list[i]).(map[string]any)[str]
-			b := derefScalar(list[j]).(map[string]any)[str]
+			a := list[i].(map[string]any)[str]
+			b := list[j].(map[string]any)[str]
 			return compareSortValues(a, b)
 		})
 		if desc {
@@ -77,18 +75,16 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		}
 		return list
 	} else {
-		value := derefScalar(value1).(int)
+		value := value1.(int)
 		sort.Slice(list, func(i, j int) bool {
 			var a, b any
-			li := derefScalar(list[i])
-			lj := derefScalar(list[j])
-			if arr, ok := li.([]any); ok {
-				a = arr[value]
+			if reflect.TypeOf(list[i]).Kind() == reflect.Slice {
+				a = list[i].([]any)[value]
 			} else {
 				a = defaultValue
 			}
-			if arr, ok := lj.([]any); ok {
-				b = arr[value]
+			if reflect.TypeOf(list[j]).Kind() == reflect.Slice {
+				b = list[j].([]any)[value]
 			} else {
 				b = defaultValue
 			}
@@ -111,9 +107,12 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any {
 	var desc bool
 	if len(desc2) > 0 {
-		desc = derefScalar(desc2[0]).(bool)
+		desc = desc2[0].(bool)
 	}
-	list := array.([]any)
+	// ts parity: sortBy2 must not mutate the caller's slice (array.slice().sort(...))
+	input := array.([]any)
+	list := make([]any, len(input))
+	copy(list, input)
 
 	if str, ok := key1.(string); ok {
 		key2Str, _ := key2.(string)
@@ -159,7 +158,7 @@ func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) [
 func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 	var targetA []any
 
-	switch v := derefScalar(aa).(type) {
+	switch v := aa.(type) {
 	case []any:
 		targetA = v
 	case map[string]any:
@@ -178,9 +177,8 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 
 	var outList []any
 	for _, elem := range targetA {
-		if m, ok := derefScalar(elem).(map[string]any); ok {
-			// the field is pointer-carried now, so == would compare addresses
-			if IsEqual(m[derefScalar(key).(string)], value) {
+		if m, ok := elem.(map[string]any); ok {
+			if m[key.(string)] == value {
 				outList = append(outList, m)
 			}
 		}
@@ -272,37 +270,6 @@ func (this *BaseExchange) DeepExtend2(objs ...any) any {
 	return outDict
 }
 
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj any
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		if reflect.TypeOf(x).Kind() == reflect.Map {
-// 			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
-// 				outObj = make(map[string]any)
-// 			}
-// 			dictX := x.(map[string]any)
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]any)[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
-// 					outObj.(map[string]any)[k] = this.DeepExtend(arg1, arg2)
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]any)[k] = arg2
-// 					} else {
-// 						outObj.(map[string]any)[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]any)
-// }
-
 func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	var outObj any
 
@@ -367,138 +334,8 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	return outObj.(map[string]any)
 }
 
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj map[string]any
-
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-
-// 		dictX, ok := x.(map[string]any)
-// 		if !ok {
-// 			continue
-// 		}
-
-// 		if outObj == nil {
-// 			outObj = make(map[string]any)
-// 		}
-
-// 		for k, v := range dictX {
-// 			if existingVal, exists := outObj[k]; exists {
-// 				if existingMap, ok1 := existingVal.(map[string]any); ok1 {
-// 					if vMap, ok2 := v.(map[string]any); ok2 {
-// 						// Recursively merge maps
-// 						outObj[k] = this.DeepExtend(existingMap, vMap)
-// 						continue
-// 					}
-// 				}
-// 			}
-// 			// Directly assign the value if no deep merging is needed
-// 			outObj[k] = v
-// 		}
-// 	}
-
-// 	return outObj
-// }
-
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj any
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		// if xMap, ok := x.(map[string]any); ok {
-// 		if xMap, ok := x.(map[string]any); ok {
-// 			if outObj == nil {
-// 				outObj = make(map[string]any)
-// 			} else if _, ok := x.(map[string]any); !ok {
-// 				//  || reflect.TypeOf(outObj).Kind() != reflect.Map
-// 				outObj = make(map[string]any)
-// 			}
-// 			dictX := xMap
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]any)[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil {
-// 					_, arg1IsMap := arg1.(map[string]any)
-// 					_, arg2IsMap := arg2.(map[string]any)
-// 					if arg1IsMap && arg2IsMap {
-// 						outObj.(map[string]any)[k] = this.DeepExtend(arg1, arg2)
-// 					}
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]any)[k] = arg2
-// 					} else {
-// 						outObj.(map[string]any)[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]any)
-// }
-
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj any
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		// if xMap, ok := x.(map[string]any); ok {
-// 		if xMap, ok := x.(map[string]any); ok {
-// 			if outObj == nil {
-// 				outObj = make(map[string]any)
-// 			} else if _, ok := x.(map[string]any); !ok  {
-// 				//  || reflect.TypeOf(outObj).Kind() != reflect.Map
-// 				outObj = make(map[string]any)
-// 			}
-// 			dictX := xMap
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]any)[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil {
-// 					_, arg1IsMap := arg1.(map[string]any)
-// 					_, arg2IsMap := arg2.(map[string]any)
-// 					if arg1IsMap && arg2IsMap {
-// 						outObj.(map[string]any)[k] = this.DeepExtend(arg1, arg2)
-// 					}
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]any)[k] = arg2
-// 					} else {
-// 						outObj.(map[string]any)[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]any)
-// }
-
-// func (this *BaseExchange) InArray(elem any, list2 any) bool {
-// 	if list2 == nil {
-// 		return false
-// 	}
-// 	if reflect.TypeOf(list2).Kind() == reflect.Slice {
-// 		list := list2.([]any)
-// 		for _, v := range list {
-// 			if v == elem {
-// 				return true
-// 			}
-// 		}
-// 	}
-// 	return false
-// }
-
 func (this *BaseExchange) InArray(elem any, list any) bool {
-	elem = derefScalar(elem)
 	// Ensure the list is not nil and is of a slice type
-	list = derefScalar(list)
 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
 	}
@@ -506,7 +343,7 @@ func (this *BaseExchange) InArray(elem any, list any) bool {
 	// Use reflection to iterate over the slice
 	listValue := reflect.ValueOf(list)
 	for i := 0; i < listValue.Len(); i++ {
-		listElem := derefScalar(listValue.Index(i).Interface())
+		listElem := listValue.Index(i).Interface()
 
 		// Handle number comparison
 		switch e := elem.(type) {
@@ -677,35 +514,8 @@ func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 	return outDict
 }
 
-// func (this *BaseExchange) IndexBy(a any, key2 any) map[string]any {
-// 	outDict := make(map[string]any)
-// 	var targetX []any
-// 	if aArr, ok := a.([]any); ok {
-// 		targetX = aArr
-// 	} else {
-// 		for _, v := range a.(map[string]any) {
-// 			targetX = append(targetX, v)
-// 		}
-// 	}
-// 	for _, elem := range targetX {
-// 		if reflect.TypeOf(elem).Kind() == reflect.Map {
-// 			elem2 := elem.(map[string]any)
-// 			if val, ok := elem2[ToString(key2)]; ok {
-// 				outDict[ToString(val)] = elem2
-// 			}
-// 		} else if reflect.TypeOf(elem).Kind() == reflect.Slice {
-// 			index := key2.(int)
-// 			elem2 := elem.([]any)
-// 			if len(elem2) > index {
-// 				outDict[elem2[index].(string)] = elem2
-// 			}
-// 		}
-// 	}
-// 	return outDict
-// }
-
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
-	key := derefScalar(key2).(string)
+	key := key2.(string)
 	outDict := make(map[string]any)
 	list := trades.([]any)
 	for _, elem := range list {
@@ -714,7 +524,7 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 			if val == nil {
 				continue
 			}
-			elem2 := derefScalar(val).(string)
+			elem2 := val.(string)
 			if list2, exists := outDict[elem2]; exists {
 				list2 = append(list2.([]any), elem)
 				outDict[elem2] = list2
@@ -727,7 +537,7 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 }
 
 func (this *BaseExchange) OmitZero(value any) any {
-	switch v := derefScalar(value).(type) {
+	switch v := value.(type) {
 	case float64:
 		if v == 0.0 {
 			return nil

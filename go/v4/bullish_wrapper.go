@@ -1019,7 +1019,7 @@ func (this *Bullish) EditOrderWithClientOrderId(clientOrderId string, symbol str
 func (this *Bullish) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Bullish) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bullish) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bullish) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1052,7 +1052,7 @@ func (this *Bullish) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, err
 func (this *Bullish) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bullish) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bullish) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bullish) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

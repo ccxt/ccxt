@@ -21,7 +21,7 @@ So the comparison here is not CCXT against a vendor SDK. It is **CCXT against th
 | | **CCXT** | **Raw Mercado Bitcoin API** |
 | --- | --- | --- |
 | Official client library | — | none published; documentation and code samples only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any, you write the client |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any, you write the client |
 | Symbols | `'BTC/BRL'` | `BTC` as the coin path segment; `BRLBTC` in some payloads |
 | Unified capabilities | 15, of which 9 are `fetch*` | n/a |
 | API versions used | v3 trade API for private, public API and v4 candles for market data | v4 is the current documented surface |
@@ -128,9 +128,9 @@ Mercado Bitcoin returns failures in the response body, as an `error_message` fie
 
 BRL prices run to hundreds of thousands and quantities to eight decimals. CCXT applies each market's tick and step sizes through `amount_to_precision` and `price_to_precision`, backed by the `Precise` string-arithmetic class, so a value never drifts through float rounding into a rejected order.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures. Mercado Bitcoin's documentation offers code samples; each language you support is a client you write and maintain yourself.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures. Mercado Bitcoin's documentation offers code samples; each language you support is a client you write and maintain yourself.
 
 <!-- tabs:start -->
 

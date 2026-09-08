@@ -210,7 +210,7 @@ tokio = { version = "1", features = ["full"] }
 
 `ccxt` 提供 REST 交易所；`ccxt-pro` 增加 WebSocket（`watch*`）交易所，仅在需要流式数据时才引入。两者都是异步的，需要 Tokio 运行时。
 
-```Rust
+```rust
 use ccxt::{Binance, Params};
 
 let mut exchange = Binance::new(None);
