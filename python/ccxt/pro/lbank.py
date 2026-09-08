@@ -884,6 +884,15 @@ class lbank(ccxt.async_support.lbank):
         #
         #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
         #
+        # lbank drives liveness from its side: the server sends self
+        # application-level ping and closes the socket if it is not answered
+        # within a minute, but it does not reliably answer the RFC 6455 ping
+        # frames the base client sends from onPingInterval. an inbound ping is
+        # proof the connection is alive, so record it last pong -
+        # otherwise lastPong never advances past the first onPingInterval and
+        # the keepAlive * maxPingPongMisses check tears down a healthy,
+        # streaming socket every 60 seconds
+        client.lastPong = self.milliseconds()
         pingId = self.safe_string(message, 'ping')
         try:
             await client.send({

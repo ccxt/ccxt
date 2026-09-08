@@ -34,7 +34,10 @@ jobs:
           clean: false
           token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
       - name: Install dependencies
-        run: go mod download
+        run: |
+          go version
+          go mod download
+          go mod verify || (go clean -modcache && go mod download && go mod verify)
         working-directory: ./go
       - name: Setup Node.js
         uses: actions/setup-node@v5

@@ -1,3 +1,44 @@
+<a id="v4.5.78"></a>
+# [v4.5.78](https://github.com/ccxt/ccxt/releases/tag/v4.5.78) - 2026-09-07
+
+## What's Changed
+* chore: adjust release and package.json by [@carlosmiei](https://github.com/carlosmiei) in [#30298](https://github.com/ccxt/ccxt/pull/30298)
+* chore: fix go and rust build by [@carlosmiei](https://github.com/carlosmiei) in [#30301](https://github.com/ccxt/ccxt/pull/30301)
+* fix(paradex): ts error by [@carlosmiei](https://github.com/carlosmiei) in [#30303](https://github.com/ccxt/ccxt/pull/30303)
+* chore: skip examples transpilation by [@carlosmiei](https://github.com/carlosmiei) in [#30304](https://github.com/ccxt/ccxt/pull/30304)
+* chore: split force-build command by [@carlosmiei](https://github.com/carlosmiei) in [#30306](https://github.com/ccxt/ccxt/pull/30306)
+* chore: rust set build jobs to 2 in release.yml by [@carlosmiei](https://github.com/carlosmiei) in [#30307](https://github.com/ccxt/ccxt/pull/30307)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/ccxt-mcp-v0.1.3...v4.5.78
+
+[Changes][v4.5.78]
+
+
+<a id="ccxt-mcp-v0.1.3"></a>
+# [ccxt-mcp v0.1.3 (ccxt-mcp-v0.1.3)](https://github.com/ccxt/ccxt/releases/tag/ccxt-mcp-v0.1.3) - 2026-09-07
+
+Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/#/mcp
+
+[Changes][ccxt-mcp-v0.1.3]
+
+
+<a id="ccxt-mcp-v0.1.2"></a>
+# [ccxt-mcp v0.1.2 (ccxt-mcp-v0.1.2)](https://github.com/ccxt/ccxt/releases/tag/ccxt-mcp-v0.1.2) - 2026-09-03
+
+Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/#/mcp
+
+[Changes][ccxt-mcp-v0.1.2]
+
+
+<a id="ccxt-mcp-latest"></a>
+# [CCXT MCP - latest (v0.1.3) (ccxt-mcp-latest)](https://github.com/ccxt/ccxt/releases/tag/ccxt-mcp-latest) - 2026-09-03
+
+Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): `claude mcp add ccxt -- npx -y ccxt-mcp`. Docs: https://docs.ccxt.com/#/mcp
+
+[Changes][ccxt-mcp-latest]
+
+
 <a id="v4.5.77"></a>
 # [v4.5.77](https://github.com/ccxt/ccxt/releases/tag/v4.5.77) - 2026-09-01
 
@@ -14549,6 +14590,10 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.78]: https://github.com/ccxt/ccxt/compare/ccxt-mcp-v0.1.3...v4.5.78
+[ccxt-mcp-v0.1.3]: https://github.com/ccxt/ccxt/compare/ccxt-mcp-v0.1.2...ccxt-mcp-v0.1.3
+[ccxt-mcp-v0.1.2]: https://github.com/ccxt/ccxt/compare/ccxt-mcp-latest...ccxt-mcp-v0.1.2
+[ccxt-mcp-latest]: https://github.com/ccxt/ccxt/compare/v4.5.77...ccxt-mcp-latest
 [v4.5.77]: https://github.com/ccxt/ccxt/compare/v4.5.76...v4.5.77
 [v4.5.76]: https://github.com/ccxt/ccxt/compare/v4.5.75...v4.5.76
 [v4.5.75]: https://github.com/ccxt/ccxt/compare/v4.5.74...v4.5.75

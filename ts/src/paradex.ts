@@ -1052,8 +1052,11 @@ export default class paradex extends Exchange {
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         let target = 'ALL';
-        if ((symbols !== undefined) && (symbols.length === 1)) {
-            target = this.market (symbols[0])['id'] as string;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                target = this.market (symbols[0])['id'] as string;
+            }
         }
         const request: Dict = {
             'market': target,
@@ -1110,13 +1113,16 @@ export default class paradex extends Exchange {
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         const rate = this.safeString (contract, 'funding_rate');
-        const funds = market['swap'] && (rate !== undefined) && (rate !== '');
+        const funds = (market['swap'] === true) && (rate !== undefined) && (rate !== '');
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
         const hours = this.safeString (this.safeDict (market, 'info', {}), 'funding_period_hours');
         // zero hours is not an interval, and a caller annualising a rate divides by it
-        const interval = ((hours === undefined) || !Precise.stringGt (hours, '0')) ? undefined : hours + 'h';
+        let interval = undefined;
+        if ((hours !== undefined) && Precise.stringGt (hours, '0')) {
+            interval = hours + 'h';
+        }
         return {
             'info': contract,
             'symbol': funds ? market['symbol'] : undefined,
