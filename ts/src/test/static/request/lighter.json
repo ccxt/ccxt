@@ -1,6 +1,15 @@
 {
     "exchange": "lighter",
-    "skipKeys": ["OrderExpiry", "Nonce", "AccountIndex", "ApiKeyIndex", "Sig", "ExpiredAt", "account_index", "ClientOrderIndex"],
+    "skipKeys": [
+        "OrderExpiry",
+        "Nonce",
+        "AccountIndex",
+        "ApiKeyIndex",
+        "Sig",
+        "ExpiredAt",
+        "account_index",
+        "ClientOrderIndex"
+    ],
     "outputType": "json",
     "disabledGO": true,
     "disabledCS": true,
@@ -339,5 +348,6 @@
                 ]
             }
         ]
-    }
+    },
+    "disabledCPP": true
 }

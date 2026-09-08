@@ -808,7 +808,7 @@
                         "id": "3",
                         "numericId": null,
                         "code": "USDC",
-                        "precision": 0.000001,
+                        "precision": 1e-06,
                         "type": "crypto",
                         "name": "USDC",
                         "active": true,
@@ -1164,7 +1164,7 @@
                             "market_id": 0,
                             "exchange": "lighter",
                             "symbol": "ETH",
-                            "rate": 0.00009599999999999999
+                            "rate": 9.599999999999999e-05
                         }
                     ]
                 },
@@ -1174,7 +1174,7 @@
                             "market_id": 0,
                             "exchange": "lighter",
                             "symbol": "ETH",
-                            "rate": 0.00009599999999999999
+                            "rate": 9.599999999999999e-05
                         },
                         "symbol": "ETH/USDC:USDC",
                         "markPrice": null,
@@ -1183,7 +1183,7 @@
                         "estimatedSettlePrice": null,
                         "timestamp": null,
                         "datetime": null,
-                        "fundingRate": 0.00009599999999999999,
+                        "fundingRate": 9.599999999999999e-05,
                         "fundingTimestamp": null,
                         "fundingDatetime": null,
                         "nextFundingRate": null,
@@ -1851,5 +1851,6 @@
                 ]
             }
         ]
-    }
+    },
+    "disabledCPP": true
 }
