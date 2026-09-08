@@ -20,6 +20,7 @@ import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
 import testMergeBalanceAccount from './test.mergeBalanceAccount.js';
 import testJson from './test.json.js';
+import testParseJson from './test.parseJson.js';
 import testIo from './test.io.js';
 import testExtractParams from './test.extractParams.js';
 import testSortBy from './test.sortBy.js';
@@ -90,6 +91,7 @@ async function baseTestsInit () {
     testToArray ();
     testBinaryToBase58 ();
     testJson ();
+    testParseJson ();
     testSortBy ();
     testSum ();
     testUrlencodeBase64 ();
