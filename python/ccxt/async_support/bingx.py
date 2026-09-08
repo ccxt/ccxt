@@ -5034,8 +5034,10 @@ class bingx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve(default 10, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str params.fromAccount:(mandatory) transfer from(spot, swap(linear or inverse), future, or funding)
-        :param str params.toAccount:(mandatory) transfer to(spot, swap(linear or inverse), future, or funding)
+        :param str [params.fromAccount]: transfer from(spot, swap(linear or inverse), future, or funding), required unless transferId is provided
+        :param str [params.toAccount]: transfer to(spot, swap(linear or inverse), future, or funding), required unless transferId is provided
+        :param str [params.transferId]: the transfer ID, either transferId or both fromAccount and toAccount are required
+        :param int [params.until]: the latest time in ms to fetch transfers for
         :param boolean [params.paginate]: whether to paginate the results(default False)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
@@ -5048,10 +5050,11 @@ class bingx(Exchange, ImplicitAPI):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromAccount = self.safe_string(params, 'fromAccount')
         toAccount = self.safe_string(params, 'toAccount')
+        transferId = self.safe_string(params, 'transferId')
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        if fromId is None or toId is None:
-            raise ExchangeError(self.id + ' fromAccount & toAccount parameters are required')
+        if (transferId is None) and ((fromId is None) or (toId is None)):
+            raise ExchangeError(self.id + ' fetchTransfers() requires params["transferId"] or both params["fromAccount"] and params["toAccount"]')
         if fromAccount is not None:
             request['fromAccount'] = fromId
         if toAccount is not None:
@@ -5065,7 +5068,7 @@ class bingx(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
-            request['pageSize'] = limit
+            request['pageSize'] = min(limit, maxLimit)
         request, params = self.handle_until_option('endTime', request, params)
         response = await self.apiV3PrivateGetAssetTransferRecord(self.extend(request, params))
         #
