@@ -273,6 +273,7 @@ public:
     std::any accounts;
     std::any accountsById;
     std::any minFundingAddressLength;
+    std::any quoteJsonNumbers;
     std::any substituteCommonCurrencyCodes;
 
     // -- caches ---------------------------------------------------------------------
@@ -479,6 +480,12 @@ public:
     virtual std::any getProperty (const std::string& name);
     virtual std::any setProperty (const std::string& name, std::any value);
     virtual std::any callDynamically (const std::string& name, std::any args);
+    // implicit-API fallback for callDynamically: overridden by Exchange, which owns
+    // the endpoint registry built from describe().api
+    virtual bool hasEndpoint (const std::string&) { return false; }
+    virtual std::shared_future<std::any> callEndpoint (std::any, std::any = std::any {}) {
+        throw NotSupported ("callEndpoint requires the generated Exchange layer");
+    }
 
     // -- HTTP plumbing ----------------------------------------------------------------
     // handleErrors is also declared on the generated Exchange class (a no-op default)

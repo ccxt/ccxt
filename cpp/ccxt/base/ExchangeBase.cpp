@@ -59,21 +59,21 @@ std::any firstPresent (const std::any& obj, const std::any& keys) {
     return std::any {};
 }
 
-nlohmann::json anyToJson (const std::any& v) {
+nlohmann::ordered_json anyToJson (const std::any& v) {
     if (!v.has_value ())  return nullptr;
     if (isStr (v))        return std::any_cast<std::string> (v);
     if (isBoolean (v))    return std::any_cast<bool> (v);
     if (isInt (v))        return toLong (v);
     if (isFloat (v))      return toDouble (v);
     if (isList (v)) {
-        nlohmann::json out = nlohmann::json::array ();
+        nlohmann::ordered_json out = nlohmann::ordered_json::array ();
         for (const auto& item : std::any_cast<list> (v).items ()) {
             out.push_back (anyToJson (item));
         }
         return out;
     }
     if (isDict (v)) {
-        nlohmann::json out = nlohmann::json::object ();
+        nlohmann::ordered_json out = nlohmann::ordered_json::object ();
         for (const auto& kv : std::any_cast<dict> (v).entries ()) {
             out[kv.first] = anyToJson (kv.second);
         }
@@ -82,7 +82,7 @@ nlohmann::json anyToJson (const std::any& v) {
     return nullptr;
 }
 
-std::any jsonToAny (const nlohmann::json& j) {
+std::any jsonToAny (const nlohmann::ordered_json& j) {
     if (j.is_null ())            return std::any {};
     if (j.is_string ())          return std::any (j.get<std::string> ());
     if (j.is_boolean ())         return std::any (j.get<bool> ());
@@ -861,12 +861,58 @@ std::any ExchangeBase::parseJson (std::any value) {
     try {
         // exchange ids routinely exceed int64 (e.g. alpaca trade ids like
         // 2880534893454904000): nlohmann stores those as double, rounding the
-        // value before any numberToString can recover it. Quote such integer
-        // literals first so they ride through as exact strings.
+        // value before any numberToString can recover it. Quote integer literals
+        // that sit in JSON value positions first so they ride through as exact
+        // strings. (std::regex is ECMAScript-flavoured: no lookbehind, hence the
+        // manual prev-char check instead of (?<!...).)
         std::string text = str (value);
-        static const std::regex bigInt (R"((?<![.\w-])-?(\d{19,})(?![\d.]))");
-        text = std::regex_replace (text, bigInt, R"("$&")");
-        return jsonToAny (nlohmann::json::parse (text));
+        static const std::regex bigInt (R"(\d{19,})");
+        std::string out;
+        std::size_t last = 0;
+        for (auto it = std::sregex_iterator (text.begin (), text.end (), bigInt);
+             it != std::sregex_iterator (); ++it) {
+            std::size_t s = static_cast<std::size_t> (it->position ());
+            const std::size_t len = static_cast<std::size_t> (it->length ());
+            if (s > 0 && (text[s - 1] == '.' || std::isdigit (static_cast<unsigned char> (text[s - 1])))) {
+                continue;   // fraction tail or interior of a longer literal
+            }
+            if (s + len < text.size () && text[s + len] == '.') {
+                continue;   // a float literal like 12345678901234567890.5
+            }
+            if (s + len < text.size () && (text[s + len] == 'e' || text[s + len] == 'E')) {
+                continue;   // exponent tail like 1.23e22
+            }
+            std::size_t quoteStart = s;
+            if (s > 0 && text[s - 1] == '-') {
+                const bool valuePos = (s == 1) ||
+                    (text[s - 2] == '{' || text[s - 2] == '[' || text[s - 2] == ','
+                     || text[s - 2] == ':' || text[s - 2] == ' ' || text[s - 2] == '\n'
+                     || text[s - 2] == '\t' || text[s - 2] == '\r');
+                if (valuePos) {
+                    quoteStart = s - 1;
+                } else {
+                    continue;   // "-" belongs to a string value like "...-9223372036854775808..."
+                }
+            } else {
+                const bool valuePos = (s == 0) ||
+                    (text[s - 1] == '{' || text[s - 1] == '[' || text[s - 1] == ','
+                     || text[s - 1] == ':' || text[s - 1] == ' ' || text[s - 1] == '\n'
+                     || text[s - 1] == '\t' || text[s - 1] == '\r');
+                if (!valuePos) {
+                    continue;
+                }
+            }
+            out += text.substr (last, quoteStart - last);
+            out += '"';
+            out += text.substr (quoteStart, s + len - quoteStart);
+            out += '"';
+            last = s + len;
+        }
+        if (last > 0) {
+            out += text.substr (last);
+            text = out;
+        }
+        return jsonToAny (nlohmann::ordered_json::parse (text));
     } catch (const std::exception&) {
         return std::any {};   // ccxt returns undefined for unparseable payloads
     }
@@ -953,6 +999,36 @@ std::any ExchangeBase::rawencode (std::any params, std::any sortKeys) {
     return std::any (this->queryString (params, false, false, false, sortKeys));
 }
 
+namespace {
+// qs.stringify() semantics (ts/src/base/functions/encode.ts:31): encodeURIComponent
+// followed by escaping !'()* — stricter than the raw JS encodeURIComponent that the
+// C++ encodeURIComponent member mirrors. Used for query-string construction only.
+std::string qsEncode (const std::string& input) {
+    std::string out;
+    for (unsigned char c : input) {
+        switch (c) {
+            case '!': out += "%21"; break;
+            case '\'': out += "%27"; break;
+            case '(': out += "%28"; break;
+            case ')': out += "%29"; break;
+            case '*': out += "%2A"; break;
+            default: {
+                static const std::string unreserved =
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+                if (unreserved.find (static_cast<char> (c)) != std::string::npos) {
+                    out += static_cast<char> (c);
+                } else {
+                    char buffer[8];
+                    std::snprintf (buffer, sizeof (buffer), "%%%02X", c);
+                    out += buffer;
+                }
+            }
+        }
+    }
+    return out;
+}
+}
+
 std::string ExchangeBase::queryString (const std::any& params, bool encodeKeys,
                                        bool encodeValues, bool arrayRepeat,
                                        const std::any& sortKeys) {
@@ -967,9 +1043,9 @@ std::string ExchangeBase::queryString (const std::any& params, bool encodeKeys,
         if (!out.empty ()) {
             out += "&";
         }
-        out += encodeKeys ? str (this->encodeURIComponent (std::any (kv.first))) : kv.first;
+        out += encodeKeys ? qsEncode (kv.first) : kv.first;
         out += "=";
-        out += encodeValues ? str (this->encodeURIComponent (std::any (kv.second))) : kv.second;
+        out += encodeValues ? qsEncode (kv.second) : kv.second;
     }
     return out;
 }
@@ -1514,6 +1590,11 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     if (name == "sleep") return this->sleep (a0);
     if (name == "getCcxtVersion") return this->getCcxtVersion ();
     if (name == "fetch") return this->fetch (a0, a1, a2, a3);
+    // implicit API endpoints (e.g. accountV1PrivateGetAccountApiRestrictions): the
+    // static request fixtures call them directly; route through callEndpoint
+    if (this->hasEndpoint (name)) {
+        return std::any (this->callEndpoint (std::any (std::string (name)), a0));
+    }
     // No dynamic handler at all -- the only way here is a cached DispatchMiss that the
     // helper registry also does not cover.
     throw NotSupported ("callDynamically: no handler for \"" + name + "\"");
@@ -2566,16 +2647,34 @@ std::any ExchangeBase::toDydxLong (std::any value) {
     return std::any (str (value));
 }
 
-std::any ExchangeBase::extendedStarknetSign (std::any, std::any) {
-    throw NotSupported ("extendedStarknetSign requires starknet curve signing; not implemented in the C++ port yet");
+std::any ExchangeBase::extendedStarknetSign (std::any msgHash, std::any pri) {
+    // TS: starknetCurveSign(msgHash without 0x, pri without 0x) -> json([r, s]) with
+    // r/s as decimal strings (BigInt toString()). starkcrypto::sign already returns
+    // decimal r/s (same RFC-6979 path paradex uses).
+    std::string hashHex = str (msgHash);
+    std::string priHex = str (pri);
+    if (hashHex.rfind ("0x", 0) == 0) hashHex = hashHex.substr (2);
+    if (priHex.rfind ("0x", 0) == 0) priHex = priHex.substr (2);
+    const auto rs = ccxt::starkcrypto::sign (hashHex, priHex);
+    return this->json (ccxt::list {rs.first, rs.second});
 }
 
-std::any ExchangeBase::extendedStarknetComputePoseidonHashOnElements (std::any) {
-    throw NotSupported ("extendedStarknetComputePoseidonHashOnElements requires starknet poseidon hashing; not implemented in the C++ port yet");
+std::any ExchangeBase::extendedStarknetComputePoseidonHashOnElements (std::any valuesAny) {
+    // TS extendedStarknetComputePoseidonHashOnElements: poseidon_hash_many over
+    // felt elements -> hex string. Elements arrive as hex or decimal strings.
+    std::vector<std::string> elements;
+    if (ccxt::isList (valuesAny)) {
+        const auto& l = std::any_cast<const ccxt::list&> (valuesAny);
+        for (std::size_t i = 0; i < l.size (); i++) {
+            elements.push_back (str (l.get (static_cast<long long> (i))));
+        }
+    }
+    return std::any (std::string ("0x") + ccxt::starkcrypto::poseidonHashMany (elements));
 }
 
-std::any ExchangeBase::extendedStarknetGetSelectorFromName (std::any) {
-    throw NotSupported ("extendedStarknetGetSelectorFromName requires starknet hashing; not implemented in the C++ port yet");
+std::any ExchangeBase::extendedStarknetGetSelectorFromName (std::any value) {
+    // starknet getSelectorFromName: keccak256(name) & (2^250 - 1), hex string
+    return std::any (ccxt::starkcrypto::getSelectorFromName (str (value)));
 }
 
 std::any ExchangeBase::parseDate (std::any value) {
@@ -2851,11 +2950,12 @@ void ExchangeBase::setProperty (ExchangeBase* self, std::any name, std::any valu
     }
 }
 
-std::any ExchangeBase::callDynamically (ExchangeBase*, std::any name, std::any) {
-    // The pagination helpers and implicit-API dispatch reach here. Resolving them needs
-    // the generated per-exchange method registry, which arrives with the api layer;
-    // until then this is an explicit failure rather than a silent empty result.
-    throw NotSupported ("dynamic dispatch to '" + str (name) + "' is not registered in the C++ port yet");
+std::any ExchangeBase::callDynamically (ExchangeBase* self, std::any name, std::any args) {
+    // transpiled code calls the free-function form callDynamically(this, name, args)
+    // (fetchWebEndpoint's endpointMethod, pagination helpers). Route through the
+    // instance dispatch, which covers unified methods, helpers, and implicit API
+    // endpoints alike.
+    return self->callDynamically (str (name), args);
 }
 
 // Global, not a member: the backend emits it unqualified for `throw new x[a](msg)`.
