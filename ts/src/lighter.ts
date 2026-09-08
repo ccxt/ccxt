@@ -5,7 +5,7 @@ import Exchange from './abstract/lighter.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, OrderRequest, CancellationRequest, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 //  ---------------------------------------------------------------------------
@@ -40,20 +40,21 @@ export default class lighter extends Exchange {
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
-                'cancelOrdersForSymbols': false,
+                'cancelOrders': true,
+                'cancelOrdersForSymbols': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopOrder': false,
                 'createTriggerOrder': false,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': true,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
@@ -1003,13 +1004,36 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        const [ txType, txInfo, market ] = await this.signAndEditOrder ('editOrder', id, symbol, amount, price, params);
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#signAndEditOrder
+     * @description signs a modify order transaction, lighter only changes amount, price and trigger price
+     * @param {string} method the name of the calling unified method, used for option lookups and error messages
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any[]} an array of [ txType, txInfo, market ]
+     */
+    async signAndEditOrder (method: string, id: string, symbol: string, amount: Num = undefined, price: Num = undefined, params = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'editOrder', 'apiKeyIndex', 'api_key_index');
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
         let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'editOrder', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
@@ -1045,12 +1069,7 @@ export default class lighter extends Exchange {
             signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
         }
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
-        const request: Dict = {
-            'tx_type': txType,
-            'tx_info': txInfo,
-        };
-        const response = await this.publicPostSendTx (request);
-        return this.parseOrder (response, market);
+        return [ txType, txInfo, market ];
     }
 
     /**
@@ -3268,6 +3287,329 @@ export default class lighter extends Exchange {
         };
         const response = await this.publicPostSendTx (request);
         return response;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#signBatchTransactions
+     * @description signs an ordered list of transactions so that they can be submitted together in a single sendTxBatch request
+     * @param {string} method the name of the calling unified method, used for option lookups and error messages
+     * @param {object[]} transactions ordered list of transactions, each one is a dictionary with a "method" key
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any[]} an array of [ txTypes, txInfos, infos ]
+     */
+    async signBatchTransactions (method: string, transactions: Dict[], params: Dict = {}): Promise<any[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const transactionsLength = transactions.length;
+        if (transactionsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' ' + method + '() requires a non empty list of transactions');
+        }
+        // lighter requires every transaction of a batch to be signed by the same api key of the
+        // same account and to carry a strictly increasing nonce, so both indices and the base
+        // nonce are resolved once here and then forced onto every individual transaction below
+        let apiKeyIndex: Int = undefined;
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
+        let accountIndex: Int = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
+        const baseNonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
+        const txTypes: List = [];
+        const txInfos: List = [];
+        const infos: List = [];
+        for (let i = 0; i < transactionsLength; i++) {
+            const transaction = transactions[i];
+            const transactionMethod = this.safeString (transaction, 'method', 'createOrder');
+            const transactionParams = this.safeDict (transaction, 'params', {});
+            const requestParams = this.extend (params, transactionParams);
+            requestParams['accountIndex'] = accountIndex;
+            requestParams['apiKeyIndex'] = apiKeyIndex;
+            requestParams['nonce'] = this.sum (baseNonce, i);
+            const symbol = this.safeString (transaction, 'symbol');
+            let signed: List = [];
+            if (transactionMethod === 'createOrder') {
+                const type = this.safeString (transaction, 'type');
+                const side = this.safeString (transaction, 'side');
+                const amount = this.safeNumber (transaction, 'amount');
+                const price = this.safeNumber (transaction, 'price');
+                signed = await this.signAndCreateOrder (method, symbol, type, side, amount, price, requestParams);
+                infos.push (signed[2]);
+            } else if (transactionMethod === 'cancelOrder') {
+                const id = this.safeString (transaction, 'id') as string;
+                signed = await this.signAndCancelOrder (method, id, symbol, requestParams);
+                const cancelledMarket = signed[2];
+                infos.push ({
+                    'market_index': this.safeString (cancelledMarket, 'id'),
+                    'order_id': id,
+                });
+            } else if (transactionMethod === 'editOrder') {
+                const id = this.safeString (transaction, 'id') as string;
+                const amount = this.safeNumber (transaction, 'amount');
+                const price = this.safeNumber (transaction, 'price');
+                signed = await this.signAndEditOrder (method, id, symbol as string, amount, price, requestParams);
+                const editedMarket = signed[2];
+                infos.push ({
+                    'market_index': this.safeString (editedMarket, 'id'),
+                    'order_id': id,
+                });
+            } else if (transactionMethod === 'cancelAllOrders') {
+                signed = await this.signAndCancelAllOrders (method, symbol, requestParams);
+                infos.push ({});
+            } else {
+                throw new NotSupported (this.id + ' ' + method + '() does not support "' + transactionMethod + '" transactions, supported methods are "createOrder", "editOrder", "cancelOrder" and "cancelAllOrders"');
+            }
+            txTypes.push (this.parseToInt (signed[0]));
+            txInfos.push (signed[1]);
+        }
+        return [ txTypes, txInfos, infos ];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#sendSignedTxBatch
+     * @description submits an already signed batch of transactions and parses the response
+     * @param {any[]} signedBatch the output of signBatchTransactions
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async sendSignedTxBatch (signedBatch: any[]): Promise<Order[]> {
+        const txTypes = signedBatch[0];
+        const txInfos = signedBatch[1];
+        const infos = signedBatch[2];
+        // both fields are sent as json encoded strings, exactly like the official lighter sdk does
+        const request: Dict = {
+            'tx_types': this.json (txTypes),
+            'tx_infos': this.json (txInfos),
+        };
+        const response = await this.publicPostSendTxBatch (request);
+        //
+        // {
+        //     "code": 200,
+        //     "message": "",
+        //     "tx_hash": [ "txhash1", "txhash2" ],
+        //     "predicted_execution_time_ms": 1766088500120
+        // }
+        //
+        return this.parseBatchOrders (response, infos);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#parseBatchOrders
+     * @description merges a batch response with the signed requests it was built from
+     * @param {object} response a sendTxBatch response, its tx_hash is a list aligned with infos
+     * @param {any[]} infos the per transaction payloads collected by signBatchTransactions
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    parseBatchOrders (response: Dict, infos: List): Order[] {
+        const txHashes = this.safeList (response, 'tx_hash', []);
+        const code = this.safeInteger (response, 'code');
+        const message = this.safeString (response, 'message');
+        const predictedExecutionTime = this.safeInteger (response, 'predicted_execution_time_ms');
+        const parsed: List = [];
+        const infosLength = infos.length;
+        for (let i = 0; i < infosLength; i++) {
+            const info = this.extend ({}, infos[i]);
+            info['code'] = code;
+            info['message'] = message;
+            info['tx_hash'] = this.safeString (txHashes, i);
+            info['predicted_execution_time_ms'] = predictedExecutionTime;
+            parsed.push (info);
+        }
+        return this.parseOrders (parsed);
+    }
+
+    /**
+     * @method
+     * @name lighter#sendTxBatch
+     * @description signs and sends an ordered list of transactions in a single request, order creations and cancellations can be mixed freely
+     * @see https://apidocs.lighter.xyz/reference/sendtxbatch
+     * @param {object[]} transactions ordered list of transactions, the exchange executes them in the given order
+     * @param {string} transactions[].method one of "createOrder", "editOrder", "cancelOrder" or "cancelAllOrders", defaults to "createOrder"
+     * @param {string} transactions[].symbol unified market symbol, required by every method except "cancelAllOrders"
+     * @param {string} [transactions[].type] 'market' or 'limit', only used by "createOrder"
+     * @param {string} [transactions[].side] 'buy' or 'sell', only used by "createOrder"
+     * @param {float} [transactions[].amount] how much of currency you want to trade in units of base currency, used by "createOrder" and "editOrder"
+     * @param {float} [transactions[].price] the price at which the order is to be fulfilled, used by "createOrder" and "editOrder"
+     * @param {string} [transactions[].id] order id, used by "editOrder" and "cancelOrder"
+     * @param {object} [transactions[].params] extra parameters specific to this single transaction
+     * @param {object} [params] extra parameters applied to every transaction of the batch
+     * @param {int} [params.nonce] nonce of the first transaction, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every transaction of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every transaction of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async sendTxBatch (transactions: Dict[], params = {}): Promise<Order[]> {
+        const signedBatch = await this.signBatchTransactions ('sendTxBatch', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrders
+     * @description create a list of trade orders using a single request
+     * @see https://apidocs.lighter.xyz/reference/sendtxbatch
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters applied to every order of the batch
+     * @param {int} [params.nonce] nonce of the first order, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every order of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every order of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        const transactions = this.createOrdersTransactions (orders);
+        const signedBatch = await this.signBatchTransactions ('createOrders', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#createOrdersTransactions
+     * @description converts a list of unified order requests into batch transactions
+     * @param {Array} orders list of orders to create
+     * @returns {object[]} a list of batch transactions
+     */
+    createOrdersTransactions (orders: OrderRequest[]): Dict[] {
+        const transactions: List = [];
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const rawOrder = orders[i];
+            transactions.push ({
+                'method': 'createOrder',
+                'symbol': this.safeString (rawOrder, 'symbol'),
+                'type': this.safeString (rawOrder, 'type'),
+                'side': this.safeString (rawOrder, 'side'),
+                'amount': this.safeNumber (rawOrder, 'amount'),
+                'price': this.safeNumber (rawOrder, 'price'),
+                'params': this.safeDict (rawOrder, 'params', {}),
+            });
+        }
+        return transactions;
+    }
+
+    /**
+     * @method
+     * @name lighter#editOrders
+     * @description edit a list of trade orders using a single request
+     * @see https://apidocs.lighter.xyz/reference/sendtxbatch
+     * @param {Array} orders list of orders to edit, each object should contain id, symbol, amount and price
+     * @param {object} [params] extra parameters applied to every order of the batch
+     * @param {int} [params.nonce] nonce of the first order, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every order of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every order of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        const transactions = this.editOrdersTransactions (orders);
+        const signedBatch = await this.signBatchTransactions ('editOrders', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#editOrdersTransactions
+     * @description converts a list of unified edit requests into batch transactions
+     * @param {Array} orders list of orders to edit
+     * @returns {object[]} a list of batch transactions
+     */
+    editOrdersTransactions (orders: OrderRequest[]): Dict[] {
+        const transactions: List = [];
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const rawOrder = orders[i];
+            transactions.push ({
+                'method': 'editOrder',
+                'id': this.safeString (rawOrder, 'id'),
+                'symbol': this.safeString (rawOrder, 'symbol'),
+                'amount': this.safeNumber (rawOrder, 'amount'),
+                'price': this.safeNumber (rawOrder, 'price'),
+                'params': this.safeDict (rawOrder, 'params', {}),
+            });
+        }
+        return transactions;
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrders
+     * @description cancel multiple orders of the same market using a single request
+     * @see https://apidocs.lighter.xyz/reference/sendtxbatch
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {object} [params] extra parameters applied to every cancellation of the batch
+     * @param {int} [params.nonce] nonce of the first cancellation, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every cancellation of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every cancellation of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const transactions = this.cancelOrdersTransactions ('cancelOrders', ids, symbol);
+        const signedBatch = await this.signBatchTransactions ('cancelOrders', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#cancelOrdersTransactions
+     * @description converts a list of order ids of a single market into batch transactions
+     * @param {string} method the name of the calling unified method, used in error messages
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @returns {object[]} a list of batch transactions
+     */
+    cancelOrdersTransactions (method: string, ids: string[], symbol: Str = undefined): Dict[] {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + method + '() requires a symbol argument');
+        }
+        const transactions: List = [];
+        const idsLength = ids.length;
+        for (let i = 0; i < idsLength; i++) {
+            transactions.push ({
+                'method': 'cancelOrder',
+                'id': ids[i],
+                'symbol': symbol,
+            });
+        }
+        return transactions;
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrdersForSymbols
+     * @description cancel multiple orders of different markets using a single request
+     * @see https://apidocs.lighter.xyz/reference/sendtxbatch
+     * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDC:USDC"}, {"id": "b", "symbol": "ETH/USDC:USDC"}]
+     * @param {object} [params] extra parameters applied to every cancellation of the batch
+     * @param {int} [params.nonce] nonce of the first cancellation, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every cancellation of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every cancellation of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<Order[]> {
+        const transactions: List = [];
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const rawOrder = orders[i];
+            const transaction: Dict = {
+                'method': 'cancelOrder',
+                'id': this.safeString (rawOrder, 'id'),
+                'symbol': this.safeString (rawOrder, 'symbol'),
+            };
+            const clientOrderId = this.safeString (rawOrder, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                transaction['params'] = {
+                    'clientOrderId': clientOrderId,
+                };
+            }
+            transactions.push (transaction);
+        }
+        const signedBatch = await this.signBatchTransactions ('cancelOrdersForSymbols', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
     }
 
     /**

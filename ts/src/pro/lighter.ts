@@ -1,7 +1,8 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
-import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
+import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
+import { BadRequest } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import lighterRest from '../lighter.js';
@@ -43,7 +44,10 @@ export default class lighter extends lighterRest {
                 'unWatchMarkPrices': true,
                 'unWatchOrders': true,
                 'createOrderWs': true,
+                'createOrdersWs': true,
+                'editOrderWs': true,
                 'cancelOrderWs': true,
+                'cancelOrdersWs': true,
                 'cancelAllOrdersWs': true,
             },
             'urls': {
@@ -1207,6 +1211,44 @@ export default class lighter extends lighterRest {
 
     /**
      * @method
+     * @name lighter#editOrderWs
+     * @description edit an open order, lighter only changes amount, price and trigger price
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type not used by lighter.editOrderWs
+     * @param {string} side not used by lighter.editOrderWs
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the new trigger price
+     * @param {int} [params.accountIndex] account index
+     * @param {int} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [ txType, txInfo, market ] = await this.signAndEditOrder ('editOrderWs', id, symbol, amount, price, params);
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrder (rawMessage, market);
+    }
+
+    /**
+     * @method
      * @name lighter#cancelOrderWs
      * @description cancel multiple orders
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
@@ -1268,6 +1310,125 @@ export default class lighter extends lighterRest {
         };
         const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
         return this.parseOrders ([ rawMessage ]);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#signAndWatchTxBatch
+     * @description signs an ordered list of transactions and submits it over the websocket
+     * @param {string} method the name of the calling unified method, used for option lookups and error messages
+     * @param {object[]} transactions ordered list of transactions, each one is a dictionary with a "method" key
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async signAndWatchTxBatch (method: string, transactions: Dict[], params: Dict = {}): Promise<Order[]> {
+        const transactionsLength = transactions.length;
+        const maxBatchSize = this.safeInteger (this.options, 'maxWsBatchSize', 15);
+        if (transactionsLength > maxBatchSize) {
+            throw new BadRequest (this.id + ' ' + method + '() accepts at most ' + this.numberToString (maxBatchSize) + ' transactions per batch');
+        }
+        const signedBatch = await this.signBatchTransactions (method, transactions, params);
+        return await this.watchSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#watchSignedTxBatch
+     * @description submits an already signed batch of transactions over the websocket and parses the response
+     * @param {any[]} signedBatch the output of signBatchTransactions
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchSignedTxBatch (signedBatch: any[]): Promise<Order[]> {
+        const txTypes = signedBatch[0];
+        const txInfos = signedBatch[1];
+        const infos = signedBatch[2];
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtxbatch:' + requestId;
+        // unlike jsonapi/sendtx, which carries a single decoded tx_info object, the batch
+        // endpoint expects two json encoded strings, the same way the rest endpoint does
+        const message: Dict = {
+            'type': 'jsonapi/sendtxbatch',
+            'data': {
+                'id': requestId,
+                'tx_types': this.json (txTypes),
+                'tx_infos': this.json (txInfos),
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseBatchOrders (rawMessage, infos);
+    }
+
+    /**
+     * @method
+     * @name lighter#sendTxBatchWs
+     * @description signs and sends an ordered list of transactions in a single websocket message, order creations and cancellations can be mixed freely
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-batch-tx
+     * @param {object[]} transactions ordered list of at most 15 transactions, the exchange executes them in the given order
+     * @param {string} transactions[].method one of "createOrder", "editOrder", "cancelOrder" or "cancelAllOrders", defaults to "createOrder"
+     * @param {string} transactions[].symbol unified market symbol, required by every method except "cancelAllOrders"
+     * @param {string} [transactions[].type] 'market' or 'limit', only used by "createOrder"
+     * @param {string} [transactions[].side] 'buy' or 'sell', only used by "createOrder"
+     * @param {float} [transactions[].amount] how much of currency you want to trade in units of base currency, used by "createOrder" and "editOrder"
+     * @param {float} [transactions[].price] the price at which the order is to be fulfilled, used by "createOrder" and "editOrder"
+     * @param {string} [transactions[].id] order id, used by "editOrder" and "cancelOrder"
+     * @param {object} [transactions[].params] extra parameters specific to this single transaction
+     * @param {object} [params] extra parameters applied to every transaction of the batch
+     * @param {int} [params.nonce] nonce of the first transaction, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every transaction of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every transaction of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async sendTxBatchWs (transactions: Dict[], params = {}): Promise<Order[]> {
+        return await this.signAndWatchTxBatch ('sendTxBatchWs', transactions, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrdersWs
+     * @description create a list of trade orders using a single websocket message
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-batch-tx
+     * @param {Array} orders list of at most 15 orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters applied to every order of the batch
+     * @param {int} [params.nonce] nonce of the first order, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every order of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every order of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async createOrdersWs (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        const transactions = this.createOrdersTransactions (orders);
+        return await this.signAndWatchTxBatch ('createOrdersWs', transactions, params);
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrdersWs
+     * @description cancel multiple orders of the same market using a single websocket message
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-batch-tx
+     * @param {string[]} ids order ids, at most 15
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {object} [params] extra parameters applied to every cancellation of the batch
+     * @param {int} [params.nonce] nonce of the first cancellation, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every cancellation of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every cancellation of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const transactions = this.cancelOrdersTransactions ('cancelOrdersWs', ids, symbol);
+        return await this.signAndWatchTxBatch ('cancelOrdersWs', transactions, params);
+    }
+
+    handleWsSendtxBatchApi (client: Client, message: any) {
+        //
+        //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":["9959d3feb30d0a89","fcfd4532f071ac99"],"type":"jsonapi/sendtxbatch"}
+        //
+        const id = this.safeString (message, 'id');
+        client.resolve (message, 'jsonapi/sendtxbatch:' + id);
     }
 
     handleWsSendtxApi (client: Client, message: any) {
@@ -1378,6 +1539,10 @@ export default class lighter extends lighterRest {
         }
         if (type === 'jsonapi/sendtx') {
             this.handleWsSendtxApi (client, message);
+            return;
+        }
+        if (type === 'jsonapi/sendtxbatch') {
+            this.handleWsSendtxBatchApi (client, message);
             return;
         }
         const channel = this.safeString (message, 'channel', '');
