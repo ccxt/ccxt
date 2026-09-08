@@ -1070,6 +1070,224 @@ fn fixture_fee_netting(r: &OrderRouter, f: &Value) -> Result<(), String> {
 // ---------------------------------------------------------------------------
 
 /// Runs the OrderRouter suite. Returns the number of checks that passed.
+
+// ---------------------------------------------------------------------------
+// onStep and the retry policy — the four checks the TypeScript reference added,
+// ported honestly. In THIS port the hook is a field on the router rather than an
+// options key, because `Value` cannot carry a closure; see `OnStepHook`.
+// ---------------------------------------------------------------------------
+
+/// The two-hop route needs both markets declared, or the second hop is refused
+/// for want of one.
+fn two_hop_execute_options() -> Value {
+    let mut options = execute_options(true, "sequential");
+    let market = |symbol: &str, base_code: &str, quote: &str| {
+        let mut m = HashMap::new();
+        m.insert("symbol".to_string(), Value::Str(symbol.into()));
+        m.insert("base".to_string(), Value::Str(base_code.into()));
+        m.insert("quote".to_string(), Value::Str(quote.into()));
+        Value::Map(m)
+    };
+    let mut by_symbol = HashMap::new();
+    by_symbol.insert("BTC/USDT".to_string(), market("BTC/USDT", "BTC", "USDT"));
+    by_symbol.insert("BTC/ETH".to_string(), market("BTC/ETH", "BTC", "ETH"));
+    let mut markets = HashMap::new();
+    markets.insert("stub".to_string(), Value::Map(by_symbol));
+    OrderRouter::set_key(&mut options, "markets", Value::Map(markets));
+    let mut usd_rates = HashMap::new();
+    usd_rates.insert("USDT".to_string(), Value::Float(1.0));
+    usd_rates.insert("ETH".to_string(), Value::Float(10.0));
+    OrderRouter::set_key(&mut options, "usdRates", Value::Map(usd_rates));
+    options
+}
+
+fn on_step_sees_every_step_and_can_stop_the_route() -> Result<(), String> {
+    // The one thing a caller cannot do from outside execute(): look at what just happened
+    // and decide not to continue. Before this hook the method was opaque from call to return.
+    let mut r = router()?;
+    let plan = r.build_execution_plan(&two_hop_route(), &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
+    let steps_total = r.list_at(&plan, "steps").len();
+    let seen: StdArc<std::sync::Mutex<Vec<Value>>> = StdArc::new(std::sync::Mutex::new(Vec::new()));
+    let recorded = StdArc::clone(&seen);
+    r.set_on_step(std::sync::Arc::new(move |event: &Value| {
+        recorded.lock().unwrap().push(event.clone());
+        match event.as_map().and_then(|m| m.get("stepIndex")) {
+            Some(Value::Float(index)) if *index == 0.0 => "halt".to_string(),
+            _ => String::new(),
+        }
+    }));
+    let venue = StubVenue::new("stub");
+    let counter = StdArc::clone(&venue.orders_placed);
+    let venues = stub_venues(venue);
+    let report = block_on(r.execute(&plan, &venues, &two_hop_execute_options())).map_err(|e| e.to_string())?;
+    let events = seen.lock().unwrap().clone();
+    if events.len() != 1 {
+        return Err(format!("the hook is not called for steps that never ran, got {} calls", events.len()));
+    }
+    if r.number_at(&events[0], "stepIndex", -1.0) != 0.0 {
+        return Err("the event names the step".to_string());
+    }
+    if r.string_at(&events[0], "status", "") != "filled" {
+        return Err(format!("the event carries the outcome, got {}", r.string_at(&events[0], "status", "")));
+    }
+    if r.number_at(&events[0], "stepsRemaining", -1.0) != (steps_total - 1) as f64 {
+        return Err("the event says how much of the route is left".to_string());
+    }
+    if events[0].as_map().and_then(|m| m.get("reconciliation")).is_none() {
+        return Err("the verdict it is judging is in the event".to_string());
+    }
+    if !r.bool_at(&report, "halted", false) {
+        return Err("the hook stopped the route".to_string());
+    }
+    if r.string_at(&report, "haltReason", "") != "halted_by_on_step" {
+        return Err(format!("the halt names the hook, got {}", r.string_at(&report, "haltReason", "")));
+    }
+    if r.number_at(&report, "haltStepIndex", -1.0) != 0.0 {
+        return Err("and the step it halted at".to_string());
+    }
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[1], "status", "") != "skipped" {
+        return Err("the rest of the route is skipped".to_string());
+    }
+    if r.number_at(&report, "ordersPlaced", -1.0) != 1.0 || counter.load(Ordering::SeqCst) != 1 {
+        return Err("the step after the halt was never placed".to_string());
+    }
+    Ok(())
+}
+
+fn an_on_step_that_panics_is_recorded_and_does_not_take_the_run_down() -> Result<(), String> {
+    // The report is the ONLY account of orders that are already live. A panic raised by
+    // observability code must never destroy it — trigger.dev logs and ignores hook errors
+    // for the same reason, and Go's port contains the equivalent panic with defer/recover.
+    //
+    // NOTE on the adaptation: the reference test is "a hook that THROWS". Rust has no
+    // exceptions, so the nearest thing a caller's closure can do to take the run down is
+    // panic, and the containment is `catch_unwind` rather than try/catch. The property under
+    // test is identical; only the mechanism differs. It does NOT hold under a panic=abort
+    // profile, where no construct in any language can save the process.
+    let mut r = router()?;
+    let plan = one_leg_plan(&r)?;
+    r.set_on_step(std::sync::Arc::new(|_event: &Value| -> String {
+        panic!("hook is broken");
+    }));
+    let venues = stub_venues(StubVenue::new("stub"));
+    // The panic is contained, but the default panic hook still prints the unwind to stderr;
+    // silenced so a passing suite does not read like a crashing one.
+    let previous = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+    let executed = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")));
+    std::panic::set_hook(previous);
+    let report = executed.map_err(|e| e.to_string())?;
+    if r.bool_at(&report, "halted", true) {
+        return Err("the route finished".to_string());
+    }
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[0], "status", "") != "filled" {
+        return Err("and the order it placed is still reported".to_string());
+    }
+    let errors = r.list_at(&report, "errors");
+    let mut found = false;
+    for entry in &errors {
+        if r.string_at(entry, "code", "").starts_with("on_step_hook_failed") {
+            found = true;
+        }
+    }
+    if !found {
+        return Err(format!("the broken hook is reported rather than swallowed, got {errors:?}"));
+    }
+    Ok(())
+}
+
+fn on_step_can_only_narrow_and_cannot_resume_a_halted_route() -> Result<(), String> {
+    // The halt is a money decision made in one pure place precisely so it cannot be omitted.
+    // A hook that could wave it through would be a way to omit it.
+    let mut r = router()?;
+    let plan = r.build_execution_plan(&two_hop_route(), &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
+    r.set_on_step(std::sync::Arc::new(|_event: &Value| "continue".to_string()));
+    let mut starved = StubVenue::new("stub");
+    starved.fill_ratio = 0.1;
+    let counter = StdArc::clone(&starved.orders_placed);
+    let venues = stub_venues(starved);
+    let report = block_on(r.execute(&plan, &venues, &two_hop_execute_options())).map_err(|e| e.to_string())?;
+    if !r.bool_at(&report, "halted", false) {
+        return Err("the reconciliation halt stands".to_string());
+    }
+    if r.string_at(&report, "haltReason", "") != "shortfall_exceeds_tolerance" {
+        return Err(format!(
+            "the reconciliation reason survives, it is not replaced by the hook; got {}",
+            r.string_at(&report, "haltReason", "")
+        ));
+    }
+    if r.number_at(&report, "ordersPlaced", -1.0) != 1.0 || counter.load(Ordering::SeqCst) != 1 {
+        return Err("the hook did not wave the route onward".to_string());
+    }
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[1], "status", "") != "skipped" {
+        return Err("the second hop never ran".to_string());
+    }
+    Ok(())
+}
+
+fn retry_replaces_under_a_new_id_and_never_retries_an_unknown_outcome() -> Result<(), String> {
+    // A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
+    // original client order id would have the venue reject the retry as a duplicate of the
+    // very order it just refused, so each attempt carries its own.
+    let r = router()?;
+    let plan = one_leg_plan(&r)?;
+    let relents = StubVenue::new("stub");
+    relents.fail_create_times.store(1, Ordering::SeqCst);
+    let seen = StdArc::clone(&relents.params_seen);
+    let venues = stub_venues(relents);
+    let mut options = options_with(
+        &execute_options(true, "sequential"),
+        "retryFailedSteps",
+        Value::Float(2.0),
+    );
+    options = options_with(&options, "retryDelayMs", Value::Float(0.0));
+    let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
+    let results = r.list_at(&report, "steps");
+    if r.string_at(&results[0], "status", "") != "filled" {
+        return Err(format!("the retry succeeded, got {}", r.string_at(&results[0], "status", "")));
+    }
+    if r.number_at(&results[0], "attempt", -1.0) != 1.0 {
+        return Err(format!("the report says which attempt won, got {}", r.number_at(&results[0], "attempt", -1.0)));
+    }
+    let params = seen.lock().unwrap().clone();
+    if params.len() != 2 {
+        return Err(format!("one rejection and one retry, got {} calls", params.len()));
+    }
+    let first = r.string_at(&params[0], "clientOrderId", "");
+    let second = r.string_at(&params[1], "clientOrderId", "");
+    if first == second {
+        return Err("a retry must not reuse the rejected order id".to_string());
+    }
+    if !second.contains("-r1") {
+        return Err(format!("the retry is marked as such, got {second}"));
+    }
+
+    // The outcome the policy must NEVER touch.
+    let plan2 = r
+        .build_execution_plan(&one_leg_route("buy", "BTC", "USDT", 0.2, 100.0), &Value::Map(HashMap::new()))
+        .map_err(|e| e.to_string())?;
+    let mut unknown = StubVenue::new("stub");
+    unknown.fail_with = Some("RequestTimeout");
+    let attempts = StdArc::clone(&unknown.orders_placed);
+    let venues = stub_venues(unknown);
+    let second_options = options_with(&options, "retryFailedSteps", Value::Float(5.0));
+    let second_report = block_on(r.execute(&plan2, &venues, &second_options)).map_err(|e| e.to_string())?;
+    let results = r.list_at(&second_report, "steps");
+    if r.string_at(&results[0], "status", "") != "outcome_unknown" {
+        return Err("a timed-out placement stays outcome_unknown".to_string());
+    }
+    if attempts.load(Ordering::SeqCst) != 1 {
+        return Err(format!(
+            "an order whose outcome is unknown may already be live; it is never re-placed, saw {} calls",
+            attempts.load(Ordering::SeqCst)
+        ));
+    }
+    Ok(())
+}
+
 pub fn run() -> Result<usize, String> {
     let f = fixture()?;
     let r = router()?;
@@ -1119,6 +1337,10 @@ pub fn run() -> Result<usize, String> {
         ("execute: every order carries a deterministic client order id derived from the plan and the step", Box::new(|| deterministic_client_order_ids(&router()?))),
         ("execute: the same plan is refused on a second live execution unless the caller opts in", Box::new(|| reexecution_is_refused(&router()?))),
         ("execute: a dry run never consumes a plan, and a halted live run always does", Box::new(|| a_dry_run_does_not_consume_a_plan(&router()?))),
+        ("execute: onStep sees every step and can stop the route", Box::new(on_step_sees_every_step_and_can_stop_the_route)),
+        ("execute: an onStep that panics is recorded, and does not take the run down with it", Box::new(an_on_step_that_panics_is_recorded_and_does_not_take_the_run_down)),
+        ("execute: onStep can only narrow — it cannot resume a route the reconciliation already halted", Box::new(on_step_can_only_narrow_and_cannot_resume_a_halted_route)),
+        ("execute: retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome", Box::new(retry_replaces_under_a_new_id_and_never_retries_an_unknown_outcome)),
         ("execute: the re-execution ledger is bounded, evicts oldest-first, and re-allows an evicted plan", Box::new(|| the_ledger_is_bounded(&router()?))),
     ];
     let _ = (&f, &r);
@@ -1204,6 +1426,13 @@ struct StubVenue {
     trade_fees_to_charge: Vec<(f64, String)>,
     /// Every params dictionary create_order was called with, in call order.
     params_seen: StdArc<std::sync::Mutex<Vec<Value>>>,
+    /// Refuse this many create_order calls, then behave: a venue that rejects
+    /// and then relents, which is the only shape a retry can be tested against.
+    /// An atomic because `create_order` takes `&self`.
+    fail_create_times: StdArc<AtomicUsize>,
+    /// The fraction of the requested amount the venue actually fills. 1.0 is a
+    /// full fill; a smaller number is the shortfall a reconciliation halts on.
+    fill_ratio: f64,
 }
 
 impl StubVenue {
@@ -1223,6 +1452,8 @@ impl StubVenue {
             fee_to_charge: None,
             trade_fees_to_charge: Vec::new(),
             params_seen: StdArc::new(std::sync::Mutex::new(Vec::new())),
+            fail_create_times: StdArc::new(AtomicUsize::new(0)),
+            fill_ratio: 1.0,
         }
     }
 }
@@ -1255,6 +1486,10 @@ impl RouterVenue for StubVenue {
         if let Some(kind) = self.fail_with {
             return Err(crate::error::ExchangeError::new(kind, "stub refuses"));
         }
+        if self.fail_create_times.load(Ordering::SeqCst) > 0 {
+            self.fail_create_times.fetch_sub(1, Ordering::SeqCst);
+            return Err(crate::error::ExchangeError::new("ExchangeError", "stub refuses, for now"));
+        }
         let mut order = HashMap::new();
         order.insert("id".to_string(), Value::Str("stub-1".to_string()));
         if self.created_open {
@@ -1267,9 +1502,10 @@ impl RouterVenue for StubVenue {
             order.insert("status".to_string(), Value::Str("closed".to_string()));
         }
         if !self.omit_filled {
-            order.insert("filled".to_string(), Value::Float(amount));
+            let filled = amount * self.fill_ratio;
+            order.insert("filled".to_string(), Value::Float(filled));
             order.insert("average".to_string(), Value::Float(price));
-            order.insert("cost".to_string(), Value::Float(amount * price));
+            order.insert("cost".to_string(), Value::Float(filled * price));
         }
         if let Some((cost, currency)) = &self.fee_to_charge {
             order.insert("fee".to_string(), stub_fee(*cost, currency));

@@ -113,6 +113,12 @@ public class OrderRouter
 
     public const double DefaultReconcileTolerance = 0.02;
 
+    //  How long retryFailedSteps waits before re-placing a step the venue rejected. A second
+    //  is the shortest delay that lets a transient cause clear (a rate limit window, a
+    //  momentary balance lag) without turning a retry budget into a burst against a venue that
+    //  just said no.
+    public const double DefaultRetryDelayMs = 1000;
+
     //  NoCap is the default: this class does not decide how much of your money you
     //  may trade. `maxNotionalUsd` is an OPT-IN guardrail — set it and it is honoured
     //  exactly, at whatever value you choose; leave it unset and no notional check runs
@@ -1817,9 +1823,18 @@ public class OrderRouter
     /// run of the same plan re-sends ids the venue has already seen and is
     /// rejected as a duplicate instead of filled.
     /// </summary>
-    public string ClientOrderIdFor(string planId, double stepIndex)
+    public string ClientOrderIdFor(string planId, double stepIndex, double attempt = 0)
     {
-        return planId + "-" + this.FormatNumber(stepIndex);
+        //  Attempt 0 is unsuffixed, so the id a plan sends on its first run is unchanged.
+        //  A RETRY, by contrast, must carry a NEW id: retryFailedSteps only ever retries a
+        //  step the venue definitively rejected, which makes the retry a genuinely new order —
+        //  and re-sending the original id would have the venue reject it as a duplicate of the
+        //  order it just refused, turning the retry into a guaranteed no-op.
+        if (attempt <= 0)
+        {
+            return planId + "-" + this.FormatNumber(stepIndex);
+        }
+        return planId + "-" + this.FormatNumber(stepIndex) + "-r" + this.FormatNumber(attempt);
     }
 
     /// <summary>
@@ -1874,9 +1889,22 @@ public class OrderRouter
     /// acknowledgeDispersion, orderTimeoutMs, pollIntervalMs, orderParams,
     /// idempotencyKey (the identity of this execution, required when the plan
     /// carries no requestId; it keys the re-execution guard and seeds the per-step
-    /// client order ids, and OVERRIDES the plan's requestId when both are given)
-    /// and allowReexecution (must be exactly true to run a plan this instance has
-    /// already executed live; the DEFAULT is refusal).
+    /// client order ids, and OVERRIDES the plan's requestId when both are given),
+    /// allowReexecution (must be exactly true to run a plan this instance has
+    /// already executed live; the DEFAULT is refusal),
+    /// retryFailedSteps (how many times to re-place a step the venue DEFINITIVELY
+    /// REJECTED, default 0 — an outcome_unknown step is never retried at any
+    /// setting: it may already be a live position, and re-placing it is the
+    /// double-fill this class exists to prevent, and each retry carries its own
+    /// client order id), retryDelayMs (how long to wait before a retry, default
+    /// 1000) and onStep (a Func&lt;dict, string&gt; called after each step
+    /// completes and reconciles, never mid-order, with one event dictionary
+    /// describing that step; return "halt" to stop the route cleanly — haltReason
+    /// becomes halted_by_on_step — and any other value continues. It can only STOP
+    /// a route, never resume one already halted. Do NO network I/O here: it sits
+    /// between orders on the money path. A hook that throws is recorded as
+    /// on_step_hook_failed and the run continues, because losing the report would
+    /// destroy the only account of orders that are already live).
     /// </param>
     /// <returns>
     /// an execution report with per-step results, openOrders, errors and the
@@ -2140,6 +2168,8 @@ public class OrderRouter
                 { "orderId", "" },
                 { "clientOrderId", "" },
                 { "errorCode", "" },
+                //  which retry produced this result; 0 unless retryFailedSteps re-placed it
+                { "attempt", 0.0 },
             });
         }
         return new dict()
@@ -2180,7 +2210,7 @@ public class OrderRouter
         for (var i = 0; i < steps.Count; i++)
         {
             var step = this.AsDict(steps[i]);
-            var result = await this.PlaceStep(step, venues, options, usdRates, strategy, report);
+            var result = await this.PlaceStepWithRetry(step, venues, options, usdRates, strategy, report);
             results[i] = result;
             var stepStatus = this.StringAt(result, "status", "");
             if (stepStatus == "failed" || stepStatus == "outcome_unknown")
@@ -2191,6 +2221,8 @@ public class OrderRouter
                 //  "nothing_filled" — asserting the one thing we do not know.
                 report["haltReason"] = (stepStatus == "failed") ? "order_failed" : "outcome_unknown";
                 report["haltStepIndex"] = i;
+                //  the hook is told about a halt it did not cause, and cannot undo it
+                this.CallOnStep(options, report, result, new dict(), i, steps.Count);
                 this.MarkRemainingSkipped(results, i + 1);
                 return;
             }
@@ -2208,6 +2240,18 @@ public class OrderRouter
             {
                 report["halted"] = true;
                 report["haltReason"] = this.StringAt(reconciliation, "reason", "");
+                report["haltStepIndex"] = i;
+                this.CallOnStep(options, report, result, reconciliation, i, steps.Count);
+                this.MarkRemainingSkipped(results, i + 1);
+                return;
+            }
+            //  the caller's own verdict, consulted only once the route is otherwise sound. It
+            //  can stop the route; it cannot restart one the reconciliation above already
+            //  stopped.
+            if (this.CallOnStep(options, report, result, reconciliation, i, steps.Count) == "halt")
+            {
+                report["halted"] = true;
+                report["haltReason"] = "halted_by_on_step";
                 report["haltStepIndex"] = i;
                 this.MarkRemainingSkipped(results, i + 1);
                 return;
@@ -2284,6 +2328,7 @@ public class OrderRouter
                     report["halted"] = true;
                     report["haltReason"] = (legStatus == "failed") ? "order_failed" : "outcome_unknown";
                     report["haltStepIndex"] = i;
+                    this.CallOnStep(options, report, result, new dict(), i, steps.Count);
                     this.MarkRemainingSkipped(results, end);
                     return;
                 }
@@ -2295,6 +2340,15 @@ public class OrderRouter
                 {
                     report["halted"] = true;
                     report["haltReason"] = this.StringAt(reconciliation, "reason", "");
+                    report["haltStepIndex"] = i;
+                    this.CallOnStep(options, report, result, reconciliation, i, steps.Count);
+                    this.MarkRemainingSkipped(results, end);
+                    return;
+                }
+                if (this.CallOnStep(options, report, result, reconciliation, i, steps.Count) == "halt")
+                {
+                    report["halted"] = true;
+                    report["haltReason"] = "halted_by_on_step";
                     report["haltStepIndex"] = i;
                     this.MarkRemainingSkipped(results, end);
                     return;
@@ -2313,7 +2367,7 @@ public class OrderRouter
         for (var i = 0; i < indices.Count; i++)
         {
             var stepPosition = indices[i];
-            results[stepPosition] = await this.PlaceStep(this.AsDict(steps[stepPosition]), venues, options, usdRates, "parallel_within_hop", report);
+            results[stepPosition] = await this.PlaceStepWithRetry(this.AsDict(steps[stepPosition]), venues, options, usdRates, "parallel_within_hop", report);
         }
     }
 
@@ -2335,10 +2389,114 @@ public class OrderRouter
                 skipped["errorCode"] = "max_orders_reached";
                 continue;
             }
-            results[i] = await this.PlaceStep(this.AsDict(steps[i]), venues, options, usdRates, "best_effort", report);
+            results[i] = await this.PlaceStepWithRetry(this.AsDict(steps[i]), venues, options, usdRates, "best_effort", report);
             placed = placed + 1;
-            //  no reconciliation and no halt: that is the whole point of the
-            //  strategy, and why it is refused on anything but a single hop
+            //  no reconciliation and no halt: that is the whole point of the strategy, and why
+            //  it is refused on anything but a single hop. The hook is still offered every
+            //  step, and stopping early is the one thing it may do here — that is a smaller
+            //  commitment than the strategy's own contract, never a larger one.
+            if (this.CallOnStep(options, report, this.AsDict(results[i]), new dict(), i, steps.Count) == "halt")
+            {
+                report["halted"] = true;
+                report["haltReason"] = "halted_by_on_step";
+                report["haltStepIndex"] = i;
+                this.MarkRemainingSkipped(results, i + 1);
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Places one step, re-placing it up to options["retryFailedSteps"] times when — and ONLY
+    /// when — the venue definitively rejected it.
+    /// </summary>
+    public async Task<dict> PlaceStepWithRetry(dict step, Dictionary<string, Exchange> venues, dict options, dict usdRates, string strategy, dict report)
+    {
+        var maxRetries = this.NumberAt(options, "retryFailedSteps", 0);
+        var retryDelayMs = this.NumberAt(options, "retryDelayMs", DefaultRetryDelayMs);
+        double attempt = 0;
+        while (true)
+        {
+            step["attempt"] = attempt;
+            var result = await this.PlaceStep(step, venues, options, usdRates, strategy, report);
+            var status = this.StringAt(result, "status", "");
+            //  "failed" is the ONLY retryable outcome, and the distinction is the whole safety
+            //  argument. A failed step was refused by the venue: nothing was placed, so placing
+            //  it again cannot double-fill. An "outcome_unknown" step may ALREADY be a live
+            //  position that simply could not be read back, and re-placing that is precisely
+            //  the double-fill this class exists to prevent. It is never retried, at any
+            //  setting.
+            if (status != "failed" || attempt >= maxRetries)
+            {
+                return result;
+            }
+            attempt = attempt + 1;
+            if (retryDelayMs > 0)
+            {
+                await this.Sleep(retryDelayMs);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hands the caller's onStep hook one finished step and returns its verdict, treating any
+    /// failure of the hook as "no opinion".
+    /// </summary>
+    public string CallOnStep(dict options, dict report, dict result, dict reconciliation, int stepIndex, int stepsTotal)
+    {
+        if (options == null || !options.ContainsKey("onStep") || options["onStep"] == null)
+        {
+            return "";
+        }
+        var hook = options["onStep"] as Func<dict, string>;
+        if (hook == null)
+        {
+            //  an options value of any other shape is not a hook at all. Refusing the whole
+            //  execution over an observability callback would be the larger failure, so a
+            //  value that cannot be called is treated exactly like no hook.
+            return "";
+        }
+        var payload = new dict()
+        {
+            { "planId", this.StringAt(report, "planId", "") },
+            { "stepIndex", (double)stepIndex },
+            { "hopIndex", this.NumberAt(result, "hopIndex", 0) },
+            { "legIndex", this.NumberAt(result, "legIndex", 0) },
+            { "exchangeId", this.StringAt(result, "exchangeId", "") },
+            { "symbol", this.StringAt(result, "symbol", "") },
+            { "side", this.StringAt(result, "side", "") },
+            { "status", this.StringAt(result, "status", "") },
+            { "requestedAmount", this.NumberAt(result, "requestedAmount", 0) },
+            { "filledAmount", this.NumberAt(result, "filledAmount", 0) },
+            { "outAsset", this.StringAt(result, "outAsset", "") },
+            { "outAmount", this.NumberAt(result, "outAmount", 0) },
+            { "orderId", this.StringAt(result, "orderId", "") },
+            { "clientOrderId", this.StringAt(result, "clientOrderId", "") },
+            { "errorCode", this.StringAt(result, "errorCode", "") },
+            { "attempt", this.NumberAt(result, "attempt", 0) },
+            { "reconciliation", reconciliation },
+            { "ordersPlaced", this.NumberAt(report, "ordersPlaced", 0) },
+            { "halted", this.BoolAt(report, "halted", false) },
+            { "haltReason", this.StringAt(report, "haltReason", "") },
+            { "stepsTotal", (double)stepsTotal },
+            { "stepsRemaining", (double)(stepsTotal - (stepIndex + 1)) },
+        };
+        try
+        {
+            if (hook(payload) == "halt")
+            {
+                return "halt";
+            }
+            return "";
+        }
+        catch (Exception e)
+        {
+            //  A hook that throws must NOT take the run with it. Everything placed so far is
+            //  recorded in this report, and losing it to an exception raised by observability
+            //  code would destroy the only account of orders that are already live. The failure
+            //  is recorded and the run proceeds exactly as if the hook had no opinion.
+            this.RecordError(report, stepIndex, this.StringAt(result, "exchangeId", ""), this.StringAt(result, "symbol", ""), "on_step_hook_failed:" + this.ErrorCodeOf(e));
+            return "";
         }
     }
 
@@ -2410,9 +2568,11 @@ public class OrderRouter
             //  duplicate rather than filled. It is set AFTER the caller's orderParams are
             //  copied and deliberately overrides a clientOrderId found there: one id
             //  reused across every step of a plan is worse than none at all.
-            var clientOrderId = this.ClientOrderIdFor(this.StringAt(report, "planId", ""), stepIndex);
+            var attempt = this.NumberAt(step, "attempt", 0);
+            var clientOrderId = this.ClientOrderIdFor(this.StringAt(report, "planId", ""), stepIndex, attempt);
             orderParams["clientOrderId"] = clientOrderId;
             result["clientOrderId"] = clientOrderId;
+            result["attempt"] = attempt;
             dict order = null;
             if (strategy == "limit_protected")
             {

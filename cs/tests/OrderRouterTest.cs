@@ -120,6 +120,10 @@ public class OrderRouterTest
         RunAsync("fetchRouteWithBalances skips zeros, sorts largest first and reports what it dropped", BalancesSkipsAndSorts);
         RunAsync("fetchRouteWithBalances refuses a route computed against balances the router ignored", BalancesMustBeEchoed);
         RunAsync("fetchRouteWithBalances trims to the router 64-entry cap, dropping the smallest", BalancesEntryCap);
+        RunAsync("onStep sees every step and can stop the route", OnStepSeesEveryStepAndCanStop);
+        RunAsync("an onStep that throws is recorded, and does not take the run down with it", OnStepThatThrowsIsRecorded);
+        RunAsync("onStep can only narrow: it cannot resume a route the reconciliation already halted", OnStepCanOnlyNarrow);
+        RunAsync("retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome", RetryUsesANewClientOrderId);
         Run("formatNumber never emits exponent notation", FormatNumberIsPlain);
         Console.WriteLine("[C#] OrderRouter: " + passes.ToString(CultureInfo.InvariantCulture) + " passed, " + failures.ToString(CultureInfo.InvariantCulture) + " failed");
         return failures;
@@ -1121,6 +1125,142 @@ public class OrderRouterTest
     /// anywhere: createOrder returns a fabricated order and never leaves the
     /// process.
     /// </summary>
+
+    //  -----------------------------------------------------------------------
+    //  onStep and the retry policy
+    //  -----------------------------------------------------------------------
+
+    private static async Task OnStepSeesEveryStepAndCanStop()
+    {
+        //  The one thing a caller cannot do from outside Execute(): look at what just happened
+        //  and decide not to continue. Before this hook the method was opaque from call to
+        //  return.
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(TwoHopRoute(), new dict());
+        var stepsTotal = ToList(plan["steps"]).Count;
+        var venue = new StubVenue("stub");
+        var seen = new List<dict>();
+        Func<dict, string> hook = (dict evt) =>
+        {
+            seen.Add(evt);
+            return (ToDouble(evt["stepIndex"]) == 0) ? "halt" : "";
+        };
+        var report = await router.Execute(plan, Venues(venue), new dict()
+        {
+            { "strategy", "sequential" },
+            { "live", true },
+            { "usdRates", new dict() { { "USDT", 1.0 } } },
+            { "onStep", hook },
+        });
+        EqualNumber(seen.Count, 1, "the hook is not called for steps that never ran");
+        EqualNumber(ToDouble(seen[0]["stepIndex"]), 0, "the event names the step");
+        EqualString((string)seen[0]["status"], "filled", "the event carries the outcome");
+        EqualNumber(ToDouble(seen[0]["stepsRemaining"]), stepsTotal - 1, "and how much of the route is left");
+        Ok(seen[0].ContainsKey("reconciliation"), "the verdict it is judging is in the event");
+        EqualBool((bool)report["halted"], true, "the hook stopped the route");
+        EqualString((string)report["haltReason"], "halted_by_on_step", "the halt names the hook");
+        EqualNumber(ToDouble(report["haltStepIndex"]), 0, "and the step it halted at");
+        EqualString((string)ToDict(ToList(report["steps"])[1])["status"], "skipped", "the rest is skipped");
+        EqualNumber(ToDouble(report["ordersPlaced"]), 1, "the step after the halt was never placed");
+        EqualNumber(venue.paramsSeen.Count, 1, "and the venue saw exactly one order");
+    }
+
+    private static async Task OnStepThatThrowsIsRecorded()
+    {
+        //  The report is the ONLY account of orders that are already live. An exception raised
+        //  by observability code must never destroy it — trigger.dev logs and ignores hook
+        //  errors for the same reason.
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100.0), new dict());
+        var venue = new StubVenue("stub");
+        Func<dict, string> hook = (dict evt) => throw new ExchangeError("hook is broken");
+        var report = await router.Execute(plan, Venues(venue), new dict()
+        {
+            { "strategy", "sequential" },
+            { "live", true },
+            { "usdRates", new dict() { { "USDT", 1.0 } } },
+            { "onStep", hook },
+        });
+        EqualBool((bool)report["halted"], false, "the route finished");
+        EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "and the order it placed is still reported");
+        var errors = ToList(report["errors"]);
+        var found = false;
+        for (var i = 0; i < errors.Count; i++)
+        {
+            if (((string)ToDict(errors[i])["code"]).IndexOf("on_step_hook_failed", StringComparison.Ordinal) == 0)
+            {
+                found = true;
+            }
+        }
+        Ok(found, "the broken hook is reported rather than swallowed");
+    }
+
+    private static async Task OnStepCanOnlyNarrow()
+    {
+        //  The halt is a money decision made in one pure place precisely so it cannot be
+        //  omitted. A hook that could wave it through would be a way to omit it.
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(TwoHopRoute(), new dict());
+        //  hop 0 fills a tenth: a shortfall far past the 2% tolerance
+        var starved = new StubVenue("stub", 0.1);
+        Func<dict, string> hook = (dict evt) => "continue";
+        var report = await router.Execute(plan, Venues(starved), new dict()
+        {
+            { "strategy", "sequential" },
+            { "live", true },
+            { "usdRates", new dict() { { "USDT", 1.0 } } },
+            { "onStep", hook },
+        });
+        EqualBool((bool)report["halted"], true, "the reconciliation halt stands");
+        EqualString((string)report["haltReason"], "shortfall_exceeds_tolerance", "the reconciliation reason survives, it is not replaced by the hook");
+        EqualNumber(ToDouble(report["ordersPlaced"]), 1, "the hook did not wave the route onward");
+        EqualString((string)ToDict(ToList(report["steps"])[1])["status"], "skipped", "the second hop never ran");
+    }
+
+    private static async Task RetryUsesANewClientOrderId()
+    {
+        //  A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
+        //  original client order id would have the venue reject the retry as a duplicate of the
+        //  very order it just refused, so each attempt carries its own.
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100.0), new dict());
+        var relents = new StubVenue("stub");
+        relents.failCreateTimes = 1;
+        var report = await router.Execute(plan, Venues(relents), new dict()
+        {
+            { "strategy", "sequential" },
+            { "live", true },
+            { "usdRates", new dict() { { "USDT", 1.0 } } },
+            { "retryFailedSteps", 2.0 },
+            { "retryDelayMs", 0.0 },
+        });
+        var first = ToDict(ToList(report["steps"])[0]);
+        EqualString((string)first["status"], "filled", "the retry succeeded");
+        EqualNumber(ToDouble(first["attempt"]), 1, "the report says which attempt won");
+        EqualNumber(relents.paramsSeen.Count, 2, "one rejection and one retry");
+        var firstId = (string)relents.paramsSeen[0]["clientOrderId"];
+        var secondId = (string)relents.paramsSeen[1]["clientOrderId"];
+        Ok(firstId != secondId, "a retry must not reuse the rejected order id");
+        Ok(secondId.IndexOf("-r1", StringComparison.Ordinal) != -1, "the retry is marked as such, got " + secondId);
+
+        //  the outcome the policy must NEVER touch
+        var unknown = new StubVenue("stub");
+        unknown.timeoutCreate = true;
+        var second = await router.Execute(
+            router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100.0), new dict()),
+            Venues(unknown),
+            new dict()
+            {
+                { "strategy", "sequential" },
+                { "live", true },
+                { "usdRates", new dict() { { "USDT", 1.0 } } },
+                { "retryFailedSteps", 5.0 },
+                { "retryDelayMs", 0.0 },
+            });
+        EqualString((string)ToDict(ToList(second["steps"])[0])["status"], "outcome_unknown", "a timed-out placement stays outcome_unknown");
+        EqualNumber(unknown.paramsSeen.Count, 1, "an order whose outcome is unknown may already be live; it is never re-placed");
+    }
+
     public class StubVenue : Exchange
     {
         public List<string> calls = new List<string>();
@@ -1131,6 +1271,14 @@ public class OrderRouterTest
         public double fillRatio = 1;
 
         public bool failCreate = false;
+
+        //  refuse this many CreateOrder calls, then behave: a venue that rejects and then
+        //  relents, which is the only shape a retry can be tested against
+        public int failCreateTimes = 0;
+
+        //  CreateOrder times out instead of answering — the outcome the retry policy must
+        //  never touch, because the order may already be live
+        public bool timeoutCreate = false;
 
         public dict balanceOverride = null;
 
@@ -1226,6 +1374,15 @@ public class OrderRouterTest
             this.calls.Add("createOrder:" + type + ":" + side + ":" + size.ToString(CultureInfo.InvariantCulture));
             this.paramsSeen.Add((parameters as dict) ?? new dict());
             await Task.CompletedTask;
+            if (this.timeoutCreate)
+            {
+                throw new RequestTimeout("stub timed out");
+            }
+            if (this.failCreateTimes > 0)
+            {
+                this.failCreateTimes = this.failCreateTimes - 1;
+                throw new ExchangeError("stub refuses, for now");
+            }
             if (this.failCreate)
             {
                 throw new ExchangeError("stub refuses");

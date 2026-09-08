@@ -61,6 +61,11 @@ pub const NO_CAP: f64 = 0.0;
 pub const DEFAULT_SLIPPAGE_BPS: f64 = 25.0;
 /// Default shortfall ratio at which `reconcile_execution_step` halts.
 pub const DEFAULT_RECONCILE_TOLERANCE: f64 = 0.02;
+/// How long `retryFailedSteps` waits before re-placing a step the venue rejected.
+/// A second is the shortest delay that lets a transient cause clear (a rate limit
+/// window, a momentary balance lag) without turning a retry budget into a burst
+/// against a venue that just said no.
+pub const DEFAULT_RETRY_DELAY_MS: f64 = 1000.0;
 /// The float-equality epsilon this class compares with. Not a business
 /// tolerance — that is DEFAULT_RECONCILE_TOLERANCE. This one exists so that
 /// "the fill matches the request" and "the value sits on the precision grid"
@@ -184,6 +189,24 @@ impl Default for ExecutedPlanLedger {
     }
 }
 
+/// The shape of the `onStep` hook: it is handed one event describing a finished
+/// step and returns `"halt"` to stop the route. SYNCHRONOUS by design — it sits
+/// between orders on the money path, so do no network I/O in it.
+///
+/// WHY THIS IS A FIELD AND NOT AN OPTIONS KEY, unlike the other five ports.
+/// In TypeScript, Python, PHP, C# and Go the hook travels inside `options`,
+/// because in those languages a dictionary value can be a function. Rust's
+/// `options` is a `Value`, and `Value` is a closed, JSON-shaped enum that
+/// derives `Debug`, `Clone` and `PartialEq` and answers `to_json` — none of
+/// which a closure can. Adding a `Value::Fn` variant would mean answering
+/// "what does it mean for two closures to be equal, and how does one
+/// serialise" for every existing Value site in the crate, which is a redesign
+/// of the value model to carry an observability callback. So the callback comes
+/// in through the ONE side channel that can hold it — a field on the router,
+/// set by `set_on_step` — and `call_on_step` still takes `options` so the six
+/// implementations read line for line.
+pub type OnStepHook = Arc<dyn Fn(&Value) -> String + Send + Sync>;
+
 /// A client for the CCXT order-router service.
 pub struct OrderRouter {
     api_key: String,
@@ -201,6 +224,10 @@ pub struct OrderRouter {
     /// rather than a scan whose cost grows with the ledger. They live under ONE
     /// mutex because they are written and evicted together and must never disagree.
     executed_plan_ids: std::sync::Mutex<ExecutedPlanLedger>,
+    /// The caller's `onStep` hook, or `None`. See `OnStepHook` for why this is a
+    /// field in this port and an options key in the other five. `execute` takes
+    /// `&self`, so this is only ever read, never written, during a run.
+    on_step: Option<OnStepHook>,
 }
 
 // ---------------------------------------------------------------------------
@@ -494,6 +521,7 @@ impl OrderRouter {
             max_notional_usd: NO_CAP,
             now_ms_override: None,
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
+            on_step: None,
         };
         let api_key = reader.string_at(config, "apiKey", "");
         if api_key.is_empty() {
@@ -522,7 +550,25 @@ impl OrderRouter {
             max_notional_usd,
             now_ms_override: None,
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
+            on_step: None,
         })
+    }
+
+    /// Installs the `onStep` hook: called after each step completes and
+    /// reconciles, never mid-order, with one event describing that step. Return
+    /// `"halt"` to stop the route cleanly (`haltReason` becomes
+    /// `halted_by_on_step`); any other value continues. It can only STOP a
+    /// route, never resume one already halted. Do NO network I/O here — it sits
+    /// between orders on the money path. A hook that PANICS is recorded as
+    /// `on_step_hook_failed` and the run continues, because losing the report
+    /// would destroy the only account of orders that are already live.
+    pub fn set_on_step(&mut self, hook: OnStepHook) {
+        self.on_step = Some(hook);
+    }
+
+    /// Removes the `onStep` hook.
+    pub fn clear_on_step(&mut self) {
+        self.on_step = None;
     }
 
     /// Reports whether this instance has executed the given plan id recently enough for
@@ -1636,8 +1682,24 @@ impl OrderRouter {
     /// run of the same plan re-sends ids the venue has already seen and is
     /// rejected as a duplicate instead of filled.
     pub fn client_order_id_for(&self, plan_id: &str, step_index: f64) -> String {
+        self.client_order_id_for_attempt(plan_id, step_index, 0.0)
+    }
+
+    /// The same id, for a given retry attempt. Rust has no default arguments, so
+    /// the attempt-aware form is a second method rather than an extra parameter
+    /// on the one above — the two-argument spelling stays exactly what it was.
+    pub fn client_order_id_for_attempt(&self, plan_id: &str, step_index: f64, attempt: f64) -> String {
         let text = self.format_number(step_index).unwrap_or_else(|_| "0".to_string());
-        format!("{plan_id}-{text}")
+        // Attempt 0 is unsuffixed, so the id a plan sends on its first run is unchanged.
+        // A RETRY, by contrast, must carry a NEW id: retryFailedSteps only ever retries a
+        // step the venue definitively rejected, which makes the retry a genuinely new order —
+        // and re-sending the original id would have the venue reject it as a duplicate of the
+        // order it just refused, turning the retry into a guaranteed no-op.
+        if attempt <= 0.0 {
+            return format!("{plan_id}-{text}");
+        }
+        let suffix = self.format_number(attempt).unwrap_or_else(|_| "0".to_string());
+        format!("{plan_id}-{text}-r{suffix}")
     }
 
     /// Counts the distinct hops a step list spans, which is the only authority
@@ -1701,6 +1763,8 @@ impl OrderRouter {
             result.insert("orderId".into(), Value::Str(String::new()));
             result.insert("clientOrderId".into(), Value::Str(String::new()));
             result.insert("errorCode".into(), Value::Str(String::new()));
+            // which retry produced this result; 0 unless retryFailedSteps re-placed it
+            result.insert("attempt".into(), Value::Float(0.0));
             // False until an order is actually dispatched — a failure before
             // dispatch cannot have left anything resting on a venue.
             result.insert("placementAttempted".into(), Value::Bool(false));
@@ -2011,10 +2075,12 @@ impl OrderRouter {
         // duplicate rather than filled. It is set AFTER the caller's orderParams are
         // copied and deliberately overrides a clientOrderId found there: one id
         // reused across every step of a plan is worse than none at all.
+        let attempt = self.number_at(step, "attempt", 0.0);
         let client_order_id =
-            self.client_order_id_for(&self.string_at(report, "planId", ""), step_index);
+            self.client_order_id_for_attempt(&self.string_at(report, "planId", ""), step_index, attempt);
         Self::put(&mut order_params, "clientOrderId", Value::Str(client_order_id.clone()));
         Self::put(&mut result, "clientOrderId", Value::Str(client_order_id));
+        Self::put(&mut result, "attempt", Value::Float(attempt));
 
         // Dispatch. `placementAttempted` is set immediately before the call and
         // not a line earlier: everything above this point is a refusal that
@@ -2330,6 +2396,120 @@ impl OrderRouter {
     }
 }
 
+
+impl OrderRouter {
+    /// Places one step, re-placing it up to `options["retryFailedSteps"]` times
+    /// when — and ONLY when — the venue definitively rejected it.
+    async fn place_step_with_retry(
+        &self,
+        step: &Value,
+        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        options: &Value,
+        usd_rates: &Value,
+        strategy: &str,
+        report: &mut Value,
+    ) -> Value {
+        let max_retries = self.number_at(options, "retryFailedSteps", 0.0);
+        let retry_delay_ms = self.number_at(options, "retryDelayMs", DEFAULT_RETRY_DELAY_MS);
+        let mut attempt = 0.0f64;
+        loop {
+            let mut attempted = step.clone();
+            Self::put(&mut attempted, "attempt", Value::Float(attempt));
+            let result = self.place_step(&attempted, venues, options, usd_rates, strategy, report).await;
+            let status = self.string_at(&result, "status", "");
+            // "failed" is the ONLY retryable outcome, and the distinction is the whole safety
+            // argument. A failed step was refused by the venue: nothing was placed, so placing
+            // it again cannot double-fill. An "outcome_unknown" step may ALREADY be a live
+            // position that simply could not be read back, and re-placing that is precisely the
+            // double-fill this class exists to prevent. It is never retried, at any setting.
+            if status != "failed" || attempt >= max_retries {
+                return result;
+            }
+            attempt += 1.0;
+            if retry_delay_ms > 0.0 {
+                tokio::time::sleep(std::time::Duration::from_millis(retry_delay_ms.max(0.0) as u64)).await;
+            }
+        }
+    }
+
+    /// Hands the caller's `onStep` hook one finished step and returns its
+    /// verdict, treating any failure of the hook as "no opinion".
+    ///
+    /// `options` is taken, and deliberately unused, so that this method reads
+    /// the same as the other five ports at every call site. In THIS port the
+    /// hook itself lives on the router (see `OnStepHook`), because `Value`
+    /// cannot carry a closure.
+    fn call_on_step(
+        &self,
+        options: &Value,
+        report: &mut Value,
+        result: &Value,
+        reconciliation: &Value,
+        step_index: usize,
+        steps_total: usize,
+    ) -> String {
+        let _ = options;
+        let hook = match &self.on_step {
+            Some(found) => Arc::clone(found),
+            None => return String::new(),
+        };
+        let mut event = HashMap::new();
+        event.insert("planId".to_string(), Value::Str(self.string_at(report, "planId", "")));
+        event.insert("stepIndex".to_string(), Value::Float(step_index as f64));
+        event.insert("hopIndex".to_string(), Value::Float(self.number_at(result, "hopIndex", 0.0)));
+        event.insert("legIndex".to_string(), Value::Float(self.number_at(result, "legIndex", 0.0)));
+        event.insert("exchangeId".to_string(), Value::Str(self.string_at(result, "exchangeId", "")));
+        event.insert("symbol".to_string(), Value::Str(self.string_at(result, "symbol", "")));
+        event.insert("side".to_string(), Value::Str(self.string_at(result, "side", "")));
+        event.insert("status".to_string(), Value::Str(self.string_at(result, "status", "")));
+        event.insert("requestedAmount".to_string(), Value::Float(self.number_at(result, "requestedAmount", 0.0)));
+        event.insert("filledAmount".to_string(), Value::Float(self.number_at(result, "filledAmount", 0.0)));
+        event.insert("outAsset".to_string(), Value::Str(self.string_at(result, "outAsset", "")));
+        event.insert("outAmount".to_string(), Value::Float(self.number_at(result, "outAmount", 0.0)));
+        event.insert("orderId".to_string(), Value::Str(self.string_at(result, "orderId", "")));
+        event.insert("clientOrderId".to_string(), Value::Str(self.string_at(result, "clientOrderId", "")));
+        event.insert("errorCode".to_string(), Value::Str(self.string_at(result, "errorCode", "")));
+        event.insert("attempt".to_string(), Value::Float(self.number_at(result, "attempt", 0.0)));
+        event.insert("reconciliation".to_string(), reconciliation.clone());
+        event.insert("ordersPlaced".to_string(), Value::Float(self.number_at(report, "ordersPlaced", 0.0)));
+        event.insert("halted".to_string(), Value::Bool(self.bool_at(report, "halted", false)));
+        event.insert("haltReason".to_string(), Value::Str(self.string_at(report, "haltReason", "")));
+        event.insert("stepsTotal".to_string(), Value::Float(steps_total as f64));
+        event.insert("stepsRemaining".to_string(), Value::Float((steps_total - (step_index + 1)) as f64));
+        let event = Value::Map(event);
+        // A hook that PANICS must NOT take the run with it — the Rust form of the try/catch
+        // the other ports use, and of Go's defer/recover. Everything placed so far is recorded
+        // in this report, and losing it to a panic raised by observability code would destroy
+        // the only account of orders that are already live. `catch_unwind` is the right tool
+        // here and only here: the hook is caller code we make no assumptions about, it is
+        // handed an owned event and shares no mutable state with the router (hence
+        // `AssertUnwindSafe`), and the run continues afterwards as if it had no opinion.
+        // It does NOT contain an abort — a panic=abort profile takes the process down, which
+        // no language-level construct in any of the six ports can prevent.
+        let verdict = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| hook(&event)));
+        match verdict {
+            Ok(spoken) => {
+                if spoken == "halt" {
+                    return "halt".to_string();
+                }
+                String::new()
+            }
+            Err(_) => {
+                // Rust panics carry no error TYPE to name, unlike the class name the other
+                // five ports report, so the code is a fixed "panic".
+                self.record_error(
+                    report,
+                    step_index as f64,
+                    &self.string_at(result, "exchangeId", ""),
+                    &self.string_at(result, "symbol", ""),
+                    "on_step_hook_failed:panic",
+                );
+                String::new()
+            }
+        }
+    }
+}
+
 impl OrderRouter {
     /// Places one order at a time in plan order, reconciling after each and
     /// obeying the halt verdict.
@@ -2344,7 +2524,7 @@ impl OrderRouter {
     ) {
         for i in 0..steps.len() {
             let step = steps[i].clone();
-            let result = self.place_step(&step, venues, options, usd_rates, strategy, report).await;
+            let result = self.place_step_with_retry(&step, venues, options, usd_rates, strategy, report).await;
             let mut results = self.list_at(report, "steps");
             results[i] = result.clone();
             Self::put(report, "steps", Value::List(results));
@@ -2358,6 +2538,8 @@ impl OrderRouter {
                 let reason = if status == "failed" { "order_failed" } else { "outcome_unknown" };
                 Self::put(report, "haltReason", Value::Str(reason.into()));
                 Self::put(report, "haltStepIndex", Value::Float(i as f64));
+                // the hook is told about a halt it did not cause, and cannot undo it
+                self.call_on_step(options, report, &result, &Value::Map(HashMap::new()), i, steps.len());
                 self.mark_remaining_skipped(report, i + 1);
                 return;
             }
@@ -2383,6 +2565,17 @@ impl OrderRouter {
             if self.string_at(&reconciliation, "verdict", "") == "halt" {
                 Self::put(report, "halted", Value::Bool(true));
                 Self::put(report, "haltReason", Value::Str(self.string_at(&reconciliation, "reason", "")));
+                Self::put(report, "haltStepIndex", Value::Float(i as f64));
+                self.call_on_step(options, report, &result, &reconciliation, i, steps.len());
+                self.mark_remaining_skipped(report, i + 1);
+                return;
+            }
+            // the caller's own verdict, consulted only once the route is otherwise sound. It
+            // can stop the route; it cannot restart one the reconciliation above already
+            // stopped.
+            if self.call_on_step(options, report, &result, &reconciliation, i, steps.len()) == "halt" {
+                Self::put(report, "halted", Value::Bool(true));
+                Self::put(report, "haltReason", Value::Str("halted_by_on_step".into()));
                 Self::put(report, "haltStepIndex", Value::Float(i as f64));
                 self.mark_remaining_skipped(report, i + 1);
                 return;
@@ -2436,7 +2629,7 @@ impl OrderRouter {
                     }
                     let step = steps[i].clone();
                     let result = self
-                        .place_step(&step, venues, options, usd_rates, "parallel_within_hop", report)
+                        .place_step_with_retry(&step, venues, options, usd_rates, "parallel_within_hop", report)
                         .await;
                     let mut results = self.list_at(report, "steps");
                     results[i] = result;
@@ -2452,6 +2645,7 @@ impl OrderRouter {
                     let reason = if status == "failed" { "order_failed" } else { "outcome_unknown" };
                     Self::put(report, "haltReason", Value::Str(reason.into()));
                     Self::put(report, "haltStepIndex", Value::Float(i as f64));
+                    self.call_on_step(options, report, &result, &Value::Map(HashMap::new()), i, steps.len());
                     self.mark_remaining_skipped(report, end);
                     return;
                 }
@@ -2472,6 +2666,14 @@ impl OrderRouter {
                 if self.string_at(&reconciliation, "verdict", "") == "halt" {
                     Self::put(report, "halted", Value::Bool(true));
                     Self::put(report, "haltReason", Value::Str(self.string_at(&reconciliation, "reason", "")));
+                    Self::put(report, "haltStepIndex", Value::Float(i as f64));
+                    self.call_on_step(options, report, &result, &reconciliation, i, steps.len());
+                    self.mark_remaining_skipped(report, end);
+                    return;
+                }
+                if self.call_on_step(options, report, &result, &reconciliation, i, steps.len()) == "halt" {
+                    Self::put(report, "halted", Value::Bool(true));
+                    Self::put(report, "haltReason", Value::Str("halted_by_on_step".into()));
                     Self::put(report, "haltStepIndex", Value::Float(i as f64));
                     self.mark_remaining_skipped(report, end);
                     return;
@@ -2502,13 +2704,22 @@ impl OrderRouter {
                 continue;
             }
             let step = steps[i].clone();
-            let result = self.place_step(&step, venues, options, usd_rates, "best_effort", report).await;
+            let result = self.place_step_with_retry(&step, venues, options, usd_rates, "best_effort", report).await;
             let mut results = self.list_at(report, "steps");
-            results[i] = result;
+            results[i] = result.clone();
             Self::put(report, "steps", Value::List(results));
             placed += 1.0;
-            // No reconciliation and no halt: that is the whole point of the
-            // strategy, and why it is refused on anything but a single hop.
+            // No reconciliation and no halt: that is the whole point of the strategy, and why
+            // it is refused on anything but a single hop. The hook is still offered every step,
+            // and stopping early is the one thing it may do here — that is a smaller commitment
+            // than the strategy's own contract, never a larger one.
+            if self.call_on_step(options, report, &result, &Value::Map(HashMap::new()), i, steps.len()) == "halt" {
+                Self::put(report, "halted", Value::Bool(true));
+                Self::put(report, "haltReason", Value::Str("halted_by_on_step".into()));
+                Self::put(report, "haltStepIndex", Value::Float(i as f64));
+                self.mark_remaining_skipped(report, i + 1);
+                return;
+            }
         }
     }
 
@@ -2526,6 +2737,17 @@ impl OrderRouter {
     /// `requestId` when both are given. `options.allowReexecution` must be exactly
     /// true to run a plan this instance has already executed live; the DEFAULT is
     /// refusal.
+    ///
+    /// `options.retryFailedSteps` is how many times to re-place a step the venue
+    /// DEFINITIVELY REJECTED, default 0. An `outcome_unknown` step is never
+    /// retried at any setting: it may already be a live position, and re-placing
+    /// it is the double-fill this class exists to prevent. Each retry carries its
+    /// own client order id. `options.retryDelayMs` is how long to wait before a
+    /// retry, default `DEFAULT_RETRY_DELAY_MS` (1000).
+    ///
+    /// The third option the other five ports read out of `options` — `onStep` —
+    /// is set on the router instead, by `set_on_step`; `Value` cannot carry a
+    /// closure. See `OnStepHook`.
     pub async fn execute(
         &self,
         plan: &Value,
