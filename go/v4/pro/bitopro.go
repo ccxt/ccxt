@@ -94,7 +94,7 @@ func (this *BitoproCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	if !ccxt.IsEqual(limit, nil) {
-		if (limit != 5) && (limit != 10) && (limit != 20) && (limit != 50) && (limit != 100) && (limit != 500) && (limit != 1000) {
+		if (!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20)) && (!ccxt.IsEqual(limit, 50)) && (!ccxt.IsEqual(limit, 100)) && (!ccxt.IsEqual(limit, 500)) && (!ccxt.IsEqual(limit, 1000)) {
 			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")))
 		}
 	}
@@ -361,11 +361,11 @@ func (this *BitoproCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(symbol, market)
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "orderType")
-	var side any = this.SafeString(trade, "side")
+	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))
 	if !ccxt.IsEqual(side, nil) {
-		if side == "ask" {
+		if ccxt.IsEqual(side, "ask") {
 			side = "sell"
-		} else if side == "bid" {
+		} else if ccxt.IsEqual(side, "bid") {
 			side = "buy"
 		}
 	}

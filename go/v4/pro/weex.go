@@ -111,7 +111,7 @@ func (this *WeexCore) subscribePublicBody(ch chan any, messageHashes any, channe
 	_ = subscription
 	var id any = this.RequestId()
 	var method string = "SUBSCRIBE"
-	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
+	var unsubscribe any = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
 	if unsubscribe == true {
 		method = "UNSUBSCRIBE"
 	}
@@ -149,7 +149,7 @@ func (this *WeexCore) subscribePrivateBody(ch chan any, messageHash any, subscri
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar), "/private")
 	this.Authenticate(url)
 	var method string = "SUBSCRIBE"
-	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
+	var unsubscribe any = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
 	if unsubscribe == true {
 		method = "UNSUBSCRIBE"
 	}
@@ -806,7 +806,7 @@ func (this *WeexCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
 		var data any = this.SafeList(symbolsAndTimeframes, i)
-		var symbolString any = this.SafeString(data, 0)
+		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
 		if ccxt.GetValue(market, "type") != ccxt.GetValue(firstMarket, "type") {
 			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), callerMethodName), " market symbols must be of the same type")))
@@ -905,7 +905,7 @@ func (this *WeexCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
 		var data any = this.SafeList(symbolsAndTimeframes, i)
-		var symbolString any = this.SafeString(data, 0)
+		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
 		if ccxt.GetValue(market, "type") != ccxt.GetValue(firstMarket, "type") {
 			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), callerMethodName), " market symbols must be of the same type")))
@@ -1443,7 +1443,7 @@ func (this *WeexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var isContract bool = (marketType != "spot")
+	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var messageHash any = ccxt.Ternary(isContract, "myContractTrades", "myTrades")
 	var subscriptionHash any = messageHash
 	if !ccxt.IsEqual(symbol, nil) {
@@ -1491,7 +1491,7 @@ func (this *WeexCore) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("unWatchMyTrades", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var isContract bool = (marketType != "spot")
+	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var subHash any = ccxt.Ternary(isContract, "myContractTrades", "myTrades")
 	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
 	var channel string = "fill"
@@ -1691,7 +1691,7 @@ func (this *WeexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var isContract bool = (marketType != "spot")
+	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var messageHash any = ccxt.Ternary(isContract, "contractOrders", "orders")
 	var subscriptionHash any = messageHash
 	if !ccxt.IsEqual(symbol, nil) {
@@ -1738,7 +1738,7 @@ func (this *WeexCore) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("unWatchOrders", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var isContract bool = (marketType != "spot")
+	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
 	var subHash any = ccxt.Ternary(isContract, "contractOrders", "orders")
 	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
 	var channel string = "orders"
@@ -2015,15 +2015,15 @@ func (this *WeexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var isContract bool = (typeVar != "spot")
+	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var urlType any = ccxt.Ternary(isContract, "contract", "spot")
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType), "/private")
 	this.Authenticate(url)
 	var client any = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
 	var options any = this.SafeDict(this.Options, "watchBalance")
-	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
+	var fetchBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", false))
+	var awaitBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "awaitBalanceSnapshot", true))
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		retRes160012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
@@ -2041,7 +2041,7 @@ func (this *WeexCore) SetBalanceCache(client any, typeVar any) {
 		return
 	}
 	var options any = this.SafeDict(this.Options, "watchBalance")
-	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	var fetchBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", false))
 	if fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
@@ -2419,9 +2419,9 @@ func (this *WeexCore) HandleSubscriptionStatus(client any, message any) any {
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
-	var unsubscribe any = this.SafeBool(subscription, "unsubscribe", false)
+	var unsubscribe any = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
 	if unsubscribe == true {
-		var subHashIsPrefix any = this.SafeBool(subscription, "subHashIsPrefix", false)
+		var subHashIsPrefix any = ccxt.DerefScalar(this.SafeBool(subscription, "subHashIsPrefix", false))
 		var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
 		var subHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
@@ -2441,7 +2441,7 @@ func (this *WeexCore) HandleErrorMessage(client any, message any) any {
 	//         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
 	//     }
 	//
-	var result any = this.SafeBool(message, "result", true)
+	var result any = ccxt.DerefScalar(this.SafeBool(message, "result", true))
 	if result != true {
 		var msg *string = this.SafeString(message, "msg", "")
 		var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))

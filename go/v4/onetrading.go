@@ -874,7 +874,7 @@ func (this *OnetradingCore) ParseFeeTiers(feeTiers any, optionalArgs ...any) any
 	var makerFees any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(feeTiers)); i++ {
 		var tier any = GetValue(feeTiers, i)
-		var volume any = this.SafeNumber(tier, "volume")
+		var volume any = DerefScalar(this.SafeNumber(tier, "volume"))
 		var taker *string = this.SafeString(tier, "taker_fee")
 		var maker *string = this.SafeString(tier, "maker_fee")
 		maker = Precise.StringDiv(maker, "100")
@@ -1318,7 +1318,7 @@ func (this *OnetradingCore) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var feeInfo any = this.SafeValue(trade, "fee", map[string]any{})
 	trade = this.SafeValue(trade, "trade", trade)
-	var timestamp any = this.SafeInteger(trade, "trade_timestamp")
+	var timestamp any = DerefScalar(this.SafeInteger(trade, "trade_timestamp"))
 	if IsEqual(timestamp, nil) {
 		timestamp = this.Parse8601(this.SafeString(trade, "time"))
 	}
@@ -1603,7 +1603,7 @@ func (this *OnetradingCore) createOrderBody(ch chan any, symbol any, typeVar any
 	if (uppercaseType == "LIMIT") || (uppercaseType == "STOP") {
 		priceIsRequired = true
 	}
-	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
+	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "trigger_price", "stopPrice"}))
 	if !IsEqual(triggerPrice, nil) {
 		if uppercaseType == "MARKET" {
 			panic(BadRequest(Add(this.Id, " createOrder() cannot place stop market orders, only stop limit")))
@@ -2244,7 +2244,7 @@ func (this *OnetradingCore) Sign(path any, optionalArgs ...any) any {
 			"Accept":        "application/json",
 			"Authorization": Add("Bearer ", this.ApiKey),
 		}
-		if method == "POST" {
+		if IsEqual(method, "POST") {
 			body = this.Json(query)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {

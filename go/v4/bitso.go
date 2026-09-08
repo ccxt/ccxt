@@ -625,9 +625,9 @@ func (this *BitsoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var makerFees any = []any{}
 		for j := 0; IsLessThan(j, GetArrayLength(feeTiers)); j++ {
 			var tier any = GetValue(feeTiers, j)
-			var volume any = this.SafeNumber(tier, "volume")
-			var takerFee any = this.SafeNumber(tier, "taker")
-			var makerFee any = this.SafeNumber(tier, "maker")
+			var volume any = DerefScalar(this.SafeNumber(tier, "volume"))
+			var takerFee any = DerefScalar(this.SafeNumber(tier, "taker"))
+			var makerFee any = DerefScalar(this.SafeNumber(tier, "maker"))
 			AppendToArray(&takerFees, []any{volume, takerFee})
 			AppendToArray(&makerFees, []any{volume, makerFee})
 			if j == 0 {
@@ -1148,7 +1148,7 @@ func (this *BitsoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(trade, "created_at"))
 	var marketId *string = this.SafeString(trade, "book")
 	var symbol any = this.SafeSymbol(marketId, market, "_")
-	var side any = this.SafeString(trade, "side")
+	var side any = DerefScalar(this.SafeString(trade, "side"))
 	var makerSide *string = this.SafeString(trade, "maker_side")
 	var takerOrMaker any = nil
 	if !IsEqual(side, nil) {
@@ -1434,7 +1434,7 @@ func (this *BitsoCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		"type":  typeVar,
 		"major": this.AmountToPrecision(GetValue(market, "symbol"), amount),
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "price", this.PriceToPrecision(GetValue(market, "symbol"), price))
 	}
 
@@ -1616,7 +1616,7 @@ func (this *BitsoCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsString(order) {
 		id = order
 	} else {
-		id = this.SafeString(order, "oid")
+		id = DerefScalar(this.SafeString(order, "oid"))
 	}
 	var side *string = this.SafeString(order, "side")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
@@ -1973,7 +1973,7 @@ func (this *BitsoCore) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	if IsGreaterThanOrEqual(GetIndexOf(address, "?dt="), 0) {
 		var parts []string = Split(address, "?dt=")
 		address = this.SafeString(parts, 0)
-		tag = this.SafeString(parts, 1)
+		tag = DerefScalar(this.SafeString(parts, 1))
 	}
 	this.CheckAddress(address)
 
@@ -2444,7 +2444,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var endpoint any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if (method == "GET") || (method == "DELETE") {
+	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			endpoint = Add(endpoint, Add("?", this.Urlencode(query)))
 		}
@@ -2456,7 +2456,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 		endpoint = Add("/api", endpoint)
 		var content []any = []any{nonce, method, endpoint}
 		var request any = Join(content, "")
-		if (method != "GET") && (method != "DELETE") {
+		if (!IsEqual(method, "GET")) && (!IsEqual(method, "DELETE")) {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				request = Add(request, body)
@@ -2483,7 +2483,7 @@ func (this *BitsoCore) HandleErrors(httpCode any, reason any, url any, method an
 		//
 		//     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
 		//
-		var success any = this.SafeBool(response, "success", false)
+		var success any = DerefScalar(this.SafeBool(response, "success", false))
 		if IsString(success) {
 			if (IsEqual(success, "true")) || (IsEqual(success, "1")) {
 				success = true

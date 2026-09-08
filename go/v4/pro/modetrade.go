@@ -497,7 +497,7 @@ func (this *ModetradeCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		retRes39612 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes39612)
 	}
-	if (timeframe != "1m") && (timeframe != "5m") && (timeframe != "15m") && (timeframe != "30m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
+	if (!ccxt.IsEqual(timeframe, "1m")) && (!ccxt.IsEqual(timeframe, "5m")) && (!ccxt.IsEqual(timeframe, "15m")) && (!ccxt.IsEqual(timeframe, "30m")) && (!ccxt.IsEqual(timeframe, "1h")) && (!ccxt.IsEqual(timeframe, "1d")) && (!ccxt.IsEqual(timeframe, "1w")) && (!ccxt.IsEqual(timeframe, "1M")) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")))
 	}
 	var market any = this.Market(symbol)
@@ -689,7 +689,7 @@ func (this *ModetradeCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var takerOrMaker any = nil
-	var maker any = this.SafeBool(trade, "maker")
+	var maker any = ccxt.DerefScalar(this.SafeBool(trade, "maker"))
 	if !ccxt.IsEqual(maker, nil) {
 		takerOrMaker = ccxt.Ternary(ccxt.EvalTruthy(maker), "maker", "taker")
 	}
@@ -868,7 +868,7 @@ func (this *ModetradeCore) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes69412 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes69412)
 	}
-	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var trigger any = ccxt.DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	var topic any = ccxt.Ternary((trigger == true), "algoexecutionreport", "executionreport")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
@@ -927,7 +927,7 @@ func (this *ModetradeCore) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 		retRes73212 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes73212)
 	}
-	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var trigger any = ccxt.DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	var topic any = ccxt.Ternary((trigger == true), "algoexecutionreport", "executionreport")
 	params = this.Omit(params, "stop")
 	var messageHash any = "myTrades"
@@ -1029,15 +1029,15 @@ func (this *ModetradeCore) ParseWsOrder(order any, optionalArgs ...any) any {
 		"currency": this.SafeString(order, "feeAsset"),
 	}
 	var priceString *string = this.SafeString(order, "price")
-	var price any = this.SafeNumber(order, "price")
-	var avgPrice any = this.SafeNumber(order, "avgPrice")
+	var price any = ccxt.DerefScalar(this.SafeNumber(order, "price"))
+	var avgPrice any = ccxt.DerefScalar(this.SafeNumber(order, "avgPrice"))
 	if ccxt.Precise.StringEq(priceString, "0") && (!ccxt.IsEqual(avgPrice, nil)) {
 		price = avgPrice
 	}
 	var amount *string = this.SafeString(order, "quantity")
 	var side *string = this.SafeStringLower(order, "side")
 	var typeVar *string = this.SafeStringLower(order, "type")
-	var filled any = this.SafeNumber(order, "totalExecutedQuantity")
+	var filled any = ccxt.DerefScalar(this.SafeNumber(order, "totalExecutedQuantity"))
 	var totalExecQuantity *string = this.SafeString(order, "totalExecutedQuantity")
 	var remaining any = amount
 	if ccxt.Precise.StringGe(amount, totalExecQuantity) {
@@ -1047,7 +1047,7 @@ func (this *ModetradeCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	var status any = this.ParseOrderStatus(rawStatus)
 	var trades any = nil
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
-	var triggerPrice any = this.SafeNumber(order, "triggerPrice")
+	var triggerPrice any = ccxt.DerefScalar(this.SafeNumber(order, "triggerPrice"))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,
@@ -1540,7 +1540,7 @@ func (this *ModetradeCore) HandleErrorMessage(client any, message any) any {
 	if !(ccxt.InOp(message, "success")) {
 		return false
 	}
-	var success any = this.SafeBool(message, "success")
+	var success any = ccxt.DerefScalar(this.SafeBool(message, "success"))
 	if ccxt.IsEqual(success, true) {
 		return false
 	}

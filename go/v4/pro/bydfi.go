@@ -117,7 +117,7 @@ func (this *BydfiCore) watchPublicBody(ch chan any, messageHashes any, channels 
 	var subscriptionParams map[string]any = map[string]any{
 		"id": id,
 	}
-	var unsubscribe any = this.SafeBool(params, "unsubscribe", false)
+	var unsubscribe any = ccxt.DerefScalar(this.SafeBool(params, "unsubscribe", false))
 	var method string = "SUBSCRIBE"
 	if unsubscribe == true {
 		method = "UNSUBSCRIBE"
@@ -690,7 +690,7 @@ func (this *BydfiCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
 	params = ccxt.GetValue(frequencyparamsVariable, 1)
 	var channelSuffix string = ""
-	if frequency == "100ms" {
+	if ccxt.IsEqual(frequency, "100ms") {
 		channelSuffix = "@100ms"
 	}
 	var channels any = []any{}
@@ -744,7 +744,7 @@ func (this *BydfiCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
 	params = ccxt.GetValue(frequencyparamsVariable, 1)
 	var channelSuffix string = ""
-	if frequency == "100ms" {
+	if ccxt.IsEqual(frequency, "100ms") {
 		channelSuffix = "@100ms"
 	}
 	var channels any = []any{}
@@ -1203,8 +1203,8 @@ func (this *BydfiCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var client any = this.Client(url)
 	this.FetchBalanceSnapshot(client)
 	var options any = this.SafeDict(this.Options, "watchBalance")
-	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
+	var fetchBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", false))
+	var awaitBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "awaitBalanceSnapshot", true))
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		retRes90612 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
@@ -1219,7 +1219,7 @@ func (this *BydfiCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *BydfiCore) FetchBalanceSnapshot(client any) {
 	var options any = this.SafeValue(this.Options, "watchBalance")
-	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	var fetchBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", false))
 	if fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
@@ -1326,7 +1326,7 @@ func (this *BydfiCore) HandleSubscriptionStatus(client any, message any) any {
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
-	var isUnSubMessage any = this.SafeBool(subscription, "unsubscribe", false)
+	var isUnSubMessage any = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
 	if isUnSubMessage == true {
 		this.HandleUnSubscription(client, subscription)
 	}
@@ -1334,7 +1334,7 @@ func (this *BydfiCore) HandleSubscriptionStatus(client any, message any) any {
 }
 func (this *BydfiCore) HandleUnSubscription(client any, subscription any) {
 	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-	var subHashIsPrefix any = this.SafeBool(subscription, "subHashIsPrefix", false)
+	var subHashIsPrefix any = ccxt.DerefScalar(this.SafeBool(subscription, "subHashIsPrefix", false))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var unsubHash any = ccxt.GetValue(messageHashes, i)
 		var subHash string = ccxt.Replace(unsubHash, "unsubscribe::", "")

@@ -282,7 +282,7 @@ func (this *MudrexCore) HandleTicker(client any, message any) {
 		var market any = this.SafeMarket(ccxt.ToUpper(s))
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var timestamp int64 = this.Milliseconds()
-		var last any = this.SafeNumber(t, "p")
+		var last any = ccxt.DerefScalar(this.SafeNumber(t, "p"))
 		var result any = this.SafeTicker(map[string]any{
 			"symbol":    symbol,
 			"timestamp": timestamp,

@@ -736,10 +736,10 @@ func (this *CoinbaseexchangeCore) ParseWsTrade(trade any, optionalArgs ...any) a
 	if ccxt.InOp(trade, "maker_fee_rate") {
 		isMaker = true
 		ccxt.AddElementToObject(parsed, "takerOrMaker", "maker")
-		feeRate = this.SafeString(trade, "maker_fee_rate")
+		feeRate = ccxt.DerefScalar(this.SafeString(trade, "maker_fee_rate"))
 	} else {
 		ccxt.AddElementToObject(parsed, "takerOrMaker", "taker")
-		feeRate = this.SafeString(trade, "taker_fee_rate")
+		feeRate = ccxt.DerefScalar(this.SafeString(trade, "taker_fee_rate"))
 		// side always represents the maker side of the trade
 		// so if we're taker, we invert it
 		var currentSide any = ccxt.GetValue(parsed, "side")
@@ -898,8 +898,8 @@ func (this *CoinbaseexchangeCore) HandleOrder(client any, message any) {
 					var trades any = ccxt.GetValue(previousOrder, "trades")
 					for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
 						var tradeEntry any = ccxt.GetValue(trades, i)
-						totalCost = this.SafeString(tradeEntry, "cost", "0")
-						totalAmount = this.SafeString(tradeEntry, "amount", "0")
+						totalCost = ccxt.DerefScalar(this.SafeString(tradeEntry, "cost", "0"))
+						totalAmount = ccxt.DerefScalar(this.SafeString(tradeEntry, "amount", "0"))
 					}
 					if !ccxt.Precise.StringEq(totalAmount, "0") {
 						ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))
@@ -957,7 +957,7 @@ func (this *CoinbaseexchangeCore) ParseWsOrder(order any, optionalArgs ...any) a
 	var marketId *string = this.SafeString(order, "product_id")
 	var symbol any = this.SafeSymbol(marketId)
 	var side *string = this.SafeString(order, "side")
-	var price any = this.SafeNumber(order, "price")
+	var price any = ccxt.DerefScalar(this.SafeNumber(order, "price"))
 	var amount *string = this.SafeString2(order, "size", "funds")
 	var time *string = this.SafeString(order, "time")
 	var timestamp any = this.Parse8601(time)
@@ -1090,8 +1090,8 @@ func (this *CoinbaseexchangeCore) ParseTicker(ticker any, optionalArgs ...any) a
 	})
 }
 func (this *CoinbaseexchangeCore) HandleDelta(bookside any, delta any) {
-	var price any = this.SafeNumber(delta, 0)
-	var amount any = this.SafeNumber(delta, 1)
+	var price any = ccxt.DerefScalar(this.SafeNumber(delta, 0))
+	var amount any = ccxt.DerefScalar(this.SafeNumber(delta, 1))
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
 func (this *CoinbaseexchangeCore) HandleDeltas(bookside any, deltas any) {
@@ -1154,8 +1154,8 @@ func (this *CoinbaseexchangeCore) HandleOrderBook(client any, message any) {
 			var change any = ccxt.GetValue(changes, i)
 			var key *string = this.SafeString(change, 0)
 			var side *string = this.SafeString(sides, key)
-			var price any = this.SafeNumber(change, 1)
-			var amount any = this.SafeNumber(change, 2)
+			var price any = ccxt.DerefScalar(this.SafeNumber(change, 1))
+			var amount any = ccxt.DerefScalar(this.SafeNumber(change, 2))
 			var bookside any = this.SafeValue(orderbook, side)
 			bookside.(ccxt.IOrderBookSide).Store(price, amount)
 		}

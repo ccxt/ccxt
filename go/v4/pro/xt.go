@@ -148,7 +148,7 @@ func (this *XtCore) getListenKeyBody(ch chan any, isContract any) any {
 					//        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
 					//    }
 					//
-					listenKey = this.SafeString(response, "result")
+					listenKey = ccxt.DerefScalar(this.SafeString(response, "result"))
 				} else {
 
 					response := (<-this.PrivateSpotPostWsToken())
@@ -165,7 +165,7 @@ func (this *XtCore) getListenKeyBody(ch chan any, isContract any) any {
 					//    }
 					//
 					var result any = this.SafeDict(response, "result")
-					listenKey = this.SafeString(result, "accessToken")
+					listenKey = ccxt.DerefScalar(this.SafeString(result, "accessToken"))
 				}
 				if ccxt.IsEqual(listenKey, nil) {
 					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " getListenKey() received an empty listen key")))
@@ -209,14 +209,14 @@ func (this *XtCore) HandleDelta(orderbook any, delta any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(obBids)); i++ {
 		var bid any = ccxt.GetValue(obBids, i)
-		var price any = this.SafeNumber(bid, 0)
-		var quantity any = this.SafeNumber(bid, 1)
+		var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
+		var quantity any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
 		bids.(ccxt.IOrderBookSide).Store(price, quantity)
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(obAsks)); i++ {
 		var ask any = ccxt.GetValue(obAsks, i)
-		var price any = this.SafeNumber(ask, 0)
-		var quantity any = this.SafeNumber(ask, 1)
+		var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
+		var quantity any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
 		asks.(ccxt.IOrderBookSide).Store(price, quantity)
 	}
 }
@@ -249,12 +249,12 @@ func (this *XtCore) subscribeBody(ch chan any, name any, access any, methodName 
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var privateAccess bool = (access == "private")
+	var privateAccess bool = (ccxt.IsEqual(access, "private"))
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var isContract bool = (typeVar != "spot")
+	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var subscribe map[string]any = map[string]any{
 		"method": ccxt.Ternary(isContract, "SUBSCRIBE", "subscribe"),
@@ -328,12 +328,12 @@ func (this *XtCore) unSubscribeBody(ch chan any, messageHash any, name any, acce
 	_ = params
 	subscriptionParams := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = subscriptionParams
-	var privateAccess bool = (access == "private")
+	var privateAccess bool = (ccxt.IsEqual(access, "private"))
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var isContract bool = (typeVar != "spot")
+	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var unsubscribe map[string]any = map[string]any{
 		"method": ccxt.Ternary(isContract, "UNSUBSCRIBE", "unsubscribe"),
@@ -1131,7 +1131,7 @@ func (this *XtCore) loadPositionsSnapshotBody(ch chan any, client any, messageHa
 	var cache any = this.Positions
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = this.SafeNumber(position, "contracts", 0)
+		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
 		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
@@ -1579,8 +1579,8 @@ func (this *XtCore) HandleOrderBook(client any, message any) {
 			var asks any = ccxt.GetValue(orderbook, "asks")
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(obAsks)); i++ {
 				var ask any = ccxt.GetValue(obAsks, i)
-				var price any = this.SafeNumber(ask, 0)
-				var quantity any = this.SafeNumber(ask, 1)
+				var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
+				var quantity any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
 				asks.(ccxt.IOrderBookSide).Store(price, quantity)
 			}
 		}
@@ -1588,8 +1588,8 @@ func (this *XtCore) HandleOrderBook(client any, message any) {
 			var bids any = ccxt.GetValue(orderbook, "bids")
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(obBids)); i++ {
 				var bid any = ccxt.GetValue(obBids, i)
-				var price any = this.SafeNumber(bid, 0)
-				var quantity any = this.SafeNumber(bid, 1)
+				var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
+				var quantity any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
 				bids.(ccxt.IOrderBookSide).Store(price, quantity)
 			}
 		}
@@ -1959,7 +1959,7 @@ func (this *XtCore) HandleSubscriptionStatus(client any, message any) any {
 	var unsubscribe any = false
 	if id != nil {
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
-		unsubscribe = this.SafeBool(subscription, "unsubscribe", false)
+		unsubscribe = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
 		if unsubscribe == true {
 			this.HandleUnSubscription(client, subscription)
 		}

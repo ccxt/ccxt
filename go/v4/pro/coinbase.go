@@ -643,7 +643,7 @@ func (this *CoinbaseCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var timestamp any = nil
-	var last any = this.SafeNumber(ticker, "price")
+	var last any = ccxt.DerefScalar(this.SafeNumber(ticker, "price"))
 	return this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market, "-"),
@@ -1182,8 +1182,8 @@ func (this *CoinbaseCore) HandleOrderBookHelper(orderbook any, updates any) {
 		var trade any = ccxt.GetValue(updates, i)
 		var sideId *string = this.SafeString(trade, "side")
 		var side *string = this.SafeString(ccxt.GetValue(this.Options, "sides"), sideId)
-		var price any = this.SafeNumber(trade, "price_level")
-		var amount any = this.SafeNumber(trade, "new_quantity")
+		var price any = ccxt.DerefScalar(this.SafeNumber(trade, "price_level"))
+		var amount any = ccxt.DerefScalar(this.SafeNumber(trade, "new_quantity"))
 		var orderbookSide any = this.SafeValue(orderbook, side)
 		orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
 	}

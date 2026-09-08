@@ -663,7 +663,7 @@ func (this *CoincheckCore) fetchTickerBody(ch chan any, symbol any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if symbol != "BTC/JPY" {
+	if !IsEqual(symbol, "BTC/JPY") {
 		panic(BadSymbol(Add(this.Id, " fetchTicker() supports BTC/JPY only")))
 	}
 	if IsEqual(this.Markets, nil) {
@@ -747,17 +747,17 @@ func (this *CoincheckCore) ParseTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = "maker"
 		}
 		var funds any = this.SafeValue(trade, "funds", map[string]any{})
-		amountString = this.SafeString(funds, baseId)
-		costString = this.SafeString(funds, quoteId)
+		amountString = DerefScalar(this.SafeString(funds, baseId))
+		costString = DerefScalar(this.SafeString(funds, quoteId))
 		fee = map[string]any{
 			"currency": this.SafeString(trade, "fee_currency"),
 			"cost":     this.SafeString(trade, "fee"),
 		}
-		side = this.SafeString(trade, "side")
-		orderId = this.SafeString(trade, "order_id")
+		side = DerefScalar(this.SafeString(trade, "side"))
+		orderId = DerefScalar(this.SafeString(trade, "order_id"))
 	} else {
-		amountString = this.SafeString(trade, "amount")
-		side = this.SafeString(trade, "order_type")
+		amountString = DerefScalar(this.SafeString(trade, "amount"))
+		side = DerefScalar(this.SafeString(trade, "order_type"))
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1005,12 +1005,12 @@ func (this *CoincheckCore) createOrderBody(ch chan any, symbol any, typeVar any,
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if typeVar == "market" {
+	if IsEqual(typeVar, "market") {
 		AddElementToObject(request, "order_type", Add(Add(typeVar, "_"), side))
 		if IsEqual(side, "sell") {
 			AddElementToObject(request, "amount", amount)
 		} else {
-			var cost any = this.SafeNumber(params, "cost")
+			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if !IsEqual(cost, nil) {
 				panic(ArgumentsRequired(Add(this.Id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")))
@@ -1262,13 +1262,13 @@ func (this *CoincheckCore) ParseTransaction(transaction any, optionalArgs ...any
 	var id *string = this.SafeString(transaction, "id")
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_at"))
 	var address *string = this.SafeString(transaction, "address")
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var updated any = this.Parse8601(this.SafeString(transaction, "confirmed_at"))
 	var fee any = nil
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1322,7 +1322,7 @@ func (this *CoincheckCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var queryString any = ""
-		if method == "GET" {
+		if IsEqual(method, "GET") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				url = Add(url, Add("?", this.Urlencode(this.Keysort(query))))
 			}
@@ -1355,7 +1355,7 @@ func (this *CoincheckCore) HandleErrors(httpCode any, reason any, url any, metho
 	//     {"success":false,"error":"disabled API Key"}'
 	//     {"success":false,"error":"invalid authentication"}
 	//
-	var success any = this.SafeBool(response, "success", true)
+	var success any = DerefScalar(this.SafeBool(response, "success", true))
 	if success != true {
 		var error *string = this.SafeString(response, "error")
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))

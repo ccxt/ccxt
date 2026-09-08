@@ -935,20 +935,20 @@ func (this *BittradeCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var askVolume any = nil
 	if InOp(ticker, "bid") {
 		if IsArray(GetValue(ticker, "bid")) {
-			bid = this.SafeString(GetValue(ticker, "bid"), 0)
-			bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
+			bid = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 0))
+			bidVolume = DerefScalar(this.SafeString(GetValue(ticker, "bid"), 1))
 		} else {
-			bid = this.SafeString(ticker, "bid")
-			bidVolume = this.SafeString(ticker, "bidSize")
+			bid = DerefScalar(this.SafeString(ticker, "bid"))
+			bidVolume = DerefScalar(this.SafeString(ticker, "bidSize"))
 		}
 	}
 	if InOp(ticker, "ask") {
 		if IsArray(GetValue(ticker, "ask")) {
-			ask = this.SafeString(GetValue(ticker, "ask"), 0)
-			askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
+			ask = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 0))
+			askVolume = DerefScalar(this.SafeString(GetValue(ticker, "ask"), 1))
 		} else {
-			ask = this.SafeString(ticker, "ask")
-			askVolume = this.SafeString(ticker, "askSize")
+			ask = DerefScalar(this.SafeString(ticker, "ask"))
+			askVolume = DerefScalar(this.SafeString(ticker, "askSize"))
 		}
 	}
 	var open *string = this.SafeString(ticker, "open")
@@ -1193,8 +1193,8 @@ func (this *BittradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(trade, "ts", "created-at")
 	var order *string = this.SafeString(trade, "order-id")
-	var side any = this.SafeString(trade, "direction")
-	var typeVar any = this.SafeString(trade, "type")
+	var side any = DerefScalar(this.SafeString(trade, "direction"))
+	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
 	if !IsEqual(typeVar, nil) {
 		var typeParts []string = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
@@ -1205,7 +1205,7 @@ func (this *BittradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(trade, "filled-amount", "amount")
 	var cost *string = Precise.StringMul(price, amount)
 	var fee any = nil
-	var feeCost any = this.SafeString(trade, "filled-fees")
+	var feeCost any = DerefScalar(this.SafeString(trade, "filled-fees"))
 	var feeCurrency any = this.SafeCurrencyCode(this.SafeString(trade, "fee-currency"))
 	var filledPoints *string = this.SafeString(trade, "filled-points")
 	if filledPoints != nil {
@@ -1595,7 +1595,7 @@ func (this *BittradeCore) ParseCurrency(currency any) any {
 	var depositEnabled any = this.SafeValue(currency, "deposit-enabled")
 	var withdrawEnabled any = this.SafeValue(currency, "withdraw-enabled")
 	var countryDisabled any = this.SafeValue(currency, "country-disabled")
-	var visible any = this.SafeBool(currency, "visible", false)
+	var visible any = DerefScalar(this.SafeBool(currency, "visible", false))
 	var state *string = this.SafeString(currency, "state")
 	var active bool = (visible == true) && (IsEqual(depositEnabled, true)) && (IsEqual(withdrawEnabled, true)) && (state != nil && *state == "online") && (!IsEqual(countryDisabled, true))
 	var name *string = this.SafeString(currency, "display-name")
@@ -1863,7 +1863,7 @@ func (this *BittradeCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var method any = this.HandleOption("fetchOpenOrders", "method", "fetch_open_orders_v1")
-	if (method == "fetch_open_orders_v2") || (method == "fetchOpenOrdersV2") {
+	if (IsEqual(method, "fetch_open_orders_v2")) || (IsEqual(method, "fetchOpenOrdersV2")) {
 
 		retRes137019 := (<-this.FetchOpenOrdersV2(symbol, since, limit, params))
 		PanicOnError(retRes137019)
@@ -2190,13 +2190,13 @@ func (this *BittradeCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		AddElementToObject(request, "client-order-id", clientOrderId)
 	}
 	params = this.Omit(params, []any{"clientOrderId", "client-order-id"})
-	if (typeVar == "market") && (IsEqual(side, "buy")) {
+	if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice any = true
 		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		var cost any = this.SafeNumber(params, "cost")
+		var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 		params = this.Omit(params, "cost")
 		if !IsEqual(cost, nil) {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
@@ -2221,7 +2221,7 @@ func (this *BittradeCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	} else {
 		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	if (typeVar == "limit") || (typeVar == "ioc") || (typeVar == "limit-maker") || (typeVar == "stop-limit") || (typeVar == "stop-limit-fok") {
+	if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "ioc")) || (IsEqual(typeVar, "limit-maker")) || (IsEqual(typeVar, "stop-limit")) || (IsEqual(typeVar, "stop-limit-fok")) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 	var method any = this.HandleOption("createOrder", "method", "privatePostOrderOrdersPlace")
@@ -2673,7 +2673,7 @@ func (this *BittradeCore) ParseTransaction(transaction any, optionalArgs ...any)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "created-at")
 	var code any = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
-	var typeVar any = this.SafeString(transaction, "type")
+	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
@@ -2825,7 +2825,7 @@ func (this *BittradeCore) Sign(path any, optionalArgs ...any) any {
 			"AccessKeyId":      this.ApiKey,
 			"Timestamp":        timestamp,
 		}
-		if method != "POST" {
+		if !IsEqual(method, "POST") {
 			request = this.Extend(request, query)
 		}
 		var requestSorted map[string]any = this.Keysort(request)

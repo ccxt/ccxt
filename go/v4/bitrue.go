@@ -967,11 +967,11 @@ func (this *BitrueCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
 		var marketType any = GetValue(types, i)
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 			AppendToArray(&promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
-		} else if marketType == "linear" {
+		} else if IsEqual(marketType, "linear") {
 			AppendToArray(&promisesRaw, this.FapiV1PublicGetContracts(params))
-		} else if marketType == "inverse" {
+		} else if IsEqual(marketType, "inverse") {
 			AppendToArray(&promisesRaw, this.DapiV1PublicGetContracts(params))
 		} else {
 			panic(ExchangeError(Add(Add(Add(this.Id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")))
@@ -1105,13 +1105,13 @@ func (this *BitrueCore) ParseMarket(market any) any {
 	var pricePrecision *string = this.SafeString(priceFilter, "priceScale", defaultPricePrecision)
 	var amountPrecision *string = this.SafeString(amountFilter, "volumeScale", defaultAmountPrecision)
 	var multiplier *string = this.SafeString(market, "multiplier")
-	var maxQuantity any = this.SafeNumber(amountFilter, "maxQty")
+	var maxQuantity any = DerefScalar(this.SafeNumber(amountFilter, "maxQty"))
 	if IsEqual(maxQuantity, nil) {
-		maxQuantity = this.SafeNumber(market, "maxValidOrder")
+		maxQuantity = DerefScalar(this.SafeNumber(market, "maxValidOrder"))
 	}
-	var minCost any = this.SafeNumber(amountFilter, "minVal")
+	var minCost any = DerefScalar(this.SafeNumber(amountFilter, "minVal"))
 	if IsEqual(minCost, nil) {
-		minCost = this.SafeNumber(market, "minOrderMoney")
+		minCost = DerefScalar(this.SafeNumber(market, "minOrderMoney"))
 	}
 	var isSpot bool = (typeVar == "spot")
 	return this.SafeMarketStructure(map[string]any{
@@ -1270,8 +1270,8 @@ func (this *BitrueCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(subTypeparamsVariable, 1)
 	var response any = nil
 	var result any = nil
-	if typeVar == "swap" {
-		if !IsEqual(subType, nil) && (subType == "inverse") {
+	if IsEqual(typeVar, "swap") {
+		if !IsEqual(subType, nil) && (IsEqual(subType, "inverse")) {
 
 			response = (<-this.DapiV2PrivateGetAccount(params))
 			PanicOnError(response)
@@ -1436,7 +1436,7 @@ func (this *BitrueCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	if IsEqual(this.SafeBool(market, "swap"), true) {
 		percentage = Precise.StringMul(this.SafeString(ticker, "rose"), "100")
 	} else {
-		percentage = this.SafeString(ticker, "priceChangePercent")
+		percentage = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1844,7 +1844,7 @@ func (this *BitrueCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
-		if typeVar != "spot" {
+		if !IsEqual(typeVar, "spot") {
 			panic(NotSupported(Add(this.Id, " fetchTickers only support spot when symbols are not proved")))
 		}
 
@@ -1968,8 +1968,8 @@ func (this *BitrueCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "orderId")
 	var id *string = this.SafeString2(trade, "id", "tradeId")
 	var side any = nil
-	var buyerMaker any = this.SafeBool(trade, "isBuyerMaker") // ignore "m" until Bitrue fixes api
-	var isBuyer any = this.SafeBool(trade, "isBuyer")
+	var buyerMaker any = DerefScalar(this.SafeBool(trade, "isBuyerMaker")) // ignore "m" until Bitrue fixes api
+	var isBuyer any = DerefScalar(this.SafeBool(trade, "isBuyer"))
 	if !IsEqual(buyerMaker, nil) {
 		side = Ternary(EvalTruthy(buyerMaker), "sell", "buy")
 	}
@@ -1984,7 +1984,7 @@ func (this *BitrueCore) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var takerOrMaker any = nil
-	var isMaker any = this.SafeBool(trade, "isMaker")
+	var isMaker any = DerefScalar(this.SafeBool(trade, "isMaker"))
 	if !IsEqual(isMaker, nil) {
 		takerOrMaker = Ternary(EvalTruthy(isMaker), "maker", "taker")
 	}
@@ -2146,15 +2146,15 @@ func (this *BitrueCore) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp any = nil
 	var lastTradeTimestamp any = nil
 	if InOp(order, "time") {
-		timestamp = this.SafeInteger(order, "time")
+		timestamp = DerefScalar(this.SafeInteger(order, "time"))
 	} else if InOp(order, "transactTime") {
-		timestamp = this.SafeInteger(order, "transactTime")
+		timestamp = DerefScalar(this.SafeInteger(order, "transactTime"))
 	} else if InOp(order, "updateTime") {
 		if IsEqual(status, "open") {
 			if Precise.StringGt(filled, "0") {
-				lastTradeTimestamp = this.SafeInteger(order, "updateTime")
+				lastTradeTimestamp = DerefScalar(this.SafeInteger(order, "updateTime"))
 			} else {
-				timestamp = this.SafeInteger(order, "updateTime")
+				timestamp = DerefScalar(this.SafeInteger(order, "updateTime"))
 			}
 		}
 	}
@@ -3232,12 +3232,12 @@ func (this *BitrueCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		if addressTo != nil {
 			var parts []string = Split(addressTo, "_")
 			addressTo = this.SafeString(parts, 0)
-			tagTo = this.SafeString(parts, 1)
+			tagTo = DerefScalar(this.SafeString(parts, 1))
 		}
 		if addressFrom != nil {
 			var parts []string = Split(addressFrom, "_")
 			addressFrom = this.SafeString(parts, 0)
-			tagFrom = this.SafeString(parts, 1)
+			tagFrom = DerefScalar(this.SafeString(parts, 1))
 		}
 	}
 	var txid *string = this.SafeString(transaction, "txid")
@@ -3247,7 +3247,7 @@ func (this *BitrueCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var ctime bool = (InOp(transaction, "ctime"))
 	var typeVar any = Ternary((payAmount || ctime), "withdrawal", "deposit")
 	var status any = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var network any = nil
 	var currencyId *string = this.SafeString2(transaction, "symbol", "coin")
 	if currencyId != nil {
@@ -3259,7 +3259,7 @@ func (this *BitrueCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		}
 	}
 	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -3472,8 +3472,8 @@ func (this *BitrueCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var toAccount any = nil
 	if transferType != nil {
 		var accountSplit []string = Split(transferType, "_to_")
-		fromAccount = this.SafeString(accountSplit, 0)
-		toAccount = this.SafeString(accountSplit, 1)
+		fromAccount = DerefScalar(this.SafeString(accountSplit, 0))
+		toAccount = DerefScalar(this.SafeString(accountSplit, 1))
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
 	return map[string]any{
@@ -3794,7 +3794,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
 			}
-			if (method == "GET") || (method == "DELETE") {
+			if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 				url = Add(url, Add("?", query))
 			} else {
 				body = query
@@ -3810,7 +3810,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 			}
 			signPath = Add(Add(Add(Add(signPath, "/"), version), "/"), path)
 			var signMessage any = Add(Add(timestamp, method), signPath)
-			if method == "GET" {
+			if IsEqual(method, "GET") {
 				var keys []string = ObjectKeys(params)
 				var keysLength int = GetArrayLength(keys)
 				if IsGreaterThan(keysLength, 0) {
@@ -3851,7 +3851,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *BitrueCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (code == 418) || (code == 429) {
+	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
 		panic(DDoSProtection(Add(Add(Add(Add(Add(Add(this.Id, " "), ToString(code)), " "), reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -3873,7 +3873,7 @@ func (this *BitrueCore) HandleErrors(code any, reason any, url any, method any, 
 	}
 	// check success value for wapi endpoints
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
-	var success any = this.SafeBool(response, "success", true)
+	var success any = DerefScalar(this.SafeBool(response, "success", true))
 	if success != true {
 		var messageInner *string = this.SafeString(response, "msg")
 		var parsedMessage any = nil

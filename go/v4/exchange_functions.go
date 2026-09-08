@@ -210,6 +210,8 @@ func (this *BaseExchange) Contains(slice []any, elem string) bool {
 }
 
 func (this *BaseExchange) ToArray(a any) []any {
+	// SafeList and friends can hand over a typed pointer
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}

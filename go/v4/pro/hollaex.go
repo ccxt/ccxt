@@ -581,7 +581,7 @@ func (this *HollaexCore) watchPrivateBody(ch chan any, messageHash any, optional
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var expires any = this.SafeString(this.Options, "ws-expires")
+	var expires any = ccxt.DerefScalar(this.SafeString(this.Options, "ws-expires"))
 	if ccxt.IsEqual(expires, nil) {
 		var timeout int64 = ccxt.ParseInt(ccxt.ToString((ccxt.Divide(this.Timeout, 1000))))
 		expires = this.Sum(this.Seconds(), timeout)

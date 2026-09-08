@@ -327,7 +327,7 @@ func (this *AlpacaCore) HandleOrderBook(client any, message any) {
 	var symbol any = this.SafeSymbol(marketId)
 	var datetime *string = this.SafeString(message, "t")
 	var timestamp any = this.Parse8601(datetime)
-	var isSnapshot any = this.SafeBool(message, "r", false)
+	var isSnapshot any = ccxt.DerefScalar(this.SafeBool(message, "r", false))
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
@@ -723,7 +723,7 @@ func (this *AlpacaCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var datetime *string = this.SafeString(trade, "filled_at")
-	var typeVar any = this.SafeString(trade, "type")
+	var typeVar any = ccxt.DerefScalar(this.SafeString(trade, "type"))
 	if ccxt.IsEqual(typeVar, nil) {
 		return nil
 	}
@@ -740,7 +740,7 @@ func (this *AlpacaCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString(trade, "id"),
 		"type":         typeVar,
 		"side":         this.SafeString(trade, "side"),
-		"takerOrMaker": ccxt.Ternary((typeVar == "market"), "taker", "maker"),
+		"takerOrMaker": ccxt.Ternary((ccxt.IsEqual(typeVar, "market")), "taker", "maker"),
 		"price":        this.SafeString(trade, "filled_avg_price"),
 		"amount":       this.SafeString(trade, "filled_qty"),
 		"cost":         nil,

@@ -183,7 +183,7 @@ func (this *P2bCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		ccxt.PanicOnError(retRes13112)
 	}
 	var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
-	var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
+	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
 	nameparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
@@ -230,7 +230,7 @@ func (this *P2bCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
-	var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
+	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
 	nameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
@@ -549,7 +549,7 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	//    }
 	//
 	var params any = this.SafeList(message, "params", []any{})
-	var isFullUpdate any = this.SafeBool(params, 0, false)
+	var isFullUpdate any = ccxt.DerefScalar(this.SafeBool(params, 0, false))
 	var data any = this.SafeDict(params, 1)
 	var asks any = this.SafeList(data, "asks")
 	var bids any = this.SafeList(data, "bids")
@@ -574,8 +574,8 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	if !ccxt.IsEqual(bids, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bids)); i++ {
 			var bid any = this.SafeValue(bids, i)
-			var price any = this.SafeNumber(bid, 0)
-			var amount any = this.SafeNumber(bid, 1)
+			var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
+			var amount any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
 			var bookSide any = ccxt.GetValue(orderbook, "bids")
 			bookSide.(ccxt.IOrderBookSide).Store(price, amount)
 		}
@@ -583,8 +583,8 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	if !ccxt.IsEqual(asks, nil) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(asks)); i++ {
 			var ask any = this.SafeValue(asks, i)
-			var price any = this.SafeNumber(ask, 0)
-			var amount any = this.SafeNumber(ask, 1)
+			var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
+			var amount any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
 			var bookside any = ccxt.GetValue(orderbook, "asks")
 			bookside.(ccxt.IOrderBookSide).Store(price, amount)
 		}

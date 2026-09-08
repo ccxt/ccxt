@@ -645,7 +645,7 @@ func (this *ExtendedCore) ParseMarket(market any) any {
 	//
 	var tradingConfig any = this.SafeDict(market, "tradingConfig", map[string]any{})
 	var marketId *string = this.SafeString(market, "name")
-	var baseId any = this.SafeString(market, "assetName", "")
+	var baseId any = DerefScalar(this.SafeString(market, "assetName", ""))
 	if IsGreaterThanOrEqual(GetIndexOf(baseId, "SPOT"), 0) {
 		baseId = Replace(baseId, "SPOT", "")
 	}
@@ -657,11 +657,11 @@ func (this *ExtendedCore) ParseMarket(market any) any {
 	}
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "ACTIVE")
-	var amountPrecision any = this.SafeNumber(tradingConfig, "minOrderSizeChange")
-	var pricePrecision any = this.SafeNumber(tradingConfig, "minPriceChange")
-	var maxLeverage any = this.SafeNumber(tradingConfig, "maxLeverage")
-	var minAmount any = this.SafeNumber(tradingConfig, "minOrderSize")
-	var maxCost any = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
+	var amountPrecision any = DerefScalar(this.SafeNumber(tradingConfig, "minOrderSizeChange"))
+	var pricePrecision any = DerefScalar(this.SafeNumber(tradingConfig, "minPriceChange"))
+	var maxLeverage any = DerefScalar(this.SafeNumber(tradingConfig, "maxLeverage"))
+	var minAmount any = DerefScalar(this.SafeNumber(tradingConfig, "minOrderSize"))
+	var maxCost any = DerefScalar(this.SafeNumber(tradingConfig, "maxLimitOrderValue"))
 	var created *int64 = this.SafeInteger(market, "createdAt")
 	var settleId any = nil
 	var settle any = nil
@@ -809,7 +809,7 @@ func (this *ExtendedCore) ParseCurrency(currency any) any {
 	//       "availableForTradeFactors": []
 	//     }
 	//
-	var currencyId any = this.SafeString(currency, "symbol")
+	var currencyId any = DerefScalar(this.SafeString(currency, "symbol"))
 	if (!IsEqual(currencyId, nil)) && (IsGreaterThanOrEqual(GetIndexOf(currencyId, "SPOT"), 0)) {
 		currencyId = Replace(currencyId, "SPOT", "")
 	}
@@ -819,7 +819,7 @@ func (this *ExtendedCore) ParseCurrency(currency any) any {
 	}
 	var name *string = this.SafeString(currency, "name")
 	var precision *int64 = this.SafeInteger(currency, "precision", 0)
-	var isActive any = this.SafeBool(currency, "isActive")
+	var isActive any = DerefScalar(this.SafeBool(currency, "isActive"))
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
@@ -1014,7 +1014,7 @@ func (this *ExtendedCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
-	var last any = this.SafeNumber(ticker, "lastPrice")
+	var last any = DerefScalar(this.SafeNumber(ticker, "lastPrice"))
 	var percentageRaw *string = this.SafeString(ticker, "dailyPriceChangePercentage")
 	var percentage any = Ternary((percentageRaw != nil), Precise.StringMul(percentageRaw, "100"), nil)
 	return this.SafeTicker(map[string]any{
@@ -1251,7 +1251,7 @@ func (this *ExtendedCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -1351,7 +1351,7 @@ func (this *ExtendedCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...a
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -1454,7 +1454,7 @@ func (this *ExtendedCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"cost":     feeCost,
 		"currency": Ternary((IsEqual(market, nil)), nil, GetValue(market, "settle")),
 	})
-	var isTaker any = this.SafeBool(trade, "isTaker")
+	var isTaker any = DerefScalar(this.SafeBool(trade, "isTaker"))
 	var takerOrMaker any = nil
 	if !IsEqual(isTaker, nil) {
 		takerOrMaker = Ternary(EvalTruthy(isTaker), "taker", "maker")
@@ -1512,7 +1512,7 @@ func (this *ExtendedCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	PanicOnError(retRes12238)
 	var market any = this.Market(symbol)
 	var price *string = this.SafeString(params, "price")
-	var candleType any = this.SafeString(params, "candleType")
+	var candleType any = DerefScalar(this.SafeString(params, "candleType"))
 	if IsEqual(candleType, nil) {
 		if price != nil && *price == "mark" {
 			candleType = "mark-prices"
@@ -1663,7 +1663,7 @@ func (this *ExtendedCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2038,7 +2038,7 @@ func (this *ExtendedCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any 
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2183,7 +2183,7 @@ func (this *ExtendedCore) fetchTransactionsBody(ch chan any, optionalArgs ...any
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2419,7 +2419,7 @@ func (this *ExtendedCore) fetchTransfersBody(ch chan any, optionalArgs ...any) a
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -2498,7 +2498,7 @@ func (this *ExtendedCore) transferBody(ch chan any, code any, amount any, fromAc
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var validSignature any = this.SafeBool(data, "validSignature")
+	var validSignature any = DerefScalar(this.SafeBool(data, "validSignature"))
 	var now int64 = this.Milliseconds()
 	var status any = "pending"
 	if !IsEqual(validSignature, nil) {
@@ -2534,7 +2534,7 @@ func (this *ExtendedCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 		fromAccount = counterpartyAccountId
 		toAccount = accountId
 	}
-	var validSignature any = this.SafeBool(transfer, "validSignature")
+	var validSignature any = DerefScalar(this.SafeBool(transfer, "validSignature"))
 	var status any = nil
 	if !IsEqual(validSignature, nil) {
 		status = Ternary(EvalTruthy(validSignature), "ok", "failed")
@@ -2876,7 +2876,7 @@ func (this *ExtendedCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(leverage, "market")
 	market = this.SafeMarket(marketId, market)
-	var leverageValue any = this.SafeNumber(leverage, "leverage")
+	var leverageValue any = DerefScalar(this.SafeNumber(leverage, "leverage"))
 	return map[string]any{
 		"info":          leverage,
 		"symbol":        GetValue(market, "symbol"),
@@ -3067,7 +3067,7 @@ func (this *ExtendedCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ..
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -3327,7 +3327,7 @@ func (this *ExtendedCore) createExtendedOrderRequestBody(ch chan any, symbol any
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var priceString any = this.PriceToPrecision(symbol, price)
 	var postOnly any = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
-	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
+	var reduceOnly any = DerefScalar(this.SafeBool2(params, "reduceOnly", "reduce_only", false))
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	if IsEqual(timeInForce, nil) {
 		timeInForce = Ternary((uppercaseType == "MARKET"), "IOC", "GTT")
@@ -3336,8 +3336,8 @@ func (this *ExtendedCore) createExtendedOrderRequestBody(ch chan any, symbol any
 	var builderFeeRate any = nil
 	var builderId any = nil
 	if EvalTruthy(this.IsSandboxModeEnabled) {
-		builderFeeRate = this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate")
-		builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
+		builderFeeRate = DerefScalar(this.SafeString2(params, "builderFeeRate", "defaultBuilderFeeRate"))
+		builderId = DerefScalar(this.SafeString2(params, "builderId", "defaultBuilderId"))
 		params = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
 	} else {
 		builderFeeRateparamsVariable := this.HandleOptionAndParams(params, "createOrder", "builderFeeRate", "0.0001")
@@ -3416,7 +3416,7 @@ func (this *ExtendedCore) createExtendedOrderRequestBody(ch chan any, symbol any
 		"starkKey":           starkKey,
 		"collateralPosition": collateralPosition,
 	})
-	var triggerPriceStr any = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var triggerPriceStr any = DerefScalar(this.SafeString2(params, "triggerPrice", "stopPrice"))
 	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
@@ -3620,8 +3620,8 @@ func (this *ExtendedCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an id argument")))
 	}
 	var expiryEpochMillis *int64 = this.SafeInteger(params, "expiryEpochMillis")
-	var postOnly any = this.SafeBool(params, "postOnly")
-	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
+	var postOnly any = DerefScalar(this.SafeBool(params, "postOnly"))
+	var reduceOnly any = DerefScalar(this.SafeBool2(params, "reduceOnly", "reduce_only"))
 	var cancelId *string = this.SafeString2(params, "cancelId", "previousOrderId")
 	if (IsEqual(amount, nil)) || (IsEqual(price, nil)) || (expiryEpochMillis == nil) || (IsEqual(postOnly, nil)) || (IsEqual(reduceOnly, nil)) || (cancelId == nil) {
 
@@ -3631,19 +3631,19 @@ func (this *ExtendedCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 		PanicOnError(response)
 		var order any = this.SafeDict(response, "data", map[string]any{})
 		if IsEqual(amount, nil) {
-			amount = this.SafeNumber(order, "qty")
+			amount = DerefScalar(this.SafeNumber(order, "qty"))
 		}
 		if IsEqual(price, nil) {
-			price = this.SafeNumber(order, "price")
+			price = DerefScalar(this.SafeNumber(order, "price"))
 		}
 		if expiryEpochMillis == nil {
 			expiryEpochMillis = this.SafeInteger(order, "expireTime")
 		}
 		if IsEqual(postOnly, nil) {
-			postOnly = this.SafeBool(order, "postOnly", false)
+			postOnly = DerefScalar(this.SafeBool(order, "postOnly", false))
 		}
 		if IsEqual(reduceOnly, nil) {
-			reduceOnly = this.SafeBool(order, "reduceOnly", false)
+			reduceOnly = DerefScalar(this.SafeBool(order, "reduceOnly", false))
 		}
 		if cancelId == nil {
 			cancelId = this.SafeString(order, "externalId")
@@ -4136,7 +4136,7 @@ func (this *ExtendedCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	var dataLength int = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
-		if (cursor != nil) && (i == Subtract(dataLength, 1)) {
+		if (cursor != nil) && (IsEqual(i, Subtract(dataLength, 1))) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
 			})
@@ -4349,7 +4349,7 @@ func (this *ExtendedCore) GetExtendedDecimalToBase16(value any) any {
 		result = Add(GetValue(hexChars, remainder), result)
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
-	if result == "" {
+	if IsEqual(result, "") {
 		return "0"
 	}
 	return result
@@ -4450,13 +4450,13 @@ func (this *ExtendedCore) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"X-Api-Key": this.ApiKey,
 		}
-		if ((method == "POST") || (method == "PATCH")) && !queryPost {
+		if ((IsEqual(method, "POST")) || (IsEqual(method, "PATCH"))) && !queryPost {
 			body = this.Json(query)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
 	}
 	url = Add(Add(Add(url, "/api/"), version), endpoint)
-	if ((method == "GET") || (method == "DELETE") || queryPost) && (IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+	if ((IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) || queryPost) && (IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 		url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
 	}
 	return map[string]any{

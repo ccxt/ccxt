@@ -960,7 +960,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 	for i := 0; IsLessThan(i, GetArrayLength(orderbook)); i++ {
 		var level any = GetValue(orderbook, i)
 		if IsEqual(timestamp, nil) {
-			timestamp = this.SafeInteger(level, 2)
+			timestamp = DerefScalar(this.SafeInteger(level, 2))
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(level, 2)
 			if newTimestamp != nil {
@@ -968,7 +968,7 @@ func (this *NdaxCore) ParseOrderBook(orderbook any, symbol any, optionalArgs ...
 			}
 		}
 		if IsEqual(nonce, nil) {
-			nonce = this.SafeInteger(level, 0)
+			nonce = DerefScalar(this.SafeInteger(level, 0))
 		} else {
 			var newNonce *int64 = this.SafeInteger(level, 0)
 			if newNonce != nil {
@@ -1472,22 +1472,22 @@ func (this *NdaxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee map[string]any = map[string]any{}
 	var typeVar any = nil
 	if IsArray(trade) {
-		priceString = this.SafeString(trade, 3)
-		amountString = this.SafeString(trade, 2)
-		timestamp = this.SafeInteger(trade, 6)
-		id = this.SafeString(trade, 0)
-		marketId = this.SafeString(trade, 1)
+		priceString = DerefScalar(this.SafeString(trade, 3))
+		amountString = DerefScalar(this.SafeString(trade, 2))
+		timestamp = DerefScalar(this.SafeInteger(trade, 6))
+		id = DerefScalar(this.SafeString(trade, 0))
+		marketId = DerefScalar(this.SafeString(trade, 1))
 		var takerSide any = this.SafeValue(trade, 8)
 		side = Ternary((IsEqual(takerSide, true)), "sell", "buy")
-		orderId = this.SafeString(trade, 4)
+		orderId = DerefScalar(this.SafeString(trade, 4))
 	} else {
-		timestamp = this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime")
-		id = this.SafeString(trade, "TradeId")
-		orderId = this.SafeString2(trade, "OrderId", "OrigOrderId")
-		marketId = this.SafeString2(trade, "InstrumentId", "Instrument")
-		priceString = this.SafeString(trade, "Price")
-		amountString = this.SafeString(trade, "Quantity")
-		costString = this.SafeString2(trade, "Value", "GrossValueExecuted")
+		timestamp = DerefScalar(this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime"))
+		id = DerefScalar(this.SafeString(trade, "TradeId"))
+		orderId = DerefScalar(this.SafeString2(trade, "OrderId", "OrigOrderId"))
+		marketId = DerefScalar(this.SafeString2(trade, "InstrumentId", "Instrument"))
+		priceString = DerefScalar(this.SafeString(trade, "Price"))
+		amountString = DerefScalar(this.SafeString(trade, "Quantity"))
+		costString = DerefScalar(this.SafeString2(trade, "Value", "GrossValueExecuted"))
 		takerOrMaker = this.SafeStringLower(trade, "MakerTaker")
 		side = this.SafeStringLower(trade, "Side")
 		typeVar = this.SafeStringLower(trade, "OrderType")
@@ -1670,7 +1670,7 @@ func (this *NdaxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	retRes12928 := (<-this.LoadAccounts())
 	PanicOnError(retRes12928)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId")
-	var accountId any = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
+	var accountId any = DerefScalar(this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId))
 	if IsEqual(accountId, nil) {
 		accountId = this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id"))
 	}
@@ -2019,12 +2019,12 @@ func (this *NdaxCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
-	var orderType any = this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar))
+	var orderType any = DerefScalar(this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	if triggerPrice != nil {
-		if typeVar == "market" {
+		if IsEqual(typeVar, "market") {
 			orderType = 3
-		} else if typeVar == "limit" {
+		} else if IsEqual(typeVar, "limit") {
 			orderType = 4
 		}
 	}
@@ -3201,10 +3201,10 @@ func (this *NdaxCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var typeVar any = nil
 	if InOp(transaction, "DepositId") {
-		id = this.SafeString(transaction, "DepositId")
+		id = DerefScalar(this.SafeString(transaction, "DepositId"))
 		typeVar = "deposit"
 	} else if InOp(transaction, "WithdrawId") {
-		id = this.SafeString(transaction, "WithdrawId")
+		id = DerefScalar(this.SafeString(transaction, "WithdrawId"))
 		typeVar = "withdrawal"
 	}
 	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
@@ -3214,7 +3214,7 @@ func (this *NdaxCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	}
 	var address *string = this.SafeString2(templateForm, "ExternalAddress", "ToAddress")
 	var timestamp *int64 = this.SafeInteger(templateForm, "TimeSubmitted")
-	var feeCost any = this.SafeNumber(transaction, "FeeAmount")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "FeeAmount"))
 	var transactionStatus *string = this.SafeString(transaction, "TicketStatus")
 	var fee map[string]any = map[string]any{}
 	if !IsEqual(feeCost, nil) {
@@ -3422,7 +3422,7 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 				"APToken": sessionToken,
 			}
 		}
-		if method == "POST" {
+		if IsEqual(method, "POST") {
 			AddElementToObject(headers, "Content-Type", "application/json")
 			body = this.Json(query)
 		} else {
@@ -3439,7 +3439,7 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *NdaxCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if code == 404 {
+	if IsEqual(code, 404) {
 		panic(AuthenticationError(Add(Add(this.Id, " "), body)))
 	}
 	if IsEqual(response, nil) {

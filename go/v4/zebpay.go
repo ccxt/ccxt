@@ -324,7 +324,7 @@ func (this *ZebpayCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	var isSpot bool = (typeVar == "spot")
+	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var response any = nil
 	var data any = map[string]any{}
 	if isSpot {
@@ -384,7 +384,7 @@ func (this *ZebpayCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	var isSpot bool = (typeVar == "spot")
+	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var response any = nil
 	var data any = map[string]any{}
 	if isSpot {
@@ -697,7 +697,7 @@ func (this *ZebpayCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if typeVar == "spot" {
+	if IsEqual(typeVar, "spot") {
 
 		response = (<-this.PublicSpotGetV2ExTradefees(params))
 		PanicOnError(response)
@@ -869,7 +869,7 @@ func (this *ZebpayCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	if typeVar != "spot" {
+	if !IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchTickers() does not support "), typeVar), " markets")))
 	}
 	if IsEqual(this.Markets, nil) {
@@ -1124,7 +1124,7 @@ func (this *ZebpayCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if typeVar == "spot" {
+	if IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(this.Id, " fetchMyTrades() does not support spot markets")))
 	} else {
 
@@ -1170,7 +1170,7 @@ func (this *ZebpayCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrderTrades", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	if typeVar != "spot" {
+	if !IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchOrderTrades() does not support "), typeVar), " markets")))
 	}
 	if IsEqual(this.Markets, nil) {
@@ -1296,7 +1296,7 @@ func (this *ZebpayCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	var isSpot bool = (typeVar == "spot")
+	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var response any = nil
 	if isSpot {
 
@@ -1406,7 +1406,7 @@ func (this *ZebpayCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 			PanicOnError(response)
 		} else {
 			AddElementToObject(request, "type", upperCaseType)
-			if typeVar == "limit" {
+			if IsEqual(typeVar, "limit") {
 				if IsEqual(price, nil) {
 					panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for limit orders")))
 				}
@@ -1545,7 +1545,7 @@ func (this *ZebpayCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	if typeVar != "spot" {
+	if !IsEqual(typeVar, "spot") {
 		panic(NotSupported(Add(Add(Add(this.Id, " cancelAllOrders() does not support "), typeVar), " markets")))
 	}
 	if IsEqual(this.Markets, nil) {
@@ -1761,7 +1761,7 @@ func (this *ZebpayCore) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var typeVar *string = this.SafeString(order, "type")
-	var timestamp any = this.SafeNumber(order, "timestamp")
+	var timestamp any = DerefScalar(this.SafeNumber(order, "timestamp"))
 	var datetime any = this.Iso8601(timestamp)
 	var price *string = this.SafeString(order, "price")
 	var side *string = this.SafeString(order, "side")
@@ -2350,7 +2350,7 @@ func (this *ZebpayCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var leverage any = this.SafeNumber(position, "leverage")
+	var leverage any = DerefScalar(this.SafeNumber(position, "leverage"))
 	var datetime *string = this.SafeString(position, "datetime")
 	var marketId *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
@@ -2511,7 +2511,7 @@ func (this *ZebpayCore) Sign(path any, optionalArgs ...any) any {
 	var queryLength int = GetArrayLength(ObjectKeys(query))
 	var access *string = this.SafeString(api, 0, "public")
 	if access != nil && *access == "public" {
-		if (method == "GET") || (method == "DELETE") {
+		if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 			if (!IsEqual(queryLength, nil)) && (queryLength != 0) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
@@ -2524,9 +2524,9 @@ func (this *ZebpayCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var isSpot bool = (marketType == "spot")
+		var isSpot bool = (IsEqual(marketType, "spot"))
 		AddElementToObject(params, "timestamp", timestamp)
-		if (method == "GET") || ((method == "DELETE") && isSpot) {
+		if (IsEqual(method, "GET")) || ((IsEqual(method, "DELETE")) && isSpot) {
 			// For GET/DELETE: Append params to URL and sign the query string
 			var queryString string = this.Urlencode(params)
 			signature = this.Hmac(this.Encode(queryString), this.Encode(this.Secret), sha256, "hex")

@@ -193,7 +193,7 @@ func (this *CryptocomCore) watchOrderBookForSymbolsBody(ch chan any, symbols any
 	symbols = this.MarketSymbols(symbols)
 	var topics any = []any{}
 	var messageHashes any = []any{}
-	if (ccxt.IsEqual(limit, nil)) || (limit == 0) {
+	if (ccxt.IsEqual(limit, nil)) || (ccxt.IsEqual(limit, 0)) {
 		limit = 50
 	}
 	var topicParams any = this.SafeValue(params, "params")
@@ -1338,7 +1338,7 @@ func (this *CryptocomCore) loadPositionsSnapshotBody(ch chan any, client any, me
 	var cache any = this.Positions
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = this.SafeNumber(position, "contracts", 0)
+		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
 		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}

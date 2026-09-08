@@ -1043,7 +1043,7 @@ func (this *UpbitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var sortedQuoteIds []any = this.Sort(quoteIds) // market iteration order differs per language
 		var quoteCurrencies any = ""
 		for i := 0; IsLessThan(i, GetArrayLength(sortedQuoteIds)); i++ {
-			if quoteCurrencies != "" {
+			if !IsEqual(quoteCurrencies, "") {
 				quoteCurrencies = Add(quoteCurrencies, ",")
 			}
 			quoteCurrencies = Add(quoteCurrencies, GetValue(sortedQuoteIds, i))
@@ -1109,7 +1109,7 @@ func (this *UpbitCore) IdsQueryStrings(ids any, maxQueryLength any) any {
 	var queries any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
-		if idsString != "" {
+		if !IsEqual(idsString, "") {
 			idsString = Add(idsString, ",")
 		}
 		idsString = Add(idsString, id)
@@ -1118,7 +1118,7 @@ func (this *UpbitCore) IdsQueryStrings(ids any, maxQueryLength any) any {
 			idsString = ""
 		}
 	}
-	if idsString != "" {
+	if !IsEqual(idsString, "") {
 		AppendToArray(&queries, idsString)
 	}
 	return queries
@@ -1184,7 +1184,7 @@ func (this *UpbitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(trade, "sequential_id", "uuid")
 	var orderId any = nil
-	var timestamp any = this.SafeInteger(trade, "timestamp")
+	var timestamp any = DerefScalar(this.SafeInteger(trade, "timestamp"))
 	if IsEqual(timestamp, nil) {
 		timestamp = this.Parse8601(this.SafeString(trade, "created_at"))
 	}
@@ -1609,10 +1609,10 @@ func (this *UpbitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var market any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
-	var postOnly any = this.IsPostOnly((typeVar == "market"), false, params)
+	var postOnly any = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "smp_type")
-	var test any = this.SafeBool(params, "test", false)
+	var test any = DerefScalar(this.SafeBool(params, "test", false))
 	if EvalTruthy(postOnly) && (selfTradePrevention != nil) {
 		panic(ExchangeError(Add(this.Id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")))
 	}
@@ -1628,15 +1628,15 @@ func (this *UpbitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		"market": GetValue(market, "id"),
 		"side":   orderSide,
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		if IsEqual(price, nil) || IsEqual(amount, nil) {
 			panic(ArgumentsRequired(Add(this.Id, " the limit type order in createOrder() is required price and amount.")))
 		}
 		AddElementToObject(request, "ord_type", "limit")
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "volume", this.AmountToPrecision(symbol, amount))
-	} else if typeVar == "market" {
-		if side == "buy" {
+	} else if IsEqual(typeVar, "market") {
+		if IsEqual(side, "buy") {
 			AddElementToObject(request, "ord_type", "price")
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
 			AddElementToObject(request, "price", orderPrice)
@@ -1653,7 +1653,7 @@ func (this *UpbitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	if customType != nil && *customType == "best" {
 		params = this.Omit(params, []any{"ordType", "ord_type"})
 		AddElementToObject(request, "ord_type", "best")
-		if side == "buy" {
+		if IsEqual(side, "buy") {
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
 			AddElementToObject(request, "price", orderPrice)
 		} else {
@@ -1818,7 +1818,7 @@ func (this *UpbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	var prevClientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "newOrdType", "new_ord_type")
 	var clientOrderId *string = this.SafeString(params, "newClientOrderId")
-	var postOnly any = this.IsPostOnly((typeVar == "market"), false, params)
+	var postOnly any = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "newTimeInForce", "new_time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "new_smp_type")
 	if EvalTruthy(postOnly) && (selfTradePrevention != nil) {
@@ -1832,14 +1832,14 @@ func (this *UpbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	} else {
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() is required id or clientOrderId.")))
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		if IsEqual(price, nil) || IsEqual(amount, nil) {
 			panic(ArgumentsRequired(Add(this.Id, " editOrder() is required price and amount to create limit type order.")))
 		}
 		AddElementToObject(request, "new_ord_type", "limit")
 		AddElementToObject(request, "new_price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "new_volume", this.AmountToPrecision(symbol, amount))
-	} else if typeVar == "market" {
+	} else if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {
 			AddElementToObject(request, "new_ord_type", "price")
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, params)
@@ -2224,7 +2224,7 @@ func (this *UpbitCore) ParseTransaction(transaction any, optionalArgs ...any) an
 	var tag any = nil     // not present in the data structure received from the exchange
 	var updatedRaw *string = this.SafeString(transaction, "done_at")
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_at", updatedRaw))
-	var typeVar any = this.SafeString(transaction, "type")
+	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
@@ -2348,11 +2348,11 @@ func (this *UpbitCore) ParseOrder(order any, optionalArgs ...any) any {
 		side = "sell"
 	}
 	var identifier *string = this.SafeString(order, "identifier")
-	var typeVar any = this.SafeString(order, "ord_type")
+	var typeVar any = DerefScalar(this.SafeString(order, "ord_type"))
 	var timestamp any = this.Parse8601(this.SafeString(order, "created_at"))
 	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var lastTradeTimestamp any = nil
-	var price any = this.SafeString(order, "price")
+	var price any = DerefScalar(this.SafeString(order, "price"))
 	var amount *string = this.SafeString(order, "volume")
 	var remaining *string = this.SafeString(order, "remaining_volume")
 	var filled *string = this.SafeString(order, "executed_volume")
@@ -2364,7 +2364,7 @@ func (this *UpbitCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var average any = nil
 	var fee any = nil
-	var feeCost any = this.SafeString(order, "paid_fee")
+	var feeCost any = DerefScalar(this.SafeString(order, "paid_fee"))
 	var marketId *string = this.SafeString(order, "market")
 	market = this.SafeMarket(marketId, market)
 	var trades any = this.SafeValue(order, "trades", []any{})
@@ -2972,7 +2972,7 @@ func (this *UpbitCore) withdrawBody(ch chan any, code any, amount any, address a
 		"amount": amount,
 	}
 	var response any = nil
-	if code != "KRW" {
+	if !IsEqual(code, "KRW") {
 		this.CheckAddress(address)
 		// 2023-05-23 Change to required parameters for digital assets
 		var network *string = this.SafeStringUpper2(params, "network", "net_type")
@@ -3032,7 +3032,7 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 	})
 	url = Add(url, Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params)))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if method != "POST" {
+	if !IsEqual(method, "POST") {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
@@ -3047,7 +3047,7 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var hasQuery int = GetArrayLength(ObjectKeys(query))
 		var auth any = nil
-		if (method != "GET") && (method != "DELETE") {
+		if (!IsEqual(method, "GET")) && (!IsEqual(method, "DELETE")) {
 			body = this.Json(params)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}

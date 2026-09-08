@@ -3189,6 +3189,69 @@ ${caseStatements.join('\n')}
             content = content.replace (coerceRegex, '$1 <-chan any$2');
         }
 
+        // The Safe* accessors return a typed pointer. When the printer stores that result in an
+        // `any` local, later inline `local == "literal"` comparisons compare an interface holding
+        // a *string against an untyped constant and are always false. Unwrap at the assignment so
+        // the `any` local carries the plain value, matching every other language port.
+        const derefFn = isWs ? 'ccxt.DerefScalar(' : 'DerefScalar(';
+        const safeCall = 'this\\.Safe(?:String|Integer|Number|Float|Bool)[N2-9]*\\((?:[^()]|\\([^()]*\\))*\\)';
+        content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
+        // ... and the same for reassignments of a local already declared `any`. A typed
+        // `var x *string` local must keep its pointer, and the same name can be `any` in one
+        // function and typed in another, so resolve the declaration per function body.
+        content = content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
+            const signature = fn.slice (0, fn.indexOf ('{'));
+            const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((d: string) => d.split (' ')[1]));
+            // `any` parameters (and the `x := GetArg(...)` optionals) are untyped sinks too
+            const paramMatches = signature.match (/(\w+) any\b/g) || [];
+            for (let pi = 0; pi < paramMatches.length; pi++) {
+                anyLocals.add (paramMatches[pi].split (' ')[0]);
+            }
+            const argMatches = fn.match (/(\w+) := GetArg\(/g) || [];
+            for (let ai = 0; ai < argMatches.length; ai++) {
+                anyLocals.add (argMatches[ai].split (' ')[0]);
+            }
+            const typedLocals = new Set ((fn.match (/var (\w+) \*\w+\b/g) || []).map ((d: string) => d.split (' ')[1]));
+            if (!anyLocals.size) {
+                return fn;
+            }
+            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
+            // An `any` name can still receive a typed pointer from its caller (an `any` parameter
+            // fed a *string by another exchange method), so `name == "literal"` compares an
+            // interface against an untyped constant and is always false. Route those via IsEqual.
+            const isEqualFn = isWs ? 'ccxt.IsEqual(' : 'IsEqual(';
+            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (("(?:[^"\\]|\\.)*")|-?\d+(?:\.\d+)?)/g, ((m: string, name: string, op: string, literal: string) => {
+                if (!anyLocals.has (name) || typedLocals.has (name)) {
+                    return m;
+                }
+                const call = isEqualFn + name + ', ' + literal + ')';
+                return (op === '==') ? call : '!' + call;
+            }) as any);
+            // Same hazard when the right side is a helper call returning `any` (Subtract,
+            // GetArrayLength, OpNeg, ...): `i == Subtract(n, 1)` compares an int against an
+            // interface holding int64 and is always false.
+            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) ((?:Subtract|Add|Multiply|Divide|OpNeg|GetArrayLength|ParseInt)\((?:[^()]|\([^()]*\))*\))/g, ((m: string, name: string, op: string, call: string) => {
+                if (name === 'nil' || typedLocals.has (name)) {
+                    return m;
+                }
+                const wrapped = isEqualFn + name + ', ' + call + ')';
+                return (op === '==') ? wrapped : '!' + wrapped;
+            }) as any);
+            // ... and when both sides are `any` names: two interfaces holding different numeric
+            // kinds (int vs int64) compare unequal even when the numbers match.
+            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (\w+)(?![\w(])/g, ((m: string, left: string, op: string, right: string) => {
+                if (right === 'nil' || left === 'nil' || right === 'true' || right === 'false') {
+                    return m;
+                }
+                if (!anyLocals.has (left) || !anyLocals.has (right) || typedLocals.has (left) || typedLocals.has (right)) {
+                    return m;
+                }
+                const wrapped = isEqualFn + left + ', ' + right + ')';
+                return (op === '==') ? wrapped : '!' + wrapped;
+            }) as any);
+            return fn;
+        }) as any);
+
         if (!isWs) {
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
@@ -3504,9 +3567,11 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
-                // Safe* accessors return a typed pointer in Go, so the printer's inlined
-                // `call == "literal"` does not compile; route those back through IsEqual.
-                [/exchange\.(Safe\w+)\((.+?)\) == ("(?:[^"\\]|\\.)*")/g, 'IsEqual(exchange.$1($2), $3)'],
+                // Base-test helpers and the Safe* accessors return `any`/typed pointers, so the
+                // printer's inlined `call == literal` is either a compile error or an
+                // interface-vs-untyped-constant mismatch that is always false. Route the whole
+                // family (Safe*, PrecisionFromString, Crc32, Rsa, Jwt, ...) back through IsEqual.
+                [/(?<![.\w])((?:exchange\.)?[A-Z]\w*\((?:[^()]|\([^()]*\))*\)) == (("(?:[^"\\]|\\.)*")|(?:ccxt\.)?OpNeg\([^()]*\)|-?\d+(?:\.\d+)?)/g, 'IsEqual($1, $2)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],

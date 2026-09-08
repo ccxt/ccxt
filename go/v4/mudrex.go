@@ -255,7 +255,7 @@ func (this *MudrexCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(requestHeaders, "Partner-Id", brokerId)
 	}
 	var methodUpper string = ToUpper(method)
-	if api == "private" {
+	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		AddElementToObject(requestHeaders, "X-Authentication", this.Secret)
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {
@@ -299,7 +299,7 @@ func (this *MudrexCore) HandleErrors(code any, reason any, url any, method any, 
 	if IsEqual(response, nil) || !IsObject(response) {
 		return nil
 	}
-	var success any = this.SafeBool(response, "success", true)
+	var success any = DerefScalar(this.SafeBool(response, "success", true))
 	if success != true {
 		var errors any = this.SafeList(response, "errors", []any{})
 		var first any = this.SafeDict(errors, 0, map[string]any{})
@@ -310,16 +310,16 @@ func (this *MudrexCore) HandleErrors(code any, reason any, url any, method any, 
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), text, Add(Add(this.Id, " "), text))
 		var msg any = Add(Add(this.Id, " "), text)
 		var low string = ToLower(text)
-		if (code == 401) || IsGreaterThanOrEqual(GetIndexOf(low, "auth"), 0) {
+		if (IsEqual(code, 401)) || IsGreaterThanOrEqual(GetIndexOf(low, "auth"), 0) {
 			panic(AuthenticationError(msg))
 		}
-		if (code == 429) || IsGreaterThanOrEqual(GetIndexOf(low, "rate"), 0) {
+		if (IsEqual(code, 429)) || IsGreaterThanOrEqual(GetIndexOf(low, "rate"), 0) {
 			panic(RateLimitExceeded(msg))
 		}
 		if IsGreaterThanOrEqual(GetIndexOf(low, "insufficient"), 0) {
 			panic(InsufficientFunds(msg))
 		}
-		if code == 400 {
+		if IsEqual(code, 400) {
 			panic(BadRequest(msg))
 		}
 		panic(ExchangeError(msg))
@@ -566,7 +566,7 @@ func (this *MudrexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(ms, market)
 	var symbol any = GetValue(market, "symbol")
 	var ts int64 = this.Milliseconds()
-	var pct any = this.SafeNumber(ticker, "change_perc")
+	var pct any = DerefScalar(this.SafeNumber(ticker, "change_perc"))
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     ts,
@@ -757,7 +757,7 @@ func (this *MudrexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"trade_currency", "tradeCurrency", "currency"})
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if typeVar == "spot" {
+	if IsEqual(typeVar, "spot") {
 		if requested != nil {
 			AddElementToObject(request, "currency", requested)
 		}
@@ -971,7 +971,7 @@ func (this *MudrexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
-	if (typeVar == "market") && (IsEqual(price, nil)) {
+	if (IsEqual(typeVar, "market")) && (IsEqual(price, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market orders")))
 	}
 	var request map[string]any = map[string]any{
@@ -981,7 +981,7 @@ func (this *MudrexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"quantity":     this.AmountToPrecision(symbol, amount),
 		"order_price":  this.PriceToPrecision(symbol, price),
 		"order_type":   Ternary((IsEqual(side, "buy")), "LONG", "SHORT"),
-		"trigger_type": Ternary((typeVar == "market"), "MARKET", "LIMIT"),
+		"trigger_type": Ternary((IsEqual(typeVar, "market")), "MARKET", "LIMIT"),
 		"reduce_only":  this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
@@ -1258,7 +1258,7 @@ func (this *MudrexCore) fetchOrdersByStateBody(ch chan any, state any, optionalA
 	}
 	var request map[string]any = this.Extend(q, params)
 	var response any = nil
-	if state == "closed" {
+	if IsEqual(state, "closed") {
 
 		response = (<-this.PrivateGetFuturesOrdersHistory(request))
 		PanicOnError(response)
@@ -1776,7 +1776,7 @@ func (this *MudrexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var ts any = this.Parse8601(this.SafeString(trade, "created_at"))
 	if IsEqual(ts, nil) {
-		ts = this.SafeInteger(trade, "time")
+		ts = DerefScalar(this.SafeInteger(trade, "time"))
 	}
 	var side *string = this.SafeStringLower2(trade, "side", "order_type")
 	var tradeSide any = nil
@@ -1793,7 +1793,7 @@ func (this *MudrexCore) ParseTrade(trade any, optionalArgs ...any) any {
 		takerOrMaker = "maker"
 	}
 	var fee any = nil
-	var feeCost any = this.SafeNumber(trade, "fee_amount")
+	var feeCost any = DerefScalar(this.SafeNumber(trade, "fee_amount"))
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1854,7 +1854,7 @@ func (this *MudrexCore) transferBody(ch chan any, code any, amount any, fromAcco
 		"amount":           this.NumberToString(amount),
 	}
 	var useInr bool = false
-	if code == "INR" {
+	if IsEqual(code, "INR") {
 		useInr = true
 	} else {
 		// default USDT does not use the inr path

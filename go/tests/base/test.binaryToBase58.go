@@ -18,23 +18,23 @@ func TestBinaryToBase58() {
 	// @SKIP_START_GO
 	// Test 1: Simple string
 	var binary1 any = HelperStrToBinary5(exchange, "hello")
-	Assert((exchange.BinaryToBase58(binary1) == "Cn8eVZg"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary1), "Cn8eVZg")))
 	// Test 2: String with space
 	var binary2 any = HelperStrToBinary5(exchange, "hello world")
-	Assert((exchange.BinaryToBase58(binary2) == "StV1DL6CwTryKyV"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary2), "StV1DL6CwTryKyV")))
 	// Test 3: Short string
 	var binary3 any = HelperStrToBinary5(exchange, "test")
-	Assert((exchange.BinaryToBase58(binary3) == "3yZe7d"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary3), "3yZe7d")))
 	// Test 4: Single byte
 	var binary4 any = HelperStrToBinary5(exchange, "a")
-	Assert((exchange.BinaryToBase58(binary4) == "2g"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary4), "2g")))
 	// Test 5: Two bytes
 	var binary5 any = HelperStrToBinary5(exchange, "ab")
-	Assert((exchange.BinaryToBase58(binary5) == "8Qq"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary5), "8Qq")))
 	// Test 6: Three bytes
 	var binary6 any = HelperStrToBinary5(exchange, "abc")
-	Assert((exchange.BinaryToBase58(binary6) == "ZiCa"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary6), "ZiCa")))
 	// Test 7: JSON-like binary
 	var binary7 any = HelperStrToBinary5(exchange, "{\"key\":\"value\"}")
-	Assert((exchange.BinaryToBase58(binary7) == "4SoiMiEYtTt5tPdi81Fik"))
+	Assert((ccxt.IsEqual(exchange.BinaryToBase58(binary7), "4SoiMiEYtTt5tPdi81Fik")))
 }

@@ -1155,7 +1155,7 @@ func (this *HollaexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		ch <- retRes94719
 		return nil
 	}
-	var until any = this.SafeInteger(params, "until")
+	var until any = DerefScalar(this.SafeInteger(params, "until"))
 	var timeDelta any = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
 	var start any = since
 	var now int64 = this.Milliseconds()
@@ -1604,7 +1604,7 @@ func (this *HollaexCore) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "filled")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var meta any = this.SafeValue(order, "meta", map[string]any{})
-	var postOnly any = this.SafeBool(meta, "post_only", false)
+	var postOnly any = DerefScalar(this.SafeBool(meta, "post_only", false))
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -1669,10 +1669,10 @@ func (this *HollaexCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"size":   this.AmountToPrecision(symbol, amount),
 		"type":   typeVar,
 	}
-	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
+	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"}))
 	var meta any = this.SafeValue(params, "meta", map[string]any{})
-	var exchangeSpecificParam any = this.SafeBool(meta, "post_only", false)
-	var isMarketOrder bool = (typeVar == "market")
+	var exchangeSpecificParam any = DerefScalar(this.SafeBool(meta, "post_only", false))
+	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	var postOnly any = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
 	if !isMarketOrder {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
@@ -1909,7 +1909,7 @@ func (this *HollaexCore) ParseDepositAddress(depositAddress any, optionalArgs ..
 	if address != nil {
 		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
-		tag = this.SafeString(parts, 1)
+		tag = DerefScalar(this.SafeString(parts, 1))
 	}
 	this.CheckAddress(address)
 	var currencyId *string = this.SafeString(depositAddress, "currency")
@@ -2265,7 +2265,7 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_at"))
 	var updated any = this.Parse8601(this.SafeString(transaction, "updated_at"))
 	var typeVar *string = this.SafeString(transaction, "type")
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var address *string = this.SafeString(transaction, "address")
 	var addressTo any = nil
 	var addressFrom any = nil
@@ -2275,7 +2275,7 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	if address != nil {
 		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
-		tag = this.SafeString(parts, 1)
+		tag = DerefScalar(this.SafeString(parts, 1))
 		addressTo = address
 		tagTo = tag
 	}
@@ -2295,7 +2295,7 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	}
 	var feeCurrencyId *string = this.SafeString(transaction, "fee_coin")
 	var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId, currency)
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -2458,7 +2458,7 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 				panic(ArgumentsRequired(Add(this.Id, " requires a networkCode argument")))
 			}
 			var networkCodeUpper string = ToUpper(networkCode) // default to the upper case network code
-			var withdrawalFee any = this.SafeNumber(value, "value")
+			var withdrawalFee any = DerefScalar(this.SafeNumber(value, "value"))
 			AddElementToObject(GetValue(result, "networks"), networkCodeUpper, map[string]any{
 				"deposit":  nil,
 				"withdraw": withdrawalFee,
@@ -2545,7 +2545,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	path = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	if (method == "GET") || (method == "DELETE") {
+	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			path = Add(path, Add("?", this.Urlencode(query)))
 		}
@@ -2561,7 +2561,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 			"api-key":     this.ApiKey,
 			"api-expires": expiresString,
 		}
-		if method == "POST" {
+		if IsEqual(method, "POST") {
 			AddElementToObject(headers, "Content-type", "application/json")
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)

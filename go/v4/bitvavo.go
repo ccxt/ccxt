@@ -729,9 +729,9 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
 	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
 	var active bool = deposit && withdrawal
-	var withdrawFee any = this.SafeNumber(rawCurrency, "withdrawalFee")
+	var withdrawFee any = DerefScalar(this.SafeNumber(rawCurrency, "withdrawalFee"))
 	var precision *string = this.SafeString(rawCurrency, "decimals", "8")
-	var minWithdraw any = this.SafeNumber(rawCurrency, "withdrawalMinAmount")
+	var minWithdraw any = DerefScalar(this.SafeNumber(rawCurrency, "withdrawalMinAmount"))
 	// btw, absolutely all of them have 1 network atm
 	for j := 0; IsLessThan(j, GetArrayLength(networksArray)); j++ {
 		var networkId any = GetValue(networksArray, j)
@@ -1164,8 +1164,8 @@ func (this *BitvavoCore) ParseTradingFees(fees any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var feesValue any = this.SafeValue(fees, "fees")
-	var maker any = this.SafeNumber(feesValue, "maker")
-	var taker any = this.SafeNumber(feesValue, "taker")
+	var maker any = DerefScalar(this.SafeNumber(feesValue, "maker"))
+	var taker any = DerefScalar(this.SafeNumber(feesValue, "taker"))
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
@@ -1552,17 +1552,17 @@ func (this *BitvavoCore) transferBody(ch chan any, code any, amount any, fromAcc
 		PanicOnError(retRes127912)
 	}
 	var currency any = this.Currency(code)
-	var subaccountId any = this.SafeString(params, "subaccountId")
+	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
 	params = this.Omit(params, "subaccountId")
 	var direction any = nil
-	if (fromAccount == "master") && (toAccount == "master") {
+	if (IsEqual(fromAccount, "master")) && (IsEqual(toAccount, "master")) {
 		panic(ArgumentsRequired(Add(this.Id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")))
-	} else if fromAccount == "master" {
+	} else if IsEqual(fromAccount, "master") {
 		direction = "masterToSub"
 		if IsEqual(subaccountId, nil) {
 			subaccountId = toAccount
 		}
-	} else if toAccount == "master" {
+	} else if IsEqual(toAccount, "master") {
 		direction = "subToMaster"
 		if IsEqual(subaccountId, nil) {
 			subaccountId = fromAccount
@@ -1757,7 +1757,7 @@ func (this *BitvavoCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 		fromAccount = subaccountId
 		toAccount = "master"
 	}
-	var timestamp any = this.SafeInteger(transfer, "createdAt")
+	var timestamp any = DerefScalar(this.SafeInteger(transfer, "createdAt"))
 	if IsEqual(timestamp, nil) {
 		timestamp = this.Parse8601(this.SafeString(transfer, "createdAt"))
 	}
@@ -1841,10 +1841,10 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		"side":      side,
 		"orderType": typeVar,
 	}
-	var isMarketOrder bool = (typeVar == "market") || (typeVar == "stopLoss") || (typeVar == "takeProfit")
-	var isLimitOrder bool = (typeVar == "limit") || (typeVar == "stopLossLimit") || (typeVar == "takeProfitLimit")
+	var isMarketOrder bool = (IsEqual(typeVar, "market")) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "takeProfit"))
+	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLossLimit")) || (IsEqual(typeVar, "takeProfitLimit"))
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
+	var triggerPrice any = DerefScalar(this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"}))
 	var postOnly any = this.IsPostOnly(isMarketOrder, false, params)
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice")     // trigger when price crosses from above to below this value
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice") // trigger when price crosses from below to above this value
@@ -1857,7 +1857,7 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 			var quoteAmount *string = Precise.StringMul(amountString, priceString)
 			cost = this.ParseNumber(quoteAmount)
 		} else {
-			cost = this.SafeNumber(params, "cost")
+			cost = DerefScalar(this.SafeNumber(params, "cost"))
 		}
 		if !IsEqual(cost, nil) {
 			var precision any = GetValue(this.Currency(GetValue(market, "quote")), "precision")
@@ -1870,8 +1870,8 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	var isTakeProfit bool = (!IsEqual(takeProfitPrice, nil)) || (typeVar == "takeProfit") || (typeVar == "takeProfitLimit")
-	var isStopLoss bool = (!IsEqual(stopLossPrice, nil)) || (!IsEqual(triggerPrice, nil)) && (!isTakeProfit) || (typeVar == "stopLoss") || (typeVar == "stopLossLimit")
+	var isTakeProfit bool = (!IsEqual(takeProfitPrice, nil)) || (IsEqual(typeVar, "takeProfit")) || (IsEqual(typeVar, "takeProfitLimit"))
+	var isStopLoss bool = (!IsEqual(stopLossPrice, nil)) || (!IsEqual(triggerPrice, nil)) && (!isTakeProfit) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "stopLossLimit"))
 	if isStopLoss {
 		if !IsEqual(stopLossPrice, nil) {
 			triggerPrice = stopLossPrice
@@ -1908,7 +1908,7 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
 	params = GetValue(selfTradePreventionparamsVariable, 1)
 	if !IsEqual(selfTradePrevention, nil) {
-		if selfTradePrevention == "EXPIRE_BOTH" {
+		if IsEqual(selfTradePrevention, "EXPIRE_BOTH") {
 			AddElementToObject(request, "selfTradePrevention", "cancelBoth")
 		} else {
 			AddElementToObject(request, "selfTradePrevention", selfTradePrevention)
@@ -2016,7 +2016,7 @@ func (this *BitvavoCore) EditOrderRequest(id any, symbol any, typeVar any, side 
 	_ = params
 	var request map[string]any = map[string]any{}
 	var market any = this.Market(symbol)
-	var amountRemaining any = this.SafeNumber(params, "amountRemaining")
+	var amountRemaining any = DerefScalar(this.SafeNumber(params, "amountRemaining"))
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	params = this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
 	if !IsEqual(price, nil) {
@@ -2637,7 +2637,7 @@ func (this *BitvavoCore) ParseOrder(order any, optionalArgs ...any) any {
 		cost = Precise.StringSub(amountQuote, amountQuoteRemaining)
 	}
 	var fee any = nil
-	var feeCost any = this.SafeNumber(order, "feePaid")
+	var feeCost any = DerefScalar(this.SafeNumber(order, "feePaid"))
 	if !IsEqual(feeCost, nil) {
 		var feeCurrencyId *string = this.SafeString(order, "feeCurrency")
 		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
@@ -3196,11 +3196,11 @@ func (this *BitvavoCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var currencyId *string = this.SafeString(transaction, "symbol")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var address *string = this.SafeString(transaction, "address")
 	var txid *string = this.SafeString(transaction, "txId")
 	var fee any = nil
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -3350,7 +3350,7 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var getOrDelete bool = (method == "GET") || (method == "DELETE")
+	var getOrDelete bool = (IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))
 	if getOrDelete {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.Urlencode(query)))

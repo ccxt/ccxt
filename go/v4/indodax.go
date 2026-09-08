@@ -990,12 +990,12 @@ func (this *IndodaxCore) ParseOrder(order any, optionalArgs ...any) any {
 		if (IsEqual(GetValue(market, "baseId"), "idr")) && (InOp(order, "remain_rp")) {
 			baseId = "rp"
 		}
-		cost = this.SafeString(order, Add("order_", quoteId))
-		amount = this.SafeString(order, Add("order_", baseId))
-		remaining = this.SafeString(order, Add("remain_", baseId))
+		cost = DerefScalar(this.SafeString(order, Add("order_", quoteId)))
+		amount = DerefScalar(this.SafeString(order, Add("order_", baseId)))
+		remaining = DerefScalar(this.SafeString(order, Add("remain_", baseId)))
 		// filled buy orders on idr-quoted markets carry the executed base amount
 		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-		filled = this.SafeString(order, Add("receive_", baseId))
+		filled = DerefScalar(this.SafeString(order, Add("receive_", baseId)))
 	}
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil
@@ -1231,10 +1231,10 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	}
 	var priceIsRequired bool = false
 	var quantityIsRequired bool = false
-	if typeVar == "market" {
+	if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
-			var cost any = this.SafeNumber(params, "cost")
+			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if !IsEqual(cost, nil) {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -1251,7 +1251,7 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		} else {
 			quantityIsRequired = true
 		}
-	} else if typeVar == "limit" {
+	} else if IsEqual(typeVar, "limit") {
 		priceIsRequired = true
 		quantityIsRequired = true
 		if IsEqual(side, "buy") {
@@ -1622,7 +1622,7 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 		"withdraw_address": address,
 		"request_id":       ToString(requestId),
 	}
-	if (!IsEqual(tag, nil)) && (tag != "") {
+	if (!IsEqual(tag, nil)) && (!IsEqual(tag, "")) {
 		AddElementToObject(request, "withdraw_memo", tag)
 	}
 
@@ -1694,7 +1694,7 @@ func (this *IndodaxCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var status *string = this.SafeString(transaction, "status")
 	var timestamp *int64 = this.SafeTimestamp2(transaction, "success_time", "submit_time")
 	var depositId *string = this.SafeString(transaction, "deposit_id")
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{

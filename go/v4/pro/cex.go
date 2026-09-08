@@ -188,11 +188,11 @@ func (this *CexCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptionKeys)); i++ {
 			var subscriptionKey any = ccxt.GetValue(subscriptionKeys, i)
-			if subscriptionKey == subscriptionHash {
+			if ccxt.IsEqual(subscriptionKey, subscriptionHash) {
 				continue
 			}
 			subscriptionKey = ccxt.Slice(subscriptionKey, 0, 3)
-			if subscriptionKey == "old" {
+			if ccxt.IsEqual(subscriptionKey, "old") {
 				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchTrades() only supports watching one symbol at a time.")))
 			}
 		}
@@ -464,7 +464,7 @@ func (this *CexCore) HandleTicker(client any, message any) {
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	client.(ccxt.ClientInterface).Resolve(ticker, "tickers")
-	messageHash = this.SafeString(message, "oid")
+	messageHash = ccxt.DerefScalar(this.SafeString(message, "oid"))
 	if !ccxt.IsEqual(messageHash, nil) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -507,7 +507,7 @@ func (this *CexCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
-	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	var timestamp any = ccxt.DerefScalar(this.SafeInteger(ticker, "timestamp"))
 	if !ccxt.IsEqual(timestamp, nil) {
 		timestamp = ccxt.Multiply(timestamp, 1000)
 	}
@@ -892,7 +892,7 @@ func (this *CexCore) HandleOrderUpdate(client any, message any) {
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var isTransaction bool = ccxt.IsEqual(this.SafeString(message, "e"), "tx")
 	var orderId *string = this.SafeString2(data, "id", "order")
-	var remains any = this.SafeString(data, "remains")
+	var remains any = ccxt.DerefScalar(this.SafeString(data, "remains"))
 	var baseId *string = this.SafeString(data, "symbol")
 	var quoteId *string = this.SafeString(data, "symbol2")
 	var pair any = this.SafeValue(data, "pair")
@@ -916,14 +916,14 @@ func (this *CexCore) HandleOrderUpdate(client any, message any) {
 		order = this.ParseWsOrderUpdate(data, market)
 	}
 	ccxt.AddElementToObject(order, "remaining", remains)
-	var canceled any = this.SafeBool(data, "cancel", false)
+	var canceled any = ccxt.DerefScalar(this.SafeBool(data, "cancel", false))
 	if canceled == true {
 		ccxt.AddElementToObject(order, "status", "canceled")
 	}
 	if isTransaction {
 		ccxt.AddElementToObject(order, "status", "closed")
 	}
-	var fee any = this.SafeNumber(data, "fee")
+	var fee any = ccxt.DerefScalar(this.SafeNumber(data, "fee"))
 	if !ccxt.IsEqual(fee, nil) {
 		ccxt.AddElementToObject(order, "fee", map[string]any{
 			"cost":     fee,
@@ -1013,7 +1013,7 @@ func (this *CexCore) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	if isTransaction {
 		timestamp = this.Parse8601(time)
 	}
-	var canceled any = this.SafeBool(order, "cancel", false)
+	var canceled any = ccxt.DerefScalar(this.SafeBool(order, "cancel", false))
 	var status string = "open"
 	if canceled == true {
 		status = "canceled"

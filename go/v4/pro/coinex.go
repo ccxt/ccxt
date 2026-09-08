@@ -294,7 +294,7 @@ func (this *CoinexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		currencies = []any{}
 	}
 	var messageHash any = "balances"
-	if typeVar == "spot" {
+	if ccxt.IsEqual(typeVar, "spot") {
 		messageHash = ccxt.Add(messageHash, ":spot")
 	} else {
 		messageHash = ccxt.Add(messageHash, ":swap")
@@ -492,7 +492,7 @@ func (this *CoinexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 		ccxt.AppendToArray(&subscribedSymbols, ccxt.GetValue(market, "id"))
 	} else {
-		if typeVar == "spot" {
+		if ccxt.IsEqual(typeVar, "spot") {
 			messageHash = ccxt.Add(messageHash, ":spot")
 		} else {
 			messageHash = ccxt.Add(messageHash, ":swap")
@@ -938,7 +938,7 @@ func (this *CoinexCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, o
 	var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any{})
 	var limits any = this.SafeList(options, "limits", []any{})
 	if ccxt.IsEqual(limit, nil) {
-		limit = this.SafeInteger(options, "defaultLimit", 50)
+		limit = ccxt.DerefScalar(this.SafeInteger(options, "defaultLimit", 50))
 	}
 	if !this.InArray(limit, limits) {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id, " watchOrderBookForSymbols() limit must be one of "), ccxt.Join(limits, ", "))))
@@ -1064,7 +1064,7 @@ func (this *CoinexCore) HandleOrderBook(client any, message any) {
 	var messageHash any = ccxt.Add(ccxt.Add(name, ":"), symbol)
 	var timestamp *int64 = this.SafeInteger(depth, "updated_at")
 	var currentOrderBook any = this.SafeValue(this.Orderbooks, symbol)
-	var fullOrderBook any = this.SafeBool(data, "is_full", false)
+	var fullOrderBook any = ccxt.DerefScalar(this.SafeBool(data, "is_full", false))
 	if fullOrderBook == true {
 		var snapshot any = this.ParseOrderBook(depth, symbol, timestamp)
 		if ccxt.IsEqual(currentOrderBook, nil) {
@@ -1121,7 +1121,7 @@ func (this *CoinexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes93212 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes93212)
 	}
-	var trigger any = this.SafeBool2(params, "trigger", "stop")
+	var trigger any = ccxt.DerefScalar(this.SafeBool2(params, "trigger", "stop"))
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var messageHash any = "orders"
 	var market any = nil
@@ -1142,7 +1142,7 @@ func (this *CoinexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	} else {
 		marketList = []any{}
-		if typeVar == "spot" {
+		if ccxt.IsEqual(typeVar, "spot") {
 			messageHash = ccxt.Add(messageHash, ":spot")
 		} else {
 			messageHash = ccxt.Add(messageHash, ":swap")

@@ -811,6 +811,12 @@ type IArrayCache interface {
 }
 
 func (this *BaseExchange) ArraySlice(array any, first any, second ...any) any {
+	// limits/indices arrive as typed pointers from the Safe* accessors
+	array = derefScalar(array)
+	first = derefScalar(first)
+	if len(second) > 0 {
+		second[0] = derefScalar(second[0])
+	}
 	// If the incoming object implements IArrayCache convert it first.
 	if cache, ok := array.(IArrayCache); ok {
 		return this.ArraySlice(cache.ToArray(), first, second...)

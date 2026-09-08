@@ -12,27 +12,27 @@ func TestCapitalize() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// Test 1: Basic lowercase string
-	Assert((exchange.Capitalize("hello") == "Hello"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("hello"), "Hello")))
 	// Test 2: Preserve rest of string (camelCase)
-	Assert((exchange.Capitalize("fooBar") == "FooBar"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("fooBar"), "FooBar")))
 	// Test 3: Preserve rest of string (mixed case)
-	Assert((exchange.Capitalize("helloWorld") == "HelloWorld"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("helloWorld"), "HelloWorld")))
 	// Test 4: Already capitalized
-	Assert((exchange.Capitalize("Hello") == "Hello"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("Hello"), "Hello")))
 	// Test 5: All uppercase (should preserve rest)
-	Assert((exchange.Capitalize("hELLO") == "HELLO"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("hELLO"), "HELLO")))
 	// Test 6: Single character lowercase
-	Assert((exchange.Capitalize("a") == "A"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("a"), "A")))
 	// Test 7: Single character uppercase
-	Assert((exchange.Capitalize("A") == "A"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("A"), "A")))
 	// Test 8: Empty string
-	Assert((exchange.Capitalize("") == ""))
+	Assert((ccxt.IsEqual(exchange.Capitalize(""), "")))
 	// Test 9: String starting with number
-	Assert((exchange.Capitalize("123abc") == "123abc"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("123abc"), "123abc")))
 	// Test 10: String with spaces
-	Assert((exchange.Capitalize("hello world") == "Hello world"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("hello world"), "Hello world")))
 	// Test 11: Underscore separated (snake_case)
-	Assert((exchange.Capitalize("foo_bar_baz") == "Foo_bar_baz"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("foo_bar_baz"), "Foo_bar_baz")))
 	// Test 12: All caps input (preserve rest)
-	Assert((exchange.Capitalize("aBC") == "ABC"))
+	Assert((ccxt.IsEqual(exchange.Capitalize("aBC"), "ABC")))
 }

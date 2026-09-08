@@ -365,11 +365,11 @@ func (this *BtcturkCore) ParseMarket(entry any) any {
 		var filter any = GetValue(filters, j)
 		var filterType *string = this.SafeString(filter, "filterType")
 		if filterType != nil && *filterType == "PRICE_FILTER" {
-			minPrice = this.SafeNumber(filter, "minPrice")
-			maxPrice = this.SafeNumber(filter, "maxPrice")
-			minAmount = this.SafeNumber(filter, "minAmount")
-			maxAmount = this.SafeNumber(filter, "maxAmount")
-			minCost = this.SafeNumber(filter, "minExchangeValue")
+			minPrice = DerefScalar(this.SafeNumber(filter, "minPrice"))
+			maxPrice = DerefScalar(this.SafeNumber(filter, "maxPrice"))
+			minAmount = DerefScalar(this.SafeNumber(filter, "minAmount"))
+			maxAmount = DerefScalar(this.SafeNumber(filter, "maxAmount"))
+			minCost = DerefScalar(this.SafeNumber(filter, "minExchangeValue"))
 		}
 	}
 	var status *string = this.SafeString(entry, "status")
@@ -857,7 +857,7 @@ func (this *BtcturkCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	}
 	if !IsEqual(limit, nil) {
 		limit = mathMin(limit, 11000) // max 11000 candles diapason can be covered
-		if timeframe == "1y" {
+		if IsEqual(timeframe, "1y") {
 			panic(BadRequest(Add(this.Id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")))
 		}
 		var seconds any = this.ParseTimeframe(timeframe)
@@ -981,7 +981,7 @@ func (this *BtcturkCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"pairSymbol":  GetValue(market, "id"),
 		"quantity":    this.AmountToPrecision(symbol, amount),
 	}
-	if typeVar != "market" {
+	if !IsEqual(typeVar, "market") {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 	if InOp(params, "clientOrderId") {
@@ -1325,7 +1325,7 @@ func (this *BtcturkCore) Sign(path any, optionalArgs ...any) any {
 		panic(ExchangeError(Add(this.Id, " is an abstract base API for BTCExchange, BTCTurk")))
 	}
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
-	if (method == "GET") || (method == "DELETE") {
+	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}

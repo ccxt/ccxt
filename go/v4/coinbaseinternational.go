@@ -395,7 +395,7 @@ func (this *CoinbaseinternationalCore) handlePortfolioAndParamsBody(ch chan any,
 	portfolioparamsVariable := this.HandleOptionAndParams(params, methodName, "portfolio")
 	portfolio = GetValue(portfolioparamsVariable, 0)
 	params = GetValue(portfolioparamsVariable, 1)
-	if (!IsEqual(portfolio, nil)) && (portfolio != "") {
+	if (!IsEqual(portfolio, nil)) && (!IsEqual(portfolio, "")) {
 
 		ch <- []any{portfolio, params}
 		return nil
@@ -1013,7 +1013,7 @@ func (this *CoinbaseinternationalCore) createDepositAddressBody(ch chan any, cod
 	var request map[string]any = map[string]any{
 		"portfolio": portfolio,
 	}
-	if method == "v1PrivatePostTransfersAddress" {
+	if IsEqual(method, "v1PrivatePostTransfersAddress") {
 		var currency any = this.Currency(code)
 		AddElementToObject(request, "asset", GetValue(currency, "id"))
 		var networkId any = nil
@@ -1023,7 +1023,7 @@ func (this *CoinbaseinternationalCore) createDepositAddressBody(ch chan any, cod
 		AddElementToObject(request, "network_arn_id", networkId)
 	}
 	var response any = nil
-	if method == "v1PrivatePostTransfersCreateCounterpartyId" {
+	if IsEqual(method, "v1PrivatePostTransfersCreateCounterpartyId") {
 
 		response = (<-this.V1PrivatePostTransfersCreateCounterpartyId(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1061,7 +1061,7 @@ func (this *CoinbaseinternationalCore) FindDefaultNetwork(networks any) any {
 	var networksArray []any = this.ToArray(networks)
 	for i := 0; IsLessThan(i, GetArrayLength(networksArray)); i++ {
 		var info any = GetValue(GetValue(networksArray, i), "info")
-		var is_default any = this.SafeBool(info, "is_default", false)
+		var is_default any = DerefScalar(this.SafeBool(info, "is_default", false))
 		if is_default == true {
 			return GetValue(networksArray, i)
 		}
@@ -2202,7 +2202,7 @@ func (this *CoinbaseinternationalCore) transferBody(ch chan any, code any, amoun
 
 	response := (<-this.V1PrivatePostPortfoliosTransfer(this.Extend(request, params)))
 	PanicOnError(response)
-	var success any = this.SafeBool(response, "success")
+	var success any = DerefScalar(this.SafeBool(response, "success"))
 
 	ch <- map[string]any{
 		"info":        response,
@@ -2257,7 +2257,7 @@ func (this *CoinbaseinternationalCore) createOrderBody(ch chan any, symbol any, 
 	}
 	var market any = this.Market(symbol)
 	var typeId string = ToUpper(typeVar)
-	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
+	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"}))
 	var clientOrderIdprefix *string = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
 	var clientOrderId any = Add(Add(clientOrderIdprefix, "-"), this.Uuid())
 	clientOrderId = Slice(clientOrderId, 0, 17)
@@ -2271,7 +2271,7 @@ func (this *CoinbaseinternationalCore) createOrderBody(ch chan any, symbol any, 
 		"size":            this.AmountToPrecision(GetValue(market, "symbol"), amount),
 	}
 	if !IsEqual(triggerPrice, nil) {
-		if typeVar == "limit" {
+		if IsEqual(typeVar, "limit") {
 			typeId = "STOP_LIMIT"
 		} else {
 			typeId = "STOP"
@@ -2279,7 +2279,7 @@ func (this *CoinbaseinternationalCore) createOrderBody(ch chan any, symbol any, 
 		AddElementToObject(request, "stop_price", triggerPrice)
 	}
 	AddElementToObject(request, "type", typeId)
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		if IsEqual(price, nil) {
 			panic(InvalidOrder(Add(this.Id, " createOrder() requires a price parameter for a limit order types")))
 		}
@@ -2292,11 +2292,11 @@ func (this *CoinbaseinternationalCore) createOrderBody(ch chan any, symbol any, 
 	if !IsEqual(portfolio, nil) {
 		AddElementToObject(request, "portfolio", portfolio)
 	}
-	var postOnly any = this.SafeBool2(params, "postOnly", "post_only")
-	var tif any = this.SafeString2(params, "tif", "timeInForce")
+	var postOnly any = DerefScalar(this.SafeBool2(params, "postOnly", "post_only"))
+	var tif any = DerefScalar(this.SafeString2(params, "tif", "timeInForce"))
 	// market orders must be IOC
 	if typeId == "MARKET" {
-		if !IsEqual(tif, nil) && (tif != "IOC") {
+		if !IsEqual(tif, nil) && (!IsEqual(tif, "IOC")) {
 			panic(InvalidOrder(Add(this.Id, " createOrder() market orders must have tif set to \"IOC\"")))
 		}
 		tif = "IOC"
@@ -2365,7 +2365,7 @@ func (this *CoinbaseinternationalCore) ParseOrder(order any, optionalArgs ...any
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	var feeCost any = this.SafeNumber(order, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(order, "fee"))
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -2529,7 +2529,7 @@ func (this *CoinbaseinternationalCore) cancelAllOrdersBody(ch chan any, optional
 		"portfolio": portfolio,
 	}
 	var market any = nil
-	if (!IsEqual(symbol, nil)) && (symbol != "") {
+	if (!IsEqual(symbol, nil)) && (!IsEqual(symbol, "")) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument", GetValue(market, "id"))
 	}
@@ -2592,7 +2592,7 @@ func (this *CoinbaseinternationalCore) editOrderBody(ch chan any, id any, symbol
 	if !IsEqual(price, nil) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
-	var triggerPrice any = this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"})
+	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"}))
 	if !IsEqual(triggerPrice, nil) {
 		AddElementToObject(request, "stop_price", triggerPrice)
 	}
@@ -2743,7 +2743,7 @@ func (this *CoinbaseinternationalCore) fetchOpenOrdersBody(ch chan any, optional
 		"result_offset": offSet,
 	}
 	var market any = nil
-	if (!IsEqual(symbol, nil)) && (symbol != "") {
+	if (!IsEqual(symbol, nil)) && (!IsEqual(symbol, "")) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument", symbol)
 	}
@@ -2982,7 +2982,7 @@ func (this *CoinbaseinternationalCore) withdrawBody(ch chan any, code any, amoun
 		"nonce":          this.Nonce(),
 	}
 	var response any = nil
-	if method == "v1PrivatePostTransfersWithdrawCounterparty" {
+	if IsEqual(method, "v1PrivatePostTransfersWithdrawCounterparty") {
 
 		response = (<-this.V1PrivatePostTransfersWithdrawCounterparty(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3016,7 +3016,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 	var fullPath any = Add(Add(Add("/", version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = Add("/api", fullPath)
-	if (method == "GET") || (method == "DELETE") {
+	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			fullPath = Add(fullPath, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
@@ -3026,7 +3026,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
-		if method != "GET" {
+		if !IsEqual(method, "GET") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				payload = body

@@ -194,7 +194,7 @@ func (this *PoloniexCore) subscribeBody(ch chan any, name any, messageHash any, 
 		var ids any = this.MarketIds(symbols)
 		marketIds = ccxt.Ternary((ccxt.IsEqual(ids, nil)), []any{}, ids)
 	}
-	if name != "balances" {
+	if !ccxt.IsEqual(name, "balances") {
 		ccxt.AddElementToObject(subscribe, "symbols", marketIds)
 	}
 	var request map[string]any = this.Extend(subscribe, params)
@@ -300,7 +300,7 @@ func (this *PoloniexCore) createOrderWsBody(ch chan any, symbol any, typeVar any
 		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		var cost any = this.SafeNumber(params, "cost")
+		var cost any = ccxt.DerefScalar(this.SafeNumber(params, "cost"))
 		params = this.Omit(params, "cost")
 		if !ccxt.IsEqual(cost, nil) {
 			quoteAmount = this.CostToPrecision(symbol, cost)
@@ -710,7 +710,7 @@ func (this *PoloniexCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 		ccxt.PanicOnError(retRes48712)
 	}
 	var watchOrderBookOptions any = this.SafeValue(this.Options, "watchOrderBook")
-	var name any = this.SafeString(watchOrderBookOptions, "name", "book_lv2")
+	var name any = ccxt.DerefScalar(this.SafeString(watchOrderBookOptions, "name", "book_lv2"))
 	nameparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
@@ -1423,8 +1423,8 @@ func (this *PoloniexCore) HandleOrderBook(client any, message any) {
 			if !ccxt.IsEqual(bids, nil) {
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(bids)); j++ {
 					var bid any = this.SafeValue(bids, j)
-					var price any = this.SafeNumber(bid, 0)
-					var amount any = this.SafeNumber(bid, 1)
+					var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
+					var amount any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
 					var bidsSide any = ccxt.GetValue(orderbook, "bids")
 					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
@@ -1432,8 +1432,8 @@ func (this *PoloniexCore) HandleOrderBook(client any, message any) {
 			if !ccxt.IsEqual(asks, nil) {
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(asks)); j++ {
 					var ask any = this.SafeValue(asks, j)
-					var price any = this.SafeNumber(ask, 0)
-					var amount any = this.SafeNumber(ask, 1)
+					var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
+					var amount any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
 					var asksSide any = ccxt.GetValue(orderbook, "asks")
 					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}

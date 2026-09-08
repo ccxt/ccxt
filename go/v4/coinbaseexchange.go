@@ -1077,17 +1077,17 @@ func (this *CoinbaseexchangeCore) ParseTicker(ticker any, optionalArgs ...any) a
 	var volume any = nil
 	var symbol any = Ternary((IsEqual(market, nil)), nil, GetValue(market, "symbol"))
 	if IsArray(ticker) {
-		last = this.SafeString(ticker, 4)
+		last = DerefScalar(this.SafeString(ticker, 4))
 		timestamp = this.Milliseconds()
 	} else {
 		timestamp = this.Parse8601(this.SafeValue(ticker, "time"))
-		bid = this.SafeString(ticker, "bid")
-		ask = this.SafeString(ticker, "ask")
-		high = this.SafeString(ticker, "high")
-		low = this.SafeString(ticker, "low")
-		open = this.SafeString(ticker, "open")
-		last = this.SafeString2(ticker, "price", "last")
-		volume = this.SafeString(ticker, "volume")
+		bid = DerefScalar(this.SafeString(ticker, "bid"))
+		ask = DerefScalar(this.SafeString(ticker, "ask"))
+		high = DerefScalar(this.SafeString(ticker, "high"))
+		low = DerefScalar(this.SafeString(ticker, "low"))
+		open = DerefScalar(this.SafeString(ticker, "open"))
+		last = DerefScalar(this.SafeString2(ticker, "price", "last"))
+		volume = DerefScalar(this.SafeString(ticker, "volume"))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1280,11 +1280,11 @@ func (this *CoinbaseexchangeCore) ParseTrade(trade any, optionalArgs ...any) any
 	var feeCurrencyId *string = this.SafeStringLower(market, "quoteId")
 	if feeCurrencyId != nil {
 		var costField any = Add(feeCurrencyId, "_value")
-		cost = this.SafeString(trade, costField)
+		cost = DerefScalar(this.SafeString(trade, costField))
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
 			takerOrMaker = Ternary((liquidity != nil && *liquidity == "T"), "taker", "maker")
-			feeRate = this.SafeString(market, takerOrMaker)
+			feeRate = DerefScalar(this.SafeString(market, takerOrMaker))
 		}
 	}
 	var feeCost *string = this.SafeString2(trade, "fill_fees", "fee")
@@ -1482,8 +1482,8 @@ func (this *CoinbaseexchangeCore) fetchTradingFeesBody(ch chan any, optionalArgs
 	//        "usd_volume": "43806.92"
 	//    }
 	//
-	var maker any = this.SafeNumber(response, "maker_fee_rate")
-	var taker any = this.SafeNumber(response, "taker_fee_rate")
+	var maker any = DerefScalar(this.SafeNumber(response, "maker_fee_rate"))
+	var taker any = DerefScalar(this.SafeNumber(response, "taker_fee_rate"))
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
@@ -1685,7 +1685,7 @@ func (this *CoinbaseexchangeCore) ParseOrder(order any, optionalArgs ...any) any
 	var filled *string = this.SafeString(order, "filled_size")
 	var amount *string = this.SafeString(order, "size", filled)
 	var cost *string = this.SafeString(order, "executed_value")
-	var feeCost any = this.SafeNumber(order, "fill_fees")
+	var feeCost any = DerefScalar(this.SafeNumber(order, "fill_fees"))
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -1699,7 +1699,7 @@ func (this *CoinbaseexchangeCore) ParseOrder(order any, optionalArgs ...any) any
 	var side *string = this.SafeString(order, "side")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
 	var postOnly any = this.SafeValue(order, "post_only")
-	var triggerPrice any = this.SafeNumber(order, "stop_price")
+	var triggerPrice any = DerefScalar(this.SafeNumber(order, "stop_price"))
 	var clientOrderId *string = this.SafeString(order, "client_oid")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -2006,7 +2006,7 @@ func (this *CoinbaseexchangeCore) createOrderBody(ch chan any, symbol any, typeV
 	if clientOrderId != nil {
 		AddElementToObject(request, "client_oid", clientOrderId)
 	}
-	var triggerPrice any = this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"})
+	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"}))
 	if !IsEqual(triggerPrice, nil) {
 		AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
 	}
@@ -2019,11 +2019,11 @@ func (this *CoinbaseexchangeCore) createOrderBody(ch chan any, symbol any, typeV
 		AddElementToObject(request, "post_only", true)
 	}
 	params = this.Omit(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"})
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "size", this.AmountToPrecision(symbol, amount))
-	} else if typeVar == "market" {
-		var cost any = this.SafeNumber2(params, "cost", "funds")
+	} else if IsEqual(typeVar, "market") {
+		var cost any = DerefScalar(this.SafeNumber2(params, "cost", "funds"))
 		if IsEqual(cost, nil) {
 			if !IsEqual(price, nil) {
 				cost = Multiply(amount, price)
@@ -2301,12 +2301,12 @@ func (this *CoinbaseexchangeCore) ParseLedgerEntry(item any, optionalArgs ...any
 	var account any = nil
 	var referenceAccount any = nil
 	var referenceId any = nil
-	if typeVar == "transfer" {
-		account = this.SafeString(details, "from")
-		referenceAccount = this.SafeString(details, "to")
-		referenceId = this.SafeString(details, "profile_transfer_id")
+	if IsEqual(typeVar, "transfer") {
+		account = DerefScalar(this.SafeString(details, "from"))
+		referenceAccount = DerefScalar(this.SafeString(details, "to"))
+		referenceId = DerefScalar(this.SafeString(details, "profile_transfer_id"))
 	} else {
-		referenceId = this.SafeString(details, "order_id")
+		referenceId = DerefScalar(this.SafeString(details, "order_id"))
 	}
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
@@ -2438,7 +2438,7 @@ func (this *CoinbaseexchangeCore) fetchDepositsWithdrawalsBody(ch chan any, opti
 	retRes18988 := (<-this.LoadAccounts())
 	PanicOnError(retRes18988)
 	var currency any = nil
-	var id any = this.SafeString(params, "id") // account id
+	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	if IsEqual(id, nil) {
 		if !IsEqual(code, nil) {
 			currency = this.Currency(code)
@@ -2662,8 +2662,8 @@ func (this *CoinbaseexchangeCore) ParseTransaction(transaction any, optionalArgs
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_at"))
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var amount any = this.SafeNumber(transaction, "amount")
-	var typeVar any = this.SafeString(transaction, "type")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	var address *string = this.SafeString(details, "crypto_address")
 	address = this.SafeString(transaction, "crypto_address", address)
 	var fee map[string]any = map[string]any{
@@ -2674,7 +2674,7 @@ func (this *CoinbaseexchangeCore) ParseTransaction(transaction any, optionalArgs
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 		address = this.SafeString(details, "sent_to_address", address)
-		var feeCost any = this.SafeNumber(details, "fee")
+		var feeCost any = DerefScalar(this.SafeNumber(details, "fee"))
 		if !IsEqual(feeCost, nil) {
 			if !IsEqual(amount, nil) {
 				amount = Subtract(amount, feeCost)
@@ -2777,7 +2777,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var request any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if method == "GET" {
+	if IsEqual(method, "GET") {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			request = Add(request, Add("?", this.Urlencode(query)))
 		}
@@ -2787,7 +2787,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
-		if method != "GET" {
+		if !IsEqual(method, "GET") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				payload = body
@@ -2833,7 +2833,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *CoinbaseexchangeCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if (code == 400) || (code == 404) {
+	if (IsEqual(code, 400)) || (IsEqual(code, 404)) {
 		if GetValue(body, 0) == "{" {
 			var message *string = this.SafeString(response, "message")
 			var feedback any = Add(Add(this.Id, " "), message)

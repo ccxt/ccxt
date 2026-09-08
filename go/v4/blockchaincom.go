@@ -360,7 +360,7 @@ func (this *BlockchaincomCore) fetchMarketsBody(ch chan any, optionalArgs ...any
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
-		var numericId any = this.SafeNumber(market, "id")
+		var numericId any = DerefScalar(this.SafeNumber(market, "id"))
 		var active any = nil
 		var marketState *string = this.SafeString(market, "status")
 		if marketState != nil && *marketState == "open" {
@@ -700,7 +700,7 @@ func (this *BlockchaincomCore) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = this.SafeSymbol(marketId, market, "-")
 	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
 	var price any = Ternary((typeVar == nil || *typeVar != "market"), this.SafeString(order, "price"), nil)
-	var average any = this.SafeNumber(order, "avgPx")
+	var average any = DerefScalar(this.SafeNumber(order, "avgPx"))
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var datetime any = this.Iso8601(timestamp)
 	var filled *string = this.SafeString(order, "cumQty")
@@ -925,8 +925,8 @@ func (this *BlockchaincomCore) fetchTradingFeesBody(ch chan any, optionalArgs ..
 	//         "volumeInUSD": "0.0"
 	//     }
 	//
-	var makerFee any = this.SafeNumber(response, "makerRate")
-	var takerFee any = this.SafeNumber(response, "takerRate")
+	var makerFee any = DerefScalar(this.SafeNumber(response, "makerRate"))
+	var takerFee any = DerefScalar(this.SafeNumber(response, "takerRate"))
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
@@ -1222,8 +1222,8 @@ func (this *BlockchaincomCore) fetchDepositAddressBody(ch chan any, code any, op
 	if rawAddress != nil {
 		var addressParts []string = Split(rawAddress, ";")
 		// if a tag or memo is used it is separated by a colon in the 'address' value
-		tag = this.SafeString(addressParts, 0)
-		address = this.SafeString(addressParts, 1)
+		tag = DerefScalar(this.SafeString(addressParts, 0))
+		address = DerefScalar(this.SafeString(addressParts, 1))
 	}
 
 	ch <- map[string]any{
@@ -1275,17 +1275,17 @@ func (this *BlockchaincomCore) ParseTransaction(transaction any, optionalArgs ..
 	_ = currency
 	var typeVar any = nil
 	var id any = nil
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var state *string = this.SafeString(transaction, "state")
 	if InOp(transaction, "depositId") {
 		typeVar = "deposit"
-		id = this.SafeString(transaction, "depositId")
+		id = DerefScalar(this.SafeString(transaction, "depositId"))
 	} else if InOp(transaction, "withdrawalId") {
 		typeVar = "withdrawal"
-		id = this.SafeString(transaction, "withdrawalId")
+		id = DerefScalar(this.SafeString(transaction, "withdrawalId"))
 	}
 	var feeCost any = Ternary((IsEqual(typeVar, "withdrawal")), this.SafeNumber(transaction, "fee"), nil)
 	var fee any = nil
@@ -1696,7 +1696,7 @@ func (this *BlockchaincomCore) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"X-API-Token": this.Secret,
 		}
-		if method == "GET" {
+		if IsEqual(method, "GET") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}

@@ -982,7 +982,7 @@ func (this *CoinoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	market = this.SafeMarket(nil, market)
-	var isSellerMaker any = this.SafeBool(trade, "is_seller_maker")
+	var isSellerMaker any = DerefScalar(this.SafeBool(trade, "is_seller_maker"))
 	var side any = nil
 	if !IsEqual(isSellerMaker, nil) {
 		side = Ternary(EvalTruthy(isSellerMaker), "sell", "buy")
@@ -1299,7 +1299,7 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var remainingString *string = this.SafeString2(order, "remainQty", "remain_qty")
 	var amountString *string = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
-	var status any = this.SafeString(order, "status")
+	var status any = DerefScalar(this.SafeString(order, "status"))
 	// https://github.com/ccxt/ccxt/pull/7067
 	if IsEqual(status, "live") {
 		if (remainingString != nil) && (amountString != nil) {
@@ -1503,8 +1503,8 @@ func (this *CoinoneCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")))
 	}
-	var price any = this.SafeNumber(params, "price")
-	var qty any = this.SafeNumber(params, "qty")
+	var price any = DerefScalar(this.SafeNumber(params, "price"))
+	var qty any = DerefScalar(this.SafeNumber(params, "qty"))
 	var isAsk *int64 = this.SafeInteger(params, "is_ask")
 	if (IsEqual(price, nil)) || (IsEqual(qty, nil)) || (isAsk == nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")))

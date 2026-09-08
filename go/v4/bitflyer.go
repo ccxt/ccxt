@@ -400,12 +400,12 @@ func (this *BitflyerCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 		var quoteId any = nil
 		var expiry any = nil
 		if spot {
-			baseId = this.SafeString(currencies, 0)
-			quoteId = this.SafeString(currencies, 1)
+			baseId = DerefScalar(this.SafeString(currencies, 0))
+			quoteId = DerefScalar(this.SafeString(currencies, 1))
 		} else if swap {
 			typeVar = "swap"
-			baseId = this.SafeString(currencies, 1)
-			quoteId = this.SafeString(currencies, 2)
+			baseId = DerefScalar(this.SafeString(currencies, 1))
+			quoteId = DerefScalar(this.SafeString(currencies, 2))
 		} else if future {
 			var alias *string = this.SafeString(market, "alias")
 			if alias == nil {
@@ -713,7 +713,7 @@ func (this *BitflyerCore) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	if IsEqual(order, nil) {
-		order = this.SafeString(trade, "child_order_acceptance_id")
+		order = DerefScalar(this.SafeString(trade, "child_order_acceptance_id"))
 	}
 	var timestamp any = this.Parse8601(this.SafeString(trade, "exec_date"))
 	var priceString *string = this.SafeString(trade, "price")
@@ -831,7 +831,7 @@ func (this *BitflyerCore) fetchTradingFeeBody(ch chan any, symbol any, optionalA
 	//       commission_rate: '0.0020'
 	//   }
 	//
-	var fee any = this.SafeNumber(response, "commission_rate")
+	var fee any = DerefScalar(this.SafeNumber(response, "commission_rate"))
 
 	ch <- map[string]any{
 		"info":       response,
@@ -964,7 +964,7 @@ func (this *BitflyerCore) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "product_code")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var fee any = nil
-	var feeCost any = this.SafeNumber(order, "total_commission")
+	var feeCost any = DerefScalar(this.SafeNumber(order, "total_commission"))
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1313,7 +1313,7 @@ func (this *BitflyerCore) withdrawBody(ch chan any, code any, amount any, addres
 		retRes97912 := (<-this.LoadMarkets())
 		PanicOnError(retRes97912)
 	}
-	if (code != "JPY") && (code != "USD") && (code != "EUR") {
+	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
 		panic(ExchangeError(Add(Add(Add(this.Id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")))
 	}
 	var currency any = this.Currency(code)
@@ -1516,7 +1516,7 @@ func (this *BitflyerCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var currencyId *string = this.SafeString(transaction, "currency_code")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "event_date"))
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var txId *string = this.SafeString(transaction, "tx_hash")
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var typeVar any = nil
@@ -1648,7 +1648,7 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 		request = Add(request, "me/")
 	}
 	request = Add(request, path)
-	if method == "GET" {
+	if IsEqual(method, "GET") {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			request = Add(request, Add("?", this.Urlencode(params)))
 		}
@@ -1661,7 +1661,7 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 		var content []any = []any{nonce, method, request}
 		var auth any = Join(content, "")
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
-			if method != "GET" {
+			if !IsEqual(method, "GET") {
 				body = this.Json(params)
 				auth = Add(auth, body)
 			}

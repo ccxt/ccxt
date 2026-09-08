@@ -681,10 +681,10 @@ func (this *ModetradeCore) fetchStatusBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var status any = this.SafeString(data, "status")
+	var status any = DerefScalar(this.SafeString(data, "status"))
 	if IsEqual(status, nil) {
 		status = "error"
-	} else if status == "0" {
+	} else if IsEqual(status, "0") {
 		status = "ok"
 	} else {
 		status = "maintenance"
@@ -1439,10 +1439,10 @@ func (this *ModetradeCore) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
-	var amount any = this.SafeString(income, "funding_fee")
+	var amount any = DerefScalar(this.SafeString(income, "funding_fee"))
 	var code any = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
-	var rate any = this.SafeNumber(income, "funding_rate")
+	var rate any = DerefScalar(this.SafeNumber(income, "funding_rate"))
 	var paymentType *string = this.SafeString(income, "payment_type")
 	amount = Ternary((paymentType != nil && *paymentType == "Pay"), Precise.StringNeg(amount), amount)
 	return map[string]any{
@@ -1823,7 +1823,7 @@ func (this *ModetradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
 	var orderType *string = this.SafeStringLower2(order, "order_type", "type")
 	var status any = this.SafeValue2(order, "status", "algoStatus")
-	var success any = this.SafeBool(order, "success")
+	var success any = DerefScalar(this.SafeBool(order, "success"))
 	if !IsEqual(success, nil) {
 		status = Ternary(EvalTruthy((success)), "NEW", "REJECTED")
 	}
@@ -1834,7 +1834,7 @@ func (this *ModetradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions any = this.SafeValue(order, "Transactions")
-	var triggerPrice any = this.SafeNumber(order, "triggerPrice")
+	var triggerPrice any = DerefScalar(this.SafeNumber(order, "triggerPrice"))
 	var takeProfitPrice any = nil
 	var stopLossPrice any = nil
 	var childOrders any = this.SafeValue(order, "childOrders")
@@ -1845,8 +1845,8 @@ func (this *ModetradeCore) ParseOrder(order any, optionalArgs ...any) any {
 		if IsGreaterThan(innerChildOrdersLength, 0) {
 			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
 			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
-			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
-			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
+			takeProfitPrice = DerefScalar(this.SafeNumber(takeProfitOrder, "triggerPrice"))
+			stopLossPrice = DerefScalar(this.SafeNumber(stopLossOrder, "triggerPrice"))
 		}
 	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger2(order, "updatedTime", "updated_time")
@@ -1947,7 +1947,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
+	var reduceOnly any = DerefScalar(this.SafeBool2(params, "reduceOnly", "reduce_only"))
 	var orderType string = ToUpper(typeVar)
 	var market any = this.Market(symbol)
 	if IsEqual(side, nil) {
@@ -2010,7 +2010,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		var childOrders any = GetValue(outterOrder, "child_orders")
 		var closeSide any = Ternary((orderSide == "BUY"), "SELL", "BUY")
 		if hasStopLoss {
-			var stopLossPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
+			var stopLossPrice any = DerefScalar(this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss))
 			var stopLossOrder map[string]any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
@@ -2021,7 +2021,7 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
 			AppendToArray(&childOrders, stopLossOrder)
 		}
 		if hasTakeProfit {
-			var takeProfitPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
+			var takeProfitPrice any = DerefScalar(this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit))
 			var takeProfitOrder map[string]any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
@@ -2309,7 +2309,7 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	params = this.Omit(params, []any{"stop", "trigger"})
 	if (trigger != true) && (IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
@@ -2479,7 +2479,7 @@ func (this *ModetradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 		retRes195412 := (<-this.LoadMarkets())
 		PanicOnError(retRes195412)
 	}
-	var trigger any = this.SafeBool2(params, "stop", "trigger")
+	var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger"))
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbol, nil) {
@@ -2554,7 +2554,7 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
-	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var trigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
@@ -2656,7 +2656,7 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes208612)
 	}
 	var paginate any = false
-	var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var isTrigger any = DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	var maxLimit any = Ternary((isTrigger == true), 100, 500)
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -3145,7 +3145,7 @@ func (this *ModetradeCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(item, "token")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var amount any = this.SafeNumber(item, "amount")
+	var amount any = DerefScalar(this.SafeNumber(item, "amount"))
 	var side *string = this.SafeString(item, "token_side")
 	var direction any = Ternary((side != nil && *side == "DEPOSIT"), "in", "out")
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
@@ -3457,7 +3457,7 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 	this.CheckAddress(address)
 	if !IsEqual(code, nil) {
 		code = ToUpper(code)
-		if code != "USDC" {
+		if !IsEqual(code, "USDC") {
 			panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
 		}
 	}
@@ -3466,7 +3466,7 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 	var chainId *string = this.SafeString(params, "chainId")
 	var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
 	var coinNetwork any = Ternary((chainId == nil), map[string]any{}, this.SafeDict(currencyNetworks, chainId, map[string]any{}))
-	var coinNetworkId any = this.SafeNumber(coinNetwork, "id")
+	var coinNetworkId any = DerefScalar(this.SafeNumber(coinNetwork, "id"))
 	if IsEqual(coinNetworkId, nil) {
 		panic(BadRequest(Add(this.Id, " withdraw() require chainId parameter")))
 	}
@@ -3886,17 +3886,17 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(GetValue(GetValue(this.Urls, "api"), access), "/"), version), "/")
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
-	if access == "public" {
+	if IsEqual(access, "public") {
 		url = Add(url, pathWithParams)
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var isPostOrPut bool = (method == "POST") || (method == "PUT")
+		var isPostOrPut bool = (IsEqual(method, "POST")) || (IsEqual(method, "PUT"))
 		var isOrder bool = IsEqual(path, "algo/order") || IsEqual(path, "order") || IsEqual(path, "batch-order")
 		if isPostOrPut && isOrder {
-			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
+			var isSandboxMode any = DerefScalar(this.SafeBool(this.Options, "sandboxMode", false))
 			if isSandboxMode != true {
 				var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXTMODE")
 				if IsEqual(path, "batch-order") {
@@ -3923,7 +3923,7 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 			"orderly-timestamp":  ts,
 		}
 		auth = Add(Add(Add(Add(Add(ts, method), "/"), version), "/"), pathWithParams)
-		if (method == "POST") || (method == "PUT") {
+		if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) {
 			body = this.Json(params)
 			auth = Add(auth, body)
 			AddElementToObject(headers, "content-type", "application/json")
@@ -3933,7 +3933,7 @@ func (this *ModetradeCore) Sign(path any, optionalArgs ...any) any {
 				auth = Add(auth, Add("?", this.Rawencode(params)))
 			}
 			AddElementToObject(headers, "content-type", "application/x-www-form-urlencoded")
-			if method == "DELETE" {
+			if IsEqual(method, "DELETE") {
 				body = ""
 			}
 		}
@@ -3960,7 +3960,7 @@ func (this *ModetradeCore) HandleErrors(httpCode any, reason any, url any, metho
 	//     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
 	//                     {"code":"-1011","message":"The system is under maintenance.","success":false}
 	//
-	var success any = this.SafeBool(response, "success")
+	var success any = DerefScalar(this.SafeBool(response, "success"))
 	var errorCode *string = this.SafeString(response, "code")
 	if !IsEqual(success, true) {
 		var feedback any = Add(Add(this.Id, " "), this.Json(response))

@@ -597,7 +597,7 @@ func (this *ZaifCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var side any = this.SafeString(trade, "trade_type")
+	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
 	side = Ternary((IsEqual(side, "bid")), "buy", "sell")
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")
 	var id *string = this.SafeString2(trade, "id", "tid")
@@ -714,7 +714,7 @@ func (this *ZaifCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		retRes56312 := (<-this.LoadMarkets())
 		PanicOnError(retRes56312)
 	}
-	if typeVar != "limit" {
+	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
 	var market any = this.Market(symbol)
@@ -808,7 +808,7 @@ func (this *ZaifCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var side any = this.SafeString(order, "action")
+	var side any = DerefScalar(this.SafeString(order, "action"))
 	side = Ternary((IsEqual(side, "bid")), "buy", "sell")
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var marketId *string = this.SafeString(order, "currency_pair")
@@ -969,7 +969,7 @@ func (this *ZaifCore) withdrawBody(ch chan any, code any, amount any, address an
 		PanicOnError(retRes75212)
 	}
 	var currency any = this.Currency(code)
-	if code == "JPY" {
+	if IsEqual(code, "JPY") {
 		panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
 	}
 	var request map[string]any = map[string]any{
@@ -1114,7 +1114,7 @@ func (this *ZaifCore) HandleErrors(httpCode any, reason any, url any, method any
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
-	var success any = this.SafeBool(response, "success", true)
+	var success any = DerefScalar(this.SafeBool(response, "success", true))
 	if success != true {
 		panic(ExchangeError(feedback))
 	}

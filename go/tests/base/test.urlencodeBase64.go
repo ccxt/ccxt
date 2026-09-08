@@ -12,32 +12,32 @@ func TestUrlencodeBase64() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// Test 1: Simple string
-	Assert((exchange.UrlencodeBase64("hello") == "aGVsbG8"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("hello"), "aGVsbG8")))
 	// Test 2: String with space
-	Assert((exchange.UrlencodeBase64("hello world") == "aGVsbG8gd29ybGQ"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("hello world"), "aGVsbG8gd29ybGQ")))
 	// Test 3: Short string
-	Assert((exchange.UrlencodeBase64("test") == "dGVzdA"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("test"), "dGVzdA")))
 	// Test 4: Empty string
-	Assert((exchange.UrlencodeBase64("") == ""))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64(""), "")))
 	// Test 5: Single character
-	Assert((exchange.UrlencodeBase64("a") == "YQ"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("a"), "YQ")))
 	// Test 6: Two characters
-	Assert((exchange.UrlencodeBase64("ab") == "YWI"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("ab"), "YWI")))
 	// Test 7: Three characters (no padding needed)
-	Assert((exchange.UrlencodeBase64("abc") == "YWJj"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("abc"), "YWJj")))
 	// Test 8: Four characters
-	Assert((exchange.UrlencodeBase64("abcd") == "YWJjZA"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("abcd"), "YWJjZA")))
 	// Test 9: JSON-like string
-	Assert((exchange.UrlencodeBase64("{\"user\":\"test\"}") == "eyJ1c2VyIjoidGVzdCJ9"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("{\"user\":\"test\"}"), "eyJ1c2VyIjoidGVzdCJ9")))
 	// Test 10: String with special characters (urlsafe base64)
-	Assert((exchange.UrlencodeBase64("subjects?_d") == "c3ViamVjdHM_X2Q"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("subjects?_d"), "c3ViamVjdHM_X2Q")))
 	// Test 11: Longer string
-	Assert((exchange.UrlencodeBase64("The quick brown fox") == "VGhlIHF1aWNrIGJyb3duIGZveA"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("The quick brown fox"), "VGhlIHF1aWNrIGJyb3duIGZveA")))
 	// Test 12: Numbers as string
-	Assert((exchange.UrlencodeBase64("123456789") == "MTIzNDU2Nzg5"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64("123456789"), "MTIzNDU2Nzg5")))
 	//
 	// add binary tests
 	//
 	var binaryData any = exchange.Base16ToBinary("191919191919")
-	Assert((exchange.UrlencodeBase64(binaryData) == "GRkZGRkZ"))
+	Assert((ccxt.IsEqual(exchange.UrlencodeBase64(binaryData), "GRkZGRkZ")))
 }

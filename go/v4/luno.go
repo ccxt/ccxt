@@ -915,8 +915,8 @@ func (this *LunoCore) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "limit_volume")
-	var quoteFee any = this.SafeNumber(order, "fee_counter")
-	var baseFee any = this.SafeNumber(order, "fee_base")
+	var quoteFee any = DerefScalar(this.SafeNumber(order, "fee_counter"))
+	var baseFee any = DerefScalar(this.SafeNumber(order, "fee_base"))
 	var filled *string = this.SafeString(order, "base")
 	var cost *string = this.SafeString(order, "counter")
 	var fee any = nil
@@ -1326,12 +1326,12 @@ func (this *LunoCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCost any = nil
 	if feeBaseString != nil {
 		if !Precise.StringEquals(feeBaseString, "0.0") {
-			feeCurrency = this.SafeString(market, "base")
+			feeCurrency = DerefScalar(this.SafeString(market, "base"))
 			feeCost = feeBaseString
 		}
 	} else if feeCounterString != nil {
 		if !Precise.StringEquals(feeCounterString, "0.0") {
-			feeCurrency = this.SafeString(market, "quote")
+			feeCurrency = DerefScalar(this.SafeString(market, "quote"))
 			feeCost = feeCounterString
 		}
 	}
@@ -1661,10 +1661,10 @@ func (this *LunoCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	if typeVar == "market" {
+	if IsEqual(typeVar, "market") {
 		AddElementToObject(request, "type", ToUpper(side))
 		// todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
-		if side == "buy" {
+		if IsEqual(side, "buy") {
 			AddElementToObject(request, "counter_volume", this.AmountToPrecision(GetValue(market, "symbol"), amount))
 		} else {
 			AddElementToObject(request, "base_volume", this.AmountToPrecision(GetValue(market, "symbol"), amount))
@@ -1675,7 +1675,7 @@ func (this *LunoCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	} else {
 		AddElementToObject(request, "volume", this.AmountToPrecision(GetValue(market, "symbol"), amount))
 		AddElementToObject(request, "price", this.PriceToPrecision(GetValue(market, "symbol"), price))
-		AddElementToObject(request, "type", Ternary((side == "buy"), "BID", "ASK"))
+		AddElementToObject(request, "type", Ternary((IsEqual(side, "buy")), "BID", "ASK"))
 
 		response = (<-this.PrivatePostPostorder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1806,7 +1806,7 @@ func (this *LunoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	retRes14308 := (<-this.LoadAccounts())
 	PanicOnError(retRes14308)
 	var currency any = nil
-	var id any = this.SafeString(params, "id") // account id
+	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	var min_row any = this.SafeValue(params, "min_row")
 	var max_row any = this.SafeValue(params, "max_row")
 	if IsEqual(id, nil) {
@@ -1869,12 +1869,12 @@ func (this *LunoCore) ParseLedgerComment(comment any) any {
 	var firstWord *string = this.SafeString(words, 0)
 	var thirdWord *string = this.SafeString(words, 2)
 	var fourthWord *string = this.SafeString(words, 3)
-	var typeVar any = this.SafeString(types, firstWord)
+	var typeVar any = DerefScalar(this.SafeString(types, firstWord))
 	if (IsEqual(typeVar, nil)) && (thirdWord != nil && *thirdWord == "fee") {
 		typeVar = "fee"
 	}
 	if (IsEqual(typeVar, "reserved")) && (fourthWord != nil && *fourthWord == "order") {
-		referenceId = this.SafeString(words, 4)
+		referenceId = DerefScalar(this.SafeString(words, 4))
 	}
 	return map[string]any{
 		"type":        typeVar,

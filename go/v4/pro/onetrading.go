@@ -1112,7 +1112,7 @@ func (this *OnetradingCore) HandleAccountUpdate(client any, message any) {
 		orders.(ccxt.Appender).Append(orderObject)
 	} else {
 		var parsed any = this.ParseOrder(update)
-		symbol = this.SafeString(parsed, "symbol", "")
+		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol", ""))
 		orders.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("orders:", symbol))
@@ -1129,7 +1129,7 @@ func (this *OnetradingCore) HandleAccountUpdate(client any, message any) {
 	// update trades
 	if updateType != nil && *updateType == "TRADE_SETTLED" {
 		var parsed any = this.ParseTrade(update)
-		symbol = this.SafeString(parsed, "symbol", "")
+		symbol = ccxt.DerefScalar(this.SafeString(parsed, "symbol", ""))
 		var myTrades any = this.MyTrades
 		myTrades.(ccxt.Appender).Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, ccxt.Add("myTrades:", symbol))
@@ -1215,7 +1215,7 @@ func (this *OnetradingCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs
 		subscription = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 		if !ccxt.IsEqual(subscription, nil) {
 			var ohlcvMarket any = this.SafeValue(subscription, marketId, map[string]any{})
-			var marketSubscribed any = this.SafeBool(ohlcvMarket, timeframe, false)
+			var marketSubscribed any = ccxt.DerefScalar(this.SafeBool(ohlcvMarket, timeframe, false))
 			if marketSubscribed != true {
 				typeVar = "UPDATE_SUBSCRIPTION"
 				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)
@@ -1471,7 +1471,7 @@ func (this *OnetradingCore) watchManyBody(ch chan any, messageHash any, request 
 		if !ccxt.IsEqual(subscription, nil) {
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketIds)); i++ {
 				var marketId any = ccxt.GetValue(marketIds, i)
-				var marketSubscribed any = this.SafeBool(subscription, marketId, false)
+				var marketSubscribed any = ccxt.DerefScalar(this.SafeBool(subscription, marketId, false))
 				if marketSubscribed != true {
 					typeVar = "UPDATE_SUBSCRIPTION"
 					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, nil)

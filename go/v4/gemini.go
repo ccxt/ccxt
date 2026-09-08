@@ -764,7 +764,7 @@ func (this *GeminiCore) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any
 		// const base = this.safeCurrencyCode (baseId);
 		var minAmountString string = Replace(GetValue(cells, 1), "<td>", "")
 		var minAmountParts []string = Split(minAmountString, " ")
-		var minAmount any = this.SafeNumber(minAmountParts, 0)
+		var minAmount any = DerefScalar(this.SafeNumber(minAmountParts, 0))
 		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
 		var amountPrecisionParts []string = Split(amountPrecisionString, " ")
 		var idLength any = Subtract(GetArrayLength(marketId), 0)
@@ -997,13 +997,13 @@ func (this *GeminiCore) ParseMarket(response any) any {
 	var isArray bool = (IsArray(response))
 	if !isString && !isArray {
 		marketId = this.SafeStringLower(response, "symbol")
-		amountPrecision = this.SafeNumber(response, "tick_size") // right, exchange has an imperfect naming and this turns out to be an amount-precision
-		tickSize = this.SafeNumber(response, "quote_increment")  // this is tick-size actually
-		minSize = this.SafeNumber(response, "min_order_size")
+		amountPrecision = DerefScalar(this.SafeNumber(response, "tick_size")) // right, exchange has an imperfect naming and this turns out to be an amount-precision
+		tickSize = DerefScalar(this.SafeNumber(response, "quote_increment"))  // this is tick-size actually
+		minSize = DerefScalar(this.SafeNumber(response, "min_order_size"))
 		status = this.ParseMarketActive(this.SafeString(response, "status"))
-		baseId = this.SafeString(response, "base_currency")
-		quoteId = this.SafeString(response, "quote_currency")
-		settleId = this.SafeString(response, "contract_price_currency")
+		baseId = DerefScalar(this.SafeString(response, "base_currency"))
+		quoteId = DerefScalar(this.SafeString(response, "quote_currency"))
+		settleId = DerefScalar(this.SafeString(response, "contract_price_currency"))
 	} else {
 		// if no detailed API was called, then parse either string or array
 		if isString {
@@ -1012,7 +1012,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 			marketId = this.SafeStringLower(response, 0)
 			tickSize = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 1)))        // priceTickDecimalPlaces
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 2))) // quantityTickDecimalPlaces
-			minSize = this.SafeNumber(response, 3)                                                // quantityMinimum
+			minSize = DerefScalar(this.SafeNumber(response, 3))                                   // quantityMinimum
 		}
 		var marketIdUpper string = ToUpper(marketId)
 		var isPerp bool = (IsGreaterThanOrEqual(GetIndexOf(marketIdUpper, "PERP"), 0))
@@ -1345,7 +1345,7 @@ func (this *GeminiCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var quote any = nil
 	if (marketId != nil) && (IsEqual(market, nil)) {
 		var idLength any = Subtract(GetLength(marketId), 0)
-		if idLength == 7 {
+		if IsEqual(idLength, 7) {
 			baseId = Slice(marketId, 0, 4)
 			quoteId = Slice(marketId, 4, 7)
 		} else {
@@ -1806,7 +1806,7 @@ func (this *GeminiCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var price *string = this.SafeString(order, "price")
 	var average *string = this.SafeString(order, "avg_execution_price")
-	var typeVar any = this.SafeString(order, "type")
+	var typeVar any = DerefScalar(this.SafeString(order, "type"))
 	if IsEqual(typeVar, "exchange limit") {
 		typeVar = "limit"
 	} else if IsEqual(typeVar, "market buy") || IsEqual(typeVar, "market sell") {
@@ -2019,10 +2019,10 @@ func (this *GeminiCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		retRes160612 := (<-this.LoadMarkets())
 		PanicOnError(retRes160612)
 	}
-	if typeVar != "limit" {
+	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
-	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
+	var clientOrderId any = DerefScalar(this.SafeString2(params, "clientOrderId", "client_order_id"))
 	params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
 	if IsEqual(clientOrderId, nil) {
 		clientOrderId = ToString(this.Milliseconds())
@@ -2038,11 +2038,11 @@ func (this *GeminiCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"side":            side,
 		"type":            "exchange limit",
 	}
-	typeVar = this.SafeString(params, "type", typeVar)
+	typeVar = DerefScalar(this.SafeString(params, "type", typeVar))
 	params = this.Omit(params, "type")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
 	params = this.Omit(params, []any{"triggerPrice", "stop_price", "stopPrice", "type"})
-	if typeVar == "stopLimit" {
+	if IsEqual(typeVar, "stopLimit") {
 		panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), typeVar), " orders")))
 	}
 	if triggerPrice != nil {
@@ -2061,7 +2061,7 @@ func (this *GeminiCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 				AddElementToObject(request, "options", []any{"maker-or-cancel"})
 			}
 		}
-		var postOnly any = this.SafeBool(params, "postOnly", false)
+		var postOnly any = DerefScalar(this.SafeBool(params, "postOnly", false))
 		params = this.Omit(params, "postOnly")
 		if postOnly == true {
 			AddElementToObject(request, "options", []any{"maker-or-cancel"})
@@ -2374,7 +2374,7 @@ func (this *GeminiCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	// if status field is available, then it's complete
 	var statusRaw *string = this.SafeString(transaction, "status")
 	var fee any = nil
-	var feeAmount any = this.SafeNumber(transaction, "feeAmount")
+	var feeAmount any = DerefScalar(this.SafeNumber(transaction, "feeAmount"))
 	if !IsEqual(feeAmount, nil) {
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -2560,7 +2560,7 @@ func (this *GeminiCore) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	url = Add(GetValue(GetValue(this.Urls, "api"), api), url)
-	if (method == "POST") || (method == "DELETE") {
+	if (IsEqual(method, "POST")) || (IsEqual(method, "DELETE")) {
 		body = this.Json(query)
 	}
 	return map[string]any{

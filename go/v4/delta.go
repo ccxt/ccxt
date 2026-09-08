@@ -431,13 +431,13 @@ func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 	var expiry any = nil
 	var optionType any = nil
 	if IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1)) {
-		base = this.SafeString(symbolBase, 0)
-		expiry = this.SafeString(optionParts, 1)
-		optionType = this.SafeString(optionParts, 3)
+		base = DerefScalar(this.SafeString(symbolBase, 0))
+		expiry = DerefScalar(this.SafeString(optionParts, 1))
+		optionType = DerefScalar(this.SafeString(optionParts, 3))
 	} else {
-		base = this.SafeString(optionParts, 1)
-		expiry = this.SafeString(optionParts, 3)
-		optionType = this.SafeString(optionParts, 0)
+		base = DerefScalar(this.SafeString(optionParts, 1))
+		expiry = DerefScalar(this.SafeString(optionParts, 3))
+		optionType = DerefScalar(this.SafeString(optionParts, 0))
 	}
 	if !IsEqual(expiry, nil) {
 		expiry = Add(Add(Slice(expiry, 4, nil), Slice(expiry, 2, 4)), Slice(expiry, 0, 2))
@@ -1004,7 +1004,7 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var market any = GetValue(markets, i)
-		var typeVar any = this.SafeString(market, "contract_type")
+		var typeVar any = DerefScalar(this.SafeString(market, "contract_type"))
 		if (IsEqual(typeVar, "options_combos")) || (IsEqual(typeVar, "binary_call_options")) || (IsEqual(typeVar, "binary_put_options")) {
 			continue
 		}
@@ -1031,7 +1031,7 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var strike *string = this.SafeString(market, "strike_price")
 		var expiryDatetime *string = this.SafeString(market, "settlement_time")
 		var expiry any = this.Parse8601(expiryDatetime)
-		var contractSize any = this.SafeNumber(market, "contract_value")
+		var contractSize any = DerefScalar(this.SafeNumber(market, "contract_value"))
 		var amountPrecision any = nil
 		if spot {
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(productSpecs, "underlying_precision"))) // seems inverse of 'impact_size'
@@ -1733,7 +1733,7 @@ func (this *DeltaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(product, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var sellerRole *string = this.SafeString(trade, "seller_role")
-	var side any = this.SafeString(trade, "side")
+	var side any = DerefScalar(this.SafeString(trade, "side"))
 	if IsEqual(side, nil) {
 		if sellerRole != nil && *sellerRole == "taker" {
 			side = "sell"
@@ -1743,7 +1743,7 @@ func (this *DeltaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var metaData any = this.SafeDict(trade, "meta_data", map[string]any{})
-	var typeVar any = this.SafeString(metaData, "order_type")
+	var typeVar any = DerefScalar(this.SafeString(metaData, "order_type"))
 	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
 	}
@@ -1883,7 +1883,7 @@ func (this *DeltaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
-	limit = Ternary((!IsEqual(limit, nil) && !IsEqual(limit, nil) && (limit != 0)), limit, 2000) // max 2000
+	limit = Ternary((!IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0))), limit, 2000) // max 2000
 	var until any = this.SafeIntegerProduct(params, "until", 0.001)
 	var untilIsDefined bool = (!IsEqual(until, nil))
 	if untilIsDefined {
@@ -2252,7 +2252,7 @@ func (this *DeltaCore) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = Ternary((IsEqual(market, nil)), marketId, GetValue(market, "symbol"))
 	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var side *string = this.SafeString(order, "side")
-	var typeVar any = this.SafeString(order, "order_type")
+	var typeVar any = DerefScalar(this.SafeString(order, "order_type"))
 	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
 	}
@@ -2333,7 +2333,7 @@ func (this *DeltaCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		"side":       side,
 		"order_type": orderType,
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(GetValue(market, "symbol"), price))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
@@ -2341,7 +2341,7 @@ func (this *DeltaCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	if clientOrderId != nil {
 		AddElementToObject(request, "client_order_id", clientOrderId)
 	}
-	var reduceOnly any = this.SafeBool(params, "reduceOnly")
+	var reduceOnly any = DerefScalar(this.SafeBool(params, "reduceOnly"))
 	if IsEqual(reduceOnly, true) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
 		params = this.Omit(params, "reduceOnly")
@@ -2999,7 +2999,7 @@ func (this *DeltaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var metaData any = this.SafeDict(item, "meta_data", map[string]any{})
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
 	var referenceAccount any = nil
-	var typeVar any = this.SafeString(item, "transaction_type")
+	var typeVar any = DerefScalar(this.SafeString(item, "transaction_type"))
 	if (IsEqual(typeVar, "deposit")) || (IsEqual(typeVar, "commission_rebate")) || (IsEqual(typeVar, "referral_bonus")) || (IsEqual(typeVar, "pnl")) || (IsEqual(typeVar, "withdrawal_cancellation")) || (IsEqual(typeVar, "promo_credit")) {
 		direction = "in"
 	} else if (IsEqual(typeVar, "withdrawal")) || (IsEqual(typeVar, "commission")) || (IsEqual(typeVar, "conversion")) || (IsEqual(typeVar, "perpetual_futures_funding")) {
@@ -4876,7 +4876,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 			"timestamp": timestamp,
 		}
 		var auth any = Add(Add(method, timestamp), requestPath)
-		if method == "GET" {
+		if IsEqual(method, "GET") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				var queryString any = Add("?", this.Urlencode(query))
 				auth = Add(auth, queryString)

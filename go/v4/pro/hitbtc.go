@@ -210,7 +210,7 @@ func (this *HitbtcCore) subscribePrivateBody(ch chan any, name any, optionalArgs
 	ccxt.PanicOnError(retRes1778)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 	var splitName []string = ccxt.Split(name, "_subscribe")
-	var messageHash any = this.SafeString(splitName, 0, "")
+	var messageHash any = ccxt.DerefScalar(this.SafeString(splitName, 0, ""))
 	if !ccxt.IsEqual(symbol, nil) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
 	}
@@ -295,12 +295,12 @@ func (this *HitbtcCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	var options any = this.SafeValue(this.Options, "watchOrderBook")
 	var defaultMethod *string = this.SafeString(options, "method", "orderbook/full")
-	var name any = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
+	var name any = ccxt.DerefScalar(this.SafeString2(params, "method", "defaultMethod", defaultMethod))
 	var depth *string = this.SafeString(params, "depth", "20")
 	var speed *string = this.SafeString(params, "depth", "100")
-	if name == "orderbook/{depth}/{speed}" {
+	if ccxt.IsEqual(name, "orderbook/{depth}/{speed}") {
 		name = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("orderbook/D", depth), "/"), speed), "ms")
-	} else if name == "orderbook/{depth}/{speed}/batch" {
+	} else if ccxt.IsEqual(name, "orderbook/{depth}/{speed}/batch") {
 		name = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("orderbook/D", depth), "/"), speed), "ms/batch")
 	}
 	var market any = this.Market(symbol)
@@ -358,7 +358,7 @@ func (this *HitbtcCore) HandleOrderBook(client any, message any) {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
-		if typeVar == "snapshot" {
+		if ccxt.IsEqual(typeVar, "snapshot") {
 			var parsedSnapshot any = this.ParseOrderBook(item, symbol, timestamp, "b", "a")
 			orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
 		} else {
@@ -376,8 +376,8 @@ func (this *HitbtcCore) HandleOrderBook(client any, message any) {
 	}
 }
 func (this *HitbtcCore) HandleDelta(bookside any, delta any) {
-	var price any = this.SafeNumber(delta, 0)
-	var amount any = this.SafeNumber(delta, 1)
+	var price any = ccxt.DerefScalar(this.SafeNumber(delta, 0))
+	var amount any = ccxt.DerefScalar(this.SafeNumber(delta, 1))
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
 func (this *HitbtcCore) HandleDeltas(bookside any, deltas any) {
@@ -1367,13 +1367,13 @@ func (this *HitbtcCore) createOrderWsBody(ch chan any, symbol any, typeVar any, 
 	request = ccxt.GetValue(requestparamsVariable, 0)
 	params = ccxt.GetValue(requestparamsVariable, 1)
 	request = this.Extend(request, params)
-	if marketType == "swap" {
+	if ccxt.IsEqual(marketType, "swap") {
 
 		retRes115319 := (<-this.TradeRequest("futures_new_order", request))
 		ccxt.PanicOnError(retRes115319)
 		ch <- retRes115319
 		return nil
-	} else if (marketType == "margin") || (!ccxt.IsEqual(marginMode, nil)) {
+	} else if (ccxt.IsEqual(marketType, "margin")) || (!ccxt.IsEqual(marginMode, nil)) {
 
 		retRes115519 := (<-this.TradeRequest("margin_new_order", request))
 		ccxt.PanicOnError(retRes115519)
@@ -1434,13 +1434,13 @@ func (this *HitbtcCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ...a
 	marginMode := ccxt.GetValue(marginModequeryVariable, 0)
 	query := ccxt.GetValue(marginModequeryVariable, 1)
 	request = this.Extend(request, query)
-	if marketType == "swap" {
+	if ccxt.IsEqual(marketType, "swap") {
 
 		retRes119119 := (<-this.TradeRequest("futures_cancel_order", request))
 		ccxt.PanicOnError(retRes119119)
 		ch <- retRes119119
 		return nil
-	} else if (marketType == "margin") || (!ccxt.IsEqual(marginMode, nil)) {
+	} else if (ccxt.IsEqual(marketType, "margin")) || (!ccxt.IsEqual(marginMode, nil)) {
 
 		retRes119319 := (<-this.TradeRequest("margin_cancel_order", request))
 		ccxt.PanicOnError(retRes119319)
@@ -1496,13 +1496,13 @@ func (this *HitbtcCore) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) 
 	marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrdersWs", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
 	params = ccxt.GetValue(marginModeparamsVariable, 1)
-	if marketType == "swap" {
+	if ccxt.IsEqual(marketType, "swap") {
 
 		retRes122419 := (<-this.TradeRequest("futures_cancel_orders", params))
 		ccxt.PanicOnError(retRes122419)
 		ch <- retRes122419
 		return nil
-	} else if (marketType == "margin") || (!ccxt.IsEqual(marginMode, nil)) {
+	} else if (ccxt.IsEqual(marketType, "margin")) || (!ccxt.IsEqual(marginMode, nil)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelAllOrdersWs is not supported for margin orders")))
 	} else {
 
@@ -1563,13 +1563,13 @@ func (this *HitbtcCore) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) 
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOpenOrdersWs", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
 	params = ccxt.GetValue(marginModeparamsVariable, 1)
-	if marketType == "swap" {
+	if ccxt.IsEqual(marketType, "swap") {
 
 		retRes126219 := (<-this.TradeRequest("futures_get_orders", request))
 		ccxt.PanicOnError(retRes126219)
 		ch <- retRes126219
 		return nil
-	} else if (marketType == "margin") || (!ccxt.IsEqual(marginMode, nil)) {
+	} else if (ccxt.IsEqual(marketType, "margin")) || (!ccxt.IsEqual(marginMode, nil)) {
 
 		retRes126419 := (<-this.TradeRequest("margin_get_orders", request))
 		ccxt.PanicOnError(retRes126419)
@@ -1658,10 +1658,10 @@ func (this *HitbtcCore) HandleMessage(client any, message any) {
 	if ccxt.EvalTruthy(this.HandleError(client, message)) {
 		return
 	}
-	var channel any = this.SafeString2(message, "ch", "method")
+	var channel any = ccxt.DerefScalar(this.SafeString2(message, "ch", "method"))
 	if !ccxt.IsEqual(channel, nil) {
 		var splitChannel []string = ccxt.Split(channel, "/")
-		channel = this.SafeString(splitChannel, 0)
+		channel = ccxt.DerefScalar(this.SafeString(splitChannel, 0))
 		if ccxt.IsEqual(channel, "orderbook") {
 			var channel2 *string = this.SafeString(splitChannel, 1)
 			if channel2 != nil && *channel2 == "top" {

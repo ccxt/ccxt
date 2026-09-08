@@ -800,12 +800,12 @@ func (this *WhitebitCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	var typeVar any = this.ParseWsOrderType(rawType)
 	var amount any = nil
 	var remaining any = nil
-	if typeVar == "market" {
-		amount = this.SafeString(order, "deal_stock")
+	if ccxt.IsEqual(typeVar, "market") {
+		amount = ccxt.DerefScalar(this.SafeString(order, "deal_stock"))
 		remaining = "0"
 	} else {
-		remaining = this.SafeString(order, "left")
-		amount = this.SafeString(order, "amount")
+		remaining = ccxt.DerefScalar(this.SafeString(order, "left"))
+		amount = ccxt.DerefScalar(this.SafeString(order, "amount"))
 	}
 	var timestamp *int64 = this.SafeTimestamp(order, "ctime")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
@@ -903,7 +903,7 @@ func (this *WhitebitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var messageHash any = "wallet:"
 	var method any = nil
-	if typeVar == "spot" {
+	if ccxt.IsEqual(typeVar, "spot") {
 		method = "balanceSpot_subscribe"
 		messageHash = ccxt.Add(messageHash, "spot")
 	} else {
@@ -1124,7 +1124,7 @@ func (this *WhitebitCore) watchMultipleSubscriptionBody(ch chan any, messageHash
 		var hasSymbolSubscription bool = true
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		var isSubscribed any = this.SafeBool(subscription, marketId, false)
+		var isSubscribed any = ccxt.DerefScalar(this.SafeBool(subscription, marketId, false))
 		if isSubscribed != true {
 			if !ccxt.IsEqual(marketId, nil) {
 				ccxt.AddElementToObject(subscription, marketId, true)

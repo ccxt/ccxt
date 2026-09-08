@@ -430,7 +430,7 @@ func (this *IndependentreserveCore) fetchMarketsBody(ch chan any, optionalArgs .
 	for i := 0; IsLessThan(i, GetArrayLength(baseCurrencyIds)); i++ {
 		var baseId any = GetValue(baseCurrencyIds, i)
 		var base any = this.SafeCurrencyCode(baseId)
-		var minAmount any = this.SafeNumber(limits, baseId)
+		var minAmount any = DerefScalar(this.SafeNumber(limits, baseId))
 		for j := 0; IsLessThan(j, GetArrayLength(quoteCurrencyIds)); j++ {
 			var quoteId any = GetValue(quoteCurrencyIds, j)
 			var quote any = this.SafeCurrencyCode(quoteId)
@@ -741,7 +741,7 @@ func (this *IndependentreserveCore) ParseOrder(order any, optionalArgs ...any) a
 		base = GetValue(market, "base")
 		quote = GetValue(market, "quote")
 	}
-	var orderType any = this.SafeString2(order, "Type", "OrderType")
+	var orderType any = DerefScalar(this.SafeString2(order, "Type", "OrderType"))
 	var side any = nil
 	if !IsEqual(orderType, nil) {
 		if IsGreaterThanOrEqual(GetIndexOf(orderType, "Bid"), 0) {
@@ -1026,7 +1026,7 @@ func (this *IndependentreserveCore) ParseTrade(trade any, optionalArgs ...any) a
 		marketId = Add(Add(baseId, "/"), quoteId)
 	}
 	var symbol any = this.SafeSymbol(marketId, market, "/")
-	var side any = this.SafeString(trade, "OrderType")
+	var side any = DerefScalar(this.SafeString(trade, "OrderType"))
 	if !IsEqual(side, nil) {
 		if IsGreaterThanOrEqual(GetIndexOf(side, "Bid"), 0) {
 			side = "buy"
@@ -1135,7 +1135,7 @@ func (this *IndependentreserveCore) fetchTradingFeesBody(ch chan any, optionalAr
 		var fee any = GetValue(rows, i)
 		var currencyId *string = this.SafeString(fee, "CurrencyCode")
 		var code any = this.SafeCurrencyCode(currencyId)
-		var tradingFee any = this.SafeNumber(fee, "Fee")
+		var tradingFee any = DerefScalar(this.SafeNumber(fee, "Fee"))
 		if !IsEqual(code, nil) {
 			AddElementToObject(fees, code, map[string]any{
 				"info": fee,
@@ -1202,7 +1202,7 @@ func (this *IndependentreserveCore) createOrderBody(ch chan any, symbol any, typ
 	}
 	var response any = nil
 	AddElementToObject(request, "volume", amount)
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "price", price)
 
 		response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params)))

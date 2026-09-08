@@ -972,7 +972,7 @@ func (this *BitbankCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"side":   side,
 		"type":   typeVar,
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 
@@ -1412,7 +1412,7 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 			auth = nonce
 		}
 		url = Add(url, Add(Add(this.Version, "/"), this.ImplodeParams(path, params)))
-		if method == "POST" {
+		if IsEqual(method, "POST") {
 			body = this.Json(query)
 			auth = Add(auth, body)
 		} else {

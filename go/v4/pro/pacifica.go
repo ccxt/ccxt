@@ -359,7 +359,7 @@ func (this *PacificaCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs 
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(results)); i++ {
 		var order any = ccxt.GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
-		var success any = this.SafeBool(order, "success", false)
+		var success any = ccxt.DerefScalar(this.SafeBool(order, "success", false))
 		var marketId *string = this.SafeString(order, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var orderId *string = this.SafeString(order, "i")
@@ -1206,7 +1206,7 @@ func (this *PacificaCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "h")
 	var fee *string = this.SafeString(trade, "f")
-	var side any = this.SafeString2(trade, "ts", "d")
+	var side any = ccxt.DerefScalar(this.SafeString2(trade, "ts", "d"))
 	if ccxt.IsEqual(side, "open_long") {
 		side = "buy"
 	} else if ccxt.IsEqual(side, "close_long") {

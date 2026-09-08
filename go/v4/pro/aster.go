@@ -424,7 +424,7 @@ func (this *AsterCore) watchMarkPricesBody(ch chan any, optionalArgs ...any) any
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	var use1sFreq any = this.SafeBool(params, "use1sFreq", true)
+	var use1sFreq any = ccxt.DerefScalar(this.SafeBool(params, "use1sFreq", true))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
@@ -497,7 +497,7 @@ func (this *AsterCore) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) a
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	var use1sFreq any = this.SafeBool(params, "use1sFreq", true)
+	var use1sFreq any = ccxt.DerefScalar(this.SafeBool(params, "use1sFreq", true))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
@@ -1086,10 +1086,10 @@ func (this *AsterCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString2(trade, "L", "p")
 	var amount any = nil
 	if isPublicTrade {
-		amount = this.SafeString(trade, "q")
+		amount = ccxt.DerefScalar(this.SafeString(trade, "q"))
 	} else {
 		// private trades, amount is in 'l' field, quantity of the last filled trade
-		amount = this.SafeString(trade, "l")
+		amount = ccxt.DerefScalar(this.SafeString(trade, "l"))
 	}
 	var cost *string = this.SafeString(trade, "Y")
 	if cost == nil {
@@ -1250,7 +1250,7 @@ func (this *AsterCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	if ccxt.IsEqual(limit, nil) || ((limit != 5) && (limit != 10) && (limit != 20)) {
+	if ccxt.IsEqual(limit, nil) || ((!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20))) {
 		limit = 20
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1314,9 +1314,9 @@ func (this *AsterCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	var limit any = this.SafeNumber(params, "limit")
+	var limit any = ccxt.DerefScalar(this.SafeNumber(params, "limit"))
 	params = this.Omit(params, "limit")
-	if ccxt.IsEqual(limit, nil) || ((limit != 5) && (limit != 10) && (limit != 20)) {
+	if ccxt.IsEqual(limit, nil) || ((!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20))) {
 		limit = 20
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1500,7 +1500,7 @@ func (this *AsterCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString any = this.SafeString(data, 0)
+		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		if ccxt.IsEqual(symbolString, nil) {
 			continue
 		}
@@ -1571,7 +1571,7 @@ func (this *AsterCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefra
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString any = this.SafeString(data, 0)
+		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		if ccxt.IsEqual(symbolString, nil) {
 			continue
 		}
@@ -1708,7 +1708,7 @@ func (this *AsterCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}()
 				// try block:
 				var response any = map[string]any{}
-				if typeVar == "spot" {
+				if ccxt.IsEqual(typeVar, "spot") {
 
 					response = (<-this.SapiPrivatePostV3ListenKey(params))
 					ccxt.PanicOnError(response)
@@ -1847,8 +1847,8 @@ func (this *AsterCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var client any = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
 	var options any = this.SafeDict(this.Options, "watchBalance")
-	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
+	var fetchBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", false))
+	var awaitBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "awaitBalanceSnapshot", true))
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
 		retRes139312 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
@@ -1867,7 +1867,7 @@ func (this *AsterCore) SetBalanceCache(client any, typeVar any) {
 		return
 	}
 	var options any = this.SafeValue(this.Options, "watchBalance")
-	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	var fetchBalanceSnapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", false))
 	if fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
@@ -2086,7 +2086,7 @@ func (this *AsterCore) loadPositionsSnapshotBody(ch chan any, client any, messag
 	var cache any = this.Positions
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = this.SafeNumber(position, "contracts", 0)
+		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
 		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
@@ -2521,7 +2521,7 @@ func (this *AsterCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	var executionType *string = this.SafeString(order, "x")
 	var marketId *string = this.SafeString(order, "s")
 	market = this.SafeMarket(marketId, market)
-	var timestamp any = this.SafeInteger(order, "O")
+	var timestamp any = ccxt.DerefScalar(this.SafeInteger(order, "O"))
 	var T *int64 = this.SafeInteger(order, "T")
 	var lastTradeTimestamp any = nil
 	if (executionType != nil && *executionType == "NEW") || (executionType != nil && *executionType == "AMENDMENT") || (executionType != nil && *executionType == "CANCELED") {
@@ -2549,7 +2549,7 @@ func (this *AsterCore) ParseWsOrder(order any, optionalArgs ...any) any {
 		clientOrderId = this.SafeString(order, "c")
 	}
 	var stopPrice *string = this.SafeStringN(order, []any{"P", "sp", "tp"})
-	var timeInForce any = this.SafeString(order, "f")
+	var timeInForce any = ccxt.DerefScalar(this.SafeString(order, "f"))
 	if ccxt.IsEqual(timeInForce, "GTX") {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = "PO"

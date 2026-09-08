@@ -583,7 +583,7 @@ func (this *HyperliquidCore) watchTickersBody(ch chan any, optionalArgs ...any) 
 			"type": "allMids",
 		},
 	}
-	var defaultDex any = this.SafeString(params, "dex")
+	var defaultDex any = ccxt.DerefScalar(this.SafeString(params, "dex"))
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		var market any = this.Market(firstSymbol)
@@ -684,7 +684,7 @@ func (this *HyperliquidCore) watchMyTradesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchMyTrades", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	if ccxt.IsEqual(this.Markets, nil) {
 
@@ -752,7 +752,7 @@ func (this *HyperliquidCore) unWatchMyTradesBody(ch chan any, optionalArgs ...an
 	}
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchMyTrades", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var messageHash string = "unsubscribe:myTrades"
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -1088,9 +1088,9 @@ func (this *HyperliquidCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "tid")
-	var side any = this.SafeString(trade, "side")
+	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))
 	if !ccxt.IsEqual(side, nil) {
-		side = ccxt.Ternary((side == "A"), "sell", "buy")
+		side = ccxt.Ternary((ccxt.IsEqual(side, "A")), "sell", "buy")
 	}
 	var fee *string = this.SafeString(trade, "fee")
 	return this.SafeTrade(map[string]any{
@@ -1297,7 +1297,7 @@ func (this *HyperliquidCore) watchBalanceBody(ch chan any, optionalArgs ...any) 
 	}
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchBalance", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
@@ -1307,10 +1307,10 @@ func (this *HyperliquidCore) watchBalanceBody(ch chan any, optionalArgs ...any) 
 
 	unifiedResult := (<-this.IsUnifiedEnabled("watchBalance", userAddress, false, params))
 	ccxt.PanicOnError(unifiedResult)
-	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
+	isUnifiedEnabled = ccxt.DerefScalar(this.SafeBool(unifiedResult, 0))
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
-	var isSpot bool = ((typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
+	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var topic any = ccxt.Ternary((isSpot == true), "spotState", "clearinghouseState")
 	var messageHash any = ccxt.Add(topic, "::balance")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -1365,7 +1365,7 @@ func (this *HyperliquidCore) unWatchBalanceBody(ch chan any, optionalArgs ...any
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchBalance", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("unWatchBalance", nil, params)
@@ -1375,10 +1375,10 @@ func (this *HyperliquidCore) unWatchBalanceBody(ch chan any, optionalArgs ...any
 
 	unifiedResult := (<-this.IsUnifiedEnabled("unWatchBalance", userAddress, false, params))
 	ccxt.PanicOnError(unifiedResult)
-	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
+	isUnifiedEnabled = ccxt.DerefScalar(this.SafeBool(unifiedResult, 0))
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
-	var isSpot bool = ((typeVar == "spot") || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
+	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var topic any = ccxt.Ternary((isSpot == true), "spotState", "clearinghouseState")
 	var messageHash any = ccxt.Add(ccxt.Add("unsubscribe", ":"), topic)
 	var request map[string]any = map[string]any{
@@ -1469,7 +1469,7 @@ func (this *HyperliquidCore) HandleBalance(client any, message any) {
 		var clearinghouseState any = this.SafeDict(data, "clearinghouseState")
 		ccxt.AppendToArray(&rawBalances, clearinghouseState)
 		info = clearinghouseState
-		timestamp = this.SafeInteger(clearinghouseState, "time")
+		timestamp = ccxt.DerefScalar(this.SafeInteger(clearinghouseState, "time"))
 		this.HandlePositions(client, message)
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawBalances)); i++ {
@@ -1579,7 +1579,7 @@ func (this *HyperliquidCore) watchPositionsBody(ch chan any, optionalArgs ...any
 	}
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchPositions", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var topic string = "clearinghouseState"
 	var messageHash any = ccxt.Add(topic, "::positions")
@@ -1690,7 +1690,7 @@ func (this *HyperliquidCore) unWatchPositionsBody(ch chan any, optionalArgs ...a
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchPositions", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1742,7 +1742,7 @@ func (this *HyperliquidCore) watchOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchOrders", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var market any = nil
 	var messageHash any = "order"
@@ -1815,7 +1815,7 @@ func (this *HyperliquidCore) unWatchOrdersBody(ch chan any, optionalArgs ...any)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchOrders", params)
-	userAddress = this.SafeString(userAddressResult, 0)
+	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",

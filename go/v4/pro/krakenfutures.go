@@ -749,7 +749,7 @@ func (this *KrakenfuturesCore) watchBalanceBody(ch chan any, optionalArgs ...any
 	account = ccxt.GetValue(accountparamsVariable, 0)
 	params = ccxt.GetValue(accountparamsVariable, 1)
 	if !ccxt.IsEqual(account, nil) {
-		if (account != "futures") && (account != "flex_futures") {
+		if (!ccxt.IsEqual(account, "futures")) && (!ccxt.IsEqual(account, "flex_futures")) {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchBalance account must be either 'futures' or 'flex_futures'")))
 		}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
@@ -1453,15 +1453,15 @@ func (this *KrakenfuturesCore) HandleOrderBookSnapshot(client any, message any) 
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bids)); i++ {
 		var bid any = ccxt.GetValue(bids, i)
-		var price any = this.SafeNumber(bid, "price")
-		var qty any = this.SafeNumber(bid, "qty")
+		var price any = ccxt.DerefScalar(this.SafeNumber(bid, "price"))
+		var qty any = ccxt.DerefScalar(this.SafeNumber(bid, "qty"))
 		var bidsSide any = ccxt.GetValue(orderbook, "bids")
 		bidsSide.(ccxt.IOrderBookSide).Store(price, qty)
 	}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(asks)); i++ {
 		var ask any = ccxt.GetValue(asks, i)
-		var price any = this.SafeNumber(ask, "price")
-		var qty any = this.SafeNumber(ask, "qty")
+		var price any = ccxt.DerefScalar(this.SafeNumber(ask, "price"))
+		var qty any = ccxt.DerefScalar(this.SafeNumber(ask, "qty"))
 		var asksSide any = ccxt.GetValue(orderbook, "asks")
 		asksSide.(ccxt.IOrderBookSide).Store(price, qty)
 	}
@@ -1488,8 +1488,8 @@ func (this *KrakenfuturesCore) HandleOrderBook(client any, message any) {
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var side *string = this.SafeString(message, "side")
-	var price any = this.SafeNumber(message, "price")
-	var qty any = this.SafeNumber(message, "qty")
+	var price any = ccxt.DerefScalar(this.SafeNumber(message, "price"))
+	var qty any = ccxt.DerefScalar(this.SafeNumber(message, "qty"))
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if side != nil && *side == "sell" {
 		var asks any = ccxt.GetValue(orderbook, "asks")

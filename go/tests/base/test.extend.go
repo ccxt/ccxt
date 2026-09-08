@@ -128,7 +128,7 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p2"), true), "chain: r3['p2'] should be present")
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p3"), true), "chain: r3['p3'] should be present")
 	// --- mutation check: each intermediate must be unaffected ---
-	assert((ccxt.GetValue(base, "x") == 0), "base['x'] was mutated during chain")
+	assert((ccxt.IsEqual(ccxt.GetValue(base, "x"), 0)), "base['x'] was mutated during chain")
 	assert(ccxt.IsEqual(ccxt.GetValue(r1, "x"), 1), "r1['x'] was mutated during chain")
 	assert(ccxt.IsEqual(ccxt.GetValue(r2, "x"), 2), "r2['x'] was mutated during chain")
 	assert(!(ccxt.InOp(r1, "p3")), "r1['p3'] leaked into r1")
@@ -149,8 +149,8 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep2"), nil), "extend: extUndef['keep2'] should be undefined")
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "newKey"), "C"), "extend: extUndef['newKey'] should be added")
 	// original must not be touched
-	assert((ccxt.GetValue(withValues, "keep1") == "A"), "withValues['keep1'] was mutated")
-	assert((ccxt.GetValue(withValues, "keep2") == "B"), "withValues['keep2'] was mutated")
+	assert((ccxt.IsEqual(ccxt.GetValue(withValues, "keep1"), "A")), "withValues['keep1'] was mutated")
+	assert((ccxt.IsEqual(ccxt.GetValue(withValues, "keep2"), "B")), "withValues['keep2'] was mutated")
 }
 func TbfeCheckExtended(extended any, hasSub any) {
 	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "a"), 2))

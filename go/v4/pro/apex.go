@@ -362,7 +362,7 @@ func (this *ApexCore) GetWsPublicUrl() any {
 	// signing. CCXT's client manager keys clients by URL, so recomputing the
 	// timestamp on every watch* call would open a new connection each time.
 	// Cache it per exchange instance.
-	var url any = this.SafeString(this.Options, "wsPublicUrl")
+	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPublicUrl"))
 	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
@@ -371,7 +371,7 @@ func (this *ApexCore) GetWsPublicUrl() any {
 	return url
 }
 func (this *ApexCore) GetWsPrivateUrl() any {
-	var url any = this.SafeString(this.Options, "wsPrivateUrl")
+	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPrivateUrl"))
 	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
@@ -659,7 +659,7 @@ func (this *ApexCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	var messageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
-		var symbolString any = this.SafeString(data, 0)
+		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
 		var market any = this.Market(symbolString)
 		symbolString = ccxt.GetValue(market, "id2")
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")

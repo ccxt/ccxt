@@ -577,7 +577,7 @@ func (this *HashkeyCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	side = ccxt.GetValue(sidereduceOnlyVariable, 0)
 	reduceOnly = ccxt.GetValue(sidereduceOnlyVariable, 1)
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "o"))
-	var timeInForce any = this.SafeString(order, "f")
+	var timeInForce any = ccxt.DerefScalar(this.SafeString(order, "f"))
 	var postOnly any = nil
 	typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
 	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)
@@ -731,7 +731,7 @@ func (this *HashkeyCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "s")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "t")
-	var isBuyerMaker any = this.SafeBool(trade, "m")
+	var isBuyerMaker any = ccxt.DerefScalar(this.SafeBool(trade, "m"))
 	var isPublicTrade bool = (this.SafeString(trade, "e") == nil)
 	var side any = nil
 	var takerOrMaker any = nil
@@ -950,7 +950,7 @@ func (this *HashkeyCore) SetBalanceCache(client any, typeVar any, subscribeHash 
 		return
 	}
 	var options any = this.SafeDict(this.Options, "watchBalance")
-	var snapshot any = this.SafeBool(options, "fetchBalanceSnapshot", true)
+	var snapshot any = ccxt.DerefScalar(this.SafeBool(options, "fetchBalanceSnapshot", true))
 	if snapshot == true {
 		var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {

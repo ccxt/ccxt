@@ -583,12 +583,12 @@ func (this *BtcmarketsCore) ParseTransaction(transaction any, optionalArgs ...an
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "creationTime"))
 	var lastUpdate any = this.Parse8601(this.SafeString(transaction, "lastUpdate"))
 	var typeVar any = this.ParseTransactionType(this.SafeStringLower(transaction, "type"))
-	if typeVar == "withdraw" {
+	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
 	var cryptoPaymentDetail any = this.SafeDict(transaction, "paymentDetail", map[string]any{})
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
-	var address any = this.SafeString(cryptoPaymentDetail, "address")
+	var address any = DerefScalar(this.SafeString(cryptoPaymentDetail, "address"))
 	var tag any = nil
 	if !IsEqual(address, nil) {
 		var addressParts []string = Split(address, "?dt=")
@@ -686,8 +686,8 @@ func (this *BtcmarketsCore) ParseMarket(market any) any {
 	var symbol any = Add(Add(base, "/"), quote)
 	var fees any = this.SafeValue(this.SafeDict(this.Options, "fees", map[string]any{}), quote, this.Fees)
 	var pricePrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "priceDecimals")))
-	var minAmount any = this.SafeNumber(market, "minOrderAmount")
-	var maxAmount any = this.SafeNumber(market, "maxOrderAmount")
+	var minAmount any = DerefScalar(this.SafeNumber(market, "minOrderAmount"))
+	var maxAmount any = DerefScalar(this.SafeNumber(market, "maxOrderAmount"))
 	var status *string = this.SafeString(market, "status")
 	var minPrice any = nil
 	if IsEqual(quote, "AUD") {
@@ -1118,7 +1118,7 @@ func (this *BtcmarketsCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "marketId")
 	market = this.SafeMarket(marketId, market, "-")
 	var feeCurrencyCode any = Ternary((GetValue(market, "quote") == "AUD"), GetValue(market, "quote"), GetValue(market, "base"))
-	var side any = this.SafeString(trade, "side")
+	var side any = DerefScalar(this.SafeString(trade, "side"))
 	if IsEqual(side, "Bid") {
 		side = "buy"
 	} else if IsEqual(side, "Ask") {
@@ -1269,7 +1269,7 @@ func (this *BtcmarketsCore) createOrderBody(ch chan any, symbol any, typeVar any
 		}
 	}
 	if triggerPriceIsRequired {
-		var triggerPrice any = this.SafeNumber(params, "triggerPrice")
+		var triggerPrice any = DerefScalar(this.SafeNumber(params, "triggerPrice"))
 		params = this.Omit(params, "triggerPrice")
 		if IsEqual(triggerPrice, nil) {
 			panic(ArgumentsRequired(Add(Add(Add(this.Id, " createOrder() requires a triggerPrice parameter for a "), typeVar), "order")))
@@ -1498,7 +1498,7 @@ func (this *BtcmarketsCore) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(order, "creationTime"))
 	var marketId *string = this.SafeString(order, "marketId")
 	market = this.SafeMarket(marketId, market, "-")
-	var side any = this.SafeString(order, "side")
+	var side any = DerefScalar(this.SafeString(order, "side"))
 	if IsEqual(side, "Bid") {
 		side = "buy"
 	} else if IsEqual(side, "Ask") {
@@ -1512,7 +1512,7 @@ func (this *BtcmarketsCore) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "orderId")
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
-	var postOnly any = this.SafeBool(order, "postOnly")
+	var postOnly any = DerefScalar(this.SafeBool(order, "postOnly"))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -1818,7 +1818,7 @@ func (this *BtcmarketsCore) withdrawBody(ch chan any, code any, amount any, addr
 		"assetName": GetValue(currency, "id"),
 		"amount":    this.CurrencyToPrecision(code, amount),
 	}
-	if code != "AUD" {
+	if !IsEqual(code, "AUD") {
 		this.CheckAddress(address)
 		AddElementToObject(request, "toAddress", address)
 	}
@@ -1869,7 +1869,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
 		var auth any = Add(Add(method, request), nonce)
-		if (method == "GET") || (method == "DELETE") {
+		if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				request = Add(request, Add("?", this.Urlencode(query)))
 			}

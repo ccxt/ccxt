@@ -719,7 +719,7 @@ func (this *MercadoCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"coin_pair": GetValue(market, "id"),
 	}
 	var response any = nil
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(GetValue(market, "symbol"), price))
 		AddElementToObject(request, "quantity", this.AmountToPrecision(GetValue(market, "symbol"), amount))
 		if IsEqual(side, "buy") {
@@ -990,17 +990,17 @@ func (this *MercadoCore) withdrawBody(ch chan any, code any, amount any, address
 		"quantity": ToFixed(amount, 10),
 		"address":  address,
 	}
-	if code == "BRL" {
+	if IsEqual(code, "BRL") {
 		var account_ref bool = (InOp(params, "account_ref"))
 		if !account_ref {
 			panic(ArgumentsRequired(Add(Add(this.Id, " withdraw() requires account_ref parameter to withdraw "), code)))
 		}
-	} else if code != "LTC" {
+	} else if !IsEqual(code, "LTC") {
 		var tx_fee bool = (InOp(params, "tx_fee"))
 		if !tx_fee {
 			panic(ArgumentsRequired(Add(Add(this.Id, " withdraw() requires tx_fee parameter to withdraw "), code)))
 		}
-		if code == "XRP" {
+		if IsEqual(code, "XRP") {
 			if IsEqual(tag, nil) {
 				if !(InOp(params, "destination_tag")) {
 					panic(ArgumentsRequired(Add(Add(this.Id, " withdraw() requires a tag argument or destination_tag parameter to withdraw "), code)))

@@ -826,7 +826,7 @@ func (this *P2bCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct2(trade, "time", "deal_time", 1000)
-	var takerOrMaker any = this.SafeString(trade, "role")
+	var takerOrMaker any = DerefScalar(this.SafeString(trade, "role"))
 	if IsEqual(takerOrMaker, "1") {
 		takerOrMaker = "maker"
 	} else if IsEqual(takerOrMaker, "2") {
@@ -1052,7 +1052,7 @@ func (this *P2bCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		retRes91912 := (<-this.LoadMarkets())
 		PanicOnError(retRes91912)
 	}
-	if typeVar == "market" {
+	if IsEqual(typeVar, "market") {
 		panic(BadRequest(Add(this.Id, " createOrder () can only accept orders with type \"limit\"")))
 	}
 	var market any = this.Market(symbol)
@@ -1353,7 +1353,7 @@ func (this *P2bCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes114012 := (<-this.LoadMarkets())
 		PanicOnError(retRes114012)
 	}
-	var until any = this.SafeInteger(params, "until")
+	var until any = DerefScalar(this.SafeInteger(params, "until"))
 	params = this.Omit(params, "until")
 	if IsEqual(until, nil) {
 		if IsEqual(since, nil) {
@@ -1451,7 +1451,7 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes121712 := (<-this.LoadMarkets())
 		PanicOnError(retRes121712)
 	}
-	var until any = this.SafeInteger(params, "until")
+	var until any = DerefScalar(this.SafeInteger(params, "until"))
 	params = this.Omit(params, "until")
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -1607,7 +1607,7 @@ func (this *P2bCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
-	if method == "GET" {
+	if IsEqual(method, "GET") {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
@@ -1640,7 +1640,7 @@ func (this *P2bCore) HandleErrors(code any, reason any, url any, method any, hea
 	//     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
 	//     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
 	//
-	var success any = this.SafeBool(response, "success", true)
+	var success any = DerefScalar(this.SafeBool(response, "success", true))
 	if success != true {
 		var errorCode *string = this.SafeString(response, "errorCode")
 		var feedback any = Add(Add(this.Id, " "), body)

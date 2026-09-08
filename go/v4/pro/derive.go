@@ -347,7 +347,7 @@ func (this *DeriveCore) unWatchOrderBookBody(ch chan any, symbol any, optionalAr
 		retRes29112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes29112)
 	}
-	var limit any = this.SafeInteger(params, "limit")
+	var limit any = ccxt.DerefScalar(this.SafeInteger(params, "limit"))
 	if ccxt.IsEqual(limit, nil) {
 		limit = 10
 	}
@@ -935,13 +935,13 @@ func (this *DeriveCore) HandleMessage(client any, message any) {
 		if channel != nil {
 			var parsedChannel []string = ccxt.Split(channel, ".")
 			if (ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "orders"), 0)) || ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "trades"), 0) {
-				event = this.SafeString(parsedChannel, 1)
+				event = ccxt.DerefScalar(this.SafeString(parsedChannel, 1))
 				// {subaccounr_id}.trades
 				if ccxt.IsEqual(event, "trades") {
 					event = "mytrades"
 				}
 			} else {
-				event = this.SafeString(parsedChannel, 0)
+				event = ccxt.DerefScalar(this.SafeString(parsedChannel, 0))
 			}
 		}
 	}

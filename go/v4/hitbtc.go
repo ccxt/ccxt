@@ -858,7 +858,7 @@ func (this *HitbtcCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var expiry *int64 = this.SafeInteger(market, "expiry")
 		var contract bool = (marketType != nil && *marketType == "futures")
 		var spot bool = (marketType != nil && *marketType == "spot")
-		var marginTrading any = this.SafeBool(market, "margin_trading", false)
+		var marginTrading any = DerefScalar(this.SafeBool(market, "margin_trading", false))
 		var margin bool = spot && EvalTruthy(marginTrading)
 		var future bool = (expiry != nil)
 		var swap bool = (contract && !future)
@@ -1100,7 +1100,7 @@ func (this *HitbtcCore) createDepositAddressBody(ch chan any, code any, optional
 		"currency": GetValue(currency, "id"),
 	}
 	var network *string = this.SafeStringUpper(params, "network")
-	if (network != nil) && (code == "USDT") {
+	if (network != nil) && (IsEqual(code, "USDT")) {
 		var networks any = this.SafeValue(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
@@ -1155,7 +1155,7 @@ func (this *HitbtcCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 		"currency": GetValue(currency, "id"),
 	}
 	var network *string = this.SafeStringUpper(params, "network")
-	if (network != nil) && (code == "USDT") {
+	if (network != nil) && (IsEqual(code, "USDT")) {
 		var networks any = this.SafeValue(this.Options, "networks")
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
@@ -1546,15 +1546,15 @@ func (this *HitbtcCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1799,7 +1799,7 @@ func (this *HitbtcCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var tagTo any = tag
 	var sender any = this.SafeValue(native, "senders")
 	var addressFrom *string = this.SafeString(sender, 0)
-	var amount any = this.SafeNumber(native, "amount")
+	var amount any = DerefScalar(this.SafeNumber(native, "amount"))
 	var subType *string = this.SafeString(transaction, "subtype")
 	var internal bool = (subType != nil && *subType == "OFFCHAIN")
 	// https://api.hitbtc.com/#check-if-offchain-is-available
@@ -1808,7 +1808,7 @@ func (this *HitbtcCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		"cost":     nil,
 		"rate":     nil,
 	}
-	var feeCost any = this.SafeNumber(native, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(native, "fee"))
 	if !IsEqual(feeCost, nil) {
 		AddElementToObject(fee, "currency", code)
 		AddElementToObject(fee, "cost", feeCost)
@@ -2045,8 +2045,8 @@ func (this *HitbtcCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var taker any = this.SafeNumber(fee, "take_rate")
-	var maker any = this.SafeNumber(fee, "make_rate")
+	var taker any = DerefScalar(this.SafeNumber(fee, "take_rate"))
+	var maker any = DerefScalar(this.SafeNumber(fee, "make_rate"))
 	var marketId *string = this.SafeString(fee, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
 	return map[string]any{
@@ -2379,15 +2379,15 @@ func (this *HitbtcCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2454,15 +2454,15 @@ func (this *HitbtcCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2554,15 +2554,15 @@ func (this *HitbtcCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 		response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateGetSpotHistoryTrade(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesHistoryTrade(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginHistoryTrade(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2670,15 +2670,15 @@ func (this *HitbtcCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		response = (<-this.PrivateGetMarginOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateGetSpotOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2763,15 +2763,15 @@ func (this *HitbtcCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...
 		response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateGetSpotOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2835,15 +2835,15 @@ func (this *HitbtcCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 		response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateDeleteSpotOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateDeleteFuturesOrder(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateDeleteMarginOrder(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2909,15 +2909,15 @@ func (this *HitbtcCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivateDeleteSpotOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateDeleteFuturesOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2953,7 +2953,7 @@ func (this *HitbtcCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 		"client_order_id": id,
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
-	if (typeVar == "limit") || (typeVar == "stopLimit") {
+	if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLimit")) {
 		if IsEqual(price, nil) {
 			panic(ExchangeError(Add(this.Id, " editOrder() limit order requires price")))
 		}
@@ -2977,15 +2977,15 @@ func (this *HitbtcCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 		response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "spot" {
+		if IsEqual(marketType, "spot") {
 
 			response = (<-this.PrivatePatchSpotOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "swap" {
+		} else if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivatePatchFuturesOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3049,11 +3049,11 @@ func (this *HitbtcCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if marketType == "swap" {
+	if IsEqual(marketType, "swap") {
 
 		response = (<-this.PrivatePostFuturesOrder(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if (marketType == "margin") || (!IsEqual(marginMode, nil)) {
+	} else if (IsEqual(marketType, "margin")) || (!IsEqual(marginMode, nil)) {
 
 		response = (<-this.PrivatePostMarginOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3073,11 +3073,11 @@ func (this *HitbtcCore) CreateOrderRequest(market any, marketType any, typeVar a
 	_ = marginMode
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var isLimit bool = (typeVar == "limit")
+	var isLimit bool = (IsEqual(typeVar, "limit"))
 	var reduceOnly any = this.SafeValue(params, "reduceOnly")
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
-	var isPostOnly any = this.IsPostOnly((typeVar == "market"), nil, params)
+	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"}))
+	var isPostOnly any = this.IsPostOnly((IsEqual(typeVar, "market")), nil, params)
 	var request map[string]any = map[string]any{
 		"type":     typeVar,
 		"side":     side,
@@ -3098,7 +3098,7 @@ func (this *HitbtcCore) CreateOrderRequest(market any, marketType any, typeVar a
 	if timeInForce != nil {
 		AddElementToObject(request, "time_in_force", timeInForce)
 	}
-	if isLimit || (typeVar == "stopLimit") || (typeVar == "takeProfitLimit") {
+	if isLimit || (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "takeProfitLimit")) {
 		if IsEqual(price, nil) {
 			panic(ExchangeError(Add(this.Id, " createOrder() requires a price argument for limit orders")))
 		}
@@ -3114,14 +3114,14 @@ func (this *HitbtcCore) CreateOrderRequest(market any, marketType any, typeVar a
 		AddElementToObject(request, "stop_price", this.PriceToPrecision(GetValue(market, "symbol"), triggerPrice))
 		if isLimit {
 			AddElementToObject(request, "type", "stopLimit")
-		} else if typeVar == "market" {
+		} else if IsEqual(typeVar, "market") {
 			AddElementToObject(request, "type", "stopMarket")
 		}
-	} else if (typeVar == "stopLimit") || (typeVar == "stopMarket") || (typeVar == "takeProfitLimit") || (typeVar == "takeProfitMarket") {
+	} else if (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "stopMarket")) || (IsEqual(typeVar, "takeProfitLimit")) || (IsEqual(typeVar, "takeProfitMarket")) {
 		panic(ExchangeError(Add(this.Id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")))
 	}
 	params = this.Omit(params, []any{"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"})
-	if marketType == "swap" {
+	if IsEqual(marketType, "swap") {
 		// set default margin mode to cross
 		if IsEqual(marginMode, nil) {
 			marginMode = "cross"
@@ -3302,11 +3302,11 @@ func (this *HitbtcCore) fetchMarginModesBody(ch chan any, optionalArgs ...any) a
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
-	if marketType == "margin" {
+	if IsEqual(marketType, "margin") {
 
 		response = (<-this.PrivateGetMarginConfig(params))
 		PanicOnError(response)
-	} else if marketType == "swap" {
+	} else if IsEqual(marketType, "swap") {
 
 		response = (<-this.PrivateGetFuturesConfig(params))
 		PanicOnError(response)
@@ -3420,14 +3420,14 @@ func (this *HitbtcCore) convertCurrencyNetworkBody(ch chan any, code any, amount
 		retRes279612 := (<-this.LoadMarkets())
 		PanicOnError(retRes279612)
 	}
-	if code != "USDT" {
+	if !IsEqual(code, "USDT") {
 		panic(ExchangeError(Add(this.Id, " convertCurrencyNetwork() only supports USDT currently")))
 	}
 	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
 	fromNetwork = ToUpper(fromNetwork)
 	toNetwork = ToUpper(toNetwork)
-	fromNetwork = this.SafeString(networks, fromNetwork) // handle ETH>ERC20 alias
-	toNetwork = this.SafeString(networks, toNetwork)     // handle ETH>ERC20 alias
+	fromNetwork = DerefScalar(this.SafeString(networks, fromNetwork)) // handle ETH>ERC20 alias
+	toNetwork = DerefScalar(this.SafeString(networks, toNetwork))     // handle ETH>ERC20 alias
 	if IsEqual(fromNetwork, toNetwork) {
 		panic(BadRequest(Add(this.Id, " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")))
 	}
@@ -3495,7 +3495,7 @@ func (this *HitbtcCore) withdrawBody(ch chan any, code any, amount any, address 
 	}
 	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
 	var network *string = this.SafeStringUpper(params, "network")
-	if (network != nil) && (code == "USDT") {
+	if (network != nil) && (IsEqual(code, "USDT")) {
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			AddElementToObject(request, "network_code", parsedNetwork)
@@ -3503,7 +3503,7 @@ func (this *HitbtcCore) withdrawBody(ch chan any, code any, amount any, address 
 		params = this.Omit(params, "network")
 	}
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
-	var includeFee any = this.SafeBool(withdrawOptions, "includeFee", false)
+	var includeFee any = DerefScalar(this.SafeBool(withdrawOptions, "includeFee", false))
 	if includeFee == true {
 		AddElementToObject(request, "include_fee", true)
 	}
@@ -3558,7 +3558,7 @@ func (this *HitbtcCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	if typeVar != "swap" {
+	if !IsEqual(typeVar, "swap") {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchFundingRates() does not support "), typeVar), " markets")))
 	}
 
@@ -3687,7 +3687,7 @@ func (this *HitbtcCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 		for j := 0; IsLessThan(j, GetArrayLength(fundingRateData)); j++ {
 			var entry any = GetValue(fundingRateData, j)
 			var symbolInner any = this.SafeSymbol(GetValue(marketInner, "symbol"))
-			var fundingRate any = this.SafeNumber(entry, "funding_rate")
+			var fundingRate any = DerefScalar(this.SafeNumber(entry, "funding_rate"))
 			var datetime *string = this.SafeString(entry, "timestamp")
 			AppendToArray(&rates, map[string]any{
 				"info":        entry,
@@ -3739,7 +3739,7 @@ func (this *HitbtcCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPositions", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 		marketType = "swap"
 	}
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPositions", params)
@@ -3752,11 +3752,11 @@ func (this *HitbtcCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "swap" {
+		if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesAccount(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginAccount(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3851,11 +3851,11 @@ func (this *HitbtcCore) fetchPositionBody(ch chan any, symbol any, optionalArgs 
 		response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if marketType == "swap" {
+		if IsEqual(marketType, "swap") {
 
 			response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if marketType == "margin" {
+		} else if IsEqual(marketType, "margin") {
 
 			response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3935,7 +3935,7 @@ func (this *HitbtcCore) ParsePosition(position any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marginMode *string = this.SafeString(position, "type")
-	var leverage any = this.SafeNumber(position, "leverage")
+	var leverage any = DerefScalar(this.SafeNumber(position, "leverage"))
 	var datetime *string = this.SafeString(position, "updated_at")
 	var positions any = this.SafeValue(position, "positions", []any{})
 	var liquidationPrice any = nil
@@ -3943,15 +3943,15 @@ func (this *HitbtcCore) ParsePosition(position any, optionalArgs ...any) any {
 	var contracts any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		var entry any = GetValue(positions, i)
-		liquidationPrice = this.SafeNumber(entry, "price_liquidation")
-		entryPrice = this.SafeNumber(entry, "price_entry")
-		contracts = this.SafeNumber(entry, "quantity")
+		liquidationPrice = DerefScalar(this.SafeNumber(entry, "price_liquidation"))
+		entryPrice = DerefScalar(this.SafeNumber(entry, "price_entry"))
+		contracts = DerefScalar(this.SafeNumber(entry, "quantity"))
 	}
 	var currencies any = this.SafeValue(position, "currencies", []any{})
 	var collateral any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
 		var entry any = GetValue(currencies, i)
-		collateral = this.SafeNumber(entry, "margin_balance")
+		collateral = DerefScalar(this.SafeNumber(entry, "margin_balance"))
 	}
 	var marketId *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
@@ -4006,7 +4006,7 @@ func (this *HitbtcCore) ParseOpenInterest(interest any, optionalArgs ...any) any
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var datetime *string = this.SafeString(interest, "timestamp")
-	var value any = this.SafeNumber(interest, "open_interest")
+	var value any = DerefScalar(this.SafeNumber(interest, "open_interest"))
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeSymbol(nil, market),
 		"openInterestAmount": nil,
@@ -4275,11 +4275,11 @@ func (this *HitbtcCore) modifyMarginHelperBody(ch chan any, symbol any, amount a
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var response any = nil
-	if marketType == "swap" {
+	if IsEqual(marketType, "swap") {
 
 		response = (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if (marketType == "margin") || (marketType == "spot") || (IsEqual(marginMode, "isolated")) {
+	} else if (IsEqual(marketType, "margin")) || (IsEqual(marketType, "spot")) || (IsEqual(marginMode, "isolated")) {
 
 		response = (<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4555,7 +4555,7 @@ func (this *HitbtcCore) setLeverageBody(ch chan any, leverage any, optionalArgs 
 		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")))
 	}
 	var market any = this.Market(symbol)
-	var amount any = this.SafeNumber(params, "margin_balance")
+	var amount any = DerefScalar(this.SafeNumber(params, "margin_balance"))
 	var maxLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "max", 50)
 	if GetValue(market, "type") != "swap" {
 		panic(BadSymbol(Add(this.Id, " setLeverage() supports swap contracts only")))
@@ -4667,7 +4667,7 @@ func (this *HitbtcCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 		var code *string = this.SafeString(currency, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		networkCode = Ternary((!IsEqual(networkCode, nil)), ToUpper(networkCode), nil)
-		var withdrawFee any = this.SafeNumber(networkEntry, "payout_fee")
+		var withdrawFee any = DerefScalar(this.SafeNumber(networkEntry, "payout_fee"))
 		var isDefault any = this.SafeValue(networkEntry, "default")
 		var withdrawResult map[string]any = map[string]any{
 			"fee":        withdrawFee,
@@ -4762,7 +4762,7 @@ func (this *HitbtcCore) HandleMarginModeAndParams(methodName any, optionalArgs .
 	defaultValue := GetArg(optionalArgs, 1, nil)
 	_ = defaultValue
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
-	var isMargin any = this.SafeBool(params, "margin", false)
+	var isMargin any = DerefScalar(this.SafeBool(params, "margin", false))
 	var marginMode any = nil
 	marginModeparamsVariable := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	marginMode = GetValue(marginModeparamsVariable, 0)
@@ -4822,7 +4822,7 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 	headers = map[string]any{
 		"Content-Type": "application/json",
 	}
-	if method == "GET" {
+	if IsEqual(method, "GET") {
 		if (!IsEqual(queryLength, nil)) && (queryLength != 0) {
 			getRequest = Add("?", this.Urlencode(query))
 			url = Add(url, getRequest)
@@ -4834,7 +4834,7 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
 		var payload any = []any{method, Add("/api/3/", implodedPath)}
-		if method == "GET" {
+		if IsEqual(method, "GET") {
 			if !IsEqual(getRequest, nil) {
 				AppendToArray(&payload, getRequest)
 			}

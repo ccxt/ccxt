@@ -506,8 +506,8 @@ func (this *BitrueCore) ParseContractBidsAsks(bidsAsks any, symbol any) any {
 	var result any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bidsAsks)); i++ {
 		var level any = ccxt.GetValue(bidsAsks, i)
-		var price any = this.SafeNumber(level, 0)
-		var rawAmount any = this.SafeNumber(level, 1)
+		var price any = ccxt.DerefScalar(this.SafeNumber(level, 0))
+		var rawAmount any = ccxt.DerefScalar(this.SafeNumber(level, 1))
 		var amount any = this.ConvertFromRawQuantity(symbol, rawAmount)
 		ccxt.AppendToArray(&result, []any{price, amount})
 	}
@@ -521,7 +521,7 @@ func (this *BitrueCore) ConvertFromRawQuantity(symbol any, rawQuantity any) any 
 	if !ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
 		return rawQuantity
 	}
-	var contractSize any = this.SafeNumber(market, "contractSize", 1)
+	var contractSize any = ccxt.DerefScalar(this.SafeNumber(market, "contractSize", 1))
 	return ccxt.Multiply(rawQuantity, contractSize)
 }
 
@@ -639,7 +639,7 @@ func (this *BitrueCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var sideLower *string = this.SafeStringLower(trade, "side")
 	var priceString *string = this.SafeString(trade, "price")
-	var rawVol any = this.SafeNumber(trade, "vol")
+	var rawVol any = ccxt.DerefScalar(this.SafeNumber(trade, "vol"))
 	var baseAmount any = this.ConvertFromRawQuantity(symbol, rawVol)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -778,11 +778,11 @@ func (this *BitrueCore) ParseWsOHLCV(tick any, optionalArgs ...any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var idSeconds *int64 = this.SafeInteger(tick, "id")
 	var timestamp any = ccxt.Ternary((idSeconds == nil), nil, ccxt.Multiply(idSeconds, 1000))
-	var open any = this.SafeNumber(tick, "open")
-	var high any = this.SafeNumber(tick, "high")
-	var low any = this.SafeNumber(tick, "low")
-	var close any = this.SafeNumber(tick, "close")
-	var rawVol any = this.SafeNumber(tick, "vol")
+	var open any = ccxt.DerefScalar(this.SafeNumber(tick, "open"))
+	var high any = ccxt.DerefScalar(this.SafeNumber(tick, "high"))
+	var low any = ccxt.DerefScalar(this.SafeNumber(tick, "low"))
+	var close any = ccxt.DerefScalar(this.SafeNumber(tick, "close"))
+	var rawVol any = ccxt.DerefScalar(this.SafeNumber(tick, "vol"))
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)
 	return []any{timestamp, open, high, low, close, baseVolume}
 }
@@ -875,12 +875,12 @@ func (this *BitrueCore) ParseWsTicker(tick any, market any, optionalArgs ...any)
 	timestamp := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = timestamp
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var rawVol any = this.SafeNumber(tick, "vol")
-	var rawAmount any = this.SafeNumber(tick, "amount")
+	var rawVol any = ccxt.DerefScalar(this.SafeNumber(tick, "vol"))
+	var rawAmount any = ccxt.DerefScalar(this.SafeNumber(tick, "amount"))
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)
 	var quoteVolume any = this.ConvertFromRawQuantity(symbol, rawAmount)
-	var close any = this.SafeNumber(tick, "close")
-	var rose any = this.SafeNumber(tick, "rose")
+	var close any = ccxt.DerefScalar(this.SafeNumber(tick, "close"))
+	var rose any = ccxt.DerefScalar(this.SafeNumber(tick, "rose"))
 	var percentage any = ccxt.Ternary((ccxt.IsEqual(rose, nil)), nil, ccxt.Multiply(rose, 100))
 	return this.SafeTicker(map[string]any{
 		"info":          tick,

@@ -265,7 +265,7 @@ func (this *BlofinCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, o
 	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
 	params = ccxt.GetValue(channelNameparamsVariable, 1)
 	// due to some problem, temporarily disable other channels
-	if channelName != "books" {
+	if !ccxt.IsEqual(channelName, "books") {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
 	}
 
@@ -661,7 +661,7 @@ func (this *BlofinCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	if marketType == "spot" {
+	if ccxt.IsEqual(marketType, "spot") {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchBalance() is not supported for spot markets yet")))
 	}
 	var messageHash any = ccxt.Add(marketType, ":balance")
@@ -984,7 +984,7 @@ func (this *BlofinCore) watchMultipleWrapperBody(ch chan any, isPublic any, chan
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-	var isOHLCV bool = (channelName == "candle")
+	var isOHLCV bool = (ccxt.IsEqual(channelName, "candle"))
 	var symbols any = ccxt.Ternary(isOHLCV, this.GetListFromObjectValues(symbolsArray, 0), symbolsArray)
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var firstMarket any = nil
@@ -996,7 +996,7 @@ func (this *BlofinCore) watchMultipleWrapperBody(ch chan any, isPublic any, chan
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, firstMarket, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	if marketType != "swap" {
+	if !ccxt.IsEqual(marketType, "swap") {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), callerMethodName), "() does not support "), marketType), " markets yet")))
 	}
 	var rawSubscriptions any = []any{}

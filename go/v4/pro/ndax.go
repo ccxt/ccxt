@@ -504,7 +504,7 @@ func (this *NdaxCore) HandleOrderBook(client any, message any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
 		var bidask any = ccxt.GetValue(payload, i)
 		if ccxt.IsEqual(timestamp, nil) {
-			timestamp = this.SafeInteger(bidask, 2)
+			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(bidask, 2)
 			var currentTimestampValue any = ccxt.Ternary((ccxt.IsEqual(timestamp, nil)), 0, timestamp)
@@ -512,7 +512,7 @@ func (this *NdaxCore) HandleOrderBook(client any, message any) {
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
 		if ccxt.IsEqual(nonce, nil) {
-			nonce = this.SafeInteger(bidask, 0)
+			nonce = ccxt.DerefScalar(this.SafeInteger(bidask, 0))
 		} else {
 			var newNonce *int64 = this.SafeInteger(bidask, 0)
 			var currentNonceValue any = ccxt.Ternary((ccxt.IsEqual(nonce, nil)), 0, nonce)

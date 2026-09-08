@@ -646,7 +646,7 @@ func (this *BitbnsCore) ParseBalance(response any) any {
 		var parts []string = Split(key, "availableorder")
 		var numParts int = GetArrayLength(parts)
 		if IsGreaterThan(numParts, 1) {
-			var currencyId any = this.SafeString(parts, 1)
+			var currencyId any = DerefScalar(this.SafeString(parts, 1))
 			// note that "Money" stands for INR - the only fiat in bitbns
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(data, key))
@@ -757,14 +757,14 @@ func (this *BitbnsCore) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(order, "id", "entry_id")
 	var datetime *string = this.SafeString(order, "time")
 	var triggerPrice *string = this.SafeString(order, "t_rate")
-	var side any = this.SafeString(order, "type")
+	var side any = DerefScalar(this.SafeString(order, "type"))
 	if IsEqual(side, "0") {
 		side = "buy"
 	} else if IsEqual(side, "1") {
 		side = "sell"
 	}
 	var data *string = this.SafeString(order, "data")
-	var status any = this.SafeString(order, "status")
+	var status any = DerefScalar(this.SafeString(order, "status"))
 	if data != nil && *data == "Successfully cancelled the order" {
 		status = "cancelled"
 	} else {
@@ -847,7 +847,7 @@ func (this *BitbnsCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"symbol":   GetValue(market, "uppercaseId"),
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "rate", this.PriceToPrecision(symbol, price))
 	} else {
 		AddElementToObject(request, "market", GetValue(market, "quoteId"))
@@ -862,7 +862,7 @@ func (this *BitbnsCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		AddElementToObject(request, "trail_rate", this.PriceToPrecision(symbol, trailRate))
 	}
 	var response any = nil
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 
 		response = (<-this.V2PostOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -919,7 +919,7 @@ func (this *BitbnsCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes75312)
 	}
 	var market any = this.Market(symbol)
-	var isTrigger any = this.SafeBool2(params, "trigger", "stop")
+	var isTrigger any = DerefScalar(this.SafeBool2(params, "trigger", "stop"))
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var request map[string]any = map[string]any{
 		"entry_id": id,
@@ -974,7 +974,7 @@ func (this *BitbnsCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"symbol":   GetValue(market, "id"),
 		"entry_id": id,
 	}
-	var trigger any = this.SafeBool2(params, "trigger", "stop")
+	var trigger any = DerefScalar(this.SafeBool2(params, "trigger", "stop"))
 	if IsEqual(trigger, true) {
 		panic(BadRequest(Add(this.Id, " fetchOrder cannot fetch stop orders")))
 	}
@@ -1051,7 +1051,7 @@ func (this *BitbnsCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes84712)
 	}
 	var market any = this.Market(symbol)
-	var isTrigger any = this.SafeBool2(params, "trigger", "stop")
+	var isTrigger any = DerefScalar(this.SafeBool2(params, "trigger", "stop"))
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var quoteSide any = Ternary((IsEqual(GetValue(market, "quoteId"), "USDT")), "usdtListOpen", "listOpen")
 	var request map[string]any = map[string]any{
@@ -1124,7 +1124,7 @@ func (this *BitbnsCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(nil, market)
 	var orderId *string = this.SafeString2(trade, "id", "tradeId")
 	var timestamp any = this.Parse8601(this.SafeString(trade, "date"))
-	timestamp = this.SafeInteger(trade, "timestamp", timestamp)
+	timestamp = DerefScalar(this.SafeInteger(trade, "timestamp", timestamp))
 	var priceString *string = this.SafeString2(trade, "rate", "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var side any = this.SafeStringLower(trade, "type")
@@ -1141,7 +1141,7 @@ func (this *BitbnsCore) ParseTrade(trade any, optionalArgs ...any) any {
 		amountString = Precise.StringDiv(amountString, factor)
 	} else {
 		amountString = this.SafeString(trade, "base_volume")
-		costString = this.SafeString(trade, "quote_volume")
+		costString = DerefScalar(this.SafeString(trade, "quote_volume"))
 	}
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil
@@ -1484,7 +1484,7 @@ func (this *BitbnsCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var currencyId *string = this.SafeString(transaction, "unit")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp any = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
-	var typeVar any = this.SafeString(transaction, "type")
+	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	var expTime *string = this.SafeString(transaction, "expTime", "")
 	var status any = nil
 	if !IsEqual(typeVar, nil) {
@@ -1496,8 +1496,8 @@ func (this *BitbnsCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		}
 	}
 	// const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-	var amount any = this.SafeNumber(transaction, "amount")
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -1611,11 +1611,11 @@ func (this *BitbnsCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce string = ToString(this.Nonce())
-	if method == "GET" {
+	if IsEqual(method, "GET") {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
-	} else if method == "POST" {
+	} else if IsEqual(method, "POST") {
 		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			body = this.Json(query)
 		} else {

@@ -1425,7 +1425,7 @@ func (this *PoloniexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "swap" {
+	if IsEqual(marketType, "swap") {
 
 		responseRaw := (<-this.SwapPublicGetV3MarketTickers(this.Extend(request, params)))
 		PanicOnError(responseRaw)
@@ -2128,7 +2128,7 @@ func (this *PoloniexCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerN(order, []any{"timestamp", "createTime", "cTime"})
+	var timestamp any = DerefScalar(this.SafeIntegerN(order, []any{"timestamp", "createTime", "cTime"}))
 	if IsEqual(timestamp, nil) {
 		timestamp = this.Parse8601(this.SafeString(order, "date"))
 	}
@@ -2159,7 +2159,7 @@ func (this *PoloniexCore) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
 		feeCurrencyCode = this.SafeCurrencyCode(feeCurrency)
-		feeCost = this.SafeString2(order, "tokenFee", "feeAmt")
+		feeCost = DerefScalar(this.SafeString2(order, "tokenFee", "feeAmt"))
 	}
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -2170,7 +2170,7 @@ func (this *PoloniexCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clOrdId")
 	var marginMode *string = this.SafeStringLower(order, "mgnMode")
-	var reduceOnly any = this.SafeBool(order, "reduceOnly")
+	var reduceOnly any = DerefScalar(this.SafeBool(order, "reduceOnly"))
 	var leverage *int64 = this.SafeInteger(order, "lever")
 	var hedged bool = !IsEqual(this.SafeString(order, "posSide"), "BOTH")
 	return this.SafeOrder(map[string]any{
@@ -2269,13 +2269,13 @@ func (this *PoloniexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if !IsEqual(limit, nil) {
-		var max any = Ternary((marketType == "spot"), 2000, 100)
+		var max any = Ternary((IsEqual(marketType, "spot")), 2000, 100)
 		AddElementToObject(request, "limit", mathMax(limit, max))
 	}
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var response any = []any{}
-	if marketType != "spot" {
+	if !IsEqual(marketType, "spot") {
 
 		raw := (<-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, params)))
 		PanicOnError(raw)
@@ -2400,7 +2400,7 @@ func (this *PoloniexCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params, "swap")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 		panic(NotSupported(Add(this.Id, " fetchClosedOrders() is not supported for spot markets yet")))
 	}
 	if !IsEqual(limit, nil) {
@@ -2498,7 +2498,7 @@ func (this *PoloniexCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		"symbol": GetValue(market, "id"),
 		"side":   ToUpper(side),
 	}
-	var triggerPrice any = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+	var triggerPrice any = DerefScalar(this.SafeNumber2(params, "stopPrice", "triggerPrice"))
 	requestparamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
@@ -2535,7 +2535,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var triggerPrice any = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+	var triggerPrice any = DerefScalar(this.SafeNumber2(params, "stopPrice", "triggerPrice"))
 	var market any = this.Market(symbol)
 	if IsEqual(GetValue(market, "contract"), true) {
 		var marginMode any = nil
@@ -2550,7 +2550,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 		hedgedparamsVariable := this.HandleParamString(params, "hedged")
 		hedged = GetValue(hedgedparamsVariable, 0)
 		params = GetValue(hedgedparamsVariable, 1)
-		if (!IsEqual(hedged, nil)) && (hedged != "") {
+		if (!IsEqual(hedged, nil)) && (!IsEqual(hedged, "")) {
 			if IsEqual(marginMode, nil) {
 				panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")))
 			}
@@ -2580,7 +2580,7 @@ func (this *PoloniexCore) OrderRequest(symbol any, typeVar any, side any, amount
 			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = this.SafeNumber(params, "cost")
+			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if !IsEqual(cost, nil) {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2660,7 +2660,7 @@ func (this *PoloniexCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	var request any = map[string]any{
 		"id": id,
 	}
-	var triggerPrice any = this.SafeNumber2(params, "stopPrice", "triggerPrice")
+	var triggerPrice any = DerefScalar(this.SafeNumber2(params, "stopPrice", "triggerPrice"))
 	requestparamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
@@ -2811,7 +2811,7 @@ func (this *PoloniexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if (marketType == "swap") || (marketType == "future") {
+	if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
 
 		raw := (<-this.SwapPrivateDeleteV3TradeAllOrders(this.Extend(request, params)))
 		PanicOnError(raw)
@@ -2907,7 +2907,7 @@ func (this *PoloniexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType != "spot" {
+	if !IsEqual(marketType, "spot") {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchOrder() is not supported for "), marketType), " markets yet")))
 	}
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -3106,7 +3106,7 @@ func (this *PoloniexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType != "spot" {
+	if !IsEqual(marketType, "spot") {
 
 		responseRaw := (<-this.SwapPrivateGetV3AccountBalance(params))
 		PanicOnError(responseRaw)
@@ -3306,15 +3306,15 @@ func (this *PoloniexCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	var bidsResult any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(asks)); i++ {
 		if IsLessThan((Mod(i, 2)), 1) {
-			var price any = this.SafeNumber(asks, i)
-			var amount any = this.SafeNumber(asks, this.Sum(i, 1))
+			var price any = DerefScalar(this.SafeNumber(asks, i))
+			var amount any = DerefScalar(this.SafeNumber(asks, this.Sum(i, 1)))
 			AppendToArray(&asksResult, []any{price, amount})
 		}
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(bids)); i++ {
 		if IsLessThan((Mod(i, 2)), 1) {
-			var price any = this.SafeNumber(bids, i)
-			var amount any = this.SafeNumber(bids, this.Sum(i, 1))
+			var price any = DerefScalar(this.SafeNumber(bids, i))
+			var amount any = DerefScalar(this.SafeNumber(bids, this.Sum(i, 1)))
 			AppendToArray(&bidsResult, []any{price, amount})
 		}
 	}
@@ -3444,9 +3444,9 @@ func (this *PoloniexCore) PrepareRequestForDepositAddress(code any, optionalArgs
 	return []any{request, params, currency, networkEntry}
 }
 func (this *PoloniexCore) ParseDepositAddressSpecial(response any, currency any, networkEntry any) any {
-	var address any = this.SafeString(response, "address")
+	var address any = DerefScalar(this.SafeString(response, "address"))
 	if IsEqual(address, nil) {
-		address = this.SafeString(response, GetValue(networkEntry, "id"))
+		address = DerefScalar(this.SafeString(response, GetValue(networkEntry, "id")))
 	}
 	var tag any = nil
 	this.CheckAddress(address)
@@ -3898,7 +3898,7 @@ func (this *PoloniexCore) ParseDepositWithdrawFees(response any, optionalArgs ..
 					var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 					var networkInfo any = this.SafeValue(response, networkId)
 					var networkObject map[string]any = map[string]any{}
-					var withdrawFee any = this.SafeNumber(networkInfo, "withdrawalFee")
+					var withdrawFee any = DerefScalar(this.SafeNumber(networkInfo, "withdrawalFee"))
 					if !IsEqual(networkCode, nil) {
 						AddElementToObject(networkObject, networkCode, map[string]any{
 							"withdraw": map[string]any{
@@ -3925,7 +3925,7 @@ func (this *PoloniexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) 
 	var currencyCode *string = this.SafeString(currency, "code")
 	AddElementToObject(GetValue(depositWithdrawFee, "info"), currencyCode, fee)
 	var networkId *string = this.SafeString(fee, "blockchain")
-	var withdrawFee any = this.SafeNumber(fee, "withdrawalFee")
+	var withdrawFee any = DerefScalar(this.SafeNumber(fee, "withdrawalFee"))
 	var withdrawResult map[string]any = map[string]any{
 		"fee":        withdrawFee,
 		"percentage": Ternary((!IsEqual(withdrawFee, nil)), false, nil),
@@ -4044,7 +4044,7 @@ func (this *PoloniexCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var timestamp *int64 = this.SafeTimestamp(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code any = this.SafeCurrencyCode(currencyId)
-	var status any = this.SafeString(transaction, "status", "pending")
+	var status any = DerefScalar(this.SafeString(transaction, "status", "pending"))
 	status = this.ParseTransactionStatus(status)
 	var txid *string = this.SafeString(transaction, "txid")
 	var typeVar any = Ternary((InOp(transaction, "withdrawalRequestsId")), "withdrawal", "deposit")
@@ -4053,7 +4053,7 @@ func (this *PoloniexCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var tag *string = this.SafeString(transaction, "paymentID")
 	var amountString *string = this.SafeString(transaction, "amount")
 	var feeCostString *string = this.SafeString(transaction, "fee")
-	if typeVar == "withdrawal" {
+	if IsEqual(typeVar, "withdrawal") {
 		amountString = Precise.StringSub(amountString, feeCostString)
 	}
 	return map[string]any{
@@ -4231,7 +4231,7 @@ func (this *PoloniexCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var data any = this.SafeList(leverage, "data", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
-		marketId = this.SafeString(entry, "symbol")
+		marketId = DerefScalar(this.SafeString(entry, "symbol"))
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower
 		marginMode = this.SafeStringLower(entry, "mgnMode")
@@ -4620,7 +4620,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 	if this.InArray(api, []any{"swapPublic", "swapPrivate"}) {
 		url = GetValue(GetValue(this.Urls, "api"), "swap")
 	}
-	if (method == "GET") && (InOp(params, "symbol")) {
+	if (IsEqual(method, "GET")) && (InOp(params, "symbol")) {
 		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -4636,7 +4636,7 @@ func (this *PoloniexCore) Sign(path any, optionalArgs ...any) any {
 		var auth any = Add(method, "\n") // eslint-disable-line quotes
 		url = Add(url, Add("/", implodedPath))
 		auth = Add(auth, Add("/", implodedPath))
-		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
+		if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) || (IsEqual(method, "DELETE")) {
 			auth = Add(auth, "\n") // eslint-disable-line quotes
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)

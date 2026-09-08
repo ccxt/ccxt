@@ -769,7 +769,7 @@ func (this *CoinspotCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 
 	response := (<-this.PublicGetLatest(params))
 	PanicOnError(response)
-	var id any = this.SafeString(market, "id", "")
+	var id any = DerefScalar(this.SafeString(market, "id", ""))
 	id = ToLower(id)
 	var prices any = this.SafeDict(response, "prices", map[string]any{})
 	//
@@ -1025,7 +1025,7 @@ func (this *CoinspotCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = this.SafeSymbol(marketId, market, "/")
 	var solddate *int64 = this.SafeInteger(trade, "solddate")
 	if solddate != nil {
-		priceString = this.SafeString(trade, "rate")
+		priceString = DerefScalar(this.SafeString(trade, "rate"))
 		timestamp = solddate
 	} else {
 		priceString = Precise.StringDiv(costString, amountString)
@@ -1092,7 +1092,7 @@ func (this *CoinspotCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
 	var sideUpper string = ToUpper(side)
-	if typeVar == "market" {
+	if IsEqual(typeVar, "market") {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
 	var market any = this.Market(symbol)

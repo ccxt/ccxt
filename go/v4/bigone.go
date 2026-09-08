@@ -600,8 +600,8 @@ func (this *BigoneCore) ParseCurrency(rawCurrency any) any {
 		var chain any = GetValue(chains, j)
 		var networkId *string = this.SafeString(chain, "gateway_name")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var deposit any = this.SafeBool(chain, "is_deposit_enabled")
-		var withdraw any = this.SafeBool(chain, "is_withdrawal_enabled")
+		var deposit any = DerefScalar(this.SafeBool(chain, "is_deposit_enabled"))
+		var withdraw any = DerefScalar(this.SafeBool(chain, "is_withdrawal_enabled"))
 		var minDepositAmount *string = this.SafeString(chain, "min_deposit_amount")
 		var minWithdrawalAmount *string = this.SafeString(chain, "min_withdrawal_amount")
 		var withdrawalFee *string = this.SafeString(chain, "withdrawal_fee")
@@ -815,7 +815,7 @@ func (this *BigoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var settle any = this.SafeCurrencyCode(settleId)
-		var inverse any = this.SafeBool(market, "isInverse")
+		var inverse any = DerefScalar(this.SafeBool(market, "isInverse"))
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
 			"id":             marketId,
 			"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
@@ -979,7 +979,7 @@ func (this *BigoneCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	if typeVar == "spot" {
+	if IsEqual(typeVar, "spot") {
 		var request map[string]any = map[string]any{
 			"asset_pair_name": GetValue(market, "id"),
 		}
@@ -1051,7 +1051,7 @@ func (this *BigoneCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	var isSpot bool = (typeVar == "spot")
+	var isSpot bool = (IsEqual(typeVar, "spot"))
 	var request map[string]any = map[string]any{}
 	symbols = this.MarketSymbols(symbols)
 	var data any = nil
@@ -1312,10 +1312,10 @@ func (this *BigoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "asset_pair_name")
 	market = this.SafeMarket(marketId, market, "-")
-	var side any = this.SafeString(trade, "side")
+	var side any = DerefScalar(this.SafeString(trade, "side"))
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker any = nil
-	if (takerSide != nil) && (!IsEqual(side, nil)) && (side != "SELF_TRADING") {
+	if (takerSide != nil) && (!IsEqual(side, nil)) && (!IsEqual(side, "SELF_TRADING")) {
 		takerOrMaker = Ternary((IsEqual(takerSide, side)), "taker", "maker")
 	}
 	if IsEqual(side, nil) {
@@ -1323,9 +1323,9 @@ func (this *BigoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 		// the following code is probably a mistake
 		side = Ternary((takerSide != nil && *takerSide == "ASK"), "sell", "buy")
 	} else {
-		if side == "BID" {
+		if IsEqual(side, "BID") {
 			side = "buy"
-		} else if side == "ASK" {
+		} else if IsEqual(side, "ASK") {
 			side = "sell"
 		}
 	}
@@ -1355,8 +1355,8 @@ func (this *BigoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var makerCurrencyCode any = nil
 	var takerCurrencyCode any = nil
 	if !IsEqual(takerOrMaker, nil) {
-		if side == "buy" {
-			if takerOrMaker == "maker" {
+		if IsEqual(side, "buy") {
+			if IsEqual(takerOrMaker, "maker") {
 				makerCurrencyCode = GetValue(market, "base")
 				takerCurrencyCode = GetValue(market, "quote")
 			} else {
@@ -1364,7 +1364,7 @@ func (this *BigoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 				takerCurrencyCode = GetValue(market, "base")
 			}
 		} else {
-			if takerOrMaker == "maker" {
+			if IsEqual(takerOrMaker, "maker") {
 				makerCurrencyCode = GetValue(market, "quote")
 				takerCurrencyCode = GetValue(market, "base")
 			} else {
@@ -1372,7 +1372,7 @@ func (this *BigoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 				takerCurrencyCode = GetValue(market, "quote")
 			}
 		}
-	} else if side == "SELF_TRADING" {
+	} else if IsEqual(side, "SELF_TRADING") {
 		if takerSide != nil && *takerSide == "BID" {
 			makerCurrencyCode = GetValue(market, "quote")
 			takerCurrencyCode = GetValue(market, "base")
@@ -1693,17 +1693,17 @@ func (this *BigoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "asset_pair_name")
 	var symbol any = this.SafeSymbol(marketId, market, "-")
 	var timestamp any = this.Parse8601(this.SafeString(order, "created_at"))
-	var side any = this.SafeString(order, "side")
+	var side any = DerefScalar(this.SafeString(order, "side"))
 	if IsEqual(side, "BID") {
 		side = "buy"
 	} else {
 		side = "sell"
 	}
-	var triggerPrice any = this.SafeString(order, "stop_price")
+	var triggerPrice any = DerefScalar(this.SafeString(order, "stop_price"))
 	if Precise.StringEq(triggerPrice, "0") {
 		triggerPrice = nil
 	}
-	var immediateOrCancel any = this.SafeBool(order, "immediate_or_cancel")
+	var immediateOrCancel any = DerefScalar(this.SafeBool(order, "immediate_or_cancel"))
 	var timeInForce any = nil
 	if IsEqual(immediateOrCancel, true) {
 		timeInForce = "IOC"
@@ -1713,11 +1713,11 @@ func (this *BigoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	var amount any = nil
 	var filled any = nil
 	var cost any = nil
-	if IsEqual(typeVar, "market") && (side == "buy") {
-		cost = this.SafeString(order, "filled_amount")
+	if IsEqual(typeVar, "market") && (IsEqual(side, "buy")) {
+		cost = DerefScalar(this.SafeString(order, "filled_amount"))
 	} else {
-		amount = this.SafeString(order, "amount")
-		filled = this.SafeString(order, "filled_amount")
+		amount = DerefScalar(this.SafeString(order, "amount"))
+		filled = DerefScalar(this.SafeString(order, "filled_amount"))
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1824,7 +1824,7 @@ func (this *BigoneCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var requestSide any = Ternary(isBuy, "BID", "ASK")
 	var uppercaseType string = ToUpper(typeVar)
 	var isLimit bool = (uppercaseType == "LIMIT")
-	var exchangeSpecificParam any = this.SafeBool(params, "post_only", false)
+	var exchangeSpecificParam any = DerefScalar(this.SafeBool(params, "post_only", false))
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam == true), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
@@ -1853,7 +1853,7 @@ func (this *BigoneCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = this.SafeNumber(params, "cost")
+			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 				if (IsEqual(price, nil)) && (IsEqual(cost, nil)) {
@@ -2340,11 +2340,11 @@ func (this *BigoneCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "Authorization", Add("Bearer ", token))
-		if method == "GET" {
+		if IsEqual(method, "GET") {
 			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
-		} else if method == "POST" {
+		} else if IsEqual(method, "POST") {
 			AddElementToObject(headers, "Content-Type", "application/json")
 			body = this.Json(query)
 		}
@@ -2497,7 +2497,7 @@ func (this *BigoneCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var currencyId *string = this.SafeString(transaction, "asset_symbol")
 	var code any = this.SafeCurrencyCode(currencyId)
 	var id *string = this.SafeString(transaction, "id")
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "inserted_at"))
 	var updated any = this.Parse8601(this.SafeString2(transaction, "updated_at", "completed_at"))
@@ -2505,7 +2505,7 @@ func (this *BigoneCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var address *string = this.SafeString(transaction, "target_address")
 	var tag *string = this.SafeString(transaction, "memo")
 	var typeVar any = Ternary((InOp(transaction, "customer_id")), "withdrawal", "deposit")
-	var internal any = this.SafeBool(transaction, "is_internal")
+	var internal any = DerefScalar(this.SafeBool(transaction, "is_internal"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2722,7 +2722,7 @@ func (this *BigoneCore) transferBody(ch chan any, code any, amount any, fromAcco
 	//
 	var transfer any = this.ParseTransfer(response, currency)
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
-	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
+	var fillResponseFromRequest any = DerefScalar(this.SafeBool(transferOptions, "fillResponseFromRequest", true))
 	if fillResponseFromRequest == true {
 		AddElementToObject(transfer, "fromAccount", fromAccount)
 		AddElementToObject(transfer, "toAccount", toAccount)

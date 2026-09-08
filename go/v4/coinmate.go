@@ -800,7 +800,7 @@ func (this *CoinmateCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(ticker, "timestamp")
-	var last any = this.SafeNumber(ticker, "last")
+	var last any = DerefScalar(this.SafeNumber(ticker, "last"))
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
@@ -1069,7 +1069,7 @@ func (this *CoinmateCore) withdrawBody(ch chan any, code any, amount any, addres
 	//
 	var data any = this.SafeValue(response, "data")
 	var transaction any = this.ParseTransaction(data, currency)
-	var fillResponseFromRequest any = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
+	var fillResponseFromRequest any = DerefScalar(this.SafeBool(withdrawOptions, "fillResponseFromRequest", true))
 	if fillResponseFromRequest == true {
 		AddElementToObject(transaction, "amount", amount)
 		AddElementToObject(transaction, "currency", code)
@@ -1183,7 +1183,7 @@ func (this *CoinmateCore) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": GetValue(market, "quote"),
 		}
 	}
-	var takerOrMaker any = this.SafeString(trade, "feeType")
+	var takerOrMaker any = DerefScalar(this.SafeString(trade, "feeType"))
 	takerOrMaker = Ternary((IsEqual(takerOrMaker, "MAKER")), "maker", "taker")
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1550,7 +1550,7 @@ func (this *CoinmateCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	var request map[string]any = map[string]any{
 		"currencyPair": GetValue(market, "id"),
 	}
-	if typeVar == "market" {
+	if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {
 			AddElementToObject(request, "total", this.AmountToPrecision(symbol, amount)) // amount in fiat
 		} else {
@@ -1564,19 +1564,19 @@ func (this *CoinmateCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	}
 	var requestParams map[string]any = this.Extend(request, params)
 	var response any = nil
-	if method == "privatePostBuyInstant" {
+	if IsEqual(method, "privatePostBuyInstant") {
 
 		response = (<-this.PrivatePostBuyInstant(requestParams))
 		PanicOnError(response)
-	} else if method == "privatePostSellInstant" {
+	} else if IsEqual(method, "privatePostSellInstant") {
 
 		response = (<-this.PrivatePostSellInstant(requestParams))
 		PanicOnError(response)
-	} else if method == "privatePostBuyLimit" {
+	} else if IsEqual(method, "privatePostBuyLimit") {
 
 		response = (<-this.PrivatePostBuyLimit(requestParams))
 		PanicOnError(response)
-	} else if method == "privatePostSellLimit" {
+	} else if IsEqual(method, "privatePostSellLimit") {
 
 		response = (<-this.PrivatePostSellLimit(requestParams))
 		PanicOnError(response)
@@ -1624,7 +1624,7 @@ func (this *CoinmateCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 		"orderId": id,
 	}
 	var market any = nil
-	if (!IsEqual(symbol, nil)) && (symbol != "") {
+	if (!IsEqual(symbol, nil)) && (!IsEqual(symbol, "")) {
 		market = this.Market(symbol)
 	}
 

@@ -481,7 +481,7 @@ func (this *LbankCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if typeVar == "swap" {
+	if IsEqual(typeVar, "swap") {
 
 		response = (<-this.ContractPublicGetCfdOpenApiV1PubGetTime(params))
 		PanicOnError(response)
@@ -1040,7 +1040,7 @@ func (this *LbankCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if typeVar == "swap" {
+	if IsEqual(typeVar, "swap") {
 		AddElementToObject(request, "productGroup", "SwapU")
 
 		response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketData(this.Extend(request, params)))
@@ -1142,7 +1142,7 @@ func (this *LbankCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if typeVar == "swap" {
+	if IsEqual(typeVar, "swap") {
 		AddElementToObject(request, "depth", limit)
 
 		response = (<-this.ContractPublicGetCfdOpenApiV1PubMarketOrder(this.Extend(request, params)))
@@ -1650,9 +1650,9 @@ func (this *LbankCore) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
-	var markPrice any = this.SafeNumber(ticker, "markedPrice")
-	var indexPrice any = this.SafeNumber(ticker, "underlyingPrice")
-	var fundingRate any = this.SafeNumber(ticker, "fundingRate")
+	var markPrice any = DerefScalar(this.SafeNumber(ticker, "markedPrice"))
+	var indexPrice any = DerefScalar(this.SafeNumber(ticker, "underlyingPrice"))
+	var fundingRate any = DerefScalar(this.SafeNumber(ticker, "fundingRate"))
 	var fundingTime *int64 = this.SafeInteger(ticker, "nextFeeTime")
 	var positionFeeTime *int64 = this.SafeInteger(ticker, "positionFeeTime")
 	var intervalString any = nil
@@ -2018,7 +2018,7 @@ func (this *LbankCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString2(params, "custom_id", "clientOrderId")
-	var postOnly any = this.SafeBool(params, "postOnly", false)
+	var postOnly any = DerefScalar(this.SafeBool(params, "postOnly", false))
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	params = this.Omit(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"})
 	var request map[string]any = map[string]any{
@@ -2027,10 +2027,10 @@ func (this *LbankCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var maker bool = ((postOnly == true) || (timeInForce != nil && *timeInForce == "PO"))
-	if (typeVar == "market") && (ioc || fok || maker) {
+	if (IsEqual(typeVar, "market")) && (ioc || fok || maker) {
 		panic(InvalidOrder(Add(this.Id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")))
 	}
-	if typeVar == "limit" {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "type", side)
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
@@ -2041,7 +2041,7 @@ func (this *LbankCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		} else if maker {
 			AddElementToObject(request, "type", Add(Add(side, "_"), "maker"))
 		}
-	} else if typeVar == "market" {
+	} else if IsEqual(typeVar, "market") {
 		if IsEqual(side, "sell") {
 			AddElementToObject(request, "type", Add(Add(side, "_"), "market"))
 			AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
@@ -2052,7 +2052,7 @@ func (this *LbankCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = this.SafeNumber(params, "cost")
+			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
 			if !IsEqual(cost, nil) {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2239,7 +2239,7 @@ func (this *LbankCore) ParseOrder(order any, optionalArgs ...any) any {
 	var costString *string = this.SafeString(order, "cummulativeQuoteQty")
 	var amountString any = nil
 	if rawType == nil || *rawType != "buy_market" {
-		amountString = this.SafeString2(order, "origQty", "amount")
+		amountString = DerefScalar(this.SafeString2(order, "origQty", "amount"))
 	}
 	var filledString *string = this.SafeString2(order, "executedQty", "deal_amount")
 	return this.SafeOrder(map[string]any{
@@ -3087,17 +3087,17 @@ func (this *LbankCore) ParseTransaction(transaction any, optionalArgs ...any) an
 	var address *string = this.SafeString(transaction, "address")
 	var addressFrom any = nil
 	var addressTo any = nil
-	if typeVar == "deposit" {
+	if IsEqual(typeVar, "deposit") {
 		addressFrom = address
 	} else {
 		addressTo = address
 	}
-	var amount any = this.SafeNumber(transaction, "amount")
+	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
 	var currencyId *string = this.SafeString2(transaction, "coin", "coid")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"), typeVar)
 	var fee any = nil
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -3393,7 +3393,7 @@ func (this *LbankCore) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs
 		}
 		for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 			var networkEntry any = GetValue(networkList, j)
-			var fee any = this.SafeNumber(networkEntry, "withdrawFee")
+			var fee any = DerefScalar(this.SafeNumber(networkEntry, "withdrawFee"))
 			if !IsEqual(fee, nil) {
 				var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 				if !IsEqual(networkCode, nil) {
@@ -3677,7 +3677,7 @@ func (this *LbankCore) ParsePublicDepositWithdrawFees(response any, optionalArgs
 			var currencyId *string = this.SafeString(fee, "assetCode")
 			var code any = this.SafeCurrencyCode(currencyId)
 			if (!IsEqual(code, nil)) && (IsEqual(codes, nil) || this.InArray(code, codes)) {
-				var withdrawFee any = this.SafeNumber(fee, "fee")
+				var withdrawFee any = DerefScalar(this.SafeNumber(fee, "fee"))
 				if !IsEqual(withdrawFee, nil) {
 					var resultValue any = this.SafeValue(result, code)
 					if IsEqual(resultValue, nil) {
@@ -3745,7 +3745,7 @@ func (this *LbankCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkEntry any = GetValue(networkList, j)
 		var networkCode any = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
-		var withdrawFee any = this.SafeNumber(networkEntry, "withdrawFee")
+		var withdrawFee any = DerefScalar(this.SafeNumber(networkEntry, "withdrawFee"))
 		var isDefault any = this.SafeValue(networkEntry, "isDefault")
 		if !IsEqual(withdrawFee, nil) {
 			if IsEqual(isDefault, true) {
@@ -3816,8 +3816,8 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		var hash any = this.Hash(encoded, md5)
 		var uppercaseHash string = ToUpper(hash)
 		var sign any = nil
-		if signatureMethod == "RSA" {
-			var cacheSecretAsPem any = this.SafeBool(this.Options, "cacheSecretAsPem", true)
+		if IsEqual(signatureMethod, "RSA") {
+			var cacheSecretAsPem any = DerefScalar(this.SafeBool(this.Options, "cacheSecretAsPem", true))
 			var pem any = nil
 			if cacheSecretAsPem == true {
 				pem = this.SafeValue(this.Options, "pem")
@@ -3829,7 +3829,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 				pem = this.ConvertSecretToPem(this.Encode(this.Secret))
 			}
 			sign = Rsa(uppercaseHash, pem, sha256)
-		} else if signatureMethod == "HmacSHA256" {
+		} else if IsEqual(signatureMethod, "HmacSHA256") {
 			sign = this.Hmac(this.Encode(uppercaseHash), this.Encode(this.Secret), sha256)
 		}
 		AddElementToObject(query, "sign", sign)

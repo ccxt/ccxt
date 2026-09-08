@@ -1218,12 +1218,12 @@ func (this *FoxbitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	var market any = this.Market(symbol)
 	typeVar = ToUpper(typeVar)
-	if (typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "STOP_LIMIT") && (typeVar != "INSTANT") {
+	if (!IsEqual(typeVar, "LIMIT")) && (!IsEqual(typeVar, "MARKET")) && (!IsEqual(typeVar, "STOP_MARKET")) && (!IsEqual(typeVar, "STOP_LIMIT")) && (!IsEqual(typeVar, "INSTANT")) {
 		panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: limit, market, stop_market, stop_limit, instant.")))
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var postOnly any = this.SafeBool(params, "postOnly", false)
-	var triggerPrice any = this.SafeNumber(params, "triggerPrice")
+	var postOnly any = DerefScalar(this.SafeBool(params, "postOnly", false))
+	var triggerPrice any = DerefScalar(this.SafeNumber(params, "triggerPrice"))
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
@@ -1232,7 +1232,7 @@ func (this *FoxbitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		"side":          ToUpper(side),
 		"type":          typeVar,
 	}
-	if (typeVar == "STOP_MARKET") || (typeVar == "STOP_LIMIT") {
+	if (IsEqual(typeVar, "STOP_MARKET")) || (IsEqual(typeVar, "STOP_LIMIT")) {
 		if IsEqual(triggerPrice, nil) {
 			panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must have triggerPrice.")))
 		}
@@ -1250,12 +1250,12 @@ func (this *FoxbitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	if !IsEqual(triggerPrice, nil) {
 		AddElementToObject(request, "stop_price", this.PriceToPrecision(symbol, triggerPrice))
 	}
-	if typeVar == "INSTANT" {
+	if IsEqual(typeVar, "INSTANT") {
 		AddElementToObject(request, "amount", this.PriceToPrecision(symbol, amount))
 	} else {
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 	}
-	if (typeVar == "LIMIT") || (typeVar == "STOP_LIMIT") {
+	if (IsEqual(typeVar, "LIMIT")) || (IsEqual(typeVar, "STOP_LIMIT")) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -1311,8 +1311,8 @@ func (this *FoxbitCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 			panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: limit, market, stop_market, stop_limit, instant.")))
 		}
 		var timeInForce *string = this.SafeStringUpper(orderParams, "timeInForce")
-		var postOnly any = this.SafeBool(orderParams, "postOnly", false)
-		var triggerPrice any = this.SafeNumber(orderParams, "triggerPrice")
+		var postOnly any = DerefScalar(this.SafeBool(orderParams, "postOnly", false))
+		var triggerPrice any = DerefScalar(this.SafeNumber(orderParams, "triggerPrice"))
 		var request map[string]any = map[string]any{
 			"market_symbol": GetValue(market, "id"),
 			"side":          this.SafeStringUpper(order, "side"),
@@ -2022,7 +2022,7 @@ func (this *FoxbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a symbol argument")))
 	}
 	typeVar = ToUpper(typeVar)
-	if (typeVar != "LIMIT") && (typeVar != "MARKET") && (typeVar != "STOP_MARKET") && (typeVar != "INSTANT") {
+	if (!IsEqual(typeVar, "LIMIT")) && (!IsEqual(typeVar, "MARKET")) && (!IsEqual(typeVar, "STOP_MARKET")) && (!IsEqual(typeVar, "INSTANT")) {
 		panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")))
 	}
 	if IsEqual(this.Markets, nil) {
@@ -2046,17 +2046,17 @@ func (this *FoxbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 			"market_symbol": GetValue(market, "id"),
 		},
 	}
-	if (typeVar == "LIMIT") || (typeVar == "MARKET") {
+	if (IsEqual(typeVar, "LIMIT")) || (IsEqual(typeVar, "MARKET")) {
 		AddElementToObject(GetValue(request, "create"), "quantity", this.AmountToPrecision(symbol, amount))
-		if typeVar == "LIMIT" {
+		if IsEqual(typeVar, "LIMIT") {
 			AddElementToObject(GetValue(request, "create"), "price", this.PriceToPrecision(symbol, price))
 		}
 	}
-	if typeVar == "STOP_MARKET" {
+	if IsEqual(typeVar, "STOP_MARKET") {
 		AddElementToObject(GetValue(request, "create"), "stop_price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(GetValue(request, "create"), "quantity", this.AmountToPrecision(symbol, amount))
 	}
-	if typeVar == "INSTANT" {
+	if IsEqual(typeVar, "INSTANT") {
 		AddElementToObject(GetValue(request, "create"), "amount", this.PriceToPrecision(symbol, amount))
 	}
 
@@ -2355,7 +2355,7 @@ func (this *FoxbitCore) ParseOrderStatus(status any) any {
 func (this *FoxbitCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeString(order, "market_symbol")
+	var symbol any = DerefScalar(this.SafeString(order, "market_symbol"))
 	if IsEqual(market, nil) && !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
@@ -2532,9 +2532,9 @@ func (this *FoxbitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var exchangeSymbol *string = this.SafeString(item, "currency_symbol")
 	var currencySymbol any = this.SafeCurrencyCode(exchangeSymbol)
 	var direction string = "in"
-	var amount any = this.SafeNumber(item, "amount")
+	var amount any = DerefScalar(this.SafeNumber(item, "amount"))
 	var realAmount any = amount
-	var balance any = this.SafeNumber(item, "balance")
+	var balance any = DerefScalar(this.SafeNumber(item, "balance"))
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeNumber(item, "fee"),
 		"currency": currencySymbol,
@@ -2596,7 +2596,7 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 	var timestamp int64 = this.Milliseconds()
 	var query string = ""
 	var signatureQuery any = ""
-	if method == "GET" {
+	if IsEqual(method, "GET") {
 		var paramKeys []string = ObjectKeys(params)
 		var paramKeysLength int = GetArrayLength(paramKeys)
 		if IsGreaterThan(paramKeysLength, 0) {
@@ -2614,7 +2614,7 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if (method == "POST") || (method == "PUT") {
+	if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) {
 		body = this.Json(params)
 	}
 	var bodyToSignature any = ""

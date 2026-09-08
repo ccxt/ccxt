@@ -726,13 +726,13 @@ func (this *DeribitCore) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	if IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1)) {
-		base = this.SafeString(symbolBase, 0)
-		expiry = this.SafeString(optionParts, 1)
+		base = DerefScalar(this.SafeString(symbolBase, 0))
+		expiry = DerefScalar(this.SafeString(optionParts, 1))
 		if IsGreaterThan(GetIndexOf(symbol, "USDC"), OpNeg(1)) {
 			base = Add(base, "_USDC")
 		}
 	} else {
-		base = this.SafeString(optionParts, 0)
+		base = DerefScalar(this.SafeString(optionParts, 0))
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 	}
 	if IsGreaterThan(GetIndexOf(symbol, "USDC"), OpNeg(1)) {
@@ -747,7 +747,7 @@ func (this *DeribitCore) CreateExpiredOptionMarket(symbol any) any {
 	}
 	if IsGreaterThan(GetIndexOf(base, "_"), OpNeg(1)) {
 		var splitSymbol []string = Split(base, "_")
-		splitBase = this.SafeString(splitSymbol, 0)
+		splitBase = DerefScalar(this.SafeString(splitSymbol, 0))
 	}
 	var strike *string = this.SafeString(optionParts, 2)
 	var optionType *string = this.SafeString(optionParts, 3)
@@ -1270,8 +1270,8 @@ func (this *DeribitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 				if option || future {
 					symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry, ""))
 					if option {
-						strike = this.SafeNumber(market, "strike")
-						optionType = this.SafeString(market, "option_type")
+						strike = DerefScalar(this.SafeNumber(market, "strike"))
+						optionType = DerefScalar(this.SafeString(market, "option_type"))
 						var letter any = Ternary((IsEqual(optionType, "call")), "C", "P")
 						symbol = Add(Add(Add(Add(symbol, "-"), this.NumberToString(strike)), "-"), letter)
 					}
@@ -1286,8 +1286,8 @@ func (this *DeribitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			if !IsEqual(symbol, nil) {
 				AddElementToObject(parsedMarkets, symbol, true)
 			}
-			var minTradeAmount any = this.SafeNumber(market, "min_trade_amount")
-			var tickSize any = this.SafeNumber(market, "tick_size")
+			var minTradeAmount any = DerefScalar(this.SafeNumber(market, "min_trade_amount"))
+			var tickSize any = DerefScalar(this.SafeNumber(market, "tick_size"))
 			AppendToArray(&result, map[string]any{
 				"id":             id,
 				"symbol":         symbol,
@@ -1750,7 +1750,7 @@ func (this *DeribitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes137512)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var code any = this.SafeString2(params, "code", "currency")
+	var code any = DerefScalar(this.SafeString2(params, "code", "currency"))
 	var typeVar any = nil
 	params = this.Omit(params, []any{"code"})
 	if !IsEqual(symbols, nil) {
@@ -1774,11 +1774,11 @@ func (this *DeribitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	if !IsEqual(typeVar, nil) {
 		var requestType any = nil
-		if typeVar == "spot" {
+		if IsEqual(typeVar, "spot") {
 			requestType = "spot"
-		} else if (typeVar == "future") || (typeVar == "contract") {
+		} else if (IsEqual(typeVar, "future")) || (IsEqual(typeVar, "contract")) {
 			requestType = "future"
-		} else if typeVar == "option" {
+		} else if IsEqual(typeVar, "option") {
 			requestType = "option"
 		}
 		if !IsEqual(requestType, nil) {
@@ -2398,7 +2398,7 @@ func (this *DeribitCore) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(order, "creation_timestamp")
 	var lastUpdate *int64 = this.SafeInteger(order, "last_update_timestamp")
 	var id *string = this.SafeString(order, "order_id")
-	var priceString any = this.SafeString(order, "price")
+	var priceString any = DerefScalar(this.SafeString(order, "price"))
 	if IsEqual(priceString, "market_price") {
 		priceString = nil
 	}
@@ -2581,18 +2581,18 @@ func (this *DeribitCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
-	var isStopLimit bool = (typeVar == "stop_limit")
-	var isStopMarket bool = (typeVar == "stop_market")
-	var isTakeLimit bool = (typeVar == "take_limit")
-	var isTakeMarket bool = (typeVar == "take_market")
+	var isStopLimit bool = (IsEqual(typeVar, "stop_limit"))
+	var isStopMarket bool = (IsEqual(typeVar, "stop_market"))
+	var isTakeLimit bool = (IsEqual(typeVar, "take_limit"))
+	var isTakeMarket bool = (IsEqual(typeVar, "take_market"))
 	var isStopLossOrder bool = isStopLimit || isStopMarket || (!IsEqual(stopLossPrice, nil))
 	var isTakeProfitOrder bool = isTakeLimit || isTakeMarket || (!IsEqual(takeProfitPrice, nil))
 	if isStopLossOrder && isTakeProfitOrder {
 		panic(InvalidOrder(Add(this.Id, " createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified")))
 	}
 	var isStopOrder bool = isStopLossOrder || isTakeProfitOrder
-	var isLimitOrder bool = (typeVar == "limit") || isStopLimit || isTakeLimit
-	var isMarketOrder bool = (typeVar == "market") || isStopMarket || isTakeMarket
+	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || isStopLimit || isTakeLimit
+	var isMarketOrder bool = (IsEqual(typeVar, "market")) || isStopMarket || isTakeMarket
 	var exchangeSpecificPostOnly any = this.SafeValue(params, "post_only")
 	var postOnly any = this.IsPostOnly(isMarketOrder, exchangeSpecificPostOnly, params)
 	if isLimitOrder {
@@ -3373,7 +3373,7 @@ func (this *DeribitCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var updated *int64 = this.SafeInteger(transaction, "updated_timestamp")
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
 	var address *string = this.SafeString(transaction, "address")
-	var feeCost any = this.SafeNumber(transaction, "fee")
+	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
 	var typeVar string = "deposit"
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
@@ -3437,7 +3437,7 @@ func (this *DeribitCore) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	market = this.SafeMarket(contract, market)
-	var side any = this.SafeString(position, "direction")
+	var side any = DerefScalar(this.SafeString(position, "direction"))
 	side = Ternary((IsEqual(side, "buy")), "long", "short")
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
@@ -3681,7 +3681,7 @@ func (this *DeribitCore) ParseVolatilityHistory(volatility any) any {
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(volatilityResult)); i++ {
 		var timestamp *int64 = this.SafeInteger(GetValue(volatilityResult, i), 0)
-		var volatilityObj any = this.SafeNumber(GetValue(volatilityResult, i), 1)
+		var volatilityObj any = DerefScalar(this.SafeNumber(GetValue(volatilityResult, i), 1))
 		AppendToArray(&result, map[string]any{
 			"info":       volatilityObj,
 			"timestamp":  timestamp,
@@ -4209,7 +4209,7 @@ func (this *DeribitCore) ParseFundingRate(contract any, optionalArgs ...any) any
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "timestamp")
 	var datetime any = this.Iso8601(timestamp)
-	var result any = this.SafeNumber2(contract, "result", "interest_8h")
+	var result any = DerefScalar(this.SafeNumber2(contract, "result", "interest_8h"))
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(nil, market),
@@ -4894,7 +4894,7 @@ func (this *DeribitCore) ParseOpenInterest(interest any, optionalArgs ...any) an
 	var timestamp *int64 = this.SafeInteger(interest, "creation_timestamp")
 	var marketId *string = this.SafeString(interest, "instrument_name")
 	market = this.SafeMarket(marketId, market)
-	var openInterest any = this.SafeNumber(interest, "open_interest")
+	var openInterest any = DerefScalar(this.SafeNumber(interest, "open_interest"))
 	var openInterestAmount any = nil
 	var openInterestValue any = nil
 	if (IsEqual(GetValue(market, "option"), true)) || ((IsEqual(GetValue(market, "future"), true)) && (IsEqual(GetValue(market, "linear"), true))) {

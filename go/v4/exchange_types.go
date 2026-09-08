@@ -13,7 +13,7 @@ import (
 
 // Utility functions for safe extraction from maps
 func SafeFloatTyped(m any, key any) *float64 {
-	res := SafeFloat(m, key, math.NaN())
+	res := derefScalar(SafeFloat(m, key, math.NaN()))
 
 	if resFloat, ok := res.(float64); ok {
 		if math.IsNaN(resFloat) {
@@ -25,7 +25,7 @@ func SafeFloatTyped(m any, key any) *float64 {
 }
 
 func SafeStringTyped(m any, key any) *string {
-	res := SafeString(m, key, nil)
+	res := derefScalar(SafeString(m, key, nil))
 	if resStr, ok := res.(string); ok {
 		return &resStr
 	}
@@ -33,7 +33,7 @@ func SafeStringTyped(m any, key any) *string {
 }
 
 func SafeBoolTyp(m any, key any) *bool {
-	res := SafeBool(m, key, false)
+	res := derefScalar(SafeBool(m, key, false))
 	if resBool, ok := res.(bool); ok {
 		return &resBool
 	}
@@ -41,7 +41,7 @@ func SafeBoolTyp(m any, key any) *bool {
 }
 
 func SafeInt64Typed(m any, key any) *int64 {
-	res := SafeInteger(m, key, nil)
+	res := derefScalar(SafeInteger(m, key, nil))
 	if resInt, ok := res.(int64); ok {
 		return &resInt
 	}
@@ -49,7 +49,7 @@ func SafeInt64Typed(m any, key any) *int64 {
 }
 
 func SafeBoolTyped(m any, key any) *bool {
-	res := SafeBool(m, key, nil)
+	res := derefScalar(SafeBool(m, key, nil))
 	if resBool, ok := res.(bool); ok {
 		return &resBool
 	}

@@ -200,7 +200,7 @@ func (this *WooCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"limit":  limit,
 		"params": params,
 	}
-	if method == "orderbookupdate" {
+	if ccxt.IsEqual(method, "orderbookupdate") {
 		ccxt.AddElementToObject(subscription, "method", this.HandleOrderBookSubscription)
 	}
 
@@ -875,7 +875,7 @@ func (this *WooCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		retRes65412 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes65412)
 	}
-	if (timeframe != "1m") && (timeframe != "5m") && (timeframe != "15m") && (timeframe != "30m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
+	if (!ccxt.IsEqual(timeframe, "1m")) && (!ccxt.IsEqual(timeframe, "5m")) && (!ccxt.IsEqual(timeframe, "15m")) && (!ccxt.IsEqual(timeframe, "30m")) && (!ccxt.IsEqual(timeframe, "1h")) && (!ccxt.IsEqual(timeframe, "1d")) && (!ccxt.IsEqual(timeframe, "1w")) && (!ccxt.IsEqual(timeframe, "1M")) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")))
 	}
 	var market any = this.Market(symbol)
@@ -1142,14 +1142,14 @@ func (this *WooCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var cost *string = ccxt.Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var maker any = this.SafeBool(trade, "maker")
+	var maker any = ccxt.DerefScalar(this.SafeBool(trade, "maker"))
 	var takerOrMaker any = nil
 	if !ccxt.IsEqual(maker, nil) {
 		takerOrMaker = ccxt.Ternary(ccxt.EvalTruthy(maker), "maker", "taker")
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var fee any = nil
-	var feeCost any = this.SafeNumber(trade, "fee")
+	var feeCost any = ccxt.DerefScalar(this.SafeNumber(trade, "fee"))
 	if !ccxt.IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -1307,7 +1307,7 @@ func (this *WooCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes97912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes97912)
 	}
-	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var trigger any = ccxt.DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	var topic any = ccxt.Ternary((trigger == true), "algoexecutionreportv2", "executionreport")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
@@ -1366,7 +1366,7 @@ func (this *WooCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes101712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes101712)
 	}
-	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var trigger any = ccxt.DerefScalar(this.SafeBool2(params, "stop", "trigger", false))
 	var topic any = ccxt.Ternary((trigger == true), "algoexecutionreportv2", "executionreport")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = "myTrades"
@@ -1470,8 +1470,8 @@ func (this *WooCore) ParseWsOrder(order any, optionalArgs ...any) any {
 		"currency": this.SafeString(order, "feeAsset"),
 	}
 	var priceString *string = this.SafeString(order, "price")
-	var price any = this.SafeNumber(order, "price")
-	var avgPrice any = this.SafeNumber(order, "avgPrice")
+	var price any = ccxt.DerefScalar(this.SafeNumber(order, "price"))
+	var avgPrice any = ccxt.DerefScalar(this.SafeNumber(order, "avgPrice"))
 	if ccxt.Precise.StringEq(priceString, "0") && (!ccxt.IsEqual(avgPrice, nil)) {
 		price = avgPrice
 	}
@@ -1742,7 +1742,7 @@ func (this *WooCore) loadPositionsSnapshotBody(ch chan any, client any, messageH
 	var cache any = this.Positions
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = this.SafeNumber(position, "contracts", 0)
+		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
 		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
@@ -1961,7 +1961,7 @@ func (this *WooCore) HandleErrorMessage(client any, message any) any {
 	if !(ccxt.InOp(message, "success")) {
 		return false
 	}
-	var success any = this.SafeBool(message, "success")
+	var success any = ccxt.DerefScalar(this.SafeBool(message, "success"))
 	if ccxt.IsEqual(success, true) {
 		return false
 	}

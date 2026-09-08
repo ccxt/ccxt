@@ -2458,7 +2458,7 @@ func (this *BitvavoCore) HandleAuthenticationMessage(client any, message any) {
 	//     }
 	//
 	var messageHash string = "authenticated"
-	var authenticated any = this.SafeBool(message, "authenticated", false)
+	var authenticated any = ccxt.DerefScalar(this.SafeBool(message, "authenticated", false))
 	if authenticated == true {
 		// we resolve the future here permanently so authentication only happens once
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)

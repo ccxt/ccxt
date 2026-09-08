@@ -749,7 +749,7 @@ func (this *ToobitCore) HandleOrderBook(client any, message any) {
 	//         shared: false
 	//     }
 	//
-	var isSnapshot any = this.SafeBool(message, "f", false)
+	var isSnapshot any = ccxt.DerefScalar(this.SafeBool(message, "f", false))
 	if isSnapshot == true {
 		this.SetOrderBookSnapshot(client, message, "diffDepth")
 		return
@@ -859,7 +859,7 @@ func (this *ToobitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var isSpot bool = (marketType == "spot")
+	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
 	var typeVar any = ccxt.Ternary(isSpot, "spot", "contract")
 	var spotSubHash string = "spot:balance"
 	var swapSubHash string = "contract:private"
@@ -1016,7 +1016,7 @@ func (this *ToobitCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	retRes8218 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes8218)
 	var market any = this.MarketOrNull(symbol)
-	symbol = this.SafeString(market, "symbol", symbol)
+	symbol = ccxt.DerefScalar(this.SafeString(market, "symbol", symbol))
 	var messageHash any = "orders"
 	if !ccxt.IsEqual(symbol, nil) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -1090,7 +1090,7 @@ func (this *ToobitCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	} else {
 		orderType = rawOrderType
 	}
-	var feeCost any = this.SafeNumber(order, "n")
+	var feeCost any = ccxt.DerefScalar(this.SafeNumber(order, "n"))
 	var fee any = nil
 	if !ccxt.IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -1162,7 +1162,7 @@ func (this *ToobitCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	retRes9448 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes9448)
 	var market any = this.MarketOrNull(symbol)
-	symbol = this.SafeString(market, "symbol", symbol)
+	symbol = ccxt.DerefScalar(this.SafeString(market, "symbol", symbol))
 	var messageHash any = "myTrades"
 	if !ccxt.IsEqual(symbol, nil) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)

@@ -594,7 +594,7 @@ func (this *BitstampCore) HandleErrorMessage(client any, message any) any {
 	if event != nil && *event == "bts:error" {
 		var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
 		var data any = this.SafeValue(message, "data", map[string]any{})
-		var code any = this.SafeNumber(data, "code")
+		var code any = ccxt.DerefScalar(this.SafeNumber(data, "code"))
 		this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), code, feedback)
 	}
 	return true

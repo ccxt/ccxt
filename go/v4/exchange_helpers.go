@@ -187,7 +187,13 @@ func IsInteger(value any) bool {
 	}
 }
 
+// GetValue returns a plain value: the container may store typed pointers emitted
+// by the Safe* accessors, and callers compare/type-switch on the result.
 func GetValue(collection any, key any) any {
+	return derefScalar(getValue(collection, key))
+}
+
+func getValue(collection any, key any) any {
 	collection = derefScalar(collection)
 	key = derefScalar(key)
 
@@ -1747,6 +1753,12 @@ func IsNil(x any) bool {
 // travels as a pointer: a nil pointer becomes untyped nil (absent), a non-nil one
 // becomes the value it points at. Pointer types that are values in their own right
 // (*sync.Map, *PreciseStruct, *ArrayCache, ...) are returned untouched.
+// DerefScalar is the exported form of derefScalar, used by transpiled code that
+// stores a Safe* result in an `any` local and then compares it inline.
+func DerefScalar(v any) any {
+	return derefScalar(v)
+}
+
 func derefScalar(v any) any {
 	switch p := v.(type) {
 	case *string:

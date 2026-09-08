@@ -1550,7 +1550,7 @@ func (this *ApexCore) SafeMarket(optionalArgs ...any) any {
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
 func (this *ApexCore) GenerateRandomClientIdOmni(_accountId any) any {
-	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (_accountId != "")
+	var hasAccountId bool = (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, ""))
 	var accountId any = Ternary(hasAccountId, _accountId, ToString(this.RandNumber(12)))
 	return Add(Add(Add(Add(Add("apexomni-", accountId), "-"), ToString(this.Milliseconds())), "-"), ToString(this.RandNumber(6)))
 }
@@ -1643,17 +1643,17 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
 	var limitFee any = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 	var timeNow int64 = this.Milliseconds()
-	var triggerPrice any = this.SafeString(params, "triggerPrice")
+	var triggerPrice any = DerefScalar(this.SafeString(params, "triggerPrice"))
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
-		orderType = Ternary((orderType == "MARKET"), "STOP_MARKET", "STOP_LIMIT")
+		orderType = Ternary((IsEqual(orderType, "MARKET")), "STOP_MARKET", "STOP_LIMIT")
 		triggerPrice = stopLossPrice
 	} else if takeProfitPrice != nil {
-		orderType = Ternary((orderType == "MARKET"), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
+		orderType = Ternary((IsEqual(orderType, "MARKET")), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
 		triggerPrice = takeProfitPrice
 	}
-	var isMarket bool = (orderType == "MARKET")
+	var isMarket bool = (IsEqual(orderType, "MARKET"))
 	if isMarket && (IsEqual(price, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market orders")))
 	}
@@ -1665,13 +1665,13 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if !isMarket {
 		if EvalTruthy(postOnly) {
 			timeInForce = "POST_ONLY"
-		} else if timeInForce == "ioc" {
+		} else if IsEqual(timeInForce, "ioc") {
 			timeInForce = "IMMEDIATE_OR_CANCEL"
 		}
 	}
 	params = this.Omit(params, "timeInForce")
 	params = this.Omit(params, "postOnly")
-	var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
+	var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
 
 	accountId := (<-this.GetAccountId())
 	PanicOnError(accountId)
@@ -1773,7 +1773,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	var subAccounts any = this.SafeList(spotAccount, "subAccounts", []any{})
 	var nonce any = "0"
 	if IsGreaterThan(GetArrayLength(subAccounts), 0) {
-		nonce = this.SafeString(GetValue(subAccounts, 0), "nonce", "0")
+		nonce = DerefScalar(this.SafeString(GetValue(subAccounts, 0), "nonce", "0"))
 	}
 	var finalNonce any = nonce // java req
 	var ethAddress *string = this.SafeString(accountData, "ethereumAddress", "")
@@ -1791,12 +1791,12 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 		}
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
-	var decimalsNum any = this.SafeNumber(currency, "decimals", 0)
+	var decimalsNum any = DerefScalar(this.SafeNumber(currency, "decimals", 0))
 	var decimalsNumber any = Ternary((IsEqual(decimalsNum, nil)), 0, decimalsNum)
 	var mathPowResult float64 = (MathPow(10, decimalsNumber))
 	var amountNumber any = this.ParseToInt(Multiply(amount, mathPowResult))
 	var timestampSeconds any = this.ParseToInt(Divide(this.Milliseconds(), 1000))
-	var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
+	var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
 	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 	}

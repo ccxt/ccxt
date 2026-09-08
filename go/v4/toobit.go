@@ -1187,7 +1187,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
 	var minNotionalFilter any = this.SafeDict(filtersByType, "MIN_NOTIONAL", map[string]any{})
 	var symbol any = Add(Add(base, "/"), quote)
 	var isContract bool = (InOp(market, "contractMultiplier"))
-	var inverse any = this.SafeBool2(market, "isInverse", "inverse")
+	var inverse any = DerefScalar(this.SafeBool2(market, "isInverse", "inverse"))
 	if isContract {
 		symbol = Add(symbol, Add(":", settle))
 	}
@@ -1415,11 +1415,11 @@ func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(trade, "t", "time")
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "q", "qty")
-	var isBuyer any = this.SafeBool(trade, "isBuyer")
+	var isBuyer any = DerefScalar(this.SafeBool(trade, "isBuyer"))
 	var side any = nil
-	var isBuyerMaker any = this.SafeBool(trade, "ibm")
+	var isBuyerMaker any = DerefScalar(this.SafeBool(trade, "ibm"))
 	if IsEqual(isBuyerMaker, nil) {
-		var isBuyerTaker any = this.SafeBool(trade, "m")
+		var isBuyerTaker any = DerefScalar(this.SafeBool(trade, "m"))
 		if !IsEqual(isBuyerTaker, nil) {
 			isBuyerMaker = !EvalTruthy(isBuyerTaker)
 		}
@@ -1446,7 +1446,7 @@ func (this *ToobitCore) ParseTrade(trade any, optionalArgs ...any) any {
 			"cost":     feeAmount,
 		}
 	}
-	var isMaker any = this.SafeBool(trade, "isMaker")
+	var isMaker any = DerefScalar(this.SafeBool(trade, "isMaker"))
 	var takerOrMaker any = nil
 	if !IsEqual(isMaker, nil) {
 		takerOrMaker = Ternary(EvalTruthy(isMaker), "maker", "taker")
@@ -1599,7 +1599,7 @@ func (this *ToobitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
-	if typeVar == "spot" {
+	if IsEqual(typeVar, "spot") {
 
 		response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1871,7 +1871,7 @@ func (this *ToobitCore) ParseFundingRate(contract any, optionalArgs ...any) any 
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
-	var nextFundingRate any = this.SafeNumber(contract, "rate")
+	var nextFundingRate any = DerefScalar(this.SafeNumber(contract, "rate"))
 	var nextFundingRateTimestamp *int64 = this.SafeInteger(contract, "nextFundingTime")
 	return map[string]any{
 		"info":                     contract,
@@ -2144,7 +2144,7 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	costparamsVariable := this.HandleParamString(params, "cost")
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
-	if (typeVar == "market") && (side == "buy") {
+	if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
 		if IsEqual(cost, nil) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires params[\"cost\"] for market buy order")))
 		}
@@ -2153,7 +2153,7 @@ func (this *ToobitCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 		AddElementToObject(request, "quantity", this.AmountToPrecision(symbol, amount))
 	}
 	var isPostOnly any = nil
-	isPostOnlyparamsVariable := this.HandlePostOnly((typeVar == "market"), false, params)
+	isPostOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
 	if IsEqual(isPostOnly, true) {
@@ -2183,9 +2183,9 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	reduceOnlyparamsVariable := this.HandleParamBool(params, "reduceOnly")
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
-	if side == "buy" {
+	if IsEqual(side, "buy") {
 		side = Ternary((IsEqual(reduceOnly, true)), "BUY_CLOSE", "BUY_OPEN")
-	} else if side == "sell" {
+	} else if IsEqual(side, "sell") {
 		side = Ternary((IsEqual(reduceOnly, true)), "SELL_CLOSE", "SELL_OPEN")
 	}
 	AddElementToObject(request, "side", side)
@@ -2195,12 +2195,12 @@ func (this *ToobitCore) CreateContractOrderRequest(symbol any, typeVar any, side
 	if this.InArray(typeVar, []any{"limit", "LIMIT"}) {
 		AddElementToObject(request, "type", ToUpper(typeVar))
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-	} else if typeVar == "market" {
+	} else if IsEqual(typeVar, "market") {
 		AddElementToObject(request, "type", "LIMIT") // weird, but exchange works this way
 		AddElementToObject(request, "priceType", "MARKET")
 	}
 	var isPostOnly any = nil
-	isPostOnlyparamsVariable := this.HandlePostOnly((typeVar == "market"), false, params)
+	isPostOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), false, params)
 	isPostOnly = GetValue(isPostOnlyparamsVariable, 0)
 	params = GetValue(isPostOnlyparamsVariable, 1)
 	if IsEqual(isPostOnly, true) {
@@ -2425,11 +2425,11 @@ func (this *ToobitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params, "none")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "none" {
+	if IsEqual(marketType, "none") {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 	}
 	var response any = map[string]any{}
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2485,11 +2485,11 @@ func (this *ToobitCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params, "none")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "none" {
+	if IsEqual(marketType, "none") {
 		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 	}
 	var response any = nil
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2545,11 +2545,11 @@ func (this *ToobitCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params, "none")
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "none" {
+	if IsEqual(marketType, "none") {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")))
 	}
 	var response any = nil
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2689,7 +2689,7 @@ func (this *ToobitCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2755,7 +2755,7 @@ func (this *ToobitCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateGetApiV1SpotTradeOrders(request))
 		PanicOnError(response)
@@ -2817,7 +2817,7 @@ func (this *ToobitCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchOrders() is not supported for "), marketType), " markets")))
 	} else {
 
@@ -2893,7 +2893,7 @@ func (this *ToobitCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = []any{}
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3033,7 +3033,7 @@ func (this *ToobitCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3070,7 +3070,7 @@ func (this *ToobitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(item, "coinId")
 	currency = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(item, "created")
-	var after any = this.SafeNumber(item, "total")
+	var after any = DerefScalar(this.SafeNumber(item, "total"))
 	var amountRaw *string = this.SafeString(item, "change", "")
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
 	var direction string = "in"
@@ -3132,7 +3132,7 @@ func (this *ToobitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	if marketType == "spot" {
+	if IsEqual(marketType, "spot") {
 		panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees(): does not support "), marketType), " markets")))
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
 		var symbol any = nil
@@ -3796,8 +3796,8 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
-	var isPost bool = (method == "POST")
-	var isDelete bool = (method == "DELETE")
+	var isPost bool = (IsEqual(method, "POST"))
+	var isDelete bool = (IsEqual(method, "DELETE"))
 	var extraQuery map[string]any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if !IsEqual(api, "private") {
@@ -3831,7 +3831,7 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 			payload = Add(body, payload)
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
-		if queryString != "" {
+		if !IsEqual(queryString, "") {
 			queryString = Add(queryString, Add("&signature=", signature))
 			url = Add(url, Add("?", queryString))
 		} else {
