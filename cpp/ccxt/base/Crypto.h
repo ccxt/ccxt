@@ -16,14 +16,12 @@
 
 namespace ccxt {
 
-// The TS ecdsa() free function from crypto.ts. The real implementation needs
-// deterministic RFC-6979 signing over secp256k1 (OpenSSL's ECDSA_do_sign draws a
-// random nonce and cannot reproduce the pinned (r, s, v) vectors) -- part of the
-// crypto milestone. The name must exist because generated exchange sign() paths
-// reference it even on branches the hmac path takes.
-inline std::any ecdsa (std::any, std::any, std::any, std::any) {
-    throw NotSupported ("ecdsa requires deterministic RFC-6979 signing; not implemented in the C++ port yet");
-}
+// The TS ecdsa() free function from crypto.ts. Implemented for secp256k1 with
+// deterministic RFC-6979 nonces (HMAC-SHA256), low-s normalisation and the noble-curves
+// 'recovered' recovery bit -- this is what the 7 EIP-712 exchanges pin in their static
+// fixtures. See Crypto.cpp.
+std::any ecdsa (std::any request, std::any secret, std::any curve = std::any {},
+                std::any prehash = std::any {}, std::any fixedLength = std::any {});
 
 // Digest selectors. Generated code passes these positionally into hash()/hmac(); they
 // are plain strings so an unknown algorithm fails loudly at the call rather than
@@ -58,6 +56,13 @@ bytes fromBase58 (const std::string& text);
 // raw bytes. This mirrors the third argument of the TS hash()/hmac().
 
 std::any hashBytes (const bytes& payload, const std::string& algorithm, const std::string& digest);
+
+// Original Keccak-256 (Ethereum flavour) over raw bytes -- the eth signing paths need
+// it directly (EIP-712 struct hashing, address derivation).
+bytes keccak256Bytes (const bytes& payload);
+inline bytes keccak256Bytes (const std::string& payload) {
+    return keccak256Bytes (bytes (std::vector<unsigned char> (payload.begin (), payload.end ())));
+}
 std::any hmacBytes (const bytes& payload, const std::string& key,
                     const std::string& algorithm, const std::string& digest);
 

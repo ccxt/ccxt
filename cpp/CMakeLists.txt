@@ -30,6 +30,7 @@ add_library (ccxt STATIC
     ccxt/base/helpers.cpp
     ccxt/base/ExchangeBase.cpp
     ccxt/base/Crypto.cpp
+    ccxt/base/Starknet.cpp
     ccxt/base/Number.cpp
     ccxt/exchanges/ExchangeFactory.cpp
 )

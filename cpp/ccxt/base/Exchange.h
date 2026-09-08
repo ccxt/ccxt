@@ -110,6 +110,7 @@ public:
         if (key == "walletAddress")      { this->walletAddress = value; return; }
         if (key == "privateKey")         { this->privateKey = value; return; }
         if (key == "token")              { this->token = value; return; }
+        if (key == "accountId")          { this->accountId = value; return; }
         if (key == "verbose")            { this->verbose = value; return; }
         if (key == "enableRateLimit")    { this->enableRateLimit = value; return; }
         if (key == "rateLimit")          { this->rateLimit = value; return; }
