@@ -188,7 +188,12 @@ jobs:
                fi
 
                git fetch --tags --depth=1
-               PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
+               # only ccxt version tags — the repo also carries `go/vX.Y.Z`, the per-release
+               # `ccxt-mcp-vX.Y.Z`, and the moving `ccxt-mcp-latest`, any of which can be the
+               # newest tag overall and would then be handed to --notes-start-tag, truncating
+               # the changelog to the commits after it (v4.5.78 shipped compared against
+               # ccxt-mcp-v0.1.3, losing every PR merged between it and v4.5.77)
+               PREVIOUS_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-creatordate | head -n1)
                echo "Previous tag: ${PREVIOUS_TAG}"
 
                # tag names are unique per release so they cannot race with master —
