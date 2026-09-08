@@ -60,7 +60,6 @@ class okx extends \ccxt\async\okx {
             ),
             'options' => array(
                 'watchOrderBook' => array(
-                    'checksum' => true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
