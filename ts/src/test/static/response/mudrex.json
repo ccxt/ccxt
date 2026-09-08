@@ -1252,6 +1252,8 @@
                     "side": null,
                     "price": null,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": null,
                     "cost": null,
                     "average": null,
@@ -1263,9 +1265,7 @@
                     "fees": [],
                     "lastUpdateTimestamp": null,
                     "reduceOnly": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "stopPrice": null
                 }
             }
         ],
@@ -1303,6 +1303,8 @@
                     "side": null,
                     "price": null,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": null,
                     "cost": null,
                     "average": null,
@@ -1314,9 +1316,7 @@
                     "fees": [],
                     "lastUpdateTimestamp": null,
                     "reduceOnly": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "stopPrice": null
                 }
             }
         ],
@@ -1368,6 +1368,8 @@
                     "side": "buy",
                     "price": 0.05,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": 100,
                     "cost": null,
                     "average": null,
@@ -1379,9 +1381,71 @@
                     "fees": [],
                     "lastUpdateTimestamp": null,
                     "reduceOnly": null,
-                    "stopPrice": null,
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "createOrder market",
+                "method": "createOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/DOGEUSDT/order?is_symbol=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    0.05,
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "leverage": "20",
+                        "amount": "0.251",
+                        "quantity": "100",
+                        "price": "0.0502",
+                        "order_id": "0198f4c1-52d9-7a86-b3f0-6c1e97d24a58",
+                        "status": "CREATED",
+                        "message": "OK"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "leverage": "20",
+                        "amount": "0.251",
+                        "quantity": "100",
+                        "price": "0.0502",
+                        "order_id": "0198f4c1-52d9-7a86-b3f0-6c1e97d24a58",
+                        "status": "CREATED",
+                        "message": "OK"
+                    },
+                    "id": "0198f4c1-52d9-7a86-b3f0-6c1e97d24a58",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 0.0502,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
                     "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "amount": 100,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null
                 }
             }
         ],
@@ -10507,6 +10571,8 @@
                         "side": null,
                         "price": null,
                         "triggerPrice": 0.59,
+                        "stopLossPrice": 0.59,
+                        "takeProfitPrice": null,
                         "amount": null,
                         "cost": null,
                         "average": null,
@@ -10518,9 +10584,7 @@
                         "fees": [],
                         "lastUpdateTimestamp": 1782979858000,
                         "reduceOnly": null,
-                        "stopPrice": 0.59,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopPrice": 0.59
                     },
                     {
                         "info": {
@@ -10555,6 +10619,8 @@
                         "side": null,
                         "price": null,
                         "triggerPrice": 0.6232,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": 0.6232,
                         "amount": null,
                         "cost": null,
                         "average": null,
@@ -10566,9 +10632,7 @@
                         "fees": [],
                         "lastUpdateTimestamp": 1782979858000,
                         "reduceOnly": null,
-                        "stopPrice": 0.6232,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopPrice": 0.6232
                     }
                 ]
             }
@@ -10859,6 +10923,8 @@
                     "side": "buy",
                     "price": 0.05,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": 100,
                     "cost": 4.998,
                     "average": 0.04998,
@@ -10870,9 +10936,7 @@
                     "fees": [],
                     "lastUpdateTimestamp": 1782979862000,
                     "reduceOnly": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "stopPrice": null
                 }
             }
         ]

@@ -765,10 +765,10 @@ export default class mudrex extends Exchange {
         params = this.omit (params, [ 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ]);
         const response = await this.privatePostFuturesAssetIdOrder (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        // the create response omits the order/trigger type, so restore them from the request on the parsed structure, keeping the raw payload untouched
-        const order = this.parseOrder (data, market);
-        order['type'] = type;
-        order['side'] = side;
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        const merged = this.extend (data, { 'order_type': request['order_type'], 'trigger_type': request['trigger_type'] });
+        const order = this.parseOrder (merged, market);
+        order['info'] = data;
         return order;
     }
 
@@ -841,9 +841,16 @@ export default class mudrex extends Exchange {
         const priceString = this.safeString2 (order, 'price', 'order_price');
         let orderPrice = priceString;
         let triggerPrice: Str = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
         if (isRiskOrder) {
             triggerPrice = priceString;
             orderPrice = undefined;
+            if (rawSide === 'STOPLOSS') {
+                stopLossPrice = priceString;
+            } else {
+                takeProfitPrice = priceString;
+            }
         }
         const trig = this.safeStringUpper (order, 'trigger_type');
         let typ: Str = undefined;
@@ -869,6 +876,8 @@ export default class mudrex extends Exchange {
             'side': side,
             'price': orderPrice,
             'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': this.safeString2 (order, 'quantity', 'amount'),
             'cost': undefined,
             'average': this.safeString (order, 'filled_price'),
