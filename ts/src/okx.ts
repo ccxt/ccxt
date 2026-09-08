@@ -4049,6 +4049,7 @@ export default class okx extends Exchange {
             'mmp_canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
+            'partially_effective': 'open',
             'filled': 'closed',
             'effective': 'closed',
         };
