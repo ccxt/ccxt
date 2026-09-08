@@ -49,7 +49,6 @@ public partial class okx : ccxt.okx
             } },
             { "options", new Dictionary<string, object>() {
                 { "watchOrderBook", new Dictionary<string, object>() {
-                    { "checksum", true },
                     { "depth", "books" },
                 } },
                 { "watchBalance", "spot" },
