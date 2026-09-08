@@ -9,49 +9,56 @@
 std::any helperStrToBinary(std::any exchange, std::any str);
 void testBinaryToBase64();
 
-std::any helperStrToBinary(std::any exchange, std::any str)
-{
-    return exchange.base64ToBinary(exchange.stringToBase64(str));
+std::any helperStrToBinary(std::any exchange, std::any str) {
+  return exchange.base64ToBinary(exchange.stringToBase64(str));
 }
-void testBinaryToBase64()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    // In JavaScript, we use Uint8Array or Buffer for binary data
-    // The encode() method converts string to bytes
-    // @SKIP_START_GO
-    // Test 1: Simple binary from string
-    std::any binary1 = helperStrToBinary(exchange, std::string("hello"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary1), std::string("aGVsbG8=")));
-    // Test 2: Binary with space in original
-    std::any binary2 = helperStrToBinary(exchange, std::string("hello world"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary2), std::string("aGVsbG8gd29ybGQ=")));
-    // Test 3: Short binary
-    std::any binary3 = helperStrToBinary(exchange, std::string("test"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary3), std::string("dGVzdA==")));
-    // Test 4: Empty binary
-    std::any binary4 = helperStrToBinary(exchange, std::string(""));
-    assertTrue(isEqual(exchange.binaryToBase64(binary4), std::string("")));
-    // Test 5: Single byte
-    std::any binary5 = helperStrToBinary(exchange, std::string("a"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary5), std::string("YQ==")));
-    // Test 6: Two bytes
-    std::any binary6 = helperStrToBinary(exchange, std::string("ab"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary6), std::string("YWI=")));
-    // Test 7: Three bytes (no padding)
-    std::any binary7 = helperStrToBinary(exchange, std::string("abc"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary7), std::string("YWJj")));
-    // Test 8: JSON-like binary
-    std::any binary8 = helperStrToBinary(exchange, std::string("{\"key\":\"value\"}"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary8), std::string("eyJrZXkiOiJ2YWx1ZSJ9")));
-    // Test 9: Numbers as binary
-    std::any binary9 = helperStrToBinary(exchange, std::string("123456"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary9), std::string("MTIzNDU2")));
-    // Test 10: Special characters
-    std::any binary10 = helperStrToBinary(exchange, std::string("hello+world/test"));
-    assertTrue(isEqual(exchange.binaryToBase64(binary10), std::string("aGVsbG8rd29ybGQvdGVzdA==")));
-    // @SKIP_END_GO
-    assertTrue(isEqual(exchange.safeString(std::any{}, std::string("key")), std::any{}), std::string("GO_WORKAROUND"));
+void testBinaryToBase64() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  // In JavaScript, we use Uint8Array or Buffer for binary data
+  // The encode() method converts string to bytes
+  // @SKIP_START_GO
+  // Test 1: Simple binary from string
+  std::any binary1 = helperStrToBinary(exchange, std::string("hello"));
+  assertTrue(
+      isEqual(exchange.binaryToBase64(binary1), std::string("aGVsbG8=")));
+  // Test 2: Binary with space in original
+  std::any binary2 = helperStrToBinary(exchange, std::string("hello world"));
+  assertTrue(isEqual(exchange.binaryToBase64(binary2),
+                     std::string("aGVsbG8gd29ybGQ=")));
+  // Test 3: Short binary
+  std::any binary3 = helperStrToBinary(exchange, std::string("test"));
+  assertTrue(
+      isEqual(exchange.binaryToBase64(binary3), std::string("dGVzdA==")));
+  // Test 4: Empty binary
+  std::any binary4 = helperStrToBinary(exchange, std::string(""));
+  assertTrue(isEqual(exchange.binaryToBase64(binary4), std::string("")));
+  // Test 5: Single byte
+  std::any binary5 = helperStrToBinary(exchange, std::string("a"));
+  assertTrue(isEqual(exchange.binaryToBase64(binary5), std::string("YQ==")));
+  // Test 6: Two bytes
+  std::any binary6 = helperStrToBinary(exchange, std::string("ab"));
+  assertTrue(isEqual(exchange.binaryToBase64(binary6), std::string("YWI=")));
+  // Test 7: Three bytes (no padding)
+  std::any binary7 = helperStrToBinary(exchange, std::string("abc"));
+  assertTrue(isEqual(exchange.binaryToBase64(binary7), std::string("YWJj")));
+  // Test 8: JSON-like binary
+  std::any binary8 =
+      helperStrToBinary(exchange, std::string("{\"key\":\"value\"}"));
+  assertTrue(isEqual(exchange.binaryToBase64(binary8),
+                     std::string("eyJrZXkiOiJ2YWx1ZSJ9")));
+  // Test 9: Numbers as binary
+  std::any binary9 = helperStrToBinary(exchange, std::string("123456"));
+  assertTrue(
+      isEqual(exchange.binaryToBase64(binary9), std::string("MTIzNDU2")));
+  // Test 10: Special characters
+  std::any binary10 =
+      helperStrToBinary(exchange, std::string("hello+world/test"));
+  assertTrue(isEqual(exchange.binaryToBase64(binary10),
+                     std::string("aGVsbG8rd29ybGQvdGVzdA==")));
+  // @SKIP_END_GO
+  assertTrue(
+      isEqual(exchange.safeString(std::any{}, std::string("key")), std::any{}),
+      std::string("GO_WORKAROUND"));
 }
-

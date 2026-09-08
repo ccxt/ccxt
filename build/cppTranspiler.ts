@@ -1482,6 +1482,7 @@ async function runMain () {
     const baseClassOnly = process.argv.includes ('--baseClass');
     const baseTestsOnly = process.argv.includes ('--baseTests');
     const exchangeTestsOnly = process.argv.includes ('--tests');
+    const allExchangesOnly = process.argv.includes ('--all');
     const ids = process.argv.slice (2).filter ((x) => !x.startsWith ('--'));
 
     const driver = new CppTranspilerDriver ();
@@ -1504,6 +1505,22 @@ async function runMain () {
     if (ids.length) {
         // a named exchange always rebuilds: the caller asked for it explicitly
         driver.transpileDerivedExchangeFiles (ids, true);
+        return;
+    }
+    if (allExchangesOnly) {
+        // the full port: every exchange in exchanges.json (the port's registered
+        // scope -- 104 venues), plus base + test framework. The static-test registry
+        // is built from the fixture dirs separately and covers the 89 venues that
+        // have static fixtures upstream.
+        const exchangeIds: string[] = JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).ids;
+        driver.transpileErrorHierarchy (force);
+        driver.transpileBaseMethods (TS_BASE_FILE, force);
+        await driver.transpileBaseTests (force);
+        driver.transpileMainTest ();
+        driver.transpileExchangeTestFiles ();
+        driver.transpileTestRegistry ();
+        driver.transpileDerivedExchangeFiles (exchangeIds, force);
+        log.bright.green ('[cpp] Transpiled all exchanges.');
         return;
     }
     driver.transpileErrorHierarchy (force);

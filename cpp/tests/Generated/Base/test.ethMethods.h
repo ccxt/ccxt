@@ -8,14 +8,19 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testEthMethods();
 
-void testEthMethods()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    std::any privateKey = std::string("0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b");
-    std::any publicKey = std::string("0x3096cD9827766E03f8b6DF58996399406DC270Af");
-    std::any generatedAddress = exchange.ethGetAddressFromPrivateKey(privateKey);
-    assertTrue(isEqual(toLowerCase(generatedAddress), toLowerCase(publicKey)), add(add(add(std::string("ethGetAddressFromPrivateKey did not generate the expected address: "), generatedAddress), std::string(" != ")), publicKey));
+void testEthMethods() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  std::any privateKey = std::string(
+      "0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b");
+  std::any publicKey =
+      std::string("0x3096cD9827766E03f8b6DF58996399406DC270Af");
+  std::any generatedAddress = exchange.ethGetAddressFromPrivateKey(privateKey);
+  assertTrue(isEqual(toLowerCase(generatedAddress), toLowerCase(publicKey)),
+             add(add(add(std::string("ethGetAddressFromPrivateKey did not "
+                                     "generate the expected address: "),
+                         generatedAddress),
+                     std::string(" != ")),
+                 publicKey));
 }
-

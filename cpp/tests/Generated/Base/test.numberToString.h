@@ -8,28 +8,37 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testNumberToString();
 
-void testNumberToString()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("regirock") },
-    });
-    // ----------------------------------------------------------------------------
-    // numberToString
-    assertTrue(isEqual(exchange.numberToString(-7.8e-7), std::string("-0.00000078")));
-    assertTrue(isEqual(exchange.numberToString(7.8e-7), std::string("0.00000078")));
-    assertTrue(isEqual(exchange.numberToString(-0.0000017805), std::string("-0.0000017805")));
-    assertTrue(isEqual(exchange.numberToString(0.0000017805), std::string("0.0000017805")));
-    assertTrue(isEqual(exchange.numberToString(-7.0005e+27), std::string("-7000500000000000000000000000")));
-    assertTrue(isEqual(exchange.numberToString(7.0005e+27), std::string("7000500000000000000000000000")));
-    assertTrue(isEqual(exchange.numberToString(-7.9e+27), std::string("-7900000000000000000000000000")));
-    assertTrue(isEqual(exchange.numberToString(7e+27), std::string("7000000000000000000000000000")));
-    assertTrue(isEqual(exchange.numberToString(7.9e+27), std::string("7900000000000000000000000000")));
-    assertTrue(isEqual(exchange.numberToString(-12.345), std::string("-12.345")));
-    assertTrue(isEqual(exchange.numberToString(12.345), std::string("12.345")));
-    assertTrue(isEqual(exchange.numberToString(0), std::string("0")));
-    assertTrue(isEqual(exchange.numberToString(7.35946e+21), std::string("7359460000000000000000")));
-    assertTrue(isEqual(exchange.numberToString(1e-8), std::string("0.00000001")));
-    assertTrue(isEqual(exchange.numberToString(1e-7), std::string("0.0000001")));
-    assertTrue(isEqual(exchange.numberToString(-1e-7), std::string("-0.0000001")));
+void testNumberToString() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("regirock")},
+  });
+  // ----------------------------------------------------------------------------
+  // numberToString
+  assertTrue(
+      isEqual(exchange.numberToString(-7.8e-7), std::string("-0.00000078")));
+  assertTrue(
+      isEqual(exchange.numberToString(7.8e-7), std::string("0.00000078")));
+  assertTrue(isEqual(exchange.numberToString(-0.0000017805),
+                     std::string("-0.0000017805")));
+  assertTrue(isEqual(exchange.numberToString(0.0000017805),
+                     std::string("0.0000017805")));
+  assertTrue(isEqual(exchange.numberToString(-7.0005e+27),
+                     std::string("-7000500000000000000000000000")));
+  assertTrue(isEqual(exchange.numberToString(7.0005e+27),
+                     std::string("7000500000000000000000000000")));
+  assertTrue(isEqual(exchange.numberToString(-7.9e+27),
+                     std::string("-7900000000000000000000000000")));
+  assertTrue(isEqual(exchange.numberToString(7e+27),
+                     std::string("7000000000000000000000000000")));
+  assertTrue(isEqual(exchange.numberToString(7.9e+27),
+                     std::string("7900000000000000000000000000")));
+  assertTrue(isEqual(exchange.numberToString(-12.345), std::string("-12.345")));
+  assertTrue(isEqual(exchange.numberToString(12.345), std::string("12.345")));
+  assertTrue(isEqual(exchange.numberToString(0), std::string("0")));
+  assertTrue(isEqual(exchange.numberToString(7.35946e+21),
+                     std::string("7359460000000000000000")));
+  assertTrue(isEqual(exchange.numberToString(1e-8), std::string("0.00000001")));
+  assertTrue(isEqual(exchange.numberToString(1e-7), std::string("0.0000001")));
+  assertTrue(
+      isEqual(exchange.numberToString(-1e-7), std::string("-0.0000001")));
 }
-

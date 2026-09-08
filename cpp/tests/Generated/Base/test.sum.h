@@ -8,13 +8,14 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testSum();
 
-void testSum()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    // assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (), undefined); // todo: bugs in py
-    assertDeepEqual(exchange, std::any{}, std::string("testSum"), exchange.sum(2), 2);
-    assertDeepEqual(exchange, std::any{}, std::string("testSum"), exchange.sum(2, 30, 400), 432);
+void testSum() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  // assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (),
+  // undefined); // todo: bugs in py
+  assertDeepEqual(exchange, std::any{}, std::string("testSum"), exchange.sum(2),
+                  2);
+  assertDeepEqual(exchange, std::any{}, std::string("testSum"),
+                  exchange.sum(2, 30, 400), 432);
 }
-

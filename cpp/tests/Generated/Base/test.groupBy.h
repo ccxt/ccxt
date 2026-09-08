@@ -8,42 +8,49 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testGroupBy();
 
-void testGroupBy()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    std::any sampleArray = ccxt::list{ccxt::dict {
-    { std::string("foo"), std::string("a") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("b") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("c") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("b") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("c") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("c") },
-}};
-    std::any currentValue = exchange.groupBy(sampleArray, std::string("foo"));
-    std::any storedValue = ccxt::dict {
-        { std::string("a"), ccxt::list{ccxt::dict {
-    { std::string("foo"), std::string("a") },
-}} },
-        { std::string("b"), ccxt::list{ccxt::dict {
-    { std::string("foo"), std::string("b") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("b") },
-}} },
-        { std::string("c"), ccxt::list{ccxt::dict {
-    { std::string("foo"), std::string("c") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("c") },
-}, ccxt::dict {
-    { std::string("foo"), std::string("c") },
-}} },
-    };
-    assertDeepEqual(exchange, std::any{}, std::string("testGroupBy"), currentValue, storedValue);
+void testGroupBy() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  std::any sampleArray = ccxt::list{ccxt::dict{
+                                        {std::string("foo"), std::string("a")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("b")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("c")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("b")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("c")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("c")},
+                                    }};
+  std::any currentValue = exchange.groupBy(sampleArray, std::string("foo"));
+  std::any storedValue = ccxt::dict{
+      {std::string("a"), ccxt::list{ccxt::dict{
+                             {std::string("foo"), std::string("a")},
+                         }}},
+      {std::string("b"), ccxt::list{ccxt::dict{
+                                        {std::string("foo"), std::string("b")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("b")},
+                                    }}},
+      {std::string("c"), ccxt::list{ccxt::dict{
+                                        {std::string("foo"), std::string("c")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("c")},
+                                    },
+                                    ccxt::dict{
+                                        {std::string("foo"), std::string("c")},
+                                    }}},
+  };
+  assertDeepEqual(exchange, std::any{}, std::string("testGroupBy"),
+                  currentValue, storedValue);
 }
-
