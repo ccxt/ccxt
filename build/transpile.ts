@@ -139,7 +139,7 @@ function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
 //
 // This MUST run before the worker pool is fed: the per-language drivers hand the
 // whole file list to piscina as the sticky ts.Program `roots` (see
-// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// build/worker-program-batch.ts), so a skipped exchange that stayed in the list
 // would still be parsed, printed and written — i.e. no saving at all.
 //
 // `resolvePaths` returns the ts source and every file the driver writes for that
@@ -167,7 +167,7 @@ function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean
 // base methods, the error hierarchy, and the test groups. Those stages emit a fixed
 // set of files from a fixed set of sources, and they cannot be filtered file by file
 // — `webworkerTranspile` hands the whole stage list to piscina as the sticky
-// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// ts.Program `roots` (build/worker-program-batch.ts), so printing a subset off a
 // different root set is not guaranteed to reproduce the full-run output. A stage is
 // therefore skipped all-or-nothing: clean only when every output exists and the
 // newest input is not newer than the oldest output.
@@ -493,7 +493,7 @@ class Transpiler {
             [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
             [ /\s\|\|\s/g, ' or ' ],
             [ /\s\&\&\s/g, ' and ' ],
-            [ /\!([^\s\='"])/g, 'not $1'],
+            [ /(?<!['"])\!([^\s\='"])/g, 'not $1'],
             [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
             [ /^(\s*}\s*$)+/gm, '' ],
             [ /\;(\s+?\/\/.+?)/g, '$1' ],
@@ -3134,7 +3134,7 @@ class Transpiler {
         // create worker
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, './ast-transpiler-worker.js'),
+            filename: resolve(__dirname, './ast-transpiler-worker.ts'),
             maxThreads,
         });
 

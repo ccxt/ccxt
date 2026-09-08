@@ -852,7 +852,7 @@ impl KalshiCore {
             // the python transpiler — this form emits strlen()/len() correctly in both
             let mut symbolLength: Value = self.parse_to_int(get_array_length(&outcomeSymbol));
             let mut suffix: Value = slice(&outcomeSymbol, &subtract(&symbolLength, &Value::Int(3)), &Value::Null);
-            let mut isNo: Value = Value::Bool(is_equal(&suffix, &Value::Str("-NO".to_string())));
+            let mut isNo: bool = is_equal(&suffix, &Value::Str("-NO".to_string()));
             let mut baseTicker: Value = ternary(is_true(&isNo), slice(&outcomeSymbol, &Value::Int(0), &subtract(&symbolLength, &Value::Int(3))), outcomeSymbol.clone());
             let mut response: Value = Value::Null;
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -1738,7 +1738,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut ticker: Value = self.safe_string(get_value(&outcomeObj, &Value::Str("info".to_string())), Value::Str("ticker".to_string()), &[]);
-        let mut isNo: Value = Value::Bool(is_equal(&get_value(&outcomeObj, &Value::Str("label".to_string())), &Value::Str("NO".to_string())));
+        let mut isNo: bool = is_equal(&get_value(&outcomeObj, &Value::Str("label".to_string())), &Value::Str("NO".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), ticker.clone());
@@ -2498,7 +2498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut noCount: Value = self.safe_number2(settlement.clone(), Value::Str("no_count_fp".to_string()), Value::Str("no_count".to_string()), &[Value::Int(0)]);
         let mut heldYes: Value = Value::Bool(is_greater_than_or_equal(&yesCount, &noCount));
         let mut heldLabel: Value = ternary(is_true(&(heldYes)), Value::Str("YES".to_string()), Value::Str("NO".to_string()));
-        let mut tickerMissing: Value = Value::Bool(is_equal(&ticker, &Value::Null));
+        let mut tickerMissing: bool = is_equal(&ticker, &Value::Null);
         let mut useHeldYesTicker: Value = Value::Bool(is_true(&heldYes) || is_true(&tickerMissing));
         let mut heldTicker: Value = ternary(is_true(&(useHeldYesTicker)), ticker.clone(), (add(&ticker, &Value::Str("-NO".to_string()))));
         let mut mkt: Value = self.safe_outcome(heldTicker.clone(), &[market.clone()]);
@@ -2896,7 +2896,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut ticker: Value = self.safe_string(get_value(&outcomeObj, &Value::Str("info".to_string())), Value::Str("ticker".to_string()), &[]);
-        let mut isNo: Value = Value::Bool(is_equal(&get_value(&outcomeObj, &Value::Str("label".to_string())), &Value::Str("NO".to_string())));
+        let mut isNo: bool = is_equal(&get_value(&outcomeObj, &Value::Str("label".to_string())), &Value::Str("NO".to_string()));
         let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -3630,7 +3630,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 anyActive = Value::Bool(true);
             }
             let mut marketResult: Value = self.safe_string_k(rawMarket.clone(), "result", &[]);
-            let mut marketResolved: Value = Value::Bool(is_true(&(is_equal(&marketStatus, &Value::Str("settled".to_string())))) || is_true(&(is_true(&(!is_equal(&marketResult, &Value::Null))) && is_true(&(!is_equal(&marketResult, &Value::Str("".to_string())))))));
+            let mut marketResolved: bool = is_true(&(is_equal(&marketStatus, &Value::Str("settled".to_string())))) || is_true(&(is_true(&(!is_equal(&marketResult, &Value::Null))) && is_true(&(!is_equal(&marketResult, &Value::Str("".to_string()))))));
             if !is_true(&marketResolved) {
                 allResolved = Value::Bool(false);
             }
@@ -3656,7 +3656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut ticker: Value = self.safe_string_k(rawEvent.clone(), "event_ticker", &[]);
         let mut title: Value = self.safe_string_k(rawEvent.clone(), "title", &[]);
-        let mut hasTitle: Value = Value::Bool(is_true(&(!is_equal(&title, &Value::Null))) && is_true(&(!is_equal(&title, &Value::Str("".to_string())))));
+        let mut hasTitle: bool = is_true(&(!is_equal(&title, &Value::Null))) && is_true(&(!is_equal(&title, &Value::Str("".to_string()))));
         let mut eventSlug: Value = ternary(is_true(&hasTitle), self.shorten_slug(title.clone()), Value::Null);
         let mut created: Value = self.parse8601(self.safe_string_k(rawEvent.clone(), "created_date_iso", &[]));
         if is_equal(&created, &Value::Null) {

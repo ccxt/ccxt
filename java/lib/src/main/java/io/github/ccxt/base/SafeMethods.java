@@ -22,29 +22,6 @@ public final class SafeMethods {
         return (v == null) ? null : String.valueOf(v);
     }
 
-    private static boolean listHasIndex(List<?> l, int i) {
-        return i >= 0 && i < l.size();
-    }
-
-    // ----------------------------
-
-    /**
-     * Attempts to coerce any Map-like object into by stringifying keys.
-     * Throws IllegalStateException if the input is not a Map.
-     */
-    public static Map<String, Object> ConvertToDictionaryOfStringObject(Object potentialDictionary) {
-        if (potentialDictionary instanceof Map<?, ?> m) {
-            Map<String, Object> result = new LinkedHashMap<>();
-            for (Map.Entry<?, ?> e : m.entrySet()) {
-                result.put(String.valueOf(e.getKey()), e.getValue());
-            }
-            return result;
-        }
-        throw new IllegalStateException("The provided object is not a dictionary.");
-    }
-
-    // ----------------------------
-
     public static Object SafeNumberN(Object obj, Object keys, Object... defaultValue) {
         return SafeFloatN(obj, keys, defaultValue);
     }
@@ -188,28 +165,28 @@ public final class SafeMethods {
         return (opt(defaultValue) instanceof String s) ? s : null;
     }
 
-    public static Object SafeString(Object obj, Object key, Object... defaultValue) {
+    public static String SafeString(Object obj, Object key, Object... defaultValue) {
         return SafeStringTyped(obj, key, defaultValue);
     }
 
-    public static Object safeString(Object obj, Object key, Object... defaultValue) {
+    public static String safeString(Object obj, Object key, Object... defaultValue) {
         return SafeStringTyped(obj, key, defaultValue);
     }
 
-    public static Object safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
-        Object result = SafeStringTyped(obj, key1);
+    public static String safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        String result = SafeStringTyped(obj, key1);
         return (result != null) ? result :  SafeStringTyped(obj, key2, defaultValue);
     }
 
-    public static Object safeStringN(Object obj, Object keys, Object... defaultValue) {
+    public static String safeStringN(Object obj, Object keys, Object... defaultValue) {
         return SafeStringN(obj, (List<Object>) keys, defaultValue);
     }
 
-    public static Object SafeStringN(Object obj, Object keys, Object... defaultValue) {
+    public static String SafeStringN(Object obj, Object keys, Object... defaultValue) {
         return SafeStringN(obj, (List<Object>) keys, defaultValue);
     }
 
-    public static Object SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
+    public static String SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
         Object result = SafeValueN(obj, keys);
         if (result != null) {
             if (result instanceof String s) {

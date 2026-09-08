@@ -448,9 +448,9 @@ impl PacificaCore {
         // }
         //
         let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        let mut success: Value = Value::Bool(false);
+        let mut success: bool = false;
         if is_equal(&code, &Value::Int(200)) {
-            success = Value::Bool(true);
+            success = true;
         }
         let mut status: Value = Value::Null;
         if !is_true(&success) {
@@ -527,9 +527,9 @@ impl PacificaCore {
         //   "type": "edit_order"
         // }
         let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        let mut success: Value = Value::Bool(false);
+        let mut success: bool = false;
         if is_equal(&code, &Value::Int(200)) {
-            success = Value::Bool(true);
+            success = true;
         }
         let mut status: Value = Value::Null;
         if !is_true(&success) {
@@ -705,9 +705,9 @@ impl PacificaCore {
         // }
         //
         let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        let mut success: Value = Value::Bool(false);
+        let mut success: bool = false;
         if is_equal(&code, &Value::Int(200)) {
-            success = Value::Bool(true);
+            success = true;
         }
         let mut status: Value = Value::Null;
         if !is_true(&success) {

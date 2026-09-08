@@ -1001,7 +1001,7 @@ impl GeminiCore {
         let mut id: Value = self.safe_string(rawCurrency.clone(), Value::Int(0), &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut fiatFlag: Value = self.safe_string(rawCurrency.clone(), Value::Int(7), &[]);
-        let mut isFiat: Value = Value::Bool(is_true(&(!is_equal(&fiatFlag, &Value::Null))) && is_true(&(!is_equal(&fiatFlag, &Value::Str("".to_string())))));
+        let mut isFiat: bool = is_true(&(!is_equal(&fiatFlag, &Value::Null))) && is_true(&(!is_equal(&fiatFlag, &Value::Str("".to_string()))));
         let mut type_var: Value = ternary(is_true(&isFiat), Value::Str("fiat".to_string()), Value::Str("crypto".to_string()));
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string(rawCurrency.clone(), Value::Int(5), &[])]), &[]);
         let mut networks: Value = Value::Map({
@@ -1415,7 +1415,7 @@ impl GeminiCore {
         let mut contractSize: Value = Value::Null;
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
-        let mut isString: Value = Value::Bool(is_string(&response));
+        let mut isString: bool = is_string(&response);
         let mut isArray: Value = (Value::Bool(is_array(&response)));
         if !is_true(&isString) && !is_true(&isArray) {
             marketId = self.safe_string_lower(response.clone(), Value::Str("symbol".to_string()), &[]);
@@ -1437,7 +1437,7 @@ impl GeminiCore {
                 minSize = self.safe_number(response.clone(), Value::Int(3), &[]); // quantityMinimum
             }
             let mut marketIdUpper: Value = to_upper(&marketId);
-            let mut isPerp: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&marketIdUpper, &Value::Str("PERP".to_string())), &Value::Int(0)));
+            let mut isPerp: bool = is_greater_than_or_equal(&get_index_of(&marketIdUpper, &Value::Str("PERP".to_string())), &Value::Int(0));
             let mut marketIdWithoutPerp: Value = replace_str(&marketIdUpper, &Value::Str("PERP".to_string()), &Value::Str("".to_string()));
             let mut conflictingMarkets: Value = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

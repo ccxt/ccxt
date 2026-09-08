@@ -2320,9 +2320,9 @@ impl TokocryptoCore {
             add_element_to_object(&mut request, &Value::Str("clientId".to_string()), clientOrderId.clone());
         }
         // additional required fields depending on the order type
-        let mut priceIsRequired: Value = Value::Bool(false);
-        let mut triggerPriceIsRequired: Value = Value::Bool(false);
-        let mut quantityIsRequired: Value = Value::Bool(false);
+        let mut priceIsRequired: bool = false;
+        let mut triggerPriceIsRequired: bool = false;
+        let mut quantityIsRequired: bool = false;
         //
         // spot/margin
         //
@@ -2357,24 +2357,24 @@ impl TokocryptoCore {
                 }
                 add_element_to_object(&mut request, &Value::Str("quoteOrderQty".to_string()), self.decimal_to_precision(quoteAmount.clone(), Value::Int(crate::runtime::TRUNCATE), precision.clone(), &[self.precisionMode.clone()]));
             }  else {
-                quantityIsRequired = Value::Bool(true);
+                quantityIsRequired = true;
             }
         }  else if is_equal(&uppercaseType, &Value::Str("LIMIT".to_string())) {
-            priceIsRequired = Value::Bool(true);
-            quantityIsRequired = Value::Bool(true);
+            priceIsRequired = true;
+            quantityIsRequired = true;
         }  else if is_true(&(is_equal(&uppercaseType, &Value::Str("STOP_LOSS".to_string())))) || is_true(&(is_equal(&uppercaseType, &Value::Str("TAKE_PROFIT".to_string())))) {
-            triggerPriceIsRequired = Value::Bool(true);
-            quantityIsRequired = Value::Bool(true);
+            triggerPriceIsRequired = true;
+            quantityIsRequired = true;
             if is_true(&(is_equal(&get_value(&market, &Value::Str("linear".to_string())), &Value::Bool(true)))) || is_true(&(is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)))) {
-                priceIsRequired = Value::Bool(true);
+                priceIsRequired = true;
             }
         }  else if is_true(&(is_equal(&uppercaseType, &Value::Str("STOP_LOSS_LIMIT".to_string())))) || is_true(&(is_equal(&uppercaseType, &Value::Str("TAKE_PROFIT_LIMIT".to_string())))) {
-            quantityIsRequired = Value::Bool(true);
-            triggerPriceIsRequired = Value::Bool(true);
-            priceIsRequired = Value::Bool(true);
+            quantityIsRequired = true;
+            triggerPriceIsRequired = true;
+            priceIsRequired = true;
         }  else if is_equal(&uppercaseType, &Value::Str("LIMIT_MAKER".to_string())) {
-            priceIsRequired = Value::Bool(true);
-            quantityIsRequired = Value::Bool(true);
+            priceIsRequired = true;
+            quantityIsRequired = true;
         }
         if is_true(&quantityIsRequired) {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
@@ -3232,7 +3232,7 @@ impl TokocryptoCore {
         if is_equal(&api, &Value::Str("wapi".to_string())) {
             url = add(&url, &Value::Str(".html".to_string()));
         }
-        let mut userDataStream: Value = Value::Bool(is_true(&(is_equal(&path, &Value::Str("userDataStream".to_string())))) || is_true(&(is_equal(&path, &Value::Str("listenKey".to_string())))));
+        let mut userDataStream: bool = is_true(&(is_equal(&path, &Value::Str("userDataStream".to_string())))) || is_true(&(is_equal(&path, &Value::Str("listenKey".to_string()))));
         if is_true(&userDataStream) {
             if is_true(&(!is_equal(&self.apiKey, &Value::Null))) && is_true(&(!is_equal(&self.apiKey, &Value::Str("".to_string())))) {
                 // v1 special case for userDataStream

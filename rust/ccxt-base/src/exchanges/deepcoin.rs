@@ -2313,7 +2313,7 @@ impl DeepcoinCore {
         let mut market: Value = self.market(symbol.clone());
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         if !is_equal(&cost, &Value::Null) {
             if is_true(&(!is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) {
@@ -2395,7 +2395,7 @@ impl DeepcoinCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("takeProfit".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("tpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
         }
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isMarketOrder: bool = is_equal(&type_var, &Value::Str("market".to_string()));
         if !is_equal(&price, &Value::Null) {
             if is_true(&isMarketOrder) {
                 panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" createOrder() does not require a price argument for market orders".to_string()))));
@@ -3259,7 +3259,7 @@ impl DeepcoinCore {
         }
         let mut stopLossPrice: Value = self.safe_number_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTPSL: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+        let mut isTPSL: bool = is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
         let mut response: Value = Value::Null;
         if is_true(&isTPSL) {
             if is_true(&(!is_equal(&price, &Value::Null))) || is_true(&(!is_equal(&amount, &Value::Null))) {

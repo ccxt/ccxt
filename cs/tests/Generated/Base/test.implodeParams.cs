@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             string path = "v2/watchlists/{timeframe_id}/{symbol_id}";
-            object parameters = new Dictionary<string, object>() {
+            Dictionary<string, object> parameters = new Dictionary<string, object>() {
                 { "timeframe_id", "1m" },
                 { "symbol_id", "BTC/USDT" },
                 { "extra_param", "should_be_ignored" },

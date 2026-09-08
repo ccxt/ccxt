@@ -1105,7 +1105,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         {
             return;
         }
-        Object marketId = this.safeStringLower2(order, "instrument", "symbol");
+        String marketId = (String)this.safeStringLower2(order, "instrument", "symbol");
         Object method = this.safeString(message, "method", "");
         Object splitMethod = Helpers.split(method, "_order");
         Object messageHash = this.safeString(splitMethod, 0);

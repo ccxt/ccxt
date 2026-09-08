@@ -633,7 +633,7 @@ impl IndodaxCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut isMaintenance: Value = self.safe_integer_k(market.clone(), "is_maintenance", &[]);
-            let mut inMaintenance: Value = Value::Bool(is_true(&(!is_equal(&isMaintenance, &Value::Null))) && is_true(&(!is_equal(&isMaintenance, &Value::Int(0)))));
+            let mut inMaintenance: bool = is_true(&(!is_equal(&isMaintenance, &Value::Null))) && is_true(&(!is_equal(&isMaintenance, &Value::Int(0))));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -1383,8 +1383,8 @@ impl IndodaxCore {
                 m.insert("price".to_string(), price.clone());
             m
         });
-        let mut priceIsRequired: Value = Value::Bool(false);
-        let mut quantityIsRequired: Value = Value::Bool(false);
+        let mut priceIsRequired: bool = false;
+        let mut quantityIsRequired: bool = false;
         if is_equal(&type_var, &Value::Str("market".to_string())) {
             if is_equal(&side, &Value::Str("buy".to_string())) {
                 let mut quoteAmount: Value = Value::Null;
@@ -1403,11 +1403,11 @@ impl IndodaxCore {
                 }
                 add_element_to_object(&mut request, &get_value(&market, &Value::Str("quoteId".to_string())), quoteAmount.clone());
             }  else {
-                quantityIsRequired = Value::Bool(true);
+                quantityIsRequired = true;
             }
         }  else if is_equal(&type_var, &Value::Str("limit".to_string())) {
-            priceIsRequired = Value::Bool(true);
-            quantityIsRequired = Value::Bool(true);
+            priceIsRequired = true;
+            quantityIsRequired = true;
             if is_equal(&side, &Value::Str("buy".to_string())) {
                 add_element_to_object(&mut request, &get_value(&market, &Value::Str("quoteId".to_string())), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price.clone())))));
             }

@@ -600,7 +600,7 @@ impl ZebpayCore {
 }));
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchStatus".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -657,7 +657,7 @@ impl ZebpayCore {
 }));
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTime".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut response: Value = Value::Null;
         let mut data: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1522,7 +1522,7 @@ impl ZebpayCore {
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut response: Value = Value::Null;
         if is_true(&isSpot) {
             response = self.private_spot_get_v2_account_balance(&[params.clone()]).await;
@@ -1587,8 +1587,8 @@ impl ZebpayCore {
             add_element_to_object(&mut request, &Value::Str("formType".to_string()), formType.clone());
             add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.parse_to_numeric(self.amount_to_precision(get_value(&market, &Value::Str("id".to_string())), amount.clone())));
             add_element_to_object(&mut request, &Value::Str("marginAsset".to_string()), marginAsset.clone());
-            let mut hasTP: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
-            let mut hasSL: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
+            let mut hasTP: bool = !is_equal(&takeProfitPrice, &Value::Null);
+            let mut hasSL: bool = !is_equal(&stopLossPrice, &Value::Null);
             if is_true(&hasTP) || is_true(&hasSL) {
                 if is_true(&hasTP) {
                     add_element_to_object(&mut request, &Value::Str("takeProfitPrice".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice.clone())));
@@ -2673,7 +2673,7 @@ impl ZebpayCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         params = self.omit(params.clone(), Value::Str("defaultType".to_string()), &[]);
-        let mut isV1: Value = Value::Bool(is_greater_than(&get_index_of(&path, &Value::Str("v1/".to_string())), &negate(&Value::Int(1))));
+        let mut isV1: bool = is_greater_than(&get_index_of(&path, &Value::Str("v1/".to_string())), &negate(&Value::Int(1)));
         let mut marketType: Value = ternary(is_true(&isV1), Value::Str("swap".to_string()), Value::Str("spot".to_string()));
         let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &marketType);
         let mut tail: Value = add(&Value::Str("/api/".to_string()), &self.implode_params(path.clone(), params.clone()));
@@ -2699,7 +2699,7 @@ impl ZebpayCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut isSpot: Value = Value::Bool(is_equal(&marketType, &Value::Str("spot".to_string())));
+            let mut isSpot: bool = is_equal(&marketType, &Value::Str("spot".to_string()));
             add_element_to_object(&mut params, &Value::Str("timestamp".to_string()), timestamp.clone());
             if is_equal(&method, &Value::Str("GET".to_string())) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())) && is_true(&isSpot))) {
                 // For GET/DELETE: Append params to URL and sign the query string

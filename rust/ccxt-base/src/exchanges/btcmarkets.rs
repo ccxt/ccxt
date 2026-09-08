@@ -1412,17 +1412,17 @@ impl BtcmarketsCore {
             m
         })]);
         add_element_to_object(&mut request, &Value::Str("type".to_string()), self.safe_string(orderTypes.clone(), lowercaseType.clone(), &[type_var.clone()]));
-        let mut priceIsRequired: Value = Value::Bool(false);
-        let mut triggerPriceIsRequired: Value = Value::Bool(false);
+        let mut priceIsRequired: bool = false;
+        let mut triggerPriceIsRequired: bool = false;
         if is_equal(&lowercaseType, &Value::Str("limit".to_string())) {
-            priceIsRequired = Value::Bool(true);
+            priceIsRequired = true;
         }  else if is_equal(&lowercaseType, &Value::Str("stop limit".to_string())) {
-            triggerPriceIsRequired = Value::Bool(true);
-            priceIsRequired = Value::Bool(true);
+            triggerPriceIsRequired = true;
+            priceIsRequired = true;
         }  else if is_equal(&lowercaseType, &Value::Str("take profit".to_string())) {
-            triggerPriceIsRequired = Value::Bool(true);
+            triggerPriceIsRequired = true;
         }  else if is_equal(&lowercaseType, &Value::Str("stop".to_string())) {
-            triggerPriceIsRequired = Value::Bool(true);
+            triggerPriceIsRequired = true;
         }
         if is_true(&priceIsRequired) {
             if is_equal(&price, &Value::Null) {

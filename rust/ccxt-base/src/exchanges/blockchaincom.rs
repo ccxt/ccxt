@@ -987,13 +987,13 @@ impl BlockchaincomCore {
                 add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("STOPLIMIT".to_string()));
             }
         }
-        let mut priceRequired: Value = Value::Bool(false);
-        let mut stopPriceRequired: Value = Value::Bool(false);
+        let mut priceRequired: bool = false;
+        let mut stopPriceRequired: bool = false;
         if is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("LIMIT".to_string())) || is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("STOPLIMIT".to_string())) {
-            priceRequired = Value::Bool(true);
+            priceRequired = true;
         }
         if is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("STOP".to_string())) || is_equal(&get_value(&request, &Value::Str("ordType".to_string())), &Value::Str("STOPLIMIT".to_string())) {
-            stopPriceRequired = Value::Bool(true);
+            stopPriceRequired = true;
         }
         if is_true(&priceRequired) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));

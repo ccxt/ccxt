@@ -58,12 +58,12 @@ public partial class luno : ccxt.luno
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object subscriptionHash = add("/stream/", getValue(market, "id"));
-        object subscription = new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
         object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
         object messageHash = add("trades:", symbolVar);
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
@@ -105,7 +105,7 @@ public partial class luno : ccxt.luno
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
@@ -173,12 +173,12 @@ public partial class luno : ccxt.luno
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object subscriptionHash = add("/stream/", getValue(market, "id"));
-        object subscription = new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
         object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
         object messageHash = add("orderbook:", symbolVar);
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
@@ -223,7 +223,7 @@ public partial class luno : ccxt.luno
         //
         object symbol = getValue(subscription, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object timestamp = this.safeInteger(message, "timestamp");
+        Int64? timestamp = this.safeInteger(message, "timestamp");
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {});
@@ -241,7 +241,7 @@ public partial class luno : ccxt.luno
             ((IDictionary<string,object>)ob)["datetime"] = this.iso8601(timestamp);
         }
         object orderbook = getValue(this.orderbooks, symbol);
-        object nonce = this.safeInteger(message, "sequence");
+        Int64? nonce = this.safeInteger(message, "sequence");
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
@@ -271,7 +271,7 @@ public partial class luno : ccxt.luno
         amountKey ??= "volume";
         thirdKey ??= 2;
         bidasks = this.toArray(bidasks);
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
@@ -286,7 +286,7 @@ public partial class luno : ccxt.luno
         thirdKey ??= 2;
         object price = this.safeNumber(bidask, priceKey);
         object amount = this.safeNumber(bidask, amountKey);
-        object result = new List<object>() {price, amount};
+        List<object> result = new List<object>() {price, amount};
         if (isTrue(!isEqual(thirdKey, null)))
         {
             object thirdValue = ((object)this.safeString(bidask, thirdKey));
@@ -346,7 +346,7 @@ public partial class luno : ccxt.luno
         if (isTrue(!isEqual(createUpdate, null)))
         {
             object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
-            object type = this.safeString(createUpdate, "type");
+            string? type = this.safeString(createUpdate, "type");
             if (isTrue(isEqual(type, "ASK")))
             {
                 (asksOrderSide as IOrderBookSide).storeArray(bidAskArray);
@@ -358,7 +358,7 @@ public partial class luno : ccxt.luno
         object deleteUpdate = this.safeValue(message, "delete_update");
         if (isTrue(!isEqual(deleteUpdate, null)))
         {
-            object orderId = this.safeString(deleteUpdate, "order_id");
+            string? orderId = this.safeString(deleteUpdate, "order_id");
             (asksOrderSide as IOrderBookSide).storeArray(new List<object>() {0, 0, orderId});
             (bidsOrderSide as IOrderBookSide).storeArray(new List<object>() {0, 0, orderId});
         }
@@ -371,7 +371,7 @@ public partial class luno : ccxt.luno
             return;
         }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
-        object handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
+        List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
         for (object j = 0; isLessThan(j, getArrayLength(handlers)); postFixIncrement(ref j))
         {
             object handler = getValue(handlers, j);

@@ -1429,7 +1429,7 @@ impl BigoneCore {
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1874,8 +1874,8 @@ impl BigoneCore {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOHLCV () can only fetch ohlcvs for spot markets".to_string()))));
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut untilIsDefined: Value = Value::Bool(!is_equal(&until, &Value::Null));
-        let mut sinceIsDefined: Value = Value::Bool(!is_equal(&since, &Value::Null));
+        let mut untilIsDefined: bool = !is_equal(&until, &Value::Null);
+        let mut sinceIsDefined: bool = !is_equal(&since, &Value::Null);
         if is_equal(&limit, &Value::Null) {
             limit = ternary(is_true(&(is_true(&sinceIsDefined) && is_true(&untilIsDefined))), Value::Int(500), Value::Int(100)); // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
         }
@@ -2143,10 +2143,10 @@ impl BigoneCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+        let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
         let mut requestSide: Value = ternary(is_true(&isBuy), Value::Str("BID".to_string()), Value::Str("ASK".to_string()));
         let mut uppercaseType: Value = to_upper(&type_var);
-        let mut isLimit: Value = Value::Bool(is_equal(&uppercaseType, &Value::Str("LIMIT".to_string())));
+        let mut isLimit: bool = is_equal(&uppercaseType, &Value::Str("LIMIT".to_string()));
         let mut exchangeSpecificParam: Value = self.safe_bool_k(params.clone(), "post_only", &[Value::Bool(false)]);
         let mut postOnly: Value = Value::Null;
         { let __destr_tmp = self.handle_post_only(Value::Bool(is_equal(&uppercaseType, &Value::Str("MARKET".to_string()))), Value::Bool(is_equal(&exchangeSpecificParam, &Value::Bool(true))), &[params.clone()]); postOnly = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }

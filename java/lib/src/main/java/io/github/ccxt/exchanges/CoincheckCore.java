@@ -416,7 +416,7 @@ public class CoincheckCore extends CoincheckApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(exchangeStatuses)); i++)
             {
                 Object exchangeStatus = Helpers.GetValue(exchangeStatuses, i);
-                Object rawStatus = this.safeString(exchangeStatus, "status");
+                String rawStatus = this.safeString(exchangeStatus, "status");
                 if (Helpers.isTrue(Helpers.isEqual(updated, null)))
                 {
                     updated = this.safeTimestamp(exchangeStatus, "timestamp");
@@ -525,14 +525,14 @@ public class CoincheckCore extends CoincheckApi
         // todo: add formats for fetchOrder, fetchClosedOrders here
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "id");
-        Object side = this.safeString(order, "order_type");
+        String id = this.safeString(order, "id");
+        String side = this.safeString(order, "order_type");
         Object timestamp = this.parse8601(this.safeString(order, "created_at"));
-        Object amount = this.safeString(order, "pending_amount");
-        Object remaining = this.safeString(order, "pending_amount");
-        Object price = this.safeString(order, "rate");
+        String amount = this.safeString(order, "pending_amount");
+        String remaining = this.safeString(order, "pending_amount");
+        String price = this.safeString(order, "rate");
         Object status = null;
-        Object marketId = this.safeString(order, "pair");
+        String marketId = this.safeString(order, "pair");
         Object symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -606,7 +606,7 @@ public class CoincheckCore extends CoincheckApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -709,9 +709,9 @@ public class CoincheckCore extends CoincheckApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parse8601(this.safeString(trade, "created_at"));
-        Object id = this.safeString(trade, "id");
-        Object priceString = this.safeString(trade, "rate");
-        Object marketId = this.safeString(trade, "pair");
+        String id = this.safeString(trade, "id");
+        String priceString = this.safeString(trade, "rate");
+        String marketId = this.safeString(trade, "pair");
         market = this.safeMarket(marketId, market, "_");
         Object baseId = Helpers.GetValue(market, "baseId");
         Object quoteId = Helpers.GetValue(market, "quoteId");
@@ -992,7 +992,7 @@ public class CoincheckCore extends CoincheckApi
                 Helpers.addElementToObject(request, "amount", amount);
             }
             Object response = (this.privatePostExchangeOrders(this.extend(request, parameters))).join();
-            Object id = this.safeString(response, "id");
+            String id = this.safeString(response, "id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "info", response );
@@ -1206,11 +1206,11 @@ public class CoincheckCore extends CoincheckApi
         //  }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(transaction, "id");
+        String id = this.safeString(transaction, "id");
         Object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         Object amount = this.safeNumber(transaction, "amount");
-        Object currencyId = this.safeString(transaction, "currency");
+        String currencyId = this.safeString(transaction, "currency");
         Object code = this.safeCurrencyCode(currencyId, currency);
         Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Object updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
@@ -1322,7 +1322,7 @@ public class CoincheckCore extends CoincheckApi
         Object success = this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
-            Object error = this.safeString(response, "error");
+            String error = this.safeString(response, "error");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), body, feedback);

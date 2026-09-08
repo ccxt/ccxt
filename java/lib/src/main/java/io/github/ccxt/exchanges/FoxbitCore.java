@@ -425,18 +425,18 @@ public class FoxbitCore extends FoxbitApi
     public Object parseCurrency(Object rawCurrency)
     {
         Object precision = this.safeInteger(rawCurrency, "precision");
-        Object currencyId = this.safeString(rawCurrency, "symbol");
-        Object name = this.safeString(rawCurrency, "name");
+        String currencyId = this.safeString(rawCurrency, "symbol");
+        String name = this.safeString(rawCurrency, "name");
         Object code = this.safeCurrencyCode(currencyId);
         Object depositInfo = this.safeDict(rawCurrency, "deposit_info");
         Object withdrawInfo = this.safeDict(rawCurrency, "withdraw_info");
         Object networks = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object type = this.safeStringLower(rawCurrency, "type");
+        String type = (String)this.safeStringLower(rawCurrency, "type");
         Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object network = Helpers.GetValue(networks, j);
-            Object networkId = this.safeString(network, "code");
+            String networkId = this.safeString(network, "code");
             Object networkCode = this.networkIdToCode(networkId, code);
             Object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
             Object networkDepositInfo = this.safeDict(network, "deposit_info");
@@ -758,7 +758,7 @@ public class FoxbitCore extends FoxbitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
-                Object marketId = this.safeString(entry, "market_symbol");
+                String marketId = this.safeString(entry, "market_symbol");
                 Object market = this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(result, symbol, this.parseTradingFee(entry, market));
@@ -904,7 +904,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "interval", interval );
@@ -978,11 +978,11 @@ public class FoxbitCore extends FoxbitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
-                Object currencyId = this.safeString(account, "currency_symbol");
+                String currencyId = this.safeString(account, "currency_symbol");
                 Object currencyCode = this.safeCurrencyCode(currencyId);
-                Object total = this.safeString(account, "balance");
-                Object used = this.safeString(account, "balance_locked");
-                Object free = this.safeString(account, "balance_available");
+                String total = this.safeString(account, "balance");
+                String used = this.safeString(account, "balance_locked");
+                String free = this.safeString(account, "balance_available");
                 Object balanceObj = new java.util.HashMap<String, Object>() {{
                     put( "free", free );
                     put( "used", used );
@@ -1139,7 +1139,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
-            Object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+            String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             Object triggerPrice = this.safeNumber(parameters, "triggerPrice");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1189,7 +1189,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -1229,15 +1229,15 @@ public class FoxbitCore extends FoxbitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = this.safeDict(orders, i);
-                Object symbol = this.safeString(order, "symbol");
+                String symbol = this.safeString(order, "symbol");
                 Object market = this.market(symbol);
-                Object type = this.safeStringUpper(order, "type");
+                String type = (String)this.safeStringUpper(order, "type");
                 Object orderParams = this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(type, "MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_MARKET"))) && Helpers.isTrue(!Helpers.isEqual(type, "STOP_LIMIT"))) && Helpers.isTrue(!Helpers.isEqual(type, "INSTANT"))))
                 {
                     throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
-                Object timeInForce = this.safeStringUpper(orderParams, "timeInForce");
+                String timeInForce = (String)this.safeStringUpper(orderParams, "timeInForce");
                 Object postOnly = this.safeBool(orderParams, "postOnly", false);
                 Object triggerPrice = this.safeNumber(orderParams, "triggerPrice");
                 final Object finalType = type;
@@ -1840,7 +1840,7 @@ public class FoxbitCore extends FoxbitApi
             // }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object attributes = this.safeDict(data, "attributes", new java.util.HashMap<String, Object>() {{}});
-            Object statusRaw = this.safeString(attributes, "status");
+            String statusRaw = this.safeString(attributes, "status");
             Object statusMap = new java.util.HashMap<String, Object>() {{
                 put( "NORMAL", "ok" );
                 put( "UNDER_MAINTENANCE", "maintenance" );
@@ -2056,11 +2056,11 @@ public class FoxbitCore extends FoxbitApi
 
     public Object parseMarket(Object market)
     {
-        Object id = this.safeString(market, "symbol");
+        String id = this.safeString(market, "symbol");
         Object baseAssets = this.safeDict(market, "base");
-        Object baseId = this.safeString(baseAssets, "symbol");
+        String baseId = this.safeString(baseAssets, "symbol");
         Object quoteAssets = this.safeDict(market, "quote");
-        Object quoteId = this.safeString(quoteAssets, "symbol");
+        String quoteId = this.safeString(quoteAssets, "symbol");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2138,14 +2138,14 @@ public class FoxbitCore extends FoxbitApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "market_symbol");
+        String marketId = this.safeString(ticker, "market_symbol");
         Object symbol = this.safeSymbol(marketId, market, null, "spot");
         Object rolling_24h = Helpers.GetValue(ticker, "rolling_24h");
         Object best = this.safeDict(ticker, "best");
         Object bestAsk = this.safeDict(best, "ask");
         Object bestBid = this.safeDict(best, "bid");
         Object lastTrade = Helpers.GetValue(ticker, "last_trade");
-        Object lastPrice = this.safeString(lastTrade, "price");
+        String lastPrice = this.safeString(lastTrade, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", FoxbitCore.this.parseDate(FoxbitCore.this.safeString(lastTrade, "date")) );
@@ -2180,9 +2180,9 @@ public class FoxbitCore extends FoxbitApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.parseDate(this.safeString(trade, "created_at"));
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
-        Object privateSideField = this.safeStringLower(trade, "side");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
+        String privateSideField = (String)this.safeStringLower(trade, "side");
         Object side = this.safeStringLower(trade, "taker_side", privateSideField);
         Object cost = Precise.stringMul(price, amount);
         Object fee = new java.util.HashMap<String, Object>() {{
@@ -2233,27 +2233,27 @@ public class FoxbitCore extends FoxbitApi
             symbol = Helpers.GetValue(market, "symbol");
         }
         Object timestamp = this.parseDate(this.safeString(order, "created_at"));
-        Object price = this.safeString(order, "price");
-        Object filled = this.safeString(order, "quantity_executed");
-        Object remaining = this.safeString(order, "quantity");
+        String price = this.safeString(order, "price");
+        String filled = this.safeString(order, "quantity_executed");
+        String remaining = this.safeString(order, "quantity");
         // TODO: validate logic of amount here, should this be calculated?
         Object amount = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(remaining, null)) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             amount = Precise.stringAdd(remaining, filled);
         }
-        Object cost = this.safeString(order, "funds_received");
+        String cost = this.safeString(order, "funds_received");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(cost, null))) || Helpers.isTrue((Helpers.isEqual(cost, "")))))
         {
-            Object priceAverage = this.safeString(order, "price_avg");
-            Object priceToCalculate = this.safeString(order, "price", priceAverage);
+            String priceAverage = this.safeString(order, "price_avg");
+            String priceToCalculate = this.safeString(order, "price", priceAverage);
             cost = Precise.stringMul(priceToCalculate, amount);
         }
-        Object side = this.safeStringLower(order, "side");
-        Object feeCurrency = this.safeStringUpper(market, "quoteId");
+        String side = (String)this.safeStringLower(order, "side");
+        String feeCurrency = (String)this.safeStringUpper(market, "quoteId");
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
-            feeCurrency = this.safeStringUpper(market, "baseId");
+            feeCurrency = (String)this.safeStringUpper(market, "baseId");
         }
         final Object finalMarket = market;
         final Object finalSide = side;
@@ -2297,7 +2297,7 @@ public class FoxbitCore extends FoxbitApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object network = this.safeDict(depositAddress, "network");
-        Object networkId = this.safeString(network, "code");
+        String networkId = this.safeString(network, "code");
         Object currencyCode = this.safeCurrencyCode(null, currency);
         Object unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
         return new java.util.HashMap<String, Object>() {{
@@ -2334,20 +2334,20 @@ public class FoxbitCore extends FoxbitApi
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object cryptoDetails = this.safeDict(transaction, "details_crypto");
-        Object address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
-        Object sn = this.safeString(transaction, "sn");
+        String address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
+        String sn = this.safeString(transaction, "sn");
         Object type = "withdrawal";
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(sn, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(sn, 0), "D"))))
         {
             type = "deposit";
         }
-        Object fee = this.safeString(transaction, "fee", "0");
-        Object amount = this.safeString(transaction, "amount");
-        Object currencySymbol = this.safeString(transaction, "currency_symbol");
+        String fee = this.safeString(transaction, "fee", "0");
+        String amount = this.safeString(transaction, "amount");
+        String currencySymbol = this.safeString(transaction, "currency_symbol");
         Object actualAmount = amount;
         Object currencyCode = this.safeCurrencyCode(currencySymbol);
         Object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
-        Object created_at = this.safeString(transaction, "created_at");
+        String created_at = this.safeString(transaction, "created_at");
         Object timestamp = this.parseDate(created_at);
         Object datetime = this.iso8601(timestamp);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fee, null)) && Helpers.isTrue(!Helpers.isEqual(amount, null))))
@@ -2414,12 +2414,12 @@ public class FoxbitCore extends FoxbitApi
         //     "reason_type": "DEPOSITING"
         // }
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(item, "uuid");
-        Object createdAt = this.safeString(item, "created_at");
+        String id = this.safeString(item, "uuid");
+        String createdAt = this.safeString(item, "created_at");
         Object timestamp = this.parse8601(createdAt);
-        Object reasonType = this.safeString(item, "reason_type");
+        String reasonType = this.safeString(item, "reason_type");
         Object type = this.parseLedgerEntryType(reasonType);
-        Object exchangeSymbol = this.safeString(item, "currency_symbol");
+        String exchangeSymbol = this.safeString(item, "currency_symbol");
         Object currencySymbol = this.safeCurrencyCode(exchangeSymbol);
         Object direction = "in";
         Object amount = this.safeNumber(item, "amount");
@@ -2505,7 +2505,7 @@ public class FoxbitCore extends FoxbitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(paramKeys)); i++)
             {
                 Object key = Helpers.GetValue(paramKeys, i);
-                Object value = this.safeString(parameters, key);
+                String value = this.safeString(parameters, key);
                 if (Helpers.isTrue(!Helpers.isEqual(value, null)))
                 {
                     signatureQuery = Helpers.add(signatureQuery, Helpers.add(Helpers.add(key, "="), value));
@@ -2558,9 +2558,9 @@ public class FoxbitCore extends FoxbitApi
             return null;
         }
         Object error = this.safeDict(response, "error");
-        Object code = this.safeString(error, "code");
+        String code = this.safeString(error, "code");
         Object details = this.safeList(error, "details");
-        Object message = this.safeString(error, "message");
+        String message = this.safeString(error, "message");
         Object detailsString = "";
         if (Helpers.isTrue(!Helpers.isEqual(details, null)))
         {

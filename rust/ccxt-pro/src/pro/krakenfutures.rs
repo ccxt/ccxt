@@ -2164,7 +2164,7 @@ impl KrakenfuturesCore {
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        let mut withSymbol: Value = Value::Bool(!is_equal(&symbol, &Value::Null));
+        let mut withSymbol: bool = !is_equal(&symbol, &Value::Null);
         let mut messageHash: Value = unifiedElementName.clone();
         if !is_true(&withSymbol) {
             messageHash = add(&messageHash, &Value::Str("s".to_string()));

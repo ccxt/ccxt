@@ -116,6 +116,8 @@ export default class krakenfutures extends Exchange {
                     'get': {
                         'feeschedules': { 'cost': 1 } as Endpoint<Dict>,
                         'instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments/{symbol}/status': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'tickers': { 'cost': 1 } as Endpoint<Dict>,
                         'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -138,12 +140,17 @@ export default class krakenfutures extends Exchange {
                         'assignmentprogram/current': { 'cost': 1 } as Endpoint<Dict>,
                         'assignmentprogram/history': { 'cost': 1 } as Endpoint<Dict>,
                         'orders/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'unwindqueue': { 'cost': 1 } as Endpoint<Dict>,
+                        'self-trade-strategy': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'sendorder': { 'cost': 1 } as Endpoint<Dict>,
                         'editorder': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelorder': { 'cost': 1 } as Endpoint<Dict>,
                         'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer/subaccount': { 'cost': 1 } as Endpoint<Dict>,
                         'batchorder': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelallorders': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelallordersafter': { 'cost': 1 } as Endpoint<Dict>,
@@ -154,11 +161,14 @@ export default class krakenfutures extends Exchange {
                     'put': {
                         'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
                         'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'self-trade-strategy': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'charts': {
                     'get': {
                         '{price_type}/{symbol}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
+                        'analytics/liquidity-pool': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'history': {
@@ -170,6 +180,8 @@ export default class krakenfutures extends Exchange {
                         'account-log': { 'cost': 1 } as Endpoint<Dict>,
                         'market/{symbol}/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'market/{symbol}/executions': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/{symbol}/price': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -242,6 +254,7 @@ export default class krakenfutures extends Exchange {
                             'triggers': 'private',
                             'accountlogcsv': 'private',
                             'account-log': 'private',
+                            'positions': 'private',
                         },
                     },
                 },
@@ -261,6 +274,7 @@ export default class krakenfutures extends Exchange {
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
+                            'analytics/liquidity-pool': 'v1',
                         },
                     },
                     'history': {

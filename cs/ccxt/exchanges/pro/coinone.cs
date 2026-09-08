@@ -68,7 +68,7 @@ public partial class coinone : ccxt.coinone
         object market = this.market(symbol);
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "ORDERBOOK" },
             { "topic", new Dictionary<string, object>() {
@@ -108,12 +108,12 @@ public partial class coinone : ccxt.coinone
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object baseId = this.safeStringUpper(data, "target_currency");
-        object quoteId = this.safeStringUpper(data, "quote_currency");
+        string? baseId = this.safeStringUpper(data, "target_currency");
+        string? quoteId = this.safeStringUpper(data, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = this.symbol(add(add(bs, "/"), quote));
-        object timestamp = this.safeInteger(data, "timestamp");
+        Int64? timestamp = this.safeInteger(data, "timestamp");
         object orderbook = this.safeValue(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
@@ -159,7 +159,7 @@ public partial class coinone : ccxt.coinone
         object market = this.market(symbol);
         object messageHash = add("ticker:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TICKER" },
             { "topic", new Dictionary<string, object>() {
@@ -237,10 +237,10 @@ public partial class coinone : ccxt.coinone
         //         "yesterday_target_volume": "220.09232233"
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "timestamp");
-        object last = this.safeString(ticker, "last");
-        object baseId = this.safeString(ticker, "target_currency");
-        object quoteId = this.safeString(ticker, "quote_currency");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
+        string? last = this.safeString(ticker, "last");
+        string? baseId = this.safeString(ticker, "target_currency");
+        string? quoteId = this.safeString(ticker, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = this.symbol(add(add(bs, "/"), quote));
@@ -290,7 +290,7 @@ public partial class coinone : ccxt.coinone
         object market = this.market(symbol);
         object messageHash = add("trade:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TRADE" },
             { "topic", new Dictionary<string, object>() {
@@ -330,7 +330,7 @@ public partial class coinone : ccxt.coinone
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
@@ -352,21 +352,21 @@ public partial class coinone : ccxt.coinone
         //         "is_seller_maker": false
         //     }
         //
-        object baseId = this.safeStringUpper(trade, "target_currency");
-        object quoteId = this.safeStringUpper(trade, "quote_currency");
+        string? baseId = this.safeStringUpper(trade, "target_currency");
+        string? quoteId = this.safeStringUpper(trade, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        object timestamp = this.safeInteger(trade, "timestamp");
+        Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         object isSellerMaker = this.safeValue(trade, "is_seller_maker");
-        object side = null;
+        string? side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
             side = ((bool) isTrue((isEqual(isSellerMaker, true)))) ? "sell" : "buy";
         }
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "qty");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "qty");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "id") },
             { "info", trade },
@@ -393,7 +393,7 @@ public partial class coinone : ccxt.coinone
         //         "message": "Invalid Topic"
         //     }
         //
-        object type = this.safeString(message, "response_type", "");
+        string? type = this.safeString(message, "response_type", "");
         if (isTrue(isEqual(type, "ERROR")))
         {
             return true;
@@ -407,7 +407,7 @@ public partial class coinone : ccxt.coinone
         {
             return;
         }
-        object type = this.safeString(message, "response_type");
+        string? type = this.safeString(message, "response_type");
         if (isTrue(isEqual(type, "PONG")))
         {
             this.handlePong(client as WebSocketClient, message);
@@ -416,7 +416,7 @@ public partial class coinone : ccxt.coinone
         if (isTrue(isEqual(type, "DATA")))
         {
             object topic = ((string)this.safeString(message, "channel", ""));
-            object methods = new Dictionary<string, object>() {
+            Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "ORDERBOOK", this.handleOrderBook },
                 { "TICKER", this.handleTicker },
                 { "TRADE", this.handleTrades },

@@ -191,7 +191,7 @@ class bydfi(ccxt.async_support.bydfi):
         channel = '@ticker'
         if symbols is None:
             messageHashes.append(messageHash + 'all')
-            channels.append('not ticker@arr')
+            channels.append('!ticker@arr')
         else:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -235,7 +235,7 @@ class bydfi(ccxt.async_support.bydfi):
                     marketId = self.market_id(symbol)
                     channels.append(marketId + channel)
             messageHashes.append(messageHash)
-            channels.append('not ticker@arr')
+            channels.append('!ticker@arr')
         else:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]

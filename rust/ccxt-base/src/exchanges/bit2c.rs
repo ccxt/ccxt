@@ -1062,10 +1062,10 @@ impl Bit2cCore {
         //      }
         //
         let mut orderUnified: Value = Value::Null;
-        let mut isNewOrder: Value = Value::Bool(false);
+        let mut isNewOrder: bool = false;
         if is_true(&Value::Bool(in_op(&order, &Value::Str("NewOrder".to_string())))) {
             orderUnified = get_value(&order, &Value::Str("NewOrder".to_string()));
-            isNewOrder = Value::Bool(true);
+            isNewOrder = true;
         }  else {
             orderUnified = order.clone();
         }

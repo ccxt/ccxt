@@ -862,7 +862,7 @@ impl BitfinexCore {
         //    ]
         //
         let mut numFields: Value = get_array_length(&trade);
-        let mut isPublic: Value = Value::Bool(is_less_than_or_equal(&numFields, &Value::Int(8)));
+        let mut isPublic: bool = is_less_than_or_equal(&numFields, &Value::Int(8));
         let mut marketId: Value = ternary(is_true(&(!is_true(&isPublic))), self.safe_string(trade.clone(), Value::Int(1), &[]), Value::Null);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut createdKey: Value = ternary(is_true(&isPublic), Value::Int(1), Value::Int(2));
@@ -1076,7 +1076,7 @@ impl BitfinexCore {
         let mut channel: Value = Value::Str("book".to_string());
         let mut messageHash: Value = add(&add(&channel, &Value::Str(":".to_string())), &marketId);
         let mut prec: Value = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]);
-        let mut isRaw: Value = Value::Bool(is_equal(&prec, &Value::Str("R0".to_string())));
+        let mut isRaw: bool = is_equal(&prec, &Value::Str("R0".to_string()));
         // if it is an initial snapshot
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "len", &[]);
@@ -1182,7 +1182,7 @@ impl BitfinexCore {
         let mut bids: Value = get_value(&book, &Value::Str("bids".to_string()));
         let mut asks: Value = get_value(&book, &Value::Str("asks".to_string()));
         let mut prec: Value = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".to_string())]);
-        let mut isRaw: Value = Value::Bool(is_equal(&prec, &Value::Str("R0".to_string())));
+        let mut isRaw: bool = is_equal(&prec, &Value::Str("R0".to_string()));
         let mut idToCheck: Value = ternary(is_true(&isRaw), Value::Int(2), Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);

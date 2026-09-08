@@ -3017,9 +3017,9 @@ impl XtCore {
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchBidsAsks".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isInverse: Value = Value::Bool(is_equal(&subType, &Value::Str("inverse".to_string())));
-        let mut isLinear: Value = Value::Bool(is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
-        let mut isContract: Value = Value::Bool(is_true(&isInverse) || is_true(&isLinear));
+        let mut isInverse: bool = is_equal(&subType, &Value::Str("inverse".to_string()));
+        let mut isLinear: bool = is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
+        let mut isContract: bool = is_true(&isInverse) || is_true(&isLinear);
         let mut response: Value = Value::Null;
         if is_true(&isInverse) {
             let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
@@ -3145,7 +3145,7 @@ impl XtCore {
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "s", &[]);
         let mut marketType: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("type".to_string())), Value::Null);
-        let mut hasSpotKeys: Value = Value::Bool(is_true(&(Value::Bool(in_op(&ticker, &Value::Str("cv".to_string()))))) || is_true(&(Value::Bool(in_op(&ticker, &Value::Str("aq".to_string()))))));
+        let mut hasSpotKeys: bool = is_true(&(Value::Bool(in_op(&ticker, &Value::Str("cv".to_string()))))) || is_true(&(Value::Bool(in_op(&ticker, &Value::Str("aq".to_string())))));
         if is_equal(&marketType, &Value::Null) {
             marketType = ternary(is_true(&hasSpotKeys), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         }
@@ -3514,7 +3514,7 @@ impl XtCore {
         //
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
         let mut marketType: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), get_value(&market, &Value::Str("type".to_string())), Value::Null);
-        let mut hasSpotKeys: Value = Value::Bool(is_true(&(Value::Bool(in_op(&trade, &Value::Str("b".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("bizType".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("oi".to_string()))))));
+        let mut hasSpotKeys: bool = is_true(&(Value::Bool(in_op(&trade, &Value::Str("b".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("bizType".to_string()))))) || is_true(&(Value::Bool(in_op(&trade, &Value::Str("oi".to_string())))));
         if is_equal(&marketType, &Value::Null) {
             marketType = ternary(is_true(&hasSpotKeys), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         }
@@ -3605,7 +3605,7 @@ impl XtCore {
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isContractWallet: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+        let mut isContractWallet: bool = is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
         if is_equal(&subType, &Value::Str("inverse".to_string())) {
             response = self.private_inverse_get_future_user_v1_balance_list(&[params.clone()]).await;
         }  else if is_true(&(is_equal(&subType, &Value::Str("linear".to_string())))) || is_true(&isContractWallet) {
@@ -3801,7 +3801,7 @@ impl XtCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
-            let mut isTrailing: Value = Value::Bool(is_true(&(Value::Bool(in_op(&params, &Value::Str("trailingPercent".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("trailingAmount".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("trailingTriggerPrice".to_string()))))));
+            let mut isTrailing: bool = is_true(&(Value::Bool(in_op(&params, &Value::Str("trailingPercent".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("trailingAmount".to_string()))))) || is_true(&(Value::Bool(in_op(&params, &Value::Str("trailingTriggerPrice".to_string())))));
             if is_true(&isTrailing) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() trailing orders are only supported on swap markets".to_string()))));
             }
@@ -3939,7 +3939,7 @@ impl XtCore {
         let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
         let mut trailingTriggerPrice: Value = self.safe_number_k(params.clone(), "trailingTriggerPrice", &[]);
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
         let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
         let mut isTrailing: Value = Value::Bool(is_true(&(!is_equal(&trailingPercent, &Value::Null))) || is_true(&(!is_equal(&trailingAmount, &Value::Null))));
@@ -4066,7 +4066,7 @@ impl XtCore {
         let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         if is_equal(&trailing, &Value::Bool(true)) {
-            let mut isContract: Value = Value::Bool(is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+            let mut isContract: bool = is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
             if !is_true(&isContract) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() trailing orders are only supported on swap and future markets".to_string()))));
             }
@@ -4293,7 +4293,7 @@ impl XtCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         if is_equal(&trailing, &Value::Bool(true)) {
-            let mut isContract: Value = Value::Bool(is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+            let mut isContract: bool = is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
             if !is_true(&isContract) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() trailing orders are only supported on swap and future markets".to_string()))));
             }
@@ -4485,7 +4485,7 @@ impl XtCore {
         let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         if is_equal(&trailing, &Value::Bool(true)) {
-            let mut isContract: Value = Value::Bool(is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+            let mut isContract: bool = is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
             if !is_true(&isContract) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersByStatus() trailing orders are only supported on swap and future markets".to_string()))));
             }
@@ -4921,7 +4921,7 @@ impl XtCore {
         let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         if is_equal(&trailing, &Value::Bool(true)) {
-            let mut isContract: Value = Value::Bool(is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+            let mut isContract: bool = is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
             if !is_true(&isContract) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() trailing orders are only supported on swap and future markets".to_string()))));
             }
@@ -4993,7 +4993,7 @@ impl XtCore {
         //         "result": "208319789679471616"
         //     }
         //
-        let mut isContractResponse: Value = Value::Bool(is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+        let mut isContractResponse: bool = is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
         let mut order: Value = ternary(is_true(&isContractResponse), response.clone(), self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5046,7 +5046,7 @@ impl XtCore {
         let mut stopLossTakeProfit: Value = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         if is_equal(&trailing, &Value::Bool(true)) {
-            let mut isContract: Value = Value::Bool(is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string())))));
+            let mut isContract: bool = is_true(&(!is_equal(&subType, &Value::Null))) || is_true(&(is_equal(&type_var, &Value::Str("swap".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("future".to_string()))));
             if !is_true(&isContract) {
                 panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() trailing orders are only supported on swap and future markets".to_string()))));
             }
@@ -7433,8 +7433,8 @@ impl XtCore {
         let mut stopLoss: Value = self.safe_number2(params.clone(), Value::Str("stopLoss".to_string()), Value::Str("triggerStopPrice".to_string()), &[]);
         let mut takeProfit: Value = self.safe_number2(params.clone(), Value::Str("takeProfit".to_string()), Value::Str("triggerProfitPrice".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
-        let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut isStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut isTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         if is_true(&isStopLoss) || is_true(&isTakeProfit) {
             add_element_to_object(&mut request, &Value::Str("profitId".to_string()), id.clone());
         }  else {
@@ -7565,7 +7565,7 @@ impl XtCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut signed: Value = Value::Bool(is_equal(&get_value(&api, &Value::Int(0)), &Value::Str("private".to_string())));
+        let mut signed: bool = is_equal(&get_value(&api, &Value::Int(0)), &Value::Str("private".to_string()));
         let mut endpoint: Value = get_value(&api, &Value::Int(1));
         let mut request: Value = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));
         let mut payload: Value = Value::Null;
@@ -7606,9 +7606,9 @@ impl XtCore {
                     add_element_to_object(&mut body, &Value::Str("media".to_string()), id.clone());
                 }
             }
-            let mut isUndefinedBody: Value = Value::Bool(is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&path, &Value::Str("order/{orderId}".to_string())))) || is_true(&(is_equal(&path, &Value::Str("ws-token".to_string())))));
+            let mut isUndefinedBody: bool = is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&path, &Value::Str("order/{orderId}".to_string())))) || is_true(&(is_equal(&path, &Value::Str("ws-token".to_string()))));
             if is_true(&(is_equal(&method, &Value::Str("PUT".to_string())))) && is_true(&(is_equal(&endpoint, &Value::Str("spot".to_string())))) {
-                isUndefinedBody = Value::Bool(false);
+                isUndefinedBody = false;
             }
             body = ternary(is_true(&isUndefinedBody), Value::Null, self.json(body.clone()));
             let mut payloadString: Value = Value::Null;

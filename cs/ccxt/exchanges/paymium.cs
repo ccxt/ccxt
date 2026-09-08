@@ -204,7 +204,7 @@ public partial class paymium : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
@@ -263,7 +263,7 @@ public partial class paymium : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "id") },
         };
         object response = await this.publicGetDataCurrencyDepth(this.extend(request, parameters));
@@ -292,10 +292,10 @@ public partial class paymium : Exchange
         //
         object symbol = this.safeSymbol(null, market);
         object timestamp = this.safeTimestamp(ticker, "at");
-        object vwap = this.safeString(ticker, "vwap");
-        object baseVolume = this.safeString(ticker, "volume");
-        object quoteVolume = Precise.stringMul(baseVolume, vwap);
-        object last = this.safeString(ticker, "price");
+        string? vwap = this.safeString(ticker, "vwap");
+        string? baseVolume = this.safeString(ticker, "volume");
+        string? quoteVolume = Precise.stringMul(baseVolume, vwap);
+        string? last = this.safeString(ticker, "price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -337,7 +337,7 @@ public partial class paymium : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "id") },
         };
         object ticker = await this.publicGetDataCurrencyTicker(this.extend(request, parameters));
@@ -365,12 +365,12 @@ public partial class paymium : Exchange
     public override object parseTrade(object trade, object market = null)
     {
         object timestamp = this.safeTimestamp(trade, "created_at_int");
-        object id = this.safeString(trade, "uuid");
+        string? id = this.safeString(trade, "uuid");
         market = this.safeMarket(null, market);
-        object side = this.safeString(trade, "side");
-        object price = this.safeString(trade, "price");
+        string? side = this.safeString(trade, "side");
+        string? price = this.safeString(trade, "price");
         object amountField = add("traded_", ((string)getValue(market, "base")).ToLower());
-        object amount = this.safeString(trade, amountField);
+        string? amount = this.safeString(trade, amountField);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -407,7 +407,7 @@ public partial class paymium : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(market, "id") },
         };
         object response = await this.publicGetDataCurrencyTrades(this.extend(request, parameters));
@@ -458,7 +458,7 @@ public partial class paymium : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", code },
         };
         object response = await this.privateGetUserAddressesAddress(this.extend(request, parameters));
@@ -513,8 +513,8 @@ public partial class paymium : Exchange
         //         "label": "Savings"
         //     }
         //
-        object address = this.safeString(depositAddress, "address");
-        object currencyId = this.safeString(depositAddress, "currency");
+        string? address = this.safeString(depositAddress, "address");
+        string? currencyId = this.safeString(depositAddress, "currency");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -545,7 +545,7 @@ public partial class paymium : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", add(this.capitalize(type), "Order") },
             { "currency", getValue(market, "id") },
             { "direction", side },
@@ -572,7 +572,7 @@ public partial class paymium : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "uuid", id },
         };
         object response = await this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters));
@@ -607,7 +607,7 @@ public partial class paymium : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " transfer() only allows BTC or EUR")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
             { "email", toAccount },
@@ -682,12 +682,12 @@ public partial class paymium : Exchange
         //         ]
         //     }
         //
-        object currencyId = this.safeString(transfer, "currency");
-        object updatedAt = this.safeString(transfer, "updated_at");
+        string? currencyId = this.safeString(transfer, "currency");
+        string? updatedAt = this.safeString(transfer, "updated_at");
         object timetstamp = this.parseDate(updatedAt);
         object accountOperations = this.safeValue(transfer, "account_operations");
         object firstOperation = this.safeValue(accountOperations, 0, new Dictionary<string, object>() {});
-        object status = this.safeString(transfer, "state");
+        string? status = this.safeString(transfer, "state");
         return new Dictionary<string, object>() {
             { "info", transfer },
             { "id", this.safeString(transfer, "uuid") },
@@ -703,7 +703,7 @@ public partial class paymium : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "executed", "ok" },
         };
         return this.safeString(statuses, status, status);

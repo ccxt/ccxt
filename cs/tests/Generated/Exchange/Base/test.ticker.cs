@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
                 { "previousClose", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
             { "timestamp", 1502962946216 },
@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
             { "quoteVolume", exchange.parseNumber("1.234") },
         };
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"};
+        List<object> emptyAllowedFor = new List<object>() {"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"};
         // trick csharp-transpiler for string
         if (!isTrue((((object)method).ToString().Contains("BidsAsks"))))
         {
@@ -132,8 +132,8 @@ public partial class testMainClass : BaseTest
             object isInverse = exchange.safeBool(market, "inverse", false);
             if (isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))) && isTrue((!isEqual(isInverse, true)))))
             {
-                object baseLow = Precise.stringMul(baseVolume, low);
-                object baseHigh = Precise.stringMul(baseVolume, high);
+                string? baseLow = Precise.stringMul(baseVolume, low);
+                string? baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 object mPrecision = exchange.safeDict(market, "precision");
                 object amountPrecision = exchange.safeString(mPrecision, "amount");
@@ -214,9 +214,9 @@ public partial class testMainClass : BaseTest
         string allowedPercentageVariation = "0.01";
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isFetchTickerCalled) && isTrue(!isEqual(lastString, null))) && isTrue(!isEqual(bidString, null))) && isTrue(!isEqual(askString, null))) && !isTrue((inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
-            object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
-            object medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
-            object medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
+            string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
+            string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
+            string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
             assert(isTrue(Precise.stringGe(lastString, medianLow)) && isTrue(Precise.stringLe(lastString, medianHigh)), add("last price should be within 1% of the bid/ask median price", logText));
         }
         object percentage = exchange.safeString(entry, "percentage");

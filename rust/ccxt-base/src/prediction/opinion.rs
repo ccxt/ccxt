@@ -499,7 +499,7 @@ impl OpinionCore {
         let mut active: Value = Value::Bool(is_equal(&statusEnum, &Value::Str("Activated".to_string())));
         let mut resolved: Value = Value::Bool(is_equal(&statusEnum, &Value::Str("Resolved".to_string())));
         let mut resultTokenId: Value = self.safe_string_k(raw.clone(), "resultTokenId", &[]);
-        let mut hasResult: Value = Value::Bool(is_true(&resolved) && is_true(&(!is_equal(&resultTokenId, &Value::Null))) && is_true(&(!is_equal(&resultTokenId, &Value::Str("".to_string())))));
+        let mut hasResult: bool = is_true(&resolved) && is_true(&(!is_equal(&resultTokenId, &Value::Null))) && is_true(&(!is_equal(&resultTokenId, &Value::Str("".to_string()))));
         let mut outcomeLabels: Value = Value::List(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".to_string())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".to_string())])]);
         let mut outcomeTokenIds: Value = Value::List(vec![self.safe_string_k(raw.clone(), "yesTokenId", &[]), self.safe_string_k(raw.clone(), "noTokenId", &[])]);
         let mut outcomes: Value = Value::List(vec![]);
@@ -769,7 +769,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isSlug: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&id, &Value::Str("-".to_string())), &Value::Int(0)));
+        let mut isSlug: bool = is_greater_than_or_equal(&get_index_of(&id, &Value::Str("-".to_string())), &Value::Int(0));
         let mut response: Value = Value::Null;
         if is_true(&isSlug) {
             let __ws_arg_4 = self.extend(Value::Map({
@@ -1973,7 +1973,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut isYes: Value = Value::Bool(is_equal(&self.safe_string_lower(trade.clone(), Value::Str("outcomeSideEnum".to_string()), &[]), &Value::Str("yes".to_string())));
+                let mut isYes: bool = is_equal(&self.safe_string_lower(trade.clone(), Value::Str("outcomeSideEnum".to_string()), &[]), &Value::Str("yes".to_string()));
                 add_element_to_object(&mut trade, &Value::Str("tokenId".to_string()), ternary(is_true(&isYes), self.safe_string_k(info.clone(), "yesTokenId", &[]), self.safe_string_k(info.clone(), "noTokenId", &[])));
             }
         }
@@ -2424,7 +2424,7 @@ impl OpinionCore {
  * @returns {string} the apiKey
  */
     pub async fn load_api_key(&mut self) -> Value {
-        let mut hasDirectApiKey: Value = Value::Bool(!is_true(&self.is_empty_string(self.apiKey.clone())));
+        let mut hasDirectApiKey: bool = !is_true(&self.is_empty_string(self.apiKey.clone()));
         if is_true(&hasDirectApiKey) {
             return self.apiKey.clone();
         }
@@ -2608,7 +2608,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = self.opinion_ws_url();
         let mut client: Value = self.client(&[url.clone()]);
         let mut subscriptionKey: Value = add(&add(&channel, &Value::Str(":".to_string())), &self.number_to_string(marketId.clone()));
-        let mut isNewSubscription: Value = Value::Bool(is_equal(&self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionKey.clone(), &[]), &Value::Null));
+        let mut isNewSubscription: bool = is_equal(&self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionKey.clone(), &[]), &Value::Null);
         if is_true(&isNewSubscription) {
             self.seed_order_book(outcome.clone(), sym.clone(), &[limit.clone()]).await;
         }
