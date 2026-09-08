@@ -8732,6 +8732,113 @@ order ids to be unique will reject the second one. The id the venue reports back
 step of the report as `clientOrderId`. The in-process guard does not survive a restart; if your
 plans must never re-execute across restarts, key idempotency at the venue yourself.
 
+### Watching a run, and stopping it — `onStep`
+
+`execute` used to be opaque from call to return. `options.onStep` is called after each step
+completes **and after its reconciliation**, never mid-order, and its return value decides whether
+the route continues:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const report = await router.execute (plan, venues, {
+    'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+    'onStep': (event) => {
+        console.log (event['stepIndex'], event['status'], event['outAmount']);
+        //  return 'halt' to stop the route; anything else continues
+        return (event['status'] === 'partial') ? 'halt' : '';
+    },
+});
+```
+#### **Python**
+```python
+def on_step(event):
+    print(event['stepIndex'], event['status'], event['outAmount'])
+    return 'halt' if event['status'] == 'partial' else ''
+
+report = router.execute(plan, venues, {
+    'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'onStep': on_step,
+})
+```
+#### **PHP**
+```php
+$report = $router->execute($plan, $venues, array(
+    'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+    'onStep' => function ($event) {
+        return $event['status'] === 'partial' ? 'halt' : '';
+    },
+));
+```
+#### **C#**
+```csharp
+var report = await router.Execute(plan, venues, new Dictionary<string, object> {
+    { "strategy", "sequential" }, { "live", true },
+    { "onStep", (Func<IDictionary<string, object>, string>)(ev =>
+        (string)ev["status"] == "partial" ? "halt" : "") },
+});
+```
+#### **Go**
+```go
+report, err := router.Execute(plan, venues, map[string]any{
+    "strategy": "sequential", "live": true,
+    "onStep": func(event map[string]any) string {
+        if event["status"] == "partial" { return "halt" }
+        return ""
+    },
+})
+```
+#### **Rust**
+```rust
+// Rust DIFFERS: the hook is installed on the router, not passed in options.
+// `Value` is a closed enum deriving Debug/Clone/PartialEq, so it cannot carry a closure.
+router.set_on_step(Arc::new(|event: &Value| {
+    if router_str(event, "status") == "partial" { "halt".to_string() } else { String::new() }
+}));
+let report = router.execute(&plan, &venues, &options).await?;
+router.clear_on_step();
+```
+<!-- tabs:end -->
+
+The event carries `planId`, `stepIndex`, `hopIndex`, `legIndex`, `exchangeId`, `symbol`, `side`,
+`status`, `requestedAmount`, `filledAmount`, `outAsset`, `outAmount`, `orderId`, `clientOrderId`,
+`errorCode`, `attempt`, `reconciliation`, `ordersPlaced`, `halted`, `haltReason`, `stepsTotal` and
+`stepsRemaining`. It is a plain dictionary, so fields can be added without breaking callers.
+
+Four rules worth knowing before you rely on it:
+
+- **It can only narrow.** Returning `'halt'` stops the route and sets `haltReason` to
+  `halted_by_on_step`. Nothing it returns will *resume* a route the reconciliation already halted —
+  the halt is a money decision made in one pure place so that six execution loops cannot each
+  forget it, and a hook that could wave it through would be a way to forget it.
+- **It is called on the halt paths too**, with an empty `reconciliation` where the step halted
+  before reconciling, so the hook always learns how the route ended.
+- **Do no network I/O in it.** It sits between orders on the money path; every millisecond spent
+  there is a millisecond the next order is not placed and the price is moving.
+- **A hook that throws does not fail the run.** The failure is recorded in `report['errors']` as
+  `on_step_hook_failed` and execution continues as if the hook had no opinion. The report is the
+  only account of orders that are already live, and losing it to an exception raised by
+  observability code is the worse outcome.
+
+For decisions that need I/O — re-quoting, checking a balance, consulting a model — slice the plan
+and call `execute` once per hop or step instead, with its own `idempotencyKey` per slice. Between
+calls you have the whole language available.
+
+### Retrying a rejected step
+
+`options.retryFailedSteps` (default `0`) re-places a step **the venue definitively rejected**, up to
+that many times, waiting `options.retryDelayMs` (default `1000`) between attempts. The winning
+attempt is reported as `attempt` on that step's result.
+
+An `outcome_unknown` step is **never** retried, at any setting. A rejected order was not placed, so
+re-placing it cannot double-fill; an unknown outcome may already be a live position that simply
+could not be read back, and re-placing that is the exact double-fill this class exists to prevent.
+
+The router sets no client order id of its own, on a first attempt or a retry: whatever you put in
+`options.orderParams` travels untouched and each exchange's own identifier generation applies. An id
+derived from the plan identity used to be forced onto every order, but venues disagree on length and
+charset — gate refuses one over 28 characters, okx and mexc cap at 32, lighter parses it as an
+integer — so it was rejected exactly where it mattered.
+
 ## Reading the report
 
 `execute` returns a report whose `steps[]` mirrors the plan. Three fields deserve attention:

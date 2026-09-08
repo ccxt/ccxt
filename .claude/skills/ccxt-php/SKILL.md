@@ -990,6 +990,43 @@ rather than silently mis-reading a promise as an order — pass plain `ccxt\<id>
 `execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`
 regardless of the strategy requested** — a call that looks live but forgot the flag places nothing.
 
+### Watching a run, and stopping it
+
+`execute` is not opaque. `options.onStep` is called after each step completes AND after its
+reconciliation — never mid-order — and its return value decides whether the route continues.
+
+```php
+$report = $router->execute($plan, $venues, array(
+    'strategy' => 'sequential', 'live' => true,
+    'retryFailedSteps' => 2,             // only a DEFINITIVELY REJECTED step is retried
+    'onStep' => function ($event) {
+        return $event['status'] === 'partial' ? 'halt' : '';   // 'halt' stops the route
+    },
+));
+```
+
+The event is a plain dictionary: `planId`, `stepIndex`, `hopIndex`, `legIndex`, `exchangeId`,
+`symbol`, `side`, `status`, `requestedAmount`, `filledAmount`, `outAsset`, `outAmount`, `orderId`,
+`clientOrderId`, `errorCode`, `attempt`, `reconciliation`, `ordersPlaced`, `halted`, `haltReason`,
+`stepsTotal`, `stepsRemaining`.
+
+- **It can only narrow.** `'halt'` stops the route and sets `haltReason` to `halted_by_on_step`;
+  nothing it returns resumes a route the reconciliation already halted.
+- It is called on the halt paths too, with an empty `reconciliation`, so it always learns how the
+  route ended.
+- **Do no network I/O in it** — it sits between orders on the money path.
+- A hook that throws is recorded in `report['errors']` as `on_step_hook_failed` and the run
+  continues; losing the report would destroy the only account of orders already live.
+
+For decisions that need I/O, slice the plan and call `execute` per hop with its own
+`idempotencyKey` instead.
+
+`options.retryFailedSteps` (default 0, `retryDelayMs` default 1000) re-places a step the venue
+**definitively rejected**. An `outcome_unknown` step is never retried at any setting: it may
+already be a live position, and re-placing it is the double-fill this class exists to prevent. The
+winning attempt is reported as `attempt`. The router sets no client order id of its own — venues
+disagree on length and charset, so whatever you pass in `orderParams` travels untouched.
+
 ### Executing your own plans
 
 `execute` takes a **plan**, not a route, and never checks where the plan came from — so your own

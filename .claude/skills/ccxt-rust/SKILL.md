@@ -955,6 +955,88 @@ if let Some(id) = order.id {
 - Venues are also driven generically through `ccxt_prediction`'s own `TypedExchange` /
   `TypedExchangeExt` (distinct from the ones in `ccxt`).
 
+## Order Router
+
+Two things, either usable without the other. **A client** for the CCXT order-router service, which
+holds live books across many venues and answers "what is the cheapest way to turn asset A into
+asset B right now?", including bridges (`SOL -> USDT -> BTC` when no `SOL/BTC` market exists). And
+**an execution engine for plans you build yourself**, which needs no router service and no API key.
+It is **not** an exchange: it does not implement `ExchangeBase`, has no unified methods, and is
+constructed directly.
+
+```rust
+use ccxt_base::order_router::{OrderRouter, RouterVenue};
+use ccxt_base::Value;
+
+let router = OrderRouter::new(&Value::Map(config))?;
+let route = router.fetch_route("USDT", "BTC", &Value::Map(params)).await?;   // exactly one of amountIn / amountOut
+let plan = router.build_execution_plan(&route, &Value::Map(HashMap::new()))?;
+let report = router.execute(&plan, &venues, &options).await?;
+```
+
+Rust differs from the other five ports in two places, both forced by the language:
+
+- **Fallible methods return `Result<_, ExchangeError>`** where the others throw. The error's `kind`
+  carries the same class name, so `err.is("NetworkError")` asks the question the other ports ask of
+  an exception class.
+- **`execute` takes `BTreeMap<String, Box<dyn RouterVenue>>`** rather than your exchange objects
+  directly. `ExchangeBase`'s methods return `impl Future`, which is not object-safe, so a map of
+  exchanges cannot exist. `RouterVenue` is that map's element type, narrowed to the operations the
+  money path performs; implement it for whatever exchange type you hold.
+
+`execute` defaults to `dry_run`, and **anything other than an explicit `live` flag forces
+`dry_run`** — a call that looks live but forgot the flag places nothing.
+
+### Executing your own plans
+
+`execute` takes a **plan**, not a route, and never checks where the plan came from, so your own
+strategy can supply its own trades and still get the notional cap, halt-and-reconcile between hops,
+resting-order cleanup and the unwind plan. A step is one order on one venue; required fields are
+`exchangeId`, `symbol`, `side`, `amount`, `base`, `quote`.
+
+A live `execute` requires an identity and refuses without one — supply it as the plan's `requestId`
+or as `options.idempotencyKey`. It keys an in-process ledger so a second `execute` of the same plan
+is refused before any venue is contacted. The ledger is capped and evicts oldest-first, so the
+guarantee is "recent duplicates are refused", not "duplicates are impossible", and it does not
+survive a restart.
+
+### Watching a run, and stopping it — `set_on_step`
+
+**This is where Rust's API diverges most.** The other five ports pass the hook in
+`options['onStep']`; Rust installs it on the router. `Value` is a closed enum deriving `Debug`,
+`Clone` and `PartialEq` and answering `to_json`, so it cannot carry a closure without redefining
+what closure equality and serialisation mean at every `Value` site in the crate.
+
+```rust
+use std::sync::Arc;
+
+router.set_on_step(Arc::new(|event: &Value| {
+    // return "halt" to stop the route; anything else continues
+    if router_str(event, "status") == "partial" { "halt".to_string() } else { String::new() }
+}));
+let report = router.execute(&plan, &venues, &options).await?;
+router.clear_on_step();
+```
+
+`OnStepHook` is `Arc<dyn Fn(&Value) -> String + Send + Sync>`. The hook is called after each step
+completes AND after its reconciliation, never mid-order, with an event carrying `planId`,
+`stepIndex`, `hopIndex`, `status`, `filledAmount`, `outAmount`, `attempt`, `reconciliation`,
+`haltReason`, `stepsRemaining` and more.
+
+- **It can only narrow.** `"halt"` stops the route and sets `haltReason` to `halted_by_on_step`;
+  nothing it returns resumes a route the reconciliation already halted.
+- **Do no I/O in it** — it sits between orders on the money path.
+- **A panicking hook cannot take the run down.** It is called inside `catch_unwind`, the failure is
+  recorded as `on_step_hook_failed:panic`, and execution continues as if the hook had no opinion —
+  losing the report would destroy the only account of orders already live. This does **not** hold
+  under `panic = "abort"`, where no construct in any language would help.
+
+`options.retryFailedSteps` (default 0, `retryDelayMs` default 1000) re-places a step the venue
+**definitively rejected**. An `outcome_unknown` step is never retried at any setting: it may already
+be a live position, and re-placing it is the double-fill this class exists to prevent. The winning
+attempt is reported as `attempt`. The router sets no client order id of its own — venues disagree on
+length and charset, so whatever you pass in `orderParams` travels untouched.
+
 ## Common Pitfalls
 
 ### Not loading markets first
