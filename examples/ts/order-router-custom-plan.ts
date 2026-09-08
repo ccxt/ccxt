@@ -37,8 +37,8 @@ async function main () {
     await Promise.all ([ binance.loadMarkets (), kraken.loadMarkets () ]);
 
     //  Identity. A live run REFUSES without one, because it is what makes a
-    //  re-run safe: identity + step index derives each order's clientOrderId,
-    //  so the same plan sent twice re-sends ids the venue has already seen.
+    //  re-run safe: the identity is remembered in-process, so the same plan
+    //  sent twice is refused before any venue is contacted.
     //
     //  Stable and tied to the INTENT — a strategy name plus the signal that
     //  triggered it. Date.now() here would be a fresh identity on every call,

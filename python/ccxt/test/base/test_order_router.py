@@ -286,9 +286,9 @@ def test_fixture_build_unwind_plan():
 # 2. invariants, asserted directly rather than through the fixture
 # ---------------------------------------------------------------------------
 
-# every route the invariant tests build gets its own requestId: execute() derives both the
-# re-execution guard key and the per-step client order ids from it, and refuses a live plan
-# that carries none. A counter, not a random value — the ids stay reproducible.
+# every route the invariant tests build gets its own requestId: execute() derives the
+# re-execution guard key from it, and refuses a live plan that carries none. A counter, not
+# a random value — the ids stay reproducible.
 TEST_REQUEST_ID_COUNTER = [0]
 
 
@@ -610,6 +610,9 @@ class StubVenue:
         average = 100 if price is None else price
         status = 'closed' if self.created_status == '' else self.created_status
         body = {'id': 'stub-order', 'status': status, 'filled': filled, 'average': average, 'cost': filled * average}
+        if 'clientOrderId' in params:
+            # a real venue echoes the client order id it was given
+            body['clientOrderId'] = params['clientOrderId']
         if self.fee_to_charge is not None:
             body['fee'] = self.fee_to_charge
         if len(self.trade_fees_to_charge) > 0:
@@ -1201,7 +1204,7 @@ def test_live_requires_a_plan_identity():
     keyed = router.execute(plan, {'stub': supplied}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'hand-built-1'})
     assert keyed['planId'] == 'hand-built-1'
     assert keyed['steps'][0]['status'] == 'filled'
-    assert supplied.params_seen[0]['clientOrderId'] == 'hand-built-1-0'
+    assert 'clientOrderId' not in supplied.params_seen[0], 'and no client order id is injected'
     # and the guard keys off it, exactly as it does off a requestId
     raised = ''
     try:
@@ -1215,38 +1218,37 @@ def test_live_requires_a_plan_identity():
     overridden = StubVenue('stub')
     report = router.execute(routed, {'stub': overridden}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'override-1'})
     assert report['planId'] == 'override-1'
-    assert overridden.params_seen[0]['clientOrderId'] == 'override-1-0'
+    assert 'clientOrderId' not in overridden.params_seen[0], 'and no client order id is injected'
     # a rehearsal needs no identity: it places nothing
     dry = router.execute(plan, {'stub': venue}, {'strategy': 'sequential', 'usdRates': {'USDT': 1}})
     assert dry['dryRun'] is True
 
 
-@test('every order carries a deterministic client order id derived from the plan and the step')
-def test_deterministic_client_order_ids():
+@test('execute never sets a clientOrderId: the venue keeps its own, and a caller-supplied one travels untouched')
+def test_client_order_id_is_never_injected():
     route = two_hop_route()
     route['requestId'] = 'fixed-req'
     plan = router.build_execution_plan(route, {})
+    # by default nothing is injected: each exchange's create_order sends whatever identifier
+    # it generates on its own
+    bare = StubVenue('stub')
+    report = router.execute(plan, {'stub': bare}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
+    assert report['planId'] == 'fixed-req'
+    assert len(bare.params_seen) == 2
+    assert 'clientOrderId' not in bare.params_seen[0], 'no client order id is forced onto the order'
+    assert 'clientOrderId' not in bare.params_seen[1]
+    assert report['steps'][0]['clientOrderId'] == '', 'and the report carries what the venue reported, which is nothing'
+    # a caller-supplied clientOrderId is forwarded as-is, alongside the caller's other params
+    second = OrderRouter({'apiKey': 'k'})
     venue = StubVenue('stub')
-    report = router.execute(plan, {'stub': venue}, {
+    supplied = second.execute(router.build_execution_plan(route, {}), {'stub': venue}, {
         'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1},
-        # a caller-supplied clientOrderId must NOT win: one id reused across every step of a
-        # plan is worse than none at all
         'orderParams': {'clientOrderId': 'caller-supplied', 'reduceOnly': True},
     })
-    assert report['planId'] == 'fixed-req'
-    assert len(venue.params_seen) == 2
-    assert venue.params_seen[0]['clientOrderId'] == 'fixed-req-0'
-    assert venue.params_seen[1]['clientOrderId'] == 'fixed-req-1'
+    assert venue.params_seen[0]['clientOrderId'] == 'caller-supplied'
+    assert venue.params_seen[1]['clientOrderId'] == 'caller-supplied', 'orderParams apply to every step alike'
     assert venue.params_seen[0]['reduceOnly'] is True, "the caller's other params still travel"
-    assert report['steps'][0]['clientOrderId'] == 'fixed-req-0', 'and the report says what was sent'
-    assert report['steps'][1]['clientOrderId'] == 'fixed-req-1'
-    # DETERMINISTIC: another instance, another day, the same plan — the same ids, which is the
-    # whole point. A random id would be rejected by nothing.
-    second = OrderRouter({'apiKey': 'k'})
-    other = StubVenue('stub')
-    second.execute(router.build_execution_plan(route, {}), {'stub': other}, {'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}})
-    assert other.params_seen[0]['clientOrderId'] == 'fixed-req-0'
-    assert other.params_seen[1]['clientOrderId'] == 'fixed-req-1'
+    assert supplied['steps'][0]['clientOrderId'] == 'caller-supplied', 'and the report says what the venue recorded'
 
 
 @test('the same plan is refused on a second live execution, and only an explicit opt-in overrides it')
@@ -1425,11 +1427,11 @@ def test_on_step_can_only_narrow():
     assert report['steps'][1]['status'] == 'skipped'
 
 
-@test('retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome')
+@test('retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome')
 def test_retry_failed_steps():
-    #  A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
-    #  original client order id would have the venue reject the retry as a duplicate of the very
-    #  order it just refused, so each attempt carries its own.
+    #  A rejected order was not placed, so re-placing it cannot double-fill. No client order id
+    #  is injected on either attempt, so the venue's own identifier generation applies to the
+    #  retry exactly as it did to the first try.
     plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
     relents = StubVenue('stub')
     relents.fail_create_times = 1
@@ -1439,10 +1441,9 @@ def test_retry_failed_steps():
     })
     assert report['steps'][0]['status'] == 'filled', 'the retry succeeded'
     assert report['steps'][0]['attempt'] == 1, 'the report says which attempt won'
-    ids = [entry['clientOrderId'] for entry in relents.params_seen]
-    assert len(ids) == 2
-    assert ids[0] != ids[1], 'a retry must not reuse the rejected order id'
-    assert ids[1].find('-r1') != -1, 'the retry is marked as such, got ' + ids[1]
+    assert len(relents.params_seen) == 2, 'two placements went out'
+    assert 'clientOrderId' not in relents.params_seen[0], 'no client order id is injected on the first try'
+    assert 'clientOrderId' not in relents.params_seen[1], 'nor on the retry'
     #  the outcome the policy must NEVER touch
     unknown = StubVenue('stub')
     unknown.timeout_create = True

@@ -160,8 +160,8 @@ class OrderRouter:
     # "recent duplicates are refused", not "duplicates are impossible". A process that
     # needs the strong promise across restarts or beyond this window needs the durable
     # ledger the Known gaps entry calls for; until then, callers whose plans must never
-    # re-execute should key idempotency at the venue(the deterministic clientOrderId every
-    # step already carries) rather than rely on this instance's memory.
+    # re-execute should key idempotency at the venue themselves(a clientOrderId passed in
+    # options['orderParams'], on venues that honour one) rather than rely on this instance's memory.
     MAX_EXECUTED_PLAN_IDS = 1024
 
     # relative tolerance for float comparisons; also the tolerance the six
@@ -1235,7 +1235,7 @@ class OrderRouter:
 
     def plan_identity(self, plan, options):
         """
-        the stable identity of an execution, used both for the re-execution guard and for the per-step client order ids
+        the stable identity of an execution, used for the re-execution guard
 
         :param dict plan: the plan
         :param dict options: the execute options
@@ -1252,28 +1252,10 @@ class OrderRouter:
         # otherwise requestId, the one field a routed plan carries that is meant to be unique;
         # it survives JSON, storage and a hand-rebuilt tail of a halted route. Nothing is
         # invented when both are absent — a generated identity would be either random, which
-        # defeats both mechanisms that depend on it, or a fingerprint of the plan's contents,
+        # defeats the guard that depends on it, or a fingerprint of the plan's contents,
         # which makes two plans that happen to agree indistinguishable. Absence is reported,
         # and execute refuses.
         return self.string_at(plan, 'requestId', '')
-
-    def client_order_id_for(self, plan_id, step_index, attempt=0):
-        """
-        derives the deterministic client order id for one step, so that a second run of the same plan re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
-
-        :param str plan_id: the plan identity from plan_identity
-        :param int step_index: the step's index within the plan
-        :param int [attempt]: the retry attempt, 0 for the first
-        :returns str: the client order id
-        """
-        # Attempt 0 is unsuffixed, so the id a plan sends on its first run is unchanged.
-        # A RETRY, by contrast, must carry a NEW id: retryFailedSteps only ever retries a
-        # step the venue definitively rejected, which makes the retry a genuinely new order —
-        # and re-sending the original id would have the venue reject it as a duplicate of the
-        # order it just refused, turning the retry into a guaranteed no-op.
-        if attempt <= 0:
-            return plan_id + '-' + self.format_number(step_index)
-        return plan_id + '-' + self.format_number(step_index) + '-r' + self.format_number(attempt)
 
     def has_executed_plan(self, plan_id):
         """
@@ -1327,7 +1309,7 @@ class OrderRouter:
         :param int [options['orderTimeoutMs']]: how long limit_protected leaves an order resting, default 20000
         :param int [options['pollIntervalMs']]: how often limit_protected checks a resting order, default 1000
         :param dict [options['orderParams']]: extra params merged into every create_order call
-        :param str [options['idempotencyKey']]: the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
+        :param str [options['idempotencyKey']]: the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard, and OVERRIDES the plan's requestId when both are given
         :param bool [options['allowReexecution']]: must be exactly True to run a plan this instance has already executed live; the DEFAULT is refusal
         :param int [options['retryFailedSteps']]: how many times to re-place a step the venue DEFINITIVELY REJECTED, default 0. An outcome_unknown step is never retried at any setting: it may already be a live position, and re-placing it is the double-fill this class exists to prevent. Each retry carries its own client order id
         :param int [options['retryDelayMs']]: how long to wait before a retry, default 1000
@@ -1375,9 +1357,8 @@ class OrderRouter:
         # nothing does not burn the plan. dry_run never reaches this line and never consumes a
         # plan, because a rehearsal places nothing.
         if plan_id == '':
-            # no identity means no idempotency: neither the ledger below nor the per-step
-            # client order ids can be derived, so a re-run of this plan would be
-            # indistinguishable from a first run all the way down to the venue.
+            # no identity means no idempotency: the ledger below cannot key on it, so a
+            # re-run of this plan would be indistinguishable from a first run.
             raise BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey')
         if options.get('allowReexecution') is not True:
             if self.has_executed_plan(plan_id):
@@ -1867,22 +1848,20 @@ class OrderRouter:
             extra = self.dict_at(options, 'orderParams')
             for key in extra:
                 order_params[key] = extra[key]
-            # IDEMPOTENCY, half two: a client order id derived from the plan's own identity and
-            # this step's index. Deterministic, so a second run of the same plan re-sends an id
-            # the venue has already seen and is rejected as a duplicate rather than filled. It
-            # is set AFTER the caller's orderParams are copied and deliberately overrides a
-            # clientOrderId found there: one id reused across every step of a plan is worse
-            # than none at all.
+            # No clientOrderId is set here. Whatever the caller put in options['orderParams']
+            # travels as-is, and each exchange's create_order keeps sending whatever identifier
+            # it generates on its own; the id the venue reports back is recorded on the result
+            # once the order returns. (An id derived from the plan identity used to be forced
+            # onto every step, but venues disagree on its length and charset, so it was
+            # rejected exactly where it mattered.)
             attempt = self.number_at(step, 'attempt', 0)
-            client_order_id = self.client_order_id_for(self.string_at(report, 'planId', ''), step_index, attempt)
-            order_params['clientOrderId'] = client_order_id
-            result['clientOrderId'] = client_order_id
             result['attempt'] = attempt
             if strategy == 'limit_protected':
                 order = self.place_protected_limit(venue, step, symbol, side, amount, price, order_params, options, report, result)
             else:
                 order = self.place_immediate_order(venue, symbol, side, amount, price, order_params, options, result)
             result['orderId'] = self.string_at(order, 'id', '')
+            result['clientOrderId'] = self.string_at(order, 'clientOrderId', '')
             # "the venue said zero" and "the venue said nothing" are different facts and used to
             # produce the same number. A venue omitting `filled` yielded 0, reconciliation read
             # that as nothing_filled and halted while a real position existed. Test presence.

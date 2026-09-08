@@ -417,9 +417,9 @@ fn constructor_guards() -> Result<(), String> {
 }
 
 /// Every route the invariant checks build gets its own requestId: execute
-/// derives both the re-execution guard key and the per-step client order ids
-/// from it, and refuses a live plan that carries neither a requestId nor an
-/// idempotencyKey. A counter, not a random value — the ids stay reproducible.
+/// derives the re-execution guard key from it, and refuses a live plan that
+/// carries neither a requestId nor an idempotencyKey. A counter, not a random
+/// value — the ids stay reproducible.
 static TEST_REQUEST_ID_COUNTER: std::sync::atomic::AtomicUsize =
     std::sync::atomic::AtomicUsize::new(0);
 
@@ -1116,7 +1116,7 @@ pub fn run() -> Result<usize, String> {
         ("execute: atomic_ish demands the whole route pre-funded", Box::new(|| atomic_ish_demands_the_whole_route_prefunded(&router()?))),
         ("execute: best_effort demands both of its acknowledgements", Box::new(|| best_effort_demands_its_acknowledgements(&router()?))),
         ("execute: a live plan with no identity is refused, and an idempotencyKey supplies one", Box::new(|| live_requires_an_identity(&router()?))),
-        ("execute: every order carries a deterministic client order id derived from the plan and the step", Box::new(|| deterministic_client_order_ids(&router()?))),
+        ("execute: no clientOrderId is injected, and a caller-supplied one travels untouched", Box::new(|| client_order_id_is_never_injected(&router()?))),
         ("execute: the same plan is refused on a second live execution unless the caller opts in", Box::new(|| reexecution_is_refused(&router()?))),
         ("execute: a dry run never consumes a plan, and a halted live run always does", Box::new(|| a_dry_run_does_not_consume_a_plan(&router()?))),
         ("execute: the re-execution ledger is bounded, evicts oldest-first, and re-allows an evicted plan", Box::new(|| the_ledger_is_bounded(&router()?))),
@@ -1257,6 +1257,12 @@ impl RouterVenue for StubVenue {
         }
         let mut order = HashMap::new();
         order.insert("id".to_string(), Value::Str("stub-1".to_string()));
+        if let Value::Dict(given) = params {
+            // a real venue echoes the client order id it was given
+            if let Some(client_order_id) = given.get("clientOrderId") {
+                order.insert("clientOrderId".to_string(), client_order_id.clone());
+            }
+        }
         if self.created_open {
             // A venue that reports the order it just accepted as still OPEN — the
             // shape a dropped timeInForce leaves behind. It still answers with a
@@ -2056,8 +2062,8 @@ fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
         return Err("the supplied key is the identity".to_string());
     }
     let params = seen.lock().unwrap().clone();
-    if params.is_empty() || r.string_at(&params[0], "clientOrderId", "") != "hand-built-1-0" {
-        return Err("the client order id is seeded from the supplied key".to_string());
+    if params.is_empty() || !r.string_at(&params[0], "clientOrderId", "").is_empty() {
+        return Err("no client order id is injected".to_string());
     }
     // And the guard keys off it, exactly as it does off a requestId.
     let again = stub_venues(StubVenue::new("stub"));
@@ -2083,20 +2089,35 @@ fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
         return Err("the option overrides the plan's requestId".to_string());
     }
     let params = seen.lock().unwrap().clone();
-    if r.string_at(&params[0], "clientOrderId", "") != "override-1-0" {
-        return Err("and seeds the client order id".to_string());
+    if !r.string_at(&params[0], "clientOrderId", "").is_empty() {
+        return Err("and no client order id is injected".to_string());
     }
     Ok(())
 }
 
-fn deterministic_client_order_ids(r: &OrderRouter) -> Result<(), String> {
+fn client_order_id_is_never_injected(r: &OrderRouter) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let plan_id = r.string_at(&plan, "requestId", "");
-    let venue = StubVenue::new("stub");
-    let seen = StdArc::clone(&venue.params_seen);
-    let venues = stub_venues(venue);
-    // A caller-supplied clientOrderId must NOT win: one id reused across every
-    // step of a plan is worse than none at all.
+    // By default nothing is injected: each exchange's create_order sends whatever
+    // identifier it generates on its own.
+    let bare = StubVenue::new("stub");
+    let seen = StdArc::clone(&bare.params_seen);
+    let venues = stub_venues(bare);
+    let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
+        .map_err(|e| e.to_string())?;
+    if r.string_at(&report, "planId", "") != plan_id {
+        return Err("the report names the plan identity".to_string());
+    }
+    let params = seen.lock().unwrap().clone();
+    if params.is_empty() || !r.string_at(&params[0], "clientOrderId", "").is_empty() {
+        return Err("no client order id is forced onto the order".to_string());
+    }
+    let results = r.list_at(&report, "steps");
+    if !r.string_at(&results[0], "clientOrderId", "").is_empty() {
+        return Err("the report carries what the venue reported, which is nothing".to_string());
+    }
+    // A caller-supplied clientOrderId is forwarded as-is, alongside the caller's
+    // other params.
     let mut caller_params = HashMap::new();
     caller_params.insert("clientOrderId".to_string(), Value::Str("caller-supplied".to_string()));
     caller_params.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -2105,33 +2126,21 @@ fn deterministic_client_order_ids(r: &OrderRouter) -> Result<(), String> {
         "orderParams",
         Value::Map(caller_params),
     );
-    let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
-    if r.string_at(&report, "planId", "") != plan_id {
-        return Err("the report names the plan identity".to_string());
-    }
-    let expected = format!("{plan_id}-0");
+    let second = router()?;
+    let venue = StubVenue::new("stub");
+    let seen = StdArc::clone(&venue.params_seen);
+    let venues = stub_venues(venue);
+    let report = block_on(second.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
     let params = seen.lock().unwrap().clone();
-    if r.string_at(&params[0], "clientOrderId", "") != expected {
-        return Err(format!("expected {expected} as the client order id"));
+    if r.string_at(&params[0], "clientOrderId", "") != "caller-supplied" {
+        return Err("the caller's id travels untouched".to_string());
     }
     if !r.bool_at(&params[0], "reduceOnly", false) {
         return Err("the caller's other params still travel".to_string());
     }
     let results = r.list_at(&report, "steps");
-    if r.string_at(&results[0], "clientOrderId", "") != expected {
-        return Err("and the report says what was sent".to_string());
-    }
-    // DETERMINISTIC: another instance, the same plan — the same ids, which is the
-    // whole point. A random id would be rejected by nothing.
-    let second = router()?;
-    let other = StubVenue::new("stub");
-    let other_seen = StdArc::clone(&other.params_seen);
-    let venues = stub_venues(other);
-    block_on(second.execute(&plan, &venues, &execute_options(true, "sequential")))
-        .map_err(|e| e.to_string())?;
-    let params = other_seen.lock().unwrap().clone();
-    if r.string_at(&params[0], "clientOrderId", "") != expected {
-        return Err("a second instance sends the same id".to_string());
+    if r.string_at(&results[0], "clientOrderId", "") != "caller-supplied" {
+        return Err("and the report says what the venue recorded".to_string());
     }
     Ok(())
 }
