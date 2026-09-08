@@ -989,7 +989,7 @@ export class BaseExchange {
      * @ignore
      * @method
      * @name Exchange#getDispatcherOptions
-     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack is explicit: autoSelectFamily enables the happy eyeballs (rfc 8305) address-family racing so ipv6 and ipv4 are both attempted (off by default on node 18), without forcing either family
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack is explicit: autoSelectFamily enables happy eyeballs (rfc 8305) so ipv6 and ipv4 addresses are both attempted (off by default on node 18), without forcing either family - note that node's implementation attempts addresses sequentially, aborting each attempt at autoSelectFamilyAttemptTimeout before moving to the next address, it does NOT race them in parallel
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
@@ -1001,7 +1001,7 @@ export class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
+            'autoSelectFamilyAttemptTimeout': 250, // ms a single connection attempt gets to complete its tcp handshake before node ABORTS it and tries the next address (sequential abort-and-advance, not parallel racing) - any value below the origin's handshake rtt makes that origin deterministically unreachable, every address dies mid-handshake and the connect fails with an empty-message AggregateError (ETIMEDOUT) after cycling all of them - observed in production with a 10ms setting against an exchange api behind a transatlantic cloudfront pop (~45ms rtt) - 250ms matches node's own default, do not lower it below plausible wan handshake rtts
         };
         if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };
@@ -1366,14 +1366,35 @@ export class BaseExchange {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
             }
             // undici wraps the underlying transport error into TypeError('fetch failed') with a cause
-            const causeMessage = ((e !== undefined) && (e.cause !== undefined) && (e.cause !== null) && (e.cause.message !== undefined)) ? (': ' + e.cause.message) : '';
+            // the cause may be an AggregateError (autoSelectFamily / happy eyeballs) whose .message is
+            // an empty string and whose detail lives in .code and .errors[] (one entry per attempted
+            // address) - fall back through those so the reason is never reduced to a bare 'fetch failed:'
+            const describeFetchCause = (error: any): string => {
+                if ((error === undefined) || (error === null)) {
+                    return '';
+                }
+                const parts = [];
+                if (typeof error.code === 'string') {
+                    parts.push (error.code);
+                }
+                if (error.message) {
+                    parts.push (error.message);
+                }
+                if (Array.isArray (error.errors)) { // AggregateError - one inner error per attempted address
+                    const innerErrors = error.errors.slice (0, 3).map ((inner: any) => ((inner.code || inner.message || 'error') + ((inner.address !== undefined) ? (' ' + inner.address + ((inner.port !== undefined) ? (':' + inner.port) : '')) : '')));
+                    parts.push ('[' + innerErrors.join (', ') + ((error.errors.length > 3) ? ', ...' : '') + ']');
+                }
+                return parts.join (' ');
+            };
             if ((e instanceof this.FetchError) || (e instanceof TypeError)) {
-                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed' + causeMessage);
+                const causeDetails = describeFetchCause (e.cause);
+                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed' + ((causeDetails.length > 0) ? (': ' + causeDetails) : ''));
             }
             // undici.request and other runtimes signal connection failures with error classes carrying a string code
             const networkErrorCodes = [ 'ConnectionRefused', 'ConnectionClosed', 'ConnectionReset', 'DNSError', 'FailedToOpenSocket', 'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT' ];
             if ((e !== undefined) && (typeof e.code === 'string') && (networkErrorCodes.indexOf (e.code) !== -1)) {
-                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed: ' + e.message);
+                const errorDetails = describeFetchCause (e);
+                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed' + ((errorDetails.length > 0) ? (': ' + errorDetails) : ''));
             }
             throw e;
         } finally {
