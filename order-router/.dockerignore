@@ -1,7 +1,0 @@
-node_modules
-dist
-.git
-*.log
-benchmark
-docs
-**/*.test.ts
