@@ -187,9 +187,9 @@ function order_router_permissive_markets() {
     );
 }
 
-//  every route the invariant tests build gets its own requestId: execute() derives both the
-//  re-execution guard key and the per-step client order ids from it, and refuses a live plan
-//  that carries none. A counter, not a random value — the ids stay reproducible.
+//  every route the invariant tests build gets its own requestId: execute() derives the
+//  re-execution guard key from it, and refuses a live plan that carries none. A counter, not
+//  a random value — the ids stay reproducible.
 function order_router_next_request_id() {
     static $counter = 0;
     $counter = $counter + 1;
@@ -355,6 +355,10 @@ class OrderRouterStubVenue {
         $average = ($price === null) ? 100 : $price;
         $status = ($this->createdStatus === '') ? 'closed' : $this->createdStatus;
         $body = array('id' => 'stub-order', 'status' => $status, 'filled' => $filled, 'average' => $average, 'cost' => $filled * $average);
+        if (array_key_exists('clientOrderId', $params)) {
+            //  a real venue echoes the client order id it was given
+            $body['clientOrderId'] = $params['clientOrderId'];
+        }
         if ($this->feeToCharge !== null) {
             $body['fee'] = $this->feeToCharge;
         }
@@ -1338,7 +1342,7 @@ function order_router_test_live_requires_an_identity($router) {
     $keyed = $router->execute($plan, array('stub' => $supplied), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'hand-built-1'));
     order_router_assert($keyed['planId'] === 'hand-built-1', 'the supplied key is the identity');
     order_router_assert($keyed['steps'][0]['status'] === 'filled', 'and the plan executes');
-    order_router_assert($supplied->paramsSeen[0]['clientOrderId'] === 'hand-built-1-0', 'the client order id is seeded from it');
+    order_router_assert(!array_key_exists('clientOrderId', $supplied->paramsSeen[0]), 'and no client order id is injected');
     //  and the guard keys off it, exactly as it does off a requestId
     order_router_assert_throws(function () use ($router, $plan) {
         $router->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'hand-built-1'));
@@ -1349,34 +1353,33 @@ function order_router_test_live_requires_an_identity($router) {
     $overridden = new OrderRouterStubVenue('stub');
     $report = $router->execute($routed, array('stub' => $overridden), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'override-1'));
     order_router_assert($report['planId'] === 'override-1', 'the option overrides the requestId');
-    order_router_assert($overridden->paramsSeen[0]['clientOrderId'] === 'override-1-0', 'and seeds the client order id');
+    order_router_assert(!array_key_exists('clientOrderId', $overridden->paramsSeen[0]), 'and no client order id is injected');
 }
 
-function order_router_test_deterministic_client_order_ids($router) {
+function order_router_test_client_order_id_is_never_injected($router) {
     $route = order_router_two_hop_route();
     $route['requestId'] = 'fixed-req';
     $plan = $router->buildExecutionPlan($route, array());
+    //  by default nothing is injected: each exchange's createOrder sends whatever identifier
+    //  it generates on its own
+    $bare = new OrderRouterStubVenue('stub');
+    $report = $router->execute($plan, array('stub' => $bare), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    order_router_assert($report['planId'] === 'fixed-req', 'the report names the plan identity');
+    order_router_assert(count($bare->paramsSeen) === 2, 'two orders were placed');
+    order_router_assert(!array_key_exists('clientOrderId', $bare->paramsSeen[0]), 'no client order id is forced onto the order');
+    order_router_assert(!array_key_exists('clientOrderId', $bare->paramsSeen[1]), 'for any step');
+    order_router_assert($report['steps'][0]['clientOrderId'] === '', 'and the report carries what the venue reported, which is nothing');
+    //  a caller-supplied clientOrderId is forwarded as-is, alongside the caller's other params
+    $second = new OrderRouter(array('apiKey' => 'test-key'));
     $venue = new OrderRouterStubVenue('stub');
-    //  a caller-supplied clientOrderId must NOT win: one id reused across every step of a
-    //  plan is worse than none at all
-    $report = $router->execute($plan, array('stub' => $venue), array(
+    $supplied = $second->execute($router->buildExecutionPlan($route, array()), array('stub' => $venue), array(
         'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
         'orderParams' => array('clientOrderId' => 'caller-supplied', 'reduceOnly' => true),
     ));
-    order_router_assert($report['planId'] === 'fixed-req', 'the report names the plan identity');
-    order_router_assert(count($venue->paramsSeen) === 2, 'two orders were placed');
-    order_router_assert($venue->paramsSeen[0]['clientOrderId'] === 'fixed-req-0', 'step 0 carries its own id');
-    order_router_assert($venue->paramsSeen[1]['clientOrderId'] === 'fixed-req-1', 'step 1 carries its own id');
+    order_router_assert($venue->paramsSeen[0]['clientOrderId'] === 'caller-supplied', 'the caller\'s id travels untouched');
+    order_router_assert($venue->paramsSeen[1]['clientOrderId'] === 'caller-supplied', 'orderParams apply to every step alike');
     order_router_assert($venue->paramsSeen[0]['reduceOnly'] === true, "the caller's other params still travel");
-    order_router_assert($report['steps'][0]['clientOrderId'] === 'fixed-req-0', 'and the report says what was sent');
-    order_router_assert($report['steps'][1]['clientOrderId'] === 'fixed-req-1', 'for every step');
-    //  DETERMINISTIC: another instance, another day, the same plan — the same ids, which is
-    //  the whole point. A random id would be rejected by nothing.
-    $second = new OrderRouter(array('apiKey' => 'test-key'));
-    $other = new OrderRouterStubVenue('stub');
-    $second->execute($router->buildExecutionPlan($route, array()), array('stub' => $other), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
-    order_router_assert($other->paramsSeen[0]['clientOrderId'] === 'fixed-req-0', 'the same id, from a different instance');
-    order_router_assert($other->paramsSeen[1]['clientOrderId'] === 'fixed-req-1', 'for every step');
+    order_router_assert($supplied['steps'][0]['clientOrderId'] === 'caller-supplied', 'and the report says what the venue recorded');
 }
 
 function order_router_test_reexecution_is_refused($router) {
@@ -1510,9 +1513,9 @@ function order_router_test_on_step_can_only_narrow($router) {
 }
 
 function order_router_test_retry_failed_steps($router) {
-    //  A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
-    //  original client order id would have the venue reject the retry as a duplicate of the very
-    //  order it just refused, so each attempt carries its own.
+    //  A rejected order was not placed, so re-placing it cannot double-fill. No client order id
+    //  is injected on either attempt, so the venue's own identifier generation applies to the
+    //  retry exactly as it did to the first try.
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $relents = new OrderRouterStubVenue('stub');
     $relents->failCreateTimes = 1;
@@ -1522,13 +1525,9 @@ function order_router_test_retry_failed_steps($router) {
     ));
     order_router_assert($report['steps'][0]['status'] === 'filled', 'the retry succeeded');
     order_router_assert($report['steps'][0]['attempt'] === 1, 'the report says which attempt won');
-    $ids = array();
-    for ($i = 0; $i < count($relents->paramsSeen); $i++) {
-        $ids[] = $relents->paramsSeen[$i]['clientOrderId'];
-    }
-    order_router_assert(count($ids) === 2, 'two orders went out');
-    order_router_assert($ids[0] !== $ids[1], 'a retry must not reuse the rejected order id');
-    order_router_assert(strpos($ids[1], '-r1') !== false, 'the retry is marked as such, got ' . $ids[1]);
+    order_router_assert(count($relents->paramsSeen) === 2, 'two placements went out');
+    order_router_assert(!array_key_exists('clientOrderId', $relents->paramsSeen[0]), 'no client order id is injected on the first try');
+    order_router_assert(!array_key_exists('clientOrderId', $relents->paramsSeen[1]), 'nor on the retry');
     //  the outcome the policy must NEVER touch
     $unknown = new OrderRouterStubVenue('stub');
     $unknown->timeoutCreate = true;
@@ -1643,14 +1642,14 @@ function test_order_router() {
         'formatNumber never emits exponent notation' => 'ccxt\order_router_test_format_number',
         'an async venue is refused instead of silently mis-read' => 'ccxt\order_router_test_refuses_async_venues',
         'a live plan with no identity is refused, and an idempotencyKey supplies one' => 'ccxt\order_router_test_live_requires_an_identity',
-        'every order carries a deterministic client order id derived from the plan and the step' => 'ccxt\order_router_test_deterministic_client_order_ids',
+        'execute never sets a clientOrderId: the venue keeps its own, and a caller-supplied one travels untouched' => 'ccxt\order_router_test_client_order_id_is_never_injected',
         'the same plan is refused on a second live execution, and only an explicit opt-in overrides it' => 'ccxt\order_router_test_reexecution_is_refused',
         'a dry run never consumes a plan, and a halted live run always does' => 'ccxt\order_router_test_dry_run_does_not_consume_a_plan',
         'the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan' => 'ccxt\order_router_test_ledger_is_bounded',
         'onStep sees every step and can stop the route' => 'ccxt\order_router_test_on_step_sees_every_step',
         'an onStep that throws is recorded, and does not take the run down with it' => 'ccxt\order_router_test_on_step_that_throws_is_recorded',
         'onStep can only narrow: it cannot resume a route the reconciliation already halted' => 'ccxt\order_router_test_on_step_can_only_narrow',
-        'retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome' => 'ccxt\order_router_test_retry_failed_steps',
+        'retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome' => 'ccxt\order_router_test_retry_failed_steps',
     );
     $passed = 0;
     $failures = array();

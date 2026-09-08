@@ -208,9 +208,9 @@ test('fixture: buildUnwindPlan', () => {
 //  ---------------------------------------------------------------------------
 //  2. invariants, asserted directly rather than through the fixture
 //  ---------------------------------------------------------------------------
-//  every route the invariant tests build gets its own requestId: execute() derives both
-//  the re-execution guard key and the per-step client order ids from it, and refuses a live
-//  plan that carries none. A counter, not a random value — the ids stay reproducible.
+//  every route the invariant tests build gets its own requestId: execute() derives the
+//  re-execution guard key from it, and refuses a live plan that carries none. A counter,
+//  not a random value — the ids stay reproducible.
 let testRequestIdCounter = 0;
 function nextTestRequestId() {
     testRequestIdCounter = testRequestIdCounter + 1;
@@ -480,6 +480,10 @@ class StubVenue {
             return { 'id': 'stub-order', 'status': status };
         }
         const body = { 'id': 'stub-order', 'status': status, 'filled': filled, 'average': average, 'cost': filled * average };
+        if (params['clientOrderId'] !== undefined) {
+            //  a real venue echoes the client order id it was given
+            body['clientOrderId'] = params['clientOrderId'];
+        }
         if (this.feeToCharge !== undefined) {
             body['fee'] = this.feeToCharge;
         }
@@ -1290,7 +1294,7 @@ test('a live plan with no requestId is refused: without an identity there is no 
     const keyed = await router.execute(plan, { 'stub': supplied }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'hand-built-1' });
     assert.strictEqual(keyed['planId'], 'hand-built-1');
     assert.strictEqual(keyed['steps'][0]['status'], 'filled');
-    assert.strictEqual(supplied.paramsSeen[0]['clientOrderId'], 'hand-built-1-0');
+    assert.strictEqual('clientOrderId' in supplied.paramsSeen[0], false, 'and no client order id is injected');
     //  and the guard keys off it, exactly as it does off a requestId
     await assert.rejects(async () => await router.execute(plan, { 'stub': new StubVenue('stub') }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'hand-built-1' }), /already executed/);
     //  an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement
@@ -1299,38 +1303,35 @@ test('a live plan with no requestId is refused: without an identity there is no 
     const overridden = new StubVenue('stub');
     const report = await router.execute(routed, { 'stub': overridden }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'override-1' });
     assert.strictEqual(report['planId'], 'override-1');
-    assert.strictEqual(overridden.paramsSeen[0]['clientOrderId'], 'override-1-0');
+    assert.strictEqual('clientOrderId' in overridden.paramsSeen[0], false, 'and no client order id is injected');
     //  a rehearsal needs no identity: it places nothing
     const dry = await router.execute(plan, { 'stub': venue }, { 'strategy': 'sequential', 'usdRates': { 'USDT': 1 } });
     assert.strictEqual(dry['dryRun'], true);
 });
-test('every order carries a deterministic client order id derived from the plan and the step', async () => {
+test('execute never sets a clientOrderId: the venue keeps its own, and a caller-supplied one travels untouched', async () => {
     const route = twoHopRoute();
     route['requestId'] = 'fixed-req';
     const plan = router.buildExecutionPlan(route, {});
+    //  by default nothing is injected: each exchange's createOrder sends whatever
+    //  identifier it generates on its own
+    const bare = new StubVenue('stub');
+    const report = await router.execute(plan, { 'stub': bare }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 } });
+    assert.strictEqual(report['planId'], 'fixed-req');
+    assert.strictEqual(bare.paramsSeen.length, 2);
+    assert.strictEqual('clientOrderId' in bare.paramsSeen[0], false, 'no client order id is forced onto the order');
+    assert.strictEqual('clientOrderId' in bare.paramsSeen[1], false);
+    assert.strictEqual(report['steps'][0]['clientOrderId'], '', 'and the report carries what the venue reported, which is nothing');
+    //  a caller-supplied clientOrderId is forwarded as-is, alongside the caller's other params
+    const second = new OrderRouter({ 'apiKey': 'k' });
     const venue = new StubVenue('stub');
-    const report = await router.execute(plan, { 'stub': venue }, {
+    const supplied = await second.execute(router.buildExecutionPlan(route, {}), { 'stub': venue }, {
         'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
-        //  a caller-supplied clientOrderId must NOT win: one id reused across every step of
-        //  a plan is worse than none at all
         'orderParams': { 'clientOrderId': 'caller-supplied', 'reduceOnly': true },
     });
-    assert.strictEqual(report['planId'], 'fixed-req');
-    assert.strictEqual(venue.paramsSeen.length, 2);
-    assert.strictEqual(venue.paramsSeen[0]['clientOrderId'], 'fixed-req-0');
-    assert.strictEqual(venue.paramsSeen[1]['clientOrderId'], 'fixed-req-1');
+    assert.strictEqual(venue.paramsSeen[0]['clientOrderId'], 'caller-supplied');
+    assert.strictEqual(venue.paramsSeen[1]['clientOrderId'], 'caller-supplied', 'orderParams apply to every step alike');
     assert.strictEqual(venue.paramsSeen[0]['reduceOnly'], true, 'the caller\'s other params still travel');
-    assert.strictEqual(report['steps'][0]['clientOrderId'], 'fixed-req-0', 'and the report says what was sent');
-    assert.strictEqual(report['steps'][1]['clientOrderId'], 'fixed-req-1');
-    //  DETERMINISTIC: another instance, another day, the same plan — the same ids, which is
-    //  the whole point. A random id would be rejected by nothing.
-    const second = new OrderRouter({ 'apiKey': 'k' });
-    const other = new StubVenue('stub');
-    await second.execute(router.buildExecutionPlan(route, {}), { 'stub': other }, {
-        'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
-    });
-    assert.strictEqual(other.paramsSeen[0]['clientOrderId'], 'fixed-req-0');
-    assert.strictEqual(other.paramsSeen[1]['clientOrderId'], 'fixed-req-1');
+    assert.strictEqual(supplied['steps'][0]['clientOrderId'], 'caller-supplied', 'and the report says what the venue recorded');
 });
 test('the same plan is refused on a second live execution, and only an explicit opt-in overrides it', async () => {
     const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
@@ -1468,10 +1469,10 @@ test('onStep can only narrow: it cannot resume a route the reconciliation alread
     assert.strictEqual(report['ordersPlaced'], 1, 'the hook did not wave the route onward');
     assert.strictEqual(report['steps'][1]['status'], 'skipped');
 });
-test('retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome', async () => {
-    //  A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
-    //  original client order id would have the venue reject the retry as a duplicate of the very
-    //  order it just refused, so each attempt carries its own.
+test('retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome', async () => {
+    //  A rejected order was not placed, so re-placing it cannot double-fill. No client order id
+    //  is injected on either attempt, so the venue's own identifier generation applies to the
+    //  retry exactly as it did to the first try.
     const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
     const relents = new StubVenue('stub');
     relents.failCreateTimes = 1;
@@ -1481,10 +1482,9 @@ test('retryFailedSteps re-places a rejected step under a NEW client order id, an
     });
     assert.strictEqual(report['steps'][0]['status'], 'filled', 'the retry succeeded');
     assert.strictEqual(report['steps'][0]['attempt'], 1, 'the report says which attempt won');
-    const ids = relents.paramsSeen.map((pp) => pp['clientOrderId']);
-    assert.strictEqual(ids.length, 2);
-    assert.notStrictEqual(ids[0], ids[1], 'a retry must not reuse the rejected order id');
-    assert.ok(ids[1].indexOf('-r1') !== -1, 'the retry is marked as such, got ' + ids[1]);
+    assert.strictEqual(relents.paramsSeen.length, 2, 'two placements went out');
+    assert.strictEqual('clientOrderId' in relents.paramsSeen[0], false, 'no client order id is injected on the first try');
+    assert.strictEqual('clientOrderId' in relents.paramsSeen[1], false, 'nor on the retry');
     //  the outcome the policy must NEVER touch
     const unknown = new StubVenue('stub');
     unknown.timeoutCreate = true;

@@ -98,8 +98,9 @@ class OrderRouter {
     //  is therefore "recent duplicates are refused", not "duplicates are impossible". A
     //  process that needs the strong promise across restarts or beyond this window needs
     //  the durable ledger the Known gaps entry calls for; until then, callers whose plans
-    //  must never re-execute should key idempotency at the venue (the deterministic
-    //  clientOrderId every step already carries) rather than rely on this instance's memory.
+    //  must never re-execute should key idempotency at the venue themselves (a clientOrderId
+    //  passed in options orderParams, on venues that honour one) rather than rely on this
+    //  instance's memory.
     const MAX_EXECUTED_PLAN_IDS = 1024;
 
     //  relative tolerance for float comparisons; also the tolerance the six
@@ -1484,7 +1485,7 @@ class OrderRouter {
     }
 
     /**
-     * the stable identity of an execution, used both for the re-execution guard and for the per-step client order ids
+     * the stable identity of an execution, used for the re-execution guard
      * @param array $plan the plan
      * @param array $options the execute options
      * @return string the identity, or '' when neither source carries one
@@ -1502,29 +1503,10 @@ class OrderRouter {
         //  otherwise requestId, the one field a routed plan carries that is meant to be unique;
         //  it survives JSON, storage and a hand-rebuilt tail of a halted route. Nothing is
         //  invented when both are absent — a generated identity would be either random, which
-        //  defeats both mechanisms that depend on it, or a fingerprint of the plan's contents,
+        //  defeats the guard that depends on it, or a fingerprint of the plan's contents,
         //  which makes two plans that happen to agree indistinguishable. Absence is reported,
         //  and execute refuses.
         return $this->stringAt($plan, 'requestId', '');
-    }
-
-    /**
-     * derives the deterministic client order id for one step, so that a second run of the same plan re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
-     * @param string $planId the plan identity from planIdentity
-     * @param int $stepIndex the step's index within the plan
-     * @param int $attempt the retry attempt, 0 for the first
-     * @return string the client order id
-     */
-    public function clientOrderIdFor($planId, $stepIndex, $attempt = 0) {
-        //  Attempt 0 is unsuffixed, so the id a plan sends on its first run is unchanged.
-        //  A RETRY, by contrast, must carry a NEW id: retryFailedSteps only ever retries a
-        //  step the venue definitively rejected, which makes the retry a genuinely new order —
-        //  and re-sending the original id would have the venue reject it as a duplicate of the
-        //  order it just refused, turning the retry into a guaranteed no-op.
-        if ($attempt <= 0) {
-            return $planId . '-' . $this->formatNumber($stepIndex);
-        }
-        return $planId . '-' . $this->formatNumber($stepIndex) . '-r' . $this->formatNumber($attempt);
     }
 
     /**
@@ -1582,7 +1564,7 @@ class OrderRouter {
      *     int    orderTimeoutMs         how long limit_protected leaves an order resting, default 20000
      *     int    pollIntervalMs         how often limit_protected checks a resting order, default 1000
      *     array  orderParams            extra params merged into every createOrder call
-     *     string idempotencyKey         the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard and seeds the per-step client order ids, and OVERRIDES the plan's requestId when both are given
+     *     string idempotencyKey         the identity of this execution, required when the plan carries no requestId; it keys the re-execution guard, and OVERRIDES the plan's requestId when both are given
      *     bool   allowReexecution       must be exactly true to run a plan this instance has already executed live; the DEFAULT is refusal
      * @return array an execution report with per-step results, openOrders, errors and the halt verdict
      */
@@ -1671,9 +1653,8 @@ class OrderRouter {
         //  nothing does not burn the plan. dry_run never reaches this line and never consumes a
         //  plan, because a rehearsal places nothing.
         if ($planId === '') {
-            //  no identity means no idempotency: neither the ledger below nor the per-step
-            //  client order ids can be derived, so a re-run of this plan would be
-            //  indistinguishable from a first run all the way down to the venue.
+            //  no identity means no idempotency: the ledger below cannot key on it, so a
+            //  re-run of this plan would be indistinguishable from a first run.
             throw new BadRequest('OrderRouter: refusing to execute live without an identity, the plan carries no requestId — pass options.idempotencyKey');
         }
         if ($this->fieldAt($options, 'allowReexecution') !== true) {
@@ -2194,16 +2175,13 @@ class OrderRouter {
             for ($i = 0; $i < count($extraKeys); $i++) {
                 $orderParams[$extraKeys[$i]] = $extra[$extraKeys[$i]];
             }
-            //  IDEMPOTENCY, half two: a client order id derived from the plan's own identity and
-            //  this step's index. Deterministic, so a second run of the same plan re-sends an id
-            //  the venue has already seen and is rejected as a duplicate rather than filled. It
-            //  is set AFTER the caller's orderParams are copied and deliberately overrides a
-            //  clientOrderId found there: one id reused across every step of a plan is worse
-            //  than none at all.
+            //  No clientOrderId is set here. Whatever the caller put in options orderParams
+            //  travels as-is, and each exchange's createOrder keeps sending whatever identifier
+            //  it generates on its own; the id the venue reports back is recorded on the result
+            //  once the order returns. (An id derived from the plan identity used to be forced
+            //  onto every step, but venues disagree on its length and charset, so it was
+            //  rejected exactly where it mattered.)
             $attempt = $this->numberAt($step, 'attempt', 0);
-            $clientOrderId = $this->clientOrderIdFor($this->stringAt($report, 'planId', ''), $stepIndex, $attempt);
-            $orderParams['clientOrderId'] = $clientOrderId;
-            $result['clientOrderId'] = $clientOrderId;
             $result['attempt'] = $attempt;
             $order = array();
             if ($strategy === 'limit_protected') {
@@ -2212,6 +2190,7 @@ class OrderRouter {
                 $order = $this->placeImmediateOrder($venue, $symbol, $side, $amount, $price, $orderParams, $options, $result);
             }
             $result['orderId'] = $this->stringAt($order, 'id', '');
+            $result['clientOrderId'] = $this->stringAt($order, 'clientOrderId', '');
             // "the venue said zero" and "the venue said nothing" are different facts that used to
             // produce the same number: a venue omitting filled yielded 0, reconciliation read that
             // as nothing_filled and halted while a real position existed. Test presence.

@@ -8705,11 +8705,9 @@ hand-written amount most often goes wrong.
 
 #### Identity is required for a live run
 
-A live `execute` needs an identity for the plan, and refuses without one. It is what makes a
-re-run safe: the identity plus the step index derives each order's `clientOrderId`, so a plan sent
-twice re-sends ids the venue has already seen and is rejected as a duplicate instead of filled
-twice, and the same identity is remembered in-process so a second `execute` of the same plan is
-refused before any venue is contacted.
+A live `execute` needs an identity for the plan, and refuses without one. It keys the in-process
+re-execution guard: the identity is remembered on the `OrderRouter` instance, so a second `execute`
+of the same plan is refused before any venue is contacted.
 
 Supply it as `plan['requestId']` (routed plans carry one already) or as `options.idempotencyKey`:
 
@@ -8718,20 +8716,21 @@ await router.execute (plan, venues, { 'live': true, 'idempotencyKey': 'my-strate
 ```
 
 Make it stable and unique to the *intent* — a strategy name plus a signal timestamp is a good one,
-`Date.now()` is not: a fresh identity on every call turns both protections off. There is
-deliberately no generated default, because the only two options are a random id, which silently
-disables the mechanism, or a fingerprint of the plan's contents, which makes two genuinely separate
-runs of an identical plan indistinguishable.
+`Date.now()` is not: a fresh identity on every call turns the guard off. There is deliberately no
+generated default, because the only two options are a random id, which silently disables the
+mechanism, or a fingerprint of the plan's contents, which makes two genuinely separate runs of an
+identical plan indistinguishable.
 
 To re-run a plan on purpose — say a first attempt that placed nothing — pass
-`options.allowReexecution: true`. That clears the in-process guard only; the `clientOrderId`s stay
-deterministic, so a venue that honours them still rejects orders it has actually seen.
+`options.allowReexecution: true`.
 
-Note that `clientOrderId` support is not universal, and the two halves fail differently: the
-in-process guard always works but does not survive a restart, while the venue-side rejection
-survives anything but only on venues that honour client order ids. Neither is a substitute for the
-other, and `execute` sets `clientOrderId` on every step, overriding one passed in
-`options.orderParams` — one id reused across every step of a plan is worse than none.
+`execute` never sets a `clientOrderId` of its own. Each exchange's `createOrder` keeps sending
+whatever identifier it generates internally, and anything you put in `options.orderParams` — a
+`clientOrderId` included — travels to the venue untouched. `orderParams` apply to every step of the
+plan alike, so a single `clientOrderId` there reaches every order, and a venue that requires client
+order ids to be unique will reject the second one. The id the venue reports back is recorded on each
+step of the report as `clientOrderId`. The in-process guard does not survive a restart; if your
+plans must never re-execute across restarts, key idempotency at the venue yourself.
 
 ## Reading the report
 

@@ -107,7 +107,7 @@ public class OrderRouterTest
         RunAsync("a failure after createOrder still reports the order id and an open order", OrderIdSurvivesAFailureAfterCreate);
         RunAsync("an unknown strategy is refused even in dry run", UnknownStrategyRefused);
         RunAsync("a live plan with no identity is refused, and an idempotencyKey supplies one", LiveRequiresAnIdentity);
-        RunAsync("every order carries a deterministic client order id derived from the plan and the step", DeterministicClientOrderIds);
+        RunAsync("execute never sets a clientOrderId: the venue keeps its own, and a caller-supplied one travels untouched", ClientOrderIdIsNeverInjected);
         RunAsync("the same plan is refused on a second live execution, and only an explicit opt-in overrides it", ReexecutionIsRefused);
         RunAsync("a dry run never consumes a plan, and a halted live run always does", DryRunDoesNotConsumeAPlan);
         RunAsync("the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan", LedgerIsBounded);
@@ -831,10 +831,10 @@ public class OrderRouterTest
     //  2. invariants
     //  -----------------------------------------------------------------------
 
-    //  every route the invariant tests build gets its own requestId: Execute derives both
-    //  the re-execution guard key and the per-step client order ids from it, and refuses a
-    //  live plan that carries neither a requestId nor an idempotencyKey. A counter, not a
-    //  random value — the ids stay reproducible.
+    //  every route the invariant tests build gets its own requestId: Execute derives the
+    //  re-execution guard key from it, and refuses a live plan that carries neither a
+    //  requestId nor an idempotencyKey. A counter, not a random value — the ids stay
+    //  reproducible.
     private static int testRequestIdCounter = 0;
 
     private static string NextTestRequestId()
@@ -1372,7 +1372,8 @@ public class OrderRouterTest
         {
             var size = amount;
             this.calls.Add("createOrder:" + type + ":" + side + ":" + size.ToString(CultureInfo.InvariantCulture));
-            this.paramsSeen.Add((parameters as dict) ?? new dict());
+            var seen = (parameters as dict) ?? new dict();
+            this.paramsSeen.Add(seen);
             await Task.CompletedTask;
             if (this.timeoutCreate)
             {
@@ -1391,6 +1392,11 @@ public class OrderRouterTest
             var average = (price == null) ? 100.0 : (double)price;
             var status = (this.createdStatus == "") ? "closed" : this.createdStatus;
             var payload = new dict() { { "id", "stub-order" }, { "status", status }, { "filled", filled }, { "average", average }, { "cost", filled * average } };
+            if (seen.ContainsKey("clientOrderId"))
+            {
+                //  a real venue echoes the client order id it was given
+                payload["clientOrderId"] = seen["clientOrderId"];
+            }
             if (this.feeOverride != null)
             {
                 payload["fee"] = this.feeOverride;
@@ -1908,7 +1914,7 @@ public class OrderRouterTest
         var keyed = await router.Execute(plan, Venues(supplied), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "idempotencyKey", "hand-built-1" } });
         EqualString((string)keyed["planId"], "hand-built-1", "the supplied key is the identity");
         EqualString((string)ToDict(ToList(keyed["steps"])[0])["status"], "filled", "and the plan executes");
-        EqualString((string)supplied.paramsSeen[0]["clientOrderId"], "hand-built-1-0", "the client order id is seeded from it");
+        EqualBool(supplied.paramsSeen[0].ContainsKey("clientOrderId"), false, "and no client order id is injected");
         //  and the guard keys off it, exactly as it does off a requestId
         var again = new StubVenue("stub");
         await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(again), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "idempotencyKey", "hand-built-1" } }), "the same key is refused a second time");
@@ -1919,39 +1925,38 @@ public class OrderRouterTest
         var overridden = new StubVenue("stub");
         var report = await router.Execute(routed, Venues(overridden), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "idempotencyKey", "override-1" } });
         EqualString((string)report["planId"], "override-1", "the option overrides the requestId");
-        EqualString((string)overridden.paramsSeen[0]["clientOrderId"], "override-1-0", "and seeds the client order id");
+        EqualBool(overridden.paramsSeen[0].ContainsKey("clientOrderId"), false, "and no client order id is injected");
     }
 
-    private static async Task DeterministicClientOrderIds()
+    private static async Task ClientOrderIdIsNeverInjected()
     {
         var router = NewRouter();
         var route = TwoHopRoute();
         route["requestId"] = "fixed-req";
         var plan = router.BuildExecutionPlan(route, new dict());
+        //  by default nothing is injected: each exchange's CreateOrder sends whatever identifier
+        //  it generates on its own
+        var bare = new StubVenue("stub");
+        var report = await router.Execute(plan, Venues(bare), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        EqualString((string)report["planId"], "fixed-req", "the report names the plan identity");
+        EqualNumber(bare.paramsSeen.Count, 2, "two orders were placed");
+        EqualBool(bare.paramsSeen[0].ContainsKey("clientOrderId"), false, "no client order id is forced onto the order");
+        EqualBool(bare.paramsSeen[1].ContainsKey("clientOrderId"), false, "for any step");
+        EqualString((string)ToDict(ToList(report["steps"])[0])["clientOrderId"], "", "and the report carries what the venue reported, which is nothing");
+        //  a caller-supplied clientOrderId is forwarded as-is, alongside the caller's other params
+        var second = NewRouter();
         var venue = new StubVenue("stub");
-        //  a caller-supplied clientOrderId must NOT win: one id reused across every step of a
-        //  plan is worse than none at all
-        var report = await router.Execute(plan, Venues(venue), new dict()
+        var supplied = await second.Execute(router.BuildExecutionPlan(route, new dict()), Venues(venue), new dict()
         {
             { "strategy", "sequential" },
             { "live", true },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "orderParams", new dict() { { "clientOrderId", "caller-supplied" }, { "reduceOnly", true } } },
         });
-        EqualString((string)report["planId"], "fixed-req", "the report names the plan identity");
-        EqualNumber(venue.paramsSeen.Count, 2, "two orders were placed");
-        EqualString((string)venue.paramsSeen[0]["clientOrderId"], "fixed-req-0", "step 0 carries its own id");
-        EqualString((string)venue.paramsSeen[1]["clientOrderId"], "fixed-req-1", "step 1 carries its own id");
+        EqualString((string)venue.paramsSeen[0]["clientOrderId"], "caller-supplied", "the caller's id travels untouched");
+        EqualString((string)venue.paramsSeen[1]["clientOrderId"], "caller-supplied", "orderParams apply to every step alike");
         EqualBool((bool)venue.paramsSeen[0]["reduceOnly"], true, "the caller's other params still travel");
-        EqualString((string)ToDict(ToList(report["steps"])[0])["clientOrderId"], "fixed-req-0", "and the report says what was sent");
-        EqualString((string)ToDict(ToList(report["steps"])[1])["clientOrderId"], "fixed-req-1", "for every step");
-        //  DETERMINISTIC: another instance, another day, the same plan — the same ids, which is
-        //  the whole point. A random id would be rejected by nothing.
-        var second = NewRouter();
-        var other = new StubVenue("stub");
-        await second.Execute(router.BuildExecutionPlan(route, new dict()), Venues(other), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
-        EqualString((string)other.paramsSeen[0]["clientOrderId"], "fixed-req-0", "the same id, from a different instance");
-        EqualString((string)other.paramsSeen[1]["clientOrderId"], "fixed-req-1", "for every step");
+        EqualString((string)ToDict(ToList(supplied["steps"])[0])["clientOrderId"], "caller-supplied", "and the report says what the venue recorded");
     }
 
     private static async Task ReexecutionIsRefused()
