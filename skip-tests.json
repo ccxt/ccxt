@@ -2204,7 +2204,8 @@
                 "limits": "tmp"
             },
             "fetchTrades": {
-                "side": "side is not buy/sell"
+                "side": "side is not buy/sell",
+                "sideSequence": "todo"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high | https://app.travis-ci.com/github/ccxt/ccxt/builds/263884643#L2462"
@@ -2440,6 +2441,9 @@
             "watchTickers": {
                 "baseVolume": "PURSE/USDT has weird ticker",
                 "quoteVolume": "PURSE/USDT has weird ticker"
+            },
+            "fetchTrades": {
+                "sideSequence": "todo"
             }
         }
     },
