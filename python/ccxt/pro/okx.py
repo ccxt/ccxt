@@ -705,7 +705,7 @@ class okx(ccxt.async_support.okx):
             messageHashes.append(messageHash)
         market = self.get_market_from_symbols(symbols)
         type = None
-        type, params = self.handle_market_type_and_params('watchliquidationsForSymbols', market, params)
+        type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', market, params)
         channel = 'liquidation-orders'
         if type == 'spot':
             type = 'SWAP'
