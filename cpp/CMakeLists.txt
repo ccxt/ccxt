@@ -63,6 +63,12 @@ target_compile_options (ccxt-tests PRIVATE -g0)
 add_executable (ccxt-smoke-binance tests/smoke_binance.cpp)
 target_link_libraries (ccxt-smoke-binance PRIVATE ccxt)
 
+# live-test CLI: ccxt-cli <exchangeId> <method> [args...] -- runs real HTTP calls
+add_executable (ccxt-cli cli/main.cpp)
+target_link_libraries (ccxt-cli PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
+target_compile_options (ccxt-cli PRIVATE -g0)
+
+
 enable_testing ()
 # ccxt-tests reads fixtures and keys.json relative to the repo root
 set (CCXT_TEST_WORKDIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)

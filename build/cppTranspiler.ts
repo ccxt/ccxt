@@ -252,9 +252,10 @@ function rewriteSuperCalls (content: string, parentClass: string): string {
 // type, so a BadRequest leaves the catch block as a bare std::exception and every
 // `catch (const BadRequest&)` further up stops matching. It also destroys the message,
 // which is how 227 static request fixtures came to report only "std::exception".
-// `throw;` rethrows the original object untouched.
+// `throw;` rethrows the original object untouched. The catch variable is almost always
+// e, but error/exc appear too (whitebit fetchOrder) — cover all of them.
 function rewriteRethrow (content: string): string {
-    return content.replace (/\bthrow e;/g, 'throw;');
+    return content.replace (/\bthrow (e|error|exc);/g, 'throw;');
 }
 
 // `x instanceof T` emits dynamic_cast on a std::any, which cannot compile.
