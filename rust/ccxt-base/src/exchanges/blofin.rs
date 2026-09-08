@@ -192,7 +192,7 @@ impl BlofinCore {
         m.insert("name".to_string(), Value::Str("BloFin".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
-        m.insert("rateLimit".to_string(), Value::Int(100));
+        m.insert("rateLimit".to_string(), Value::Int(200));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -492,52 +492,52 @@ impl BlofinCore {
 }));
         m.insert("trade/orders-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-detail".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-tpsl-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-tpsl-detail".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-algo-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-tpsl-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-algo-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/fills-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order/price-range".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("affiliate/basic".to_string(), Value::Map({
@@ -612,27 +612,27 @@ impl BlofinCore {
 }));
         m.insert("copytrading/trade/orders-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/pending-tpsl-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/position-history-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/orders-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/pending-tpsl-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("user/query-apikey".to_string(), Value::Map({
@@ -661,112 +661,112 @@ impl BlofinCore {
 }));
         m.insert("account/set-margin-mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("account/set-position-mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("account/set-leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/batch-orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-tpsl".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-algo".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-batch-orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-tpsl".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-algo".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/close-position".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/account/set-position-mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/account/set-leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/place-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/cancel-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/place-tpsl-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/cancel-tpsl-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/place-tpsl-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/cancel-tpsl-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/close-position-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/close-position-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
     m

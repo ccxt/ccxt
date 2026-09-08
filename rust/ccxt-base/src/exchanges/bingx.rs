@@ -6433,8 +6433,10 @@ impl BingxCore {
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
- * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+ * @param {string} [params.fromAccount] transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided
+ * @param {string} [params.toAccount] transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided
+ * @param {string} [params.transferId] the transfer ID, either transferId or both fromAccount and toAccount are required
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
@@ -6463,10 +6465,11 @@ impl BingxCore {
 })]);
         let mut fromAccount: Value = self.safe_string_k(params.clone(), "fromAccount", &[]);
         let mut toAccount: Value = self.safe_string_k(params.clone(), "toAccount", &[]);
+        let mut transferId: Value = self.safe_string_k(params.clone(), "transferId", &[]);
         let mut fromId: Value = self.safe_string(accountsByType.clone(), fromAccount.clone(), &[fromAccount.clone()]);
         let mut toId: Value = self.safe_string(accountsByType.clone(), toAccount.clone(), &[toAccount.clone()]);
-        if is_equal(&fromId, &Value::Null) || is_equal(&toId, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fromAccount & toAccount parameters are required".to_string()))));
+        if is_true(&(is_equal(&transferId, &Value::Null))) && is_true(&(is_true(&(is_equal(&fromId, &Value::Null))) || is_true(&(is_equal(&toId, &Value::Null))))) {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]".to_string()))));
         }
         if !is_equal(&fromAccount, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("fromAccount".to_string()), fromId.clone());
@@ -6485,7 +6488,7 @@ impl BingxCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), crate::runtime::Math::min(&limit, &maxLimit));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);

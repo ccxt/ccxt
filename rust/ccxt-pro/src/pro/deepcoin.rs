@@ -357,6 +357,7 @@ impl DeepcoinCore {
         m.insert("streaming".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ping".to_string(), Value::Str("ping".to_string()).clone());
+        m.insert("keepAlive".to_string(), Value::Int(15000));
     m
 }));
     m
