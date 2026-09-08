@@ -45,6 +45,7 @@ const EXCHANGES_FOLDER      = './cpp/ccxt/exchanges/';
 const BASE_TESTS_FOLDER     = './cpp/tests/Generated/Base/';
 const EXCHANGE_TESTS_FOLDER = './cpp/tests/Generated/';
 const TS_BASE_TESTS_FOLDER  = './ts/src/test/base/';
+const TS_PRO_BASE_TESTS_FOLDER = './ts/src/pro/test/base/';
 
 const DELIMITER = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
 
@@ -1233,7 +1234,9 @@ class CppTranspilerDriver {
         for (const name of names) {
             assertNoDroppedConstructs (TS_BASE_TESTS_FOLDER + name + '.ts');
             const result: any = this.transpiler.transpileCppByPath (TS_BASE_TESTS_FOLDER + name + '.ts');
-            let content = applyCommonFixes (result.content as string);
+            // ws fixes first: test.safeMethods constructs the ws caches, and the
+            // member-call rewrite must win over applyCommonFixes' storeArray rewrite
+            let content = applyCommonFixes (this.applyWsValueFixes (result.content as string));
             content = this.applyTestFixes (content);
             content = this.stagedTestFunctions (content, name);
             content = this.forwardDeclarations (content);
@@ -1260,6 +1263,75 @@ class CppTranspilerDriver {
             // the shared assertion helpers are hand-written in BaseTest.Bridge.h
             .replace (/\btestSharedMethods\./g, '')
             .replace (/\bassert\(/g, 'assertTrue(');
+    }
+
+    // ws value-model fixes (cache + order book classes from cpp/ccxt/base/ws/). Must
+    // run BEFORE applyCommonFixes: its `.storeArray(` rewrite would otherwise turn the
+    // free-function test calls into `this->storeArray (...)`, which has no `this`.
+    // Scoped to the base/ws test pipeline — the names cannot appear in exchange code.
+    applyWsValueFixes (content: string): string {
+        const BOOK_FACTORIES: Record<string, string> = {
+            'OrderBook': 'ccxt::ws::wsOrderBook',
+            'IndexedOrderBook': 'ccxt::ws::indexedOrderBook',
+            'CountedOrderBook': 'ccxt::ws::countedOrderBook',
+        };
+        return outsideStringLiterals (content, (masked) => masked
+            // the JS book class ladder collapses onto one C++ class + a mode factory
+            .replace (/\b(OrderBook|IndexedOrderBook|CountedOrderBook) (\w+) = \1\(/g,
+                (_m, cls, name) => 'ccxt::ws::WsOrderBook ' + name + ' = ' + BOOK_FACTORIES[cls] + '(')
+            // reassignment: `book = IndexedOrderBook (input)` (no declaration)
+            .replace (/= (OrderBook|IndexedOrderBook|CountedOrderBook)\(/g,
+                (_m, cls) => '= ' + BOOK_FACTORIES[cls] + '(')
+            // caches keep their names, namespaced
+            .replace (/\b(ArrayCache(?:BySymbolById|ByTimestamp|ByOutcomeById|BySymbolBySide)?) (\w+) = \1\(/g,
+                'ccxt::ws::$1 $2 = ccxt::ws::$1(')
+            .replace (/= (ArrayCache(?:BySymbolById|ByTimestamp|ByOutcomeById|BySymbolBySide)?)\(/g,
+                '= ccxt::ws::$1(')
+            // bare constructor in an expression position (dict/list literal, call arg)
+            .replace (/([,{(] ?)(ArrayCache(?:BySymbolById|ByTimestamp|ByOutcomeById|BySymbolBySide)?)\(/g,
+                '$1ccxt::ws::$2(')
+            // member calls on std::any receivers -> free helpers over the shared store
+            .replace (/\b([A-Za-z_]\w*)\.storeArray\(/g, '::wsStoreArray($1, ')
+            .replace (/\b([A-Za-z_]\w*)\.store\(/g, '::wsStore($1, ')
+            .replace (/\b([A-Za-z_]\w*)\.limit\(\)/g, '::wsLimit($1)')
+            .replace (/\b([A-Za-z_]\w*)\.append\(/g, '::wsAppend($1, ')
+            .replace (/\b([A-Za-z_]\w*)\.getLimit\(/g, '::wsGetLimit($1, ')
+            .replace (/\b([A-Za-z_]\w*)\.clear\(\)/g, '::wsClear($1)')
+            .replace (/\b([A-Za-z_]\w*)\.hashmap\b/g, '::getValue($1, std::string("hashmap"))'));
+    }
+
+    // -----------------------------------------------------------------------
+    // ws base tests: ts/src/pro/test/base/{test.cache,test.orderBook}.ts ->
+    // cpp/tests/Generated/Base/Ws/*.h — same pipeline as transpileBaseTests,
+    // mirroring csharpTranspiler.transpileWs{Cache,Orderbook}TestsToCSharp
+    // -----------------------------------------------------------------------
+
+    async transpileWsBaseTests (force = true) {
+        const names = [ 'test.cache', 'test.orderBook' ];
+        const outputs = names.map ((name) => BASE_TESTS_FOLDER + 'Ws/' + name + '.h');
+        if (skipUpToDateStage ('cpp', 'ws base tests', force, testStageInputs (), outputs)) {
+            return;
+        }
+        for (const name of names) {
+            const source = TS_PRO_BASE_TESTS_FOLDER + name + '.ts';
+            assertNoDroppedConstructs (source);
+            const result: any = this.transpiler.transpileCppByPath (source);
+            let content = this.applyWsValueFixes (result.content as string);
+            content = applyCommonFixes (content);
+            content = this.applyTestFixes (content);
+            content = this.forwardDeclarations (content);
+            const file = [
+                '#pragma once',
+                '',
+                ...createGeneratedHeader (),
+                '#include "../../../BaseTest.Bridge.h"',
+                '',
+                content,
+                ''
+            ].join ('\n');
+            overwriteFileAndFolder (BASE_TESTS_FOLDER + 'Ws/' + name + '.h', file);
+        }
+        log.green ('[cpp] Transpiled', String (names.length), 'ws base tests to', (BASE_TESTS_FOLDER + 'Ws/' as any).yellow);
     }
 
     // C++ resolves free functions in declaration order, but the transpiler emits them in
@@ -1294,9 +1366,7 @@ class CppTranspilerDriver {
     // visible. Never add an entry to hide a genuine failure.
     stagedTestFunctions (content: string, file: string): string {
         const staged: { [name: string]: string } = {
-            // needs ArrayCache/ArrayCacheByTimestamp/ArrayCacheBySymbolById/BySide from
-            // ts/src/base/ws/Cache.ts; the pro layer is a non-goal this iteration
-            'test.safeMethods': 'testCacheSafeCalls',
+            // (empty since the ws layer landed; keep the mechanism for future gaps)
         };
         const name = staged[file];
         if (!name) {
@@ -1770,6 +1840,7 @@ async function runMain () {
     }
     if (baseTestsOnly) {
         await driver.transpileBaseTests (force);
+        await driver.transpileWsBaseTests (force);
         return;
     }
     if (exchangeTestsOnly) {
@@ -1793,6 +1864,7 @@ async function runMain () {
         driver.transpileBaseMethods (TS_BASE_FILE, force);
         driver.transpileTypedApi (TS_BASE_FILE, force);
         await driver.transpileBaseTests (force);
+        await driver.transpileWsBaseTests (force);
         driver.transpileMainTest ();
         driver.transpileExchangeTestFiles ();
         driver.transpileTestRegistry ();
@@ -1804,6 +1876,7 @@ async function runMain () {
     driver.transpileBaseMethods (TS_BASE_FILE, force);
     driver.transpileTypedApi (TS_BASE_FILE, force);
     await driver.transpileBaseTests (force);
+    await driver.transpileWsBaseTests (force);
     log.bright.green ('[cpp] Transpiled successfully.');
 }
 

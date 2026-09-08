@@ -1,5 +1,7 @@
 #include "helpers.h"
 #include "Precise.h"
+#include "ws/Cache.h"
+#include "ws/OrderBook.h"
 
 #include <algorithm>
 #include <chrono>
@@ -114,6 +116,56 @@ std::any numberResult (double d) {
 std::any getValue (const std::any& target, const std::any& key) {
     if (!target.has_value ()) {
         return std::any {};
+    }
+    // ws layer values: books expose bids/asks/timestamp/... ; caches and sides
+    // behave like arrays (numeric keys)
+    if (target.type () == typeid (ccxt::ws::WsOrderBook)) {
+        const auto& book = std::any_cast<const ccxt::ws::WsOrderBook&> (target);
+        const std::string name = anyToString (key);
+        if (name == "bids")      return std::any (book.impl->bids);
+        if (name == "asks")      return std::any (book.impl->asks);
+        if (name == "timestamp") return book.timestamp ();
+        if (name == "datetime")  return book.datetime ();
+        if (name == "nonce")     return book.nonce ();
+        if (name == "symbol")    return book.symbol ();
+        if (name == "cache")     return book.cache ();
+        return std::any {};
+    }
+    if (target.type () == typeid (ccxt::ws::OrderBookSide)) {
+        double index = 0;
+        if (!numericValue (key, index)) {
+            return std::any {};
+        }
+        return std::any_cast<const ccxt::ws::OrderBookSide&> (target).get (static_cast<long> (index));
+    }
+    if (target.type () == typeid (ccxt::ws::ArrayCache)
+        || target.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)
+        || target.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)
+        || target.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)
+        || target.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
+        // any_cast needs the exact stored type; every cache shares the Impl layout,
+        // so cast to whichever subclass is stored and use the base interface
+        const ccxt::ws::ArrayCache* cache = nullptr;
+        if (target.type () == typeid (ccxt::ws::ArrayCache)) {
+            cache = &std::any_cast<const ccxt::ws::ArrayCache&> (target);
+        } else if (target.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)) {
+            cache = &std::any_cast<const ccxt::ws::ArrayCacheByTimestamp&> (target);
+        } else if (target.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)) {
+            cache = &std::any_cast<const ccxt::ws::ArrayCacheBySymbolById&> (target);
+        } else if (target.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)) {
+            cache = &std::any_cast<const ccxt::ws::ArrayCacheByOutcomeById&> (target);
+        } else {
+            cache = &std::any_cast<const ccxt::ws::ArrayCacheBySymbolBySide&> (target);
+        }
+        const std::string name = anyToString (key);
+        if (name == "hashmap") {
+            return std::any (cache->hashmap ());
+        }
+        double index = 0;
+        if (!numericValue (key, index)) {
+            return std::any {};
+        }
+        return cache->get (static_cast<long> (index));
     }
     if (ccxt::isDict (target)) {
         return std::any_cast<dict> (target).get (anyToString (key));
@@ -361,6 +413,25 @@ std::any getArrayLength (const std::any& v) {
     if (ccxt::isList (v)) return std::any (static_cast<int> (std::any_cast<list> (v).size ()));
     if (ccxt::isDict (v)) return std::any (static_cast<int> (std::any_cast<dict> (v).size ()));
     if (ccxt::isStr (v))  return std::any (static_cast<int> (std::any_cast<std::string> (v).size ()));
+    // ws layer: caches and book sides behave like arrays
+    if (v.type () == typeid (ccxt::ws::OrderBookSide)) {
+        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::OrderBookSide&> (v).size ()));
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCache)) {
+        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCache&> (v).size ()));
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)) {
+        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheByTimestamp&> (v).size ()));
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)) {
+        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheBySymbolById&> (v).size ()));
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)) {
+        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheByOutcomeById&> (v).size ()));
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
+        return std::any (static_cast<int> (std::any_cast<const ccxt::ws::ArrayCacheBySymbolBySide&> (v).size ()));
+    }
     return std::any (0);
 }
 
@@ -844,4 +915,108 @@ std::any parseToInt (const std::any& v) { return parseInt (v); }
 
 std::any describeOf (const std::any&) { return std::any (ccxt::dict {}); }
 
-std::any resetOrderBook (const std::any& book, const std::any&) { return book; }
+std::any resetOrderBook (const std::any& book, const std::any& snapshot) {
+    // ws books: reset in place (the handle shares the store, mutation propagates);
+    // anything else passes through untouched (pre-ws dict-based paths)
+    if (book.type () == typeid (ccxt::ws::WsOrderBook)) {
+        ccxt::ws::WsOrderBook handle = std::any_cast<ccxt::ws::WsOrderBook> (book);
+        handle.reset (snapshot.has_value () ? snapshot : std::any {});
+    }
+    return book;
+}
+
+namespace {
+
+// Dispatch on the exact stored cache type. Copying the handle is fine (shared Impl),
+// but it must be copied into ITS OWN type — assigning a subclass into an ArrayCache
+// variable slices the vtable and every append would run the base version.
+template <class F>
+std::any dispatchCache (const std::any& v, F&& f) {
+    if (v.type () == typeid (ccxt::ws::ArrayCache)) {
+        ccxt::ws::ArrayCache handle = std::any_cast<ccxt::ws::ArrayCache> (v);
+        return f (handle);
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheByTimestamp)) {
+        ccxt::ws::ArrayCacheByTimestamp handle = std::any_cast<ccxt::ws::ArrayCacheByTimestamp> (v);
+        return f (handle);
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolById)) {
+        ccxt::ws::ArrayCacheBySymbolById handle = std::any_cast<ccxt::ws::ArrayCacheBySymbolById> (v);
+        return f (handle);
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById)) {
+        ccxt::ws::ArrayCacheByOutcomeById handle = std::any_cast<ccxt::ws::ArrayCacheByOutcomeById> (v);
+        return f (handle);
+    }
+    if (v.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
+        ccxt::ws::ArrayCacheBySymbolBySide handle = std::any_cast<ccxt::ws::ArrayCacheBySymbolBySide> (v);
+        return f (handle);
+    }
+    return std::any {};
+}
+
+} // namespace
+
+std::any wsStore (const std::any& side, const std::any& price, const std::any& size) {
+    if (side.type () == typeid (ccxt::ws::OrderBookSide)) {
+        ccxt::ws::OrderBookSide handle = std::any_cast<ccxt::ws::OrderBookSide> (side);
+        handle.store (price, size);
+    }
+    return side;
+}
+
+std::any wsStoreArray (const std::any& side, const std::any& delta) {
+    if (side.type () == typeid (ccxt::ws::OrderBookSide)) {
+        ccxt::ws::OrderBookSide handle = std::any_cast<ccxt::ws::OrderBookSide> (side);
+        handle.storeArray (delta);
+    }
+    return side;
+}
+
+std::any wsLimit (const std::any& bookOrSide) {
+    if (bookOrSide.type () == typeid (ccxt::ws::WsOrderBook)) {
+        ccxt::ws::WsOrderBook handle = std::any_cast<ccxt::ws::WsOrderBook> (bookOrSide);
+        handle.limit ();
+    } else if (bookOrSide.type () == typeid (ccxt::ws::OrderBookSide)) {
+        ccxt::ws::OrderBookSide handle = std::any_cast<ccxt::ws::OrderBookSide> (bookOrSide);
+        handle.limit ();
+    }
+    return bookOrSide;
+}
+
+std::any wsAppend (const std::any& cache, const std::any& item) {
+    dispatchCache (cache, [&] (auto& handle) -> std::any {
+        handle.append (item);
+        return std::any {};
+    });
+    return cache;
+}
+
+std::any wsGetLimit (const std::any& cache, const std::any& symbol, const std::any& limit) {
+    return dispatchCache (cache, [&] (auto& handle) -> std::any {
+        return handle.getLimit (symbol, limit);
+    });
+}
+
+std::any wsClear (const std::any& cache) {
+    dispatchCache (cache, [] (auto& handle) -> std::any {
+        handle.clear ();
+        return std::any {};
+    });
+    return cache;
+}
+
+std::any wsToPlain (const std::any& v) {
+    if (v.type () == typeid (ccxt::ws::WsOrderBook)) {
+        // the enumerable-props shape the JS test equals iterates: bids/asks rows plus
+        // the scalar fields (cache stays invisible, as in JS)
+        return std::any_cast<const ccxt::ws::WsOrderBook&> (v).toDict ();
+    }
+    if (v.type () == typeid (ccxt::ws::OrderBookSide)) {
+        return std::any (std::any_cast<const ccxt::ws::OrderBookSide&> (v).rows ());
+    }
+    const std::any asRows = dispatchCache (v, [] (auto& handle) -> std::any {
+        return std::any (handle.rows ());
+    });
+    return asRows.has_value () ? asRows : v;
+}

@@ -1,5 +1,7 @@
 #include "ExchangeBase.h"
 #include "Starknet.h"
+#include "ws/Cache.h"
+#include "ws/OrderBook.h"
 
 #include <curl/curl.h>
 
@@ -1251,7 +1253,15 @@ std::any ExchangeBase::initThrottler () { return std::any {}; }
 std::any ExchangeBase::addFetchCache (std::any, std::any) { return std::any {}; }
 std::any ExchangeBase::setLastRequest (std::any) { return std::any {}; }
 std::any ExchangeBase::setLastRestRequestTimestamp (std::any) { return std::any {}; }
-std::any ExchangeBase::storeArray (std::any target, std::any) { return target; }
+std::any ExchangeBase::storeArray (std::any target, std::any value) {
+    // ws order book sides: store the delta (shared store, mutation propagates);
+    // the transpiler rewrites `side.storeArray (delta)` to `this->storeArray (side, delta)`
+    if (target.type () == typeid (ccxt::ws::OrderBookSide)) {
+        ccxt::ws::OrderBookSide side = std::any_cast<ccxt::ws::OrderBookSide> (target);
+        side.storeArray (value);
+    }
+    return target;
+}
 std::any ExchangeBase::resolve (std::any value, std::any) { return value; }
 std::any ExchangeBase::reject (std::any value, std::any) { return value; }
 
@@ -2989,8 +2999,16 @@ std::any ExchangeBase::aggregate (std::any bidasks) {
     return std::any (out);
 }
 
-std::any ExchangeBase::orderBook (std::any snapshot, std::any) {
-    return snapshot.has_value () ? snapshot : std::any (dict {});
+std::any ExchangeBase::orderBook (std::any snapshot, std::any depth) {
+    return std::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::plain));
+}
+
+std::any ExchangeBase::indexedOrderBook (std::any snapshot, std::any depth) {
+    return std::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::indexed));
+}
+
+std::any ExchangeBase::countedOrderBook (std::any snapshot, std::any depth) {
+    return std::any (ccxt::ws::WsOrderBook (snapshot, depth, ccxt::ws::OrderBookSide::Mode::counted));
 }
 
 std::any ExchangeBase::totp (std::any) {

@@ -32,6 +32,7 @@ add_library (ccxt STATIC
     ccxt/base/Crypto.cpp
     ccxt/base/Starknet.cpp
     ccxt/base/Number.cpp
+    ccxt/base/ws/Ws.cpp
     ccxt/exchanges/ExchangeFactory.cpp
 )
 

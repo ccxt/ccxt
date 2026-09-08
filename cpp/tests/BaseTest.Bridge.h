@@ -8,6 +8,8 @@
 // scope here. This is the C++ counterpart of cs/tests/BaseTest.Bridge.cs.
 
 #include "../ccxt/base/Exchange.h"
+#include "../ccxt/base/ws/Cache.h"
+#include "../ccxt/base/ws/OrderBook.h"
 
 #include <any>
 #include <future>
@@ -25,7 +27,11 @@
 // Semantics follow cs/tests/BaseTest.Bridge.cs: recursive over lists and dicts, and
 // asymmetric for dicts -- extra keys in `b` are allowed, matching the TS comment
 // "does not check if b has more properties than a".
-inline bool equals (const std::any& a, const std::any& b) {
+inline bool equals (const std::any& rawA, const std::any& rawB) {
+    // ws values (books, sides, caches) compare through their plain dict/list shape,
+    // exactly as the JS equals iterates their enumerable props
+    const std::any a = ::wsToPlain (rawA);
+    const std::any b = ::wsToPlain (rawB);
     if (ccxt::isList (a)) {
         if (!ccxt::isList (b)) {
             return false;
